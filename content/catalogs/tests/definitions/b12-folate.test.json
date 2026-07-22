@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.lab.b12-folate",
+  "actionId": "info.labs.b12-folate",
+  "label": "Vitamin B12 and folate",
+  "category": "laboratory",
+  "contextInputs": ["age_years", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "numeric_panel",
+    "profiles": [
+      {
+        "id": "test-profile.b12-folate.adult-general",
+        "priority": 0,
+        "when": { "anyDiagnosisIds": [], "allClinicalTagIds": [] },
+        "referenceIntervalSetId": "reference-interval.prototype-adult-general",
+        "referenceIntervalLabel": "Adult reference interval · prototype reporting laboratory",
+        "incidentalAbnormalProbability": 0.06,
+        "components": [
+          {
+            "id": "lab-component.vitamin-b12",
+            "label": "Vitamin B12",
+            "unit": "pg/mL",
+            "ucumCode": "pg/mL",
+            "decimals": 0,
+            "referenceRange": { "minimum": 200, "maximum": 900 },
+            "normalGenerationRange": { "minimum": 300, "maximum": 700 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 170, "maximum": 199, "weight": 1 },
+              { "flag": "high", "minimum": 901, "maximum": 1020, "weight": 0.25 }
+            ]
+          },
+          {
+            "id": "lab-component.folate",
+            "label": "Folate",
+            "unit": "ng/mL",
+            "ucumCode": "ng/mL",
+            "decimals": 1,
+            "referenceRange": { "minimum": 4, "maximum": 20 },
+            "normalGenerationRange": { "minimum": 6, "maximum": 15 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 3.2, "maximum": 3.9, "weight": 1 },
+              { "flag": "high", "minimum": 20.1, "maximum": 23, "weight": 0.25 }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+
+# Local save/export material
+*.psychsim-save.json
+*.review-bundle.json
+content/generated/*
+!content/generated/.gitkeep
+
+# Source documents and derived text are private, local-only authoring inputs.
+content/source-docs/inbox/*
+content/source-docs/processed/*
+content/source-docs/archive/*
+content/source-docs/quarantine/*
+content/source-docs/extracted/*
+content/source-docs/manifests/*
+!content/source-docs/inbox/.gitkeep
+!content/source-docs/processed/.gitkeep
+!content/source-docs/archive/.gitkeep
+!content/source-docs/quarantine/.gitkeep
+!content/source-docs/extracted/.gitkeep
+!content/source-docs/manifests/.gitkeep

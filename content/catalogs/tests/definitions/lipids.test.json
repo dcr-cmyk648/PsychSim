@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.lab.lipids",
+  "actionId": "info.labs.lipids",
+  "label": "Lipid panel",
+  "category": "laboratory",
+  "contextInputs": ["age_years", "sex_for_reference", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "numeric_panel",
+    "profiles": [
+      {
+        "id": "test-profile.lipids.adult-general",
+        "priority": 0,
+        "when": { "anyDiagnosisIds": [], "allClinicalTagIds": [] },
+        "referenceIntervalSetId": "reference-interval.prototype-adult-general",
+        "referenceIntervalLabel": "Adult reference interval · prototype reporting laboratory",
+        "incidentalAbnormalProbability": 0.18,
+        "components": [
+          {
+            "id": "lab-component.ldl",
+            "label": "LDL cholesterol",
+            "unit": "mg/dL",
+            "ucumCode": "mg/dL",
+            "decimals": 0,
+            "referenceRange": { "minimum": 0, "maximum": 100 },
+            "normalGenerationRange": { "minimum": 55, "maximum": 95 },
+            "mildAbnormalRanges": [{ "flag": "high", "minimum": 101, "maximum": 120, "weight": 1 }]
+          },
+          {
+            "id": "lab-component.hdl",
+            "label": "HDL cholesterol",
+            "unit": "mg/dL",
+            "ucumCode": "mg/dL",
+            "decimals": 0,
+            "referenceRange": { "minimum": 40, "maximum": 100 },
+            "normalGenerationRange": { "minimum": 45, "maximum": 75 },
+            "mildAbnormalRanges": [{ "flag": "low", "minimum": 35, "maximum": 39, "weight": 1 }]
+          },
+          {
+            "id": "lab-component.triglycerides",
+            "label": "Triglycerides",
+            "unit": "mg/dL",
+            "ucumCode": "mg/dL",
+            "decimals": 0,
+            "referenceRange": { "minimum": 0, "maximum": 150 },
+            "normalGenerationRange": { "minimum": 55, "maximum": 135 },
+            "mildAbnormalRanges": [{ "flag": "high", "minimum": 151, "maximum": 180, "weight": 1 }]
+          }
+        ]
+      }
+    ]
+  }
+}

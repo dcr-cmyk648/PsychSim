@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "requestVersion": 1,
+  "id": "patient-scaffold.example-basic-mdd",
+  "blueprintId": "case.review.basic-mdd-scaffold",
+  "templateBlueprintId": "case.first-visit-depression",
+  "internalTitle": "Basic MDD scaffold for developer review",
+  "sourceUses": [],
+  "chiefComplaintChoices": [
+    "Low mood",
+    "Loss of interest",
+    "No motivation",
+    "Always tired",
+    "Cannot focus",
+    "Feeling empty",
+    "No energy",
+    "Sleeping poorly",
+    "Hard to function",
+    "Not feeling like myself",
+    "Nothing feels enjoyable",
+    "Trouble getting started"
+  ],
+  "ageRange": {
+    "minimum": 24,
+    "maximum": 48
+  },
+  "createdBy": "human"
+}

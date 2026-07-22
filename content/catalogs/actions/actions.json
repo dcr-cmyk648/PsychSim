@@ -1,0 +1,362 @@
+[
+  {
+    "id": "info.history.presenting-problem",
+    "label": "Presenting problem and timeline",
+    "category": "history",
+    "description": "Clarify the concern, onset, course, triggers, and functional impact.",
+    "serviceId": "service.history.timeline",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.depressive-symptoms",
+    "label": "Depressive symptoms",
+    "category": "history",
+    "description": "Review mood, interest, energy, concentration, appetite, guilt, and psychomotor change.",
+    "serviceId": "service.history.standard",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.anxiety-symptoms",
+    "label": "Anxiety symptoms",
+    "category": "history",
+    "description": "Review worry, panic, avoidance, somatic anxiety, and situational triggers.",
+    "serviceId": "service.history.standard",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.mania",
+    "label": "Manic and hypomanic symptoms",
+    "category": "history",
+    "description": "Review mood elevation, irritability, sleep need, speech, activity, and impulsivity.",
+    "serviceId": "service.history.mania-screen",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.psychosis",
+    "label": "Psychotic symptoms",
+    "category": "history",
+    "description": "Review hallucinations, delusional ideas, paranoia, and thought disorganization.",
+    "serviceId": "service.history.psychosis-screen",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.suicide-safety",
+    "label": "Suicide and self-harm assessment",
+    "category": "history",
+    "description": "Assess ideation, intent, planning, behavior, protective factors, and access to means.",
+    "serviceId": "service.history.safety-screen",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.violence-risk",
+    "label": "Violence risk assessment",
+    "category": "history",
+    "description": "Assess violent ideation, intent, recent behavior, access to weapons, and protective factors.",
+    "serviceId": "service.history.standard",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.medication-reconciliation",
+    "label": "Medication reconciliation",
+    "category": "history",
+    "description": "Verify current prescriptions, nonprescription products, timing, prescribers, and changes.",
+    "serviceId": "service.history.medication-reconciliation",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.adherence",
+    "label": "Medication adherence",
+    "category": "history",
+    "description": "Review missed doses, interruptions, double doses, access, and administration routine.",
+    "serviceId": "service.history.adherence",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.prior-trials",
+    "label": "Prior medication trials",
+    "category": "history",
+    "description": "Review prior medications, response, tolerability, duration, and reason for stopping.",
+    "serviceId": "service.history.prior-trials",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.medication-effects",
+    "label": "Medication effects and adverse effects",
+    "category": "history",
+    "description": "Review perceived benefit, new symptoms, adverse effects, and their timing.",
+    "serviceId": "service.history.adverse-effects",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.substance-use",
+    "label": "Substance use history",
+    "category": "history",
+    "description": "Review alcohol, nicotine, cannabis, stimulants, opioids, sedatives, caffeine, and withdrawal.",
+    "serviceId": "service.history.substance-use",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.sleep",
+    "label": "Sleep history",
+    "category": "history",
+    "description": "Review schedule, duration, sleep need, insomnia, daytime sleepiness, and sleep-related symptoms.",
+    "serviceId": "service.history.standard",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.family-psychiatric",
+    "label": "Family psychiatric history",
+    "category": "history",
+    "description": "Review psychiatric illness, substance use, suicide, treatment response, and relevant medical history in relatives.",
+    "serviceId": "service.history.standard",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.trauma",
+    "label": "Trauma history",
+    "category": "history",
+    "description": "Review potentially traumatic experiences and current trauma-related symptoms when appropriate.",
+    "serviceId": "service.history.standard",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.collateral",
+    "label": "Collateral interview",
+    "category": "history",
+    "description": "Obtain observations from an available support person with appropriate permission.",
+    "serviceId": "service.history.collateral",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "collateral_report"
+  },
+  {
+    "id": "info.history.outside-records",
+    "label": "Outside records",
+    "category": "history",
+    "description": "Request relevant prior notes, medication lists, test results, and discharge records.",
+    "serviceId": "service.records.outside-note",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "record_review"
+  },
+  {
+    "id": "info.physical.mental-status",
+    "label": "Mental status examination",
+    "category": "physical",
+    "description": "Assess appearance, behavior, speech, mood, affect, thought, perception, cognition, insight, and judgment.",
+    "serviceId": "service.exam.office",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "clinician_observation"
+  },
+  {
+    "id": "info.physical.general",
+    "label": "General physical examination",
+    "category": "physical",
+    "description": "Perform a general medical examination relevant to the presentation.",
+    "serviceId": "service.exam.extended",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "clinician_observation"
+  },
+  {
+    "id": "info.physical.neurologic",
+    "label": "Neurologic examination",
+    "category": "physical",
+    "description": "Assess cranial nerves, motor function, sensation, coordination, reflexes, and gait.",
+    "serviceId": "service.exam.extended",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "clinician_observation"
+  },
+  {
+    "id": "info.physical.movement",
+    "label": "Movement examination",
+    "category": "physical",
+    "description": "Observe gait, tremor, rigidity, involuntary movement, restlessness, and ability to remain seated.",
+    "serviceId": "service.exam.office",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "clinician_observation"
+  },
+  {
+    "id": "info.physical.orthostatic-vitals",
+    "label": "Orthostatic vital signs",
+    "category": "physical",
+    "description": "Measure blood pressure and pulse after position changes and ask about symptoms.",
+    "serviceId": "service.exam.orthostatic-vitals",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "measurement"
+  },
+  {
+    "id": "info.labs.cbc",
+    "label": "Complete blood count",
+    "category": "labs",
+    "description": "Obtain hemoglobin, hematocrit, white-cell indices, and platelets.",
+    "serviceId": "service.lab.routine",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.cmp",
+    "label": "Comprehensive metabolic panel",
+    "category": "labs",
+    "description": "Obtain electrolytes, glucose, kidney markers, calcium, proteins, and liver-associated tests.",
+    "serviceId": "service.lab.metabolic",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.tsh",
+    "label": "Thyroid-stimulating hormone",
+    "category": "labs",
+    "description": "Measure thyroid-stimulating hormone.",
+    "serviceId": "service.lab.tsh",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.b12-folate",
+    "label": "Vitamin B12 and folate",
+    "category": "labs",
+    "description": "Measure vitamin B12 and folate status.",
+    "serviceId": "service.lab.routine",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.a1c",
+    "label": "Hemoglobin A1c",
+    "category": "labs",
+    "description": "Measure longer-term glycemic status.",
+    "serviceId": "service.lab.metabolic",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.lipids",
+    "label": "Lipid panel",
+    "category": "labs",
+    "description": "Measure total cholesterol, LDL, HDL, and triglycerides.",
+    "serviceId": "service.lab.metabolic",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.pregnancy",
+    "label": "Pregnancy test",
+    "category": "labs",
+    "description": "Obtain pregnancy testing when clinically relevant to evaluation or treatment selection.",
+    "serviceId": "service.lab.routine",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.urine-toxicology",
+    "label": "Urine toxicology",
+    "category": "labs",
+    "description": "Obtain the available urine toxicology panel.",
+    "serviceId": "service.lab.urine-toxicology",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.medication-level",
+    "label": "Therapeutic medication level",
+    "category": "labs",
+    "description": "Obtain a serum medication concentration for an applicable monitored medication.",
+    "serviceId": "service.lab.medication-level",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.labs.pharmacogenomics",
+    "label": "Pharmacogenomic panel",
+    "category": "labs",
+    "description": "Obtain the clinic's available pharmacogenomic medication panel.",
+    "serviceId": "service.lab.pharmacogenomics",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "laboratory"
+  },
+  {
+    "id": "info.imaging.ecg",
+    "label": "12-lead ECG",
+    "category": "imaging",
+    "description": "Obtain a standard 12-lead electrocardiogram.",
+    "serviceId": "service.diagnostic.ecg",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "diagnostic_study"
+  },
+  {
+    "id": "info.imaging.head-ct",
+    "label": "Head CT",
+    "category": "imaging",
+    "description": "Obtain noncontrast computed tomography of the head.",
+    "serviceId": "service.diagnostic.head-ct",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "diagnostic_study"
+  },
+  {
+    "id": "info.imaging.brain-mri",
+    "label": "Brain MRI",
+    "category": "imaging",
+    "description": "Obtain magnetic resonance imaging of the brain.",
+    "serviceId": "service.diagnostic.brain-mri",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "diagnostic_study"
+  },
+  {
+    "id": "info.imaging.eeg",
+    "label": "EEG",
+    "category": "imaging",
+    "description": "Obtain a routine electroencephalogram.",
+    "serviceId": "service.diagnostic.eeg",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "diagnostic_study"
+  }
+]

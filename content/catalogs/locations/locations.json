@@ -1,0 +1,58 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "location.solo-office.outpatient",
+    "label": "Solo Office · Outpatient Room",
+    "facilityTier": "solo_office",
+    "capabilities": [
+      "history.basic",
+      "medication-review.basic",
+      "mental-status.basic",
+      "vitals.basic",
+      "counseling.basic",
+      "disposition.outpatient",
+      "disposition.external-referral",
+      "disposition.emergency-transfer"
+    ],
+    "formularyId": "formulary.starter",
+    "dispositionIds": [
+      "disposition.outpatient-followup",
+      "disposition.urgent-medical-evaluation",
+      "disposition.emergency-transfer"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "location.endgame.outpatient",
+    "label": "Behavioral-Health System · Outpatient Psychiatry",
+    "facilityTier": "behavioral_health_system",
+    "capabilities": [
+      "history.basic",
+      "medication-review.basic",
+      "mental-status.basic",
+      "vitals.basic",
+      "exam.medical",
+      "counseling.basic",
+      "disposition.outpatient",
+      "disposition.external-referral",
+      "disposition.emergency-transfer",
+      "partner.ecg",
+      "partner.imaging",
+      "equipment.ecg",
+      "equipment.lab-core",
+      "equipment.lab-levels",
+      "equipment.toxicology",
+      "equipment.ct",
+      "equipment.mri",
+      "equipment.eeg"
+    ],
+    "formularyId": "formulary.endgame",
+    "dispositionIds": [
+      "disposition.outpatient-followup",
+      "disposition.urgent-medical-evaluation",
+      "disposition.emergency-transfer"
+    ]
+  }
+]

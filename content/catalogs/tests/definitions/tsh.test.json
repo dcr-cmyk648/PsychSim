@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.lab.tsh",
+  "actionId": "info.labs.tsh",
+  "label": "Thyroid-stimulating hormone",
+  "category": "laboratory",
+  "contextInputs": ["age_years", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "numeric_panel",
+    "profiles": [
+      {
+        "id": "test-profile.tsh.adult-general",
+        "priority": 0,
+        "when": { "anyDiagnosisIds": [], "allClinicalTagIds": [] },
+        "referenceIntervalSetId": "reference-interval.prototype-adult-general",
+        "referenceIntervalLabel": "Adult reference interval · prototype reporting laboratory",
+        "incidentalAbnormalProbability": 0.06,
+        "components": [
+          {
+            "id": "lab-component.tsh",
+            "label": "TSH",
+            "unit": "mIU/L",
+            "ucumCode": "m[IU]/L",
+            "decimals": 2,
+            "referenceRange": { "minimum": 0.4, "maximum": 4.5 },
+            "normalGenerationRange": { "minimum": 0.8, "maximum": 3.8 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 0.25, "maximum": 0.39, "weight": 1 },
+              { "flag": "high", "minimum": 4.51, "maximum": 5.2, "weight": 1 }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

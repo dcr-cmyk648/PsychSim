@@ -1,0 +1,35 @@
+# Runtime content contract
+
+`content/registry.json` is the durable map of runtime content IDs to files, categories, and stable dependencies. Keep it in sync when a patient, medication, or shared catalog is added, moved, or removed. The validator rejects duplicate paths, broken dependency edges, missing registered runtime patients or medications, stale runtime entries, and paths that no longer exist.
+
+## Ownership
+
+- `catalogs/actions/actions.json` owns the universal investigation menu: neutral labels, descriptions, SOAP boundary, result source, service ID, and repeatability. It must not contain case hints.
+- `catalogs/services/services.json` owns fulfillment methods and operating costs. Whether a result is clinically useful remains patient-specific.
+- `catalogs/upgrades/upgrades.json` owns voluntary purchase cost, declarative gates, granted capabilities/formularies, related services, per-use economics, and unlock labels.
+- `catalogs/treatments/treatments.json` owns reusable psychotherapy, behavioral, education, coping, sleep, and disposition choices.
+- `catalogs/medications/definitions/*.medication.json` gives each medication a stable file for class/tags and future medically reviewed fit modifiers or author overrides.
+- `catalogs/medications/formularies.json` owns baseline and additive medication-ID sets. A formulary purchase grants an additional set; it never edits a patient file.
+- `catalogs/demographics/variant-pools.json` owns curated nonclinical values such as fictional names, occupations, education, and locations.
+- One file under `catalogs/tests/definitions/` owns each test's context profiles, UCUM units, reference intervals, normal-generation ranges, display precision, incidental-flag probability, and tightly bounded mild abnormal ranges.
+- `catalogs/tests/reference-interval-sets.json` owns the reporting convention, unit convention, jurisdiction, range-authority status, policy sources, and review state referenced by those profiles.
+- Each file under `cases/<lifecycle>/` is one patient blueprint. It owns hidden diagnoses, clinical tags, structured observations/labs, every case-specific investigation result, authored pathways, references/source-use notes, scoring, and reviewed variation policy.
+- `cases/blueprints/*.json` may contain local `PatientScaffoldRequest` inputs. `pnpm content:draft <request>` verifies any cited local source/chunk IDs and emits one medically unreviewed `cases/review/*.case.json` plus blocking `*.tickets.json`; it never overwrites the template or infers a clinical rule from prose.
+
+## Player-visible neutrality
+
+Before the chart opens, show only the resolved fictional patient name and brief chief complaint. Do not surface filenames, metadata titles, diagnosis categories, difficulty interpretations, solution descriptions, or prose such as “straightforward case.” During the encounter, present only reportable Subjective or Objective information. Assessment, plan, scoring classifications, and rationales belong after submission.
+
+## Updating knowledge
+
+Patient files prefer one broad primary pathway using medication tags/counts so a reviewed catalog addition can be discovered by validation and future scoring tools. Medication-specific grades and fit modifiers refine that family; additional authored paths and safety fallbacks remain explicit. A combination outside those authored pathways must be labeled as engine-inferred in the receipt; it is not silently promoted to reviewed content. New articles first produce source claims and impact tickets with explicit target and affected IDs; they never rewrite every tagged case during ingestion.
+
+Medication rules, workup objectives, pathway requirements, scoring rules, and test-generation profiles carry their own review metadata. The current prototype rules remain medically unreviewed. The bupropion and mirtazapine files preserve human-authored prototype modifiers separately so later automated refreshes cannot overwrite them.
+
+## Variation safety
+
+Curated shared pools reduce phrase and demographic fingerprinting. Only declared noncritical fields vary. Unspecified numeric lab panels may generate deterministic values from reviewed test definitions. Ordinary values remain inside a narrower normal range; at most one component per panel may use an explicitly bounded mild flag range according to that panel's probability. These observations are marked noncritical and non-case-defining. Anything capable of changing the workup, safety rules, treatment paths, scoring, or disposition requires an explicit reviewed patient variant.
+
+## Local source intake
+
+Place only appropriate non-PHI PDF, DOCX, TXT, or Markdown files in `source-docs/inbox/`. `pnpm content:scan` hashes and records them; `pnpm content:extract` creates private document/chunk artifacts and retains originals; `pnpm content:review` lists extracted sources and playable review patients. All raw, processed, extracted, quarantined, manifest, and generated provenance data is gitignored and excluded from the web bundle. Document text is untrusted input and cannot execute or directly change clinical content.

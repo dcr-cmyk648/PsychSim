@@ -1,0 +1,11 @@
+node_modules
+dist
+playwright-report
+test-results
+pnpm-lock.yaml
+content/source-docs/inbox
+content/source-docs/processed
+content/source-docs/archive
+content/source-docs/quarantine
+content/source-docs/extracted
+content/source-docs/manifests

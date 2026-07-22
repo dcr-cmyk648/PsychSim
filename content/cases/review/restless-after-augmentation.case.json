@@ -1,0 +1,1989 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2.0.0",
+  "id": "case.restless-after-augmentation",
+  "metadata": {
+    "title": "Restless After Augmentation",
+    "fictional": true,
+    "synthetic": true,
+    "medicalReviewStatus": "unreviewed",
+    "lifecycle": "review",
+    "prototype": true,
+    "disclaimer": "Fictional, synthetic, medically unreviewed prototype content; not authoritative treatment guidance.",
+    "difficultyTier": 1,
+    "minimumLifetimePoints": 0,
+    "tags": ["psychopharmacology", "adverse-effect", "interaction", "starter"],
+    "compatibleLocationIds": ["location.endgame.outpatient"],
+    "sourceDocumentIds": []
+  },
+  "patientRecord": {
+    "schemaVersion": 1,
+    "id": "patient-record.medication-restlessness-001",
+    "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+    "diagnoses": [
+      {
+        "id": "diagnosis.medication-induced-akathisia",
+        "role": "primary",
+        "tagIds": ["diagnosis-tag.medication-induced", "diagnosis-tag.movement"]
+      },
+      {
+        "id": "diagnosis.bipolar-spectrum-disorder",
+        "role": "excluded",
+        "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+      }
+    ],
+    "clinicalTagIds": [
+      "symptom.inner-restlessness",
+      "symptom.pacing",
+      "medication-context.cyp2d6-inhibition",
+      "safety.no-current-intent"
+    ],
+    "observations": [
+      {
+        "id": "observation.restlessness-orthostatics",
+        "actionId": "info.physical.orthostatic-vitals",
+        "dataType": "categorical",
+        "value": "stable without reported dizziness",
+        "flag": "normal",
+        "clinicallyCritical": true,
+        "label": "Orthostatic vital signs"
+      },
+      {
+        "id": "observation.restlessness-tsh",
+        "actionId": "info.labs.tsh",
+        "dataType": "scalar",
+        "value": 1.8,
+        "displayValue": "1.80",
+        "unit": "mIU/L",
+        "ucumCode": "m[IU]/L",
+        "referenceInterval": {
+          "low": 0.4,
+          "high": 4.5,
+          "unit": "mIU/L",
+          "ucumCode": "m[IU]/L",
+          "display": "0.40–4.50 mIU/L",
+          "applicablePopulation": "Adult reference interval · prototype reporting laboratory",
+          "sourceId": "reference-interval.prototype-adult-general"
+        },
+        "flag": "normal",
+        "clinicallyCritical": false,
+        "label": "TSH"
+      },
+      {
+        "id": "observation.restlessness-toxicology",
+        "actionId": "info.labs.urine-toxicology",
+        "dataType": "panel",
+        "value": "negative for tested substances",
+        "flag": "negative",
+        "clinicallyCritical": false,
+        "label": "Urine toxicology panel"
+      }
+    ],
+    "sourceUseNotes": [],
+    "treatmentReference": {
+      "id": "treatment-reference.medication-restlessness-001",
+      "primaryAuthoredPathwayId": "path.optimal-observation",
+      "additionalAuthoredPathwayIds": ["path.strong-symptomatic"],
+      "safetyFallbackPathwayIds": ["path.acceptable-referral"],
+      "acceptedMedicationTagSets": [
+        {
+          "id": "medication-tag-set.akathisia-symptomatic",
+          "allOfTagIds": ["symptomatic-akathisia-option"],
+          "baselineGrade": "strong_alternative"
+        }
+      ],
+      "alternativeEvaluation": "engine_with_notice"
+    },
+    "generationPolicy": {
+      "unspecifiedNoncriticalFacts": "reviewed_normal_values",
+      "incidentalAbnormalities": "bounded_by_test_catalog",
+      "minimumPresentationVariants": 100
+    },
+    "testGenerationContext": {
+      "ageYearsVariantTarget": "patient.age",
+      "sexForReference": "unspecified"
+    }
+  },
+  "criticalFacts": {
+    "presentingMechanism": "medication-associated akathisia pattern",
+    "contributingMedicationId": "medication.aripiprazole",
+    "interactingMedicationId": "medication.fluoxetine",
+    "dangerousMedicationId": "medication.haloperidol",
+    "suicideRisk": "no acute intent disclosed in this fictional case",
+    "maniaScreen": "negative",
+    "medicalReviewStatus": "unreviewed"
+  },
+  "opening": {
+    "titleTemplate": "{{patient.name}}",
+    "chiefComplaintTemplate": "{{patient.chiefComplaint}}",
+    "summaryTemplate": "{{patient.age}} years old · {{patient.occupation}}",
+    "contextTemplate": "Same-day outpatient visit",
+    "knownMedicationIds": ["medication.fluoxetine", "medication.aripiprazole"],
+    "knownHistory": [],
+    "basicVitals": [
+      "Blood pressure 118/74",
+      "Pulse 78",
+      "Temperature 98.4°F",
+      "Oxygen saturation 99%"
+    ]
+  },
+  "variants": [
+    {
+      "id": "variant.patient-name",
+      "target": "patient.name",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "catalogChoice",
+        "poolId": "variant-pool.fictional-names.general-adult"
+      }
+    },
+    {
+      "id": "variant.patient-age",
+      "target": "patient.age",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "integerRange",
+        "min": 29,
+        "max": 34
+      }
+    },
+    {
+      "id": "variant.patient-occupation",
+      "target": "patient.occupation",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "catalogChoice",
+        "poolId": "variant-pool.occupations.general-adult"
+      }
+    },
+    {
+      "id": "variant.commute-minutes",
+      "target": "patient.commuteMinutes",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "integerRange",
+        "min": 12,
+        "max": 28
+      }
+    },
+    {
+      "id": "variant.restlessness-chief-complaint",
+      "target": "patient.chiefComplaint",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "choice",
+        "values": [
+          "Cannot sit still",
+          "Constant pacing",
+          "Inner restlessness",
+          "Need to keep moving",
+          "Restless after a medication change",
+          "Unable to stay seated",
+          "New motor restlessness",
+          "Pacing all day"
+        ]
+      }
+    }
+  ],
+  "protectedVariantTargets": [
+    "criticalFacts.presentingMechanism",
+    "criticalFacts.contributingMedicationId",
+    "criticalFacts.interactingMedicationId",
+    "criticalFacts.dangerousMedicationId",
+    "informationActions",
+    "workupObjectives",
+    "treatmentPathways",
+    "scoreRules"
+  ],
+  "informationActions": [
+    {
+      "actionId": "info.history.presenting-problem",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.restlessness.after-medication-change",
+            "labelVariants": ["Onset after medication increase", "Symptoms followed dose increase"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restlessness.pacing",
+            "labelVariants": ["Pacing", "Frequent walking"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restlessness.relief-with-movement",
+            "labelVariants": ["Brief relief with movement", "Improves while walking"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restlessness.preexisting",
+            "labelVariants": ["Present before medication change", "Preexisting restlessness"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.temporal-link", "fact.motor-restlessness"]
+      }
+    },
+    {
+      "actionId": "info.history.medication-reconciliation",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.medication.fluoxetine-established",
+            "labelVariants": ["Fluoxetine already established", "Ongoing fluoxetine"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.medication.aripiprazole-increased",
+            "labelVariants": ["Recent aripiprazole increase", "Aripiprazole recently increased"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.medication.other-new-product",
+            "labelVariants": ["Other newly added product", "Additional new medication"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": [
+          "fact.fluoxetine-current",
+          "fact.aripiprazole-increased",
+          "fact.cyp2d6-interaction-clue"
+        ]
+      }
+    },
+    {
+      "actionId": "info.history.medication-effects",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.restlessness.inner-urge",
+            "labelVariants": ["Internal urge to move", "Inner restlessness"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restlessness.cannot-sit",
+            "labelVariants": ["Difficulty remaining seated", "Unable to sit comfortably"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restlessness.euphoria",
+            "labelVariants": ["Euphoria", "Elevated mood"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.restlessness.fear-rumination",
+            "labelVariants": ["Fear-based rumination", "Anxious rumination"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.akathisia-pattern", "fact.no-rigidity", "fact.no-tremor"]
+      }
+    },
+    {
+      "actionId": "info.history.outside-records",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.records.prior-psychiatric-diagnosis",
+            "labelVariants": ["Prior psychiatric diagnosis", "Documented psychiatric diagnosis"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.records.prior-psychotropic",
+            "labelVariants": [
+              "Prior psychotropic prescription",
+              "Documented psychiatric medication"
+            ],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.records.medication-list-match",
+            "labelVariants": [
+              "Medication list matches patient report",
+              "Records match medication history"
+            ],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.temporal-link", "fact.aripiprazole-increased"]
+      }
+    },
+    {
+      "actionId": "info.history.adherence",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.adherence.daily-regimen",
+            "labelVariants": ["Daily prescription regimen", "Scheduled medication regimen"],
+            "outcome": "not_applicable"
+          },
+          {
+            "id": "finding.adherence.access-barrier",
+            "labelVariants": ["Medication access barrier", "Current access difficulty"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.adherent"]
+      }
+    },
+    {
+      "actionId": "info.history.prior-trials",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.trials.antidepressant",
+            "labelVariants": ["Prior antidepressant trial", "Antidepressant treatment history"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trials.psychotropic",
+            "labelVariants": ["Prior psychiatric medication", "Previous psychotropic trial"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trials.structured-therapy",
+            "labelVariants": ["Prior structured psychotherapy", "Previous course of therapy"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.no-prior-akathisia", "fact.prior-antidepressant-trials"]
+      }
+    },
+    {
+      "actionId": "info.history.mania",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mania.elevated-irritable-mood",
+            "labelVariants": ["Elevated or sustained irritable mood", "Distinct mood elevation"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.decreased-sleep-need",
+            "labelVariants": ["Decreased need for sleep", "Little sleep without fatigue"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.pressured-speech",
+            "labelVariants": ["Pressured speech", "Markedly increased speech"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.grandiosity",
+            "labelVariants": ["Grandiosity", "Inflated self-esteem"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.goal-directed-activity",
+            "labelVariants": ["Increased goal-directed activity", "Unusual activity increase"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.impulsivity",
+            "labelVariants": ["Uncharacteristic impulsivity", "High-risk behavior"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mania-screen-negative"]
+      }
+    },
+    {
+      "actionId": "info.history.psychosis",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.psychosis.hallucinations",
+            "labelVariants": ["Hallucinations", "Perceptual disturbances"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.psychosis.delusions",
+            "labelVariants": ["Fixed false beliefs", "Delusional beliefs"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.psychosis.paranoia",
+            "labelVariants": ["Paranoia", "Persecutory ideas"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.psychosis.disorganization",
+            "labelVariants": ["Thought disorganization", "Disorganized thought"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.psychosis-screen-negative"]
+      }
+    },
+    {
+      "actionId": "info.history.suicide-safety",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.suicide.attempt-history",
+            "labelVariants": ["History of suicide attempts", "Prior suicide attempts"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.preparatory-behavior",
+            "labelVariants": ["Preparatory behavior", "Suicide preparation"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.current-active-ideation",
+            "labelVariants": ["Current active suicidal ideation", "Active suicidal thoughts"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.passive-death-wish",
+            "labelVariants": ["Passive wish for death", "Wish not to wake up"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.suicide.intent",
+            "labelVariants": ["Suicidal intent", "Intent to act"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.plan",
+            "labelVariants": ["Suicide plan", "Specific plan"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.help-seeking-agreement",
+            "labelVariants": [
+              "Agrees to seek help if thoughts intensify",
+              "Will seek help if risk increases"
+            ],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.no-acute-safety-risk", "fact.outpatient-capable"]
+      }
+    },
+    {
+      "actionId": "info.history.substance-use",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.substance.recent-change",
+            "labelVariants": ["Recent substance-use change", "Change in substance use"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.substance.withdrawal",
+            "labelVariants": ["Recent withdrawal symptoms", "Withdrawal pattern"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.substance.nonprescribed-drugs",
+            "labelVariants": ["Nonprescribed drug use", "Recreational drug use"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.substance.occasional-alcohol",
+            "labelVariants": ["Occasional weekend alcohol use", "Infrequent alcohol use"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.substance-history-negative"]
+      }
+    },
+    {
+      "actionId": "info.physical.orthostatic-vitals",
+      "defaultClassification": "appropriate_for_treatment",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.orthostatic.blood-pressure",
+            "labelVariants": ["Orthostatic blood pressure", "Blood pressure after position change"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.orthostatic.pulse",
+            "labelVariants": ["Orthostatic pulse", "Pulse after position change"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.orthostatic.dizziness",
+            "labelVariants": ["Dizziness on standing", "Positional dizziness"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.orthostatic-vitals-stable"]
+      }
+    },
+    {
+      "actionId": "info.labs.tsh",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.tsh.pending-generation",
+            "labelVariants": ["TSH result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-tsh-result"]
+      }
+    },
+    {
+      "actionId": "info.labs.urine-toxicology",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.toxicology.amphetamines",
+            "labelVariants": ["Amphetamines"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.cocaine",
+            "labelVariants": ["Cocaine"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.opioids",
+            "labelVariants": ["Opioids"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.benzodiazepines",
+            "labelVariants": ["Benzodiazepines"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.cannabinoids",
+            "labelVariants": ["Cannabinoids"],
+            "outcome": "negative"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.toxicology-negative"]
+      }
+    },
+    {
+      "actionId": "info.imaging.ecg",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.ecg.rhythm",
+            "labelVariants": ["Rhythm", "Cardiac rhythm"],
+            "outcome": "normal",
+            "valueTextVariants": ["Sinus rhythm"]
+          },
+          {
+            "id": "finding.ecg.intervals",
+            "labelVariants": ["Intervals", "ECG intervals"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.ecg.acute-st-t",
+            "labelVariants": ["Acute ST-T abnormality", "Acute ischemic change"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.ecg-no-relevant-abnormality"]
+      }
+    },
+    {
+      "actionId": "info.imaging.brain-mri",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mri.mass",
+            "labelVariants": ["Intracranial mass", "Mass lesion"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mri.infarct",
+            "labelVariants": ["Acute infarct"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mri.hemorrhage",
+            "labelVariants": ["Hemorrhage"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mri.enhancement",
+            "labelVariants": ["Abnormal enhancement"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mri-no-relevant-abnormality"]
+      }
+    },
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.depressive.depressed-mood",
+            "labelVariants": ["Depressed mood", "Low mood", "Feeling down"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.anhedonia",
+            "labelVariants": ["Loss of interest", "Reduced enjoyment", "Anhedonia"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.sleep",
+            "labelVariants": ["Insomnia", "Sleep disturbance", "Early waking"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.appetite",
+            "labelVariants": ["Reduced appetite", "Appetite change", "Eating less"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.psychomotor",
+            "labelVariants": ["Psychomotor slowing", "Moving more slowly", "Slowed activity"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.fatigue",
+            "labelVariants": ["Fatigue", "Low energy", "Tiredness"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.guilt",
+            "labelVariants": ["Excessive guilt", "Self-blame", "Feelings of guilt"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.concentration",
+            "labelVariants": ["Poor concentration", "Difficulty focusing", "Reduced concentration"],
+            "outcome": "variable"
+          }
+        ],
+        "selection": {
+          "minimumPresent": 5,
+          "maximumPresent": 7,
+          "requiredPresentIds": [
+            "finding.depressive.depressed-mood",
+            "finding.depressive.anhedonia"
+          ],
+          "requiredAbsentIds": []
+        },
+        "shuffle": true,
+        "factsRevealed": ["fact.depression-improving"]
+      }
+    },
+    {
+      "actionId": "info.history.anxiety-symptoms",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.anxiety.situational-worry",
+            "labelVariants": ["Worry about falling behind", "Situational worry"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.anxiety.panic",
+            "labelVariants": ["Panic attacks", "Unexpected panic"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.anxiety.pervasive-worry",
+            "labelVariants": ["Pervasive worry", "Broad uncontrollable worry"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.primary-anxiety-pattern-absent"]
+      }
+    },
+    {
+      "actionId": "info.history.violence-risk",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.violence.ideation",
+            "labelVariants": ["Violent ideation", "Thoughts of harming others"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.violence.intent",
+            "labelVariants": ["Violent intent", "Intent to harm others"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.violence.recent-behavior",
+            "labelVariants": ["Recent violent behavior", "Recent violence"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.violence.weapon-concern",
+            "labelVariants": ["Weapon-access concern", "Concerning weapon access"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.violence-risk-low"]
+      }
+    },
+    {
+      "actionId": "info.history.sleep",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.sleep.onset-insomnia",
+            "labelVariants": ["Difficulty falling asleep", "Sleep-onset insomnia"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.sleep.early-waking",
+            "labelVariants": ["Early waking", "Waking earlier than intended"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.sleep.daytime-fatigue",
+            "labelVariants": ["Tired after shortened sleep", "Daytime fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.sleep.decreased-need",
+            "labelVariants": ["Decreased need for sleep", "Little sleep without tiredness"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.sleep-disrupted-by-restlessness"]
+      }
+    },
+    {
+      "actionId": "info.history.family-psychiatric",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.family.depression",
+            "labelVariants": [
+              "First-degree relative with depression",
+              "Depression in a close relative"
+            ],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.family.bipolar",
+            "labelVariants": [
+              "Family history of bipolar disorder",
+              "Bipolar disorder in close relatives"
+            ],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.family.suicide",
+            "labelVariants": ["Family history of suicide", "Suicide in close relatives"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.family-history-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.history.trauma",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.trauma.intrusions",
+            "labelVariants": ["Intrusive trauma memories", "Trauma-related intrusions"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trauma.nightmares",
+            "labelVariants": ["Trauma-linked nightmares", "Traumatic nightmares"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trauma.avoidance",
+            "labelVariants": ["Trauma-related avoidance", "Avoidance linked to trauma"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trauma.hypervigilance",
+            "labelVariants": ["Hypervigilance", "Trauma-linked hyperarousal"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.trauma-pattern-absent"]
+      }
+    },
+    {
+      "actionId": "info.history.collateral",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.collateral.decline",
+            "labelVariants": [
+              "Decline in energy and interest confirmed",
+              "Reduced activity confirmed"
+            ],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.collateral.high-energy",
+            "labelVariants": [
+              "Periods of unusually high energy",
+              "Uncharacteristic high-energy periods"
+            ],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.collateral.bizarre-behavior",
+            "labelVariants": ["Bizarre behavior", "Markedly unusual behavior"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.collateral.intoxication",
+            "labelVariants": ["Observed intoxication", "Intoxication concern"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.collateral-confirms-timeline"]
+      }
+    },
+    {
+      "actionId": "info.physical.mental-status",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mse.subdued",
+            "labelVariants": ["Subdued presentation", "Quiet demeanor"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.mse.constricted-affect",
+            "labelVariants": ["Constricted affect", "Reduced affective range"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.mse.linear-thought",
+            "labelVariants": ["Linear thought process", "Organized thought"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.mse.orientation",
+            "labelVariants": ["Orientation", "Awareness of date and location"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.mse.responding-to-stimuli",
+            "labelVariants": [
+              "Behavior suggesting response to unseen stimuli",
+              "Response to internal stimuli"
+            ],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mse-organized", "fact.pacing-observed"]
+      }
+    },
+    {
+      "actionId": "info.physical.general",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.exam.acute-distress",
+            "labelVariants": ["Acute physical distress", "Visible medical distress"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.exam.cardiopulmonary",
+            "labelVariants": ["Cardiopulmonary examination", "Heart and lung examination"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.exam.abdominal",
+            "labelVariants": ["Abdominal examination", "Abdominal findings"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.general-exam-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.physical.neurologic",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.neuro.cranial-nerves",
+            "labelVariants": ["Cranial nerves", "Cranial nerve examination"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.neuro.strength",
+            "labelVariants": ["Strength", "Motor strength"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.neuro.sensation",
+            "labelVariants": ["Sensation", "Sensory examination"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.neuro.coordination",
+            "labelVariants": ["Coordination and gait", "Coordination"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.neurologic-exam-nonfocal"]
+      }
+    },
+    {
+      "actionId": "info.physical.movement",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.restlessness.pacing-observed",
+            "labelVariants": ["Pacing observed", "Repeated walking observed"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restlessness.shifting-observed",
+            "labelVariants": ["Repeated weight shifting", "Motor restlessness observed"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.movement.tremor",
+            "labelVariants": ["Tremor"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.movement.rigidity",
+            "labelVariants": ["Rigidity"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.movement.dystonia",
+            "labelVariants": ["Dystonia"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": [
+          "fact.motor-restlessness",
+          "fact.pacing-observed",
+          "fact.no-rigidity",
+          "fact.no-tremor"
+        ]
+      }
+    },
+    {
+      "actionId": "info.labs.cbc",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.cbc.pending-generation",
+            "labelVariants": ["CBC result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.cbc-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.labs.cmp",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.cmp.pending-generation",
+            "labelVariants": ["CMP result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.cmp-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.labs.b12-folate",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.b12-folate.pending-generation",
+            "labelVariants": ["B12 and folate result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.b12-folate-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.labs.a1c",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.a1c.pending-generation",
+            "labelVariants": ["Hemoglobin A1c result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-a1c-result"]
+      }
+    },
+    {
+      "actionId": "info.labs.lipids",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.lipids.pending-generation",
+            "labelVariants": ["Lipid panel result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.lipids-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.labs.pregnancy",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.pregnancy",
+            "labelVariants": ["Urine pregnancy test", "Pregnancy test"],
+            "outcome": "negative"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.no-pregnancy-constraint"]
+      }
+    },
+    {
+      "actionId": "info.labs.medication-level",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.medication-level-applicable",
+            "labelVariants": ["Applicable monitored medication", "Medication with routine level"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.medication-level-not-actionable"]
+      }
+    },
+    {
+      "actionId": "info.labs.pharmacogenomics",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.pgx.cyp2d6-reduced",
+            "labelVariants": ["Reduced-function CYP2D6 allele", "CYP2D6 reduced function"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.pgx.cyp2c19-reduced",
+            "labelVariants": ["Reduced-function CYP2C19 allele", "CYP2C19 reduced function"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.pharmacogenomics-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.imaging.head-ct",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.ct.hemorrhage",
+            "labelVariants": ["Intracranial hemorrhage", "Acute hemorrhage"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.ct.mass-effect",
+            "labelVariants": ["Mass effect", "Intracranial mass effect"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.ct.hydrocephalus",
+            "labelVariants": ["Hydrocephalus"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.ct.infarct",
+            "labelVariants": ["Acute territorial infarct", "Acute infarct"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.head-ct-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.imaging.eeg",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.eeg.epileptiform",
+            "labelVariants": ["Epileptiform discharge", "Epileptiform activity"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.eeg.focal-slowing",
+            "labelVariants": ["Focal slowing"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.eeg.background",
+            "labelVariants": ["Background activity"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.eeg-noncontributory"]
+      }
+    }
+  ],
+  "workupObjectives": [
+    {
+      "id": "objective.temporal-link",
+      "label": "Establish the medication-to-symptom timeline",
+      "importance": "essential",
+      "requiredByDefault": true,
+      "satisfaction": {
+        "type": "any",
+        "predicates": [
+          {
+            "type": "actionPurchased",
+            "actionId": "info.history.presenting-problem"
+          },
+          {
+            "type": "actionPurchased",
+            "actionId": "info.history.outside-records"
+          }
+        ]
+      },
+      "points": 48,
+      "omissionPenalty": -24,
+      "explanationObtained": "Essential and obtained: the symptom onset is linked to the medication change.",
+      "explanationOmitted": "Critical item omitted: the symptom-to-medication timeline was not established."
+    },
+    {
+      "id": "objective.medication-reconciliation",
+      "label": "Verify the complete medication combination",
+      "importance": "essential",
+      "requiredByDefault": true,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.medication-reconciliation"
+      },
+      "points": 60,
+      "omissionPenalty": -48,
+      "explanationObtained": "Essential and obtained: the CYP-relevant medication combination was verified.",
+      "explanationOmitted": "Critical item omitted: the active medication combination was not reconciled."
+    },
+    {
+      "id": "objective.motor-adverse-effect",
+      "label": "Characterize the motor adverse effect",
+      "importance": "essential",
+      "requiredByDefault": true,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.medication-effects"
+      },
+      "points": 42,
+      "omissionPenalty": -24,
+      "explanationObtained": "Essential and obtained: the inner restlessness pattern was characterized.",
+      "explanationOmitted": "Critical item omitted: medication-associated motor symptoms were not characterized."
+    },
+    {
+      "id": "objective.mania-negative",
+      "label": "Check for manic activation",
+      "importance": "high_yield",
+      "requiredByDefault": false,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.mania"
+      },
+      "points": 30,
+      "omissionPenalty": 0,
+      "explanationObtained": "High-yield and obtained: an appropriate negative mania screen earns full credit.",
+      "explanationOmitted": "A mania screen was not obtained; it was high-yield but not safety-critical here."
+    },
+    {
+      "id": "objective.safety",
+      "label": "Assess acute safety and level of care",
+      "importance": "essential",
+      "requiredByDefault": true,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.suicide-safety"
+      },
+      "points": 30,
+      "omissionPenalty": -30,
+      "explanationObtained": "Essential and obtained: acute safety and outpatient capability were assessed.",
+      "explanationOmitted": "Critical item omitted: acute safety and level of care were not assessed."
+    },
+    {
+      "id": "objective.orthostatic-safety",
+      "label": "Check orthostatic tolerance before propranolol",
+      "importance": "optional",
+      "requiredByDefault": false,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.physical.orthostatic-vitals"
+      },
+      "points": 0,
+      "omissionPenalty": 0,
+      "explanationObtained": "Appropriate for the selected symptomatic treatment.",
+      "explanationOmitted": "Not required unless propranolol is selected."
+    }
+  ],
+  "availableTreatments": {
+    "startMedicationIds": [
+      "medication.propranolol",
+      "medication.buspirone",
+      "medication.haloperidol"
+    ],
+    "stopMedicationIds": ["medication.aripiprazole", "medication.fluoxetine"],
+    "continueMedicationIds": ["medication.fluoxetine", "medication.aripiprazole"],
+    "interventionIds": [
+      "intervention.medication-safety-counseling",
+      "intervention.grounding-strategies"
+    ],
+    "dispositionIds": [
+      "disposition.outpatient-followup",
+      "disposition.urgent-medical-evaluation",
+      "disposition.emergency-transfer"
+    ]
+  },
+  "treatmentGrades": [
+    {
+      "id": "grade.harmful-haloperidol",
+      "label": "Additional dopamine blockade",
+      "grade": "harmful",
+      "priority": 200,
+      "predicate": {
+        "type": "treatmentStarted",
+        "medicationId": "medication.haloperidol"
+      },
+      "explanation": "Harmful: adding haloperidol can worsen the medication-associated motor-restlessness pattern.",
+      "baseCarePoints": 0
+    },
+    {
+      "id": "grade.weak-buspirone",
+      "label": "Treat as primary anxiety",
+      "grade": "weak",
+      "priority": 150,
+      "predicate": {
+        "type": "treatmentStarted",
+        "medicationId": "medication.buspirone"
+      },
+      "explanation": "Weak: buspirone does not promptly address the contributing medication or this adverse-effect pattern.",
+      "baseCarePoints": 40
+    },
+    {
+      "id": "grade.acceptable-referral",
+      "label": "Stop contributor and refer",
+      "grade": "acceptable",
+      "priority": 130,
+      "predicate": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStopped",
+            "medicationId": "medication.aripiprazole"
+          },
+          {
+            "type": "dispositionSelected",
+            "dispositionId": "disposition.urgent-medical-evaluation"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "treatmentStarted",
+              "medicationId": "medication.haloperidol"
+            }
+          }
+        ]
+      },
+      "explanation": "Acceptable: safe referral avoids internal treatment risk, but is less efficient than outpatient management for the presented facts.",
+      "baseCarePoints": 105
+    },
+    {
+      "id": "grade.strong-propranolol",
+      "label": "Stop contributor with symptomatic medication",
+      "grade": "strong_alternative",
+      "priority": 120,
+      "predicate": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStopped",
+            "medicationId": "medication.aripiprazole"
+          },
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.propranolol"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "treatmentStopped",
+              "medicationId": "medication.fluoxetine"
+            }
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "treatmentStarted",
+              "medicationId": "medication.haloperidol"
+            }
+          }
+        ]
+      },
+      "explanation": "Strong alternative: stop the contributor and use a monitored symptomatic option.",
+      "baseCarePoints": 130
+    },
+    {
+      "id": "grade.optimal-stop-only",
+      "label": "Stop contributor without adding medication",
+      "grade": "optimal",
+      "priority": 110,
+      "predicate": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStopped",
+            "medicationId": "medication.aripiprazole"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "treatmentStopped",
+              "medicationId": "medication.fluoxetine"
+            }
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "any",
+              "predicates": [
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.propranolol"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.buspirone"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.haloperidol"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "explanation": "Optimal for this mild, stable prototype presentation: stop the contributing medication and add no new medication.",
+      "baseCarePoints": 150
+    }
+  ],
+  "treatmentPathways": [
+    {
+      "id": "path.optimal-observation",
+      "label": "Remove contributor and monitor",
+      "grade": "optimal",
+      "accepted": true,
+      "priority": 100,
+      "match": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStopped",
+            "medicationId": "medication.aripiprazole"
+          },
+          {
+            "type": "dispositionSelected",
+            "dispositionId": "disposition.outpatient-followup"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "any",
+              "predicates": [
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.propranolol"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.buspirone"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.haloperidol"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "requiredWorkupObjectiveIds": [
+        "objective.temporal-link",
+        "objective.medication-reconciliation",
+        "objective.motor-adverse-effect",
+        "objective.mania-negative",
+        "objective.safety"
+      ],
+      "conditionalRequirements": [],
+      "explanation": "Efficient optimal pathway: establish the pattern, stop aripiprazole, educate, and monitor closely without adding a medication.",
+      "workupCostPar": 110
+    },
+    {
+      "id": "path.strong-symptomatic",
+      "label": "Remove contributor with symptomatic treatment",
+      "grade": "strong_alternative",
+      "accepted": true,
+      "priority": 90,
+      "match": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStopped",
+            "medicationId": "medication.aripiprazole"
+          },
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.propranolol"
+          },
+          {
+            "type": "dispositionSelected",
+            "dispositionId": "disposition.outpatient-followup"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "treatmentStarted",
+              "medicationId": "medication.haloperidol"
+            }
+          }
+        ]
+      },
+      "requiredWorkupObjectiveIds": [
+        "objective.temporal-link",
+        "objective.medication-reconciliation",
+        "objective.motor-adverse-effect",
+        "objective.mania-negative",
+        "objective.safety",
+        "objective.orthostatic-safety"
+      ],
+      "conditionalRequirements": [
+        {
+          "objectiveId": "objective.orthostatic-safety",
+          "pointsIfMet": 20,
+          "pointsIfMissing": -48,
+          "safetyCritical": false,
+          "explanationMet": "Appropriate for your selected treatment: orthostatic tolerance was checked.",
+          "explanationMissing": "The symptomatic-treatment pathway was selected without its path-specific orthostatic check."
+        }
+      ],
+      "explanation": "Strong alternative pathway with a treatment-specific safety check.",
+      "workupCostPar": 120
+    },
+    {
+      "id": "path.acceptable-referral",
+      "label": "Safe external evaluation",
+      "grade": "acceptable",
+      "accepted": true,
+      "priority": 80,
+      "match": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStopped",
+            "medicationId": "medication.aripiprazole"
+          },
+          {
+            "type": "dispositionSelected",
+            "dispositionId": "disposition.urgent-medical-evaluation"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "treatmentStarted",
+              "medicationId": "medication.haloperidol"
+            }
+          }
+        ]
+      },
+      "requiredWorkupObjectiveIds": [
+        "objective.temporal-link",
+        "objective.medication-reconciliation",
+        "objective.motor-adverse-effect",
+        "objective.safety"
+      ],
+      "conditionalRequirements": [],
+      "explanation": "Safe but financially inefficient referral remains available when the player prefers not to manage internally.",
+      "workupCostPar": 85
+    }
+  ],
+  "scoreRules": [
+    {
+      "id": "rule.stop-contributing-aripiprazole",
+      "label": "Stop the contributing medication",
+      "component": "medication_discontinuation",
+      "predicate": {
+        "type": "treatmentStopped",
+        "medicationId": "medication.aripiprazole"
+      },
+      "pointsIfTrue": 75,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "contributing_medication_stopped",
+      "classificationIfFalse": "contributing_medication_not_stopped",
+      "explanationIfTrue": "Existing contributing medication was stopped.",
+      "explanationIfFalse": "Existing contributing medication was not stopped.",
+      "safetyErrorIfFalse": "Aripiprazole, the medication contributing to the presentation, was continued.",
+      "carePointCapIfFalse": 345
+    },
+    {
+      "id": "rule.avoid-dopamine-blockade-combination",
+      "label": "Avoid worsening dopamine blockade",
+      "component": "safety",
+      "predicate": {
+        "type": "not",
+        "predicate": {
+          "type": "all",
+          "predicates": [
+            {
+              "type": "treatmentStarted",
+              "medicationId": "medication.haloperidol"
+            },
+            {
+              "type": "not",
+              "predicate": {
+                "type": "treatmentStopped",
+                "medicationId": "medication.aripiprazole"
+              }
+            }
+          ]
+        }
+      },
+      "pointsIfTrue": 50,
+      "pointsIfFalse": -150,
+      "classificationIfTrue": "safe",
+      "classificationIfFalse": "dangerous_combination",
+      "explanationIfTrue": "No dangerous dopamine-blocking combination was selected.",
+      "explanationIfFalse": "Dangerous combination: haloperidol was added while the contributing antipsychotic was left active.",
+      "safetyErrorIfFalse": "Haloperidol was added while aripiprazole was not stopped.",
+      "carePointCapIfFalse": 175
+    },
+    {
+      "id": "rule.avoid-unnecessary-fluoxetine-stop",
+      "label": "Preserve the otherwise effective antidepressant plan",
+      "component": "medication_selection",
+      "predicate": {
+        "type": "treatmentStopped",
+        "medicationId": "medication.fluoxetine"
+      },
+      "pointsIfTrue": -25,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "weak",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "Fluoxetine was stopped even though the accepted paths remove the recently changed augmentation medication.",
+      "explanationIfFalse": "No unnecessary antidepressant discontinuation was selected."
+    },
+    {
+      "id": "rule.medication-safety-counseling",
+      "label": "Medication safety counseling",
+      "component": "nonmedication",
+      "predicate": {
+        "type": "interventionSelected",
+        "interventionId": "intervention.medication-safety-counseling"
+      },
+      "pointsIfTrue": 25,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "nonmedication",
+      "classificationIfFalse": "nonmedication",
+      "explanationIfTrue": "A focused medication adverse-effect explanation and safety plan were selected.",
+      "explanationIfFalse": "Medication adverse-effect counseling was omitted."
+    },
+    {
+      "id": "rule.grounding-strategies",
+      "label": "Grounding strategies",
+      "component": "nonmedication",
+      "predicate": {
+        "type": "interventionSelected",
+        "interventionId": "intervention.grounding-strategies"
+      },
+      "pointsIfTrue": 10,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "nonmedication",
+      "classificationIfFalse": "nonmedication",
+      "explanationIfTrue": "Grounding strategies may support distress but do not replace medication correction.",
+      "explanationIfFalse": "No optional grounding strategy was selected."
+    },
+    {
+      "id": "rule.outpatient-disposition",
+      "label": "Outpatient disposition",
+      "component": "disposition",
+      "predicate": {
+        "type": "dispositionSelected",
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "pointsIfTrue": 25,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "disposition",
+      "classificationIfFalse": "disposition",
+      "explanationIfTrue": "Close outpatient follow-up fits the revealed stability and safety facts.",
+      "explanationIfFalse": "The efficient outpatient disposition was not selected."
+    },
+    {
+      "id": "rule.urgent-referral-disposition",
+      "label": "Urgent referral disposition",
+      "component": "disposition",
+      "predicate": {
+        "type": "dispositionSelected",
+        "dispositionId": "disposition.urgent-medical-evaluation"
+      },
+      "pointsIfTrue": 20,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "disposition",
+      "classificationIfFalse": "disposition",
+      "explanationIfTrue": "Referral was safe but less efficient than internal outpatient management.",
+      "explanationIfFalse": "Urgent referral was not selected."
+    },
+    {
+      "id": "rule.emergency-transfer-disposition",
+      "label": "Emergency transfer disposition",
+      "component": "disposition",
+      "predicate": {
+        "type": "dispositionSelected",
+        "dispositionId": "disposition.emergency-transfer"
+      },
+      "pointsIfTrue": -100,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "harmful",
+      "classificationIfFalse": "disposition",
+      "explanationIfTrue": "Emergency transfer is a major mismatch for the revealed stable presentation and consumes a much higher level of care without an identified indication.",
+      "explanationIfFalse": "Emergency transfer was not selected.",
+      "carePointCapIfTrue": 295
+    },
+    {
+      "id": "rule.duplicated-timeline-record",
+      "label": "Duplicated timeline evidence",
+      "component": "efficiency",
+      "predicate": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "actionPurchased",
+            "actionId": "info.history.presenting-problem"
+          },
+          {
+            "type": "actionPurchased",
+            "actionId": "info.history.outside-records"
+          }
+        ]
+      },
+      "pointsIfTrue": -5,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "low_value",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "The outside record duplicated an already established timeline.",
+      "explanationIfFalse": "No duplicative timeline purchase was made."
+    },
+    {
+      "id": "rule.unnecessary-orthostatics",
+      "label": "Treatment-specific orthostatics",
+      "component": "efficiency",
+      "predicate": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "actionPurchased",
+            "actionId": "info.physical.orthostatic-vitals"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "treatmentStarted",
+              "medicationId": "medication.propranolol"
+            }
+          }
+        ]
+      },
+      "pointsIfTrue": -5,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "low_value",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "Orthostatic vitals were unnecessary for the treatment actually selected.",
+      "explanationIfFalse": "No treatment-mismatched orthostatic check was charged."
+    },
+    {
+      "id": "rule.low-value-toxicology",
+      "label": "Low-value urine toxicology",
+      "component": "efficiency",
+      "predicate": {
+        "type": "actionPurchased",
+        "actionId": "info.labs.urine-toxicology"
+      },
+      "pointsIfTrue": -15,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "low_value",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "Low-value in this presentation after a coherent history.",
+      "explanationIfFalse": "No low-value toxicology expense was added."
+    },
+    {
+      "id": "rule.low-value-ecg",
+      "label": "Low-value ECG",
+      "component": "efficiency",
+      "predicate": {
+        "type": "actionPurchased",
+        "actionId": "info.imaging.ecg"
+      },
+      "pointsIfTrue": -15,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "low_value",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "The ECG did not support any selected treatment requirement in this case.",
+      "explanationIfFalse": "No low-value ECG expense was added."
+    },
+    {
+      "id": "rule.wasteful-brain-mri",
+      "label": "Wasteful brain MRI",
+      "component": "efficiency",
+      "predicate": {
+        "type": "actionPurchased",
+        "actionId": "info.imaging.brain-mri"
+      },
+      "pointsIfTrue": -40,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "low_value",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "Low-value in this presentation: imaging had no focal clue or effect on the plan.",
+      "explanationIfFalse": "No unnecessary imaging expense was added."
+    }
+  ],
+  "scoring": {
+    "componentPointCaps": {
+      "workup": 175,
+      "medication_selection": 150,
+      "medication_discontinuation": 75,
+      "safety": 50,
+      "nonmedication": 25,
+      "disposition": 25,
+      "efficiency": 0
+    },
+    "databasePlanWorkupCost": 110,
+    "databasePlanCarePoints": 500
+  },
+  "economy": {
+    "baseReimbursement": 900,
+    "complexityBonus": 150,
+    "challengeBonus": 0,
+    "satisfactionMultiplier": 1
+  },
+  "referenceSolutions": [
+    {
+      "id": "reference.efficient-optimal",
+      "label": "Database plan",
+      "kind": "database_plan",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.medication-reconciliation",
+        "info.history.medication-effects",
+        "info.history.mania",
+        "info.history.suicide-safety"
+      ],
+      "selections": {
+        "startMedicationIds": [],
+        "stopMedicationIds": ["medication.aripiprazole"],
+        "continueMedicationIds": ["medication.fluoxetine"],
+        "interventionIds": ["intervention.medication-safety-counseling"],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Obtains the essential and high-yield history, stops the contributor, adds no medication, counsels, and follows closely."
+    },
+    {
+      "id": "reference.strong-alternative",
+      "label": "Strong alternative",
+      "kind": "strong_alternative",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.medication-reconciliation",
+        "info.history.medication-effects",
+        "info.history.mania",
+        "info.history.suicide-safety",
+        "info.physical.orthostatic-vitals"
+      ],
+      "selections": {
+        "startMedicationIds": ["medication.propranolol"],
+        "stopMedicationIds": ["medication.aripiprazole"],
+        "continueMedicationIds": ["medication.fluoxetine"],
+        "interventionIds": ["intervention.medication-safety-counseling"],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Uses a monitored symptomatic option after obtaining its path-specific safety check."
+    },
+    {
+      "id": "reference.shotgun",
+      "label": "Shotgun testing",
+      "kind": "shotgun",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.depressive-symptoms",
+        "info.history.anxiety-symptoms",
+        "info.history.mania",
+        "info.history.psychosis",
+        "info.history.suicide-safety",
+        "info.history.violence-risk",
+        "info.history.medication-reconciliation",
+        "info.history.adherence",
+        "info.history.prior-trials",
+        "info.history.medication-effects",
+        "info.history.substance-use",
+        "info.history.sleep",
+        "info.history.family-psychiatric",
+        "info.history.trauma",
+        "info.history.collateral",
+        "info.history.outside-records",
+        "info.physical.mental-status",
+        "info.physical.general",
+        "info.physical.neurologic",
+        "info.physical.movement",
+        "info.physical.orthostatic-vitals",
+        "info.labs.cbc",
+        "info.labs.cmp",
+        "info.labs.tsh",
+        "info.labs.b12-folate",
+        "info.labs.a1c",
+        "info.labs.lipids",
+        "info.labs.pregnancy",
+        "info.labs.urine-toxicology",
+        "info.labs.medication-level",
+        "info.labs.pharmacogenomics",
+        "info.imaging.ecg",
+        "info.imaging.head-ct",
+        "info.imaging.brain-mri",
+        "info.imaging.eeg"
+      ],
+      "selections": {
+        "startMedicationIds": [],
+        "stopMedicationIds": ["medication.aripiprazole"],
+        "continueMedicationIds": ["medication.fluoxetine"],
+        "interventionIds": ["intervention.medication-safety-counseling"],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Finds the answer but pays for duplicative, low-value, and wasteful testing."
+    },
+    {
+      "id": "reference.unsafe",
+      "label": "Unsafe treatment",
+      "kind": "unsafe",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.medication-reconciliation",
+        "info.history.medication-effects",
+        "info.history.suicide-safety"
+      ],
+      "selections": {
+        "startMedicationIds": ["medication.haloperidol"],
+        "stopMedicationIds": [],
+        "continueMedicationIds": ["medication.aripiprazole", "medication.fluoxetine"],
+        "interventionIds": ["intervention.grounding-strategies"],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Misreads motor restlessness as agitation, adds dopamine blockade, and leaves the contributor active."
+    }
+  ]
+}

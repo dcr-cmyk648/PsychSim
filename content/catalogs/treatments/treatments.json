@@ -1,0 +1,122 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.medication-safety-counseling",
+    "label": "Medication adverse-effect education and safety plan",
+    "kind": "nonmedication",
+    "category": "education",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.grounding-strategies",
+    "label": "Brief grounding and coping strategies",
+    "kind": "nonmedication",
+    "category": "coping",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.psychotherapy-referral",
+    "label": "Refer for evidence-based psychotherapy",
+    "kind": "nonmedication",
+    "category": "psychotherapy",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.behavioral-activation",
+    "label": "Collaborative behavioral activation plan",
+    "kind": "nonmedication",
+    "category": "behavioral",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.sleep-routine",
+    "label": "Sleep routine and circadian support",
+    "kind": "nonmedication",
+    "category": "sleep",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.psychotherapy.cbt",
+    "label": "Cognitive behavioral therapy (CBT)",
+    "kind": "nonmedication",
+    "category": "psychotherapy",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.psychotherapy.ipt",
+    "label": "Interpersonal psychotherapy (IPT)",
+    "kind": "nonmedication",
+    "category": "psychotherapy",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.psychotherapy.supportive",
+    "label": "Supportive psychotherapy",
+    "kind": "nonmedication",
+    "category": "psychotherapy",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.psychotherapy.dbt",
+    "label": "Dialectical behavior therapy (DBT)",
+    "kind": "nonmedication",
+    "category": "psychotherapy",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "disposition.outpatient-followup",
+    "label": "Close outpatient follow-up",
+    "kind": "disposition",
+    "category": "disposition",
+    "safeReferral": false,
+    "requiredCapabilities": ["disposition.outpatient"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "disposition.urgent-medical-evaluation",
+    "label": "Refer for urgent same-day medical evaluation",
+    "kind": "disposition",
+    "category": "disposition",
+    "safeReferral": true,
+    "requiredCapabilities": ["disposition.external-referral"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "disposition.emergency-transfer",
+    "label": "Transfer to emergency care",
+    "kind": "disposition",
+    "category": "disposition",
+    "safeReferral": true,
+    "requiredCapabilities": ["disposition.emergency-transfer"]
+  }
+]

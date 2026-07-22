@@ -1,0 +1,34 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "2.0.0",
+    "id": "formulary.starter",
+    "label": "Starter Generic Formulary",
+    "medicationIds": ["medication.fluoxetine", "medication.sertraline", "medication.escitalopram"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "2.0.0",
+    "id": "formulary.expanded-outpatient",
+    "label": "Expanded Outpatient Add-on",
+    "medicationIds": ["medication.bupropion", "medication.mirtazapine", "medication.buspirone"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "2.0.0",
+    "id": "formulary.endgame",
+    "label": "Endgame Debug Formulary",
+    "medicationIds": [
+      "medication.fluoxetine",
+      "medication.aripiprazole",
+      "medication.propranolol",
+      "medication.buspirone",
+      "medication.haloperidol",
+      "medication.sertraline",
+      "medication.escitalopram",
+      "medication.bupropion",
+      "medication.mirtazapine",
+      "medication.citalopram"
+    ]
+  }
+]

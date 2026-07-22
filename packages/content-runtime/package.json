@@ -1,0 +1,14 @@
+{
+  "name": "@psychsim/content-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./developer": "./src/developer-content.ts"
+  },
+  "dependencies": {
+    "@psychsim/engine": "workspace:*",
+    "@psychsim/schemas": "workspace:*"
+  }
+}

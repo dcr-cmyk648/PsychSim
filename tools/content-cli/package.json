@@ -1,0 +1,11 @@
+{
+  "name": "@psychsim/content-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@psychsim/content-runtime": "workspace:*",
+    "@psychsim/engine": "workspace:*",
+    "@psychsim/schemas": "workspace:*"
+  }
+}

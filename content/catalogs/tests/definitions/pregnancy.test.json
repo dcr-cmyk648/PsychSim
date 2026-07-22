@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.lab.pregnancy",
+  "actionId": "info.labs.pregnancy",
+  "label": "Pregnancy test",
+  "category": "laboratory",
+  "contextInputs": ["age_years", "sex_for_reference", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "patient_owned",
+    "reason": "Pregnancy status can materially change treatment and must be owned by a reviewed patient variant."
+  }
+}

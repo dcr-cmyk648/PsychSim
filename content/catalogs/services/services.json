@@ -1,0 +1,506 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.timeline",
+    "label": "Focused symptom timeline",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.timeline",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 20,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.medication-reconciliation",
+    "label": "Medication reconciliation",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.medication-review",
+        "label": "Office medication review",
+        "kind": "in_house",
+        "operatingCost": 30,
+        "requiredCapabilities": ["medication-review.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.adverse-effects",
+    "label": "Adverse-effect interview",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.adverse-effects",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 20,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.records.outside-note",
+    "label": "Outside prescriber record",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.records",
+        "label": "Outside records service",
+        "kind": "outside_referral",
+        "operatingCost": 120,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.adherence",
+    "label": "Adherence review",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.adherence",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 15,
+        "requiredCapabilities": ["medication-review.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.prior-trials",
+    "label": "Prior medication trials",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.prior-trials",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 25,
+        "requiredCapabilities": ["medication-review.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.mania-screen",
+    "label": "Mania screen",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.mania-screen",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 25,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.psychosis-screen",
+    "label": "Psychosis screen",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.psychosis-screen",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 25,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.safety-screen",
+    "label": "Safety screen",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.safety-screen",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 15,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.substance-use",
+    "label": "Substance-use history",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.substance-use",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 25,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.exam.orthostatic-vitals",
+    "label": "Orthostatic vital signs",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.orthostatic-vitals",
+        "label": "Office vital-sign station",
+        "kind": "in_house",
+        "operatingCost": 10,
+        "requiredCapabilities": ["vitals.basic"],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.outside.orthostatic-vitals",
+        "label": "Outside medical clinic",
+        "kind": "outside_referral",
+        "operatingCost": 80,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.lab.tsh",
+    "label": "Thyroid-stimulating hormone",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.tsh",
+        "label": "Outside laboratory",
+        "kind": "outside_referral",
+        "operatingCost": 180,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.tsh",
+        "label": "In-house laboratory",
+        "kind": "in_house",
+        "operatingCost": 35,
+        "requiredCapabilities": ["equipment.lab-core"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.lab.urine-toxicology",
+    "label": "Urine toxicology",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.urine-toxicology",
+        "label": "Outside laboratory",
+        "kind": "outside_referral",
+        "operatingCost": 280,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.urine-toxicology",
+        "label": "Point-of-care toxicology",
+        "kind": "in_house",
+        "operatingCost": 45,
+        "requiredCapabilities": ["equipment.toxicology"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.diagnostic.ecg",
+    "label": "12-lead ECG",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.ecg",
+        "label": "Outside medical clinic",
+        "kind": "outside_referral",
+        "operatingCost": 500,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.partner.ecg",
+        "label": "Partner cardiology service",
+        "kind": "contracted_partner",
+        "operatingCost": 300,
+        "requiredCapabilities": ["partner.ecg"],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.ecg",
+        "label": "In-house ECG machine",
+        "kind": "in_house",
+        "operatingCost": 70,
+        "requiredCapabilities": ["equipment.ecg"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.diagnostic.brain-mri",
+    "label": "Brain MRI",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.brain-mri",
+        "label": "Hospital imaging referral",
+        "kind": "outside_referral",
+        "operatingCost": 1800,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.partner.brain-mri",
+        "label": "Imaging partnership",
+        "kind": "contracted_partner",
+        "operatingCost": 1100,
+        "requiredCapabilities": ["partner.imaging"],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.brain-mri",
+        "label": "Owned MRI suite",
+        "kind": "in_house",
+        "operatingCost": 250,
+        "requiredCapabilities": ["equipment.mri"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.standard",
+    "label": "Standard focused history",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.standard-history",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 20,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.collateral",
+    "label": "Collateral interview",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.collateral",
+        "label": "Office collateral interview",
+        "kind": "in_house",
+        "operatingCost": 80,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.exam.office",
+    "label": "Office examination",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.examination",
+        "label": "Office examination",
+        "kind": "in_house",
+        "operatingCost": 15,
+        "requiredCapabilities": ["mental-status.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.exam.extended",
+    "label": "Extended physical examination",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.extended-exam",
+        "label": "Outside medical clinic",
+        "kind": "outside_referral",
+        "operatingCost": 140,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.extended-exam",
+        "label": "In-house medical examination",
+        "kind": "in_house",
+        "operatingCost": 30,
+        "requiredCapabilities": ["exam.medical"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.lab.routine",
+    "label": "Routine laboratory testing",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.routine-lab",
+        "label": "Outside laboratory",
+        "kind": "outside_referral",
+        "operatingCost": 160,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.routine-lab",
+        "label": "In-house laboratory",
+        "kind": "in_house",
+        "operatingCost": 30,
+        "requiredCapabilities": ["equipment.lab-core"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.lab.metabolic",
+    "label": "Metabolic laboratory testing",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.metabolic-lab",
+        "label": "Outside laboratory",
+        "kind": "outside_referral",
+        "operatingCost": 220,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.metabolic-lab",
+        "label": "In-house laboratory",
+        "kind": "in_house",
+        "operatingCost": 45,
+        "requiredCapabilities": ["equipment.lab-core"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.lab.medication-level",
+    "label": "Therapeutic medication level",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.medication-level",
+        "label": "Outside specialty laboratory",
+        "kind": "outside_referral",
+        "operatingCost": 300,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.medication-level",
+        "label": "In-house laboratory",
+        "kind": "in_house",
+        "operatingCost": 65,
+        "requiredCapabilities": ["equipment.lab-levels"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.lab.pharmacogenomics",
+    "label": "Pharmacogenomic panel",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.pharmacogenomics",
+        "label": "Outside specialty laboratory",
+        "kind": "outside_referral",
+        "operatingCost": 900,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.diagnostic.head-ct",
+    "label": "Head CT",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.head-ct",
+        "label": "Hospital imaging referral",
+        "kind": "outside_referral",
+        "operatingCost": 1100,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.head-ct",
+        "label": "Owned CT suite",
+        "kind": "in_house",
+        "operatingCost": 180,
+        "requiredCapabilities": ["equipment.ct"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.diagnostic.eeg",
+    "label": "EEG",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.outside.eeg",
+        "label": "Outside neurology service",
+        "kind": "outside_referral",
+        "operatingCost": 850,
+        "requiredCapabilities": [],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.in-house.eeg",
+        "label": "In-house EEG service",
+        "kind": "in_house",
+        "operatingCost": 120,
+        "requiredCapabilities": ["equipment.eeg"],
+        "qualityModifier": 1
+      }
+    ]
+  }
+]

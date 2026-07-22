@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2.0.0",
+  "id": "medication.buspirone",
+  "label": "Buspirone",
+  "classes": ["anxiolytic"],
+  "tags": ["expanded-outpatient-formulary", "delayed-onset"],
+  "fitModifiers": [],
+  "authorOverrides": []
+}

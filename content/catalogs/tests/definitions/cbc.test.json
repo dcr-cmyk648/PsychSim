@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.lab.cbc",
+  "actionId": "info.labs.cbc",
+  "label": "Complete blood count",
+  "category": "laboratory",
+  "contextInputs": ["age_years", "sex_for_reference", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "numeric_panel",
+    "profiles": [
+      {
+        "id": "test-profile.cbc.adult-general",
+        "priority": 0,
+        "when": { "anyDiagnosisIds": [], "allClinicalTagIds": [] },
+        "referenceIntervalSetId": "reference-interval.prototype-adult-general",
+        "referenceIntervalLabel": "Adult reference interval · prototype reporting laboratory",
+        "incidentalAbnormalProbability": 0.08,
+        "components": [
+          {
+            "id": "lab-component.wbc",
+            "label": "White blood cell count",
+            "unit": "×10³/µL",
+            "ucumCode": "10*3/uL",
+            "decimals": 1,
+            "referenceRange": { "minimum": 4, "maximum": 11 },
+            "normalGenerationRange": { "minimum": 5, "maximum": 9 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 3.7, "maximum": 3.9, "weight": 1 },
+              { "flag": "high", "minimum": 11.1, "maximum": 11.6, "weight": 1 }
+            ]
+          },
+          {
+            "id": "lab-component.hemoglobin",
+            "label": "Hemoglobin",
+            "unit": "g/dL",
+            "ucumCode": "g/dL",
+            "decimals": 1,
+            "referenceRange": { "minimum": 12, "maximum": 16.5 },
+            "normalGenerationRange": { "minimum": 13, "maximum": 15.5 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 11.6, "maximum": 11.9, "weight": 1 },
+              { "flag": "high", "minimum": 16.6, "maximum": 16.8, "weight": 0.5 }
+            ]
+          },
+          {
+            "id": "lab-component.platelets",
+            "label": "Platelets",
+            "unit": "×10³/µL",
+            "ucumCode": "10*3/uL",
+            "decimals": 0,
+            "referenceRange": { "minimum": 150, "maximum": 450 },
+            "normalGenerationRange": { "minimum": 190, "maximum": 350 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 140, "maximum": 149, "weight": 1 },
+              { "flag": "high", "minimum": 451, "maximum": 475, "weight": 1 }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

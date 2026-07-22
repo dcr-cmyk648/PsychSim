@@ -1,0 +1,1850 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2.0.0",
+  "id": "case.first-visit-depression",
+  "metadata": {
+    "title": "Outpatient Intake 001",
+    "fictional": true,
+    "synthetic": true,
+    "medicalReviewStatus": "unreviewed",
+    "lifecycle": "approved",
+    "prototype": true,
+    "disclaimer": "Fictional, synthetic, medically unreviewed prototype content; not authoritative treatment guidance.",
+    "difficultyTier": 1,
+    "minimumLifetimePoints": 0,
+    "tags": ["depression", "outpatient", "starter", "couch-and-clipboard"],
+    "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+    "sourceDocumentIds": []
+  },
+  "patientRecord": {
+    "schemaVersion": 1,
+    "id": "patient-record.outpatient-intake-001",
+    "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+    "diagnoses": [
+      {
+        "id": "diagnosis.major-depressive-disorder",
+        "role": "primary",
+        "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"]
+      },
+      {
+        "id": "diagnosis.bipolar-spectrum-disorder",
+        "role": "excluded",
+        "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+      },
+      {
+        "id": "diagnosis.substance-induced-mood-disorder",
+        "role": "excluded",
+        "tagIds": ["diagnosis-tag.substance-induced"]
+      }
+    ],
+    "clinicalTagIds": [
+      "symptom.low-mood",
+      "symptom.anhedonia",
+      "symptom.insomnia",
+      "safety.passive-death-wish-without-intent"
+    ],
+    "observations": [
+      {
+        "id": "observation.mdd-pregnancy-test",
+        "actionId": "info.labs.pregnancy",
+        "dataType": "categorical",
+        "value": "negative",
+        "flag": "negative",
+        "clinicallyCritical": false,
+        "label": "Urine pregnancy test"
+      },
+      {
+        "id": "observation.mdd-urine-toxicology",
+        "actionId": "info.labs.urine-toxicology",
+        "dataType": "panel",
+        "value": "negative for tested substances",
+        "flag": "negative",
+        "clinicallyCritical": true,
+        "label": "Urine toxicology panel"
+      }
+    ],
+    "sourceUseNotes": [],
+    "treatmentReference": {
+      "id": "treatment-reference.outpatient-intake-001",
+      "primaryAuthoredPathwayId": "path.mdd-single-antidepressant-outpatient",
+      "additionalAuthoredPathwayIds": [],
+      "safetyFallbackPathwayIds": ["path.mdd-safe-referral"],
+      "acceptedMedicationTagSets": [
+        {
+          "id": "medication-tag-set.mdd-antidepressant",
+          "allOfTagIds": ["antidepressant"],
+          "baselineGrade": "acceptable"
+        }
+      ],
+      "alternativeEvaluation": "engine_with_notice"
+    },
+    "generationPolicy": {
+      "unspecifiedNoncriticalFacts": "reviewed_normal_values",
+      "incidentalAbnormalities": "bounded_by_test_catalog",
+      "minimumPresentationVariants": 100
+    },
+    "testGenerationContext": {
+      "ageYearsVariantTarget": "patient.age",
+      "sexForReference": "unspecified"
+    }
+  },
+  "criticalFacts": {
+    "presentingPattern": "uncomplicated unipolar major depressive episode pattern",
+    "episodeDurationWeeks": 7,
+    "acuteSuicideIntent": false,
+    "maniaScreen": "negative",
+    "psychosisScreen": "negative",
+    "substanceContribution": "not identified",
+    "medicalReviewStatus": "unreviewed"
+  },
+  "opening": {
+    "titleTemplate": "{{patient.name}}",
+    "chiefComplaintTemplate": "{{patient.chiefComplaint}}",
+    "summaryTemplate": "{{patient.age}} years old · {{patient.occupation}}",
+    "contextTemplate": "Scheduled outpatient visit",
+    "knownMedicationIds": [],
+    "knownHistory": [],
+    "basicVitals": [
+      "Blood pressure 116/72",
+      "Pulse 74",
+      "Temperature 98.2°F",
+      "Oxygen saturation 99%"
+    ]
+  },
+  "variants": [
+    {
+      "id": "variant.mdd-patient-name",
+      "target": "patient.name",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "catalogChoice",
+        "poolId": "variant-pool.fictional-names.general-adult"
+      }
+    },
+    {
+      "id": "variant.mdd-patient-age",
+      "target": "patient.age",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "integerRange",
+        "min": 27,
+        "max": 39
+      }
+    },
+    {
+      "id": "variant.mdd-patient-occupation",
+      "target": "patient.occupation",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "catalogChoice",
+        "poolId": "variant-pool.occupations.general-adult"
+      }
+    },
+    {
+      "id": "variant.mdd-chief-complaint",
+      "target": "patient.chiefComplaint",
+      "clinicallyCritical": false,
+      "generator": {
+        "type": "choice",
+        "values": [
+          "Loss of interest",
+          "Anhedonia",
+          "Depression",
+          "Low mood",
+          "No motivation",
+          "Nothing feels enjoyable",
+          "Always tired",
+          "Trouble getting started",
+          "Not enjoying anything",
+          "Feeling empty",
+          "Cannot focus",
+          "Sleeping poorly",
+          "Everything feels difficult",
+          "Feeling down",
+          "Stopped caring about things",
+          "No energy",
+          "Hard to function",
+          "Mood has been low",
+          "Not feeling like myself",
+          "Nothing sounds worth doing"
+        ]
+      }
+    }
+  ],
+  "protectedVariantTargets": [
+    "criticalFacts",
+    "informationActions",
+    "workupObjectives",
+    "treatmentPathways",
+    "scoreRules"
+  ],
+  "informationActions": [
+    {
+      "actionId": "info.history.presenting-problem",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mdd.timeline.duration",
+            "labelVariants": ["Symptoms for 7 weeks", "Seven-week course", "Several-week duration"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.mdd.timeline.impairment",
+            "labelVariants": [
+              "Reduced daily functioning",
+              "Difficulty keeping up",
+              "Routine tasks affected"
+            ],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-duration", "fact.mdd-impairment"]
+      }
+    },
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.depressive.depressed-mood",
+            "labelVariants": ["Depressed mood", "Low mood", "Feeling down"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.anhedonia",
+            "labelVariants": ["Loss of interest", "Reduced enjoyment", "Anhedonia"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.sleep",
+            "labelVariants": ["Insomnia", "Sleep disturbance", "Early waking"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.appetite",
+            "labelVariants": ["Reduced appetite", "Appetite change", "Eating less"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.psychomotor",
+            "labelVariants": ["Psychomotor slowing", "Moving more slowly", "Slowed activity"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.fatigue",
+            "labelVariants": ["Fatigue", "Low energy", "Tiredness"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.guilt",
+            "labelVariants": ["Excessive guilt", "Self-blame", "Feelings of guilt"],
+            "outcome": "variable"
+          },
+          {
+            "id": "finding.depressive.concentration",
+            "labelVariants": ["Poor concentration", "Difficulty focusing", "Reduced concentration"],
+            "outcome": "variable"
+          }
+        ],
+        "selection": {
+          "minimumPresent": 5,
+          "maximumPresent": 7,
+          "requiredPresentIds": [
+            "finding.depressive.depressed-mood",
+            "finding.depressive.anhedonia"
+          ],
+          "requiredAbsentIds": []
+        },
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-syndrome", "fact.mdd-neurovegetative-symptoms"]
+      }
+    },
+    {
+      "actionId": "info.history.anxiety-symptoms",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.anxiety.situational-worry",
+            "labelVariants": ["Worry about falling behind", "Situational worry"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.anxiety.panic",
+            "labelVariants": ["Panic attacks", "Unexpected panic"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.anxiety.pervasive-worry",
+            "labelVariants": ["Pervasive worry", "Broad uncontrollable worry"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-no-primary-anxiety-pattern"]
+      }
+    },
+    {
+      "actionId": "info.history.mania",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mania.elevated-irritable-mood",
+            "labelVariants": ["Elevated or sustained irritable mood", "Distinct mood elevation"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.decreased-sleep-need",
+            "labelVariants": ["Decreased need for sleep", "Little sleep without fatigue"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.pressured-speech",
+            "labelVariants": ["Pressured speech", "Markedly increased speech"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.grandiosity",
+            "labelVariants": ["Grandiosity", "Inflated self-esteem"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.goal-directed-activity",
+            "labelVariants": ["Increased goal-directed activity", "Unusual activity increase"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mania.impulsivity",
+            "labelVariants": ["Uncharacteristic impulsivity", "High-risk behavior"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-mania-screen-negative"]
+      }
+    },
+    {
+      "actionId": "info.history.psychosis",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.psychosis.hallucinations",
+            "labelVariants": ["Hallucinations", "Perceptual disturbances"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.psychosis.delusions",
+            "labelVariants": ["Fixed false beliefs", "Delusional beliefs"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.psychosis.paranoia",
+            "labelVariants": ["Paranoia", "Persecutory ideas"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.psychosis.disorganization",
+            "labelVariants": ["Thought disorganization", "Disorganized thought"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-psychosis-screen-negative"]
+      }
+    },
+    {
+      "actionId": "info.history.suicide-safety",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.suicide.attempt-history",
+            "labelVariants": ["History of suicide attempts", "Prior suicide attempts"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.preparatory-behavior",
+            "labelVariants": ["Preparatory behavior", "Suicide preparation"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.current-active-ideation",
+            "labelVariants": ["Current active suicidal ideation", "Active suicidal thoughts"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.suicide.passive-death-wish",
+            "labelVariants": ["Passive wish for death", "Wish not to wake up"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.mdd-passive-death-wish", "fact.mdd-no-acute-suicide-intent"]
+      }
+    },
+    {
+      "actionId": "info.history.violence-risk",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.violence.ideation",
+            "labelVariants": ["Violent ideation", "Thoughts of harming others"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.violence.intent",
+            "labelVariants": ["Violent intent", "Intent to harm others"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.violence.recent-behavior",
+            "labelVariants": ["Recent violent behavior", "Recent violence"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.violence.weapon-concern",
+            "labelVariants": ["Weapon-access concern", "Concerning weapon access"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-violence-risk-low"]
+      }
+    },
+    {
+      "actionId": "info.history.medication-reconciliation",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.medication.current-prescription",
+            "labelVariants": ["Current prescription medication", "Prescription medication use"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.medication.current-psychiatric",
+            "labelVariants": ["Current psychiatric medication", "Psychotropic medication use"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.medication.herbal-mood-product",
+            "labelVariants": ["Herbal mood product", "Mood-related supplement"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-no-current-psychiatric-medication"]
+      }
+    },
+    {
+      "actionId": "info.history.adherence",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.adherence.daily-regimen",
+            "labelVariants": ["Daily prescription regimen", "Scheduled medication regimen"],
+            "outcome": "not_applicable"
+          },
+          {
+            "id": "finding.adherence.access-barrier",
+            "labelVariants": ["Medication access barrier", "Current access difficulty"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-no-adherence-barrier-known"]
+      }
+    },
+    {
+      "actionId": "info.history.prior-trials",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.trials.antidepressant",
+            "labelVariants": ["Prior antidepressant trial", "Antidepressant treatment history"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trials.psychotropic",
+            "labelVariants": ["Prior psychiatric medication", "Previous psychotropic trial"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trials.structured-therapy",
+            "labelVariants": ["Prior structured psychotherapy", "Previous course of therapy"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-treatment-naive"]
+      }
+    },
+    {
+      "actionId": "info.history.medication-effects",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.medication-effect.temporal-link",
+            "labelVariants": ["Symptoms after medication change", "Medication-linked onset"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.medication-effect.current-adverse-effect",
+            "labelVariants": ["Current medication adverse effect", "Treatment-emergent symptom"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-no-medication-effect"]
+      }
+    },
+    {
+      "actionId": "info.history.substance-use",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.substance.recent-change",
+            "labelVariants": ["Recent substance-use change", "Change in substance use"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.substance.withdrawal",
+            "labelVariants": ["Recent withdrawal symptoms", "Withdrawal pattern"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.substance.nonprescribed-drugs",
+            "labelVariants": ["Nonprescribed drug use", "Recreational drug use"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.substance.occasional-alcohol",
+            "labelVariants": ["Occasional weekend alcohol use", "Infrequent alcohol use"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-no-substance-contribution"]
+      }
+    },
+    {
+      "actionId": "info.history.sleep",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.sleep.onset-insomnia",
+            "labelVariants": ["Difficulty falling asleep", "Sleep-onset insomnia"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.sleep.early-waking",
+            "labelVariants": ["Early waking", "Waking earlier than intended"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.sleep.daytime-fatigue",
+            "labelVariants": ["Tired after shortened sleep", "Daytime fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.sleep.decreased-need",
+            "labelVariants": ["Decreased need for sleep", "Little sleep without tiredness"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-insomnia", "fact.mdd-no-decreased-sleep-need"]
+      }
+    },
+    {
+      "actionId": "info.history.family-psychiatric",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.family.depression",
+            "labelVariants": [
+              "First-degree relative with depression",
+              "Depression in a close relative"
+            ],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.family.bipolar",
+            "labelVariants": [
+              "Family history of bipolar disorder",
+              "Bipolar disorder in close relatives"
+            ],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.family.suicide",
+            "labelVariants": ["Family history of suicide", "Suicide in close relatives"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-family-depression"]
+      }
+    },
+    {
+      "actionId": "info.history.trauma",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.trauma.intrusions",
+            "labelVariants": ["Intrusive trauma memories", "Trauma-related intrusions"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trauma.nightmares",
+            "labelVariants": ["Trauma-linked nightmares", "Traumatic nightmares"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trauma.avoidance",
+            "labelVariants": ["Trauma-related avoidance", "Avoidance linked to trauma"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.trauma.hypervigilance",
+            "labelVariants": ["Hypervigilance", "Trauma-linked hyperarousal"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-no-trauma-syndrome"]
+      }
+    },
+    {
+      "actionId": "info.history.collateral",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.collateral.decline",
+            "labelVariants": [
+              "Decline in energy and interest confirmed",
+              "Reduced activity confirmed"
+            ],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.collateral.high-energy",
+            "labelVariants": [
+              "Periods of unusually high energy",
+              "Uncharacteristic high-energy periods"
+            ],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.collateral.bizarre-behavior",
+            "labelVariants": ["Bizarre behavior", "Markedly unusual behavior"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.collateral.intoxication",
+            "labelVariants": ["Observed intoxication", "Intoxication concern"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-collateral-confirms-change"]
+      }
+    },
+    {
+      "actionId": "info.history.outside-records",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.records.prior-psychiatric-diagnosis",
+            "labelVariants": ["Prior psychiatric diagnosis", "Documented psychiatric diagnosis"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.records.prior-psychotropic",
+            "labelVariants": [
+              "Prior psychotropic prescription",
+              "Documented psychiatric medication"
+            ],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.records.medication-list-match",
+            "labelVariants": [
+              "Medication list matches patient report",
+              "Records match medication history"
+            ],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-records-match-history"]
+      }
+    },
+    {
+      "actionId": "info.physical.mental-status",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mse.subdued",
+            "labelVariants": ["Subdued presentation", "Quiet demeanor"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.mse.constricted-affect",
+            "labelVariants": ["Constricted affect", "Reduced affective range"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.mse.linear-thought",
+            "labelVariants": ["Linear thought process", "Organized thought"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.mse.orientation",
+            "labelVariants": ["Orientation", "Awareness of date and location"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.mse.responding-to-stimuli",
+            "labelVariants": [
+              "Behavior suggesting response to unseen stimuli",
+              "Response to internal stimuli"
+            ],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-mse-depressed", "fact.mdd-mse-organized"]
+      }
+    },
+    {
+      "actionId": "info.physical.general",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.exam.acute-distress",
+            "labelVariants": ["Acute physical distress", "Visible medical distress"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.exam.cardiopulmonary",
+            "labelVariants": ["Cardiopulmonary examination", "Heart and lung examination"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.exam.abdominal",
+            "labelVariants": ["Abdominal examination", "Abdominal findings"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-general-exam-normal"]
+      }
+    },
+    {
+      "actionId": "info.physical.neurologic",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.neuro.cranial-nerves",
+            "labelVariants": ["Cranial nerves", "Cranial nerve examination"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.neuro.strength",
+            "labelVariants": ["Strength", "Motor strength"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.neuro.sensation",
+            "labelVariants": ["Sensation", "Sensory examination"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.neuro.coordination",
+            "labelVariants": ["Coordination and gait", "Coordination"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-neurologic-exam-normal"]
+      }
+    },
+    {
+      "actionId": "info.physical.movement",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.movement.psychomotor-slowing",
+            "labelVariants": ["Psychomotor slowing", "Mild slowing of movement"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.movement.tremor",
+            "labelVariants": ["Tremor", "Visible tremor"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.movement.rigidity",
+            "labelVariants": ["Rigidity", "Muscular rigidity"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.movement.dystonia",
+            "labelVariants": ["Dystonia", "Sustained abnormal posture"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.movement.pacing",
+            "labelVariants": ["Pacing", "Inability to remain seated"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-psychomotor-slowing"]
+      }
+    },
+    {
+      "actionId": "info.physical.orthostatic-vitals",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.orthostatic.blood-pressure",
+            "labelVariants": ["Orthostatic blood pressure", "Blood pressure after position change"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.orthostatic.pulse",
+            "labelVariants": ["Orthostatic pulse", "Pulse after position change"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.orthostatic.dizziness",
+            "labelVariants": ["Dizziness on standing", "Positional dizziness"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-orthostatics-normal"]
+      }
+    },
+    {
+      "actionId": "info.labs.cbc",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.cbc.pending-generation",
+            "labelVariants": ["CBC result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-cbc-normal"]
+      }
+    },
+    {
+      "actionId": "info.labs.cmp",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.cmp.pending-generation",
+            "labelVariants": ["CMP result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-cmp-normal"]
+      }
+    },
+    {
+      "actionId": "info.labs.tsh",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.tsh.pending-generation",
+            "labelVariants": ["TSH result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-tsh-result"]
+      }
+    },
+    {
+      "actionId": "info.labs.b12-folate",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.b12-folate.pending-generation",
+            "labelVariants": ["B12 and folate result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-b12-folate-normal"]
+      }
+    },
+    {
+      "actionId": "info.labs.a1c",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.a1c.pending-generation",
+            "labelVariants": ["Hemoglobin A1c result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-a1c-result"]
+      }
+    },
+    {
+      "actionId": "info.labs.lipids",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.lipids.pending-generation",
+            "labelVariants": ["Lipid panel result"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-lipids-normal"]
+      }
+    },
+    {
+      "actionId": "info.labs.pregnancy",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.pregnancy",
+            "labelVariants": ["Urine pregnancy test", "Pregnancy test"],
+            "outcome": "negative"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-pregnancy-test-negative"]
+      }
+    },
+    {
+      "actionId": "info.labs.urine-toxicology",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.toxicology.amphetamines",
+            "labelVariants": ["Amphetamines"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.cocaine",
+            "labelVariants": ["Cocaine"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.opioids",
+            "labelVariants": ["Opioids"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.benzodiazepines",
+            "labelVariants": ["Benzodiazepines"],
+            "outcome": "negative"
+          },
+          {
+            "id": "finding.toxicology.cannabinoids",
+            "labelVariants": ["Cannabinoids"],
+            "outcome": "negative"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-toxicology-negative"]
+      }
+    },
+    {
+      "actionId": "info.labs.medication-level",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.test.medication-level-applicable",
+            "labelVariants": ["Applicable monitored medication", "Medication with routine level"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-no-medication-level"]
+      }
+    },
+    {
+      "actionId": "info.labs.pharmacogenomics",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.pgx.cyp2d6-reduced",
+            "labelVariants": ["Reduced-function CYP2D6 allele", "CYP2D6 reduced function"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.pgx.cyp2c19-reduced",
+            "labelVariants": ["Reduced-function CYP2C19 allele", "CYP2C19 reduced function"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-pharmacogenomics-unflagged"]
+      }
+    },
+    {
+      "actionId": "info.imaging.ecg",
+      "defaultClassification": "low_value",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.ecg.rhythm",
+            "labelVariants": ["Rhythm", "Cardiac rhythm"],
+            "outcome": "normal",
+            "valueTextVariants": ["Sinus rhythm"]
+          },
+          {
+            "id": "finding.ecg.intervals",
+            "labelVariants": ["Intervals", "ECG intervals"],
+            "outcome": "normal"
+          },
+          {
+            "id": "finding.ecg.acute-st-t",
+            "labelVariants": ["Acute ST-T abnormality", "Acute ischemic change"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-ecg-normal"]
+      }
+    },
+    {
+      "actionId": "info.imaging.head-ct",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.ct.hemorrhage",
+            "labelVariants": ["Intracranial hemorrhage", "Acute hemorrhage"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.ct.mass-effect",
+            "labelVariants": ["Mass effect", "Intracranial mass effect"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.ct.hydrocephalus",
+            "labelVariants": ["Hydrocephalus"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.ct.infarct",
+            "labelVariants": ["Acute territorial infarct", "Acute infarct"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-head-ct-normal"]
+      }
+    },
+    {
+      "actionId": "info.imaging.brain-mri",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mri.mass",
+            "labelVariants": ["Intracranial mass", "Mass lesion"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mri.infarct",
+            "labelVariants": ["Acute infarct"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mri.hemorrhage",
+            "labelVariants": ["Hemorrhage"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mri.enhancement",
+            "labelVariants": ["Abnormal enhancement"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-brain-mri-normal"]
+      }
+    },
+    {
+      "actionId": "info.imaging.eeg",
+      "defaultClassification": "wasteful",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.eeg.epileptiform",
+            "labelVariants": ["Epileptiform discharge", "Epileptiform activity"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.eeg.focal-slowing",
+            "labelVariants": ["Focal slowing"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.eeg.background",
+            "labelVariants": ["Background activity"],
+            "outcome": "normal"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.mdd-eeg-normal"]
+      }
+    }
+  ],
+  "workupObjectives": [
+    {
+      "id": "objective.mdd-episode-course",
+      "label": "Establish episode duration and impairment",
+      "importance": "essential",
+      "requiredByDefault": true,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.presenting-problem"
+      },
+      "points": 35,
+      "omissionPenalty": -35,
+      "explanationObtained": "Essential and obtained: episode duration and functional impairment were established.",
+      "explanationOmitted": "Critical item omitted: episode duration and functional impairment were not established."
+    },
+    {
+      "id": "objective.mdd-depressive-syndrome",
+      "label": "Characterize the depressive symptom cluster",
+      "importance": "essential",
+      "requiredByDefault": true,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "points": 50,
+      "omissionPenalty": -50,
+      "explanationObtained": "Essential and obtained: depressive symptoms and impairment were characterized.",
+      "explanationOmitted": "Critical item omitted: the depressive syndrome was not characterized."
+    },
+    {
+      "id": "objective.mdd-bipolar-screen",
+      "label": "Screen for prior mania or hypomania",
+      "importance": "essential",
+      "requiredByDefault": false,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.mania"
+      },
+      "points": 0,
+      "omissionPenalty": 0,
+      "explanationObtained": "Essential and obtained: an appropriate negative bipolar-spectrum screen earns full credit.",
+      "explanationOmitted": "Critical item omitted: prior mania or hypomania was not assessed before antidepressant selection."
+    },
+    {
+      "id": "objective.mdd-safety",
+      "label": "Assess suicide risk and outpatient suitability",
+      "importance": "essential",
+      "requiredByDefault": true,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.suicide-safety"
+      },
+      "points": 50,
+      "omissionPenalty": -80,
+      "explanationObtained": "Essential and obtained: suicide risk and outpatient suitability were assessed.",
+      "explanationOmitted": "Critical item omitted: suicide risk and level of care were not assessed."
+    }
+  ],
+  "availableTreatments": {
+    "startMedicationIds": [
+      "medication.sertraline",
+      "medication.escitalopram",
+      "medication.fluoxetine",
+      "medication.bupropion",
+      "medication.mirtazapine",
+      "medication.buspirone",
+      "medication.aripiprazole",
+      "medication.haloperidol"
+    ],
+    "stopMedicationIds": [],
+    "continueMedicationIds": [],
+    "interventionIds": [
+      "intervention.psychotherapy.cbt",
+      "intervention.psychotherapy.ipt",
+      "intervention.psychotherapy.supportive",
+      "intervention.behavioral-activation",
+      "intervention.sleep-routine",
+      "intervention.grounding-strategies"
+    ],
+    "dispositionIds": [
+      "disposition.outpatient-followup",
+      "disposition.urgent-medical-evaluation",
+      "disposition.emergency-transfer"
+    ]
+  },
+  "treatmentGrades": [
+    {
+      "id": "grade.mdd-harmful-antidepressant-combination",
+      "label": "Multiple SSRI medications",
+      "grade": "harmful",
+      "priority": 300,
+      "baseCarePoints": 0,
+      "predicate": {
+        "type": "any",
+        "predicates": [
+          {
+            "type": "all",
+            "predicates": [
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.sertraline"
+              },
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.fluoxetine"
+              }
+            ]
+          },
+          {
+            "type": "all",
+            "predicates": [
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.sertraline"
+              },
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.escitalopram"
+              }
+            ]
+          },
+          {
+            "type": "all",
+            "predicates": [
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.fluoxetine"
+              },
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.escitalopram"
+              }
+            ]
+          }
+        ]
+      },
+      "explanation": "Harmful: starting multiple SSRI medications together adds avoidable interaction toxicity without being a defensible first-step plan."
+    },
+    {
+      "id": "grade.mdd-harmful-antipsychotic-monotherapy",
+      "label": "Antipsychotic monotherapy for uncomplicated depression",
+      "grade": "harmful",
+      "priority": 250,
+      "predicate": {
+        "type": "any",
+        "predicates": [
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.aripiprazole"
+          },
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.haloperidol"
+          }
+        ]
+      },
+      "explanation": "Harmful: this uncomplicated first presentation does not support antipsychotic monotherapy, and the added adverse-effect burden is avoidable.",
+      "baseCarePoints": -100
+    },
+    {
+      "id": "grade.mdd-weak-buspirone-monotherapy",
+      "label": "Buspirone monotherapy",
+      "grade": "weak",
+      "priority": 200,
+      "predicate": {
+        "type": "treatmentStarted",
+        "medicationId": "medication.buspirone"
+      },
+      "explanation": "Weak: buspirone monotherapy does not adequately address this depressive syndrome.",
+      "baseCarePoints": -40
+    },
+    {
+      "id": "grade.mdd-optimal-sertraline",
+      "label": "Starter-formulary SSRI",
+      "grade": "optimal",
+      "priority": 190,
+      "predicate": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.sertraline"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "any",
+              "predicates": [
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.escitalopram"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.fluoxetine"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.bupropion"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.mirtazapine"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.buspirone"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.aripiprazole"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.haloperidol"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "explanation": "Optimal prototype path: one starter-formulary SSRI is a coherent first medication choice for this uncomplicated outpatient presentation.",
+      "baseCarePoints": 100
+    },
+    {
+      "id": "grade.mdd-strong-escitalopram",
+      "label": "Alternative starter-formulary SSRI",
+      "grade": "strong_alternative",
+      "priority": 180,
+      "predicate": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.escitalopram"
+          },
+          {
+            "type": "not",
+            "predicate": {
+              "type": "any",
+              "predicates": [
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.sertraline"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.fluoxetine"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.bupropion"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.mirtazapine"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.buspirone"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.aripiprazole"
+                },
+                {
+                  "type": "treatmentStarted",
+                  "medicationId": "medication.haloperidol"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "explanation": "Strong alternative: escitalopram is a coherent starter-formulary antidepressant choice for this case.",
+      "baseCarePoints": 95
+    },
+    {
+      "id": "grade.mdd-acceptable-other-antidepressant",
+      "label": "Other single starter antidepressant",
+      "grade": "acceptable",
+      "priority": 170,
+      "predicate": {
+        "type": "any",
+        "predicates": [
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.fluoxetine"
+          },
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.bupropion"
+          },
+          {
+            "type": "treatmentStarted",
+            "medicationId": "medication.mirtazapine"
+          }
+        ]
+      },
+      "explanation": "Acceptable: a single starter-formulary antidepressant is defensible, though it is not the highest-valued reference path for this synthetic case.",
+      "baseCarePoints": 85
+    }
+  ],
+  "treatmentPathways": [
+    {
+      "id": "path.mdd-single-antidepressant-outpatient",
+      "label": "Single antidepressant plus outpatient care",
+      "grade": "acceptable",
+      "accepted": true,
+      "priority": 200,
+      "match": {
+        "type": "all",
+        "predicates": [
+          {
+            "type": "treatmentStartedWithTag",
+            "medicationTagId": "antidepressant",
+            "minimumCount": 1,
+            "maximumCount": 1
+          },
+          {
+            "type": "dispositionSelected",
+            "dispositionId": "disposition.outpatient-followup"
+          }
+        ]
+      },
+      "requiredWorkupObjectiveIds": [
+        "objective.mdd-episode-course",
+        "objective.mdd-depressive-syndrome",
+        "objective.mdd-bipolar-screen",
+        "objective.mdd-safety"
+      ],
+      "conditionalRequirements": [
+        {
+          "objectiveId": "objective.mdd-bipolar-screen",
+          "pointsIfMet": 45,
+          "pointsIfMissing": -70,
+          "safetyCritical": true,
+          "explanationMet": "Prior mania or hypomania was screened before antidepressant treatment.",
+          "explanationMissing": "Prior mania or hypomania was not screened before antidepressant treatment."
+        }
+      ],
+      "explanation": "Focused history supports a single starter antidepressant with psychotherapy and outpatient care.",
+      "workupCostPar": 80
+    },
+    {
+      "id": "path.mdd-safe-referral",
+      "label": "Safe external evaluation",
+      "grade": "acceptable",
+      "accepted": true,
+      "priority": 100,
+      "match": {
+        "type": "dispositionSelected",
+        "dispositionId": "disposition.urgent-medical-evaluation"
+      },
+      "requiredWorkupObjectiveIds": ["objective.mdd-safety"],
+      "conditionalRequirements": [],
+      "explanation": "External evaluation is safe but offers less clinic value than routine treatment within scope.",
+      "workupCostPar": 15
+    }
+  ],
+  "scoreRules": [
+    {
+      "id": "rule.mdd-psychotherapy",
+      "label": "Evidence-based psychotherapy",
+      "component": "nonmedication",
+      "predicate": {
+        "type": "any",
+        "predicates": [
+          {
+            "type": "interventionSelected",
+            "interventionId": "intervention.psychotherapy.cbt"
+          },
+          {
+            "type": "interventionSelected",
+            "interventionId": "intervention.psychotherapy.ipt"
+          },
+          {
+            "type": "interventionSelected",
+            "interventionId": "intervention.psychotherapy.supportive"
+          }
+        ]
+      },
+      "pointsIfTrue": 45,
+      "pointsIfFalse": -40,
+      "classificationIfTrue": "nonmedication",
+      "classificationIfFalse": "ineffective",
+      "explanationIfTrue": "Evidence-based psychotherapy was included in the combined plan.",
+      "explanationIfFalse": "A psychotherapy option was omitted from the combined plan."
+    },
+    {
+      "id": "rule.mdd-behavioral-activation",
+      "label": "Behavioral activation",
+      "component": "nonmedication",
+      "predicate": {
+        "type": "interventionSelected",
+        "interventionId": "intervention.behavioral-activation"
+      },
+      "pointsIfTrue": 25,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "nonmedication",
+      "classificationIfFalse": "ineffective",
+      "explanationIfTrue": "A concrete behavioral activation plan supports recovery while treatment begins.",
+      "explanationIfFalse": "No behavioral activation plan was selected."
+    },
+    {
+      "id": "rule.mdd-outpatient-disposition",
+      "label": "Appropriate outpatient disposition",
+      "component": "disposition",
+      "predicate": {
+        "type": "dispositionSelected",
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "pointsIfTrue": 70,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "disposition",
+      "classificationIfFalse": "acceptable",
+      "explanationIfTrue": "Close outpatient follow-up matches the assessed level of care.",
+      "explanationIfFalse": "The chosen disposition is safe when it is an available referral, but is less proportionate to this presentation."
+    },
+    {
+      "id": "rule.mdd-urgent-escalation",
+      "label": "Urgent medical escalation",
+      "component": "disposition",
+      "predicate": {
+        "type": "dispositionSelected",
+        "dispositionId": "disposition.urgent-medical-evaluation"
+      },
+      "pointsIfTrue": -180,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "weak",
+      "classificationIfFalse": "disposition",
+      "explanationIfTrue": "Urgent medical escalation is safe but disproportionate to the facts established in this encounter.",
+      "explanationIfFalse": "Urgent medical escalation was not selected."
+    },
+    {
+      "id": "rule.mdd-emergency-escalation",
+      "label": "Emergency-department escalation",
+      "component": "disposition",
+      "predicate": {
+        "type": "dispositionSelected",
+        "dispositionId": "disposition.emergency-transfer"
+      },
+      "pointsIfTrue": -450,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "harmful",
+      "classificationIfFalse": "disposition",
+      "explanationIfTrue": "Emergency transfer is a major mismatch for the stable facts established in this encounter and consumes a much higher level of care without an identified indication.",
+      "explanationIfFalse": "Emergency transfer was not selected.",
+      "carePointCapIfTrue": 200
+    },
+    {
+      "id": "rule.mdd-combination-safety",
+      "label": "Avoid unsafe medication combinations",
+      "component": "safety",
+      "predicate": {
+        "type": "any",
+        "predicates": [
+          {
+            "type": "all",
+            "predicates": [
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.sertraline"
+              },
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.fluoxetine"
+              }
+            ]
+          },
+          {
+            "type": "all",
+            "predicates": [
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.sertraline"
+              },
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.escitalopram"
+              }
+            ]
+          },
+          {
+            "type": "all",
+            "predicates": [
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.fluoxetine"
+              },
+              {
+                "type": "treatmentStarted",
+                "medicationId": "medication.escitalopram"
+              }
+            ]
+          }
+        ]
+      },
+      "pointsIfTrue": -1100,
+      "pointsIfFalse": 30,
+      "classificationIfTrue": "dangerous_combination",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "Dangerous combination: multiple SSRI medications were started together without a defensible indication.",
+      "explanationIfFalse": "The final medication combination avoids duplicate SSRI treatment.",
+      "safetyErrorIfTrue": "Multiple SSRI medications were started together."
+    },
+    {
+      "id": "rule.mdd-efficient-workup",
+      "label": "Avoid low-yield advanced testing",
+      "component": "efficiency",
+      "predicate": {
+        "type": "any",
+        "predicates": [
+          {
+            "type": "actionPurchased",
+            "actionId": "info.labs.medication-level"
+          },
+          {
+            "type": "actionPurchased",
+            "actionId": "info.labs.pharmacogenomics"
+          },
+          {
+            "type": "actionPurchased",
+            "actionId": "info.imaging.ecg"
+          },
+          {
+            "type": "actionPurchased",
+            "actionId": "info.imaging.head-ct"
+          },
+          {
+            "type": "actionPurchased",
+            "actionId": "info.imaging.brain-mri"
+          },
+          {
+            "type": "actionPurchased",
+            "actionId": "info.imaging.eeg"
+          }
+        ]
+      },
+      "pointsIfTrue": -20,
+      "pointsIfFalse": 0,
+      "classificationIfTrue": "low_value",
+      "classificationIfFalse": "safe",
+      "explanationIfTrue": "Advanced testing added cost without a case-specific clue or treatment requirement.",
+      "explanationIfFalse": "The workup avoided unsupported advanced testing."
+    }
+  ],
+  "scoring": {
+    "componentPointCaps": {
+      "workup": 135,
+      "medication_selection": 165,
+      "medication_discontinuation": 0,
+      "safety": 30,
+      "nonmedication": 70,
+      "disposition": 70,
+      "efficiency": 0
+    },
+    "databasePlanWorkupCost": 80,
+    "databasePlanCarePoints": 450
+  },
+  "economy": {
+    "baseReimbursement": 650,
+    "complexityBonus": 50,
+    "challengeBonus": 0,
+    "satisfactionMultiplier": 1
+  },
+  "referenceSolutions": [
+    {
+      "id": "reference.mdd-efficient-optimal",
+      "label": "Database plan",
+      "kind": "database_plan",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.depressive-symptoms",
+        "info.history.mania",
+        "info.history.suicide-safety"
+      ],
+      "selections": {
+        "startMedicationIds": ["medication.sertraline"],
+        "stopMedicationIds": [],
+        "continueMedicationIds": [],
+        "interventionIds": ["intervention.psychotherapy.cbt", "intervention.behavioral-activation"],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Uses focused history, one starter SSRI, psychotherapy, behavioral activation, and outpatient follow-up."
+    },
+    {
+      "id": "reference.mdd-strong-alternative",
+      "label": "Strong alternative",
+      "kind": "strong_alternative",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.depressive-symptoms",
+        "info.history.mania",
+        "info.history.suicide-safety"
+      ],
+      "selections": {
+        "startMedicationIds": ["medication.escitalopram"],
+        "stopMedicationIds": [],
+        "continueMedicationIds": [],
+        "interventionIds": ["intervention.psychotherapy.cbt", "intervention.behavioral-activation"],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Uses the same focused workup and combined-care plan with an alternative starter SSRI."
+    },
+    {
+      "id": "reference.mdd-shotgun",
+      "label": "Shotgun testing",
+      "kind": "shotgun",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.depressive-symptoms",
+        "info.history.anxiety-symptoms",
+        "info.history.mania",
+        "info.history.psychosis",
+        "info.history.suicide-safety",
+        "info.history.violence-risk",
+        "info.history.medication-reconciliation",
+        "info.history.adherence",
+        "info.history.prior-trials",
+        "info.history.medication-effects",
+        "info.history.substance-use",
+        "info.history.sleep",
+        "info.history.family-psychiatric",
+        "info.history.trauma",
+        "info.history.collateral",
+        "info.history.outside-records",
+        "info.physical.mental-status",
+        "info.physical.general",
+        "info.physical.neurologic",
+        "info.physical.movement",
+        "info.physical.orthostatic-vitals",
+        "info.labs.cbc",
+        "info.labs.cmp",
+        "info.labs.tsh",
+        "info.labs.b12-folate",
+        "info.labs.a1c",
+        "info.labs.lipids",
+        "info.labs.pregnancy",
+        "info.labs.urine-toxicology",
+        "info.labs.medication-level",
+        "info.labs.pharmacogenomics",
+        "info.imaging.ecg",
+        "info.imaging.head-ct",
+        "info.imaging.brain-mri",
+        "info.imaging.eeg"
+      ],
+      "selections": {
+        "startMedicationIds": ["medication.sertraline"],
+        "stopMedicationIds": [],
+        "continueMedicationIds": [],
+        "interventionIds": ["intervention.psychotherapy.cbt", "intervention.behavioral-activation"],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Reaches the same treatment but buys every available history, examination, laboratory, and imaging option."
+    },
+    {
+      "id": "reference.mdd-unsafe",
+      "label": "Unsafe treatment",
+      "kind": "unsafe",
+      "actionIds": [
+        "info.history.presenting-problem",
+        "info.history.depressive-symptoms",
+        "info.history.mania",
+        "info.history.suicide-safety"
+      ],
+      "selections": {
+        "startMedicationIds": ["medication.sertraline", "medication.fluoxetine"],
+        "stopMedicationIds": [],
+        "continueMedicationIds": [],
+        "interventionIds": [],
+        "dispositionId": "disposition.outpatient-followup"
+      },
+      "explanation": "Starts duplicate SSRI treatment and omits the nonmedication components of the plan."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.diagnostic.ecg",
+  "actionId": "info.imaging.ecg",
+  "label": "Electrocardiogram",
+  "category": "diagnostic_study",
+  "contextInputs": ["age_years", "sex_for_reference", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "patient_owned",
+    "reason": "Intervals and abnormalities can affect medication safety and are owned by the patient definition."
+  }
+}

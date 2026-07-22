@@ -1,0 +1,24 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "2.0.0",
+    "id": "facility.solo-office",
+    "label": "Solo Psychiatric Office",
+    "tier": "solo_office",
+    "minimumLifetimePoints": 0,
+    "patientSlotCount": 1,
+    "allowedDepartmentIds": [],
+    "allowedUpgradeIds": ["upgrade.equipment.ecg", "upgrade.formulary.expanded-outpatient"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "2.0.0",
+    "id": "facility.endgame-debug",
+    "label": "Behavioral-Health System · Endgame",
+    "tier": "behavioral_health_system",
+    "minimumLifetimePoints": 0,
+    "patientSlotCount": 6,
+    "allowedDepartmentIds": [],
+    "allowedUpgradeIds": ["upgrade.equipment.ecg", "upgrade.formulary.expanded-outpatient"]
+  }
+]

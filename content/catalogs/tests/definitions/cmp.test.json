@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.lab.cmp",
+  "actionId": "info.labs.cmp",
+  "label": "Comprehensive metabolic panel",
+  "category": "laboratory",
+  "contextInputs": ["age_years", "sex_for_reference", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "numeric_panel",
+    "profiles": [
+      {
+        "id": "test-profile.cmp.adult-general",
+        "priority": 0,
+        "when": { "anyDiagnosisIds": [], "allClinicalTagIds": [] },
+        "referenceIntervalSetId": "reference-interval.prototype-adult-general",
+        "referenceIntervalLabel": "Adult reference interval · prototype reporting laboratory",
+        "incidentalAbnormalProbability": 0.12,
+        "components": [
+          {
+            "id": "lab-component.sodium",
+            "label": "Sodium",
+            "unit": "mmol/L",
+            "ucumCode": "mmol/L",
+            "decimals": 0,
+            "referenceRange": { "minimum": 135, "maximum": 145 },
+            "normalGenerationRange": { "minimum": 136, "maximum": 144 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 133, "maximum": 134, "weight": 1 },
+              { "flag": "high", "minimum": 146, "maximum": 147, "weight": 1 }
+            ]
+          },
+          {
+            "id": "lab-component.potassium",
+            "label": "Potassium",
+            "unit": "mmol/L",
+            "ucumCode": "mmol/L",
+            "decimals": 1,
+            "referenceRange": { "minimum": 3.5, "maximum": 5.1 },
+            "normalGenerationRange": { "minimum": 3.7, "maximum": 4.8 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 3.2, "maximum": 3.4, "weight": 1 },
+              { "flag": "high", "minimum": 5.2, "maximum": 5.4, "weight": 1 }
+            ]
+          },
+          {
+            "id": "lab-component.creatinine",
+            "label": "Creatinine",
+            "unit": "mg/dL",
+            "ucumCode": "mg/dL",
+            "decimals": 2,
+            "referenceRange": { "minimum": 0.6, "maximum": 1.3 },
+            "normalGenerationRange": { "minimum": 0.7, "maximum": 1.1 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 0.5, "maximum": 0.59, "weight": 0.25 },
+              { "flag": "high", "minimum": 1.31, "maximum": 1.45, "weight": 1 }
+            ]
+          },
+          {
+            "id": "lab-component.glucose",
+            "label": "Glucose",
+            "unit": "mg/dL",
+            "ucumCode": "mg/dL",
+            "decimals": 0,
+            "referenceRange": { "minimum": 70, "maximum": 99 },
+            "normalGenerationRange": { "minimum": 75, "maximum": 95 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 66, "maximum": 69, "weight": 0.5 },
+              { "flag": "high", "minimum": 100, "maximum": 105, "weight": 1 }
+            ]
+          },
+          {
+            "id": "lab-component.calcium",
+            "label": "Calcium",
+            "unit": "mg/dL",
+            "ucumCode": "mg/dL",
+            "decimals": 1,
+            "referenceRange": { "minimum": 8.6, "maximum": 10.2 },
+            "normalGenerationRange": { "minimum": 8.9, "maximum": 9.9 },
+            "mildAbnormalRanges": [
+              { "flag": "low", "minimum": 8.3, "maximum": 8.5, "weight": 1 },
+              { "flag": "high", "minimum": 10.3, "maximum": 10.5, "weight": 1 }
+            ]
+          },
+          {
+            "id": "lab-component.alt",
+            "label": "ALT",
+            "unit": "U/L",
+            "ucumCode": "[IU]/L",
+            "decimals": 0,
+            "referenceRange": { "minimum": 7, "maximum": 56 },
+            "normalGenerationRange": { "minimum": 12, "maximum": 42 },
+            "mildAbnormalRanges": [{ "flag": "high", "minimum": 57, "maximum": 63, "weight": 1 }]
+          }
+        ]
+      }
+    ]
+  }
+}

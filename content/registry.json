@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2.0.0",
+  "entries": [
+    {
+      "id": "registry.catalog.information-actions",
+      "kind": "information_catalog",
+      "path": "content/catalogs/actions/actions.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.services",
+      "kind": "service_catalog",
+      "path": "content/catalogs/services/services.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.treatments",
+      "kind": "treatment_catalog",
+      "path": "content/catalogs/treatments/treatments.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.formularies",
+      "kind": "formulary_catalog",
+      "path": "content/catalogs/medications/formularies.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.locations",
+      "kind": "location_catalog",
+      "path": "content/catalogs/locations/locations.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.facilities",
+      "kind": "facility_catalog",
+      "path": "content/catalogs/locations/facilities.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.variant-pools",
+      "kind": "variant_pool_catalog",
+      "path": "content/catalogs/demographics/variant-pools.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.tests",
+      "kind": "test_catalog",
+      "path": "content/catalogs/tests/definitions",
+      "runtimeIncluded": true,
+      "dependsOnIds": ["registry.catalog.reference-interval-sets"]
+    },
+    {
+      "id": "registry.catalog.reference-interval-sets",
+      "kind": "reference_interval_catalog",
+      "path": "content/catalogs/tests/reference-interval-sets.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.upgrades",
+      "kind": "upgrade_catalog",
+      "path": "content/catalogs/upgrades/upgrades.json",
+      "runtimeIncluded": true,
+      "dependsOnIds": [
+        "registry.catalog.services",
+        "registry.catalog.formularies",
+        "registry.catalog.facilities"
+      ]
+    },
+    {
+      "id": "medication.fluoxetine",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/fluoxetine.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.aripiprazole",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/aripiprazole.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.propranolol",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/propranolol.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.buspirone",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/buspirone.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.haloperidol",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/haloperidol.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.sertraline",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/sertraline.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.escitalopram",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/escitalopram.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.bupropion",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/bupropion.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.mirtazapine",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/mirtazapine.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.citalopram",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/citalopram.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "case.first-visit-depression",
+      "kind": "patient",
+      "path": "content/cases/approved/first-visit-depression.case.json",
+      "runtimeIncluded": true,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.information-actions",
+        "registry.catalog.services",
+        "registry.catalog.treatments",
+        "registry.catalog.formularies",
+        "registry.catalog.locations",
+        "registry.catalog.variant-pools",
+        "registry.catalog.tests",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.bupropion",
+        "medication.mirtazapine",
+        "medication.buspirone",
+        "medication.aripiprazole",
+        "medication.haloperidol"
+      ]
+    },
+    {
+      "id": "case.medication-check-palpitations",
+      "kind": "patient",
+      "path": "content/cases/approved/medication-check-palpitations.case.json",
+      "runtimeIncluded": true,
+      "categoryIds": [
+        "patient-category.outpatient",
+        "patient-category.adult",
+        "patient-category.ecg-relevant"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.information-actions",
+        "registry.catalog.services",
+        "registry.catalog.treatments",
+        "registry.catalog.formularies",
+        "registry.catalog.locations",
+        "registry.catalog.variant-pools",
+        "registry.catalog.tests",
+        "medication.citalopram",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.bupropion",
+        "medication.mirtazapine"
+      ]
+    },
+    {
+      "id": "case.restless-after-augmentation",
+      "kind": "patient",
+      "path": "content/cases/review/restless-after-augmentation.case.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.information-actions",
+        "registry.catalog.services",
+        "registry.catalog.treatments",
+        "registry.catalog.formularies",
+        "registry.catalog.locations",
+        "registry.catalog.variant-pools",
+        "registry.catalog.tests",
+        "medication.fluoxetine",
+        "medication.aripiprazole",
+        "medication.propranolol",
+        "medication.buspirone",
+        "medication.haloperidol"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "reference-interval.prototype-adult-general",
+    "label": "Adult reference interval · prototype reporting laboratory",
+    "jurisdiction": "United States",
+    "reportingConvention": "HL7 US Core 9.0.0 laboratory observation shape with FHIR Observation interpretation and referenceRange semantics",
+    "unitConvention": "Unified Code for Units of Measure (UCUM)",
+    "referenceIntervalPolicy": "Population-appropriate laboratory reference intervals following CLSI EP28-A3c and CMS CLIA verification principles",
+    "numericRangeAuthority": "prototype_unreviewed",
+    "medicalReviewStatus": "unreviewed",
+    "sourceUrls": [
+      "https://hl7.org/fhir/us/core/STU9/",
+      "https://hl7.org/fhir/R5/observation-definitions.html",
+      "https://ucum.org/docs/common-units",
+      "https://clsi.org/shop/standards/ep28/",
+      "https://www.cms.gov/Regulations-and-Guidance/Legislation/CLIA/Downloads/6064bk.pdf"
+    ],
+    "sourceUseNoteIds": []
+  }
+]

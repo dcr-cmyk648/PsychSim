@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2.0.0",
+  "id": "medication.mirtazapine",
+  "label": "Mirtazapine",
+  "classes": ["tetracyclic antidepressant"],
+  "tags": ["expanded-outpatient-formulary", "antidepressant"],
+  "fitModifiers": [
+    {
+      "id": "modifier.mirtazapine.insomnia-fit-active",
+      "patientTagIds": ["symptom.insomnia"],
+      "effect": "bonus",
+      "pointDelta": 35,
+      "explanation": "Patient-fit modifier: prominent insomnia makes this option a meaningfully better fit.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "modifier.mirtazapine.high-bmi-fit-active",
+      "patientTagIds": ["medical.high-bmi"],
+      "effect": "penalty",
+      "pointDelta": -50,
+      "explanation": "Patient-fit modifier: high BMI without a countervailing reason makes this option a meaningfully poorer fit.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    }
+  ],
+  "authorOverrides": [
+    {
+      "id": "modifier.mirtazapine.insomnia-fit",
+      "patientTagIds": ["symptom.insomnia"],
+      "pointDelta": 5,
+      "explanation": "Unreviewed author note: preserve a possible positive fit adjustment when insomnia is an important patient feature.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "modifier.mirtazapine.high-bmi-fit",
+      "patientTagIds": ["medical.high-bmi"],
+      "pointDelta": -5,
+      "explanation": "Unreviewed author note: preserve a possible negative fit adjustment when high BMI is relevant.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "modifier.mirtazapine.diabetes-fit",
+      "patientTagIds": ["medical.diabetes"],
+      "pointDelta": -4,
+      "explanation": "Unreviewed author note: preserve a possible negative fit adjustment when diabetes is relevant.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
+}

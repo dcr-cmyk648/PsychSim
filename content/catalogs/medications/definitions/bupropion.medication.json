@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2.0.0",
+  "id": "medication.bupropion",
+  "label": "Bupropion",
+  "classes": ["NDRI antidepressant"],
+  "tags": ["expanded-outpatient-formulary", "antidepressant"],
+  "fitModifiers": [],
+  "authorOverrides": [
+    {
+      "id": "modifier.bupropion.seasonal-pattern-fit",
+      "patientTagIds": ["course.seasonal-pattern"],
+      "pointDelta": 5,
+      "explanation": "Unreviewed author note: preserve a possible positive fit adjustment for a seasonal course pattern.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "modifier.bupropion.nicotine-use-fit",
+      "patientTagIds": ["substance.nicotine-use"],
+      "pointDelta": 4,
+      "explanation": "Unreviewed author note: preserve a possible positive fit adjustment when nicotine use is a relevant treatment consideration.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "modifier.bupropion.weight-preference-fit",
+      "patientTagIds": ["preference.avoid-weight-gain"],
+      "pointDelta": 3,
+      "explanation": "Unreviewed author note: preserve a possible positive fit adjustment when avoiding weight gain is an explicit patient preference.",
+      "sourceUseNoteIds": [],
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.diagnostic.eeg",
+  "actionId": "info.imaging.eeg",
+  "label": "Electroencephalogram",
+  "category": "diagnostic_study",
+  "contextInputs": ["age_years", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "patient_owned",
+    "reason": "Epileptiform or focal findings can redefine the case and require an authored reviewed patient variant."
+  }
+}

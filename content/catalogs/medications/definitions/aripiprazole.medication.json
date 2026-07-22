@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.aripiprazole",
+  "label": "Aripiprazole",
+  "classes": ["second-generation antipsychotic"],
+  "tags": ["cyp2d6-substrate", "akathisia-risk"],
+  "fitModifiers": [],
+  "authorOverrides": []
+}

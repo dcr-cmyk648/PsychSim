@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "test.lab.medication-level",
+  "actionId": "info.labs.medication-level",
+  "label": "Therapeutic medication level",
+  "category": "laboratory",
+  "contextInputs": ["age_years", "diagnosis_ids", "clinical_tag_ids"],
+  "medicalReviewStatus": "unreviewed",
+  "sourceUseNoteIds": [],
+  "generator": {
+    "type": "patient_owned",
+    "reason": "The monitored medication, timing, and level are case-critical patient data."
+  }
+}

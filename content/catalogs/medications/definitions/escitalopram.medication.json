@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.escitalopram",
+  "label": "Escitalopram",
+  "classes": ["SSRI antidepressant"],
+  "tags": ["starter-formulary", "antidepressant"],
+  "fitModifiers": [],
+  "authorOverrides": []
+}

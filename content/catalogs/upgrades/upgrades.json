@@ -1,0 +1,40 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "upgrade.equipment.ecg",
+    "label": "Compact 12-lead ECG",
+    "description": "Bring routine 12-lead ECG acquisition into the outpatient office. The patient result and clinical value stay identical; only fulfillment cost changes.",
+    "kind": "equipment",
+    "purchaseCost": 1200,
+    "minimumLifetimePoints": 0,
+    "prerequisiteUpgradeIds": [],
+    "allowedFacilityTiers": ["solo_office", "outpatient_clinic"],
+    "grantsCapabilities": ["equipment.ecg"],
+    "grantsFormularyIds": [],
+    "serviceIds": ["service.diagnostic.ecg"],
+    "inHousePerUseCost": 70,
+    "patientCategoryIdsUnlocked": [],
+    "clinicalCapabilityLabels": [
+      "In-house 12-lead ECG fulfillment",
+      "Lower operating cost for ECG-relevant patients"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "upgrade.formulary.expanded-outpatient",
+    "label": "Expanded outpatient formulary",
+    "description": "Add several common non-SSRI outpatient options to the office formulary. Patient-specific scoring still determines whether any option fits.",
+    "kind": "formulary",
+    "purchaseCost": 800,
+    "minimumLifetimePoints": 0,
+    "prerequisiteUpgradeIds": [],
+    "allowedFacilityTiers": ["solo_office", "outpatient_clinic"],
+    "grantsCapabilities": ["formulary.expanded-outpatient"],
+    "grantsFormularyIds": ["formulary.expanded-outpatient"],
+    "serviceIds": [],
+    "patientCategoryIdsUnlocked": [],
+    "clinicalCapabilityLabels": ["Bupropion", "Mirtazapine", "Buspirone"]
+  }
+]

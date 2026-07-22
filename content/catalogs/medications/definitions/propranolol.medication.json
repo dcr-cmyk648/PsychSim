@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.propranolol",
+  "label": "Propranolol",
+  "classes": ["beta blocker"],
+  "tags": ["symptomatic-akathisia-option"],
+  "fitModifiers": [],
+  "authorOverrides": []
+}
