@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.1.0",
+  "contentVersion": "3.0.0",
   "id": "case.medication-check-palpitations",
   "metadata": {
     "title": "Outpatient Medication Check 002",
@@ -11,6 +11,7 @@
     "prototype": true,
     "disclaimer": "Fictional, synthetic, medically unreviewed prototype content; not authoritative treatment guidance.",
     "difficultyTier": 1,
+    "patientPool": "transitional",
     "minimumLifetimePoints": 0,
     "tags": [
       "depression",
@@ -19,7 +20,12 @@
       "ecg-relevant",
       "couch-and-clipboard"
     ],
-    "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+    "compatibleLocationIds": [
+      "location.solo-office.outpatient",
+      "location.outpatient-clinic.outpatient",
+      "location.multidisciplinary-center.outpatient",
+      "location.endgame.outpatient"
+    ],
     "sourceDocumentIds": [],
     "evidenceSourceIds": ["evidence.fda.citalopram-capsules-label.2023"]
   },

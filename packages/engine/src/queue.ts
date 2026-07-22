@@ -44,6 +44,24 @@ const eligibleLocationId = (
   return locationId ? { caseInstance, locationId } : null;
 };
 
+const relocateExistingSlot = (
+  slot: PatientQueueSlot,
+  clinic: ClinicState,
+  catalogs: CatalogBundle,
+): PatientQueueSlot | null => {
+  const candidateLocationIds = [
+    slot.locationId,
+    ...clinic.locationIds.filter((locationId) => locationId !== slot.locationId),
+  ];
+  const locationId = candidateLocationIds.find(
+    (candidate) =>
+      clinic.locationIds.includes(candidate) &&
+      slot.caseInstance.metadata.compatibleLocationIds.includes(candidate) &&
+      evaluateCaseEligibility(slot.caseInstance, clinic, candidate, catalogs).eligible,
+  );
+  return locationId ? PatientQueueSlotSchema.parse({ ...slot, locationId }) : null;
+};
+
 const makeSlot = (
   mode: ProgressionMode,
   blueprint: CaseBlueprint,
@@ -87,7 +105,11 @@ const fillMode = (
   if (pool.length === 0) return [];
   const desiredCount =
     mode === 'developer' ? pool.length : getPatientSlotCount(clinic, mode, catalogs);
-  const slots = mode === 'developer' ? [] : [...existing].slice(0, desiredCount);
+  const relocatedExisting = existing.flatMap((slot) => {
+    const relocated = relocateExistingSlot(slot, clinic, catalogs);
+    return relocated ? [relocated] : [];
+  });
+  const slots = mode === 'developer' ? [] : relocatedExisting.slice(0, desiredCount);
   const complaintsInUse = new Set(
     [
       ...state.recentChiefComplaints,
@@ -95,11 +117,11 @@ const fillMode = (
     ].map(normalizeComplaint),
   );
   const existingDeveloperBlueprints = new Set(
-    existing.map((slot) => slot.caseInstance.blueprintId),
+    relocatedExisting.map((slot) => slot.caseInstance.blueprintId),
   );
   if (mode === 'developer') {
     slots.push(
-      ...existing.filter(
+      ...relocatedExisting.filter(
         (slot) =>
           !run.has(slot.caseInstance.blueprintId) &&
           pool.some((b) => b.id === slot.caseInstance.blueprintId),

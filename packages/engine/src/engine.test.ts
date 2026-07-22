@@ -31,6 +31,7 @@ import {
 } from './queue';
 import { scoreEncounter } from './scoring';
 import { resolveServiceFulfillment } from './services';
+import { calculateSatisfactionState } from './satisfaction';
 import { getAvailableStartMedicationIds } from './formulary';
 import { getUpgradeOffer, purchaseUpgrade } from './upgrades';
 
@@ -491,6 +492,97 @@ describe('clinic upgrades and formularies', () => {
       'medication.buspirone',
     ]);
   });
+
+  it('uses lifetime points as facility eligibility and still requires a separate purchase', () => {
+    const belowThreshold = {
+      ...startingClinic,
+      clinicPoints: 10_000,
+      lifetimePointsEarned: 2_499,
+    };
+    expect(
+      getUpgradeOffer(belowThreshold, 'upgrade.facility.outpatient-clinic', catalogs),
+    ).toMatchObject({
+      ok: true,
+      value: {
+        canPurchase: false,
+        blockers: expect.arrayContaining([expect.objectContaining({ code: 'lifetime_points' })]),
+      },
+    });
+
+    const eligible = { ...belowThreshold, lifetimePointsEarned: 2_500 };
+    const moved = requireCompleted(
+      purchaseUpgrade(eligible, 'upgrade.facility.outpatient-clinic', catalogs),
+    );
+    expect(moved).toMatchObject({
+      facilityId: 'facility.outpatient-clinic',
+      facilityTier: 'outpatient_clinic',
+      activeLocationId: 'location.outpatient-clinic.outpatient',
+      clinicPoints: 8_200,
+      lifetimePointsEarned: 2_500,
+    });
+    expect(getPatientSlotCount(moved, 'standard', catalogs)).toBe(2);
+  });
+
+  it('preserves earlier equipment when the clinic moves to a higher tier', () => {
+    const funded = { ...startingClinic, clinicPoints: 10_000, lifetimePointsEarned: 2_500 };
+    const equipped = requireCompleted(purchaseUpgrade(funded, 'upgrade.equipment.ecg', catalogs));
+    const moved = requireCompleted(
+      purchaseUpgrade(equipped, 'upgrade.facility.outpatient-clinic', catalogs),
+    );
+    expect(moved.ownedUpgradeIds).toEqual(
+      expect.arrayContaining(['upgrade.equipment.ecg', 'upgrade.facility.outpatient-clinic']),
+    );
+    expect(moved.capabilities).toContain('equipment.ecg');
+    expect(
+      requireCompleted(
+        resolveServiceFulfillment(
+          'service.diagnostic.ecg',
+          moved,
+          moved.activeLocationId,
+          catalogs.services,
+          catalogs.locations,
+        ),
+      ).method.id,
+    ).toBe('fulfillment.in-house.ecg');
+  });
+
+  it('applies diminishing decor returns under the configured cap', () => {
+    const funded = { ...startingClinic, clinicPoints: 10_000, lifetimePointsEarned: 2_500 };
+    const withPlant = requireCompleted(purchaseUpgrade(funded, 'decor.plant.pothos', catalogs));
+    expect(withPlant.satisfaction).toBe(6);
+    expect(withPlant.satisfactionMultiplier).toBe(1.035);
+
+    const moved = requireCompleted(
+      purchaseUpgrade(withPlant, 'upgrade.facility.outpatient-clinic', catalogs),
+    );
+    const withArt = requireCompleted(purchaseUpgrade(moved, 'decor.art.abstract-print', catalogs));
+    expect(withArt.satisfaction).toBe(16);
+    expect(withArt.satisfactionMultiplier).toBe(1.067);
+    expect(withArt.satisfactionMultiplier - withPlant.satisfactionMultiplier).toBeLessThan(
+      withPlant.satisfactionMultiplier - 1,
+    );
+    expect(
+      calculateSatisfactionState(1_000_000, catalogs.decor.satisfaction).multiplier,
+    ).toBeLessThanOrEqual(catalogs.decor.satisfaction.multiplierCap);
+  });
+
+  it('lets ambience increase positive settlement without changing care or rescuing unsafe play', () => {
+    const decorated = requireCompleted(
+      purchaseUpgrade({ ...startingClinic, clinicPoints: 1_000 }, 'decor.plant.pothos', catalogs),
+    );
+    const baseline = playStarter(databasePlan.actionIds);
+    const ambience = playStarter(databasePlan.actionIds, databasePlan.selections, decorated);
+    expect(ambience.receipt.pointReport).toEqual(baseline.receipt.pointReport);
+    expect(ambience.receipt.settlement.grossPayout).toBeGreaterThan(
+      baseline.receipt.settlement.grossPayout,
+    );
+
+    const unsafeSolution = prototypeCaseBlueprint.referenceSolutions.find(
+      (solution) => solution.kind === 'unsafe',
+    )!;
+    const unsafe = playStarter(unsafeSolution.actionIds, unsafeSolution.selections, decorated);
+    expect(unsafe.receipt.settlement.netClinicPointsEarned).toBe(0);
+  });
 });
 
 describe('progression and patient queues', () => {
@@ -534,6 +626,36 @@ describe('progression and patient queues', () => {
     expect(consumed.standardSlots[0]!.caseInstance.opening.chiefComplaint).not.toBe(
       slot.caseInstance.opening.chiefComplaint,
     );
+  });
+
+  it('keeps the waiting patient while relocating the slot after a facility move', () => {
+    const initial = ensurePatientQueues(
+      emptyPatientQueueState(),
+      startingClinic,
+      endgameClinic,
+      pools,
+      catalogs,
+    );
+    const moved = requireCompleted(
+      purchaseUpgrade(
+        { ...startingClinic, clinicPoints: 5_000, lifetimePointsEarned: 2_500 },
+        'upgrade.facility.outpatient-clinic',
+        catalogs,
+      ),
+    );
+    const afterMove = ensurePatientQueues(initial, moved, endgameClinic, pools, catalogs);
+    expect(afterMove.standardSlots).toHaveLength(2);
+    expect(afterMove.standardSlots[0]!.caseInstance.id).toBe(
+      initial.standardSlots[0]!.caseInstance.id,
+    );
+    expect(afterMove.standardSlots[0]!.locationId).toBe('location.outpatient-clinic.outpatient');
+  });
+
+  it('classifies approved patients into explicit internal progression pools', () => {
+    expect(approvedCaseBlueprints.map((blueprint) => blueprint.metadata.patientPool)).toEqual([
+      'starter',
+      'transitional',
+    ]);
   });
 
   it('refreshes endgame slots and rerolls developer patient characteristics', () => {

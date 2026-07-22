@@ -8,9 +8,15 @@
     "prototype": true,
     "disclaimer": "Fictional, synthetic, medically unreviewed developer scaffold; not authoritative treatment guidance.",
     "difficultyTier": 1,
+    "patientPool": "starter",
     "minimumLifetimePoints": 0,
     "tags": ["depression", "outpatient", "starter", "couch-and-clipboard"],
-    "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+    "compatibleLocationIds": [
+      "location.solo-office.outpatient",
+      "location.outpatient-clinic.outpatient",
+      "location.multidisciplinary-center.outpatient",
+      "location.endgame.outpatient"
+    ],
     "sourceDocumentIds": []
   },
   "patientRecord": {
@@ -907,7 +913,7 @@
     }
   ],
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review.basic-mdd-scaffold",
   "opening": {
     "titleTemplate": "{{patient.name}}",

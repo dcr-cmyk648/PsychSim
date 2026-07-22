@@ -24,6 +24,54 @@
   },
   {
     "schemaVersion": 1,
+    "contentVersion": "3.0.0",
+    "id": "location.outpatient-clinic.outpatient",
+    "label": "Outpatient Clinic · Consultation Room",
+    "facilityTier": "outpatient_clinic",
+    "capabilities": [
+      "history.basic",
+      "medication-review.basic",
+      "mental-status.basic",
+      "vitals.basic",
+      "exam.medical",
+      "counseling.basic",
+      "disposition.outpatient",
+      "disposition.external-referral",
+      "disposition.emergency-transfer"
+    ],
+    "formularyId": "formulary.starter",
+    "dispositionIds": [
+      "disposition.outpatient-followup",
+      "disposition.urgent-medical-evaluation",
+      "disposition.emergency-transfer"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "3.0.0",
+    "id": "location.multidisciplinary-center.outpatient",
+    "label": "Behavioral-Health Center · Outpatient Clinic",
+    "facilityTier": "multidisciplinary_center",
+    "capabilities": [
+      "history.basic",
+      "medication-review.basic",
+      "mental-status.basic",
+      "vitals.basic",
+      "exam.medical",
+      "counseling.basic",
+      "disposition.outpatient",
+      "disposition.external-referral",
+      "disposition.emergency-transfer"
+    ],
+    "formularyId": "formulary.starter",
+    "dispositionIds": [
+      "disposition.outpatient-followup",
+      "disposition.urgent-medical-evaluation",
+      "disposition.emergency-transfer"
+    ]
+  },
+  {
+    "schemaVersion": 1,
     "contentVersion": "1.0.0",
     "id": "location.endgame.outpatient",
     "label": "Behavioral-Health System · Outpatient Psychiatry",

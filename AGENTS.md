@@ -28,7 +28,7 @@ The handoff command never stages, commits, pushes, resets, restores, or merges f
 
 - `apps/web/`: React/Vite presentation and browser persistence. UI components may call public engine functions but never implement point rules.
 - `packages/schemas/`: versioned Zod schemas and inferred TypeScript types. Zod is the source of truth for content and saves.
-- `packages/engine/`: pure, deterministic encounter, scoring, economy, service, eligibility, and replay logic. No React or browser globals.
+- `packages/engine/`: pure, deterministic encounter, scoring, economy, service, progression, satisfaction, eligibility, and replay logic. No React or browser globals.
 - `packages/content-runtime/`: imports only approved runtime content, parses it, validates references, and exposes fixtures/reference runs.
 - `content/registry.json`: persistent stable-ID-to-file relationship map; keep it synchronized with explicit runtime imports.
 - `content/catalogs/`: stable-ID catalogs. Investigation menus are shared; each test and medication has its own definition file; curated demographic pools live here.
@@ -88,6 +88,9 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Clinical correctness is independent of fulfillment cost. Service ownership can change the financial receipt, never the clinical reward for an indicated test.
 - Points are the only visible unit. Care-point subtotals, investigation costs, reimbursement, banked balance, and lifetime progression all use points; there is no letter rank, 0–100 score, Reputation, XP, or credits layer. Store current spendable balance and lifetime points earned. Encounter expenses settle against that encounter; Normal-mode payout and the persistent bank have a zero floor.
 - Model facility, location, department, formulary, and capability gates declaratively. Do not branch on named locations in UI code.
+- Facility thresholds grant purchase eligibility only. Facility moves and decor use the same pure atomic purchase path, preserve prior ownership and lifetime points, and cannot create debt.
+- Decor lives in `content/catalogs/decor/`; it may change hub visuals and the capped positive-reward multiplier only. It must never alter care rules, safety errors, treatment grades, or disposition correctness.
+- Patient pool metadata (`starter`, `transitional`, `advanced`) is internal selection data. Never expose it as a diagnosis or answer hint on a waiting-room card.
 - Normal queues use approved patients and persist each resolved patient in its slot until completed. Endgame is a reversible derived clinic overlay with approved patients, all defined capabilities, and manual slot refresh. Developer mode exists only on the local development server, loads approved plus review content, shows each not-yet-run patient definition once, supports reroll/reset, and banks no practice rewards. Production must tree-shake developer content.
 - Receipt guidance and clinically disputed items create local proposed tickets. A ticket never mutates patient, medication, test, pathway, or scoring content directly. Preserve source snapshot, target IDs, dependencies/conflicts, clinical-acumen flag, status, resolution, and resurfacing trigger. Conflicting clinical claims have no automatic winner; present linked tickets for user disposition. Developer mode may mirror the queue only to the fixed gitignored path or export JSON. Triage technical blockers before clinical review where dependencies require it; accepted work creates versioned file changes and reruns affected validation/reference policies.
 

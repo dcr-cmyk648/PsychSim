@@ -14,6 +14,7 @@ export * from './result';
 export * from './rng';
 export * from './scoring';
 export * from './services';
+export * from './satisfaction';
 export * from './upgrades';
 
-export const ENGINE_VERSION = '0.3.0';
+export const ENGINE_VERSION = '0.4.0';

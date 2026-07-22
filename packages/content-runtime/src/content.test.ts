@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { instantiateCase, resolveNumericTestProfile } from '@psychsim/engine';
 import {
+  CaseInstanceSchema,
   PatientObservationSchema,
   SourceUseNoteSchema,
   WorkupObjectiveSchema,
@@ -27,6 +28,14 @@ describe('prototype content', () => {
         issues: [],
       });
     }
+  });
+
+  it('defaults pre-pool saved case instances to the starter pool during parsing', () => {
+    const legacyInstance = structuredClone(
+      instantiateCase(prototypeCaseBlueprint, 'legacy-pool-default', catalogs),
+    ) as unknown as { metadata: { patientPool?: string } };
+    delete legacyInstance.metadata.patientPool;
+    expect(CaseInstanceSchema.parse(legacyInstance).metadata.patientPool).toBe('starter');
   });
 
   it('catalogs formal publications independently from their rule contributions', () => {

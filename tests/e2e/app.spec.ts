@@ -115,10 +115,15 @@ test('completes a patient, stores review guidance, and preserves the profile and
 
   await page.getByRole('button', { name: 'Developer' }).click();
   await expect(page.getByRole('heading', { name: 'Clinical and content tickets' })).toBeVisible();
+  await expect(
+    page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
+  ).toBeVisible();
   await expect(page.getByText(/Receipt guidance:/)).toBeVisible();
   await page.getByRole('button', { name: 'Save queue to workspace' }).click();
   await expect(
-    page.getByText(/Saved 7 ticket\(s\) to content\/generated\/local-review-tickets\/tickets.json/),
+    page.getByText(
+      /Saved \d+ ticket\(s\) to content\/generated\/local-review-tickets\/tickets.json/,
+    ),
   ).toBeVisible();
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export JSON' }).click();
@@ -144,4 +149,63 @@ test('keeps Endgame practice rewards out of the standard point bank', async ({ p
   await expect(
     page.locator('.profile-stats').getByText('0', { exact: true }).first(),
   ).toBeVisible();
+});
+
+test('persists a threshold-gated facility move and visible decor', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Lakeshore Psychiatric Office' })).toBeVisible();
+
+  await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('psychsim-local-save', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const transaction = database.transaction('save-data', 'readwrite');
+    const store = transaction.objectStore('save-data');
+    const save = await new Promise<{
+      profile: { clinic: { clinicPoints: number; lifetimePointsEarned: number } };
+    }>((resolve, reject) => {
+      const request = store.get('primary');
+      request.onsuccess = () =>
+        resolve(
+          request.result as {
+            profile: { clinic: { clinicPoints: number; lifetimePointsEarned: number } };
+          },
+        );
+      request.onerror = () => reject(request.error);
+    });
+    save.profile.clinic.clinicPoints = 10_000;
+    save.profile.clinic.lifetimePointsEarned = 2_500;
+    await new Promise<void>((resolve, reject) => {
+      const request = store.put(save, 'primary');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+    database.close();
+  });
+  await page.reload();
+
+  const plantCard = page
+    .locator('.upgrade-card')
+    .filter({ has: page.getByRole('heading', { name: 'Waiting-room pothos' }) });
+  await plantCard.getByRole('button', { name: 'Buy for 300 pts' }).click();
+  const facilityCard = page
+    .locator('.upgrade-card')
+    .filter({ has: page.getByRole('heading', { name: 'Move into an outpatient clinic' }) });
+  await facilityCard.getByRole('button', { name: 'Buy for 1,800 pts' }).click();
+  await expect(page.getByRole('heading', { name: 'Outpatient Psychiatric Clinic' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Open chart for/ })).toHaveCount(2);
+
+  const artCard = page
+    .locator('.upgrade-card')
+    .filter({ has: page.getByRole('heading', { name: 'Framed abstract print' }) });
+  await artCard.getByRole('button', { name: 'Buy for 700 pts' }).click();
+  await page.reload();
+
+  await expect(page.getByRole('heading', { name: 'Outpatient Psychiatric Clinic' })).toBeVisible();
+  await expect(page.getByText('1.067×')).toBeVisible();
+  await expect(page.locator('.office-illustration .plant')).toHaveCount(1);
+  await expect(page.locator('.office-illustration.has-art')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /Open chart for/ })).toHaveCount(2);
 });

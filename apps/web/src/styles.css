@@ -225,8 +225,8 @@ code {
 
 .profile-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(110px, 1fr));
-  width: min(100%, 460px);
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  width: min(100%, 590px);
   margin: 0;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 1rem;
@@ -554,6 +554,36 @@ code {
   font-size: 0.78rem;
 }
 
+.ticket-context {
+  margin-top: 0.65rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.ticket-context summary {
+  width: fit-content;
+  color: var(--teal-dark);
+  cursor: pointer;
+}
+
+.ticket-context dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.65rem 0 0;
+}
+
+.ticket-context dt {
+  color: var(--gold);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ticket-context dd {
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+
 .ticket-card select {
   width: 100%;
   min-height: 40px;
@@ -680,7 +710,7 @@ code {
   background-size: 18px 18px;
 }
 
-.office-illustration::before {
+.office-illustration.has-art::before {
   position: absolute;
   top: 1.2rem;
   left: 1.5rem;
@@ -690,6 +720,19 @@ code {
   background: linear-gradient(135deg, #b75b48 50%, #2f8262 50%);
   box-shadow: 0 0 12px rgba(70, 227, 158, 0.18);
   content: '';
+}
+
+.office-illustration.warm-lighting {
+  background:
+    radial-gradient(circle at 75% 8%, rgba(255, 209, 102, 0.2), transparent 42%),
+    linear-gradient(rgba(255, 209, 102, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 209, 102, 0.06) 1px, transparent 1px), #100d07;
+  background-size:
+    auto,
+    18px 18px,
+    18px 18px,
+    auto;
+  box-shadow: inset 0 0 2rem rgba(255, 209, 102, 0.12);
 }
 
 .desk {
@@ -737,6 +780,33 @@ code {
   gap: 0.65rem;
   padding-left: 1.25rem;
   color: var(--muted);
+}
+
+.facility-progress {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.facility-progress > span,
+.facility-progress small {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.facility-progress > span {
+  color: var(--gold);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.facility-progress progress {
+  width: 100%;
+  height: 0.65rem;
+  accent-color: var(--teal);
 }
 
 .locked-panel {

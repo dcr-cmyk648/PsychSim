@@ -107,4 +107,52 @@ describe('ClinicHub', () => {
     screen.getByRole('button', { name: 'Buy for 1,200 pts' }).click();
     expect(onPurchaseUpgrade).toHaveBeenCalledWith('upgrade.equipment.ecg');
   });
+
+  it('shows threshold-gated facility moves and visible purchased decor', () => {
+    const onPurchaseUpgrade = vi.fn();
+    const clinic = {
+      ...startingProfile.clinic,
+      clinicPoints: 5_000,
+      lifetimePointsEarned: 2_500,
+      ownedUpgradeIds: ['decor.plant.pothos'],
+      satisfaction: 6,
+      satisfactionMultiplier: 1.035,
+    };
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 4,
+      profile: { ...startingProfile, clinic },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [],
+      legacyArchive: [],
+    });
+    const { container } = render(
+      <ClinicHub
+        saveData={saveData}
+        clinicState={clinic}
+        catalogs={catalogs}
+        patientSlots={[]}
+        developerModeAvailable
+        onStart={vi.fn()}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSetTicketStatus={vi.fn()}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={onPurchaseUpgrade}
+        upgradeStatus={null}
+      />,
+    );
+
+    expect(screen.getByText('1.035×')).toBeVisible();
+    expect(container.querySelector('.office-illustration .plant')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Move into an outpatient clinic' })).toBeVisible();
+    screen.getByRole('button', { name: 'Buy for 1,800 pts' }).click();
+    expect(onPurchaseUpgrade).toHaveBeenCalledWith('upgrade.facility.outpatient-clinic');
+  });
 });

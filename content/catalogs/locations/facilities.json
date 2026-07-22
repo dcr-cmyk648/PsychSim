@@ -1,24 +1,79 @@
 [
   {
     "schemaVersion": 1,
-    "contentVersion": "2.0.0",
+    "contentVersion": "3.0.0",
     "id": "facility.solo-office",
     "label": "Solo Psychiatric Office",
     "tier": "solo_office",
     "minimumLifetimePoints": 0,
     "patientSlotCount": 1,
+    "locationIds": ["location.solo-office.outpatient"],
+    "defaultLocationId": "location.solo-office.outpatient",
     "allowedDepartmentIds": [],
-    "allowedUpgradeIds": ["upgrade.equipment.ecg", "upgrade.formulary.expanded-outpatient"]
+    "allowedUpgradeIds": [
+      "upgrade.equipment.ecg",
+      "upgrade.formulary.expanded-outpatient",
+      "upgrade.facility.outpatient-clinic",
+      "decor.plant.pothos"
+    ]
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "2.0.0",
+    "contentVersion": "3.0.0",
+    "id": "facility.outpatient-clinic",
+    "label": "Outpatient Psychiatric Clinic",
+    "tier": "outpatient_clinic",
+    "minimumLifetimePoints": 2500,
+    "patientSlotCount": 2,
+    "locationIds": ["location.outpatient-clinic.outpatient"],
+    "defaultLocationId": "location.outpatient-clinic.outpatient",
+    "allowedDepartmentIds": [],
+    "allowedUpgradeIds": [
+      "upgrade.equipment.ecg",
+      "upgrade.formulary.expanded-outpatient",
+      "upgrade.facility.multidisciplinary-center",
+      "decor.plant.pothos",
+      "decor.art.abstract-print"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "3.0.0",
+    "id": "facility.multidisciplinary-center",
+    "label": "Multidisciplinary Behavioral-Health Center",
+    "tier": "multidisciplinary_center",
+    "minimumLifetimePoints": 7500,
+    "patientSlotCount": 3,
+    "locationIds": ["location.multidisciplinary-center.outpatient"],
+    "defaultLocationId": "location.multidisciplinary-center.outpatient",
+    "allowedDepartmentIds": [],
+    "allowedUpgradeIds": [
+      "upgrade.equipment.ecg",
+      "upgrade.formulary.expanded-outpatient",
+      "decor.plant.pothos",
+      "decor.art.abstract-print",
+      "decor.lighting.warm-lamps"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "3.0.0",
     "id": "facility.endgame-debug",
     "label": "Behavioral-Health System · Endgame",
     "tier": "behavioral_health_system",
     "minimumLifetimePoints": 0,
     "patientSlotCount": 6,
+    "locationIds": ["location.endgame.outpatient"],
+    "defaultLocationId": "location.endgame.outpatient",
     "allowedDepartmentIds": [],
-    "allowedUpgradeIds": ["upgrade.equipment.ecg", "upgrade.formulary.expanded-outpatient"]
+    "allowedUpgradeIds": [
+      "upgrade.equipment.ecg",
+      "upgrade.formulary.expanded-outpatient",
+      "upgrade.facility.outpatient-clinic",
+      "upgrade.facility.multidisciplinary-center",
+      "decor.plant.pothos",
+      "decor.art.abstract-print",
+      "decor.lighting.warm-lamps"
+    ]
   }
 ]

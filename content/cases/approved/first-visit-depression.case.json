@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.0.0",
+  "contentVersion": "3.0.0",
   "id": "case.first-visit-depression",
   "metadata": {
     "title": "Outpatient Intake 001",
@@ -11,9 +11,15 @@
     "prototype": true,
     "disclaimer": "Fictional, synthetic, medically unreviewed prototype content; not authoritative treatment guidance.",
     "difficultyTier": 1,
+    "patientPool": "starter",
     "minimumLifetimePoints": 0,
     "tags": ["depression", "outpatient", "starter", "couch-and-clipboard"],
-    "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+    "compatibleLocationIds": [
+      "location.solo-office.outpatient",
+      "location.outpatient-clinic.outpatient",
+      "location.multidisciplinary-center.outpatient",
+      "location.endgame.outpatient"
+    ],
     "sourceDocumentIds": []
   },
   "patientRecord": {

@@ -51,7 +51,7 @@ const milestoneTwoTicket = (
     sourceAuthority: 'developer_observation',
     requiresClinicalAcumen: true,
     attemptId: null,
-    caseContentVersion: '2.0.0',
+    caseContentVersion: '3.0.0',
     receiptItemId: null,
     receiptItemSnapshot: null,
     dependencyTicketIds: [],

@@ -20,11 +20,11 @@ Delivered: a data-driven hub store; pure read-only upgrade quotes and atomic pur
 
 Gate: purchases are voluntary, reject debt and duplicates atomically, preserve lifetime points, persist after reload, and use declarative facility/prerequisite fields; before/after ECG reference runs have identical 1,140 care points and rule trace while cost changes from 630 to 200 and payout rises by 430; cards show cost, prerequisites, facility/department gates, current/projected methods, per-use savings, break-even, and capability/patient effects; every approved patient validates against the unequipped starter clinic; policy simulations preserve safe external fulfillment and starter-formulary treatment paths. No department construction, decor multiplier, source extraction, or AI drafting was added.
 
-## Milestone 3 — Progression and environment
+## Milestone 3 — Progression and environment (complete)
 
-Scope: lifetime Clinic Point thresholds; additional office/clinic tiers; facility gating; initial visible decor/artwork; satisfaction multiplier with diminishing returns/cap; broader eligibility validation; starter/transitional/advanced pools.
+Delivered: explicit starter/transitional/advanced patient-pool metadata; a one-slot solo office, two-slot outpatient clinic, and three-slot multidisciplinary center; 2,500/7,500 lifetime-point thresholds with separate 1,800/5,000-point facility purchases; declarative facility locations and allowed purchases; waiting-patient relocation without regeneration; preserved prior equipment/formulary/decor; a separate decor catalog with plant, artwork, and warm-lighting visuals; a rational diminishing-return satisfaction curve capped at 1.15×; store multiplier previews; positive-reward-only ambience settlement; Endgame decor unlocks; and eligibility/validation across complete workup, medication, intervention, disposition, and every compatible facility location.
 
-Gate: lifetime points grant eligibility rather than free ownership; spending the current balance never reverses progression; invalid purchases fail atomically; decor changes appearance and capped positive rewards only; no care-point/safety rule changes; every pool remains winnable and starter cases remain available.
+Gate: unit/component/browser tests prove lifetime eligibility does not grant ownership, balance spending leaves lifetime progression unchanged, facility/decor purchases are atomic, prior ECG ownership survives a move, waiting patients persist while slot count grows, decor visibly persists after reload, diminishing returns remain under the catalog cap, care-point traces remain identical, and unsafe play remains unprofitable. Both approved patients remain available through safe external services at all declared Normal locations; the starter pool remains repeatable. No departments or new clinically inferred patients were added.
 
 ## Milestone 4 — Departments and broader services
 

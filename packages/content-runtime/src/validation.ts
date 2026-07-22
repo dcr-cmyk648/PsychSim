@@ -10,7 +10,9 @@ import {
 import {
   evaluateCaseEligibility,
   extractPredicateReferences,
+  getPurchasableUpgradeDefinitions,
   instantiateCase,
+  resolveClinicForFacility,
   resolveClinicForProgressionMode,
   resolveServiceFulfillment,
 } from '@psychsim/engine';
@@ -609,15 +611,46 @@ export const validateCaseBlueprint = (
     });
     return { valid: false, issues };
   }
-  const endgameClinic = resolveClinicForProgressionMode(clinicState, 'endgame', catalogs);
   const validationContexts = blueprint.metadata.compatibleLocationIds.flatMap((locationId) => {
-    if (clinicState.locationIds.includes(locationId)) return [{ locationId, clinic: clinicState }];
-    if (endgameClinic.locationIds.includes(locationId))
-      return [{ locationId, clinic: endgameClinic }];
+    const location = catalogs.locations.find((candidate) => candidate.id === locationId);
+    const facility = catalogs.facilities.find((candidate) =>
+      candidate.locationIds.includes(locationId),
+    );
+    if (!location || !facility) {
+      issues.push({
+        severity: 'error',
+        code: 'CASE_LOCATION_UNAVAILABLE',
+        message: `${blueprint.id} references ${locationId}, which no facility can host.`,
+      });
+      return [];
+    }
+    if (facility.tier === 'behavioral_health_system') {
+      return [
+        {
+          locationId,
+          clinic: resolveClinicForProgressionMode(clinicState, 'endgame', catalogs),
+        },
+      ];
+    }
+    const resolved = resolveClinicForFacility(clinicState, facility.id, catalogs);
+    if (resolved.ok) {
+      return [
+        {
+          locationId,
+          clinic: {
+            ...resolved.value,
+            lifetimePointsEarned: Math.max(
+              resolved.value.lifetimePointsEarned,
+              facility.minimumLifetimePoints,
+            ),
+          },
+        },
+      ];
+    }
     issues.push({
       severity: 'error',
       code: 'CASE_LOCATION_UNAVAILABLE',
-      message: `${blueprint.id} references ${locationId}, which no validation clinic can host.`,
+      message: `${blueprint.id} references ${locationId}: ${resolved.error.message}`,
     });
     return [];
   });
@@ -714,6 +747,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     ['testActions', catalogs.tests.map((item) => item.actionId)],
     ['referenceIntervalSets', catalogs.referenceIntervalSets.map((item) => item.id)],
     ['upgrades', catalogs.upgrades.map((item) => item.id)],
+    ['decor', catalogs.decor.items.map((item) => item.id)],
   ] as const) {
     for (const duplicate of duplicateIds(ids)) {
       issues.push({
@@ -744,7 +778,28 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
   const evidenceSourceIds = new Set(catalogs.evidenceSources.map((source) => source.id));
   const serviceIds = new Set(catalogs.services.map((service) => service.id));
   const formularyIds = new Set(catalogs.formularies.map((formulary) => formulary.id));
-  const upgradeIds = new Set(catalogs.upgrades.map((upgrade) => upgrade.id));
+  const purchaseDefinitions = getPurchasableUpgradeDefinitions(catalogs);
+  for (const duplicate of duplicateIds(purchaseDefinitions.map((item) => item.id))) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_PURCHASE_ID',
+      message: duplicate,
+    });
+  }
+  const upgradeIds = new Set(purchaseDefinitions.map((upgrade) => upgrade.id));
+  const locationIds = new Set(catalogs.locations.map((location) => location.id));
+  for (const facility of catalogs.facilities) {
+    for (const locationId of facility.locationIds) {
+      const location = catalogs.locations.find((candidate) => candidate.id === locationId);
+      if (!locationIds.has(locationId) || location?.facilityTier !== facility.tier) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_FACILITY_LOCATION_REF',
+          message: `${facility.id} references ${locationId}`,
+        });
+      }
+    }
+  }
   for (const facility of catalogs.facilities) {
     for (const upgradeId of facility.allowedUpgradeIds) {
       if (!upgradeIds.has(upgradeId)) {
@@ -756,7 +811,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       }
     }
   }
-  for (const upgrade of catalogs.upgrades) {
+  for (const upgrade of purchaseDefinitions) {
     if (upgrade.purchaseCost <= 0) {
       issues.push({
         severity: 'error',
@@ -822,6 +877,31 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       issues.push({
         severity: 'error',
         code: 'FORMULARY_UPGRADE_WITHOUT_FORMULARY',
+        message: upgrade.id,
+      });
+    }
+    if (upgrade.kind === 'facility') {
+      const target = upgrade.targetFacilityId
+        ? catalogs.facilities.find((facility) => facility.id === upgrade.targetFacilityId)
+        : undefined;
+      if (!target || target.minimumLifetimePoints !== upgrade.minimumLifetimePoints) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_FACILITY_UPGRADE_TARGET',
+          message: upgrade.id,
+        });
+      }
+    }
+    if (
+      upgrade.kind === 'decor' &&
+      (upgrade.satisfactionPoints === undefined ||
+        upgrade.satisfactionPoints <= 0 ||
+        !upgrade.displaySlotType ||
+        !upgrade.visualToken)
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'INCOMPLETE_DECOR_UPGRADE',
         message: upgrade.id,
       });
     }

@@ -171,6 +171,9 @@ export const FacilityTierSchema = z.enum([
 ]);
 export type FacilityTier = z.infer<typeof FacilityTierSchema>;
 
+export const PatientPoolSchema = z.enum(['starter', 'transitional', 'advanced']);
+export type PatientPool = z.infer<typeof PatientPoolSchema>;
+
 export const ProgressionModeSchema = z.enum(['standard', 'endgame', 'developer']);
 export type ProgressionMode = z.infer<typeof ProgressionModeSchema>;
 
@@ -198,10 +201,21 @@ export const FacilityDefinitionSchema = z
     tier: FacilityTierSchema,
     minimumLifetimePoints: z.number().int().nonnegative(),
     patientSlotCount: z.number().int().min(1).max(12),
+    locationIds: z.array(StableIdSchema).min(1),
+    defaultLocationId: StableIdSchema,
     allowedDepartmentIds: z.array(StableIdSchema),
     allowedUpgradeIds: z.array(StableIdSchema),
   })
-  .strict();
+  .strict()
+  .superRefine((facility, context) => {
+    if (!facility.locationIds.includes(facility.defaultLocationId)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['defaultLocationId'],
+        message: 'The default location must be included in the facility location list.',
+      });
+    }
+  });
 export type FacilityDefinition = z.infer<typeof FacilityDefinitionSchema>;
 
 export const DepartmentDefinitionSchema = z
@@ -463,6 +477,7 @@ export const CatalogBundleSchema = z
     tests: z.array(TestDefinitionSchema),
     referenceIntervalSets: z.array(ReferenceIntervalSetDefinitionSchema),
     upgrades: z.array(z.lazy(() => UpgradeDefinitionSchema)),
+    decor: z.lazy(() => DecorCatalogSchema),
   })
   .strict();
 export type CatalogBundle = z.infer<typeof CatalogBundleSchema>;
@@ -481,6 +496,7 @@ export const ContentRegistryEntrySchema = z
       'test_catalog',
       'reference_interval_catalog',
       'upgrade_catalog',
+      'decor_catalog',
       'evidence_source',
       'medication',
       'patient',
@@ -944,6 +960,7 @@ export const CaseMetadataSchema = z
     prototype: z.boolean(),
     disclaimer: z.string().min(20),
     difficultyTier: z.number().int().min(1),
+    patientPool: PatientPoolSchema.default('starter'),
     minimumLifetimePoints: z.number().int().nonnegative(),
     tags: z.array(z.string().min(1)),
     compatibleLocationIds: z.array(StableIdSchema).min(1),
@@ -1726,6 +1743,10 @@ export const UpgradeDefinitionSchema = z
     inHousePerUseCost: z.number().int().nonnegative().optional(),
     patientCategoryIdsUnlocked: z.array(StableIdSchema).default([]),
     clinicalCapabilityLabels: z.array(z.string().min(1).max(160)).default([]),
+    targetFacilityId: StableIdSchema.optional(),
+    satisfactionPoints: z.number().nonnegative().optional(),
+    displaySlotType: z.string().min(1).optional(),
+    visualToken: StableIdSchema.optional(),
   })
   .strict();
 export type UpgradeDefinition = z.infer<typeof UpgradeDefinitionSchema>;
@@ -1734,8 +1755,30 @@ export const DecorDefinitionSchema = UpgradeDefinitionSchema.extend({
   kind: z.literal('decor'),
   satisfactionPoints: z.number().nonnegative(),
   displaySlotType: z.string().min(1),
+  visualToken: StableIdSchema,
 }).strict();
 export type DecorDefinition = z.infer<typeof DecorDefinitionSchema>;
+
+export const SatisfactionConfigurationSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    curve: z.literal('rational_half_saturation'),
+    halfSaturationPoints: z.number().positive(),
+    multiplierCap: z.number().min(1).max(2),
+  })
+  .strict();
+export type SatisfactionConfiguration = z.infer<typeof SatisfactionConfigurationSchema>;
+
+export const DecorCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    satisfaction: SatisfactionConfigurationSchema,
+    items: z.array(DecorDefinitionSchema),
+  })
+  .strict();
+export type DecorCatalog = z.infer<typeof DecorCatalogSchema>;
 
 export const CaseEligibilitySchema = z
   .object({

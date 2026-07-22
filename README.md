@@ -1,6 +1,6 @@
 # PsychSim
 
-PsychSim is a browser-based psychiatric clinic-building game prototype. Milestones 0–2 deliver a small playable clinical loop plus the first clinic-building decision: purchase immediate structured information, assemble a treatment plan, lock it in, receive an itemized all-points settlement, and reinvest banked points in clinic capabilities.
+PsychSim is a browser-based psychiatric clinic-building game prototype. Milestones 0–3 deliver a small playable clinical loop plus the first progression arc: purchase immediate structured information, assemble a treatment plan, lock it in, receive an itemized all-points settlement, and reinvest banked points in services, formularies, facilities, and visible ambience.
 
 Cross-device Codex work uses one canonical write-capable thread per local worktree. Start every new or resumed thread from [PROJECT_STATE.md](PROJECT_STATE.md), run `./scripts/codex-handoff status`, and follow [the phone/Mac handoff guide](docs/CODEX_THREAD_HANDOFF.md) before editing. Conversation history is not project memory.
 
@@ -40,7 +40,9 @@ pnpm demo:reference-runs
 On a machine without a locally installed Google Chrome, install Playwright's pinned browser once
 with `pnpm exec playwright install chromium` before `pnpm test:e2e`.
 
-The first profile begins with 250 spendable points and zero lifetime points earned. Investigation costs, care awards/penalties, reimbursement, purchases, and progression all use the same point unit. There is no letter grade, 0–100 score, credits, Reputation, or XP. The clinic store currently offers a 1,200-point ECG machine and an 800-point outpatient formulary expansion. Purchases reduce only the spendable balance; lifetime points never decrease. Encounter expenses never debit banked points directly—only the nonnegative settled payout is added. Saves, resolved patient slots, attempts, flags, review tickets, and upgrade ownership use a small IndexedDB repository in the browser.
+The first profile begins with 250 spendable points and zero lifetime points earned. Investigation costs, care awards/penalties, reimbursement, purchases, and progression all use the same point unit. There is no letter grade, 0–100 score, credits, Reputation, or XP. The clinic store currently offers a 1,200-point ECG machine, an 800-point outpatient formulary expansion, two facility moves, and three decor items. Purchases reduce only the spendable balance; lifetime points never decrease. Encounter expenses never debit banked points directly—only the nonnegative settled payout is added. Saves, resolved patient slots, attempts, flags, review tickets, facility state, decor, and upgrade ownership use a small IndexedDB repository in the browser.
+
+The first facility move becomes eligible at 2,500 lifetime points and separately costs 1,800 spendable points, increasing the persistent queue from one to two slots. The multidisciplinary center becomes eligible at 7,500 lifetime points, requires the outpatient-clinic move, costs 5,000 spendable points, and adds a third slot. Waiting patients and previous purchases survive the move. The plant, framed print, and warm-lighting purchases appear in the hub and add diminishing ambience toward a cataloged 1.15× cap on positive rewards only; they never change clinical scoring or rescue unsafe care.
 
 The ECG patient is playable before ownership through a 500-point outside service. Owning the machine automatically fulfills the same order in house for 70 points; the receipt reports the 430-point external cost avoided without changing any clinical rule or result.
 
@@ -51,6 +53,8 @@ Numeric laboratory results use an EMR-style `Test · Result · Reference interva
 The local authoring slice now hashes and extracts PDF, DOCX, TXT, and Markdown sources into gitignored document/chunk records. A controlled scaffold request can turn an existing reviewed-as-a-template case into a new medically unreviewed Developer patient with source provenance and blocking clinical-audit tickets. It does not infer clinical rules or call an AI provider. See [DOCUMENT_INGESTION.md](docs/DOCUMENT_INGESTION.md) and [the scaffold example](content/cases/blueprints/basic-mdd-scaffold.example.json).
 
 Formal literature has a separate, tracked evidence catalog. Each article, guideline, or regulatory document receives one stable bibliographic record; case and medication contribution notes say exactly which rule it informed and how. Receipt traces show those citations and contribution statements. Rules without a linked formal contribution display `Expert opinion` rather than receiving an inferred citation. Run `pnpm content:evidence` to audit cataloged publications, linked contributions, unused sources, and implicit expert-opinion rules.
+
+The CANMAT MDD source has been decomposed into five unresolved Developer tickets rather than applied automatically. Three additional ECG tickets cover necessity/weight, continuation versus switching, and disposition. Switch to Developer mode on the local server to review and disposition them; resolving a ticket records workflow state but does not silently rewrite clinical JSON.
 
 ## Static deployment
 

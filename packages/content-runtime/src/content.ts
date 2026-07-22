@@ -40,12 +40,13 @@ import tshTestJson from '../../../content/catalogs/tests/definitions/tsh.test.js
 import urineToxicologyTestJson from '../../../content/catalogs/tests/definitions/urine-toxicology.test.json';
 import referenceIntervalSetsJson from '../../../content/catalogs/tests/reference-interval-sets.json';
 import upgradesJson from '../../../content/catalogs/upgrades/upgrades.json';
+import decorJson from '../../../content/catalogs/decor/decor.json';
 import prototypeCaseJson from '../../../content/cases/approved/first-visit-depression.case.json';
 import medicationCheckPalpitationsJson from '../../../content/cases/approved/medication-check-palpitations.case.json';
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '2.1.0',
+  contentVersion: '3.0.0',
   evidenceSources: [canmatMddGuidelineJson, fdaCitalopramLabelJson],
   services: servicesJson,
   medications: [
@@ -84,6 +85,7 @@ export const catalogs = CatalogBundleSchema.parse({
   ],
   referenceIntervalSets: referenceIntervalSetsJson,
   upgrades: upgradesJson,
+  decor: decorJson,
 });
 
 export const prototypeCaseBlueprint = CaseBlueprintSchema.parse(prototypeCaseJson);

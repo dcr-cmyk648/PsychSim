@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "3.0.0",
+  "satisfaction": {
+    "schemaVersion": 1,
+    "contentVersion": "3.0.0",
+    "curve": "rational_half_saturation",
+    "halfSaturationPoints": 20,
+    "multiplierCap": 1.15
+  },
+  "items": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "3.0.0",
+      "id": "decor.plant.pothos",
+      "label": "Waiting-room pothos",
+      "description": "Add a hardy plant and a small amount of ambience without changing any clinical rule.",
+      "kind": "decor",
+      "purchaseCost": 300,
+      "minimumLifetimePoints": 0,
+      "prerequisiteUpgradeIds": [],
+      "allowedFacilityTiers": ["solo_office", "outpatient_clinic", "multidisciplinary_center"],
+      "grantsCapabilities": [],
+      "grantsFormularyIds": [],
+      "serviceIds": [],
+      "patientCategoryIdsUnlocked": [],
+      "clinicalCapabilityLabels": ["Visible plant in the clinic hub"],
+      "satisfactionPoints": 6,
+      "displaySlotType": "floor",
+      "visualToken": "visual.decor.pothos"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "3.0.0",
+      "id": "decor.art.abstract-print",
+      "label": "Framed abstract print",
+      "description": "Add framed artwork to the consultation space. It affects ambience rewards only.",
+      "kind": "decor",
+      "purchaseCost": 700,
+      "minimumLifetimePoints": 2500,
+      "prerequisiteUpgradeIds": ["upgrade.facility.outpatient-clinic"],
+      "allowedFacilityTiers": ["outpatient_clinic", "multidisciplinary_center"],
+      "grantsCapabilities": [],
+      "grantsFormularyIds": [],
+      "serviceIds": [],
+      "patientCategoryIdsUnlocked": [],
+      "clinicalCapabilityLabels": ["Visible framed art in the clinic hub"],
+      "satisfactionPoints": 10,
+      "displaySlotType": "wall",
+      "visualToken": "visual.decor.abstract-print"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "3.0.0",
+      "id": "decor.lighting.warm-lamps",
+      "label": "Warm clinic lighting",
+      "description": "Replace the stark office lighting with warmer fixtures at the multidisciplinary center.",
+      "kind": "decor",
+      "purchaseCost": 1200,
+      "minimumLifetimePoints": 7500,
+      "prerequisiteUpgradeIds": ["upgrade.facility.multidisciplinary-center"],
+      "allowedFacilityTiers": ["multidisciplinary_center"],
+      "grantsCapabilities": [],
+      "grantsFormularyIds": [],
+      "serviceIds": [],
+      "patientCategoryIdsUnlocked": [],
+      "clinicalCapabilityLabels": ["Warm lighting treatment in the clinic hub"],
+      "satisfactionPoints": 16,
+      "displaySlotType": "lighting",
+      "visualToken": "visual.decor.warm-lighting"
+    }
+  ]
+}

@@ -6,7 +6,7 @@ import type {
   ProgressionMode,
   SaveData,
 } from '@psychsim/schemas';
-import { getUpgradeOffer } from '@psychsim/engine';
+import { getPurchasableUpgradeDefinitions, getUpgradeOffer } from '@psychsim/engine';
 
 export interface PatientSlotPreview {
   id: string;
@@ -34,10 +34,17 @@ interface ClinicHubProps {
   upgradeStatus: string | null;
 }
 
-const tierLabel = (clinic: ClinicState): string =>
-  clinic.facilityTier === 'behavioral_health_system'
-    ? 'Tier 7 · Behavioral-Health System'
-    : 'Tier 1 · Solo Psychiatric Office';
+const TIER_LABELS: Record<ClinicState['facilityTier'], string> = {
+  solo_office: 'Tier 1 · Solo Psychiatric Office',
+  outpatient_clinic: 'Tier 2 · Outpatient Psychiatric Clinic',
+  multidisciplinary_center: 'Tier 3 · Multidisciplinary Behavioral-Health Center',
+  psychopharmacology_center: 'Tier 4 · Specialty Psychopharmacology Center',
+  psychiatric_hospital: 'Tier 5 · Psychiatric Hospital',
+  integrated_medical_center: 'Tier 6 · Integrated Psychiatric-Medical Center',
+  behavioral_health_system: 'Tier 7 · Behavioral-Health System',
+};
+
+const tierLabel = (clinic: ClinicState): string => TIER_LABELS[clinic.facilityTier];
 
 const MODE_LABELS: ReadonlyArray<{ id: ProgressionMode; label: string }> = [
   { id: 'standard', label: 'Normal' },
@@ -75,13 +82,29 @@ export function ClinicHub({
         ticketPriority[left.priority] - ticketPriority[right.priority] ||
         left.createdAt.localeCompare(right.createdAt),
     );
-  const upgradeOffers = catalogs.upgrades.flatMap((upgrade) => {
-    const offer = getUpgradeOffer(clinic, upgrade.id, catalogs);
-    return offer.ok ? [offer.value] : [];
-  });
+  const currentFacility = catalogs.facilities.find((facility) => facility.id === clinic.facilityId);
+  const upgradeOffers = getPurchasableUpgradeDefinitions(catalogs)
+    .filter(
+      (upgrade) =>
+        currentFacility?.allowedUpgradeIds.includes(upgrade.id) ||
+        clinic.ownedUpgradeIds.includes(upgrade.id),
+    )
+    .flatMap((upgrade) => {
+      const offer = getUpgradeOffer(clinic, upgrade.id, catalogs);
+      return offer.ok ? [offer.value] : [];
+    });
   const activeFormularyLabels = catalogs.formularies
-    .filter((formulary) => clinic.formularyIds.includes(formulary.id))
+    .filter((formulary) => clinicState.formularyIds.includes(formulary.id))
     .map((formulary) => formulary.label);
+  const progressionFacilities = catalogs.facilities
+    .filter((facility) => facility.tier !== 'behavioral_health_system')
+    .sort((left, right) => left.minimumLifetimePoints - right.minimumLifetimePoints);
+  const nextFacility = progressionFacilities.find(
+    (facility) => facility.minimumLifetimePoints > (currentFacility?.minimumLifetimePoints ?? 0),
+  );
+  const hasPlant = clinicState.ownedUpgradeIds.includes('decor.plant.pothos');
+  const hasArt = clinicState.ownedUpgradeIds.includes('decor.art.abstract-print');
+  const hasWarmLighting = clinicState.ownedUpgradeIds.includes('decor.lighting.warm-lamps');
 
   return (
     <main className="hub-shell" id="main-content">
@@ -91,7 +114,9 @@ export function ClinicHub({
           <h1 id="clinic-title">{clinicState.label}</h1>
           <p className="banner-copy">
             {progressionMode === 'standard'
-              ? 'One room, a starter formulary, and a waiting patient.'
+              ? clinic.facilityTier === 'solo_office'
+                ? 'One room, a starter formulary, and a waiting patient.'
+                : `${currentFacility?.patientSlotCount ?? 1} persistent patient slots with every earlier purchase preserved.`
               : progressionMode === 'endgame'
                 ? 'Practice mode with all approved patients and modeled capabilities unlocked.'
                 : 'Local content-development mode: review content appears once until reset.'}
@@ -109,6 +134,10 @@ export function ClinicHub({
           <div>
             <dt>Completed</dt>
             <dd>{saveData.attempts.length}</dd>
+          </div>
+          <div>
+            <dt>Ambience</dt>
+            <dd>{clinicState.satisfactionMultiplier.toFixed(3)}×</dd>
           </div>
         </dl>
         <div className="mode-control">
@@ -202,8 +231,11 @@ export function ClinicHub({
         </section>
 
         <aside className="office-card" aria-labelledby="office-capabilities-title">
-          <div className="office-illustration" aria-hidden="true">
-            <span className="plant">♧</span>
+          <div
+            className={`office-illustration${hasArt ? ' has-art' : ''}${hasWarmLighting ? ' warm-lighting' : ''}`}
+            aria-hidden="true"
+          >
+            {hasPlant ? <span className="plant">♧</span> : null}
             <span className="desk" />
             <span className="chair chair-one" />
             <span className="chair chair-two" />
@@ -228,6 +260,21 @@ export function ClinicHub({
               </>
             )}
           </ul>
+          {progressionMode === 'standard' && nextFacility ? (
+            <div className="facility-progress">
+              <span>Next facility eligibility</span>
+              <strong>{nextFacility.label}</strong>
+              <progress
+                max={nextFacility.minimumLifetimePoints}
+                value={Math.min(clinic.lifetimePointsEarned, nextFacility.minimumLifetimePoints)}
+              />
+              <small>
+                {clinic.lifetimePointsEarned.toLocaleString()} /{' '}
+                {nextFacility.minimumLifetimePoints.toLocaleString()} lifetime points. Eligibility
+                still requires a separate purchase.
+              </small>
+            </div>
+          ) : null}
         </aside>
       </div>
 
@@ -270,6 +317,35 @@ export function ClinicHub({
                           .join(', ')}
                       </dd>
                     </div>
+                    <div>
+                      <dt>Lifetime required</dt>
+                      <dd>{offer.upgrade.minimumLifetimePoints.toLocaleString()} pts</dd>
+                    </div>
+                    {offer.targetFacility ? (
+                      <div>
+                        <dt>Moves clinic to</dt>
+                        <dd>
+                          {offer.targetFacility.label} · {offer.targetFacility.patientSlotCount}{' '}
+                          patient slots
+                        </dd>
+                      </div>
+                    ) : null}
+                    {offer.satisfactionPreview ? (
+                      <>
+                        <div>
+                          <dt>Ambience</dt>
+                          <dd>+{offer.satisfactionPreview.pointsAdded} satisfaction</dd>
+                        </div>
+                        <div>
+                          <dt>Reward multiplier</dt>
+                          <dd>
+                            {offer.satisfactionPreview.multiplierBefore.toFixed(3)}× →{' '}
+                            {offer.satisfactionPreview.multiplierAfter.toFixed(3)}× (cap{' '}
+                            {offer.satisfactionPreview.multiplierCap.toFixed(2)}×)
+                          </dd>
+                        </div>
+                      </>
+                    ) : null}
                     <div>
                       <dt>Prerequisites</dt>
                       <dd>
@@ -391,6 +467,40 @@ export function ClinicHub({
                       {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
                     </small>
                     <p>{ticket.guidance}</p>
+                    <details className="ticket-context">
+                      <summary>Targets and review routing</summary>
+                      <dl>
+                        <div>
+                          <dt>Source</dt>
+                          <dd>
+                            {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
+                            {ticket.sourceAuthority.replaceAll('_', ' ')}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Proposed routing</dt>
+                          <dd>{ticket.proposedRouting}</dd>
+                        </div>
+                        <div>
+                          <dt>Target IDs</dt>
+                          <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
+                        </div>
+                        <div>
+                          <dt>Dependencies</dt>
+                          <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
+                        </div>
+                        <div>
+                          <dt>Conflicts</dt>
+                          <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
+                        </div>
+                        {ticket.resurfacingTrigger ? (
+                          <div>
+                            <dt>Resurface when</dt>
+                            <dd>{ticket.resurfacingTrigger}</dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </details>
                   </div>
                   <label>
                     Status

@@ -2,10 +2,13 @@ import {
   ClinicStateSchema,
   type CatalogBundle,
   type ClinicState,
+  type FacilityDefinition,
   type UpgradeDefinition,
 } from '@psychsim/schemas';
 
+import { resolveClinicForFacility } from './progression';
 import { err, ok, type Result } from './result';
+import { calculateSatisfactionState } from './satisfaction';
 import { resolveServiceFulfillment } from './services';
 
 export type UpgradeBlockerCode =
@@ -45,22 +48,51 @@ export interface UpgradeOffer {
   serviceEconomics: readonly UpgradeServiceEconomics[];
   estimatedSavingsPerUse: number | null;
   approximateBreakEvenUses: number | null;
+  targetFacility: FacilityDefinition | null;
+  satisfactionPreview: {
+    pointsAdded: number;
+    rawPointsBefore: number;
+    rawPointsAfter: number;
+    multiplierBefore: number;
+    multiplierAfter: number;
+    multiplierCap: number;
+  } | null;
 }
 
 const addUnique = (current: readonly string[], additions: readonly string[]): string[] => [
   ...new Set([...current, ...additions]),
 ];
 
-const previewUpgradeBenefits = (clinic: ClinicState, upgrade: UpgradeDefinition): ClinicState =>
-  ClinicStateSchema.parse({
-    ...clinic,
-    capabilities: addUnique(clinic.capabilities, upgrade.grantsCapabilities),
-    formularyIds: addUnique(clinic.formularyIds, upgrade.grantsFormularyIds),
+export const getPurchasableUpgradeDefinitions = (
+  catalogs: CatalogBundle,
+): readonly UpgradeDefinition[] => [...catalogs.upgrades, ...catalogs.decor.items];
+
+const previewUpgradeBenefits = (
+  clinic: ClinicState,
+  upgrade: UpgradeDefinition,
+  catalogs: CatalogBundle,
+): ClinicState => {
+  const movedClinic =
+    upgrade.kind === 'facility' && upgrade.targetFacilityId
+      ? resolveClinicForFacility(clinic, upgrade.targetFacilityId, catalogs)
+      : ok(clinic);
+  if (!movedClinic.ok) return clinic;
+  const rawSatisfaction =
+    movedClinic.value.satisfaction +
+    (upgrade.kind === 'decor' ? (upgrade.satisfactionPoints ?? 0) : 0);
+  const satisfaction = calculateSatisfactionState(rawSatisfaction, catalogs.decor.satisfaction);
+  return ClinicStateSchema.parse({
+    ...movedClinic.value,
+    capabilities: addUnique(movedClinic.value.capabilities, upgrade.grantsCapabilities),
+    formularyIds: addUnique(movedClinic.value.formularyIds, upgrade.grantsFormularyIds),
     ownedEquipmentIds:
       upgrade.kind === 'equipment'
         ? addUnique(clinic.ownedEquipmentIds, [upgrade.id])
         : clinic.ownedEquipmentIds,
+    satisfaction: satisfaction.rawPoints,
+    satisfactionMultiplier: satisfaction.multiplier,
   });
+};
 
 const purchaseBlockers = (
   clinic: ClinicState,
@@ -96,6 +128,14 @@ const purchaseBlockers = (
   if (!upgrade.allowedFacilityTiers.includes(clinic.facilityTier)) {
     blockers.push({ code: 'facility_tier', message: 'Facility tier requirement is not met.' });
   }
+  if (upgrade.kind === 'facility') {
+    const target = upgrade.targetFacilityId
+      ? catalogs.facilities.find((candidate) => candidate.id === upgrade.targetFacilityId)
+      : undefined;
+    if (!target) {
+      blockers.push({ code: 'facility_catalog', message: 'Target facility is not configured.' });
+    }
+  }
   if (
     upgrade.requiredDepartmentId &&
     !clinic.departmentIds.includes(upgrade.requiredDepartmentId)
@@ -122,11 +162,14 @@ export const getUpgradeOffer = (
   upgradeId: string,
   catalogs: CatalogBundle,
 ): Result<UpgradeOffer> => {
-  const upgrade = catalogs.upgrades.find((candidate) => candidate.id === upgradeId);
+  const upgrade = getPurchasableUpgradeDefinitions(catalogs).find(
+    (candidate) => candidate.id === upgradeId,
+  );
   if (!upgrade) {
     return err({ code: 'UPGRADE_NOT_FOUND', message: `Unknown upgrade: ${upgradeId}` });
   }
-  const projectedClinic = previewUpgradeBenefits(clinic, upgrade);
+  const owned = clinic.ownedUpgradeIds.includes(upgrade.id);
+  const projectedClinic = owned ? clinic : previewUpgradeBenefits(clinic, upgrade, catalogs);
   const serviceEconomics = upgrade.serviceIds.flatMap((serviceId) => {
     const current = resolveServiceFulfillment(
       serviceId,
@@ -181,14 +224,30 @@ export const getUpgradeOffer = (
       ? Math.ceil(upgrade.purchaseCost / estimatedSavingsPerUse)
       : null;
   const blockers = purchaseBlockers(clinic, upgrade, catalogs);
+  const targetFacility = upgrade.targetFacilityId
+    ? (catalogs.facilities.find((candidate) => candidate.id === upgrade.targetFacilityId) ?? null)
+    : null;
+  const satisfactionPreview =
+    upgrade.kind === 'decor'
+      ? {
+          pointsAdded: upgrade.satisfactionPoints ?? 0,
+          rawPointsBefore: clinic.satisfaction,
+          rawPointsAfter: projectedClinic.satisfaction,
+          multiplierBefore: clinic.satisfactionMultiplier,
+          multiplierAfter: projectedClinic.satisfactionMultiplier,
+          multiplierCap: catalogs.decor.satisfaction.multiplierCap,
+        }
+      : null;
   return ok({
     upgrade,
-    owned: clinic.ownedUpgradeIds.includes(upgrade.id),
+    owned,
     canPurchase: blockers.length === 0,
     blockers,
     serviceEconomics,
     estimatedSavingsPerUse,
     approximateBreakEvenUses,
+    targetFacility,
+    satisfactionPreview,
   });
 };
 
@@ -213,7 +272,7 @@ export const purchaseUpgrade = (
               : 'UPGRADE_NOT_ALLOWED';
     return err({ code, message: blocker.message });
   }
-  const upgraded = previewUpgradeBenefits(clinic, offer.value.upgrade);
+  const upgraded = previewUpgradeBenefits(clinic, offer.value.upgrade, catalogs);
   return ok(
     ClinicStateSchema.parse({
       ...upgraded,

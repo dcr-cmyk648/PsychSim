@@ -13,14 +13,18 @@ export const calculateSettlement = (
 ): EconomySettlement => {
   const configuration = caseInstance.economy;
   const satisfactionMultiplier = clinicState.satisfactionMultiplier;
+  const positiveCarePoints = Math.max(0, pointReport.carePointsEarned);
+  const carePointPenalty = Math.min(0, pointReport.carePointsEarned);
   const grossPayout = Math.round(
     Math.max(
       0,
-      configuration.baseReimbursement +
-        pointReport.carePointsEarned +
+      (configuration.baseReimbursement +
+        positiveCarePoints +
         configuration.complexityBonus +
-        configuration.challengeBonus,
-    ) * satisfactionMultiplier,
+        configuration.challengeBonus) *
+        satisfactionMultiplier +
+        carePointPenalty,
+    ),
   );
   const calculatedPayout = grossPayout - pointReport.actualWorkupExpense;
   const netClinicPointsEarned = Math.max(0, calculatedPayout);

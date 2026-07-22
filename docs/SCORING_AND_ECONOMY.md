@@ -63,11 +63,17 @@ Disposition is a material clinical decision. The stable outpatient patient earns
 Normal-mode settlement is:
 
 ```text
-gross reimbursement = round(max(0,
+positive reward subtotal =
     base reimbursement
-  + care points
+  + max(0, care points)
   + complexity bonus
-  + challenge bonus) × satisfaction multiplier)
+  + challenge bonus
+
+care-point penalty = min(0, care points)
+
+gross reimbursement = round(max(0,
+    positive reward subtotal × satisfaction multiplier
+  + care-point penalty))
 
 calculated payout = gross reimbursement - investigation operating expenses
 
@@ -96,7 +102,18 @@ The first ECG upgrade costs 1,200 points. The outside ECG method costs 500 per e
 
 The first formulary expansion costs 800 points and adds bupropion, mirtazapine, and buspirone to the starter office's start-medication menu. It does not imply those drugs are appropriate for a particular patient; patient and medication rules still evaluate fit. A medication already taken by a patient remains available to stop or continue even if the location does not stock it for new starts.
 
-Satisfaction is fixed at 1.00× in Milestone 2. A future capped, diminishing-return decor multiplier may alter positive reimbursement, but it cannot alter care rules, safety errors, or treatment correctness.
+Facility movement uses the same atomic purchase contract. The outpatient clinic becomes eligible at 2,500 lifetime points and costs 1,800 current points; the multidisciplinary center becomes eligible at 7,500 lifetime points, requires the outpatient-clinic purchase, and costs 5,000 current points. Crossing a lifetime threshold grants neither facility automatically. Spending points never lowers the lifetime value, so eligibility cannot run backward.
+
+Decor contributes raw satisfaction points. The current catalog converts them with a transparent rational curve:
+
+```text
+diminishing value = raw satisfaction / (raw satisfaction + 20)
+multiplier = min(1.15, 1 + (1.15 - 1) × diminishing value)
+```
+
+The multiplier is rounded to three decimals for persisted/displayed state. The six-point plant produces 1.035×; plant plus ten-point artwork produces 1.067×, so the second item's per-point effect is smaller. The cap and half-saturation value live in the decor catalog rather than React. Only the positive reward subtotal is multiplied. A negative care subtotal remains a full unmultiplied penalty, and care-point traces, safety errors, treatment grades, and score caps are unchanged.
+
+For the 450-care-point starter database plan, the undecorated gross is 1,150 and the 80-point focused workup yields 1,070 banked points. With the plant, gross is `round(1,150 × 1.035) = 1,190`, yielding 1,110 points. With plant plus artwork, gross is `round(1,150 × 1.067) = 1,227`, yielding 1,147 points. The same decor leaves the unsafe reference run at a zero payout.
 
 ## Executable starter reference runs
 

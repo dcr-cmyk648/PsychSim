@@ -1,7 +1,7 @@
 [
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "2.0.0",
     "id": "upgrade.equipment.ecg",
     "label": "Compact 12-lead ECG",
     "description": "Bring routine 12-lead ECG acquisition into the outpatient office. The patient result and clinical value stay identical; only fulfillment cost changes.",
@@ -9,7 +9,7 @@
     "purchaseCost": 1200,
     "minimumLifetimePoints": 0,
     "prerequisiteUpgradeIds": [],
-    "allowedFacilityTiers": ["solo_office", "outpatient_clinic"],
+    "allowedFacilityTiers": ["solo_office", "outpatient_clinic", "multidisciplinary_center"],
     "grantsCapabilities": ["equipment.ecg"],
     "grantsFormularyIds": [],
     "serviceIds": ["service.diagnostic.ecg"],
@@ -22,7 +22,7 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "2.0.0",
     "id": "upgrade.formulary.expanded-outpatient",
     "label": "Expanded outpatient formulary",
     "description": "Add several common non-SSRI outpatient options to the office formulary. Patient-specific scoring still determines whether any option fits.",
@@ -30,11 +30,53 @@
     "purchaseCost": 800,
     "minimumLifetimePoints": 0,
     "prerequisiteUpgradeIds": [],
-    "allowedFacilityTiers": ["solo_office", "outpatient_clinic"],
+    "allowedFacilityTiers": ["solo_office", "outpatient_clinic", "multidisciplinary_center"],
     "grantsCapabilities": ["formulary.expanded-outpatient"],
     "grantsFormularyIds": ["formulary.expanded-outpatient"],
     "serviceIds": [],
     "patientCategoryIdsUnlocked": [],
     "clinicalCapabilityLabels": ["Bupropion", "Mirtazapine", "Buspirone"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "3.0.0",
+    "id": "upgrade.facility.outpatient-clinic",
+    "label": "Move into an outpatient clinic",
+    "description": "Move beyond the solo office, open a second persistent patient slot, and keep all previously purchased equipment and formulary access.",
+    "kind": "facility",
+    "purchaseCost": 1800,
+    "minimumLifetimePoints": 2500,
+    "prerequisiteUpgradeIds": [],
+    "allowedFacilityTiers": ["solo_office"],
+    "grantsCapabilities": ["facility.outpatient-clinic"],
+    "grantsFormularyIds": [],
+    "serviceIds": [],
+    "patientCategoryIdsUnlocked": ["patient-pool.transitional"],
+    "clinicalCapabilityLabels": [
+      "Two persistent patient slots",
+      "Outpatient-clinic upgrade and decor catalog"
+    ],
+    "targetFacilityId": "facility.outpatient-clinic"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "3.0.0",
+    "id": "upgrade.facility.multidisciplinary-center",
+    "label": "Build a multidisciplinary center",
+    "description": "Expand the outpatient clinic into a larger behavioral-health center with a third persistent patient slot. Department construction remains a later milestone.",
+    "kind": "facility",
+    "purchaseCost": 5000,
+    "minimumLifetimePoints": 7500,
+    "prerequisiteUpgradeIds": ["upgrade.facility.outpatient-clinic"],
+    "allowedFacilityTiers": ["outpatient_clinic"],
+    "grantsCapabilities": ["facility.multidisciplinary-center"],
+    "grantsFormularyIds": [],
+    "serviceIds": [],
+    "patientCategoryIdsUnlocked": ["patient-pool.advanced"],
+    "clinicalCapabilityLabels": [
+      "Three persistent patient slots",
+      "Multidisciplinary-center environment catalog"
+    ],
+    "targetFacilityId": "facility.multidisciplinary-center"
   }
 ]

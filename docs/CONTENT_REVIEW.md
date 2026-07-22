@@ -26,6 +26,12 @@ The bounded patient scaffolder writes a review patient and a companion `*.ticket
 
 A scaffold can be played immediately to evaluate wording, variation, menus, and receipt behavior. It must not be promoted merely because it is executable. Clinical facts, criteria constraints, workup weights, treatment families, fit modifiers, combinations, disposition, settlement, and every reference policy remain individually reviewable.
 
+## Source-review ticket packets
+
+A tracked `*.tickets.json` file may decompose one formal source into proposed rule-level questions without attaching that publication to an executable rule. Developer mode loads these packets into the same local queue. The first example, `canmat-2023-mdd-source-review.tickets.json`, separates assessment/workup, severity and initial modality, broad antidepressant baseline/fit, psychotherapy, and disposition. Each ticket names exact candidate targets, source section routing, conflicts, dependencies, and resurfacing conditions. It paraphrases only the narrow candidate contribution and does not include private extracted text.
+
+Creating or accepting a ticket is not source application. A formal `EvidenceContribution`, target rule review update, content-version change, impact scan, and affected reference policies are still required after the user adjudicates the question. This keeps “the paper exists,” “the source may support this claim,” and “this exact game rule has been clinically approved” as three separate states.
+
 ## Historical fidelity
 
 Never replay old feedback against an unversioned current case. The review tool must open the saved case snapshot and engine/content versions first. It may separately load the current blueprint and show a structured comparison. Resolved variants are stored, so replay does not regenerate a new fictional patient.
