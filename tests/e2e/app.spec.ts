@@ -204,7 +204,7 @@ test('persists a threshold-gated facility move and visible decor', async ({ page
   await page.reload();
 
   await expect(page.getByRole('heading', { name: 'Outpatient Psychiatric Clinic' })).toBeVisible();
-  await expect(page.getByText('1.067×')).toBeVisible();
+  await expect(page.getByText('1.067×', { exact: true })).toBeVisible();
   await expect(page.locator('.office-illustration .plant')).toHaveCount(1);
   await expect(page.locator('.office-illustration.has-art')).toHaveCount(1);
   await expect(page.getByRole('button', { name: /Open chart for/ })).toHaveCount(2);
