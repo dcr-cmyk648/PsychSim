@@ -48,7 +48,7 @@ The local authoring slice now hashes and extracts PDF, DOCX, TXT, and Markdown s
 
 ## Static deployment
 
-The application is GitHub Pages-ready. [The Pages workflow](.github/workflows/pages.yml) runs formatting, lint, typecheck, unit/content/browser gates, builds with the repository subpath as Vite's base URL, verifies that private source and Developer content are absent, and deploys `apps/web/dist`. Local builds continue to use `/`; reproduce the Pages shape with:
+The application is GitHub Pages-ready. [The Pages workflow](.github/workflows/pages.yml) runs formatting, lint, typecheck, unit/content/browser gates, builds with the repository subpath as Vite's base URL, verifies that private source and Developer content are absent, and deploys `apps/web/dist` when Pages is available. Public repositories deploy automatically. A private repository deploys only when its GitHub plan supports Pages and the repository variable `PSYCHSIM_ENABLE_PAGES=true` is set; otherwise the verification/build job stays green and deployment is skipped. Local builds continue to use `/`; reproduce the Pages shape with:
 
 ```sh
 VITE_BASE_PATH=/PsychSim/ pnpm build
