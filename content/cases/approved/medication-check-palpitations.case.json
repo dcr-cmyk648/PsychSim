@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.0.0",
+  "contentVersion": "2.1.0",
   "id": "case.medication-check-palpitations",
   "metadata": {
     "title": "Outpatient Medication Check 002",
@@ -20,7 +20,8 @@
       "couch-and-clipboard"
     ],
     "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
-    "sourceDocumentIds": ["source-document.fda-citalopram-label-2023"]
+    "sourceDocumentIds": [],
+    "evidenceSourceIds": ["evidence.fda.citalopram-capsules-label.2023"]
   },
   "patientRecord": {
     "schemaVersion": 1,
@@ -73,9 +74,13 @@
     "sourceUseNotes": [
       {
         "id": "source-use.ecg-mdd.citalopram-monitoring",
-        "sourceDocumentId": "source-document.fda-citalopram-label-2023",
+        "authority": "formal_publication",
+        "evidenceSourceIds": ["evidence.fda.citalopram-capsules-label.2023"],
+        "sourceDocumentId": null,
         "sourceChunkIds": [],
-        "takeaway": "The label identifies palpitations as a reason for further evaluation that includes cardiac monitoring.",
+        "targetContentIds": ["objective.ecg-mdd-cardiac-monitoring"],
+        "contributionTypes": ["workup", "safety"],
+        "contribution": "Contributed the case rule that reported palpitations during citalopram treatment warrant further evaluation that includes cardiac monitoring; it did not determine the prototype point magnitude.",
         "generatedBy": "human",
         "medicalReviewStatus": "unreviewed"
       }

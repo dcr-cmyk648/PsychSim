@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { instantiateCase, resolveNumericTestProfile } from '@psychsim/engine';
-import { PatientObservationSchema, WorkupObjectiveSchema } from '@psychsim/schemas';
+import {
+  PatientObservationSchema,
+  SourceUseNoteSchema,
+  WorkupObjectiveSchema,
+} from '@psychsim/schemas';
 
 import {
   approvedCaseBlueprints,
@@ -23,6 +27,63 @@ describe('prototype content', () => {
         issues: [],
       });
     }
+  });
+
+  it('catalogs formal publications independently from their rule contributions', () => {
+    expect(catalogs.evidenceSources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'evidence.canmat.mdd-adults.2023-update',
+          doi: '10.1177/07067437241245384',
+          medicalReviewStatus: 'unreviewed',
+        }),
+        expect.objectContaining({
+          id: 'evidence.fda.citalopram-capsules-label.2023',
+          sourceType: 'regulatory_document',
+          medicalReviewStatus: 'unreviewed',
+        }),
+      ]),
+    );
+    const fdaContribution = medicationCheckPalpitationsBlueprint.patientRecord.sourceUseNotes[0];
+    expect(fdaContribution).toMatchObject({
+      authority: 'formal_publication',
+      evidenceSourceIds: ['evidence.fda.citalopram-capsules-label.2023'],
+      targetContentIds: ['objective.ecg-mdd-cardiac-monitoring'],
+      contributionTypes: ['workup', 'safety'],
+    });
+    expect(
+      approvedCaseBlueprints.flatMap((caseDefinition) =>
+        caseDefinition.patientRecord.sourceUseNotes.flatMap((note) => note.evidenceSourceIds),
+      ),
+    ).not.toContain('evidence.canmat.mdd-adults.2023-update');
+  });
+
+  it('rejects formal contributions that cite an uncataloged publication', () => {
+    const invalid = structuredClone(medicationCheckPalpitationsBlueprint);
+    invalid.patientRecord.sourceUseNotes[0]!.evidenceSourceIds = ['evidence.missing'];
+    invalid.metadata.evidenceSourceIds = ['evidence.missing'];
+    expect(
+      validateCaseBlueprint(invalid, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'INVALID_EVIDENCE_SOURCE_REF',
+      ),
+    ).toBe(true);
+  });
+
+  it('does not let expert opinion borrow a formal citation', () => {
+    expect(
+      SourceUseNoteSchema.safeParse({
+        id: 'source-use.invalid-expert-citation',
+        authority: 'expert_opinion',
+        evidenceSourceIds: ['evidence.canmat.mdd-adults.2023-update'],
+        sourceDocumentId: null,
+        sourceChunkIds: [],
+        targetContentIds: ['case.first-visit-depression'],
+        contributionTypes: ['context_only'],
+        contribution: 'A personal note cannot borrow an article citation.',
+        generatedBy: 'human',
+        medicalReviewStatus: 'unreviewed',
+      }).success,
+    ).toBe(false);
   });
 
   it('keeps the ECG patient deterministic and its cardiac result authored across seeds', () => {

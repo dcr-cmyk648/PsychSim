@@ -1,5 +1,9 @@
 # Architecture
 
+## Cross-thread coordination boundary
+
+`PROJECT_STATE.md` is the durable operational resume point between Codex threads. A repository-local standard-library state machine in `scripts/codex_handoff.py` keeps a gitignored lease for one canonical write-capable thread per worktree and fingerprints branch, HEAD, full Git status, and `PROJECT_STATE.md`. Trusted project hooks may block stale prompts and file-writing tools, but they never stage, commit, push, merge, or resolve clinical content. Git remains the cross-clone durability mechanism; the local lease coordinates only threads sharing this worktree. See `docs/CODEX_THREAD_HANDOFF.md`.
+
 ## Shape of the system
 
 PsychSim is a static browser application in a pnpm workspace. Zod schemas form the data boundary, JSON content supplies stable reviewed inputs, pure TypeScript produces deterministic state transitions and point-rule traces, React renders those values, and an IndexedDB repository persists versioned saves.
@@ -25,6 +29,8 @@ approved JSON catalogs + case blueprint
 `@psychsim/engine` owns seeded demographic/finding/test variation, service resolution, effective-formulary calculation, atomic upgrade offers/purchases, persistent queue construction, encounter commands, predicate evaluation, points-only progression overlays, care-point evaluation, economy, receipts, replay, and eligibility. It has no React import, browser global, network call, wall-clock decision, mutable singleton, or runtime AI.
 
 `@psychsim/content-runtime` explicitly imports approved JSON only, parses it at module load, supplies the starting clinic, cross-checks imports and dependency edges against `content/registry.json`, performs semantic reference validation, and executes reference policies. A production build cannot discover arbitrary draft files.
+
+Formal bibliographic metadata is static runtime-safe content under `content/catalogs/evidence/formal`, distinct from private document bytes. A case or medication contribution links a cataloged source to exact target IDs and snapshots the citation plus contribution statement into the rule trace. If no contribution is linked, the engine snapshots `Expert opinion`. This makes historical receipts auditable without bundling copyrighted source text or implying that bibliographic verification equals clinical approval.
 
 `@psychsim/web` owns presentation, transient UI state, accessibility, local Developer tools, and the persistence boundary. It may add real timestamps when saving attempts, flags, and tickets; those timestamps never affect clinical behavior. IndexedDB sits behind `SaveRepository`, allowing migrations or another local adapter later. In development only, a fixed Vite middleware endpoint atomically mirrors a schema-validated ticket bundle to `content/generated/local-review-tickets/tickets.json`; production contains no writable endpoint. Pre-release v4 archives incompatible legacy 0–100 receipts as opaque local payloads rather than pretending they use the new point model.
 
@@ -57,6 +63,8 @@ Receipt feedback is persisted as `ContentFlag` and `ClinicalReviewTicket`. Guida
 ## Local authoring boundary
 
 `content/source-docs` is outside runtime and gitignored. `content:scan` hashes local inbox bytes, records a versioned manifest, identifies exact duplicates by hash, and quarantines unsupported or oversized files without deletion. `content:extract` parses PDF pages, DOCX text, TXT, and Markdown into hashed `SourceDocument`/`SourceChunk` artifacts with page or section context, then retains originals in processed/archive/quarantine. Text is untrusted inert data, extraction is idempotent, and every private artifact remains outside Vite and Git.
+
+A formal publication has a second, tracked representation containing citation metadata only. Known byte hashes can associate a private copy with that entry without committing its text. Source-use records are the third layer: they state whether authority is `formal_publication` or `expert_opinion`, list every relevant formal-source ID, identify target rules, classify the contribution, and summarize how it was used.
 
 `content:draft <request.json>` is deliberately narrower than clinical generation. It requires an explicit runtime template, verified source-document/chunk IDs when sources are cited, a new stable patient ID, an adult age range, and at least ten brief chief-complaint variants. It copies executable mechanics, resets every inherited clinical rule to unreviewed, runs schema/reference/eligibility validation, and emits a review-only patient plus blocking clinical audit tickets. It never interprets source prose or silently converts a claim into a score. `content:compile` validates all Developer patients, while `content:review` lists the local review surface.
 

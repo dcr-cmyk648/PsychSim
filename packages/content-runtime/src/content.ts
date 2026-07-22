@@ -5,6 +5,8 @@ import {
   PlayerProfileSchema,
 } from '@psychsim/schemas';
 
+import canmatMddGuidelineJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json';
+import fdaCitalopramLabelJson from '../../../content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json';
 import servicesJson from '../../../content/catalogs/services/services.json';
 import fluoxetineJson from '../../../content/catalogs/medications/definitions/fluoxetine.medication.json';
 import aripiprazoleJson from '../../../content/catalogs/medications/definitions/aripiprazole.medication.json';
@@ -43,7 +45,8 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '2.0.0',
+  contentVersion: '2.1.0',
+  evidenceSources: [canmatMddGuidelineJson, fdaCitalopramLabelJson],
   services: servicesJson,
   medications: [
     fluoxetineJson,

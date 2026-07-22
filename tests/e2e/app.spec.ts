@@ -64,6 +64,13 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await expect(page.getByRole('heading', { name: 'Itemized case receipt' })).toBeVisible();
   await expect(page.getByText(/clinical score|clinical rank|optimal-plan/i)).toHaveCount(0);
   await expect(page.getByText(/case seed/i)).toHaveCount(0);
+  const uncitedTrace = page
+    .locator('.trace-list details')
+    .filter({ hasText: 'Assess suicide risk and outpatient suitability' });
+  await uncitedTrace.locator('summary').click();
+  await expect(
+    uncitedTrace.getByText(/Expert opinion: no formal publication is linked/),
+  ).toBeVisible();
 
   await page.getByRole('button', { name: 'Add guidance' }).first().click();
   await page

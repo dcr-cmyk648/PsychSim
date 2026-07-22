@@ -1926,6 +1926,35 @@ tbody th small {
   color: #719382;
 }
 
+.evidence-attributions {
+  margin: 0 0.9rem 0.8rem;
+  padding: 0.7rem 0.8rem;
+  border-left: 2px solid #37634d;
+  background: #050d09;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.evidence-attributions b {
+  color: #91b8a2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.evidence-attributions ul {
+  margin: 0.45rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.evidence-attributions li + li {
+  margin-top: 0.45rem;
+}
+
+.evidence-attributions a {
+  color: var(--teal-dark);
+}
+
 .trace-list details button {
   margin-bottom: 0.9rem;
 }

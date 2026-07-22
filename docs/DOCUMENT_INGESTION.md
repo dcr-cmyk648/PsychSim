@@ -2,6 +2,8 @@
 
 The protected authoring boundary now has a bounded local vertical slice: SHA-256 scanning, duplicate detection, PDF/DOCX/TXT/Markdown extraction, ordered text chunks, watch mode, manifest validation, a controlled patient scaffolder, and automatic Developer-mode discovery. It is not the full Milestone 6–7 workflow: there is no OCR, automatic Google Drive OAuth downloader, claim-review UI, external AI provider, critic model, or automatic clinical-rule authoring.
 
+Three records remain deliberately separate: private `SourceDocument`/`SourceChunk` text, tracked formal `EvidenceSourceDefinition` bibliography, and `EvidenceContribution` application notes. A PDF does not become formal evidence merely because it looks academic. Formal use requires a catalog entry; anything else is Expert opinion until a human classifies and catalogs it.
+
 ## Local workflow
 
 ```text
@@ -28,7 +30,7 @@ The user-designated folder is `PsychSim documents`. The folder ID and discovered
 6. Create concise claim/change proposals with target catalog IDs and provenance. Do not modify scoring, medication modifiers, or patients during discovery.
 7. Require explicit human acceptance plus validators/reference runs before a proposal becomes reviewed content.
 
-The current connector check found one PDF candidate, the 2023 CANMAT adult-MDD update (5,179,128 bytes), matching the local-only discovery record and SHA-256. It remains unextracted/unreviewed and has changed no clinical rule. The connected-Drive action and the local CLI intentionally remain separate security boundaries: raw downloaded bytes are placed in `inbox/`, then the local byte-based scanner becomes the authority. The CLI does not embed a personal OAuth token or pretend connector metadata is extracted content.
+The current connector check found one PDF candidate, the 2023 CANMAT adult-MDD update (5,179,128 bytes), matching the local-only discovery record and SHA-256. Its bibliographic identity is now cataloged, but the private PDF remains locally unextracted and no contribution is linked to a clinical rule. The connected-Drive action and the local CLI intentionally remain separate security boundaries: raw downloaded bytes are placed in `inbox/`, then the local byte-based scanner becomes the authority. The CLI does not embed a personal OAuth token or pretend connector metadata is extracted content.
 
 ## Implemented commands
 
@@ -38,6 +40,7 @@ The current connector check found one PDF candidate, the 2023 CANMAT adult-MDD u
 | `pnpm content:extract`              | Parse discovered inputs, verify the pre-extraction hash, write document/chunk records atomically, and retain originals under processed or quarantine. |
 | `pnpm content:watch`                | Watch the inbox and serialize the same scan/extract functions; it adds no alternate behavior.                                                         |
 | `pnpm content:review`               | List extracted source IDs/chunk counts and current Developer review patients without printing source text.                                            |
+| `pnpm content:evidence`             | List every formal evidence record, linked contributions or unused status, and expert-opinion coverage.                                                |
 | `pnpm content:draft <request.json>` | Create a medically unreviewed patient scaffold, local provenance, and blocking clinical-audit tickets.                                                |
 | `pnpm content:compile`              | Schema- and semantically validate every review patient; it never promotes one.                                                                        |
 | `pnpm content:sources:validate`     | Validate Drive/local manifests, duplicate references, document/chunk relationships, and text hashes.                                                  |
@@ -52,7 +55,7 @@ PDF parsing uses a developer-only PDF.js dependency and preserves page numbers. 
 
 ## Patient scaffolding and testing
 
-`PatientScaffoldRequest` is a versioned, Zod-validated request. It identifies an existing approved template, a new patient ID/internal title, at least ten short chief complaints, an adult age range, and optional source uses containing exact document/chunk IDs plus a concise original summary. The compiler rejects unresolved provenance and duplicate output unless `--force` is explicit.
+`PatientScaffoldRequest` is a versioned, Zod-validated request. It identifies an existing approved template, a new patient ID/internal title, at least ten short chief complaints, an adult age range, and optional source uses containing explicit formal-publication versus expert-opinion authority, formal evidence IDs where applicable, exact document/chunk IDs, contribution categories, and a concise original summary. The compiler rejects unresolved provenance, uncataloged formal evidence, expert opinion carrying a formal citation, and duplicate output unless `--force` is explicit.
 
 The scaffolder intentionally does less than a clinical generator. It copies executable facts/rules from the named template, changes only controlled presentation/provenance fields, resets every clinical rule to `unreviewed`, writes generation provenance locally, and creates two proposed tickets: a blocking audit of inherited rules and a source-application audit. It never treats article text as an instruction or changes scoring from a source summary. The resulting `*.case.json` and companion `*.tickets.json` live in `content/cases/review/`; Vite's development-only content module discovers them for Developer mode. Production still imports approved cases only.
 

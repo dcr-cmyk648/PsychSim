@@ -40,7 +40,7 @@ Gate: historical records are immutable and reproducible; current-engine comparis
 
 ## Milestone 6 — Source-document ingestion
 
-Status: a bounded local slice was delivered by explicit follow-up after Milestone 2. It includes SHA-256 manifests, exact-duplicate retention, PDF/DOCX/TXT/Markdown extraction, hashed chunks with page/section context, watch mode, quarantine, privacy guards, tests, and source/review listing commands. Full source review, crash-recovery hardening, claim extraction, and remote-file byte transfer remain open, so Milestone 6 is not complete.
+Status: a bounded local slice was delivered by explicit follow-up after Milestone 2. It includes SHA-256 manifests, exact-duplicate retention, PDF/DOCX/TXT/Markdown extraction, hashed chunks with page/section context, watch mode, quarantine, privacy guards, a one-file-per-formal-source evidence catalog, explicit contribution records, Expert-opinion fallback labels, evidence auditing, tests, and source/review listing commands. Full source review, crash-recovery hardening, claim extraction, and remote-file byte transfer remain open, so Milestone 6 is not complete.
 
 Scope: SHA-256 scan/manifest/duplicates; PDF, DOCX, TXT, Markdown strategy; extraction/chunks; watch; processed/quarantine; provenance; privacy controls; source review.
 

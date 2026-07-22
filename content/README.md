@@ -7,6 +7,7 @@
 - `catalogs/actions/actions.json` owns the universal investigation menu: neutral labels, descriptions, SOAP boundary, result source, service ID, and repeatability. It must not contain case hints.
 - `catalogs/services/services.json` owns fulfillment methods and operating costs. Whether a result is clinically useful remains patient-specific.
 - `catalogs/upgrades/upgrades.json` owns voluntary purchase cost, declarative gates, granted capabilities/formularies, related services, per-use economics, and unlock labels.
+- Each file under `catalogs/evidence/formal/` owns one formal publication's stable ID, full citation metadata, identifiers/link, known byte hashes, bibliographic status, and separate medical-review status. Presence in this catalog never means the source supports a particular rule.
 - `catalogs/treatments/treatments.json` owns reusable psychotherapy, behavioral, education, coping, sleep, and disposition choices.
 - `catalogs/medications/definitions/*.medication.json` gives each medication a stable file for class/tags and future medically reviewed fit modifiers or author overrides.
 - `catalogs/medications/formularies.json` owns baseline and additive medication-ID sets. A formulary purchase grants an additional set; it never edits a patient file.
@@ -23,6 +24,8 @@ Before the chart opens, show only the resolved fictional patient name and brief 
 ## Updating knowledge
 
 Patient files prefer one broad primary pathway using medication tags/counts so a reviewed catalog addition can be discovered by validation and future scoring tools. Medication-specific grades and fit modifiers refine that family; additional authored paths and safety fallbacks remain explicit. A combination outside those authored pathways must be labeled as engine-inferred in the receipt; it is not silently promoted to reviewed content. New articles first produce source claims and impact tickets with explicit target and affected IDs; they never rewrite every tagged case during ingestion.
+
+Every evidence use is a contribution record. Formal uses cite one or more `evidence.*` catalog IDs, identify the exact target content IDs and contribution categories, and state what the publication contributed. Personal notes, notebooks, and uncited clinical judgment use `authority: "expert_opinion"` with no formal source ID. Empty source links on legacy/unreviewed rules are rendered as implicit Expert opinion; an approved rule must carry an explicit contribution record.
 
 Medication rules, workup objectives, pathway requirements, scoring rules, and test-generation profiles carry their own review metadata. The current prototype rules remain medically unreviewed. The bupropion and mirtazapine files preserve human-authored prototype modifiers separately so later automated refreshes cannot overwrite them.
 

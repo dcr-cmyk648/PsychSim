@@ -6,6 +6,11 @@ test-results/
 *.log
 .DS_Store
 
+# Local Codex phone/Mac canonical-thread lease. Never commit thread IDs or snapshots.
+.codex-handoff.local.json
+.codex-handoff.local.lock
+.codex-handoff.local.tmp
+
 # Local save/export material
 *.psychsim-save.json
 *.review-bundle.json

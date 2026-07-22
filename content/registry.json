@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.0.0",
+  "contentVersion": "2.1.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -55,6 +55,18 @@
       "id": "registry.catalog.reference-interval-sets",
       "kind": "reference_interval_catalog",
       "path": "content/catalogs/tests/reference-interval-sets.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.canmat.mdd-adults.2023-update",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.fda.citalopram-capsules-label.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json",
       "runtimeIncluded": true
     },
     {
@@ -170,6 +182,7 @@
         "registry.catalog.locations",
         "registry.catalog.variant-pools",
         "registry.catalog.tests",
+        "evidence.fda.citalopram-capsules-label.2023",
         "medication.citalopram",
         "medication.sertraline",
         "medication.escitalopram",

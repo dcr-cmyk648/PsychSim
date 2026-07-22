@@ -53,6 +53,105 @@ const UnreviewedClinicalRuleSchema = ClinicalRuleReviewSchema.default({
   sourceUseNoteIds: [],
 });
 
+export const EvidenceAuthoritySchema = z.enum(['formal_publication', 'expert_opinion']);
+export type EvidenceAuthority = z.infer<typeof EvidenceAuthoritySchema>;
+
+export const EvidenceSourceDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    authority: z.literal('formal_publication'),
+    sourceType: z.enum([
+      'journal_article',
+      'clinical_guideline',
+      'systematic_review',
+      'regulatory_document',
+      'book_chapter',
+      'professional_guidance',
+    ]),
+    title: z.string().min(1).max(600),
+    authors: z.array(z.string().min(1).max(160)),
+    organization: z.string().min(1).max(240).nullable(),
+    publicationYear: z.number().int().min(1800).max(2100),
+    containerTitle: z.string().min(1).max(300).nullable(),
+    volume: z.string().min(1).max(40).nullable(),
+    issue: z.string().min(1).max(40).nullable(),
+    pages: z.string().min(1).max(80).nullable(),
+    doi: z
+      .string()
+      .regex(/^10\.\d{4,9}\/\S+$/i)
+      .nullable(),
+    pmid: z.string().regex(/^\d+$/).nullable(),
+    url: z.string().url(),
+    citation: z.string().min(1).max(1200),
+    knownContentHashes: z.array(z.string().regex(/^[a-f0-9]{64}$/)),
+    bibliographicStatus: z.enum(['unreviewed', 'verified']),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((source, context) => {
+    if (source.authors.length === 0 && !source.organization) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A formal evidence source requires at least one author or an organization.',
+      });
+    }
+  });
+export type EvidenceSourceDefinition = z.infer<typeof EvidenceSourceDefinitionSchema>;
+
+export const EvidenceContributionTypeSchema = z.enum([
+  'patient_fact',
+  'diagnosis_logic',
+  'workup',
+  'treatment',
+  'medication_fit',
+  'safety',
+  'scoring',
+  'laboratory_reference',
+  'teaching_point',
+  'context_only',
+]);
+
+export const EvidenceContributionSchema = z
+  .object({
+    id: StableIdSchema,
+    authority: EvidenceAuthoritySchema,
+    evidenceSourceIds: z.array(StableIdSchema),
+    sourceDocumentId: StableIdSchema.nullable(),
+    sourceChunkIds: z.array(StableIdSchema),
+    targetContentIds: z.array(StableIdSchema).min(1),
+    contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
+    contribution: z.string().min(1).max(800),
+    generatedBy: z.enum(['human', 'ai']),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((note, context) => {
+    if (note.authority === 'formal_publication' && note.evidenceSourceIds.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidenceSourceIds'],
+        message: 'A formal-publication contribution requires a cataloged evidence source.',
+      });
+    }
+    if (note.authority === 'expert_opinion' && note.evidenceSourceIds.length > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidenceSourceIds'],
+        message: 'Expert opinion cannot cite a formal evidence source.',
+      });
+    }
+    if (note.sourceChunkIds.length > 0 && !note.sourceDocumentId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDocumentId'],
+        message: 'Chunk-level provenance requires a local source document ID.',
+      });
+    }
+  });
+export type EvidenceContribution = z.infer<typeof EvidenceContributionSchema>;
+
 export const ContentLifecycleSchema = z.enum([
   'blueprint',
   'draft',
@@ -151,6 +250,7 @@ export const MedicationDefinitionSchema = z
     label: z.string().min(1),
     classes: z.array(z.string().min(1)).min(1),
     tags: z.array(z.string().min(1)),
+    sourceUseNotes: z.array(EvidenceContributionSchema).default([]),
     fitModifiers: z.array(
       z
         .object({
@@ -351,6 +451,7 @@ export const CatalogBundleSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     contentVersion: ContentVersionSchema,
+    evidenceSources: z.array(EvidenceSourceDefinitionSchema),
     services: z.array(ServiceDefinitionSchema),
     medications: z.array(MedicationDefinitionSchema),
     formularies: z.array(FormularyDefinitionSchema),
@@ -380,6 +481,7 @@ export const ContentRegistryEntrySchema = z
       'test_catalog',
       'reference_interval_catalog',
       'upgrade_catalog',
+      'evidence_source',
       'medication',
       'patient',
     ]),
@@ -846,6 +948,7 @@ export const CaseMetadataSchema = z
     tags: z.array(z.string().min(1)),
     compatibleLocationIds: z.array(StableIdSchema).min(1),
     sourceDocumentIds: z.array(StableIdSchema),
+    evidenceSourceIds: z.array(StableIdSchema).default([]),
   })
   .strict();
 export type CaseMetadata = z.infer<typeof CaseMetadataSchema>;
@@ -909,16 +1012,7 @@ export const PatientObservationSchema = z
   });
 export type PatientObservation = z.infer<typeof PatientObservationSchema>;
 
-export const SourceUseNoteSchema = z
-  .object({
-    id: StableIdSchema,
-    sourceDocumentId: StableIdSchema,
-    sourceChunkIds: z.array(StableIdSchema),
-    takeaway: z.string().min(1).max(800),
-    generatedBy: z.enum(['human', 'ai']),
-    medicalReviewStatus: MedicalReviewStatusSchema,
-  })
-  .strict();
+export const SourceUseNoteSchema = EvidenceContributionSchema;
 
 export const PatientTreatmentReferenceSchema = z
   .object({
@@ -1121,6 +1215,20 @@ export const RuleEvaluationSchema = z
     classification: TraceClassificationSchema,
     explanation: z.string().min(1),
     reviewStatus: MedicalReviewStatusSchema.default('unreviewed'),
+    evidenceAttributions: z
+      .array(
+        z
+          .object({
+            sourceUseNoteId: StableIdSchema.nullable(),
+            authority: EvidenceAuthoritySchema,
+            evidenceSourceId: StableIdSchema.nullable(),
+            citation: z.string().min(1).nullable(),
+            url: z.string().url().nullable(),
+            contribution: z.string().min(1).max(800),
+          })
+          .strict(),
+      )
+      .default([]),
     relatedActionIds: z.array(StableIdSchema),
     relatedTreatmentIds: z.array(StableIdSchema),
   })
@@ -1534,6 +1642,7 @@ export const GenerationProvenanceSchema = z
     generatedAt: z.string().datetime(),
     sourceDocumentIds: z.array(StableIdSchema),
     sourceChunkIds: z.array(StableIdSchema),
+    evidenceSourceIds: z.array(StableIdSchema).default([]),
     blueprintId: StableIdSchema,
     generatorVersion: z.string().min(1),
     validationResults: z.array(z.string()),
@@ -1555,11 +1664,33 @@ export const PatientScaffoldRequestSchema = z
     sourceUses: z.array(
       z
         .object({
+          authority: EvidenceAuthoritySchema,
+          evidenceSourceIds: z.array(StableIdSchema),
           sourceDocumentId: StableIdSchema,
           sourceChunkIds: z.array(StableIdSchema).min(1),
+          contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
           summary: z.string().min(20).max(800),
         })
-        .strict(),
+        .strict()
+        .superRefine((sourceUse, context) => {
+          if (
+            sourceUse.authority === 'formal_publication' &&
+            sourceUse.evidenceSourceIds.length === 0
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['evidenceSourceIds'],
+              message: 'Formal source use requires at least one evidence-catalog ID.',
+            });
+          }
+          if (sourceUse.authority === 'expert_opinion' && sourceUse.evidenceSourceIds.length > 0) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['evidenceSourceIds'],
+              message: 'Expert opinion cannot cite a formal evidence-catalog ID.',
+            });
+          }
+        }),
     ),
     chiefComplaintChoices: z.array(z.string().min(2).max(40)).min(10),
     ageRange: z

@@ -395,6 +395,30 @@ export function ReceiptView({
                 {trace.matched ? 'condition met' : 'condition not met'} · rule review:{' '}
                 {displayLabel(trace.reviewStatus)}
               </small>
+              <div className="evidence-attributions">
+                <b>Evidence basis</b>
+                <ul>
+                  {trace.evidenceAttributions.map((attribution, index) => (
+                    <li key={`${trace.ruleId}-evidence-${index}`}>
+                      {attribution.authority === 'formal_publication' ? (
+                        <>
+                          <span>Formal publication: </span>
+                          {attribution.url ? (
+                            <a href={attribution.url} target="_blank" rel="noreferrer">
+                              {attribution.citation}
+                            </a>
+                          ) : (
+                            attribution.citation
+                          )}
+                          <span> — Contribution: {attribution.contribution}</span>
+                        </>
+                      ) : (
+                        <span>{attribution.contribution}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <button
                 className="small-button"
                 type="button"

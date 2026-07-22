@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.fda.citalopram-capsules-label.2023",
+  "authority": "formal_publication",
+  "sourceType": "regulatory_document",
+  "title": "Citalopram Capsules: Highlights of Prescribing Information",
+  "authors": [],
+  "organization": "U.S. Food and Drug Administration",
+  "publicationYear": 2023,
+  "containerTitle": "Drugs@FDA",
+  "volume": null,
+  "issue": null,
+  "pages": null,
+  "doi": null,
+  "pmid": null,
+  "url": "https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=2f815b0c-6da7-cb61-e89c-7de628092d0d",
+  "citation": "U.S. Food and Drug Administration. Citalopram Capsules: Highlights of Prescribing Information. NDA 215428/S-002. 2023.",
+  "knownContentHashes": [],
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

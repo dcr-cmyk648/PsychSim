@@ -71,8 +71,11 @@ describe('patient scaffolding', () => {
         internalTitle: 'Generated MDD source test',
         sourceUses: [
           {
+            authority: 'expert_opinion',
+            evidenceSourceIds: [],
             sourceDocumentId: artifact.document.id,
             sourceChunkIds: artifact.chunks.map((chunk) => chunk.id),
+            contributionTypes: ['context_only'],
             summary:
               'Synthetic test-only takeaway proving that concise source use and chunk provenance remain attached.',
           },
@@ -98,12 +101,17 @@ describe('patient scaffolding', () => {
         lifecycle: 'review',
         medicalReviewStatus: 'unreviewed',
         sourceDocumentIds: [artifact.document.id],
+        evidenceSourceIds: [],
       },
     });
     expect(compiled.blueprint.patientRecord.sourceUseNotes[0]).toMatchObject({
+      authority: 'expert_opinion',
+      evidenceSourceIds: [],
       sourceDocumentId: artifact.document.id,
+      contributionTypes: ['context_only'],
       medicalReviewStatus: 'unreviewed',
     });
+    expect(compiled.provenance.evidenceSourceIds).toEqual([]);
     expect(
       compiled.blueprint.workupObjectives.every((rule) => rule.review.status === 'unreviewed'),
     ).toBe(true);
@@ -136,8 +144,11 @@ describe('patient scaffolding', () => {
           internalTitle: 'Missing source',
           sourceUses: [
             {
+              authority: 'expert_opinion',
+              evidenceSourceIds: [],
               sourceDocumentId: 'source-document.missing',
               sourceChunkIds: ['source-chunk.missing.1'],
+              contributionTypes: ['context_only'],
               summary:
                 'This intentionally unresolved source must prevent the patient from compiling.',
             },
@@ -155,5 +166,42 @@ describe('patient scaffolding', () => {
         },
       ),
     ).rejects.toThrow('Missing extracted source document');
+  });
+
+  it('rejects a formal source use until its article has an evidence-catalog entry', async () => {
+    const { root, artifact } = await makeFixture();
+    await expect(
+      compilePatientScaffold(
+        {
+          schemaVersion: 1,
+          requestVersion: 1,
+          id: 'patient-scaffold.uncataloged-article',
+          blueprintId: 'case.generated.uncataloged-article',
+          templateBlueprintId: prototypeCaseBlueprint.id,
+          internalTitle: 'Uncataloged article source',
+          sourceUses: [
+            {
+              authority: 'formal_publication',
+              evidenceSourceIds: ['evidence.article.missing'],
+              sourceDocumentId: artifact.document.id,
+              sourceChunkIds: artifact.chunks.map((chunk) => chunk.id),
+              contributionTypes: ['treatment'],
+              summary:
+                'This formal source is intentionally missing its required evidence-catalog entry.',
+            },
+          ],
+          chiefComplaintChoices: complaints,
+          ageRange: { minimum: 30, maximum: 45 },
+          createdBy: 'mock',
+        },
+        [prototypeCaseBlueprint],
+        catalogs,
+        {
+          sourceRoot: join(root, 'sources'),
+          reviewDirectory: join(root, 'review'),
+          provenanceDirectory: join(root, 'provenance'),
+        },
+      ),
+    ).rejects.toThrow('Formal source use references uncataloged evidence');
   });
 });

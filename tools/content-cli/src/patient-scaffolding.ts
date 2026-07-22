@@ -116,13 +116,20 @@ export const buildPatientScaffold = (
     disclaimer:
       'Fictional, synthetic, medically unreviewed developer scaffold; not authoritative treatment guidance.',
     sourceDocumentIds: request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId),
+    evidenceSourceIds: [
+      ...new Set(request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds)),
+    ],
   };
   candidate.patientRecord.id = `patient-record.${caseToken(request.blueprintId)}`;
   candidate.patientRecord.sourceUseNotes = request.sourceUses.map((sourceUse, index) => ({
     id: `source-use.${caseToken(request.blueprintId)}.${index + 1}`,
+    authority: sourceUse.authority,
+    evidenceSourceIds: sourceUse.evidenceSourceIds,
     sourceDocumentId: sourceUse.sourceDocumentId,
     sourceChunkIds: sourceUse.sourceChunkIds,
-    takeaway: sourceUse.summary,
+    targetContentIds: [request.blueprintId],
+    contributionTypes: sourceUse.contributionTypes,
+    contribution: sourceUse.summary,
     generatedBy: request.createdBy === 'human' ? 'human' : 'ai',
     medicalReviewStatus: 'unreviewed',
   }));
@@ -163,8 +170,10 @@ const loadExtractedArtifacts = async (sourceRoot?: string): Promise<ExtractedArt
 const verifySourceUses = (
   request: PatientScaffoldRequest,
   artifacts: readonly ExtractedArtifact[],
+  catalogs: CatalogBundle,
 ): void => {
   const documents = new Map(artifacts.map((artifact) => [artifact.document.id, artifact]));
+  const evidenceSourceIds = new Set(catalogs.evidenceSources.map((source) => source.id));
   for (const sourceUse of request.sourceUses) {
     const artifact = documents.get(sourceUse.sourceDocumentId);
     if (!artifact) {
@@ -175,6 +184,14 @@ const verifySourceUses = (
     if (missing.length > 0) {
       throw new Error(
         `Source chunks do not belong to ${sourceUse.sourceDocumentId}: ${missing.join(', ')}`,
+      );
+    }
+    const missingEvidenceSources = sourceUse.evidenceSourceIds.filter(
+      (id) => !evidenceSourceIds.has(id),
+    );
+    if (missingEvidenceSources.length > 0) {
+      throw new Error(
+        `Formal source use references uncataloged evidence: ${missingEvidenceSources.join(', ')}`,
       );
     }
   }
@@ -191,7 +208,7 @@ export const compilePatientScaffold = async (
   if (!template)
     throw new Error(`Unknown patient scaffold template: ${request.templateBlueprintId}`);
   const artifacts = await loadExtractedArtifacts(options.sourceRoot);
-  verifySourceUses(request, artifacts);
+  verifySourceUses(request, artifacts, catalogs);
   const blueprint = buildPatientScaffold(request, template, catalogs);
   const validation = validateCaseBlueprint(
     blueprint,
@@ -221,6 +238,9 @@ export const compilePatientScaffold = async (
     generatedAt,
     sourceDocumentIds: request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId),
     sourceChunkIds: request.sourceUses.flatMap((sourceUse) => sourceUse.sourceChunkIds),
+    evidenceSourceIds: [
+      ...new Set(request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds)),
+    ],
     blueprintId: blueprint.id,
     generatorVersion: 'psychsim-patient-scaffolder-1',
     validationResults: [
@@ -295,6 +315,7 @@ export const compilePatientScaffold = async (
       targetContentIds: [
         blueprint.id,
         ...request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId),
+        ...request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds),
       ],
       dependencyTicketIds: [`ticket.audit.${caseToken(blueprint.id)}.template-inheritance`],
       conflictContentIds: [],

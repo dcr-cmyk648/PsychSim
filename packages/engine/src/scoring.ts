@@ -2,6 +2,8 @@ import {
   ClinicalPointReportSchema,
   type CatalogBundle,
   type ClinicalPointReport,
+  type ClinicalRuleReview,
+  type EvidenceContribution,
   type EncounterState,
   type RuleEvaluation,
   type ScoreComponent,
@@ -81,6 +83,66 @@ const traceClassificationForGrade = (
   return grade ?? 'ineffective';
 };
 
+const evidenceAttributionsFor = (
+  review: ClinicalRuleReview | undefined,
+  sourceUseNotes: readonly EvidenceContribution[],
+  catalogs: CatalogBundle,
+): RuleEvaluation['evidenceAttributions'] => {
+  const sourceUseNoteIds = review?.sourceUseNoteIds ?? [];
+  if (sourceUseNoteIds.length === 0) {
+    return [
+      {
+        sourceUseNoteId: null,
+        authority: 'expert_opinion',
+        evidenceSourceId: null,
+        citation: null,
+        url: null,
+        contribution: 'Expert opinion: no formal publication is linked to this prototype rule.',
+      },
+    ];
+  }
+  const attributions: RuleEvaluation['evidenceAttributions'] = [];
+  for (const sourceUseNoteId of sourceUseNoteIds) {
+    const note = sourceUseNotes.find((candidate) => candidate.id === sourceUseNoteId);
+    if (!note) {
+      attributions.push({
+        sourceUseNoteId,
+        authority: 'expert_opinion',
+        evidenceSourceId: null,
+        citation: null,
+        url: null,
+        contribution: 'Expert opinion: the referenced contribution record is unavailable.',
+      });
+      continue;
+    }
+    if (note.authority === 'expert_opinion') {
+      attributions.push({
+        sourceUseNoteId,
+        authority: 'expert_opinion',
+        evidenceSourceId: null,
+        citation: null,
+        url: null,
+        contribution: `Expert opinion: ${note.contribution}`,
+      });
+      continue;
+    }
+    for (const evidenceSourceId of note.evidenceSourceIds) {
+      const source = catalogs.evidenceSources.find(
+        (candidate) => candidate.id === evidenceSourceId,
+      );
+      attributions.push({
+        sourceUseNoteId,
+        authority: 'formal_publication',
+        evidenceSourceId,
+        citation: source?.citation ?? `Unresolved formal evidence: ${evidenceSourceId}`,
+        url: source?.url ?? null,
+        contribution: note.contribution,
+      });
+    }
+  }
+  return attributions;
+};
+
 const medicationFitTrace = (state: EncounterState, catalogs: CatalogBundle): RuleEvaluation[] => {
   const patientTags = new Set(state.caseInstance.patientRecord.clinicalTagIds);
   return state.selections.startMedicationIds.flatMap((medicationId) => {
@@ -102,6 +164,11 @@ const medicationFitTrace = (state: EncounterState, catalogs: CatalogBundle): Rul
               : ('strong_alternative' as const),
         explanation: `${modifier.explanation} Catalog fit modifier; prototype medical review status: ${modifier.medicalReviewStatus}.`,
         reviewStatus: modifier.review.status,
+        evidenceAttributions: evidenceAttributionsFor(
+          modifier.review,
+          medication.sourceUseNotes,
+          catalogs,
+        ),
         relatedActionIds: [],
         relatedTreatmentIds: [medicationId],
       }));
@@ -147,6 +214,11 @@ export const scoreEncounter = (
           : 'defensible_not_necessary',
       explanation: matched ? objective.explanationObtained : objective.explanationOmitted,
       reviewStatus: objective.review.status,
+      evidenceAttributions: evidenceAttributionsFor(
+        objective.review,
+        state.caseInstance.patientRecord.sourceUseNotes,
+        catalogs,
+      ),
       relatedActionIds: orderedPurchasedActions(refs.actionIds, state),
       relatedTreatmentIds: [],
     });
@@ -164,6 +236,11 @@ export const scoreEncounter = (
       treatmentGrade?.explanation ??
       'The final medication combination did not match a programmed treatment rule.',
     reviewStatus: treatmentGrade?.review.status ?? 'unreviewed',
+    evidenceAttributions: evidenceAttributionsFor(
+      treatmentGrade?.review,
+      state.caseInstance.patientRecord.sourceUseNotes,
+      catalogs,
+    ),
     relatedActionIds: [],
     relatedTreatmentIds: treatmentGrade
       ? relatedTreatments(treatmentGrade.predicate, state, catalogs)
@@ -194,6 +271,11 @@ export const scoreEncounter = (
             : 'low_value',
         explanation: matched ? requirement.explanationMet : requirement.explanationMissing,
         reviewStatus: requirement.review.status,
+        evidenceAttributions: evidenceAttributionsFor(
+          requirement.review,
+          state.caseInstance.patientRecord.sourceUseNotes,
+          catalogs,
+        ),
         relatedActionIds: orderedPurchasedActions(refs.actionIds, state),
         relatedTreatmentIds: relatedTreatments(pathway.match, state, catalogs),
       });
@@ -213,6 +295,11 @@ export const scoreEncounter = (
       classification: matched ? rule.classificationIfTrue : rule.classificationIfFalse,
       explanation: matched ? rule.explanationIfTrue : rule.explanationIfFalse,
       reviewStatus: rule.review.status,
+      evidenceAttributions: evidenceAttributionsFor(
+        rule.review,
+        state.caseInstance.patientRecord.sourceUseNotes,
+        catalogs,
+      ),
       relatedActionIds: orderedPurchasedActions(refs.actionIds, state),
       relatedTreatmentIds: relatedTreatments(rule.predicate, state, catalogs),
     });

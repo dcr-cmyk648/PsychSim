@@ -359,6 +359,16 @@ export const validateCaseBlueprint = (
     }
   }
   const sourceUseNoteIds = new Set(patientRecord.sourceUseNotes.map((note) => note.id));
+  const caseContentIds = new Set([
+    blueprint.id,
+    patientRecord.id,
+    treatmentReference.id,
+    ...blueprint.workupObjectives.map((item) => item.id),
+    ...blueprint.treatmentGrades.map((item) => item.id),
+    ...blueprint.treatmentPathways.map((item) => item.id),
+    ...blueprint.scoreRules.map((item) => item.id),
+    ...treatmentReference.acceptedMedicationTagSets.map((item) => item.id),
+  ]);
   const ruleReviews = [
     patientRecord.treatmentReference.review,
     ...patientRecord.treatmentReference.acceptedMedicationTagSets.map((tagSet) => tagSet.review),
@@ -371,6 +381,13 @@ export const validateCaseBlueprint = (
     ...blueprint.scoreRules.map((rule) => rule.review),
   ];
   for (const review of ruleReviews) {
+    if (review.status === 'approved' && review.sourceUseNoteIds.length === 0) {
+      issues.push({
+        severity: 'error',
+        code: 'APPROVED_RULE_WITHOUT_EVIDENCE_ATTRIBUTION',
+        message: `${patientRecord.id} contains an approved rule without a formal-source or expert-opinion contribution.`,
+      });
+    }
     for (const sourceUseNoteId of review.sourceUseNoteIds) {
       if (!sourceUseNoteIds.has(sourceUseNoteId)) {
         issues.push({
@@ -379,6 +396,17 @@ export const validateCaseBlueprint = (
           message: `${patientRecord.id} rule review references ${sourceUseNoteId}`,
         });
       }
+    }
+  }
+  const catalogEvidenceSourceIds = new Set(catalogs.evidenceSources.map((source) => source.id));
+  const declaredEvidenceSourceIds = new Set(blueprint.metadata.evidenceSourceIds);
+  for (const evidenceSourceId of declaredEvidenceSourceIds) {
+    if (!catalogEvidenceSourceIds.has(evidenceSourceId)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_CASE_EVIDENCE_SOURCE_REF',
+        message: `${blueprint.id} references uncataloged formal source ${evidenceSourceId}`,
+      });
     }
   }
   const medicationTags = new Set(catalogs.medications.flatMap((medication) => medication.tags));
@@ -395,12 +423,37 @@ export const validateCaseBlueprint = (
   }
   const declaredSourceIds = new Set(blueprint.metadata.sourceDocumentIds);
   for (const sourceUseNote of patientRecord.sourceUseNotes) {
-    if (!declaredSourceIds.has(sourceUseNote.sourceDocumentId)) {
+    if (sourceUseNote.sourceDocumentId && !declaredSourceIds.has(sourceUseNote.sourceDocumentId)) {
       issues.push({
         severity: 'error',
         code: 'INVALID_SOURCE_USE_NOTE_REF',
         message: `${sourceUseNote.id} references undeclared source ${sourceUseNote.sourceDocumentId}`,
       });
+    }
+    for (const evidenceSourceId of sourceUseNote.evidenceSourceIds) {
+      if (!catalogEvidenceSourceIds.has(evidenceSourceId)) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_EVIDENCE_SOURCE_REF',
+          message: `${sourceUseNote.id} references uncataloged formal source ${evidenceSourceId}`,
+        });
+      }
+      if (!declaredEvidenceSourceIds.has(evidenceSourceId)) {
+        issues.push({
+          severity: 'error',
+          code: 'UNDECLARED_CASE_EVIDENCE_SOURCE',
+          message: `${sourceUseNote.id} uses ${evidenceSourceId}, which is absent from case metadata.`,
+        });
+      }
+    }
+    for (const targetContentId of sourceUseNote.targetContentIds) {
+      if (!caseContentIds.has(targetContentId)) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_EVIDENCE_CONTRIBUTION_TARGET',
+          message: `${sourceUseNote.id} targets missing case content ${targetContentId}`,
+        });
+      }
     }
     if (sourceUseNote.medicalReviewStatus === 'approved') {
       issues.push({
@@ -648,6 +701,7 @@ export const validateCaseBlueprint = (
 export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationReport => {
   const issues: ValidationIssue[] = [];
   for (const [name, ids] of [
+    ['evidenceSources', catalogs.evidenceSources.map((item) => item.id)],
     ['services', catalogs.services.map((item) => item.id)],
     ['medications', catalogs.medications.map((item) => item.id)],
     ['formularies', catalogs.formularies.map((item) => item.id)],
@@ -669,6 +723,25 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       });
     }
   }
+  for (const duplicate of duplicateIds(
+    catalogs.evidenceSources.flatMap((source) => source.knownContentHashes),
+  )) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_EVIDENCE_CONTENT_HASH',
+      message: duplicate,
+    });
+  }
+  for (const duplicate of duplicateIds(
+    catalogs.evidenceSources.flatMap((source) => (source.doi ? [source.doi.toLowerCase()] : [])),
+  )) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_EVIDENCE_DOI',
+      message: duplicate,
+    });
+  }
+  const evidenceSourceIds = new Set(catalogs.evidenceSources.map((source) => source.id));
   const serviceIds = new Set(catalogs.services.map((service) => service.id));
   const formularyIds = new Set(catalogs.formularies.map((formulary) => formulary.id));
   const upgradeIds = new Set(catalogs.upgrades.map((upgrade) => upgrade.id));
@@ -765,7 +838,42 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     });
   }
   for (const medication of catalogs.medications) {
+    const medicationSourceUseNoteIds = new Set(medication.sourceUseNotes.map((note) => note.id));
+    const medicationContentIds = new Set([
+      medication.id,
+      ...medication.fitModifiers.map((modifier) => modifier.id),
+      ...medication.authorOverrides.map((modifier) => modifier.id),
+    ]);
+    for (const note of medication.sourceUseNotes) {
+      for (const sourceId of note.evidenceSourceIds) {
+        if (!evidenceSourceIds.has(sourceId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_MEDICATION_EVIDENCE_SOURCE_REF',
+            message: `${medication.id}: ${note.id} references ${sourceId}`,
+          });
+        }
+      }
+      for (const targetContentId of note.targetContentIds) {
+        if (!medicationContentIds.has(targetContentId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_MEDICATION_EVIDENCE_TARGET',
+            message: `${medication.id}: ${note.id} targets ${targetContentId}`,
+          });
+        }
+      }
+    }
     for (const modifier of [...medication.fitModifiers, ...medication.authorOverrides]) {
+      for (const sourceUseNoteId of modifier.sourceUseNoteIds) {
+        if (!medicationSourceUseNoteIds.has(sourceUseNoteId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_MEDICATION_SOURCE_NOTE_REF',
+            message: `${medication.id}: ${modifier.id} references ${sourceUseNoteId}`,
+          });
+        }
+      }
       if (modifier.medicalReviewStatus === 'approved' && modifier.sourceUseNoteIds.length === 0) {
         issues.push({
           severity: 'error',
@@ -964,6 +1072,18 @@ export const validateContentRegistry = (
   const registeredPatientIds = new Set(
     registry.entries.filter((entry) => entry.kind === 'patient').map((entry) => entry.id),
   );
+  const registeredEvidenceSourceIds = new Set(
+    registry.entries.filter((entry) => entry.kind === 'evidence_source').map((entry) => entry.id),
+  );
+  for (const source of catalogs.evidenceSources) {
+    if (!registeredEvidenceSourceIds.has(source.id)) {
+      issues.push({
+        severity: 'error',
+        code: 'UNREGISTERED_EVIDENCE_SOURCE',
+        message: source.id,
+      });
+    }
+  }
   for (const medication of catalogs.medications) {
     if (!registeredMedicationIds.has(medication.id)) {
       issues.push({
@@ -983,6 +1103,16 @@ export const validateContentRegistry = (
     }
   }
   for (const entry of registry.entries.filter((item) => item.runtimeIncluded)) {
+    if (
+      entry.kind === 'evidence_source' &&
+      !catalogs.evidenceSources.some((item) => item.id === entry.id)
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'STALE_REGISTRY_EVIDENCE_SOURCE',
+        message: entry.id,
+      });
+    }
     if (entry.kind === 'medication' && !catalogs.medications.some((item) => item.id === entry.id)) {
       issues.push({
         severity: 'error',

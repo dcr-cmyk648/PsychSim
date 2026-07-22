@@ -4,6 +4,7 @@ import type { CaseBlueprint, ClinicState, TreatmentSelection } from '@psychsim/s
 import {
   approvedCaseBlueprints,
   catalogs,
+  medicationCheckPalpitationsBlueprint,
   prototypeCaseBlueprint,
   runReferenceSolution,
   startingClinic,
@@ -149,6 +150,40 @@ describe('encounter engine', () => {
       (purchase) => purchase.actionId === 'info.history.mania',
     );
     expect(mania?.result.findings.every((finding) => finding.outcome === 'absent')).toBe(true);
+  });
+
+  it('snapshots formal contributions and labels uncited rules as expert opinion', () => {
+    const ecgPlan = medicationCheckPalpitationsBlueprint.referenceSolutions.find(
+      (solution) => solution.kind === 'database_plan',
+    )!;
+    const ecgRun = play(
+      medicationCheckPalpitationsBlueprint,
+      ecgPlan.actionIds,
+      ecgPlan.selections,
+    );
+    const cardiacMonitoring = ecgRun.receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'objective.ecg-mdd-cardiac-monitoring',
+    );
+    expect(cardiacMonitoring?.evidenceAttributions).toEqual([
+      expect.objectContaining({
+        authority: 'formal_publication',
+        evidenceSourceId: 'evidence.fda.citalopram-capsules-label.2023',
+        citation: expect.stringContaining('U.S. Food and Drug Administration'),
+        contribution: expect.stringContaining('did not determine the prototype point magnitude'),
+      }),
+    ]);
+
+    const starterRun = playStarter(databasePlan.actionIds);
+    const uncitedRule = starterRun.receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'objective.mdd-safety',
+    );
+    expect(uncitedRule?.evidenceAttributions).toEqual([
+      expect.objectContaining({
+        authority: 'expert_opinion',
+        evidenceSourceId: null,
+        contribution: expect.stringMatching(/^Expert opinion:/),
+      }),
+    ]);
   });
 
   it('marks a required workup omission as critical and loses care points', () => {
