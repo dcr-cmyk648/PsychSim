@@ -16,6 +16,7 @@ concurrency:
 jobs:
   verify-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       pages: write
@@ -38,15 +39,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Verify source and content boundaries
-        run: |
-          pnpm format:check
-          pnpm lint
-          pnpm typecheck
-          pnpm test
-          pnpm content:validate
-          pnpm content:sources:validate
-          pnpm content:compile
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Run unit and content tests
+        run: pnpm test
+
+      - name: Validate approved content
+        run: pnpm content:validate
+
+      - name: Validate source boundaries
+        run: pnpm content:sources:validate
+
+      - name: Compile Developer review content
+        run: pnpm content:compile
 
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
