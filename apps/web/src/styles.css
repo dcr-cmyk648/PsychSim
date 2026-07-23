@@ -643,6 +643,320 @@ code {
   margin-top: 0.15rem;
 }
 
+.source-request-queue {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #3f5538;
+  background:
+    linear-gradient(rgba(8, 20, 14, 0.96), rgba(5, 13, 9, 0.98)),
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(119, 255, 184, 0.018) 4px);
+  box-shadow: var(--shadow);
+}
+
+.source-request-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 0.65rem;
+}
+
+.source-request-card {
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  background: #050d09;
+}
+
+.source-request-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.source-request-card header strong,
+.source-request-card header small {
+  display: block;
+}
+
+.source-request-card header small {
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  overflow-wrap: anywhere;
+}
+
+.source-request-card p,
+.source-request-card li,
+.source-request-card dd {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.48;
+}
+
+.source-request-card .source-question {
+  color: var(--ink);
+  font-size: 0.79rem;
+}
+
+.source-status {
+  flex: 0 0 auto;
+  padding: 0.22rem 0.4rem;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.source-status-source_received {
+  border-color: var(--teal-dark);
+  color: var(--teal-dark);
+}
+
+.source-status-resolved {
+  border-color: #74817a;
+  color: #a8b0ab;
+}
+
+.source-request-card dl,
+.source-request-card details dl {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.65rem 0;
+}
+
+.source-request-card dt {
+  color: var(--gold);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.source-request-card dd {
+  margin: 0.12rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.source-request-card details {
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(118, 157, 133, 0.25);
+  padding-top: 0.45rem;
+}
+
+.source-request-card details summary {
+  color: var(--teal-dark);
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.source-request-card details ul {
+  margin-bottom: 0;
+  padding-left: 1.15rem;
+}
+
+.case-rule-audit {
+  margin-top: 0.7rem;
+  border: 1px solid #30483a;
+  background: #030a07;
+}
+
+.case-rule-audit > summary {
+  padding: 0.58rem 0.65rem;
+  color: var(--teal-dark);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.case-rule-audit[open] > summary {
+  border-bottom: 1px solid #30483a;
+}
+
+.ticket-card .audit-disclaimer {
+  margin: 0;
+  padding: 0.55rem 0.65rem 0;
+  color: #a8b0ab;
+  font-size: 0.68rem;
+}
+
+.audit-plan-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0.55rem 0.65rem;
+  background: var(--line);
+}
+
+.audit-plan-summary div {
+  min-width: 0;
+  padding: 0.5rem;
+  background: #07120d;
+}
+
+.audit-plan-summary dt,
+.audit-row dt,
+.audit-treatment-menu dt {
+  color: var(--gold);
+  font-size: 0.58rem;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.audit-plan-summary dd,
+.audit-row dd,
+.audit-treatment-menu dd {
+  margin: 0.12rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.audit-plan-summary dd {
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+
+.audit-rule-group {
+  margin: 0.65rem;
+}
+
+.audit-rule-group h4 {
+  margin: 0 0 0.38rem;
+  color: var(--ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.audit-row-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.audit-row {
+  padding: 0.55rem;
+  border-left: 3px solid #315f48;
+  background: #07110c;
+}
+
+.audit-row header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.audit-row header strong {
+  color: var(--ink);
+  font-size: 0.75rem;
+}
+
+.audit-row header span {
+  color: var(--teal-dark);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-align: right;
+}
+
+.ticket-card .audit-row p,
+.audit-row dl {
+  margin: 0.38rem 0 0;
+  font-size: 0.69rem;
+  line-height: 1.42;
+}
+
+.audit-row dl {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.audit-row code,
+.audit-critical code {
+  display: block;
+  margin-top: 0.35rem;
+  color: #718078;
+  font-size: 0.58rem;
+  overflow-wrap: anywhere;
+}
+
+.audit-provenance {
+  margin-top: 0.35rem;
+  color: #9ca9a1 !important;
+}
+
+.audit-critical {
+  border: 1px solid #7f3d3d;
+  padding: 0.55rem;
+  background: rgba(74, 20, 20, 0.25);
+}
+
+.audit-critical h4::before {
+  content: '!';
+  display: inline-grid;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-right: 0.35rem;
+  border: 1px solid #ef8f8f;
+  color: #ffd0d0;
+  place-items: center;
+}
+
+.audit-critical ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audit-critical li {
+  color: #ffd0d0;
+  font-size: 0.7rem;
+}
+
+.audit-critical li strong,
+.audit-critical li span {
+  display: block;
+}
+
+.audit-critical li span {
+  margin-top: 0.12rem;
+  color: #d9b5b5;
+}
+
+.audit-treatment-menu {
+  margin: 0.55rem 0.65rem;
+  border-top: 1px solid #30483a;
+  padding-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.audit-treatment-menu summary {
+  color: var(--teal-dark);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.audit-treatment-menu dl,
+.audit-treatment-menu ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.55rem 0 0;
+}
+
+.audit-treatment-menu dd,
+.audit-treatment-menu li {
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.audit-treatment-menu li span {
+  display: block;
+  color: #9ca9a1;
+}
+
 .upgrade-store {
   margin-top: 1.25rem;
   padding: 1rem;
@@ -2234,8 +2548,19 @@ tbody th small {
   .receipt-grid,
   .flag-panel,
   .guidance-panel,
-  .ticket-card {
+  .ticket-card,
+  .audit-plan-summary {
     grid-template-columns: 1fr;
+  }
+
+  .audit-row header,
+  .source-request-card header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .audit-row header span {
+    text-align: left;
   }
 
   .recent-result,

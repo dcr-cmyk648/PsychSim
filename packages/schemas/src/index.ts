@@ -56,20 +56,23 @@ const UnreviewedClinicalRuleSchema = ClinicalRuleReviewSchema.default({
 export const EvidenceAuthoritySchema = z.enum(['formal_publication', 'expert_opinion']);
 export type EvidenceAuthority = z.infer<typeof EvidenceAuthoritySchema>;
 
+export const FormalEvidenceSourceTypeSchema = z.enum([
+  'journal_article',
+  'clinical_guideline',
+  'systematic_review',
+  'regulatory_document',
+  'book_chapter',
+  'professional_guidance',
+]);
+export type FormalEvidenceSourceType = z.infer<typeof FormalEvidenceSourceTypeSchema>;
+
 export const EvidenceSourceDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     contentVersion: ContentVersionSchema,
     id: StableIdSchema,
     authority: z.literal('formal_publication'),
-    sourceType: z.enum([
-      'journal_article',
-      'clinical_guideline',
-      'systematic_review',
-      'regulatory_document',
-      'book_chapter',
-      'professional_guidance',
-    ]),
+    sourceType: FormalEvidenceSourceTypeSchema,
     title: z.string().min(1).max(600),
     authors: z.array(z.string().min(1).max(160)),
     organization: z.string().min(1).max(240).nullable(),
@@ -466,6 +469,7 @@ export const CatalogBundleSchema = z
     schemaVersion: SchemaVersionSchema,
     contentVersion: ContentVersionSchema,
     evidenceSources: z.array(EvidenceSourceDefinitionSchema),
+    diagnoses: z.array(z.lazy(() => DiagnosisDefinitionSchema)),
     services: z.array(ServiceDefinitionSchema),
     medications: z.array(MedicationDefinitionSchema),
     formularies: z.array(FormularyDefinitionSchema),
@@ -497,6 +501,8 @@ export const ContentRegistryEntrySchema = z
       'reference_interval_catalog',
       'upgrade_catalog',
       'decor_catalog',
+      'diagnosis_catalog',
+      'source_request_catalog',
       'evidence_source',
       'medication',
       'patient',
@@ -567,6 +573,357 @@ export const ScorePredicateSchema: z.ZodType<ScorePredicate> = z.lazy(() =>
     z.object({ type: z.literal('not'), predicate: ScorePredicateSchema }).strict(),
   ]),
 );
+
+export const PatientDiagnosisRoleSchema = z.enum([
+  'primary',
+  'contributing',
+  'excluded',
+  'reference_only',
+]);
+export type PatientDiagnosisRole = z.infer<typeof PatientDiagnosisRoleSchema>;
+
+export type PatientContextPredicate =
+  | {
+      type: 'diagnosisPresent';
+      diagnosisId: string;
+      roles: PatientDiagnosisRole[];
+    }
+  | { type: 'diagnosisSeverity'; diagnosisId: string; severityId: string }
+  | { type: 'diagnosisSpecifier'; diagnosisId: string; specifierId: string }
+  | { type: 'clinicalTagPresent'; clinicalTagId: string }
+  | { type: 'any'; predicates: PatientContextPredicate[] }
+  | { type: 'all'; predicates: PatientContextPredicate[] }
+  | { type: 'not'; predicate: PatientContextPredicate };
+
+export const PatientContextPredicateSchema: z.ZodType<PatientContextPredicate> = z.lazy(() =>
+  z.discriminatedUnion('type', [
+    z
+      .object({
+        type: z.literal('diagnosisPresent'),
+        diagnosisId: StableIdSchema,
+        roles: z.array(PatientDiagnosisRoleSchema).min(1),
+      })
+      .strict(),
+    z
+      .object({
+        type: z.literal('diagnosisSeverity'),
+        diagnosisId: StableIdSchema,
+        severityId: StableIdSchema,
+      })
+      .strict(),
+    z
+      .object({
+        type: z.literal('diagnosisSpecifier'),
+        diagnosisId: StableIdSchema,
+        specifierId: StableIdSchema,
+      })
+      .strict(),
+    z
+      .object({
+        type: z.literal('clinicalTagPresent'),
+        clinicalTagId: StableIdSchema,
+      })
+      .strict(),
+    z
+      .object({
+        type: z.literal('any'),
+        predicates: z.array(PatientContextPredicateSchema).min(1),
+      })
+      .strict(),
+    z
+      .object({
+        type: z.literal('all'),
+        predicates: z.array(PatientContextPredicateSchema).min(1),
+      })
+      .strict(),
+    z.object({ type: z.literal('not'), predicate: PatientContextPredicateSchema }).strict(),
+  ]),
+);
+
+export type DiagnosisSelectionPredicate =
+  | { type: 'treatmentStarted'; medicationId: string }
+  | {
+      type: 'treatmentStartedWithTag';
+      medicationTagId: string;
+      minimumCount: number;
+      maximumCount: number;
+    }
+  | { type: 'treatmentStopped'; medicationId: string }
+  | { type: 'treatmentContinued'; medicationId: string }
+  | { type: 'interventionSelected'; interventionId: string }
+  | { type: 'dispositionSelected'; dispositionId: string }
+  | { type: 'any'; predicates: DiagnosisSelectionPredicate[] }
+  | { type: 'all'; predicates: DiagnosisSelectionPredicate[] }
+  | { type: 'not'; predicate: DiagnosisSelectionPredicate };
+
+/**
+ * Reusable diagnosis guidance may depend on the proposed treatment, but not on
+ * case-local fact IDs, purchased actions, service ownership, or arbitrary code.
+ */
+export const DiagnosisSelectionPredicateSchema: z.ZodType<DiagnosisSelectionPredicate> = z.lazy(
+  () =>
+    z.discriminatedUnion('type', [
+      z.object({ type: z.literal('treatmentStarted'), medicationId: StableIdSchema }).strict(),
+      z
+        .object({
+          type: z.literal('treatmentStartedWithTag'),
+          medicationTagId: StableIdSchema,
+          minimumCount: z.number().int().nonnegative(),
+          maximumCount: z.number().int().nonnegative(),
+        })
+        .strict(),
+      z.object({ type: z.literal('treatmentStopped'), medicationId: StableIdSchema }).strict(),
+      z.object({ type: z.literal('treatmentContinued'), medicationId: StableIdSchema }).strict(),
+      z
+        .object({
+          type: z.literal('interventionSelected'),
+          interventionId: StableIdSchema,
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('dispositionSelected'),
+          dispositionId: StableIdSchema,
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('any'),
+          predicates: z.array(DiagnosisSelectionPredicateSchema).min(1),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('all'),
+          predicates: z.array(DiagnosisSelectionPredicateSchema).min(1),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('not'),
+          predicate: DiagnosisSelectionPredicateSchema,
+        })
+        .strict(),
+    ]),
+);
+
+export const DiagnosisRuleTargetSchema = z
+  .object({
+    kind: z.enum([
+      'medication',
+      'medication_tag',
+      'information_action',
+      'intervention',
+      'disposition',
+    ]),
+    id: StableIdSchema,
+  })
+  .strict();
+export type DiagnosisRuleTarget = z.infer<typeof DiagnosisRuleTargetSchema>;
+
+export const RecommendationStanceSchema = z.enum([
+  'required',
+  'preferred',
+  'acceptable',
+  'neutral',
+  'discouraged',
+  'avoid',
+  'contraindicated',
+]);
+export type RecommendationStance = z.infer<typeof RecommendationStanceSchema>;
+
+/**
+ * Diagnosis-owned guidance is qualitative. A separately versioned balance
+ * policy may later map these stances to points; source content never owns an
+ * unexplained numeric payout.
+ */
+export const DiagnosisRecommendationRuleSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    domain: z.enum([
+      'assessment',
+      'workup',
+      'medication_selection',
+      'medication_discontinuation',
+      'nonmedication',
+      'monitoring',
+      'disposition',
+      'safety',
+    ]),
+    target: DiagnosisRuleTargetSchema,
+    stance: RecommendationStanceSchema,
+    patientWhen: PatientContextPredicateSchema.nullable(),
+    selectionWhen: DiagnosisSelectionPredicateSchema.nullable(),
+    rationale: z.string().min(1).max(1200),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type DiagnosisRecommendationRule = z.infer<typeof DiagnosisRecommendationRuleSchema>;
+
+export const ComplexityDimensionSchema = z.enum([
+  'diagnostic',
+  'pharmacologic',
+  'workup',
+  'safety_disposition',
+  'information',
+]);
+export type ComplexityDimension = z.infer<typeof ComplexityDimensionSchema>;
+
+export const ComplexityContributionSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    dimension: ComplexityDimensionSchema,
+    weight: z.number().int().min(1).max(5),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type ComplexityContribution = z.infer<typeof ComplexityContributionSchema>;
+
+export const DiagnosisSeverityConstraintsSchema = z
+  .object({
+    criteriaSetId: StableIdSchema.nullable(),
+    minimumPositiveCriteria: z.number().int().nonnegative().nullable(),
+    maximumPositiveCriteria: z.number().int().nonnegative().nullable(),
+    requiredCriterionIds: z.array(StableIdSchema),
+    forbiddenCriterionIds: z.array(StableIdSchema),
+    minimumFunctionalImpairment: z.enum(['none', 'mild', 'moderate', 'severe']).nullable(),
+  })
+  .strict()
+  .superRefine((constraints, context) => {
+    if (
+      constraints.minimumPositiveCriteria !== null &&
+      constraints.maximumPositiveCriteria !== null &&
+      constraints.minimumPositiveCriteria > constraints.maximumPositiveCriteria
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['maximumPositiveCriteria'],
+        message: 'A severity range minimum must not exceed its maximum.',
+      });
+    }
+    if (
+      constraints.requiredCriterionIds.some((id) => constraints.forbiddenCriterionIds.includes(id))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['requiredCriterionIds'],
+        message: 'A severity criterion cannot be both required and forbidden.',
+      });
+    }
+  });
+export type DiagnosisSeverityConstraints = z.infer<typeof DiagnosisSeverityConstraintsSchema>;
+
+export const DiagnosisSeverityLevelSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(120),
+    rank: z.number().int().nonnegative(),
+    generationStatus: z.enum(['disabled_pending_source', 'enabled']),
+    constraints: DiagnosisSeverityConstraintsSchema,
+    addedClinicalTagIds: z.array(StableIdSchema),
+    rules: z.array(DiagnosisRecommendationRuleSchema),
+    complexityContributions: z.array(ComplexityContributionSchema),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict()
+  .superRefine((level, context) => {
+    const constraints = level.constraints;
+    const hasOperationalConstraint =
+      constraints.criteriaSetId !== null ||
+      constraints.minimumPositiveCriteria !== null ||
+      constraints.maximumPositiveCriteria !== null ||
+      constraints.requiredCriterionIds.length > 0 ||
+      constraints.forbiddenCriterionIds.length > 0 ||
+      constraints.minimumFunctionalImpairment !== null;
+    if (level.generationStatus === 'enabled' && !hasOperationalConstraint) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['constraints'],
+        message: 'An enabled severity level requires at least one operational constraint.',
+      });
+    }
+  });
+export type DiagnosisSeverityLevel = z.infer<typeof DiagnosisSeverityLevelSchema>;
+
+export const DiagnosisSpecifierSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    exclusiveGroupId: StableIdSchema.nullable(),
+    addedClinicalTagIds: z.array(StableIdSchema),
+    rules: z.array(DiagnosisRecommendationRuleSchema),
+    complexityContributions: z.array(ComplexityContributionSchema),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type DiagnosisSpecifier = z.infer<typeof DiagnosisSpecifierSchema>;
+
+export const DiagnosisComorbidityRelationshipSchema = z
+  .object({
+    diagnosisId: StableIdSchema,
+    relationship: z.enum([
+      'compatible',
+      'commonly_comorbid',
+      'mutually_exclusive',
+      'diagnostic_overlap',
+    ]),
+    gameGenerationWeight: z.number().positive().nullable(),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type DiagnosisComorbidityRelationship = z.infer<
+  typeof DiagnosisComorbidityRelationshipSchema
+>;
+
+export const DiagnosisDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    description: z.string().min(1).max(600),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    baseClinicalTagIds: z.array(StableIdSchema),
+    baseRules: z.array(DiagnosisRecommendationRuleSchema),
+    severityAxis: z
+      .object({
+        id: StableIdSchema,
+        label: z.string().min(1).max(180),
+        levels: z.array(DiagnosisSeverityLevelSchema).min(2),
+      })
+      .strict()
+      .nullable(),
+    specifiers: z.array(DiagnosisSpecifierSchema),
+    comorbidityRelationships: z.array(DiagnosisComorbidityRelationshipSchema),
+    complexityContributions: z.array(ComplexityContributionSchema),
+    sourceUseNotes: z.array(EvidenceContributionSchema),
+  })
+  .strict();
+export type DiagnosisDefinition = z.infer<typeof DiagnosisDefinitionSchema>;
+
+export const OptionalComorbidDiagnosisSchema = z
+  .object({
+    id: StableIdSchema,
+    diagnosisId: StableIdSchema,
+    gameInclusionProbability: z.number().min(0).max(1),
+    allowedSeverityIds: z.array(StableIdSchema),
+    allowedSpecifierIds: z.array(StableIdSchema),
+    role: z.literal('contributing'),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type OptionalComorbidDiagnosis = z.infer<typeof OptionalComorbidDiagnosisSchema>;
+
+export const PatientDiagnosisCompositionSchema = z
+  .object({
+    optionalComorbidities: z.array(OptionalComorbidDiagnosisSchema).max(12),
+    maximumActiveDiagnoses: z.number().int().min(1).max(12),
+    conflictPolicy: z.literal('quarantine'),
+  })
+  .strict();
+export type PatientDiagnosisComposition = z.infer<typeof PatientDiagnosisCompositionSchema>;
 
 export const VariantGeneratorSchema = z.discriminatedUnion('type', [
   z.object({
@@ -682,6 +1039,54 @@ export const InformationResultBlueprintSchema = z
   })
   .strict();
 export type InformationResultBlueprint = z.infer<typeof InformationResultBlueprintSchema>;
+
+export const PatientContextFindingBindingSchema = z
+  .object({
+    actionId: StableIdSchema,
+    findingId: StableIdSchema,
+    outcome: z.enum(['present', 'absent']),
+  })
+  .strict();
+export type PatientContextFindingBinding = z.infer<typeof PatientContextFindingBindingSchema>;
+
+export const PatientClinicalContextOptionSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    /** A game-generation weight, never an epidemiologic prevalence claim. */
+    gameSelectionWeight: z.number().positive(),
+    addedClinicalTagIds: z.array(StableIdSchema),
+    findingBindings: z.array(PatientContextFindingBindingSchema).min(1),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type PatientClinicalContextOption = z.infer<typeof PatientClinicalContextOptionSchema>;
+
+/**
+ * A reviewed, gameplay-critical axis such as sleep pattern or body-habitus
+ * category. Exactly one option is resolved per dimension, saved in the case
+ * instance, materialized into short structured findings, and made available to
+ * fit rules through its tags.
+ */
+export const PatientClinicalContextDimensionSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    options: z.array(PatientClinicalContextOptionSchema).min(2).max(20),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type PatientClinicalContextDimension = z.infer<typeof PatientClinicalContextDimensionSchema>;
+
+export const ResolvedPatientClinicalContextSchema = z
+  .object({
+    dimensionId: StableIdSchema,
+    optionId: StableIdSchema,
+    addedClinicalTagIds: z.array(StableIdSchema),
+    findingBindings: z.array(PatientContextFindingBindingSchema),
+  })
+  .strict();
+export type ResolvedPatientClinicalContext = z.infer<typeof ResolvedPatientClinicalContextSchema>;
 
 export const ObservationReferenceIntervalSchema = z
   .object({
@@ -973,8 +1378,10 @@ export type CaseMetadata = z.infer<typeof CaseMetadataSchema>;
 export const PatientDiagnosisSchema = z
   .object({
     id: StableIdSchema,
-    role: z.enum(['primary', 'contributing', 'excluded', 'reference_only']),
+    role: PatientDiagnosisRoleSchema,
     tagIds: z.array(StableIdSchema),
+    severityId: StableIdSchema.nullable().default(null),
+    specifierIds: z.array(StableIdSchema).default([]),
   })
   .strict();
 
@@ -1090,6 +1497,8 @@ export const PatientRecordSchema = z
     treatmentReference: PatientTreatmentReferenceSchema,
     generationPolicy: PatientGenerationPolicySchema,
     testGenerationContext: PatientTestGenerationContextSchema,
+    diagnosisComposition: PatientDiagnosisCompositionSchema.nullable().default(null),
+    clinicalContextDimensions: z.array(PatientClinicalContextDimensionSchema).max(20).default([]),
   })
   .strict();
 export type PatientRecord = z.infer<typeof PatientRecordSchema>;
@@ -1126,6 +1535,7 @@ export const CaseInstanceSchema = CaseCoreSchema.extend({
   blueprintId: StableIdSchema,
   seed: z.string().min(1),
   resolvedVariants: z.record(z.union([z.string(), z.number()])),
+  resolvedClinicalContext: z.array(ResolvedPatientClinicalContextSchema).default([]),
   resolvedObservations: z.array(PatientObservationSchema),
   opening: ResolvedPatientOpeningSchema,
   informationActions: z.array(CaseInformationActionSchema).min(1),
@@ -1477,6 +1887,72 @@ export const ClinicalReviewTicketSchema = z
   })
   .strict();
 export type ClinicalReviewTicket = z.infer<typeof ClinicalReviewTicketSchema>;
+
+export const SourceRequestStatusSchema = z.enum(['needs_source', 'source_received', 'resolved']);
+export type SourceRequestStatus = z.infer<typeof SourceRequestStatusSchema>;
+
+/**
+ * Developer-side evidence gap. These records identify a clinical question that
+ * needs primary or authoritative source material; they never change a rule by
+ * themselves and are not included in the production runtime.
+ */
+export const SourceRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    title: z.string().min(1).max(180),
+    question: z.string().min(1).max(1600),
+    whyNeeded: z.string().min(1).max(1600),
+    targetContentIds: z.array(StableIdSchema).min(1),
+    linkedTicketIds: z.array(StableIdSchema).min(1),
+    preferredSourceTypes: z.array(FormalEvidenceSourceTypeSchema).min(1),
+    acceptanceCriteria: z.array(z.string().min(1).max(500)).min(1),
+    destination: z
+      .object({
+        provider: z.literal('google_drive'),
+        folderLabel: z.literal('PsychSim documents'),
+      })
+      .strict(),
+    existingEvidenceSourceIds: z.array(StableIdSchema),
+    receivedEvidenceSourceIds: z.array(StableIdSchema),
+    sourceDocumentIds: z.array(StableIdSchema),
+    sourceChunkIds: z.array(StableIdSchema),
+    sourceUseNoteIds: z.array(StableIdSchema),
+    status: SourceRequestStatusSchema,
+    resolutionNote: z.string().min(1).max(2000).nullable(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const hasReceivedSource =
+      request.receivedEvidenceSourceIds.length > 0 ||
+      request.sourceDocumentIds.length > 0 ||
+      request.sourceChunkIds.length > 0;
+    if (request.status === 'source_received' && !hasReceivedSource) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['status'],
+        message: 'A received source request must link evidence or a local source document.',
+      });
+    }
+    if (request.status === 'resolved' && (!hasReceivedSource || !request.resolutionNote)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolutionNote'],
+        message: 'A resolved source request requires linked evidence and a resolution note.',
+      });
+    }
+    if (request.sourceChunkIds.length > 0 && request.sourceDocumentIds.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDocumentIds'],
+        message: 'Chunk-level source provenance requires a source document.',
+      });
+    }
+  });
+export type SourceRequest = z.infer<typeof SourceRequestSchema>;
 
 export const ClinicalTicketExportBundleSchema = z
   .object({

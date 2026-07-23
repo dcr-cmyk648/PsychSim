@@ -7,8 +7,13 @@ import type {
   ClinicState,
   ProgressionMode,
   SaveData,
+  SourceRequest,
 } from '@psychsim/schemas';
+import type { CaseRuleAudit } from '@psychsim/content-runtime';
 import { getPurchasableUpgradeDefinitions, getUpgradeOffer } from '@psychsim/engine';
+
+import { CaseRuleAuditView } from './CaseRuleAuditView';
+import { SourceRequestQueue } from './SourceRequestQueue';
 
 export interface PatientSlotPreview {
   id: string;
@@ -23,6 +28,8 @@ interface ClinicHubProps {
   catalogs: CatalogBundle;
   patientSlots: PatientSlotPreview[];
   developerModeAvailable: boolean;
+  caseRuleAudits: readonly CaseRuleAudit[];
+  sourceRequests: readonly SourceRequest[];
   onStart: (slotId: string) => void;
   onSetMode: (mode: ProgressionMode) => void;
   onRefresh: () => void;
@@ -58,10 +65,11 @@ const ticketPriority = { blocking: 0, high: 1, medium: 2, low: 3 } as const;
 
 interface TicketReviewCardProps {
   ticket: ClinicalReviewTicket;
+  caseRuleAudit: CaseRuleAudit | null;
   onSave: ClinicHubProps['onSaveTicketReview'];
 }
 
-function TicketReviewCard({ ticket, onSave }: TicketReviewCardProps) {
+function TicketReviewCard({ ticket, caseRuleAudit, onSave }: TicketReviewCardProps) {
   const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
   const [saving, setSaving] = useState(false);
 
@@ -88,6 +96,9 @@ function TicketReviewCard({ ticket, onSave }: TicketReviewCardProps) {
           {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
         </small>
         <p>{ticket.guidance}</p>
+        {caseRuleAudit ? (
+          <CaseRuleAuditView audit={caseRuleAudit} targetContentIds={ticket.targetContentIds} />
+        ) : null}
         <details className="ticket-context">
           <summary>Targets and review routing</summary>
           <dl>
@@ -162,6 +173,8 @@ export function ClinicHub({
   catalogs,
   patientSlots,
   developerModeAvailable,
+  caseRuleAudits,
+  sourceRequests,
   onStart,
   onSetMode,
   onRefresh,
@@ -186,6 +199,9 @@ export function ClinicHub({
     );
   const ticketsNeedingInput = reviewTickets.filter((ticket) => !ticket.reviewerNotes.trim());
   const reviewedTickets = reviewTickets.filter((ticket) => ticket.reviewerNotes.trim());
+  const caseRuleAuditByBlueprintId = new Map(
+    caseRuleAudits.map((audit) => [audit.blueprintId, audit]),
+  );
   const currentFacility = catalogs.facilities.find((facility) => facility.id === clinic.facilityId);
   const upgradeOffers = getPurchasableUpgradeDefinitions(catalogs)
     .filter(
@@ -526,6 +542,8 @@ export function ClinicHub({
         </section>
       ) : null}
 
+      {progressionMode === 'developer' ? <SourceRequestQueue requests={sourceRequests} /> : null}
+
       {progressionMode === 'developer' ? (
         <section className="ticket-queue" aria-labelledby="ticket-queue-title">
           <div className="queue-heading">
@@ -578,7 +596,16 @@ export function ClinicHub({
               ) : (
                 <div className="ticket-list">
                   {ticketsNeedingInput.map((ticket) => (
-                    <TicketReviewCard key={ticket.id} ticket={ticket} onSave={onSaveTicketReview} />
+                    <TicketReviewCard
+                      key={ticket.id}
+                      ticket={ticket}
+                      caseRuleAudit={
+                        ticket.blueprintId
+                          ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
+                          : null
+                      }
+                      onSave={onSaveTicketReview}
+                    />
                   ))}
                 </div>
               )}
@@ -590,6 +617,11 @@ export function ClinicHub({
                       <TicketReviewCard
                         key={ticket.id}
                         ticket={ticket}
+                        caseRuleAudit={
+                          ticket.blueprintId
+                            ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
+                            : null
+                        }
                         onSave={onSaveTicketReview}
                       />
                     ))}

@@ -115,10 +115,19 @@ test('completes a patient, stores review guidance, and preserves the profile and
 
   await page.getByRole('button', { name: 'Developer' }).click();
   await expect(page.getByRole('heading', { name: 'Clinical and content tickets' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sources needed' })).toBeVisible();
+  await expect(page.locator('.source-request-card')).toHaveCount(5);
+  await expect(page.getByText('TSH use in an initial depressive presentation')).toBeVisible();
   await expect(
     page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   ).toBeVisible();
   await expect(page.getByText(/Receipt guidance:/)).toBeVisible();
+  const dispositionTicket = page.locator('.ticket-card').filter({
+    has: page.getByText('Audit escalation and disposition penalties'),
+  });
+  await expect(dispositionTicket.getByText(/-80 pts/)).toBeVisible();
+  await expect(dispositionTicket.getByText(/-450 pts/)).toBeVisible();
+  await expect(dispositionTicket.getByText('200 when true').last()).toBeVisible();
   const baselineTicket = page.locator('.ticket-card').filter({
     has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   });

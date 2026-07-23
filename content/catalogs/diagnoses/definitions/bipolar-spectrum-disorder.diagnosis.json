@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "diagnosis.bipolar-spectrum-disorder",
+  "label": "Bipolar-spectrum disorder",
+  "description": "Unreviewed diagnosis-family placeholder for patient composition and rule-reference validation.",
+  "medicalReviewStatus": "unreviewed",
+  "baseClinicalTagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"],
+  "baseRules": [],
+  "severityAxis": null,
+  "specifiers": [],
+  "comorbidityRelationships": [],
+  "complexityContributions": [],
+  "sourceUseNotes": []
+}

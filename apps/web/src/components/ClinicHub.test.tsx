@@ -4,7 +4,13 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { catalogs, prototypeCaseBlueprint, startingProfile } from '@psychsim/content-runtime';
+import {
+  buildCaseRuleAudit,
+  catalogs,
+  prototypeCaseBlueprint,
+  startingProfile,
+} from '@psychsim/content-runtime';
+import { developerSourceRequests } from '@psychsim/content-runtime/developer';
 import { emptyPatientQueueState, instantiateCase } from '@psychsim/engine';
 import { ClinicalReviewTicketSchema, SaveDataSchema } from '@psychsim/schemas';
 
@@ -40,6 +46,8 @@ describe('ClinicHub', () => {
           },
         ]}
         developerModeAvailable
+        caseRuleAudits={[]}
+        sourceRequests={[]}
         onStart={onStart}
         onSetMode={vi.fn()}
         onRefresh={vi.fn()}
@@ -85,6 +93,8 @@ describe('ClinicHub', () => {
         catalogs={catalogs}
         patientSlots={[]}
         developerModeAvailable
+        caseRuleAudits={[]}
+        sourceRequests={[]}
         onStart={vi.fn()}
         onSetMode={vi.fn()}
         onRefresh={vi.fn()}
@@ -135,6 +145,8 @@ describe('ClinicHub', () => {
         catalogs={catalogs}
         patientSlots={[]}
         developerModeAvailable
+        caseRuleAudits={[]}
+        sourceRequests={[]}
         onStart={vi.fn()}
         onSetMode={vi.fn()}
         onRefresh={vi.fn()}
@@ -173,7 +185,7 @@ describe('ClinicHub', () => {
       caseContentVersion: '3.0.0',
       receiptItemId: null,
       receiptItemSnapshot: null,
-      targetContentIds: ['case.first-visit-depression'],
+      targetContentIds: ['case.first-visit-depression', 'rule.mdd-emergency-escalation'],
       dependencyTicketIds: [],
       conflictContentIds: [],
       proposedRouting: 'Review the patient-owned pathway before changing content.',
@@ -200,6 +212,10 @@ describe('ClinicHub', () => {
         catalogs={catalogs}
         patientSlots={[]}
         developerModeAvailable
+        caseRuleAudits={[
+          buildCaseRuleAudit(prototypeCaseBlueprint, catalogs, startingProfile.clinic),
+        ]}
+        sourceRequests={developerSourceRequests.slice(0, 1)}
         onStart={vi.fn()}
         onSetMode={vi.fn()}
         onRefresh={vi.fn()}
@@ -218,6 +234,11 @@ describe('ClinicHub', () => {
     const saveButton = screen.getByRole('button', { name: 'Instructions saved' });
     expect(saveButton).toBeDisabled();
     expect(screen.queryByRole('combobox', { name: 'Status' })).not.toBeInTheDocument();
+    expect(screen.getAllByText('Emergency-department escalation').length).toBeGreaterThan(0);
+    expect(screen.getByText(/-450 pts/)).toBeVisible();
+    expect(screen.getByText('200 when true')).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Sources needed' })).toBeVisible();
+    expect(screen.getAllByText('PsychSim documents').length).toBeGreaterThan(0);
 
     fireEvent.change(notes, {
       target: { value: 'Allow any first-line SSRI, then apply medication-fit modifiers.' },

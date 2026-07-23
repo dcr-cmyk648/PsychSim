@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "diagnosis.borderline-personality-disorder",
+  "label": "Borderline personality disorder",
+  "description": "Unreviewed diagnosis-family placeholder for later sourced criteria, comorbidity composition, and treatment guidance.",
+  "medicalReviewStatus": "unreviewed",
+  "baseClinicalTagIds": ["diagnosis-tag.personality"],
+  "baseRules": [],
+  "severityAxis": null,
+  "specifiers": [],
+  "comorbidityRelationships": [],
+  "complexityContributions": [],
+  "sourceUseNotes": []
+}

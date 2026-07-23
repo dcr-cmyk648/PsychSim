@@ -11,8 +11,14 @@ import {
   type EncounterState,
   type ProgressionMode,
   type SaveData,
+  type SourceRequest,
 } from '@psychsim/schemas';
-import { approvedCaseBlueprints, catalogs, startingProfile } from '@psychsim/content-runtime';
+import {
+  approvedCaseBlueprints,
+  catalogs,
+  startingProfile,
+  type CaseRuleAudit,
+} from '@psychsim/content-runtime';
 import {
   ENGINE_VERSION,
   completeEncounter,
@@ -31,6 +37,7 @@ import {
 import { ClinicHub, type PatientSlotPreview } from './components/ClinicHub';
 import { EncounterView } from './components/EncounterView';
 import { ReceiptView, type GuidanceDraft } from './components/ReceiptView';
+import { mergeDeveloperAuditTickets } from './developer-review-state';
 import { IndexedDbSaveRepository } from './persistence';
 
 type Screen = 'hub' | 'encounter' | 'receipt';
@@ -66,14 +73,10 @@ const withFilledQueues = (
       ? saveData.profile
       : { ...saveData.profile, progressionMode: normalizedMode };
   const endgameClinic = resolveClinicForProgressionMode(profile.clinic, 'endgame', catalogs);
-  const existingTicketIds = new Set(saveData.clinicalTickets.map((ticket) => ticket.id));
   return SaveDataSchema.parse({
     ...saveData,
     profile,
-    clinicalTickets: [
-      ...saveData.clinicalTickets,
-      ...developerAuditTickets.filter((ticket) => !existingTicketIds.has(ticket.id)),
-    ],
+    clinicalTickets: mergeDeveloperAuditTickets(saveData.clinicalTickets, developerAuditTickets),
     patientQueues: ensurePatientQueues(
       saveData.patientQueues,
       profile.clinic,
@@ -88,6 +91,12 @@ export default function App() {
   const repository = useMemo(() => new IndexedDbSaveRepository(), []);
   const [developerBlueprints, setDeveloperBlueprints] =
     useState<readonly CaseBlueprint[]>(approvedCaseBlueprints);
+  const [developerCaseRuleAudits, setDeveloperCaseRuleAudits] = useState<readonly CaseRuleAudit[]>(
+    [],
+  );
+  const [developerSourceRequests, setDeveloperSourceRequests] = useState<readonly SourceRequest[]>(
+    [],
+  );
   const [saveData, setSaveData] = useState<SaveData | null>(null);
   const [screen, setScreen] = useState<Screen>('hub');
   const [encounter, setEncounter] = useState<EncounterState | null>(null);
@@ -104,10 +113,14 @@ export default function App() {
       ? import('@psychsim/content-runtime/developer').then((module) => ({
           blueprints: module.developerCaseBlueprints,
           auditTickets: module.developerClinicalAuditTickets,
+          caseRuleAudits: module.developerCaseRuleAudits,
+          sourceRequests: module.developerSourceRequests,
         }))
       : Promise.resolve({
           blueprints: approvedCaseBlueprints as readonly CaseBlueprint[],
           auditTickets: [] as readonly ClinicalReviewTicket[],
+          caseRuleAudits: [] as readonly CaseRuleAudit[],
+          sourceRequests: [] as readonly SourceRequest[],
         });
     void Promise.all([repository.load(), developerContent])
       .then(async ([saved, developerData]) => {
@@ -120,6 +133,8 @@ export default function App() {
         await repository.save(hydrated);
         if (!active) return;
         setDeveloperBlueprints(developerData.blueprints);
+        setDeveloperCaseRuleAudits(developerData.caseRuleAudits);
+        setDeveloperSourceRequests(developerData.sourceRequests);
         setSaveData(hydrated);
       })
       .catch((caught: unknown) => {
@@ -558,6 +573,8 @@ export default function App() {
           catalogs={catalogs}
           patientSlots={patientSlots}
           developerModeAvailable={import.meta.env.DEV}
+          caseRuleAudits={developerCaseRuleAudits}
+          sourceRequests={developerSourceRequests}
           onStart={startPatientSlot}
           onSetMode={(mode) => void setProgressionMode(mode)}
           onRefresh={() => void refreshSlots()}

@@ -1,6 +1,7 @@
 import { access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
+import { ClinicalReviewTicketSchema } from '@psychsim/schemas';
 import {
   approvedCaseBlueprints,
   catalogs,
@@ -10,7 +11,20 @@ import {
   validateContentRegistry,
 } from '@psychsim/content-runtime';
 import { contentRegistry } from '../../../packages/content-runtime/src/registry';
+import { milestoneTwoClinicalAuditTickets } from '../../../packages/content-runtime/src/milestone-two-review-tickets';
+import {
+  developerSourceRequests,
+  validateSourceRequests,
+} from '../../../packages/content-runtime/src/source-requests';
 import { advancedPrototypeCaseBlueprint } from '../../../packages/content-runtime/src/test-content';
+import canmatReviewTicketsJson from '../../../content/cases/review/canmat-2023-mdd-source-review.tickets.json';
+import scaffoldReviewTicketsJson from '../../../content/cases/review/review-basic-mdd-scaffold.tickets.json';
+
+const checkedInReviewTickets = [
+  ...milestoneTwoClinicalAuditTickets,
+  ...ClinicalReviewTicketSchema.array().parse(canmatReviewTicketsJson),
+  ...ClinicalReviewTicketSchema.array().parse(scaffoldReviewTicketsJson),
+];
 
 const missingRegistryPaths = (
   await Promise.all(
@@ -46,6 +60,15 @@ const reports = [
       valid: registryIssues.length === 0,
       issues: registryIssues,
     },
+  ],
+  [
+    'source-needed-requests',
+    validateSourceRequests(
+      developerSourceRequests,
+      catalogs,
+      approvedCaseBlueprints,
+      checkedInReviewTickets,
+    ),
   ],
   ...approvedCaseBlueprints.map(
     (blueprint) =>

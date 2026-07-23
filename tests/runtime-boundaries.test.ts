@@ -44,6 +44,7 @@ describe('runtime boundaries', () => {
     expect(runtimeEntry).not.toContain('content/cases/review');
     expect(runtimeEntry).not.toContain('restless-after-augmentation');
     expect(runtimeEntry).not.toContain('review-basic-mdd-scaffold');
+    expect(runtimeEntry).not.toContain('source-needed.requests');
   });
 
   it('gitignores every private source-document material directory', async () => {

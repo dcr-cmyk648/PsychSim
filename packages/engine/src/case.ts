@@ -8,7 +8,10 @@ import {
   type FindingOutcome,
   type InformationResult,
   type InformationResultBlueprint,
+  type PatientContextFindingBinding,
   type PatientObservation,
+  type PatientRecord,
+  type ResolvedPatientClinicalContext,
   type ResolvedFinding,
 } from '@psychsim/schemas';
 
@@ -50,22 +53,47 @@ const resolveFindingOutcomes = (
   result: InformationResultBlueprint,
   seed: string,
   actionId: string,
+  contextBindings: readonly PatientContextFindingBinding[] = [],
 ): Map<string, FindingOutcome> => {
   const outcomes = new Map<string, FindingOutcome>();
   for (const finding of result.findings) {
     if (finding.outcome !== 'variable') outcomes.set(finding.id, finding.outcome);
   }
-  if (!result.selection) return outcomes;
+  if (!result.selection) {
+    if (contextBindings.length > 0) {
+      throw new Error(`${actionId} has clinical-context bindings but no variable selection.`);
+    }
+    return outcomes;
+  }
 
   for (const id of result.selection.requiredPresentIds) outcomes.set(id, 'present');
   for (const id of result.selection.requiredAbsentIds) outcomes.set(id, 'absent');
+  for (const binding of contextBindings) {
+    const finding = result.findings.find((candidate) => candidate.id === binding.findingId);
+    if (!finding || finding.outcome !== 'variable') {
+      throw new Error(
+        `${actionId} clinical-context binding targets missing or fixed finding ${binding.findingId}.`,
+      );
+    }
+    const existing = outcomes.get(binding.findingId);
+    if (existing && existing !== binding.outcome) {
+      throw new Error(
+        `${actionId} clinical-context binding conflicts with a required outcome for ${binding.findingId}.`,
+      );
+    }
+    outcomes.set(binding.findingId, binding.outcome);
+  }
 
   const fixedPresentCount = [...outcomes.values()].filter(
     (outcome) => outcome === 'present',
   ).length;
-  const span = result.selection.maximumPresent - result.selection.minimumPresent + 1;
+  if (fixedPresentCount > result.selection.maximumPresent) {
+    throw new Error(`${actionId} clinical context exceeds the maximum positive findings.`);
+  }
+  const effectiveMinimum = Math.max(result.selection.minimumPresent, fixedPresentCount);
+  const span = result.selection.maximumPresent - effectiveMinimum + 1;
   const desiredPresent =
-    result.selection.minimumPresent +
+    effectiveMinimum +
     Math.min(
       Math.max(0, span - 1),
       Math.floor(seededUnit(seed, `${actionId}:present-count`) * span),
@@ -103,8 +131,9 @@ export const resolveInformationResult = (
   result: InformationResultBlueprint,
   seed: string,
   actionId: string,
+  contextBindings: readonly PatientContextFindingBinding[] = [],
 ): InformationResult => {
-  const outcomes = resolveFindingOutcomes(result, seed, actionId);
+  const outcomes = resolveFindingOutcomes(result, seed, actionId, contextBindings);
   const resolved = result.findings.map((finding) => {
     const outcome = outcomes.get(finding.id);
     if (!outcome) {
@@ -123,9 +152,10 @@ export const resolveInformationResult = (
 
 const testContextFor = (
   blueprint: CaseBlueprint,
+  patientRecord: PatientRecord,
   resolvedVariants: Readonly<Record<string, string | number>>,
 ): TestGenerationContext => {
-  const context = blueprint.patientRecord.testGenerationContext;
+  const context = patientRecord.testGenerationContext;
   const ageValue = resolvedVariants[context.ageYearsVariantTarget];
   if (typeof ageValue !== 'number') {
     throw new Error(
@@ -135,10 +165,36 @@ const testContextFor = (
   return {
     ageYears: ageValue,
     sexForReference: context.sexForReference,
-    diagnosisIds: blueprint.patientRecord.diagnoses.map((diagnosis) => diagnosis.id),
-    clinicalTagIds: blueprint.patientRecord.clinicalTagIds,
+    diagnosisIds: patientRecord.diagnoses.map((diagnosis) => diagnosis.id),
+    clinicalTagIds: patientRecord.clinicalTagIds,
   };
 };
+
+export const resolvePatientClinicalContext = (
+  patientRecord: PatientRecord,
+  seed: string,
+): readonly ResolvedPatientClinicalContext[] =>
+  patientRecord.clinicalContextDimensions.map((dimension) => {
+    const totalWeight = dimension.options.reduce(
+      (sum, option) => sum + option.gameSelectionWeight,
+      0,
+    );
+    let cursor = seededUnit(seed, `clinical-context:${dimension.id}`) * totalWeight;
+    let selected = dimension.options.at(-1)!;
+    for (const option of dimension.options) {
+      cursor -= option.gameSelectionWeight;
+      if (cursor < 0) {
+        selected = option;
+        break;
+      }
+    }
+    return {
+      dimensionId: dimension.id,
+      optionId: selected.id,
+      addedClinicalTagIds: selected.addedClinicalTagIds,
+      findingBindings: selected.findingBindings,
+    };
+  });
 
 export const instantiateCase = (
   blueprint: CaseBlueprint,
@@ -155,10 +211,28 @@ export const instantiateCase = (
     );
   }
 
+  const resolvedClinicalContext = resolvePatientClinicalContext(blueprint.patientRecord, seed);
+  const patientRecord: PatientRecord = {
+    ...blueprint.patientRecord,
+    clinicalTagIds: [
+      ...new Set([
+        ...blueprint.patientRecord.clinicalTagIds,
+        ...resolvedClinicalContext.flatMap((context) => context.addedClinicalTagIds),
+      ]),
+    ],
+  };
   const generatedObservations: PatientObservation[] = [];
-  const context = testContextFor(blueprint, resolvedVariants);
+  const context = testContextFor(blueprint, patientRecord, resolvedVariants);
   const informationActions = blueprint.informationActions.map((action) => {
-    const baseResult = resolveInformationResult(action.result, seed, action.actionId);
+    const contextBindings = resolvedClinicalContext.flatMap((resolved) =>
+      resolved.findingBindings.filter((binding) => binding.actionId === action.actionId),
+    );
+    const baseResult = resolveInformationResult(
+      action.result,
+      seed,
+      action.actionId,
+      contextBindings,
+    );
     const test = catalogs.tests.find((candidate) => candidate.actionId === action.actionId);
     if (!test) return { ...action, result: baseResult };
 
@@ -194,9 +268,10 @@ export const instantiateCase = (
     blueprintId: blueprint.id,
     seed,
     resolvedVariants,
+    resolvedClinicalContext,
     resolvedObservations: [...blueprint.patientRecord.observations, ...generatedObservations],
     metadata: blueprint.metadata,
-    patientRecord: blueprint.patientRecord,
+    patientRecord,
     criticalFacts: blueprint.criticalFacts,
     opening: {
       title: resolveTemplate(blueprint.opening.titleTemplate, resolvedVariants),

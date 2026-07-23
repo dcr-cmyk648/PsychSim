@@ -1,0 +1,199 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.ecg.monitoring-necessity",
+    "title": "ECG need for palpitations during citalopram treatment",
+    "question": "For a stable outpatient reporting intermittent palpitations during citalopram treatment, which structured findings make a 12-lead ECG or other cardiac monitoring indicated, optional, or unnecessary?",
+    "whyNeeded": "The current ECG objective is provisionally worth +560 points when obtained and -350 when omitted. The FDA label supplies context, but it does not by itself settle the case-specific necessity threshold or game weight.",
+    "targetContentIds": [
+      "objective.ecg-mdd-cardiac-monitoring",
+      "info.imaging.ecg",
+      "test.diagnostic.ecg"
+    ],
+    "linkedTicketIds": ["ticket.audit.m2-ecg-workup-weight"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "journal_article",
+      "regulatory_document"
+    ],
+    "acceptanceCriteria": [
+      "Defines the relevant symptoms or risk factors that change the monitoring recommendation.",
+      "Distinguishes routine outpatient evaluation from urgent or emergency evaluation.",
+      "Is sufficiently specific to map to structured patient facts without inventing a narrative conclusion."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.fda.citalopram-capsules-label.2023"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": ["source-use.ecg-mdd.citalopram-monitoring"],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.ecg.continue-or-switch",
+    "title": "Continue or switch a helpful antidepressant after a normal ECG",
+    "question": "When palpitations are reported but the authored ECG is normal, how should current antidepressant benefit, tolerability, symptom persistence, and patient preference affect continuation versus switching?",
+    "whyNeeded": "The current case provisionally gives 100 base care points for continuation and 95 for a sertraline switch. The user identified current-agent helpfulness as a missing randomized fact that should influence goodness-of-fit rather than be assumed.",
+    "targetContentIds": [
+      "path.ecg-mdd-monitored-outpatient-medication",
+      "grade.ecg-mdd-continue-after-monitoring",
+      "grade.ecg-mdd-strong-sertraline-switch",
+      "grade.ecg-mdd-strong-escitalopram"
+    ],
+    "linkedTicketIds": ["ticket.audit.m2-ecg-treatment-path"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "journal_article",
+      "regulatory_document"
+    ],
+    "acceptanceCriteria": [
+      "Separates safety-driven discontinuation from preference- or response-driven switching.",
+      "Identifies decision-relevant facts that can be represented as patient-owned structured fields.",
+      "Supports a modifier rule without making one medication universally preferred."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [
+      "evidence.canmat.mdd-adults.2023-update",
+      "evidence.fda.citalopram-capsules-label.2023"
+    ],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.mdd.tsh-workup",
+    "title": "TSH use in an initial depressive presentation",
+    "question": "For an adult outpatient presenting with depressive symptoms, which history, examination, demographic, medication, or medical factors make TSH testing indicated, optional, or low value?",
+    "whyNeeded": "The user wants routine bloodwork penalized when there is no reason, while TSH receives its own reusable test-level provenance rather than a case-specific guess.",
+    "targetContentIds": ["case.first-visit-depression", "info.labs.tsh", "test.lab.tsh"],
+    "linkedTicketIds": ["ticket.source.canmat-mdd.assessment-workup"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "journal_article",
+      "professional_guidance"
+    ],
+    "acceptanceCriteria": [
+      "Identifies specific indications or risk groups rather than recommending an undifferentiated laboratory panel.",
+      "Can be mapped to a shared TSH test rule and patient-owned structured facts.",
+      "Separates diagnostic yield or workup value from the laboratory operating cost."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.mdd.severity-thresholds",
+    "title": "Structured mild, moderate, and severe MDD generation",
+    "question": "Which current authoritative criteria should PsychSim use to distinguish mild, moderate, and severe depressive episodes using symptom count, symptom intensity, distress, functional impairment, psychosis, and safety findings?",
+    "whyNeeded": "The randomized symptom set must remain internally coherent: a generated severity label cannot conflict with the number or intensity of positive criteria or with functional impairment. CANMAT treatment tiers alone do not fully specify the generator.",
+    "targetContentIds": [
+      "case.first-visit-depression",
+      "diagnosis.major-depressive-disorder",
+      "severity-axis.mdd.episode",
+      "severity.mdd.mild",
+      "severity.mdd.moderate",
+      "severity.mdd.severe",
+      "path.mdd-single-antidepressant-outpatient",
+      "info.history.depressive-symptoms"
+    ],
+    "linkedTicketIds": ["ticket.source.canmat-mdd.initial-modality"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "professional_guidance",
+      "book_chapter",
+      "systematic_review"
+    ],
+    "acceptanceCriteria": [
+      "Provides operational distinctions that can be encoded as bounded declarative ranges.",
+      "Accounts for both symptom count and severity or impairment rather than symptom count alone.",
+      "Supports generator tests that prevent mild, moderate, and severe ranges from silently crossing."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.mdd.suicide-risk-disposition",
+    "title": "Structured suicide-risk facts and level-of-care scoring",
+    "question": "How should current ideation, intent, planning, preparatory behavior, attempt history, access to means, acute modifiers, and protective factors contribute to outpatient, urgent, or emergency disposition rules in a game rubric?",
+    "whyNeeded": "The current patient uses concise structured findings and provisionally rewards outpatient follow-up while penalizing disproportionate escalation. The user wants the risk-assessment mapping sourced before those facts are treated as an approved level-of-care rule.",
+    "targetContentIds": [
+      "objective.mdd-safety",
+      "rule.mdd-outpatient-disposition",
+      "rule.mdd-urgent-escalation",
+      "rule.mdd-emergency-escalation",
+      "info.history.suicide-safety"
+    ],
+    "linkedTicketIds": ["ticket.source.canmat-mdd.disposition-severity"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "professional_guidance",
+      "systematic_review",
+      "journal_article"
+    ],
+    "acceptanceCriteria": [
+      "Supports structured decision factors without reducing risk assessment to one unsupported numeric score.",
+      "Distinguishes absent acute indicators, elevated concern, and emergency indicators.",
+      "Can support penalties for both unsafe under-escalation and disproportionate over-escalation."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-23T00:00:00.000Z",
+    "updatedAt": "2026-07-23T00:00:00.000Z"
+  }
+]

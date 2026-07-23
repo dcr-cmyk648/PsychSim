@@ -26,6 +26,12 @@ Delivered: explicit starter/transitional/advanced patient-pool metadata; a one-s
 
 Gate: unit/component/browser tests prove lifetime eligibility does not grant ownership, balance spending leaves lifetime progression unchanged, facility/decor purchases are atomic, prior ECG ownership survives a move, waiting patients persist while slot count grows, decor visibly persists after reload, diminishing returns remain under the catalog cap, care-point traces remain identical, and unsafe play remains unprofitable. Both approved patients remain available through safe external services at all declared Normal locations; the starter pool remains repeatable. No departments or new clinically inferred patients were added.
 
+## Pre-Milestone 4 — Diagnosis/composition engine foundation
+
+Scope: one file per diagnosis family; shared → severity → specifier composition; qualitative recommendation stances; constrained patient/treatment context predicates; deterministic gameplay-critical context dimensions that keep findings and fit tags aligned; bounded multi-diagnosis authoring; conflict quarantine; multidimensional complexity; reference and provenance validation.
+
+Gate: current runtime behavior and reference runs remain unchanged; unsourced severity cannot generate; missing or incompatible diagnosis content fails validation; a resolved critical context is deterministic, saved, visible through its bound finding, and available to fit logic; conflicting diagnosis guidance has no automatic winner; no point mapping, department work, or new clinical recommendation is invented. Optional-comorbidity selection and complexity-to-level mapping remain disabled until the recorded open decisions are resolved.
+
 ## Milestone 4 — Departments and broader services
 
 Scope: outpatient area, ED, consultation-liaison, inpatient; construction; department equipment/cases; disposition capabilities; location-specific formularies.

@@ -1,42 +1,60 @@
 # PsychSim project state
 
-Last updated: 2026-07-22
+Last updated: 2026-07-23
 
 ## Repository state
 
 - Current branch: `main`.
-- Current phase: Milestone 3 complete; clinical adjudication checkpoint before any Milestone 4 work.
-- Current block: the user must resolve the proposed CANMAT MDD and ECG rule-level tickets before their claims or point weights change.
-- Latest relevant commit: the instruction-only Developer ticket checkpoint at `HEAD` after this batch is published.
+- Current phase: Milestone 3 complete; pre-Milestone 4 diagnosis/patient-composition engine checkpoint complete.
+- Current block: wait for the user’s data-model decisions and additional guidelines before enabling optional comorbidity generation, sourced severity, diagnosis-derived scoring, or new clinical point values.
+- Latest relevant commit: the exact-rule audit, source-request queue, and diagnosis-composition checkpoint at `HEAD` after this batch is published.
 - Expected working tree: clean after the current checkpoint commit.
 - Remote synchronized: push the validated checkpoint normally to `origin/main`, verify CI, and adopt the resulting handoff snapshot before resuming work.
 
 ## Last completed action
 
-The book repository's canonical-thread lease architecture and Milestone 3 checkpoint are published. The user reviewed ten CANMAT, ECG, and scaffold tickets in the local handoff file. Developer mode now removes the overlapping user-facing lifecycle-status menu and gives every ticket one “What should Codex do?” field. Saving nonempty instructions marks the ticket internally reviewed, persists the prose and timestamp in IndexedDB, and automatically writes the complete version-2 bundle to the fixed gitignored Codex handoff file. Tickets without input stay prominent; reviewed tickets move into a collapsible section. The manual control retries the copy, and Playwright uses a separate `.e2e` file. Local format, lint, typecheck, 93 TypeScript tests, 10 handoff tests, content validation, three browser tests, and production build pass.
+The user redirected work away from hand-tuning point values and toward the reusable clinical engine. The checkpoint now has:
+
+- a read-only exact-rule audit on every Developer ticket plus a five-item, runtime-excluded source-request queue;
+- one versioned file per diagnosis family, including medically unreviewed placeholders for MDD, bipolar-spectrum disorder, substance-induced mood disorder, medication-induced akathisia, and borderline personality disorder;
+- top-down diagnosis composition across shared rules, selected severity, selected specifiers, and multiple active diagnoses;
+- point-free qualitative recommendation stances with constrained patient and treatment predicates;
+- deterministic gameplay-critical patient context that binds the same short structured finding to the tags used by treatment-fit logic and saves the resolved choice in the CaseInstance;
+- blocking conflicts for missing definitions, disabled severity, mutually exclusive diagnoses/specifiers, and incompatible active guidance;
+- a traceable five-dimensional complexity vector without a premature player-level formula;
+- semantic validation for all diagnosis, rule, evidence, patient-composition, context-binding, test-profile, source-request, and registry references.
+
+MDD mild/moderate/severe live in one family file but remain `disabled_pending_source` with no invented thresholds or treatment rules. Optional comorbidity authoring is modeled, while random selection is absent from approved patients pending a pool-policy decision. No approved case, treatment point, workup point, settlement value, or reference policy changed.
+
+Format, lint, strict typecheck, 109 TypeScript tests, 10 handoff tests, content/source validation, two Developer-patient compiles, evidence audit, reference runs, three browser tests, and production build/bundle isolation pass. The only build notice is Vite’s existing chunk-size advisory.
 
 ## Current work
 
-Hook trust remains an explicit local Codex `/hooks` action. The next work proceeds in this order:
+Proceed in this order:
 
-1. Treat the user's saved prose as the authoritative requested outcome; infer implement/preserve/defer/source/clarify and ask only if a consequential ambiguity remains.
-2. First improve tickets so they expose exact case rewards, penalties, cannot-miss rules, treatment choices, and current values, and add a source-needed/provenance follow-up path for questions that need an article or authoritative source.
-3. Then implement the clear broad-pathway directions: equal base value for acceptable first-line options, separate patient-fit modifiers, per-therapy catalog entries, structured severity variation after sourcing thresholds, and reason-sensitive workup value.
-4. Keep current ECG values provisionally where the notes say they are acceptable; defer exact switching and risk/TSH provenance until the requested sources and patient-specific variables exist.
-5. Re-run affected validation/reference policies for every executable rule change. Do not start departments/Milestone 4 until the clinical and economy checkpoint is accepted.
+1. Ask the user to resolve the six focused questions in `docs/DIAGNOSIS_ENGINE.md`: conflict handling, comorbidity pool ownership, objective fit versus discovery credit, complexity aggregation, patient-specific overrides, and typed clinical facts versus free tag strings.
+2. Record each answer in `docs/DECISIONS.md` before extending the schema or enabling generation.
+3. When the user supplies additional guidelines, process one source and one claim set at a time. Create exact contributions/tickets; do not propagate a publication directly into diagnosis, medication, test, or patient rules.
+4. Populate one diagnosis family only after its reusable rules, severity/specifier boundaries, conflicts, and provenance are explicit. Keep its recommendation stance qualitative until a separate balance policy is reviewed.
+5. Add a patient-family clinical-context dimension only when every option controls the same structured findings and every clinically relevant random value is replayable.
+6. Re-run affected validation/reference policies for every executable rule change. Do not start departments/Milestone 4 while this clinical model is still being settled.
 
 ## Exact next action
 
-Implement the compact exact-rule ticket presentation and source-needed/provenance follow-up system requested in the saved instructions. The user does not need to choose or confirm lifecycle statuses.
+Receive and record the user’s engine-policy answers. The recommended first implementation after that is a first-class typed clinical-fact/derivation catalog plus a versioned patient-specific override record, followed by deterministic patient-family comorbidity selection if the recommended pool policy is accepted. Do not tune existing point magnitudes or enable MDD severity before its open source request is resolved.
 
 ## Blockers and review state
 
 - No technical blocker is known.
+- Six architecture choices remain open in `docs/DIAGNOSIS_ENGINE.md`; the implementation intentionally does not guess them.
+- Five tracked source requests remain open: ECG monitoring necessity, ECG continuation/switching, TSH indications, MDD severity thresholds, and suicide-risk/disposition mapping.
 - Formal-source catalog presence is not medical approval.
 - CANMAT is cataloged and ticketed but still has no applied contribution.
 - The ECG source contribution is recorded, while its clinical rule weights and decisions remain medically unreviewed.
 - Ten tickets contain reviewer instructions. Their internal legacy statuses are not user decisions and must not block interpretation of the prose.
-- Exact depression-severity thresholds, TSH rules, suicide-risk provenance, and detailed ECG switching logic still need sourced specification.
+- Current diagnosis files are structural and medically unreviewed; placeholder relationships and treatment rules are intentionally empty.
+- Optional-comorbidity probabilities are authoring data only until a selection policy is accepted and implemented.
+- The current exact-rule audit is a display/inspection layer only; all values remain medically unreviewed unless their individual review record says otherwise.
 - Milestone 4 is intentionally not started.
 
 ## Files to read for the current task
@@ -46,15 +64,18 @@ Implement the compact exact-rule ticket presentation and source-needed/provenanc
 - `PROJECT_STATE.md`
 - `docs/CODEX_THREAD_HANDOFF.md`
 - `docs/ROADMAP.md`
+- `docs/DIAGNOSIS_ENGINE.md`
+- `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
 - `docs/DECISIONS.md`
 - `content/registry.json`
-- `content/catalogs/evidence/formal/`
-- `content/cases/review/canmat-2023-mdd-source-review.tickets.json`
-- `content/cases/approved/medication-check-palpitations.case.json`
-- `content/catalogs/locations/facilities.json`
-- `content/catalogs/decor/decor.json`
-- `packages/engine/src/progression.ts`
-- `packages/engine/src/satisfaction.ts`
-- `scripts/codex_handoff.py`
-- `.codex/hooks.json`
+- `content/catalogs/diagnoses/definitions/`
+- `content/cases/review/source-needed.requests.json`
+- `packages/schemas/src/index.ts`
+- `packages/engine/src/diagnosis.ts`
+- `packages/engine/src/case.ts`
+- `packages/content-runtime/src/validation.ts`
+- `packages/content-runtime/src/review-inspector.ts`
+- `packages/content-runtime/src/source-requests.ts`
+- `apps/web/src/components/CaseRuleAuditView.tsx`
+- `apps/web/src/components/SourceRequestQueue.tsx`

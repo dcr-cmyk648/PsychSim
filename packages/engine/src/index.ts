@@ -1,5 +1,6 @@
 export * from './case';
 export * from './complete';
+export * from './diagnosis';
 export * from './economy';
 export * from './eligibility';
 export * from './encounter';
@@ -17,4 +18,4 @@ export * from './services';
 export * from './satisfaction';
 export * from './upgrades';
 
-export const ENGINE_VERSION = '0.4.0';
+export const ENGINE_VERSION = '0.5.0';

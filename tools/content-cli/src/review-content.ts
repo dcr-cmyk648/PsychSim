@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 
 import { CaseBlueprintSchema } from '@psychsim/schemas';
 
+import { developerSourceRequests } from '../../../packages/content-runtime/src/source-requests';
 import { listExtractedSourceArtifacts } from './source-pipeline';
 
 const artifacts = await listExtractedSourceArtifacts();
@@ -27,4 +28,12 @@ for (const path of reviewPaths) {
   const value = JSON.parse(await readFile(path, 'utf8')) as unknown;
   const blueprint = CaseBlueprintSchema.parse(value);
   console.log(`  - ${blueprint.id} · ${blueprint.metadata.medicalReviewStatus} · ${path}`);
+}
+
+const openSourceRequests = developerSourceRequests.filter(
+  (request) => request.status !== 'resolved',
+);
+console.log(`Open source requests: ${openSourceRequests.length}`);
+for (const request of openSourceRequests) {
+  console.log(`  - ${request.id} · ${request.title} · ${request.destination.folderLabel}`);
 }

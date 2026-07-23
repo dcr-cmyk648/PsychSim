@@ -257,3 +257,31 @@ Status: accepted. Every Developer ticket has an editable reviewer-notes field. S
 ## D-064 — The reviewer supplies instructions, not a workflow status
 
 Status: accepted; supersedes the user-facing portion of D-063. The overlapping proposed/in-review/accepted/deferred/rejected/resolved selector is removed from Developer mode. Every ticket instead asks “What should Codex do?” Saving nonempty prose marks the ticket internally as reviewed, persists it in IndexedDB, and refreshes the same Codex handoff file. Codex infers whether the request means implement, preserve, defer, source, or clarify and asks only when a consequential ambiguity remains. Internal status and resolution fields remain available for audit and later tooling but are not choices the clinical reviewer must manage.
+
+## D-065 — Ticket rule audits are derived from executable content
+
+Status: accepted. A Developer ticket with a patient ID embeds a compact read-only audit derived from the parsed blueprint, shared catalogs, and service resolver. Target IDs focus the display; a case-wide ticket shows the complete set. Investigation rewards/omissions/costs, treatment bases and fit modifiers, pathway prerequisites/par, disposition and safety values, cannot-miss rules, point caps, selectable treatments, provenance, and reference policies are visible without running the patient. React owns presentation only; the inspector does not score, mutate, or create a second clinical rubric. Existing local reviewer instructions survive checked-in ticket-target refreshes.
+
+## D-066 — Unresolved evidence questions are first-class source requests
+
+Status: accepted. A versioned, tracked, runtime-excluded `SourceRequest` records one exact clinical question, affected content/tickets, preferred formal-source types, acceptance criteria, existing evidence that did not close the gap, and the `PsychSim documents` destination. Its internal source-needed/received/resolved state is descriptive, not a reviewer dropdown; resolution requires linked evidence and a note. Source requests never alter rules. Drive discovery, local hashing/extraction, evidence contribution, impact analysis, content versioning, and clinical approval remain separate gates. The initial queue covers ECG necessity, ECG continue-versus-switch logic, TSH workup indications, MDD severity generation, and suicide-risk/disposition provenance.
+
+## D-067 — Diagnosis families own qualitative top-down guidance
+
+Status: accepted. Each diagnosis family has one file containing rules shared by the family plus nested severity and specifier branches. Composition order is base, selected severity, selected specifiers, then other active diagnoses. Reusable diagnosis rules use qualitative stances and constrained catalog targets; they do not own point values or case-local predicates. Patient files continue to own the resolved presentation, broad authored route, case-specific exceptions, and provenance.
+
+## D-068 — Critical random context must bind visible facts to fit inputs
+
+Status: accepted. A fact that can change treatment fit, workup, safety, diagnosis, or complexity is not a cosmetic variant. A reviewed patient clinical-context dimension resolves one gameplay-weighted option deterministically, saves it in the CaseInstance, binds the same structured findings for every option, and contributes its tags to downstream rules. The distribution is labeled a game weight, not prevalence. Cosmetic presentation variants remain clinically inert.
+
+## D-069 — Incompatible diagnosis guidance quarantines the composition
+
+Status: accepted. Missing definitions, duplicated active diagnoses, source-disabled severity, invalid or mutually exclusive specifiers, mutually exclusive diagnoses, and incompatible active recommendation stances produce stable conflicts. File order, recency, diagnosis count, and apparent specificity cannot automatically choose a clinical winner. A future patient-specific override must be explicit, sourced or labeled expert opinion, versioned, and reviewable.
+
+## D-070 — Patient complexity is a vector before it is a level
+
+Status: provisional pending playtesting. Diagnosis count alone does not set patient level. The engine traces separate diagnostic, pharmacologic, workup, safety/disposition, and information-burden contributions. It does not yet collapse them into one unlock tier. The future aggregation policy must be versioned and tested against case duration and reference patients rather than embedded in diagnosis files.
+
+## D-071 — Random comorbidity selection waits for a pool-policy decision
+
+Status: open. Patient schemas can describe bounded optional contributing diagnoses and the composer can validate a resolved multi-diagnosis case, but approved patients do not yet generate optional comorbidities. The recommended policy is that each patient family explicitly owns its candidate pool and game weights while diagnosis files own compatibility/overlap metadata. Global free mixing and unstated prevalence assumptions remain prohibited until the user confirms the policy.

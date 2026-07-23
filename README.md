@@ -54,6 +54,8 @@ The local authoring slice now hashes and extracts PDF, DOCX, TXT, and Markdown s
 
 Formal literature has a separate, tracked evidence catalog. Each article, guideline, or regulatory document receives one stable bibliographic record; case and medication contribution notes say exactly which rule it informed and how. Receipt traces show those citations and contribution statements. Rules without a linked formal contribution display `Expert opinion` rather than receiving an inferred citation. Run `pnpm content:evidence` to audit cataloged publications, linked contributions, unused sources, and implicit expert-opinion rules.
 
+The clinical-model checkpoint now includes one file per diagnosis family, top-down base/severity/specifier composition, deterministic gameplay-critical patient-context variants, multi-diagnosis conflict quarantine, and a five-dimensional complexity vector. Diagnosis guidance is qualitative and point-free until separately balanced. MDD severity and optional comorbidity generation remain disabled in approved content pending source and policy decisions; see [DIAGNOSIS_ENGINE.md](docs/DIAGNOSIS_ENGINE.md).
+
 The CANMAT MDD source has been decomposed into five unresolved Developer tickets rather than applied automatically. Three additional ECG tickets cover necessity/weight, continuation versus switching, and disposition. Switch to Developer mode on the local server to review and disposition them; resolving a ticket records workflow state but does not silently rewrite clinical JSON.
 
 ## Static deployment

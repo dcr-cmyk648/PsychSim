@@ -1,12 +1,19 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.0.0",
+  "contentVersion": "3.1.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
       "kind": "information_catalog",
       "path": "content/catalogs/actions/actions.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.diagnoses",
+      "kind": "diagnosis_catalog",
+      "path": "content/catalogs/diagnoses/definitions",
+      "runtimeIncluded": true,
+      "dependsOnIds": ["registry.catalog.information-actions", "registry.catalog.treatments"]
     },
     {
       "id": "registry.catalog.services",
@@ -49,13 +56,19 @@
       "kind": "test_catalog",
       "path": "content/catalogs/tests/definitions",
       "runtimeIncluded": true,
-      "dependsOnIds": ["registry.catalog.reference-interval-sets"]
+      "dependsOnIds": ["registry.catalog.diagnoses", "registry.catalog.reference-interval-sets"]
     },
     {
       "id": "registry.catalog.reference-interval-sets",
       "kind": "reference_interval_catalog",
       "path": "content/catalogs/tests/reference-interval-sets.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "registry.review.source-requests",
+      "kind": "source_request_catalog",
+      "path": "content/cases/review/source-needed.requests.json",
+      "runtimeIncluded": false
     },
     {
       "id": "evidence.canmat.mdd-adults.2023-update",
@@ -154,6 +167,7 @@
       "runtimeIncluded": true,
       "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
       "dependsOnIds": [
+        "registry.catalog.diagnoses",
         "registry.catalog.information-actions",
         "registry.catalog.services",
         "registry.catalog.treatments",
@@ -182,6 +196,7 @@
         "patient-category.ecg-relevant"
       ],
       "dependsOnIds": [
+        "registry.catalog.diagnoses",
         "registry.catalog.information-actions",
         "registry.catalog.services",
         "registry.catalog.treatments",
@@ -205,6 +220,7 @@
       "runtimeIncluded": false,
       "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
       "dependsOnIds": [
+        "registry.catalog.diagnoses",
         "registry.catalog.information-actions",
         "registry.catalog.services",
         "registry.catalog.treatments",

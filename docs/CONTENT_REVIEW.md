@@ -34,6 +34,23 @@ A tracked `*.tickets.json` file may decompose one formal source into proposed ru
 
 Creating or accepting a ticket is not source application. A formal `EvidenceContribution`, target rule review update, content-version change, impact scan, and affected reference policies are still required after the user adjudicates the question. This keeps “the paper exists,” “the source may support this claim,” and “this exact game rule has been clinically approved” as three separate states.
 
+## Exact rule audit and source-needed queue
+
+Developer tickets with a patient blueprint now embed a read-only audit derived from the same parsed case and catalog objects used by the engine. The reviewer does not need to run or solve the patient to see current values. A targeted ticket shows matching rules first; a case-wide scaffold ticket shows the complete audit. The audit includes:
+
+- each relevant investigation objective, obtained reward, omission penalty, current fulfillment method/cost, treatment-specific modifier, and rule-level provenance;
+- every treatment-grade predicate and base point value;
+- active medication fit modifiers and whether the current patient tags trigger them;
+- accepted treatment pathways, required workup, conditional safety requirements, and path par;
+- each additional point/safety/disposition rule, both true and false values, safety errors, and care-point caps;
+- an explicit cannot-miss list, complete selectable treatment menu, database-plan comparison values, and reference policies.
+
+This is a deterministic inspector, not a second scoring implementation. It reads declarative case content, uses the shared predicate and service catalogs for labels/costs, and never changes a patient or rule. Unlinked rules display as Expert opinion/no formal contribution rather than borrowing a nearby citation. Existing locally reviewed tickets are refreshed from their checked-in definition so newly added exact target IDs appear without replacing reviewer instructions or resolution history.
+
+Clinical questions that need another article or authoritative source live in the tracked, developer-only `source-needed.requests.json` queue. Each versioned request owns one exact question, why it matters, target content IDs, linked ticket IDs, acceptable formal source types, acceptance criteria, the `PsychSim documents` destination, existing evidence that did not close the gap, and later document/chunk/source-use provenance. Its small internal state (`needs_source`, `source_received`, or `resolved`) describes whether evidence has actually arrived; it is not another reviewer dropdown. A resolved request requires linked evidence plus a resolution note. `pnpm content:validate` rejects duplicate IDs, missing tickets, invalid targets, and unknown evidence links.
+
+The initial queue records the unresolved ECG-monitoring threshold, continue-versus-switch logic, TSH workup indications, structured MDD severity thresholds, and suicide-risk/disposition mapping. These records do not change the provisional executable values. The user can place suitable material in the Drive folder and ask Codex to check it; source ingestion and rule adjudication remain separate steps.
+
 ## Historical fidelity
 
 Never replay old feedback against an unversioned current case. The review tool must open the saved case snapshot and engine/content versions first. It may separately load the current blueprint and show a structured comparison. Resolved variants are stored, so replay does not regenerate a new fictional patient.

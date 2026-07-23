@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "diagnosis.substance-induced-mood-disorder",
+  "label": "Substance-induced mood disorder",
+  "description": "Unreviewed diagnosis-family placeholder for patient composition and rule-reference validation.",
+  "medicalReviewStatus": "unreviewed",
+  "baseClinicalTagIds": ["diagnosis-tag.substance-induced"],
+  "baseRules": [],
+  "severityAxis": null,
+  "specifiers": [],
+  "comorbidityRelationships": [],
+  "complexityContributions": [],
+  "sourceUseNotes": []
+}

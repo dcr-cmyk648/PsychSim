@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "diagnosis.major-depressive-disorder",
+  "label": "Major depressive disorder",
+  "description": "Diagnosis-family structure for shared MDD rules, episode-severity branches, and later reviewed specifiers.",
+  "medicalReviewStatus": "unreviewed",
+  "baseClinicalTagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"],
+  "baseRules": [],
+  "severityAxis": {
+    "id": "severity-axis.mdd.episode",
+    "label": "Current episode severity",
+    "levels": [
+      {
+        "id": "severity.mdd.mild",
+        "label": "Mild",
+        "rank": 1,
+        "generationStatus": "disabled_pending_source",
+        "constraints": {
+          "criteriaSetId": null,
+          "minimumPositiveCriteria": null,
+          "maximumPositiveCriteria": null,
+          "requiredCriterionIds": [],
+          "forbiddenCriterionIds": [],
+          "minimumFunctionalImpairment": null
+        },
+        "addedClinicalTagIds": [],
+        "rules": [],
+        "complexityContributions": [],
+        "review": {
+          "status": "unreviewed",
+          "reviewerId": null,
+          "reviewedAt": null,
+          "sourceUseNoteIds": []
+        }
+      },
+      {
+        "id": "severity.mdd.moderate",
+        "label": "Moderate",
+        "rank": 2,
+        "generationStatus": "disabled_pending_source",
+        "constraints": {
+          "criteriaSetId": null,
+          "minimumPositiveCriteria": null,
+          "maximumPositiveCriteria": null,
+          "requiredCriterionIds": [],
+          "forbiddenCriterionIds": [],
+          "minimumFunctionalImpairment": null
+        },
+        "addedClinicalTagIds": [],
+        "rules": [],
+        "complexityContributions": [],
+        "review": {
+          "status": "unreviewed",
+          "reviewerId": null,
+          "reviewedAt": null,
+          "sourceUseNoteIds": []
+        }
+      },
+      {
+        "id": "severity.mdd.severe",
+        "label": "Severe",
+        "rank": 3,
+        "generationStatus": "disabled_pending_source",
+        "constraints": {
+          "criteriaSetId": null,
+          "minimumPositiveCriteria": null,
+          "maximumPositiveCriteria": null,
+          "requiredCriterionIds": [],
+          "forbiddenCriterionIds": [],
+          "minimumFunctionalImpairment": null
+        },
+        "addedClinicalTagIds": [],
+        "rules": [],
+        "complexityContributions": [],
+        "review": {
+          "status": "unreviewed",
+          "reviewerId": null,
+          "reviewedAt": null,
+          "sourceUseNoteIds": []
+        }
+      }
+    ]
+  },
+  "specifiers": [],
+  "comorbidityRelationships": [],
+  "complexityContributions": [],
+  "sourceUseNotes": []
+}

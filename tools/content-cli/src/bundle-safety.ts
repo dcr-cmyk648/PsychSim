@@ -32,6 +32,7 @@ export const verifyProductionBundle = async (directory: string): Promise<BundleS
     'case.restless-after-augmentation',
     'case.review.basic-mdd-scaffold',
     'ticket.audit.review-basic-mdd-scaffold',
+    'source-request.mdd.tsh-workup',
     '/__psychsim/local-review-tickets',
     'content/generated/local-review-tickets',
   ];

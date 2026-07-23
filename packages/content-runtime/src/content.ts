@@ -7,6 +7,11 @@ import {
 
 import canmatMddGuidelineJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json';
 import fdaCitalopramLabelJson from '../../../content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json';
+import bipolarSpectrumDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/bipolar-spectrum-disorder.diagnosis.json';
+import borderlinePersonalityDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/borderline-personality-disorder.diagnosis.json';
+import majorDepressiveDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/major-depressive-disorder.diagnosis.json';
+import medicationInducedAkathisiaDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/medication-induced-akathisia.diagnosis.json';
+import substanceInducedMoodDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/substance-induced-mood-disorder.diagnosis.json';
 import servicesJson from '../../../content/catalogs/services/services.json';
 import fluoxetineJson from '../../../content/catalogs/medications/definitions/fluoxetine.medication.json';
 import aripiprazoleJson from '../../../content/catalogs/medications/definitions/aripiprazole.medication.json';
@@ -46,8 +51,15 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.0.0',
+  contentVersion: '3.1.0',
   evidenceSources: [canmatMddGuidelineJson, fdaCitalopramLabelJson],
+  diagnoses: [
+    majorDepressiveDisorderDiagnosisJson,
+    bipolarSpectrumDiagnosisJson,
+    borderlinePersonalityDisorderDiagnosisJson,
+    substanceInducedMoodDiagnosisJson,
+    medicationInducedAkathisiaDiagnosisJson,
+  ],
   services: servicesJson,
   medications: [
     fluoxetineJson,

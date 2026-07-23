@@ -4,6 +4,12 @@ The protected authoring boundary now has a bounded local vertical slice: SHA-256
 
 Three records remain deliberately separate: private `SourceDocument`/`SourceChunk` text, tracked formal `EvidenceSourceDefinition` bibliography, and `EvidenceContribution` application notes. A PDF does not become formal evidence merely because it looks academic. Formal use requires a catalog entry; anything else is Expert opinion until a human classifies and catalogs it.
 
+## Evidence requests before ingestion
+
+The tracked developer-only queue at `content/cases/review/source-needed.requests.json` records clinical decisions that cannot yet be finalized from current provenance. A request names the exact research question, affected rules/tests/patients, originating clinical tickets, preferred formal-source types, and concrete acceptance criteria. It also records existing sources that provide context but leave the question open. This prevents “needs sourcing” from becoming an ambiguous comment or an accidental rule approval.
+
+The queue directs the user to `PsychSim documents`, but it contains no copyrighted text and performs no connector action. After the user asks Codex to check Drive, new bytes still pass through discovery, SHA-256 deduplication, the protected local inbox, extraction, and one-at-a-time claim review. Only then may the request link source-document/chunk IDs and move to source-received. Resolution additionally requires a concise resolution note and the normal rule-level content change/revalidation workflow. `pnpm content:validate` checks the tracked request graph; `pnpm content:sources:validate` checks the private discovery and extraction graph.
+
 ## Local workflow
 
 ```text

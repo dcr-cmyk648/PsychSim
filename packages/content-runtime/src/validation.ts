@@ -4,6 +4,7 @@ import {
   type CatalogBundle,
   type ClinicState,
   type ContentRegistry,
+  type PatientContextPredicate,
   type ScorePredicate,
   type TreatmentSelection,
 } from '@psychsim/schemas';
@@ -12,6 +13,7 @@ import {
   extractPredicateReferences,
   getPurchasableUpgradeDefinitions,
   instantiateCase,
+  composeDiagnosisGuidance,
   resolveClinicForFacility,
   resolveClinicForProgressionMode,
   resolveServiceFulfillment,
@@ -32,6 +34,57 @@ export interface ContentValidationReport {
 const duplicateIds = (ids: readonly string[]): string[] => [
   ...new Set(ids.filter((id, index) => ids.indexOf(id) !== index)),
 ];
+
+interface PatientContextReferences {
+  diagnosisIds: string[];
+  severities: Array<{ diagnosisId: string; severityId: string }>;
+  specifiers: Array<{ diagnosisId: string; specifierId: string }>;
+  clinicalTagIds: string[];
+}
+
+const extractPatientContextReferences = (
+  predicate: PatientContextPredicate,
+): PatientContextReferences => {
+  const references: PatientContextReferences = {
+    diagnosisIds: [],
+    severities: [],
+    specifiers: [],
+    clinicalTagIds: [],
+  };
+  const visit = (node: PatientContextPredicate): void => {
+    switch (node.type) {
+      case 'diagnosisPresent':
+        references.diagnosisIds.push(node.diagnosisId);
+        return;
+      case 'diagnosisSeverity':
+        references.diagnosisIds.push(node.diagnosisId);
+        references.severities.push({
+          diagnosisId: node.diagnosisId,
+          severityId: node.severityId,
+        });
+        return;
+      case 'diagnosisSpecifier':
+        references.diagnosisIds.push(node.diagnosisId);
+        references.specifiers.push({
+          diagnosisId: node.diagnosisId,
+          specifierId: node.specifierId,
+        });
+        return;
+      case 'clinicalTagPresent':
+        references.clinicalTagIds.push(node.clinicalTagId);
+        return;
+      case 'any':
+      case 'all':
+        node.predicates.forEach(visit);
+        return;
+      case 'not':
+        visit(node.predicate);
+        return;
+    }
+  };
+  visit(predicate);
+  return references;
+};
 
 const PRE_SUBMISSION_INFERENCE_PATTERNS: ReadonlyArray<[string, RegExp]> = [
   ['LEVEL_OF_CARE_CONCLUSION', /can participate in (?:outpatient|inpatient) care/i],
@@ -334,6 +387,278 @@ export const validateCaseBlueprint = (
     }
   }
   const patientRecord = blueprint.patientRecord;
+  const diagnosisById = new Map(catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis]));
+  for (const duplicate of duplicateIds(patientRecord.diagnoses.map((diagnosis) => diagnosis.id))) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_PATIENT_DIAGNOSIS',
+      message: `${patientRecord.id} repeats ${duplicate}.`,
+    });
+  }
+  for (const patientDiagnosis of patientRecord.diagnoses) {
+    const definition = diagnosisById.get(patientDiagnosis.id);
+    if (!definition) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_PATIENT_DIAGNOSIS_REF',
+        message: `${patientRecord.id} references ${patientDiagnosis.id}.`,
+      });
+      continue;
+    }
+    if (
+      patientDiagnosis.severityId &&
+      !definition.severityAxis?.levels.some(
+        (severity) => severity.id === patientDiagnosis.severityId,
+      )
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_PATIENT_DIAGNOSIS_SEVERITY',
+        message: `${patientRecord.id}: ${patientDiagnosis.severityId} is not a ${definition.id} severity.`,
+      });
+    }
+    for (const specifierId of patientDiagnosis.specifierIds) {
+      if (!definition.specifiers.some((specifier) => specifier.id === specifierId)) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_PATIENT_DIAGNOSIS_SPECIFIER',
+          message: `${patientRecord.id}: ${specifierId} is not a ${definition.id} specifier.`,
+        });
+      }
+    }
+    if (
+      ['excluded', 'reference_only'].includes(patientDiagnosis.role) &&
+      (patientDiagnosis.severityId !== null || patientDiagnosis.specifierIds.length > 0)
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'INACTIVE_DIAGNOSIS_HAS_ACTIVE_QUALIFIERS',
+        message: `${patientRecord.id}: ${patientDiagnosis.id} is ${patientDiagnosis.role} but has an active severity or specifier.`,
+      });
+    }
+  }
+  const fixedDiagnosisComposition = composeDiagnosisGuidance(catalogs.diagnoses, {
+    diagnoses: patientRecord.diagnoses.map((diagnosis) => ({
+      diagnosisId: diagnosis.id,
+      role: diagnosis.role,
+      severityId: diagnosis.severityId,
+      specifierIds: diagnosis.specifierIds,
+    })),
+    clinicalTagIds: patientRecord.clinicalTagIds,
+  });
+  for (const conflict of fixedDiagnosisComposition.conflicts) {
+    issues.push({
+      severity: 'error',
+      code: `PATIENT_${conflict.code}`,
+      message: `${patientRecord.id}: ${conflict.message}`,
+    });
+  }
+
+  if (patientRecord.diagnosisComposition) {
+    const composition = patientRecord.diagnosisComposition;
+    const fixedActiveCount = patientRecord.diagnoses.filter((diagnosis) =>
+      ['primary', 'contributing'].includes(diagnosis.role),
+    ).length;
+    if (composition.maximumActiveDiagnoses < fixedActiveCount) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_MAXIMUM_ACTIVE_DIAGNOSES',
+        message: `${patientRecord.id} already has ${fixedActiveCount} active diagnoses, above its declared maximum of ${composition.maximumActiveDiagnoses}.`,
+      });
+    }
+    for (const duplicate of duplicateIds(
+      composition.optionalComorbidities.map((candidate) => candidate.id),
+    )) {
+      issues.push({
+        severity: 'error',
+        code: 'DUPLICATE_OPTIONAL_COMORBIDITY_ID',
+        message: `${patientRecord.id} repeats ${duplicate}.`,
+      });
+    }
+    for (const duplicate of duplicateIds(
+      composition.optionalComorbidities.map((candidate) => candidate.diagnosisId),
+    )) {
+      issues.push({
+        severity: 'error',
+        code: 'DUPLICATE_OPTIONAL_COMORBIDITY_DIAGNOSIS',
+        message: `${patientRecord.id} repeats optional diagnosis ${duplicate}.`,
+      });
+    }
+    const fixedDiagnosisIds = new Set(patientRecord.diagnoses.map((diagnosis) => diagnosis.id));
+    for (const candidate of composition.optionalComorbidities) {
+      const definition = diagnosisById.get(candidate.diagnosisId);
+      if (!definition) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_OPTIONAL_COMORBIDITY_REF',
+          message: `${candidate.id} references ${candidate.diagnosisId}.`,
+        });
+        continue;
+      }
+      if (fixedDiagnosisIds.has(candidate.diagnosisId)) {
+        issues.push({
+          severity: 'error',
+          code: 'OPTIONAL_COMORBIDITY_ALREADY_FIXED',
+          message: `${candidate.id} duplicates a fixed patient diagnosis.`,
+        });
+      }
+      for (const severityId of candidate.allowedSeverityIds) {
+        const severity = definition.severityAxis?.levels.find((level) => level.id === severityId);
+        if (!severity) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_OPTIONAL_COMORBIDITY_SEVERITY',
+            message: `${candidate.id} references ${severityId}.`,
+          });
+        } else if (severity.generationStatus !== 'enabled') {
+          issues.push({
+            severity: 'error',
+            code: 'OPTIONAL_COMORBIDITY_SEVERITY_DISABLED',
+            message: `${candidate.id} cannot generate ${severityId} while it is pending source review.`,
+          });
+        }
+      }
+      for (const specifierId of candidate.allowedSpecifierIds) {
+        if (!definition.specifiers.some((specifier) => specifier.id === specifierId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_OPTIONAL_COMORBIDITY_SPECIFIER',
+            message: `${candidate.id} references ${specifierId}.`,
+          });
+        }
+      }
+      const candidateComposition = composeDiagnosisGuidance(catalogs.diagnoses, {
+        diagnoses: [
+          ...patientRecord.diagnoses.map((diagnosis) => ({
+            diagnosisId: diagnosis.id,
+            role: diagnosis.role,
+            severityId: diagnosis.severityId,
+            specifierIds: diagnosis.specifierIds,
+          })),
+          {
+            diagnosisId: candidate.diagnosisId,
+            role: candidate.role,
+            severityId: null,
+            specifierIds: [],
+          },
+        ],
+        clinicalTagIds: patientRecord.clinicalTagIds,
+      });
+      for (const conflict of candidateComposition.conflicts) {
+        issues.push({
+          severity: 'error',
+          code: `OPTIONAL_${conflict.code}`,
+          message: `${candidate.id}: ${conflict.message}`,
+        });
+      }
+    }
+  }
+
+  const contextDimensionIds = patientRecord.clinicalContextDimensions.map(
+    (dimension) => dimension.id,
+  );
+  const contextOptionIds = patientRecord.clinicalContextDimensions.flatMap((dimension) =>
+    dimension.options.map((option) => option.id),
+  );
+  for (const duplicate of duplicateIds([...contextDimensionIds, ...contextOptionIds])) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_CLINICAL_CONTEXT_ID',
+      message: `${patientRecord.id} repeats ${duplicate}.`,
+    });
+  }
+  const boundFindingDimensions = new Map<string, string>();
+  for (const dimension of patientRecord.clinicalContextDimensions) {
+    const expectedTargets = dimension.options[0]!.findingBindings.map(
+      (binding) => `${binding.actionId}/${binding.findingId}`,
+    ).sort();
+    for (const option of dimension.options) {
+      const targets = option.findingBindings
+        .map((binding) => `${binding.actionId}/${binding.findingId}`)
+        .sort();
+      if (
+        targets.length !== expectedTargets.length ||
+        targets.some((target, index) => target !== expectedTargets[index])
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'INCONSISTENT_CLINICAL_CONTEXT_BINDINGS',
+          message: `${dimension.id}: every option must resolve the same finding targets.`,
+        });
+      }
+      for (const duplicate of duplicateIds(targets)) {
+        issues.push({
+          severity: 'error',
+          code: 'DUPLICATE_CLINICAL_CONTEXT_BINDING',
+          message: `${option.id} repeats ${duplicate}.`,
+        });
+      }
+      for (const binding of option.findingBindings) {
+        const action = blueprint.informationActions.find(
+          (candidate) => candidate.actionId === binding.actionId,
+        );
+        const finding = action?.result.findings.find(
+          (candidate) => candidate.id === binding.findingId,
+        );
+        if (!action || !finding || finding.outcome !== 'variable' || !action.result.selection) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_CLINICAL_CONTEXT_BINDING',
+            message: `${option.id} must target a variable finding with selection constraints: ${binding.actionId}/${binding.findingId}.`,
+          });
+          continue;
+        }
+        if (
+          action.result.selection.requiredAbsentIds.includes(binding.findingId) ||
+          action.result.selection.requiredPresentIds.includes(binding.findingId)
+        ) {
+          issues.push({
+            severity: 'error',
+            code: 'CONFLICTING_CLINICAL_CONTEXT_BINDING',
+            message: `${option.id} cannot control required finding ${binding.findingId}.`,
+          });
+        }
+      }
+    }
+    for (const target of expectedTargets) {
+      const owner = boundFindingDimensions.get(target);
+      if (owner && owner !== dimension.id) {
+        issues.push({
+          severity: 'error',
+          code: 'OVERLAPPING_CLINICAL_CONTEXT_DIMENSIONS',
+          message: `${dimension.id} and ${owner} both control ${target}.`,
+        });
+      } else {
+        boundFindingDimensions.set(target, dimension.id);
+      }
+    }
+  }
+  for (const action of blueprint.informationActions.filter(
+    (candidate) => candidate.result.selection,
+  )) {
+    const selection = action.result.selection!;
+    const maximumContextPositives = patientRecord.clinicalContextDimensions.reduce(
+      (total, dimension) =>
+        total +
+        Math.max(
+          ...dimension.options.map(
+            (option) =>
+              option.findingBindings.filter(
+                (binding) => binding.actionId === action.actionId && binding.outcome === 'present',
+              ).length,
+          ),
+        ),
+      0,
+    );
+    if (selection.requiredPresentIds.length + maximumContextPositives > selection.maximumPresent) {
+      issues.push({
+        severity: 'error',
+        code: 'CLINICAL_CONTEXT_EXCEEDS_FINDING_MAXIMUM',
+        message: `${action.actionId} can receive more context-bound positive findings than its declared maximum.`,
+      });
+    }
+  }
+
   const treatmentReference = patientRecord.treatmentReference;
   const authoredPathwayIds = treatmentReference.primaryAuthoredPathwayId
     ? [
@@ -370,6 +695,11 @@ export const validateCaseBlueprint = (
     ...blueprint.treatmentPathways.map((item) => item.id),
     ...blueprint.scoreRules.map((item) => item.id),
     ...treatmentReference.acceptedMedicationTagSets.map((item) => item.id),
+    ...contextDimensionIds,
+    ...contextOptionIds,
+    ...(patientRecord.diagnosisComposition?.optionalComorbidities.map(
+      (candidate) => candidate.id,
+    ) ?? []),
   ]);
   const ruleReviews = [
     patientRecord.treatmentReference.review,
@@ -381,6 +711,13 @@ export const validateCaseBlueprint = (
       ...pathway.conditionalRequirements.map((requirement) => requirement.review),
     ]),
     ...blueprint.scoreRules.map((rule) => rule.review),
+    ...patientRecord.clinicalContextDimensions.flatMap((dimension) => [
+      dimension.review,
+      ...dimension.options.map((option) => option.review),
+    ]),
+    ...(patientRecord.diagnosisComposition?.optionalComorbidities.map(
+      (candidate) => candidate.review,
+    ) ?? []),
   ];
   for (const review of ruleReviews) {
     if (review.status === 'approved' && review.sourceUseNoteIds.length === 0) {
@@ -735,6 +1072,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
   const issues: ValidationIssue[] = [];
   for (const [name, ids] of [
     ['evidenceSources', catalogs.evidenceSources.map((item) => item.id)],
+    ['diagnoses', catalogs.diagnoses.map((item) => item.id)],
     ['services', catalogs.services.map((item) => item.id)],
     ['medications', catalogs.medications.map((item) => item.id)],
     ['formularies', catalogs.formularies.map((item) => item.id)],
@@ -776,8 +1114,285 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     });
   }
   const evidenceSourceIds = new Set(catalogs.evidenceSources.map((source) => source.id));
+  const diagnosisById = new Map(catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis]));
+  const medicationIds = new Set(catalogs.medications.map((medication) => medication.id));
+  const medicationTagIds = new Set(catalogs.medications.flatMap((medication) => medication.tags));
+  const informationActionIds = new Set(catalogs.informationActions.map((action) => action.id));
+  const treatmentById = new Map(catalogs.treatments.map((treatment) => [treatment.id, treatment]));
   const serviceIds = new Set(catalogs.services.map((service) => service.id));
   const formularyIds = new Set(catalogs.formularies.map((formulary) => formulary.id));
+
+  const diagnosisNestedIds = catalogs.diagnoses.flatMap((diagnosis) => [
+    diagnosis.id,
+    ...diagnosis.baseRules.map((rule) => rule.id),
+    ...diagnosis.complexityContributions.map((contribution) => contribution.id),
+    ...diagnosis.sourceUseNotes.map((note) => note.id),
+    ...(diagnosis.severityAxis
+      ? [
+          diagnosis.severityAxis.id,
+          ...diagnosis.severityAxis.levels.flatMap((level) => [
+            level.id,
+            ...level.rules.map((rule) => rule.id),
+            ...level.complexityContributions.map((contribution) => contribution.id),
+          ]),
+        ]
+      : []),
+    ...diagnosis.specifiers.flatMap((specifier) => [
+      specifier.id,
+      ...specifier.rules.map((rule) => rule.id),
+      ...specifier.complexityContributions.map((contribution) => contribution.id),
+    ]),
+  ]);
+  for (const duplicate of duplicateIds(diagnosisNestedIds)) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_DIAGNOSIS_CONTENT_ID',
+      message: duplicate,
+    });
+  }
+
+  for (const diagnosis of catalogs.diagnoses) {
+    const sourceUseNoteIds = new Set(diagnosis.sourceUseNotes.map((note) => note.id));
+    const diagnosisContentIds = new Set([
+      diagnosis.id,
+      ...diagnosis.baseRules.map((rule) => rule.id),
+      ...diagnosis.complexityContributions.map((contribution) => contribution.id),
+      ...(diagnosis.severityAxis
+        ? [
+            diagnosis.severityAxis.id,
+            ...diagnosis.severityAxis.levels.flatMap((level) => [
+              level.id,
+              ...level.rules.map((rule) => rule.id),
+              ...level.complexityContributions.map((contribution) => contribution.id),
+            ]),
+          ]
+        : []),
+      ...diagnosis.specifiers.flatMap((specifier) => [
+        specifier.id,
+        ...specifier.rules.map((rule) => rule.id),
+        ...specifier.complexityContributions.map((contribution) => contribution.id),
+      ]),
+    ]);
+    if (diagnosis.severityAxis) {
+      for (const duplicate of duplicateIds(
+        diagnosis.severityAxis.levels.map((level) => String(level.rank)),
+      )) {
+        issues.push({
+          severity: 'error',
+          code: 'DUPLICATE_DIAGNOSIS_SEVERITY_RANK',
+          message: `${diagnosis.id}: ${duplicate}`,
+        });
+      }
+    }
+    for (const duplicate of duplicateIds(
+      diagnosis.comorbidityRelationships.map((relationship) => relationship.diagnosisId),
+    )) {
+      issues.push({
+        severity: 'error',
+        code: 'DUPLICATE_DIAGNOSIS_RELATIONSHIP',
+        message: `${diagnosis.id}: ${duplicate}`,
+      });
+    }
+    for (const relationship of diagnosis.comorbidityRelationships) {
+      if (
+        relationship.diagnosisId === diagnosis.id ||
+        !diagnosisById.has(relationship.diagnosisId)
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_DIAGNOSIS_RELATIONSHIP_REF',
+          message: `${diagnosis.id}: ${relationship.diagnosisId}`,
+        });
+      }
+      if (
+        relationship.relationship === 'mutually_exclusive' &&
+        relationship.gameGenerationWeight !== null
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'MUTUALLY_EXCLUSIVE_DIAGNOSIS_HAS_GENERATION_WEIGHT',
+          message: `${diagnosis.id}: ${relationship.diagnosisId}`,
+        });
+      }
+    }
+
+    const rules = [
+      ...diagnosis.baseRules,
+      ...(diagnosis.severityAxis?.levels.flatMap((level) => level.rules) ?? []),
+      ...diagnosis.specifiers.flatMap((specifier) => specifier.rules),
+    ];
+    const complexityContributions = [
+      ...diagnosis.complexityContributions,
+      ...(diagnosis.severityAxis?.levels.flatMap((level) => level.complexityContributions) ?? []),
+      ...diagnosis.specifiers.flatMap((specifier) => specifier.complexityContributions),
+    ];
+    const nestedReviews = [
+      ...rules.map((rule) => rule.review),
+      ...complexityContributions.map((contribution) => contribution.review),
+      ...(diagnosis.severityAxis?.levels.map((level) => level.review) ?? []),
+      ...diagnosis.specifiers.map((specifier) => specifier.review),
+      ...diagnosis.comorbidityRelationships.map((relationship) => relationship.review),
+    ];
+    for (const review of nestedReviews) {
+      if (review.status === 'approved' && review.sourceUseNoteIds.length === 0) {
+        issues.push({
+          severity: 'error',
+          code: 'APPROVED_DIAGNOSIS_RULE_WITHOUT_EVIDENCE_ATTRIBUTION',
+          message: diagnosis.id,
+        });
+      }
+      for (const sourceUseNoteId of review.sourceUseNoteIds) {
+        if (!sourceUseNoteIds.has(sourceUseNoteId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_DIAGNOSIS_SOURCE_NOTE_REF',
+            message: `${diagnosis.id}: ${sourceUseNoteId}`,
+          });
+        }
+      }
+    }
+    for (const level of diagnosis.severityAxis?.levels ?? []) {
+      if (level.generationStatus === 'enabled' && level.review.status !== 'approved') {
+        issues.push({
+          severity: 'error',
+          code: 'UNREVIEWED_DIAGNOSIS_SEVERITY_ENABLED',
+          message: `${diagnosis.id}: ${level.id}`,
+        });
+      }
+    }
+    for (const note of diagnosis.sourceUseNotes) {
+      for (const evidenceSourceId of note.evidenceSourceIds) {
+        if (!evidenceSourceIds.has(evidenceSourceId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_DIAGNOSIS_EVIDENCE_SOURCE_REF',
+            message: `${diagnosis.id}: ${note.id} references ${evidenceSourceId}`,
+          });
+        }
+      }
+      for (const targetContentId of note.targetContentIds) {
+        if (!diagnosisContentIds.has(targetContentId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_DIAGNOSIS_EVIDENCE_TARGET',
+            message: `${diagnosis.id}: ${note.id} targets ${targetContentId}`,
+          });
+        }
+      }
+    }
+    for (const rule of rules) {
+      if (rule.patientWhen) {
+        const references = extractPatientContextReferences(rule.patientWhen);
+        for (const diagnosisId of references.diagnosisIds) {
+          if (!diagnosisById.has(diagnosisId)) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_CONTEXT_REF',
+              message: `${rule.id}: ${diagnosisId}`,
+            });
+          }
+        }
+        for (const reference of references.severities) {
+          if (
+            !diagnosisById
+              .get(reference.diagnosisId)
+              ?.severityAxis?.levels.some((level) => level.id === reference.severityId)
+          ) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_SEVERITY_REF',
+              message: `${rule.id}: ${reference.diagnosisId}/${reference.severityId}`,
+            });
+          }
+        }
+        for (const reference of references.specifiers) {
+          if (
+            !diagnosisById
+              .get(reference.diagnosisId)
+              ?.specifiers.some((specifier) => specifier.id === reference.specifierId)
+          ) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_SPECIFIER_REF',
+              message: `${rule.id}: ${reference.diagnosisId}/${reference.specifierId}`,
+            });
+          }
+        }
+      }
+      if (rule.selectionWhen) {
+        const validateCountBounds = (predicate: ScorePredicate): void => {
+          if (
+            predicate.type === 'treatmentStartedWithTag' &&
+            predicate.minimumCount > predicate.maximumCount
+          ) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_MEDICATION_TAG_COUNT',
+              message: `${rule.id}: ${predicate.medicationTagId}`,
+            });
+          }
+          if (predicate.type === 'any' || predicate.type === 'all') {
+            predicate.predicates.forEach(validateCountBounds);
+          }
+          if (predicate.type === 'not') validateCountBounds(predicate.predicate);
+        };
+        validateCountBounds(rule.selectionWhen);
+        const references = extractPredicateReferences(rule.selectionWhen);
+        for (const medicationId of references.medicationIds) {
+          if (!medicationIds.has(medicationId)) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_MEDICATION_REF',
+              message: `${rule.id}: ${medicationId}`,
+            });
+          }
+        }
+        for (const medicationTagId of references.medicationTagIds) {
+          if (!medicationTagIds.has(medicationTagId)) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_MEDICATION_TAG_REF',
+              message: `${rule.id}: ${medicationTagId}`,
+            });
+          }
+        }
+        for (const interventionId of references.interventionIds) {
+          if (treatmentById.get(interventionId)?.kind !== 'nonmedication') {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_INTERVENTION_REF',
+              message: `${rule.id}: ${interventionId}`,
+            });
+          }
+        }
+        for (const dispositionId of references.dispositionIds) {
+          if (treatmentById.get(dispositionId)?.kind !== 'disposition') {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_DISPOSITION_REF',
+              message: `${rule.id}: ${dispositionId}`,
+            });
+          }
+        }
+      }
+      const target = rule.target;
+      const targetIsValid =
+        (target.kind === 'medication' && medicationIds.has(target.id)) ||
+        (target.kind === 'medication_tag' && medicationTagIds.has(target.id)) ||
+        (target.kind === 'information_action' && informationActionIds.has(target.id)) ||
+        (target.kind === 'intervention' &&
+          treatmentById.get(target.id)?.kind === 'nonmedication') ||
+        (target.kind === 'disposition' && treatmentById.get(target.id)?.kind === 'disposition');
+      if (!targetIsValid) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_DIAGNOSIS_RULE_TARGET',
+          message: `${rule.id}: ${target.kind}/${target.id}`,
+        });
+      }
+    }
+  }
+
   const purchaseDefinitions = getPurchasableUpgradeDefinitions(catalogs);
   for (const duplicate of duplicateIds(purchaseDefinitions.map((item) => item.id))) {
     issues.push({
@@ -1068,6 +1683,15 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       });
     }
     for (const profile of test.generator.profiles) {
+      for (const diagnosisId of profile.when.anyDiagnosisIds) {
+        if (!diagnosisById.has(diagnosisId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_TEST_DIAGNOSIS_REF',
+            message: `${test.id}/${profile.id}: ${diagnosisId}`,
+          });
+        }
+      }
       if (!referenceIntervalSetIds.has(profile.referenceIntervalSetId)) {
         issues.push({
           severity: 'error',
@@ -1155,6 +1779,19 @@ export const validateContentRegistry = (
   const registeredEvidenceSourceIds = new Set(
     registry.entries.filter((entry) => entry.kind === 'evidence_source').map((entry) => entry.id),
   );
+  const diagnosisCatalogEntries = registry.entries.filter(
+    (entry) => entry.kind === 'diagnosis_catalog',
+  );
+  if (
+    diagnosisCatalogEntries.length !== 1 ||
+    diagnosisCatalogEntries[0]?.runtimeIncluded !== true
+  ) {
+    issues.push({
+      severity: 'error',
+      code: 'INVALID_DIAGNOSIS_CATALOG_REGISTRATION',
+      message: 'Exactly one runtime diagnosis catalog must be registered.',
+    });
+  }
   for (const source of catalogs.evidenceSources) {
     if (!registeredEvidenceSourceIds.has(source.id)) {
       issues.push({

@@ -153,6 +153,154 @@ describe('prototype content', () => {
     expect(JSON.stringify(primary.match)).toContain('antidepressant');
   });
 
+  it('loads one top-down MDD family file while keeping unsourced severity disabled', () => {
+    const mdd = catalogs.diagnoses.find(
+      (diagnosis) => diagnosis.id === 'diagnosis.major-depressive-disorder',
+    )!;
+    expect(mdd.baseClinicalTagIds).toEqual(['diagnosis-tag.mood', 'diagnosis-tag.unipolar']);
+    expect(mdd.severityAxis?.levels.map((level) => level.id)).toEqual([
+      'severity.mdd.mild',
+      'severity.mdd.moderate',
+      'severity.mdd.severe',
+    ]);
+    expect(
+      mdd.severityAxis?.levels.every(
+        (level) => level.generationStatus === 'disabled_pending_source' && level.rules.length === 0,
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects missing diagnosis files and invalid patient diagnosis qualifiers', () => {
+    const missing = structuredClone(prototypeCaseBlueprint);
+    missing.patientRecord.diagnoses[0]!.id = 'diagnosis.missing';
+    expect(
+      validateCaseBlueprint(missing, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'INVALID_PATIENT_DIAGNOSIS_REF',
+      ),
+    ).toBe(true);
+
+    const invalidSeverity = structuredClone(prototypeCaseBlueprint);
+    invalidSeverity.patientRecord.diagnoses[0]!.severityId = 'severity.mdd.not-defined';
+    expect(
+      validateCaseBlueprint(invalidSeverity, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'INVALID_PATIENT_DIAGNOSIS_SEVERITY',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects diagnosis guidance with unknown reusable catalog targets', () => {
+    const invalid = structuredClone(catalogs);
+    invalid.diagnoses[0]!.baseRules.push({
+      id: 'rule.invalid-diagnosis-target',
+      label: 'Invalid target fixture',
+      domain: 'medication_selection',
+      target: { kind: 'medication', id: 'medication.missing' },
+      stance: 'preferred',
+      patientWhen: null,
+      selectionWhen: null,
+      rationale: 'Synthetic invalid-reference fixture.',
+      review: {
+        status: 'unreviewed',
+        reviewerId: null,
+        reviewedAt: null,
+        sourceUseNoteIds: [],
+      },
+    });
+    expect(
+      validateCatalogs(invalid).issues.some(
+        (issue) => issue.code === 'INVALID_DIAGNOSIS_RULE_TARGET',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects unresolved optional-comorbidity and clinical-context references', () => {
+    const invalidComorbidity = structuredClone(prototypeCaseBlueprint);
+    invalidComorbidity.patientRecord.diagnosisComposition = {
+      optionalComorbidities: [
+        {
+          id: 'optional-comorbidity.fixture-missing',
+          diagnosisId: 'diagnosis.missing',
+          gameInclusionProbability: 0.25,
+          allowedSeverityIds: [],
+          allowedSpecifierIds: [],
+          role: 'contributing',
+          review: {
+            status: 'unreviewed',
+            reviewerId: null,
+            reviewedAt: null,
+            sourceUseNoteIds: [],
+          },
+        },
+      ],
+      maximumActiveDiagnoses: 2,
+      conflictPolicy: 'quarantine',
+    };
+    expect(
+      validateCaseBlueprint(invalidComorbidity, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'INVALID_OPTIONAL_COMORBIDITY_REF',
+      ),
+    ).toBe(true);
+
+    const invalidContext = structuredClone(prototypeCaseBlueprint);
+    invalidContext.patientRecord.clinicalContextDimensions = [
+      {
+        id: 'clinical-context.fixture.invalid',
+        label: 'Invalid context fixture',
+        options: [
+          {
+            id: 'clinical-context-option.fixture.invalid-present',
+            label: 'Present',
+            gameSelectionWeight: 1,
+            addedClinicalTagIds: ['fixture.present'],
+            findingBindings: [
+              {
+                actionId: 'info.history.depressive-symptoms',
+                findingId: 'finding.missing',
+                outcome: 'present',
+              },
+            ],
+            review: {
+              status: 'unreviewed',
+              reviewerId: null,
+              reviewedAt: null,
+              sourceUseNoteIds: [],
+            },
+          },
+          {
+            id: 'clinical-context-option.fixture.invalid-absent',
+            label: 'Absent',
+            gameSelectionWeight: 1,
+            addedClinicalTagIds: [],
+            findingBindings: [
+              {
+                actionId: 'info.history.depressive-symptoms',
+                findingId: 'finding.missing',
+                outcome: 'absent',
+              },
+            ],
+            review: {
+              status: 'unreviewed',
+              reviewerId: null,
+              reviewedAt: null,
+              sourceUseNoteIds: [],
+            },
+          },
+        ],
+        review: {
+          status: 'unreviewed',
+          reviewerId: null,
+          reviewedAt: null,
+          sourceUseNoteIds: [],
+        },
+      },
+    ];
+    expect(
+      validateCaseBlueprint(invalidContext, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'INVALID_CLINICAL_CONTEXT_BINDING',
+      ),
+    ).toBe(true);
+  });
+
   it('rejects unconstrained or impossible variable findings', () => {
     const unconstrained = structuredClone(prototypeCaseBlueprint);
     const symptoms = unconstrained.informationActions.find(
