@@ -7,9 +7,9 @@ Last updated: 2026-07-23
 - Current branch: `main`.
 - Current phase: Milestone 3 complete; pre-Milestone 4 diagnosis/patient-composition engine checkpoint complete.
 - Current block: wait for the user’s data-model decisions and additional guidelines before enabling optional comorbidity generation, sourced severity, diagnosis-derived scoring, or new clinical point values.
-- Latest relevant commit: the exact-rule audit, source-request queue, and diagnosis-composition checkpoint at `HEAD` after this batch is published.
+- Latest relevant implementation commit: `ac47eb7` (`Build diagnosis composition engine foundation`).
 - Expected working tree: clean after the current checkpoint commit.
-- Remote synchronized: push the validated checkpoint normally to `origin/main`, verify CI, and adopt the resulting handoff snapshot before resuming work.
+- Remote synchronized: `ac47eb7` is on `origin/main`; GitHub Actions run `30014038038` passed formatting, lint, typecheck, unit/content/browser gates, source boundaries, Developer compilation, and the production build.
 
 ## Last completed action
 
