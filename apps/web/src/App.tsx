@@ -6,7 +6,6 @@ import {
   SaveDataSchema,
   type CaseBlueprint,
   type ClinicalReviewTicket,
-  type ClinicalTicketStatus,
   type CompletedAttempt,
   type ContentFlag,
   type EncounterState,
@@ -488,44 +487,25 @@ export default function App() {
     }
   };
 
-  const saveTicketReview = async (
-    ticketId: string,
-    status: ClinicalTicketStatus,
-    reviewerNotes: string,
-  ): Promise<void> => {
+  const saveTicketReview = async (ticketId: string, reviewerNotes: string): Promise<void> => {
     if (!saveData) return;
     const ticket = saveData.clinicalTickets.find((candidate) => candidate.id === ticketId);
     if (!ticket) return;
     const normalizedNotes = reviewerNotes.trim();
-    const isDecision = ['accepted_for_workflow', 'rejected', 'deferred', 'resolved'].includes(
-      status,
-    );
-    if (ticket.requiresClinicalAcumen && isDecision && !normalizedNotes) {
-      setTicketToolStatus(
-        `Add reviewer notes before setting “${ticket.title}” to ${status.replaceAll('_', ' ')}.`,
-      );
-      return;
-    }
 
     const updatedAt = new Date().toISOString();
     const notesChanged = normalizedNotes !== ticket.reviewerNotes;
-    const terminal = ['rejected', 'deferred', 'resolved'].includes(status);
     const updatedTicket = ClinicalReviewTicketSchema.parse({
       ...ticket,
-      status,
+      status: normalizedNotes ? 'in_review' : 'proposed',
       reviewerNotes: normalizedNotes,
-      reviewerNotesUpdatedAt: notesChanged ? updatedAt : ticket.reviewerNotesUpdatedAt,
+      reviewerNotesUpdatedAt: notesChanged
+        ? normalizedNotes
+          ? updatedAt
+          : null
+        : ticket.reviewerNotesUpdatedAt,
       updatedAt,
-      resolution: terminal
-        ? {
-            disposition:
-              status === 'rejected' ? 'rejected' : status === 'deferred' ? 'deferred' : 'no_change',
-            note:
-              normalizedNotes || `Local review set this ticket to ${status.replaceAll('_', ' ')}.`,
-            resolvedBy: 'local reviewer',
-            resolvedAt: updatedAt,
-          }
-        : null,
+      resolution: null,
     });
     const clinicalTickets = saveData.clinicalTickets.map((candidate) =>
       candidate.id === ticketId ? updatedTicket : candidate,
@@ -543,7 +523,7 @@ export default function App() {
     }
     await writeTicketsToWorkspace(
       nextSave,
-      `Saved your review for “${ticket.title}” in browser storage and updated the Codex handoff file.`,
+      `Saved your instructions for “${ticket.title}” in browser storage and updated the Codex handoff file.`,
     );
   };
 

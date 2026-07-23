@@ -540,6 +540,30 @@ code {
   line-height: 1.55;
 }
 
+.review-complete-message {
+  margin: 0 0 0.9rem;
+  padding: 0.7rem;
+  border: 1px solid #2c8e66;
+  color: var(--teal-dark);
+  background: rgba(18, 60, 45, 0.45);
+  font-size: 0.76rem;
+}
+
+.reviewed-ticket-group {
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
+
+.reviewed-ticket-group > summary {
+  width: fit-content;
+  margin-bottom: 0.75rem;
+  color: var(--teal-dark);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .ticket-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
@@ -598,7 +622,6 @@ code {
   gap: 0.45rem;
 }
 
-.ticket-review-fields select,
 .ticket-review-fields textarea {
   width: 100%;
   min-height: 40px;
@@ -608,19 +631,11 @@ code {
   background: #030a07;
 }
 
-.ticket-review-fields select {
-  padding: 0 0.6rem;
-}
-
 .ticket-review-fields textarea {
   min-height: 8.5rem;
   padding: 0.65rem;
   line-height: 1.45;
   resize: vertical;
-}
-
-.ticket-review-fields .required-note {
-  color: var(--coral);
 }
 
 .ticket-review-fields .secondary-button {

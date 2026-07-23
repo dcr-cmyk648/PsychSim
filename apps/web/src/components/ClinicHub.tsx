@@ -4,7 +4,6 @@ import type {
   CaseInstance,
   CatalogBundle,
   ClinicalReviewTicket,
-  ClinicalTicketStatus,
   ClinicState,
   ProgressionMode,
   SaveData,
@@ -29,11 +28,7 @@ interface ClinicHubProps {
   onRefresh: () => void;
   onRerollDeveloper: (slotId: string) => void;
   onResetDeveloper: () => void;
-  onSaveTicketReview: (
-    ticketId: string,
-    status: ClinicalTicketStatus,
-    reviewerNotes: string,
-  ) => Promise<void>;
+  onSaveTicketReview: (ticketId: string, reviewerNotes: string) => Promise<void>;
   onWriteTickets: () => void;
   onExportTickets: () => void;
   ticketToolStatus: string | null;
@@ -60,12 +55,6 @@ const MODE_LABELS: ReadonlyArray<{ id: ProgressionMode; label: string }> = [
 ];
 
 const ticketPriority = { blocking: 0, high: 1, medium: 2, low: 3 } as const;
-const ticketDecisionStatuses: readonly ClinicalTicketStatus[] = [
-  'accepted_for_workflow',
-  'deferred',
-  'rejected',
-  'resolved',
-];
 
 interface TicketReviewCardProps {
   ticket: ClinicalReviewTicket;
@@ -73,22 +62,18 @@ interface TicketReviewCardProps {
 }
 
 function TicketReviewCard({ ticket, onSave }: TicketReviewCardProps) {
-  const [status, setStatus] = useState<ClinicalTicketStatus>(ticket.status);
   const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setStatus(ticket.status);
     setReviewerNotes(ticket.reviewerNotes);
-  }, [ticket.id, ticket.reviewerNotes, ticket.status]);
+  }, [ticket.id, ticket.reviewerNotes]);
 
-  const decisionNeedsNotes =
-    ticket.requiresClinicalAcumen && ticketDecisionStatuses.includes(status);
-  const dirty = status !== ticket.status || reviewerNotes !== ticket.reviewerNotes;
+  const dirty = reviewerNotes !== ticket.reviewerNotes;
   const saveReview = async (): Promise<void> => {
     setSaving(true);
     try {
-      await onSave(ticket.id, status, reviewerNotes);
+      await onSave(ticket.id, reviewerNotes);
     } finally {
       setSaving(false);
     }
@@ -139,42 +124,32 @@ function TicketReviewCard({ ticket, onSave }: TicketReviewCardProps) {
         </details>
       </div>
       <div className="ticket-review-fields">
-        <label htmlFor={`ticket-status-${ticket.id}`}>Status</label>
-        <select
-          id={`ticket-status-${ticket.id}`}
-          value={status}
-          onChange={(event) => setStatus(event.target.value as ClinicalTicketStatus)}
-        >
-          <option value="proposed">Proposed</option>
-          <option value="in_review">In review</option>
-          <option value="accepted_for_workflow">Accepted for workflow</option>
-          <option value="deferred">Deferred</option>
-          <option value="rejected">Rejected</option>
-          <option value="resolved">Resolved</option>
-        </select>
-        <label htmlFor={`ticket-reviewer-notes-${ticket.id}`}>Reviewer notes</label>
+        <label htmlFor={`ticket-reviewer-notes-${ticket.id}`}>What should Codex do?</label>
         <textarea
           id={`ticket-reviewer-notes-${ticket.id}`}
           value={reviewerNotes}
           rows={6}
           maxLength={8000}
-          placeholder="Record what should change, what should stay, and any clinical reasoning Codex must preserve."
+          placeholder="Describe what should change, what should stay, and any reasoning Codex should preserve."
           onChange={(event) => setReviewerNotes(event.target.value)}
         />
-        <small
-          className={decisionNeedsNotes && !reviewerNotes.trim() ? 'required-note' : undefined}
-        >
-          {decisionNeedsNotes
-            ? 'Reviewer notes are required for this clinical decision.'
-            : 'Notes remain editable until you save this review.'}
+        <small>
+          Codex will infer the intended action from your instructions and ask only if an important
+          choice remains ambiguous.
         </small>
         <button
           className="secondary-button"
           type="button"
-          disabled={!dirty || saving || (decisionNeedsNotes && !reviewerNotes.trim())}
+          disabled={!dirty || saving}
           onClick={() => void saveReview()}
         >
-          {saving ? 'Saving…' : dirty ? 'Save review locally' : 'Review saved locally'}
+          {saving
+            ? 'Saving…'
+            : dirty
+              ? reviewerNotes.trim()
+                ? 'Save instructions'
+                : 'Clear saved instructions'
+              : 'Instructions saved'}
         </button>
       </div>
     </article>
@@ -201,14 +176,16 @@ export function ClinicHub({
 }: ClinicHubProps) {
   const { clinic, progressionMode } = saveData.profile;
   const latestAttempt = saveData.attempts.at(-1);
-  const openTickets = [...saveData.clinicalTickets]
-    .filter((ticket) => !['rejected', 'resolved'].includes(ticket.status))
+  const reviewTickets = [...saveData.clinicalTickets]
+    .filter((ticket) => ticket.status !== 'resolved')
     .sort(
       (left, right) =>
         Number(right.requiresClinicalAcumen) - Number(left.requiresClinicalAcumen) ||
         ticketPriority[left.priority] - ticketPriority[right.priority] ||
         left.createdAt.localeCompare(right.createdAt),
     );
+  const ticketsNeedingInput = reviewTickets.filter((ticket) => !ticket.reviewerNotes.trim());
+  const reviewedTickets = reviewTickets.filter((ticket) => ticket.reviewerNotes.trim());
   const currentFacility = catalogs.facilities.find((facility) => facility.id === clinic.facilityId);
   const upgradeOffers = getPurchasableUpgradeDefinitions(catalogs)
     .filter(
@@ -557,7 +534,9 @@ export function ClinicHub({
               <h2 id="ticket-queue-title">Clinical and content tickets</h2>
             </div>
             <div className="queue-tools">
-              <span className="count-badge">{openTickets.length}</span>
+              <span className="count-badge" aria-label={`${ticketsNeedingInput.length} need input`}>
+                {ticketsNeedingInput.length} need input
+              </span>
               <button
                 className="small-button"
                 type="button"
@@ -577,24 +556,47 @@ export function ClinicHub({
             </div>
           </div>
           <p className="ticket-handoff-explanation">
-            Saving a ticket review updates this browser’s local database and the fixed, gitignored
-            Codex handoff file. No clinical rule changes until Codex applies an accepted ticket. Use
-            “Update Codex handoff file” to refresh or retry the copy, then tell Codex your review is
-            ready.
+            Describe the outcome you want; there is no separate status decision. Saving updates this
+            browser’s local database and the fixed, gitignored Codex handoff file. Codex will
+            interpret your instructions, ask if necessary, and make no clinical rule changes until
+            processing the reviewed ticket. Use “Update Codex handoff file” to refresh or retry the
+            copy, then tell Codex your review is ready.
           </p>
           {ticketToolStatus ? (
             <p className="ticket-tool-status" role="status">
               {ticketToolStatus}
             </p>
           ) : null}
-          {openTickets.length === 0 ? (
+          {reviewTickets.length === 0 ? (
             <p className="no-results">No open local review tickets.</p>
           ) : (
-            <div className="ticket-list">
-              {openTickets.map((ticket) => (
-                <TicketReviewCard key={ticket.id} ticket={ticket} onSave={onSaveTicketReview} />
-              ))}
-            </div>
+            <>
+              {ticketsNeedingInput.length === 0 ? (
+                <p className="review-complete-message">
+                  Every open ticket has saved instructions. Tell Codex the local review is ready.
+                </p>
+              ) : (
+                <div className="ticket-list">
+                  {ticketsNeedingInput.map((ticket) => (
+                    <TicketReviewCard key={ticket.id} ticket={ticket} onSave={onSaveTicketReview} />
+                  ))}
+                </div>
+              )}
+              {reviewedTickets.length > 0 ? (
+                <details className="reviewed-ticket-group">
+                  <summary>Reviewed locally · {reviewedTickets.length}</summary>
+                  <div className="ticket-list">
+                    {reviewedTickets.map((ticket) => (
+                      <TicketReviewCard
+                        key={ticket.id}
+                        ticket={ticket}
+                        onSave={onSaveTicketReview}
+                      />
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+            </>
           )}
         </section>
       ) : null}

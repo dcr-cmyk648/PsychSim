@@ -156,7 +156,7 @@ describe('ClinicHub', () => {
     expect(onPurchaseUpgrade).toHaveBeenCalledWith('upgrade.facility.outpatient-clinic');
   });
 
-  it('collects reviewer notes and saves a ticket decision through the local review callback', async () => {
+  it('collects plain-language instructions without exposing internal ticket statuses', async () => {
     const onSaveTicketReview = vi.fn().mockResolvedValue(undefined);
     const ticket = ClinicalReviewTicketSchema.parse({
       schemaVersion: 1,
@@ -214,21 +214,18 @@ describe('ClinicHub', () => {
       />,
     );
 
-    const status = screen.getByLabelText('Status');
-    const notes = screen.getByLabelText('Reviewer notes');
-    const saveButton = screen.getByRole('button', { name: 'Review saved locally' });
+    const notes = screen.getByLabelText('What should Codex do?');
+    const saveButton = screen.getByRole('button', { name: 'Instructions saved' });
     expect(saveButton).toBeDisabled();
+    expect(screen.queryByRole('combobox', { name: 'Status' })).not.toBeInTheDocument();
 
-    fireEvent.change(status, { target: { value: 'accepted_for_workflow' } });
-    expect(screen.getByRole('button', { name: 'Save review locally' })).toBeDisabled();
     fireEvent.change(notes, {
       target: { value: 'Allow any first-line SSRI, then apply medication-fit modifiers.' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save review locally' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save instructions' }));
 
     expect(onSaveTicketReview).toHaveBeenCalledWith(
       ticket.id,
-      'accepted_for_workflow',
       'Allow any first-line SSRI, then apply medication-fit modifiers.',
     );
   });
