@@ -5,10 +5,15 @@ import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
+const LOCAL_TICKET_FILE_NAME =
+  process.env.PSYCHSIM_E2E === '1' ? 'tickets.e2e.json' : 'tickets.json';
 const LOCAL_TICKET_PATH = fileURLToPath(
-  new URL('../../content/generated/local-review-tickets/tickets.json', import.meta.url),
+  new URL(
+    `../../content/generated/local-review-tickets/${LOCAL_TICKET_FILE_NAME}`,
+    import.meta.url,
+  ),
 );
-const LOCAL_TICKET_DISPLAY_PATH = 'content/generated/local-review-tickets/tickets.json';
+const LOCAL_TICKET_DISPLAY_PATH = `content/generated/local-review-tickets/${LOCAL_TICKET_FILE_NAME}`;
 const MAX_TICKET_BUNDLE_BYTES = 2_000_000;
 
 const localTicketWriter = (): Plugin => ({
@@ -38,9 +43,16 @@ const localTicketWriter = (): Plugin => ({
           typeof raw !== 'object' ||
           raw === null ||
           !('exportVersion' in raw) ||
-          raw.exportVersion !== 1 ||
+          raw.exportVersion !== 2 ||
           !('tickets' in raw) ||
-          !Array.isArray(raw.tickets)
+          !Array.isArray(raw.tickets) ||
+          !raw.tickets.every(
+            (ticket) =>
+              typeof ticket === 'object' &&
+              ticket !== null &&
+              'reviewerNotes' in ticket &&
+              typeof ticket.reviewerNotes === 'string',
+          )
         ) {
           throw new Error('Ticket bundle has an unsupported shape.');
         }

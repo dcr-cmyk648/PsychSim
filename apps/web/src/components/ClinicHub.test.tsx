@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { catalogs, prototypeCaseBlueprint, startingProfile } from '@psychsim/content-runtime';
 import { emptyPatientQueueState, instantiateCase } from '@psychsim/engine';
-import { SaveDataSchema } from '@psychsim/schemas';
+import { ClinicalReviewTicketSchema, SaveDataSchema } from '@psychsim/schemas';
 
 import { ClinicHub } from './ClinicHub';
 
@@ -45,7 +45,7 @@ describe('ClinicHub', () => {
         onRefresh={vi.fn()}
         onRerollDeveloper={vi.fn()}
         onResetDeveloper={vi.fn()}
-        onSetTicketStatus={vi.fn()}
+        onSaveTicketReview={vi.fn()}
         onWriteTickets={vi.fn()}
         onExportTickets={vi.fn()}
         ticketToolStatus={null}
@@ -90,7 +90,7 @@ describe('ClinicHub', () => {
         onRefresh={vi.fn()}
         onRerollDeveloper={vi.fn()}
         onResetDeveloper={vi.fn()}
-        onSetTicketStatus={vi.fn()}
+        onSaveTicketReview={vi.fn()}
         onWriteTickets={vi.fn()}
         onExportTickets={vi.fn()}
         ticketToolStatus={null}
@@ -140,7 +140,7 @@ describe('ClinicHub', () => {
         onRefresh={vi.fn()}
         onRerollDeveloper={vi.fn()}
         onResetDeveloper={vi.fn()}
-        onSetTicketStatus={vi.fn()}
+        onSaveTicketReview={vi.fn()}
         onWriteTickets={vi.fn()}
         onExportTickets={vi.fn()}
         ticketToolStatus={null}
@@ -154,5 +154,82 @@ describe('ClinicHub', () => {
     expect(screen.getByRole('heading', { name: 'Move into an outpatient clinic' })).toBeVisible();
     screen.getByRole('button', { name: 'Buy for 1,800 pts' }).click();
     expect(onPurchaseUpgrade).toHaveBeenCalledWith('upgrade.facility.outpatient-clinic');
+  });
+
+  it('collects reviewer notes and saves a ticket decision through the local review callback', async () => {
+    const onSaveTicketReview = vi.fn().mockResolvedValue(undefined);
+    const ticket = ClinicalReviewTicketSchema.parse({
+      schemaVersion: 1,
+      id: 'ticket.review.mdd-path',
+      title: 'Review the broad MDD treatment pathway',
+      sourceKind: 'source_claim',
+      sourceAuthority: 'source_document',
+      ticketType: 'treatment_pathway',
+      priority: 'high',
+      status: 'proposed',
+      requiresClinicalAcumen: true,
+      attemptId: null,
+      blueprintId: 'case.first-visit-depression',
+      caseContentVersion: '3.0.0',
+      receiptItemId: null,
+      receiptItemSnapshot: null,
+      targetContentIds: ['case.first-visit-depression'],
+      dependencyTicketIds: [],
+      conflictContentIds: [],
+      proposedRouting: 'Review the patient-owned pathway before changing content.',
+      guidance: 'Decide what the broad first-line pathway should allow.',
+      resurfacingTrigger: null,
+      resolution: null,
+      createdAt: '2026-07-22T12:00:00.000Z',
+      updatedAt: '2026-07-22T12:00:00.000Z',
+    });
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 4,
+      profile: { ...startingProfile, progressionMode: 'developer' },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [ticket],
+      legacyArchive: [],
+    });
+    render(
+      <ClinicHub
+        saveData={saveData}
+        clinicState={saveData.profile.clinic}
+        catalogs={catalogs}
+        patientSlots={[]}
+        developerModeAvailable
+        onStart={vi.fn()}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSaveTicketReview={onSaveTicketReview}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={vi.fn()}
+        upgradeStatus={null}
+      />,
+    );
+
+    const status = screen.getByLabelText('Status');
+    const notes = screen.getByLabelText('Reviewer notes');
+    const saveButton = screen.getByRole('button', { name: 'Review saved locally' });
+    expect(saveButton).toBeDisabled();
+
+    fireEvent.change(status, { target: { value: 'accepted_for_workflow' } });
+    expect(screen.getByRole('button', { name: 'Save review locally' })).toBeDisabled();
+    fireEvent.change(notes, {
+      target: { value: 'Allow any first-line SSRI, then apply medication-fit modifiers.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save review locally' }));
+
+    expect(onSaveTicketReview).toHaveBeenCalledWith(
+      ticket.id,
+      'accepted_for_workflow',
+      'Allow any first-line SSRI, then apply medication-fit modifiers.',
+    );
   });
 });

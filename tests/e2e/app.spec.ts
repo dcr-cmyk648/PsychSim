@@ -119,12 +119,25 @@ test('completes a patient, stores review guidance, and preserves the profile and
     page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   ).toBeVisible();
   await expect(page.getByText(/Receipt guidance:/)).toBeVisible();
-  await page.getByRole('button', { name: 'Save queue to workspace' }).click();
-  await expect(
-    page.getByText(
-      /Saved \d+ ticket\(s\) to content\/generated\/local-review-tickets\/tickets.json/,
-    ),
-  ).toBeVisible();
+  const baselineTicket = page.locator('.ticket-card').filter({
+    has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
+  });
+  await baselineTicket
+    .getByLabel('Reviewer notes')
+    .fill('Keep one broad first-line pathway and apply meaningful medication-fit modifiers.');
+  await baselineTicket.getByLabel('Status').selectOption('accepted_for_workflow');
+  await baselineTicket.getByRole('button', { name: 'Save review locally' }).click();
+  await expect(page.getByText(/Saved your review.*updated the Codex handoff file/)).toBeVisible();
+  await page.reload();
+  const persistedBaselineTicket = page.locator('.ticket-card').filter({
+    has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
+  });
+  await expect(persistedBaselineTicket.getByLabel('Status')).toHaveValue('accepted_for_workflow');
+  await expect(persistedBaselineTicket.getByLabel('Reviewer notes')).toHaveValue(
+    'Keep one broad first-line pathway and apply meaningful medication-fit modifiers.',
+  );
+  await page.getByRole('button', { name: 'Update Codex handoff file' }).click();
+  await expect(page.getByText(/tickets\.e2e\.json.*tell Codex the review is ready/)).toBeVisible();
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export JSON' }).click();
   const download = await downloadPromise;

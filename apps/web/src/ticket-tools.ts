@@ -14,7 +14,7 @@ export const buildClinicalTicketExportBundle = (input: {
 }): ClinicalTicketExportBundle =>
   ClinicalTicketExportBundleSchema.parse({
     schemaVersion: 1,
-    exportVersion: 1,
+    exportVersion: 2,
     exportedAt: input.exportedAt,
     engineVersion: input.engineVersion,
     profileId: input.profileId,

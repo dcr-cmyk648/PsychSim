@@ -44,7 +44,10 @@ describe('developer ticket tools', () => {
       profileId: 'profile.local',
       tickets: [ticket],
     });
-    expect(bundle).toMatchObject({ exportVersion: 1, tickets: [ticket] });
+    expect(bundle).toMatchObject({
+      exportVersion: 2,
+      tickets: [{ ...ticket, reviewerNotes: '', reviewerNotesUpdatedAt: null }],
+    });
   });
 
   it('sends the validated bundle to the development-only workspace writer', async () => {

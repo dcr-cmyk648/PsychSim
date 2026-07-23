@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react';
+
 import type {
   CaseInstance,
   CatalogBundle,
+  ClinicalReviewTicket,
   ClinicalTicketStatus,
   ClinicState,
   ProgressionMode,
@@ -26,7 +29,11 @@ interface ClinicHubProps {
   onRefresh: () => void;
   onRerollDeveloper: (slotId: string) => void;
   onResetDeveloper: () => void;
-  onSetTicketStatus: (ticketId: string, status: ClinicalTicketStatus) => void;
+  onSaveTicketReview: (
+    ticketId: string,
+    status: ClinicalTicketStatus,
+    reviewerNotes: string,
+  ) => Promise<void>;
   onWriteTickets: () => void;
   onExportTickets: () => void;
   ticketToolStatus: string | null;
@@ -53,6 +60,126 @@ const MODE_LABELS: ReadonlyArray<{ id: ProgressionMode; label: string }> = [
 ];
 
 const ticketPriority = { blocking: 0, high: 1, medium: 2, low: 3 } as const;
+const ticketDecisionStatuses: readonly ClinicalTicketStatus[] = [
+  'accepted_for_workflow',
+  'deferred',
+  'rejected',
+  'resolved',
+];
+
+interface TicketReviewCardProps {
+  ticket: ClinicalReviewTicket;
+  onSave: ClinicHubProps['onSaveTicketReview'];
+}
+
+function TicketReviewCard({ ticket, onSave }: TicketReviewCardProps) {
+  const [status, setStatus] = useState<ClinicalTicketStatus>(ticket.status);
+  const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setStatus(ticket.status);
+    setReviewerNotes(ticket.reviewerNotes);
+  }, [ticket.id, ticket.reviewerNotes, ticket.status]);
+
+  const decisionNeedsNotes =
+    ticket.requiresClinicalAcumen && ticketDecisionStatuses.includes(status);
+  const dirty = status !== ticket.status || reviewerNotes !== ticket.reviewerNotes;
+  const saveReview = async (): Promise<void> => {
+    setSaving(true);
+    try {
+      await onSave(ticket.id, status, reviewerNotes);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <article className="ticket-card">
+      <div>
+        <strong>{ticket.title}</strong>
+        <small>
+          {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
+          {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
+        </small>
+        <p>{ticket.guidance}</p>
+        <details className="ticket-context">
+          <summary>Targets and review routing</summary>
+          <dl>
+            <div>
+              <dt>Source</dt>
+              <dd>
+                {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
+                {ticket.sourceAuthority.replaceAll('_', ' ')}
+              </dd>
+            </div>
+            <div>
+              <dt>Proposed routing</dt>
+              <dd>{ticket.proposedRouting}</dd>
+            </div>
+            <div>
+              <dt>Target IDs</dt>
+              <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
+            </div>
+            <div>
+              <dt>Dependencies</dt>
+              <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
+            </div>
+            <div>
+              <dt>Conflicts</dt>
+              <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
+            </div>
+            {ticket.resurfacingTrigger ? (
+              <div>
+                <dt>Resurface when</dt>
+                <dd>{ticket.resurfacingTrigger}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </details>
+      </div>
+      <div className="ticket-review-fields">
+        <label htmlFor={`ticket-status-${ticket.id}`}>Status</label>
+        <select
+          id={`ticket-status-${ticket.id}`}
+          value={status}
+          onChange={(event) => setStatus(event.target.value as ClinicalTicketStatus)}
+        >
+          <option value="proposed">Proposed</option>
+          <option value="in_review">In review</option>
+          <option value="accepted_for_workflow">Accepted for workflow</option>
+          <option value="deferred">Deferred</option>
+          <option value="rejected">Rejected</option>
+          <option value="resolved">Resolved</option>
+        </select>
+        <label htmlFor={`ticket-reviewer-notes-${ticket.id}`}>Reviewer notes</label>
+        <textarea
+          id={`ticket-reviewer-notes-${ticket.id}`}
+          value={reviewerNotes}
+          rows={6}
+          maxLength={8000}
+          placeholder="Record what should change, what should stay, and any clinical reasoning Codex must preserve."
+          onChange={(event) => setReviewerNotes(event.target.value)}
+        />
+        <small
+          className={decisionNeedsNotes && !reviewerNotes.trim() ? 'required-note' : undefined}
+        >
+          {decisionNeedsNotes
+            ? 'Reviewer notes are required for this clinical decision.'
+            : 'Notes remain editable until you save this review.'}
+        </small>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={!dirty || saving || (decisionNeedsNotes && !reviewerNotes.trim())}
+          onClick={() => void saveReview()}
+        >
+          {saving ? 'Saving…' : dirty ? 'Save review locally' : 'Review saved locally'}
+        </button>
+      </div>
+    </article>
+  );
+}
 
 export function ClinicHub({
   saveData,
@@ -65,7 +192,7 @@ export function ClinicHub({
   onRefresh,
   onRerollDeveloper,
   onResetDeveloper,
-  onSetTicketStatus,
+  onSaveTicketReview,
   onWriteTickets,
   onExportTickets,
   ticketToolStatus,
@@ -437,7 +564,7 @@ export function ClinicHub({
                 disabled={saveData.clinicalTickets.length === 0}
                 onClick={onWriteTickets}
               >
-                Save queue to workspace
+                Update Codex handoff file
               </button>
               <button
                 className="small-button"
@@ -449,6 +576,12 @@ export function ClinicHub({
               </button>
             </div>
           </div>
+          <p className="ticket-handoff-explanation">
+            Saving a ticket review updates this browser’s local database and the fixed, gitignored
+            Codex handoff file. No clinical rule changes until Codex applies an accepted ticket. Use
+            “Update Codex handoff file” to refresh or retry the copy, then tell Codex your review is
+            ready.
+          </p>
           {ticketToolStatus ? (
             <p className="ticket-tool-status" role="status">
               {ticketToolStatus}
@@ -459,66 +592,7 @@ export function ClinicHub({
           ) : (
             <div className="ticket-list">
               {openTickets.map((ticket) => (
-                <article className="ticket-card" key={ticket.id}>
-                  <div>
-                    <strong>{ticket.title}</strong>
-                    <small>
-                      {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
-                      {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
-                    </small>
-                    <p>{ticket.guidance}</p>
-                    <details className="ticket-context">
-                      <summary>Targets and review routing</summary>
-                      <dl>
-                        <div>
-                          <dt>Source</dt>
-                          <dd>
-                            {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
-                            {ticket.sourceAuthority.replaceAll('_', ' ')}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Proposed routing</dt>
-                          <dd>{ticket.proposedRouting}</dd>
-                        </div>
-                        <div>
-                          <dt>Target IDs</dt>
-                          <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
-                        </div>
-                        <div>
-                          <dt>Dependencies</dt>
-                          <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
-                        </div>
-                        <div>
-                          <dt>Conflicts</dt>
-                          <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
-                        </div>
-                        {ticket.resurfacingTrigger ? (
-                          <div>
-                            <dt>Resurface when</dt>
-                            <dd>{ticket.resurfacingTrigger}</dd>
-                          </div>
-                        ) : null}
-                      </dl>
-                    </details>
-                  </div>
-                  <label>
-                    Status
-                    <select
-                      value={ticket.status}
-                      onChange={(event) =>
-                        onSetTicketStatus(ticket.id, event.target.value as ClinicalTicketStatus)
-                      }
-                    >
-                      <option value="proposed">Proposed</option>
-                      <option value="in_review">In review</option>
-                      <option value="accepted_for_workflow">Accepted for workflow</option>
-                      <option value="deferred">Deferred</option>
-                      <option value="rejected">Rejected</option>
-                      <option value="resolved">Resolved</option>
-                    </select>
-                  </label>
-                </article>
+                <TicketReviewCard key={ticket.id} ticket={ticket} onSave={onSaveTicketReview} />
               ))}
             </div>
           )}

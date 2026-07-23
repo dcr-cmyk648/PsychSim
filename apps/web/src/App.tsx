@@ -438,50 +438,21 @@ export default function App() {
     );
   };
 
-  const setTicketStatus = async (ticketId: string, status: ClinicalTicketStatus): Promise<void> => {
-    if (!saveData) return;
-    const updatedAt = new Date().toISOString();
-    const clinicalTickets = saveData.clinicalTickets.map((ticket) => {
-      if (ticket.id !== ticketId) return ticket;
-      const terminal = ['rejected', 'deferred', 'resolved'].includes(status);
-      return ClinicalReviewTicketSchema.parse({
-        ...ticket,
-        status,
-        updatedAt,
-        resolution: terminal
-          ? {
-              disposition:
-                status === 'rejected'
-                  ? 'rejected'
-                  : status === 'deferred'
-                    ? 'deferred'
-                    : 'no_change',
-              note: `Developer triage set this ticket to ${status.replaceAll('_', ' ')}.`,
-              resolvedBy: 'local developer',
-              resolvedAt: updatedAt,
-            }
-          : null,
-      });
-    });
-    await persist(SaveDataSchema.parse({ ...saveData, clinicalTickets }));
-  };
-
-  const currentTicketBundle = async () => {
-    if (!saveData) return null;
+  const ticketBundleFor = async (sourceSave: SaveData) => {
     const tools = await developerTicketTools;
     if (!tools) return null;
     const { buildClinicalTicketExportBundle } = tools;
     return buildClinicalTicketExportBundle({
       exportedAt: new Date().toISOString(),
       engineVersion: ENGINE_VERSION,
-      profileId: saveData.profile.id,
-      tickets: saveData.clinicalTickets,
+      profileId: sourceSave.profile.id,
+      tickets: sourceSave.clinicalTickets,
     });
   };
 
   const exportTickets = async (): Promise<void> => {
-    if (!import.meta.env.DEV) return;
-    const bundle = await currentTicketBundle();
+    if (!import.meta.env.DEV || !saveData) return;
+    const bundle = await ticketBundleFor(saveData);
     if (!bundle) return;
     const tools = await developerTicketTools;
     if (!tools) return;
@@ -490,21 +461,90 @@ export default function App() {
     setTicketToolStatus(`Exported ${bundle.tickets.length} ticket(s) as a versioned JSON bundle.`);
   };
 
-  const writeTicketsToWorkspace = async (): Promise<void> => {
-    if (!import.meta.env.DEV) return;
-    const bundle = await currentTicketBundle();
-    if (!bundle) return;
+  const writeTicketsToWorkspace = async (
+    sourceSave: SaveData | null = saveData,
+    successMessage?: string,
+  ): Promise<boolean> => {
+    if (!import.meta.env.DEV || !sourceSave) return false;
+    const bundle = await ticketBundleFor(sourceSave);
+    if (!bundle) return false;
     try {
       const tools = await developerTicketTools;
-      if (!tools) return;
+      if (!tools) return false;
       const { writeClinicalTicketBundleToWorkspace } = tools;
       const path = await writeClinicalTicketBundleToWorkspace(bundle);
-      setTicketToolStatus(`Saved ${bundle.tickets.length} ticket(s) to ${path}.`);
+      setTicketToolStatus(
+        successMessage ??
+          `Updated the Codex handoff file with ${bundle.tickets.length} ticket(s) at ${path}. You can now tell Codex the review is ready.`,
+      );
+      return true;
     } catch (caught) {
       setTicketToolStatus(
-        caught instanceof Error ? caught.message : 'The local ticket file could not be written.',
+        `Your browser review data remains saved, but the Codex handoff file could not be updated: ${
+          caught instanceof Error ? caught.message : 'unknown local writer error'
+        }`,
       );
+      return false;
     }
+  };
+
+  const saveTicketReview = async (
+    ticketId: string,
+    status: ClinicalTicketStatus,
+    reviewerNotes: string,
+  ): Promise<void> => {
+    if (!saveData) return;
+    const ticket = saveData.clinicalTickets.find((candidate) => candidate.id === ticketId);
+    if (!ticket) return;
+    const normalizedNotes = reviewerNotes.trim();
+    const isDecision = ['accepted_for_workflow', 'rejected', 'deferred', 'resolved'].includes(
+      status,
+    );
+    if (ticket.requiresClinicalAcumen && isDecision && !normalizedNotes) {
+      setTicketToolStatus(
+        `Add reviewer notes before setting “${ticket.title}” to ${status.replaceAll('_', ' ')}.`,
+      );
+      return;
+    }
+
+    const updatedAt = new Date().toISOString();
+    const notesChanged = normalizedNotes !== ticket.reviewerNotes;
+    const terminal = ['rejected', 'deferred', 'resolved'].includes(status);
+    const updatedTicket = ClinicalReviewTicketSchema.parse({
+      ...ticket,
+      status,
+      reviewerNotes: normalizedNotes,
+      reviewerNotesUpdatedAt: notesChanged ? updatedAt : ticket.reviewerNotesUpdatedAt,
+      updatedAt,
+      resolution: terminal
+        ? {
+            disposition:
+              status === 'rejected' ? 'rejected' : status === 'deferred' ? 'deferred' : 'no_change',
+            note:
+              normalizedNotes || `Local review set this ticket to ${status.replaceAll('_', ' ')}.`,
+            resolvedBy: 'local reviewer',
+            resolvedAt: updatedAt,
+          }
+        : null,
+    });
+    const clinicalTickets = saveData.clinicalTickets.map((candidate) =>
+      candidate.id === ticketId ? updatedTicket : candidate,
+    );
+    const nextSave = SaveDataSchema.parse({ ...saveData, clinicalTickets });
+    try {
+      await persist(nextSave);
+    } catch (caught) {
+      setTicketToolStatus(
+        caught instanceof Error
+          ? `The review could not be saved in browser storage: ${caught.message}`
+          : 'The review could not be saved in browser storage.',
+      );
+      return;
+    }
+    await writeTicketsToWorkspace(
+      nextSave,
+      `Saved your review for “${ticket.title}” in browser storage and updated the Codex handoff file.`,
+    );
   };
 
   if (!saveData) {
@@ -543,7 +583,7 @@ export default function App() {
           onRefresh={() => void refreshSlots()}
           onRerollDeveloper={(slotId) => void rerollDeveloperPatient(slotId)}
           onResetDeveloper={() => void resetDeveloperPatients()}
-          onSetTicketStatus={(ticketId, status) => void setTicketStatus(ticketId, status)}
+          onSaveTicketReview={saveTicketReview}
           onWriteTickets={() => void writeTicketsToWorkspace()}
           onExportTickets={() => void exportTickets()}
           ticketToolStatus={ticketToolStatus}

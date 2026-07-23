@@ -21,6 +21,9 @@ export default defineConfig({
     command: 'npm --prefix apps/web run dev -- --host 127.0.0.1 --port 43817 --strictPort',
     url: 'http://127.0.0.1:43817',
     reuseExistingServer: false,
+    env: {
+      PSYCHSIM_E2E: '1',
+    },
   },
   projects: [
     {

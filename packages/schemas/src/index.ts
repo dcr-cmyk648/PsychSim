@@ -1460,6 +1460,8 @@ export const ClinicalReviewTicketSchema = z
     conflictContentIds: z.array(StableIdSchema),
     proposedRouting: z.string().min(1).max(500),
     guidance: z.string().min(1).max(4000),
+    reviewerNotes: z.string().max(8000).default(''),
+    reviewerNotesUpdatedAt: z.string().datetime().nullable().default(null),
     resurfacingTrigger: z.string().max(500).nullable(),
     resolution: z
       .object({
@@ -1479,7 +1481,7 @@ export type ClinicalReviewTicket = z.infer<typeof ClinicalReviewTicketSchema>;
 export const ClinicalTicketExportBundleSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
-    exportVersion: z.literal(1),
+    exportVersion: z.literal(2),
     exportedAt: z.string().datetime(),
     engineVersion: z.string().min(1),
     profileId: StableIdSchema,

@@ -38,6 +38,8 @@ const milestoneTwoTicket = (
     | 'receiptItemSnapshot'
     | 'dependencyTicketIds'
     | 'conflictContentIds'
+    | 'reviewerNotes'
+    | 'reviewerNotesUpdatedAt'
     | 'resurfacingTrigger'
     | 'resolution'
     | 'createdAt'
