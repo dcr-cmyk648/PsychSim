@@ -246,4 +246,7 @@ keeps source material and AI SDKs out of production; updates relevant docs/decis
 must additionally pass local 390 px and 320 px `test:e2e:reviewer` projects, the CI
 iPhone/WebKit project, `build:reviewer`, assignment allowlist validation, and both normal/Reviewer
 bundle-isolation checks. Do not begin the next roadmap milestone merely because the current change
-is complete.
+is complete. After work that changes a testable web surface, start or confirm a local server for the
+current branch and end the final response with its verified clickable URL and the build/mode being
+served. If the environment cannot keep a server running, state that limitation and give the exact
+command instead; never make the user reconstruct the test URL.
