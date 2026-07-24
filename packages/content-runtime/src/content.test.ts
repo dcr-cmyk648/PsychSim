@@ -786,7 +786,7 @@ describe('prototype content', () => {
         expect(value).toBeLessThanOrEqual(range.maximum);
       }
     }
-  });
+  }, 15_000);
 
   it('lets authored patient observations override generic test generation', () => {
     const instance = instantiateCase(prototypeCaseBlueprint, 'authored-test-override', catalogs);

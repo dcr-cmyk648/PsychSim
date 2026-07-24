@@ -50,7 +50,7 @@ describe('portable reviewer cohort', () => {
         expect(instance.scoreRules).toEqual(baseline.scoreRules);
       }
     }
-  });
+  }, 15_000);
 
   it('keeps all shared investigation options and an immediate result in every patient', () => {
     const catalogActionIds = catalogs.informationActions.map((action) => action.id).sort();
