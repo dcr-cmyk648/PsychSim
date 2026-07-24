@@ -10,8 +10,8 @@ Last updated: 2026-07-24
   navigation fix in `220a019`, portable-review implementation in `ee7aef9`, and release-state
   commit `5605ab2`.
 - Released `origin/main`: `bccf717bc62edb5772886586a698eae28c7b207b`.
-- `beta` was created and pushed from that exact released main SHA; this durable-state update is its
-  only follow-up change.
+- `beta` was created from that exact released main SHA and differs only by state commit `ee9ee15`.
+  Beta workflow `30121972168` passed every verification gate; its Pages jobs were correctly skipped.
 - `beta` is the durable development branch after this release. `main` changes again only after an
   explicit whole-beta promotion request from the user.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Workflow
@@ -175,7 +175,6 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Commit and push this state-only update on `beta`, confirm the beta verification run, and stop. The
-next product discussion is the single medication-allowlist decision described above. Do not
-download DrugCentral, implement that importer, begin Milestone 4, or modify `main` until the user
-explicitly resolves or authorizes the relevant next step.
+Present the single medication-allowlist decision described above when the user is ready to continue.
+Do not download DrugCentral, implement that importer, begin Milestone 4, or modify `main` until the
+user explicitly resolves or authorizes the relevant next step.
