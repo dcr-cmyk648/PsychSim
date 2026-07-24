@@ -73,7 +73,12 @@ identifiers are added later, a distinct schema must retain each code, title, and
 and enforce the ICD-11 API terms. The existing importer is not a generic cross-classification
 ingestion path.
 
-`content/registry.json` is the persistent relationship map from stable content IDs to their files, categories, dependency IDs, and runtime-inclusion status. Validation cross-checks paths and dependency edges against the explicit static imports. It is data, not a dynamic production glob: Vite still bundles only deliberately imported approved content.
+`content/registry.json` is the persistent relationship map from stable content IDs to their files,
+categories, dependency IDs, and runtime-inclusion status. Validation cross-checks paths and
+dependency edges against the explicit static imports. It is data, not a dynamic production glob:
+the ordinary Player bundles only deliberately imported approved content; local Developer mode and
+the exact finite Reviewer assignment are controlled, explicit exceptions rather than registry
+discovery or lifecycle promotion.
 
 Each medication has its own definition file. It owns class/tags plus separate arrays for active fit modifiers and protected human author overrides. Bupropion preserves supplied concepts as inactive, explicitly unreviewed overrides. Mirtazapine also contains active prototype modifiers (+35 for a matching insomnia tag and −50 for a matching high-BMI tag) to exercise the fit architecture requested for playtesting. The trace labels their unreviewed status. A modifier is not clinical authority merely because it is executable; later sourcing/review must version or reject it.
 

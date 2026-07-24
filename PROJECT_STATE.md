@@ -5,12 +5,11 @@ Last updated: 2026-07-24
 ## Operational state
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
-- Current branch while this release unit is being prepared: `main`, tracking `origin/main`.
-- The working tree contains the canonical source/evidence, patient-generation, receipt-audit, and
-  portable-Reviewer checkpoint accumulated in this thread. It must be committed as one intentional
-  project checkpoint; none of it is unrelated scratch work.
-- Last synchronized commit before this checkpoint: `efc38eb` (`Record diagnosis engine checkpoint
-state`).
+- Current branch while this release unit is being published: `main`, tracking `origin/main`.
+- Implementation checkpoint: `ee7aef9` (`Add clinical authoring and portable reviewer checkpoint`),
+  based on the prior synchronized `efc38eb`.
+- The implementation tree is clean; this durable-state update is the only follow-up change before
+  pushing `main`.
 - Expected final state for this unit: verified checkpoint on `origin/main`, GitHub Pages deployed
   from that `main` commit, then a clean local `beta` tracking `origin/beta`.
 - `beta` is the durable development branch after this release. `main` changes again only after an
@@ -118,7 +117,9 @@ Passed locally on 2026-07-24:
 The local Playwright WebKit 18.5 binary cannot launch on this Intel macOS 14.1 host and exits with a
 pre-page `Bus error`. The Pages workflow installs Chromium and WebKit on Ubuntu; its required
 iPhone/WebKit project is the release verdict. Do not describe WebKit as passed until that GitHub
-check succeeds. Vite's existing >500 kB chunk advisory remains nonblocking.
+check succeeds. Vite's existing >500 kB chunk advisory remains nonblocking. The private repository
+variable `PSYCHSIM_ENABLE_PAGES=true` is set; Pages itself is not yet enabled/deployed and the
+workflow's main-only package job owns supported enablement.
 
 ## Reference-policy checkpoints
 
@@ -159,7 +160,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Commit the entire intentional checkpoint on `main`, push it, monitor the verification/Pages run,
-and resolve any CI-only WebKit failure without broadening scope. After Pages succeeds, create and
-push `beta`, check it out, update this file with exact release/branch state, and stop. The next
-product discussion after that is the single medication-allowlist decision described above.
+Commit this state update, push `main`, monitor the verification/Pages run, and resolve any CI-only
+WebKit failure without broadening scope. After Pages succeeds, create and push `beta`, check it
+out, update this file with exact release/branch state, and stop. The next product discussion after
+that is the single medication-allowlist decision described above.
