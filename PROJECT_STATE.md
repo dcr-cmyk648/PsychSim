@@ -67,7 +67,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 
 ## Intake-assistant upgrade checkpoint
 
-- A bounded first staffing upgrade exists: `upgrade.intake-assistant.basic`.
+- A bounded first staffing upgrade exists: `upgrade.staff.intake-assistant`.
 - It costs 900 spendable points and requires 600 lifetime points. It is unavailable in practice
   overlays and cannot create debt.
 - The player may configure at most three eligible routine intake actions. The configured actions
