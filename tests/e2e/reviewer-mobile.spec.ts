@@ -45,6 +45,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
     'true',
   );
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(page.locator('#patient-chart-title')).toBeFocused();
   expect(
     await page.evaluate(() => {
       const notice = document.querySelector('.prototype-notice')?.getBoundingClientRect();
@@ -105,6 +106,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       .locator('#developer-review-title')
       .evaluate((element) => element.getBoundingClientRect().top < window.innerHeight),
   ).toBe(true);
+  await expect(page.locator('#developer-review-title')).toBeFocused();
   await expect(page.getByRole('heading', { name: 'Case and app experience notes' })).toBeVisible();
   await expect(
     page.getByText(/subjective comments about pacing, clarity, usability/i),

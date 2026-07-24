@@ -365,7 +365,9 @@ export function EncounterView({
         >
           <div className="fixed-panel-heading">
             <p className="panel-kicker">Patient chart</p>
-            <h1 id="patient-chart-title">{state.caseInstance.opening.title}</h1>
+            <h1 id="patient-chart-title" tabIndex={-1}>
+              {state.caseInstance.opening.title}
+            </h1>
           </div>
           <div className="panel-scroll">
             <p className="chief-complaint chart-chief-complaint">

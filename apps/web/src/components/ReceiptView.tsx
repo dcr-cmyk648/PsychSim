@@ -383,7 +383,9 @@ export function ReceiptView({
         <p className="panel-kicker">
           {portableReviewerBuild ? 'Portable reviewer notes' : 'Developer patient review'}
         </p>
-        <h2 id="developer-review-title">Case and app experience notes</h2>
+        <h2 id="developer-review-title" tabIndex={-1}>
+          Case and app experience notes
+        </h2>
         <p>
           Add case-specific clinical or scoring feedback, or subjective comments about pacing,
           clarity, usability, screen density, and the overall feel of the app. Saving also preserves
@@ -468,12 +470,12 @@ export function ReceiptView({
         <span>{pointReport.treatmentEvaluationNotice}</span>
       </section>
 
+      {portableReviewerBuild ? developerReviewPanel : null}
+
       <ScoreComparisonBar
         playerScore={pointReport.carePointsEarned}
         databaseScore={databaseComparisonScore}
       />
-
-      {portableReviewerBuild ? developerReviewPanel : null}
 
       <div className="receipt-grid">
         <section className="receipt-panel" aria-labelledby="points-title">

@@ -191,9 +191,26 @@ export default function App() {
   }, [repository]);
 
   useEffect(() => {
-    if (screen !== 'receipt') return;
     const frame = window.requestAnimationFrame(() => {
-      document.getElementById('receipt-title')?.focus();
+      const mobileReviewHeading =
+        screen === 'receipt' && window.matchMedia('(max-width: 760px)').matches
+          ? document.getElementById('developer-review-title')
+          : null;
+      if (mobileReviewHeading) {
+        mobileReviewHeading.scrollIntoView({ block: 'center', behavior: 'instant' });
+        mobileReviewHeading.focus({ preventScroll: true });
+        return;
+      }
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      const destinationHeadingId =
+        screen === 'encounter'
+          ? 'patient-chart-title'
+          : screen === 'receipt'
+            ? 'receipt-title'
+            : null;
+      if (destinationHeadingId) {
+        document.getElementById(destinationHeadingId)?.focus({ preventScroll: true });
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, [screen]);
@@ -244,7 +261,6 @@ export default function App() {
     setMobileWorkflowPane('patient');
     setError(null);
     setScreen('encounter');
-    window.scrollTo({ top: 0 });
   };
 
   const startPatientSlot = (slotId: string): void => {
@@ -292,7 +308,6 @@ export default function App() {
     setMobileWorkflowPane('results');
     setError(null);
     setScreen('receipt');
-    window.scrollTo({ top: 0 });
   };
 
   const setProgressionMode = async (mode: ProgressionMode): Promise<void> => {
@@ -433,7 +448,6 @@ export default function App() {
       setActiveSlotId(null);
       setMobileWorkflowPane('results');
       setScreen('receipt');
-      window.scrollTo({ top: 0 });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The encounter could not be settled.');
     }
