@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   CatalogBundle,
   EncounterState,
   InformationActionCategory,
+  InformationPurchase,
   TreatmentSelection,
 } from '@psychsim/schemas';
 import {
@@ -11,6 +12,7 @@ import {
   purchaseInformationAction,
   updateTreatmentSelections,
 } from '@psychsim/engine';
+import type { MobileWorkflowPane } from './MobileWorkflowTabs';
 
 interface EncounterViewProps {
   state: EncounterState;
@@ -18,6 +20,9 @@ interface EncounterViewProps {
   onStateChange: (state: EncounterState) => void;
   onSubmit: () => void;
   onExit: () => void;
+  mobileActivePane?: MobileWorkflowPane;
+  onMobilePaneChange?: (pane: MobileWorkflowPane) => void;
+  readOnly?: boolean;
 }
 
 type MedicationMode = 'startMedicationIds' | 'stopMedicationIds' | 'continueMedicationIds';
@@ -46,19 +51,108 @@ const findingMarker = (
 ): string => {
   if (outcome === 'present' || outcome === 'positive') return '+';
   if (outcome === 'absent' || outcome === 'negative') return '−';
-  if (outcome === 'high') return 'H';
-  if (outcome === 'low') return 'L';
+  if (outcome === 'high') return '↑';
+  if (outcome === 'low') return '↓';
   if (outcome === 'not_applicable') return 'N/A';
   return '=';
 };
 
-const labInterpretationLabel = (
+const findingOutcomeLabel = (
   outcome: EncounterState['purchases'][number]['result']['findings'][number]['outcome'],
 ): string => {
+  if (outcome === 'present') return 'Present';
+  if (outcome === 'positive') return 'Positive';
+  if (outcome === 'absent') return 'Absent';
+  if (outcome === 'negative') return 'Negative';
   if (outcome === 'high') return 'High';
   if (outcome === 'low') return 'Low';
+  if (outcome === 'not_applicable') return 'Not applicable';
   return 'Normal';
 };
+
+function ResultCard({
+  purchase,
+  actionLabel,
+}: {
+  purchase: InformationPurchase;
+  actionLabel: string;
+}) {
+  const numericFindings = purchase.result.findings.filter(
+    (finding) => finding.numericMeasurement !== undefined,
+  );
+  const narrativeFindings = purchase.result.findings.filter(
+    (finding) => finding.numericMeasurement === undefined,
+  );
+
+  return (
+    <article className="result-card">
+      <div className="result-card-heading">
+        <h3>{actionLabel}</h3>
+        <span>{purchase.operatingCost} pts</span>
+      </div>
+      {numericFindings.length > 0 ? (
+        <div className="lab-table-scroll">
+          <table className="lab-result-table">
+            <thead>
+              <tr>
+                <th scope="col">Test</th>
+                <th scope="col">Result</th>
+                <th scope="col">Reference interval</th>
+                <th scope="col">Flag</th>
+              </tr>
+            </thead>
+            <tbody>
+              {numericFindings.map((finding) => {
+                const measurement = finding.numericMeasurement!;
+                return (
+                  <tr key={finding.id} className={`outcome-${finding.outcome}`}>
+                    <th scope="row">{finding.label}</th>
+                    <td className="lab-value">
+                      {measurement.displayValue} {measurement.unit}
+                    </td>
+                    <td>
+                      {measurement.referenceInterval.display}
+                      {measurement.referenceInterval.applicablePopulation ? (
+                        <small>{measurement.referenceInterval.applicablePopulation}</small>
+                      ) : null}
+                    </td>
+                    <td>
+                      <b
+                        className={`lab-flag outcome-${finding.outcome}`}
+                        aria-label={findingOutcomeLabel(finding.outcome)}
+                      >
+                        {finding.outcome === 'high' ? '↑' : finding.outcome === 'low' ? '↓' : 'N'}
+                      </b>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+      {narrativeFindings.length > 0 ? (
+        <ul className="finding-list">
+          {narrativeFindings.map((finding) => (
+            <li key={finding.id}>
+              <b
+                className={`finding-marker outcome-${finding.outcome}`}
+                aria-label={findingOutcomeLabel(finding.outcome)}
+              >
+                {findingMarker(finding.outcome)}
+              </b>
+              <span>
+                {finding.label}
+                {finding.valueText ? <small>{finding.valueText}</small> : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <small>Fulfilled by {purchase.fulfillmentLabel}</small>
+    </article>
+  );
+}
 
 export function EncounterView({
   state,
@@ -66,6 +160,9 @@ export function EncounterView({
   onStateChange,
   onSubmit,
   onExit,
+  mobileActivePane = 'patient',
+  onMobilePaneChange = () => undefined,
+  readOnly = false,
 }: EncounterViewProps) {
   const [informationSearch, setInformationSearch] = useState('');
   const [informationCategory, setInformationCategory] =
@@ -73,6 +170,10 @@ export function EncounterView({
   const [treatmentSearch, setTreatmentSearch] = useState('');
   const [medicationMode, setMedicationMode] = useState<MedicationMode>('startMedicationIds');
   const [message, setMessage] = useState<string | null>(null);
+  const [newestResultsFirst, setNewestResultsFirst] = useState(true);
+  const [latestPurchaseActionId, setLatestPurchaseActionId] = useState<string | null>(null);
+  const purchaseDialogRef = useRef<HTMLDialogElement | null>(null);
+  const purchaseTriggerRef = useRef<HTMLElement | null>(null);
   const settingLabel =
     catalogs.locations.find((location) => location.id === state.locationId)?.label ??
     state.locationId;
@@ -120,16 +221,35 @@ export function EncounterView({
     .filter((treatment) => includesSearch(treatmentSearch, treatment.label));
 
   const buy = (actionId: string): void => {
+    if (readOnly) return;
+    purchaseTriggerRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const result = purchaseInformationAction(state, actionId, catalogs);
     if (result.ok) {
       onStateChange(result.value);
+      setLatestPurchaseActionId(actionId);
       setMessage(null);
     } else {
       setMessage(result.error.message);
     }
   };
 
+  const dismissLatestPurchase = (restorePurchaseFocus = true): void => {
+    setLatestPurchaseActionId(null);
+    window.requestAnimationFrame(() => {
+      if (restorePurchaseFocus) {
+        const trigger = purchaseTriggerRef.current;
+        if (trigger && !trigger.matches(':disabled')) {
+          trigger.focus();
+        } else {
+          document.getElementById('mobile-tab-investigate')?.focus();
+        }
+      }
+    });
+  };
+
   const update = (next: TreatmentSelection): void => {
+    if (readOnly) return;
     const result = updateTreatmentSelections(state, next, catalogs);
     if (result.ok) {
       onStateChange(result.value);
@@ -167,9 +287,44 @@ export function EncounterView({
     state.selections.continueMedicationIds.length +
     state.selections.interventionIds.length +
     (state.selections.dispositionId ? 1 : 0);
+  const displayedPurchases = newestResultsFirst
+    ? [...state.purchases].reverse()
+    : [...state.purchases];
+  const latestPurchase = latestPurchaseActionId
+    ? state.purchases.find((purchase) => purchase.actionId === latestPurchaseActionId)
+    : undefined;
+  const latestAction = latestPurchase
+    ? catalogs.informationActions.find((action) => action.id === latestPurchase.actionId)
+    : undefined;
+
+  useEffect(() => {
+    const dialog = purchaseDialogRef.current;
+    if (!latestPurchase || !dialog) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 760px)');
+    const synchronizeDialog = (): void => {
+      if (!mobileQuery.matches) {
+        if (dialog.open) dialog.close();
+        setLatestPurchaseActionId(null);
+        return;
+      }
+      if (!dialog.open) dialog.showModal();
+    };
+
+    synchronizeDialog();
+    mobileQuery.addEventListener('change', synchronizeDialog);
+    return () => {
+      mobileQuery.removeEventListener('change', synchronizeDialog);
+      if (dialog.open) dialog.close();
+    };
+  }, [latestPurchase]);
 
   return (
-    <main className="encounter-shell compact-encounter" id="main-content">
+    <main
+      className={`encounter-shell compact-encounter mobile-pane-${mobileActivePane}${
+        readOnly ? ' encounter-read-only' : ''
+      }`}
+    >
       <header className="encounter-status">
         <button className="text-button" type="button" onClick={onExit}>
           ← Clinic
@@ -201,7 +356,13 @@ export function EncounterView({
       ) : null}
 
       <div className="encounter-workspace">
-        <section className="chart-panel panel" aria-labelledby="patient-chart-title">
+        <section
+          id="mobile-panel-patient"
+          className="chart-panel panel"
+          data-mobile-pane="patient"
+          role="tabpanel"
+          aria-labelledby="mobile-tab-patient patient-chart-title"
+        >
           <div className="fixed-panel-heading">
             <p className="panel-kicker">Patient chart</p>
             <h1 id="patient-chart-title">{state.caseInstance.opening.title}</h1>
@@ -242,8 +403,11 @@ export function EncounterView({
         </section>
 
         <section
+          id="mobile-panel-revealed"
           className="revealed-panel panel"
-          aria-labelledby="revealed-title"
+          data-mobile-pane="revealed"
+          role="tabpanel"
+          aria-labelledby="mobile-tab-revealed revealed-title"
           aria-live="polite"
         >
           <div className="fixed-panel-heading panel-heading-row">
@@ -251,7 +415,19 @@ export function EncounterView({
               <p className="panel-kicker">Chart additions</p>
               <h2 id="revealed-title">Revealed information</h2>
             </div>
-            <span className="count-badge">{state.purchases.length}</span>
+            <div className="revealed-heading-actions">
+              <span className="count-badge">{state.purchases.length}</span>
+              {state.purchases.length > 1 ? (
+                <button
+                  className="text-button result-order-button"
+                  type="button"
+                  onClick={() => setNewestResultsFirst((current) => !current)}
+                  aria-label={`Show ${newestResultsFirst ? 'oldest' : 'newest'} purchased result first`}
+                >
+                  {newestResultsFirst ? 'Newest first ↓' : 'Oldest first ↑'}
+                </button>
+              ) : null}
+            </div>
           </div>
           <div className="panel-scroll">
             {state.purchases.length === 0 ? (
@@ -261,85 +437,16 @@ export function EncounterView({
               </div>
             ) : (
               <ol className="result-list">
-                {state.purchases.map((purchase) => {
+                {displayedPurchases.map((purchase) => {
                   const action = catalogs.informationActions.find(
                     (candidate) => candidate.id === purchase.actionId,
                   );
-                  const numericFindings = purchase.result.findings.filter(
-                    (finding) => finding.numericMeasurement !== undefined,
-                  );
-                  const narrativeFindings = purchase.result.findings.filter(
-                    (finding) => finding.numericMeasurement === undefined,
-                  );
                   return (
-                    <li key={purchase.actionId} className="result-card">
-                      <div className="result-card-heading">
-                        <h3>{action?.label ?? purchase.actionId}</h3>
-                        <span>{purchase.operatingCost} pts</span>
-                      </div>
-                      {numericFindings.length > 0 ? (
-                        <div className="lab-table-scroll">
-                          <table className="lab-result-table">
-                            <thead>
-                              <tr>
-                                <th scope="col">Test</th>
-                                <th scope="col">Result</th>
-                                <th scope="col">Reference interval</th>
-                                <th scope="col">Flag</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {numericFindings.map((finding) => {
-                                const measurement = finding.numericMeasurement!;
-                                return (
-                                  <tr key={finding.id} className={`outcome-${finding.outcome}`}>
-                                    <th scope="row">{finding.label}</th>
-                                    <td className="lab-value">
-                                      {measurement.displayValue} {measurement.unit}
-                                    </td>
-                                    <td>
-                                      {measurement.referenceInterval.display}
-                                      {measurement.referenceInterval.applicablePopulation ? (
-                                        <small>
-                                          {measurement.referenceInterval.applicablePopulation}
-                                        </small>
-                                      ) : null}
-                                    </td>
-                                    <td>
-                                      <b
-                                        className={`lab-flag outcome-${finding.outcome}`}
-                                        aria-label={labInterpretationLabel(finding.outcome)}
-                                      >
-                                        {finding.outcome === 'high'
-                                          ? 'H'
-                                          : finding.outcome === 'low'
-                                            ? 'L'
-                                            : 'N'}
-                                      </b>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : null}
-                      {narrativeFindings.length > 0 ? (
-                        <ul className="finding-list">
-                          {narrativeFindings.map((finding) => (
-                            <li key={finding.id}>
-                              <b className={`finding-marker outcome-${finding.outcome}`}>
-                                {findingMarker(finding.outcome)}
-                              </b>
-                              <span>
-                                {finding.label}
-                                {finding.valueText ? <small>{finding.valueText}</small> : null}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                      <small>Fulfilled by {purchase.fulfillmentLabel}</small>
+                    <li key={purchase.actionId}>
+                      <ResultCard
+                        purchase={purchase}
+                        actionLabel={action?.label ?? purchase.actionId}
+                      />
                     </li>
                   );
                 })}
@@ -348,7 +455,13 @@ export function EncounterView({
           </div>
         </section>
 
-        <section className="action-panel panel" aria-labelledby="action-menu-title">
+        <section
+          id="mobile-panel-investigate"
+          className="action-panel panel"
+          data-mobile-pane="investigate"
+          role="tabpanel"
+          aria-labelledby="mobile-tab-investigate action-menu-title"
+        >
           <div className="fixed-panel-heading">
             <p className="panel-kicker">Investigate</p>
             <div className="panel-title-line">
@@ -398,7 +511,7 @@ export function EncounterView({
                   type="button"
                   className="compact-option-row"
                   onClick={() => buy(action.id)}
-                  disabled={purchased || cost === null}
+                  disabled={readOnly || purchased || cost === null}
                   aria-label={`${action.label}, ${cost ?? 'unavailable'} points${isSendout ? ', sendout' : ', in house'}${purchased ? ', revealed' : ''}`}
                 >
                   <span>
@@ -416,7 +529,13 @@ export function EncounterView({
           </div>
         </section>
 
-        <aside className="treatment-panel panel" aria-labelledby="treatment-title">
+        <aside
+          id="mobile-panel-treatment"
+          className="treatment-panel panel"
+          data-mobile-pane="treatment"
+          role="tabpanel"
+          aria-labelledby="mobile-tab-treatment treatment-title"
+        >
           <div className="fixed-panel-heading treatment-compact-heading">
             <div className="panel-title-line">
               <div>
@@ -464,6 +583,7 @@ export function EncounterView({
                       type="button"
                       className={`picker-option${selected ? ' selected' : ''}`}
                       aria-pressed={selected}
+                      disabled={readOnly}
                       onClick={() => toggle(medicationMode, medication.id)}
                     >
                       <span>
@@ -491,6 +611,7 @@ export function EncounterView({
                       type="button"
                       className={`picker-option${selected ? ' selected' : ''}`}
                       aria-pressed={selected}
+                      disabled={readOnly}
                       onClick={() => toggle('interventionIds', intervention.id)}
                     >
                       <span>
@@ -517,6 +638,7 @@ export function EncounterView({
                       type="button"
                       className={`picker-option${selected ? ' selected' : ''}`}
                       aria-pressed={selected}
+                      disabled={readOnly}
                       onClick={() =>
                         update({
                           ...state.selections,
@@ -535,18 +657,71 @@ export function EncounterView({
             </section>
           </div>
 
-          <div className="lock-row compact-lock-row">
-            <button
-              className="primary-button large-button"
-              type="button"
-              onClick={onSubmit}
-              disabled={state.selections.dispositionId === null}
-            >
-              Lock in treatment
-            </button>
-          </div>
+          {readOnly ? (
+            <div className="lock-row compact-lock-row locked-treatment-note">
+              Treatment locked · review context only
+            </div>
+          ) : (
+            <div className="lock-row compact-lock-row">
+              <button
+                className="primary-button large-button"
+                type="button"
+                onClick={onSubmit}
+                disabled={state.selections.dispositionId === null}
+              >
+                Lock in treatment
+              </button>
+            </div>
+          )}
         </aside>
       </div>
+
+      {latestPurchase ? (
+        <dialog
+          ref={purchaseDialogRef}
+          className="mobile-purchase-dialog"
+          aria-labelledby="mobile-purchase-title"
+          onCancel={(event) => {
+            event.preventDefault();
+            dismissLatestPurchase();
+          }}
+        >
+          <div className="mobile-purchase-dialog-card">
+            <div className="mobile-purchase-dialog-heading">
+              <div>
+                <p className="panel-kicker">Result added</p>
+                <h2 id="mobile-purchase-title">{latestAction?.label ?? latestPurchase.actionId}</h2>
+              </div>
+              <button
+                className="text-button"
+                type="button"
+                autoFocus
+                onClick={() => dismissLatestPurchase()}
+                aria-label="Dismiss purchased result"
+              >
+                Close
+              </button>
+            </div>
+            <ResultCard
+              purchase={latestPurchase}
+              actionLabel={latestAction?.label ?? latestPurchase.actionId}
+            />
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => {
+                dismissLatestPurchase(false);
+                onMobilePaneChange('revealed');
+                window.requestAnimationFrame(() => {
+                  document.getElementById('mobile-tab-revealed')?.focus();
+                });
+              }}
+            >
+              View revealed information
+            </button>
+          </div>
+        </dialog>
+      ) : null}
     </main>
   );
 }

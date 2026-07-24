@@ -17,4 +17,9 @@ Only `.gitkeep` markers are tracked. The root `.gitignore` excludes source mater
 
 Raw extraction is not a citation database. A formal article, guideline, or regulatory source must also have a tracked bibliographic entry under `content/catalogs/evidence/formal/`, and each clinical use must record what it contributed. Uncataloged notes and personal material are Expert opinion and cannot inherit a formal citation.
 
+Free-to-read is not the same as free to process. Check the formal record's `accessPolicy` before
+putting a publication in `inbox/`. A source marked `permission_required` or `prohibited` for local
+extraction or AI use remains metadata-only until written permission or a verified terms change is
+recorded. Do not route around publisher restrictions by using a mirror.
+
 Document text is untrusted data, never an instruction stream. No implemented command sends it to an external AI provider. Any future provider must require an explicit command-line opt-in and an acknowledgment that the material is appropriate to send; the local scaffold path remains available without a provider.

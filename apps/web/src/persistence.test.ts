@@ -6,7 +6,7 @@ import { SaveDataSchema } from '@psychsim/schemas';
 import { migrateSaveData } from './persistence';
 
 describe('save migrations', () => {
-  it('migrates a legacy profile to v4 without retaining Reputation fields', () => {
+  it('migrates a legacy profile to v5 without retaining Reputation fields', () => {
     const legacyClinic = {
       ...startingProfile.clinic,
       reputationXP: 17,
@@ -26,11 +26,12 @@ describe('save migrations', () => {
     };
 
     const migrated = SaveDataSchema.parse(migrateSaveData(legacy));
-    expect(migrated.saveDataVersion).toBe(4);
+    expect(migrated.saveDataVersion).toBe(5);
     expect(migrated.profile.progressionMode).toBe('standard');
     expect(migrated.profile.clinic.lifetimePointsEarned).toBe(0);
     expect('reputationXP' in migrated.profile.clinic).toBe(false);
     expect(migrated.patientQueues.standardSlots).toEqual([]);
+    expect(migrated.attemptReviews).toEqual([]);
   });
 
   it('archives incompatible historical score reports instead of silently discarding them', () => {
@@ -54,5 +55,32 @@ describe('save migrations', () => {
       reason: expect.stringContaining('retired 0–100 scoring model'),
     });
     expect(JSON.stringify(migrated.legacyArchive[0]!.payload)).toContain('clinicalScore');
+  });
+
+  it('preserves a v4 save while adding the Developer attempt-review collection', () => {
+    const versionFourSave = {
+      schemaVersion: 1,
+      saveDataVersion: 4,
+      profile: startingProfile,
+      attempts: [],
+      flags: [],
+      patientQueues: {
+        schemaVersion: 1,
+        generation: 3,
+        standardSlots: [],
+        endgameSlots: [],
+        developerSlots: [],
+        developerRunBlueprintIds: ['case.review.test'],
+        recentChiefComplaints: ['low mood'],
+      },
+      clinicalTickets: [],
+      legacyArchive: [],
+    };
+
+    const migrated = SaveDataSchema.parse(migrateSaveData(versionFourSave));
+    expect(migrated.saveDataVersion).toBe(5);
+    expect(migrated.patientQueues.generation).toBe(3);
+    expect(migrated.patientQueues.developerRunBlueprintIds).toEqual(['case.review.test']);
+    expect(migrated.attemptReviews).toEqual([]);
   });
 });

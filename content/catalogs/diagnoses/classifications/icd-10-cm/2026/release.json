@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "classification.icd10cm.2026",
+  "system": "ICD-10-CM",
+  "versionLabel": "FY 2026",
+  "publishedDate": "2025-06-12",
+  "effectiveFrom": "2025-10-01",
+  "effectiveThrough": "2026-09-30",
+  "scopeLabel": "Mental, Behavioral and Neurodevelopmental disorders (F01-F99)",
+  "includedCodePrefixes": ["F"],
+  "evidenceSourceId": "evidence.cdc-nchs.icd10cm.2026",
+  "sourceArtifact": {
+    "url": "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Publications/ICD10CM/2026/icd10cm-Code%20Descriptions-2026.zip",
+    "sha256": "a852eb91b3344ae38476e63816976ee1eeb94dcced7151118324f060e8499f88",
+    "memberPath": "icd10cm-order-2026.txt",
+    "memberSha256": "6dc95c9c7e96c734806e1682f4bf9df76251d60e99199bba0d375ba3dd11026b"
+  },
+  "verificationArtifacts": [
+    {
+      "url": "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Publications/ICD10CM/2026-update/icd10cm-April-1-2026-XML.zip",
+      "sha256": "0b50672322cd53b222d007fe703e2708dfa3b34f296eb2016bb3cf2109f0fd64",
+      "memberPath": "icd10c-tabular-April-1-2026.xml",
+      "memberSha256": "fbbb7f6ee319eb0259e43d369ec50bc15af9a2c983d4440b936b3d70a53f7624"
+    }
+  ],
+  "importerVersion": "psychsim-icd10cm-order-1",
+  "termCount": 1112,
+  "normalizedTermsSha256": "f13efd1ce8e5a1134129cd3b511f56913c5a41d10577e22ae3e1fb286ffb3e97",
+  "medicalReviewStatus": "unreviewed"
+}

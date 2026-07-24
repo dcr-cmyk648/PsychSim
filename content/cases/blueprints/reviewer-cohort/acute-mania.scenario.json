@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.acute-mania",
+  "internalTitle": "Reviewer cohort: acute mania",
+  "difficultyTier": 3,
+  "patientPool": "advanced",
+  "tags": ["reviewer-cohort", "bipolar", "mania", "escalation"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    }
+  ],
+  "clinicalTagIds": [
+    "clinical-tag.manic-symptoms",
+    "clinical-tag.impaired-judgment",
+    "clinical-tag.requires-escalation"
+  ],
+  "criticalFacts": {
+    "focusedDecision": "acute-mania-disposition",
+    "acuteSafetyConcern": true,
+    "currentMania": true,
+    "psychosis": false
+  },
+  "ageRange": { "minimum": 21, "maximum": 55 },
+  "chiefComplaintChoices": [
+    "Not sleeping",
+    "Too much energy",
+    "Family says I am manic",
+    "Cannot slow down",
+    "Talking too fast",
+    "Feeling unstoppable",
+    "Mood is out of control",
+    "Racing thoughts",
+    "I do not need sleep",
+    "I feel unusually powerful",
+    "Spending too much",
+    "Everyone else is too slow"
+  ],
+  "durationChoices": ["six days", "eight days", "ten days", "nearly two weeks"],
+  "bothersomeness": "not_at_all",
+  "settingText": "Solo psychiatric office · urgent outpatient visit",
+  "knownHistory": ["Family accompanied the patient because of an abrupt behavioral change."],
+  "medicationRegimen": [],
+  "priorMedicationTrials": [],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.mania",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-mania.mood",
+            "labelVariants": ["Elevated or irritable mood", "Marked mood elevation"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mania.sleep",
+            "labelVariants": ["Decreased need for sleep", "Little sleep without fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mania.speech",
+            "labelVariants": ["Pressured speech", "Markedly increased speech"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mania.thoughts",
+            "labelVariants": ["Racing thoughts", "Flight of ideas"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mania.activity",
+            "labelVariants": ["Increased goal-directed activity", "Marked activity increase"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mania.judgment",
+            "labelVariants": ["High-risk spending", "Impaired judgment"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-mania.syndrome"]
+      }
+    },
+    {
+      "actionId": "info.physical.mental-status",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-mania.mse-appearance",
+            "labelVariants": [
+              "Animated and difficult to redirect",
+              "Marked psychomotor activation"
+            ],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mania.mse-speech",
+            "labelVariants": ["Pressured speech", "Rapid speech"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mania.mse-insight",
+            "labelVariants": ["Limited insight", "Reduced awareness of impairment"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-mania.mse"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.mania.acute"
+}

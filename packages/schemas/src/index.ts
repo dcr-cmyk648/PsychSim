@@ -60,11 +60,61 @@ export const FormalEvidenceSourceTypeSchema = z.enum([
   'journal_article',
   'clinical_guideline',
   'systematic_review',
+  'structured_database',
   'regulatory_document',
+  'classification_standard',
   'book_chapter',
   'professional_guidance',
+  'correction_notice',
 ]);
 export type FormalEvidenceSourceType = z.infer<typeof FormalEvidenceSourceTypeSchema>;
+
+export const EvidenceSourceRelationTypeSchema = z.enum([
+  'corrects',
+  'supersedes',
+  'updates',
+  'companion_to',
+  'executive_summary_of',
+]);
+export type EvidenceSourceRelationType = z.infer<typeof EvidenceSourceRelationTypeSchema>;
+
+export const EvidenceSourceRelationSchema = z
+  .object({
+    sourceId: StableIdSchema,
+    relationType: EvidenceSourceRelationTypeSchema,
+    note: z.string().min(1).max(800),
+  })
+  .strict();
+export type EvidenceSourceRelation = z.infer<typeof EvidenceSourceRelationSchema>;
+
+const PartialPublicationDateSchema = z
+  .string()
+  .regex(
+    /^\d{4}(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12]\d|3[01]))?)?$/,
+    'Expected YYYY, YYYY-MM, or YYYY-MM-DD',
+  );
+
+export const EvidenceSourceAccessPolicySchema = z
+  .object({
+    fullTextStatus: z.enum(['public', 'restricted', 'metadata_only', 'not_verified']),
+    reuseStatus: z.enum([
+      'public_domain',
+      'open_license',
+      'permission_required',
+      'prohibited',
+      'not_verified',
+    ]),
+    adaptationStatus: z.enum(['permitted', 'permission_required', 'prohibited', 'not_verified']),
+    commercialUseStatus: z.enum(['permitted', 'permission_required', 'prohibited', 'not_verified']),
+    aiUseStatus: z.enum(['permitted', 'permission_required', 'prohibited', 'not_verified']),
+    localExtractionStatus: z.enum(['allowed', 'permission_required', 'prohibited', 'not_verified']),
+    licenseLabel: z.string().min(1).max(200).nullable(),
+    licenseUrl: z.string().url().nullable(),
+    termsUrl: z.string().url().nullable(),
+    note: z.string().min(1).max(1600),
+  })
+  .strict();
+export type EvidenceSourceAccessPolicy = z.infer<typeof EvidenceSourceAccessPolicySchema>;
 
 export const EvidenceSourceDefinitionSchema = z
   .object({
@@ -77,6 +127,9 @@ export const EvidenceSourceDefinitionSchema = z
     authors: z.array(z.string().min(1).max(160)),
     organization: z.string().min(1).max(240).nullable(),
     publicationYear: z.number().int().min(1800).max(2100),
+    publicationDate: PartialPublicationDateSchema,
+    lastReviewedDate: PartialPublicationDateSchema.nullable(),
+    versionLabel: z.string().min(1).max(240).nullable(),
     containerTitle: z.string().min(1).max(300).nullable(),
     volume: z.string().min(1).max(40).nullable(),
     issue: z.string().min(1).max(40).nullable(),
@@ -89,6 +142,12 @@ export const EvidenceSourceDefinitionSchema = z
     url: z.string().url(),
     citation: z.string().min(1).max(1200),
     knownContentHashes: z.array(z.string().regex(/^[a-f0-9]{64}$/)),
+    jurisdictions: z.array(z.string().min(1).max(160)),
+    populations: z.array(z.string().min(1).max(240)),
+    settings: z.array(z.string().min(1).max(240)),
+    sourceRelations: z.array(EvidenceSourceRelationSchema),
+    accessPolicy: EvidenceSourceAccessPolicySchema,
+    metadataReviewedAt: z.string().datetime(),
     bibliographicStatus: z.enum(['unreviewed', 'verified']),
     medicalReviewStatus: MedicalReviewStatusSchema,
   })
@@ -100,8 +159,200 @@ export const EvidenceSourceDefinitionSchema = z
         message: 'A formal evidence source requires at least one author or an organization.',
       });
     }
+    if (
+      source.sourceType === 'correction_notice' &&
+      !source.sourceRelations.some((relation) => relation.relationType === 'corrects')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceRelations'],
+        message: 'A correction notice must identify the source it corrects.',
+      });
+    }
   });
 export type EvidenceSourceDefinition = z.infer<typeof EvidenceSourceDefinitionSchema>;
+
+export const SourceUsePermissionsSchema = z
+  .object({
+    bibliographicMetadata: z.boolean(),
+    localFullTextStorage: z.boolean(),
+    localTextExtraction: z.boolean(),
+    localStructuredIndexing: z.boolean(),
+    aiAssistedProcessing: z.boolean(),
+    derivedClinicalContent: z.boolean(),
+    runtimeRedistribution: z.boolean(),
+    commercialDistribution: z.boolean(),
+  })
+  .strict();
+export type SourceUsePermissions = z.infer<typeof SourceUsePermissionsSchema>;
+
+export const FairUseAssessmentSchema = z
+  .object({
+    preciseUse: z.string().min(1).max(1200),
+    purposeAndCharacter: z.string().min(1).max(1600),
+    natureOfWork: z.string().min(1).max(1600),
+    amountAndSubstantiality: z.string().min(1).max(1600),
+    marketEffect: z.string().min(1).max(1600),
+    conclusion: z.enum(['proceed_narrowly', 'do_not_proceed', 'seek_legal_review']),
+    reviewerId: StableIdSchema,
+    reviewedAt: z.string().datetime(),
+  })
+  .strict();
+export type FairUseAssessment = z.infer<typeof FairUseAssessmentSchema>;
+
+export const PermissionEvidenceSchema = z
+  .object({
+    id: StableIdSchema,
+    issuedBy: z.string().min(1).max(300),
+    scope: z.string().min(1).max(2000),
+    artifactReference: z.string().min(1).max(500),
+    issuedAt: z.string().datetime(),
+    expiresAt: z.string().datetime().nullable(),
+  })
+  .strict();
+export type PermissionEvidence = z.infer<typeof PermissionEvidenceSchema>;
+
+export const SourceUseDecisionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    evidenceSourceId: StableIdSchema,
+    decisionStatus: z.enum([
+      'permitted_with_conditions',
+      'metadata_only',
+      'blocked_pending_permission',
+      'not_reviewed',
+    ]),
+    legalBasis: z.enum([
+      'public_domain',
+      'open_license',
+      'written_permission',
+      'fair_use',
+      'metadata_only',
+    ]),
+    permissions: SourceUsePermissionsSchema,
+    territories: z.array(z.string().min(1).max(160)).min(1),
+    attributionStatement: z.string().min(1).max(1200).nullable(),
+    requiredNotices: z.array(z.string().min(1).max(1200)),
+    nonCommercialOnly: z.boolean(),
+    shareAlikeRequired: z.boolean(),
+    thirdPartyMaterialPolicy: z.enum([
+      'excluded',
+      'item_level_review_required',
+      'included_by_permission',
+      'not_applicable',
+    ]),
+    fairUseAssessment: FairUseAssessmentSchema.nullable(),
+    permissionEvidence: PermissionEvidenceSchema.nullable().default(null),
+    reviewBasis: z.enum(['engineering_risk_assessment', 'legal_counsel']),
+    reviewedBy: StableIdSchema,
+    reviewedAt: z.string().datetime(),
+    notes: z.string().min(1).max(2400),
+  })
+  .strict()
+  .superRefine((decision, context) => {
+    const substantivePermissions = Object.entries(decision.permissions)
+      .filter(([name]) => name !== 'bibliographicMetadata')
+      .some(([, permitted]) => permitted);
+    if (!decision.permissions.bibliographicMetadata) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['permissions', 'bibliographicMetadata'],
+        message: 'A source-use record must at least permit its own bibliographic metadata.',
+      });
+    }
+    if (decision.legalBasis === 'fair_use' && !decision.fairUseAssessment) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['fairUseAssessment'],
+        message: 'A fair-use decision requires a written four-factor assessment.',
+      });
+    }
+    if (decision.legalBasis !== 'fair_use' && decision.fairUseAssessment) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['fairUseAssessment'],
+        message: 'A fair-use assessment belongs only on a fair-use decision.',
+      });
+    }
+    if (
+      decision.legalBasis === 'fair_use' &&
+      decision.fairUseAssessment &&
+      decision.fairUseAssessment.conclusion !== 'proceed_narrowly' &&
+      (decision.decisionStatus === 'permitted_with_conditions' || substantivePermissions)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['fairUseAssessment', 'conclusion'],
+        message:
+          'A fair-use assessment that does not conclude proceed_narrowly cannot permit substantive use.',
+      });
+    }
+    if (decision.legalBasis === 'written_permission' && !decision.permissionEvidence) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['permissionEvidence'],
+        message: 'Written permission requires a scoped permission artifact record.',
+      });
+    }
+    if (decision.legalBasis !== 'written_permission' && decision.permissionEvidence) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['permissionEvidence'],
+        message: 'Permission evidence belongs only on a written-permission decision.',
+      });
+    }
+    if (decision.legalBasis === 'open_license' && decision.attributionStatement === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['attributionStatement'],
+        message: 'Open-licensed use requires an attribution statement.',
+      });
+    }
+    if (decision.decisionStatus !== 'permitted_with_conditions' && substantivePermissions) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['permissions'],
+        message: 'A blocked or metadata-only decision may permit bibliographic metadata only.',
+      });
+    }
+    if (
+      decision.legalBasis === 'metadata_only' &&
+      (decision.decisionStatus === 'permitted_with_conditions' || substantivePermissions)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['legalBasis'],
+        message: 'Metadata-only is not a basis for substantive source use.',
+      });
+    }
+    if (decision.nonCommercialOnly && decision.permissions.commercialDistribution) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['permissions', 'commercialDistribution'],
+        message: 'A NonCommercial-only decision cannot permit commercial distribution.',
+      });
+    }
+    if (decision.permissions.localStructuredIndexing && !decision.permissions.localTextExtraction) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['permissions', 'localStructuredIndexing'],
+        message: 'Local structured indexing requires local extraction permission.',
+      });
+    }
+  });
+export type SourceUseDecision = z.infer<typeof SourceUseDecisionSchema>;
+
+export const SourceUseDecisionCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    decisions: z.array(SourceUseDecisionSchema),
+  })
+  .strict();
+export type SourceUseDecisionCatalog = z.infer<typeof SourceUseDecisionCatalogSchema>;
 
 export const EvidenceContributionTypeSchema = z.enum([
   'patient_fact',
@@ -112,6 +363,7 @@ export const EvidenceContributionTypeSchema = z.enum([
   'safety',
   'scoring',
   'laboratory_reference',
+  'classification_mapping',
   'teaching_point',
   'context_only',
 ]);
@@ -336,7 +588,15 @@ export const VariantPoolDefinitionSchema = z
     schemaVersion: SchemaVersionSchema,
     contentVersion: ContentVersionSchema,
     id: StableIdSchema,
-    kind: z.enum(['fictional_name', 'occupation', 'education', 'location', 'neutral_social']),
+    kind: z.enum([
+      'fictional_name',
+      'fictional_first_name',
+      'fictional_last_name',
+      'occupation',
+      'education',
+      'location',
+      'neutral_social',
+    ]),
     values: z.array(z.union([z.string().min(1), z.number()])).min(2),
   })
   .strict();
@@ -486,6 +746,77 @@ export const CatalogBundleSchema = z
   .strict();
 export type CatalogBundle = z.infer<typeof CatalogBundleSchema>;
 
+export const DiagnosisClassificationCodeSchema = z
+  .string()
+  .regex(
+    /^[A-Z][0-9A-Z]{2}(?:\.[0-9A-Z]{1,4})?$/,
+    'Expected a normalized ICD-style classification code',
+  );
+export type DiagnosisClassificationCode = z.infer<typeof DiagnosisClassificationCodeSchema>;
+
+export const DiagnosisClassificationSourceArtifactSchema = z
+  .object({
+    url: z.string().url(),
+    sha256: z.string().regex(/^[a-f0-9]{64}$/),
+    memberPath: z.string().min(1).max(300).nullable(),
+    memberSha256: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+  })
+  .strict();
+export type DiagnosisClassificationSourceArtifact = z.infer<
+  typeof DiagnosisClassificationSourceArtifactSchema
+>;
+
+export const DiagnosisClassificationReleaseSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    system: z.literal('ICD-10-CM'),
+    versionLabel: z.string().min(1).max(160),
+    publishedDate: PartialPublicationDateSchema,
+    effectiveFrom: PartialPublicationDateSchema,
+    effectiveThrough: PartialPublicationDateSchema,
+    scopeLabel: z.string().min(1).max(240),
+    includedCodePrefixes: z.array(z.string().regex(/^[A-Z][0-9A-Z]*$/)).min(1),
+    evidenceSourceId: StableIdSchema,
+    sourceArtifact: DiagnosisClassificationSourceArtifactSchema,
+    verificationArtifacts: z.array(DiagnosisClassificationSourceArtifactSchema),
+    importerVersion: z.string().min(1).max(120),
+    termCount: z.number().int().positive(),
+    normalizedTermsSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict();
+export type DiagnosisClassificationRelease = z.infer<typeof DiagnosisClassificationReleaseSchema>;
+
+export const DiagnosisClassificationTermSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    releaseId: StableIdSchema,
+    code: DiagnosisClassificationCodeSchema,
+    parentCode: DiagnosisClassificationCodeSchema.nullable(),
+    shortDescription: z.string().min(1).max(300),
+    longDescription: z.string().min(1).max(600),
+    billable: z.boolean(),
+    sourceOrder: z.number().int().positive(),
+  })
+  .strict();
+export type DiagnosisClassificationTerm = z.infer<typeof DiagnosisClassificationTermSchema>;
+
+export const DiagnosisClassificationTermsSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    releaseId: StableIdSchema,
+    terms: z.array(DiagnosisClassificationTermSchema).min(1),
+  })
+  .strict();
+export type DiagnosisClassificationTerms = z.infer<typeof DiagnosisClassificationTermsSchema>;
+
 export const ContentRegistryEntrySchema = z
   .object({
     id: StableIdSchema,
@@ -502,6 +833,8 @@ export const ContentRegistryEntrySchema = z
       'upgrade_catalog',
       'decor_catalog',
       'diagnosis_catalog',
+      'diagnosis_classification_catalog',
+      'source_use_decision_catalog',
       'source_request_catalog',
       'evidence_source',
       'medication',
@@ -516,6 +849,7 @@ export const ContentRegistryEntrySchema = z
     dependsOnIds: z.array(StableIdSchema).default([]),
   })
   .strict();
+export type ContentRegistryEntry = z.infer<typeof ContentRegistryEntrySchema>;
 
 export const ContentRegistrySchema = z
   .object({
@@ -877,6 +1211,18 @@ export type DiagnosisComorbidityRelationship = z.infer<
   typeof DiagnosisComorbidityRelationshipSchema
 >;
 
+export const DiagnosisClassificationBindingSchema = z
+  .object({
+    id: StableIdSchema,
+    classificationReleaseId: StableIdSchema,
+    code: DiagnosisClassificationCodeSchema,
+    relation: z.enum(['exact_match', 'broader_than_code', 'narrower_than_code', 'related']),
+    note: z.string().min(1).max(800),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type DiagnosisClassificationBinding = z.infer<typeof DiagnosisClassificationBindingSchema>;
+
 export const DiagnosisDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -898,6 +1244,7 @@ export const DiagnosisDefinitionSchema = z
     specifiers: z.array(DiagnosisSpecifierSchema),
     comorbidityRelationships: z.array(DiagnosisComorbidityRelationshipSchema),
     complexityContributions: z.array(ComplexityContributionSchema),
+    classificationBindings: z.array(DiagnosisClassificationBindingSchema).default([]),
     sourceUseNotes: z.array(EvidenceContributionSchema),
   })
   .strict();
@@ -933,6 +1280,12 @@ export const VariantGeneratorSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('catalogChoice'),
     poolId: StableIdSchema,
+  }),
+  z.object({
+    type: z.literal('fictionalName'),
+    firstNamePoolId: StableIdSchema,
+    lastNamePoolId: StableIdSchema,
+    middleInitialProbability: z.number().min(0).max(1).default(0.25),
   }),
   z.object({
     type: z.literal('weightedChoice'),
@@ -1485,6 +1838,35 @@ export const PatientTestGenerationContextSchema = z
   })
   .strict();
 
+export const MedicationRegimenEntrySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    medicationId: StableIdSchema,
+    status: z.enum(['active', 'prescribed_not_taking', 'self_discontinued']),
+    adherence: z.enum(['consistent', 'intermittent', 'not_taking', 'unknown']),
+    prescribedForDiagnosisId: StableIdSchema.nullable(),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    knownAtOpening: z.boolean(),
+  })
+  .strict();
+export type MedicationRegimenEntry = z.infer<typeof MedicationRegimenEntrySchema>;
+
+export const MedicationTrialRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    medicationId: StableIdSchema,
+    adequacy: z.enum(['adequate', 'inadequate', 'unclear']),
+    adherence: z.enum(['consistent', 'inconsistent', 'unknown']),
+    response: z.enum(['remission', 'partial', 'none', 'worsened', 'unknown']),
+    tolerability: z.enum(['tolerated', 'limited', 'stopped_adverse_effect', 'unknown']),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    summary: z.string().min(1).max(240),
+  })
+  .strict();
+export type MedicationTrialRecord = z.infer<typeof MedicationTrialRecordSchema>;
+
 export const PatientRecordSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -1497,6 +1879,8 @@ export const PatientRecordSchema = z
     treatmentReference: PatientTreatmentReferenceSchema,
     generationPolicy: PatientGenerationPolicySchema,
     testGenerationContext: PatientTestGenerationContextSchema,
+    medicationRegimen: z.array(MedicationRegimenEntrySchema).default([]),
+    priorMedicationTrials: z.array(MedicationTrialRecordSchema).default([]),
     diagnosisComposition: PatientDiagnosisCompositionSchema.nullable().default(null),
     clinicalContextDimensions: z.array(PatientClinicalContextDimensionSchema).max(20).default([]),
   })
@@ -1527,6 +1911,80 @@ export const CaseBlueprintSchema = CaseCoreSchema.extend({
   protectedVariantTargets: z.array(z.string()),
 }).strict();
 export type CaseBlueprint = z.infer<typeof CaseBlueprintSchema>;
+
+export const ReviewCaseSourceUseSchema = z
+  .object({
+    id: StableIdSchema,
+    evidenceSourceIds: z.array(StableIdSchema).min(1),
+    contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
+    contribution: z.string().min(1).max(800),
+    targetRuleIds: z.array(StableIdSchema).min(1),
+  })
+  .strict();
+export type ReviewCaseSourceUse = z.infer<typeof ReviewCaseSourceUseSchema>;
+
+export const ReviewDecisionPolicySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    workupObjectives: z.array(WorkupObjectiveSchema).min(1),
+    availableTreatments: AvailableTreatmentsSchema,
+    treatmentGrades: z.array(TreatmentGradeDefinitionSchema).min(1),
+    treatmentPathways: z.array(TreatmentPathwaySchema).min(1),
+    scoreRules: z.array(ScoreRuleSchema),
+    databasePlanWorkupCost: z.number().int().positive(),
+    databasePlanCarePoints: z.number().int(),
+    baseReimbursement: z.number().int().nonnegative(),
+    complexityBonus: z.number().int().nonnegative(),
+    referenceSolutions: z.array(ReferenceSolutionSchema).min(4),
+    primaryAuthoredPathwayId: StableIdSchema,
+    safetyFallbackPathwayIds: z.array(StableIdSchema),
+    sourceUses: z.array(ReviewCaseSourceUseSchema),
+  })
+  .strict();
+export type ReviewDecisionPolicy = z.infer<typeof ReviewDecisionPolicySchema>;
+
+/**
+ * A compact, authoring-focused patient snapshot. It compiles into the existing
+ * executable CaseBlueprint and never enters the encounter engine directly.
+ */
+export const ReviewCaseScenarioSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    internalTitle: z.string().min(1).max(180),
+    difficultyTier: z.number().int().min(1),
+    patientPool: PatientPoolSchema,
+    tags: z.array(z.string().min(1)),
+    compatibleLocationIds: z.array(StableIdSchema).min(1),
+    categoryIds: z.array(StableIdSchema).min(1),
+    diagnoses: z.array(PatientDiagnosisSchema).min(1),
+    clinicalTagIds: z.array(StableIdSchema),
+    criticalFacts: z.record(z.union([z.string(), z.number(), z.boolean()])),
+    ageRange: z
+      .object({
+        minimum: z.number().int().min(18).max(100),
+        maximum: z.number().int().min(18).max(100),
+      })
+      .strict()
+      .refine((range) => range.minimum <= range.maximum, {
+        message: 'Review-case age minimum must not exceed its maximum.',
+      }),
+    chiefComplaintChoices: z.array(z.string().min(1).max(120)).min(10),
+    durationChoices: z.array(z.string().min(1).max(80)).min(2).max(20),
+    bothersomeness: z.enum(['not_at_all', 'somewhat', 'very', 'extremely']).nullable(),
+    settingText: z.string().min(1).max(180),
+    knownHistory: z.array(z.string().min(1).max(180)),
+    medicationRegimen: z.array(MedicationRegimenEntrySchema),
+    priorMedicationTrials: z.array(MedicationTrialRecordSchema),
+    informationOverrides: z.array(CaseInformationActionBlueprintSchema),
+    decisionPolicyId: StableIdSchema,
+  })
+  .strict();
+export type ReviewCaseScenario = z.infer<typeof ReviewCaseScenarioSchema>;
 
 export const CaseInstanceSchema = CaseCoreSchema.extend({
   schemaVersion: SchemaVersionSchema,
@@ -1761,6 +2219,160 @@ export const CompletedAttemptSchema = z
   .strict();
 export type CompletedAttempt = z.infer<typeof CompletedAttemptSchema>;
 
+export const DeveloperAttemptReviewOptionSchema = z
+  .object({
+    kind: z.enum([
+      'information',
+      'start_medication',
+      'stop_medication',
+      'continue_medication',
+      'nonmedication',
+      'disposition',
+    ]),
+    optionId: StableIdSchema,
+    label: z.string().min(1),
+    category: z.string().min(1).nullable(),
+    description: z.string().min(1).nullable(),
+    serviceId: StableIdSchema.nullable(),
+    fulfillmentMethodId: StableIdSchema.nullable(),
+    fulfillmentLabel: z.string().min(1).nullable(),
+    pointCost: z.number().int().nonnegative().nullable(),
+    selected: z.boolean(),
+  })
+  .strict()
+  .superRefine((option, context) => {
+    const fulfillmentFields = [
+      option.serviceId,
+      option.fulfillmentMethodId,
+      option.fulfillmentLabel,
+      option.pointCost,
+    ];
+    if (option.kind === 'information' && fulfillmentFields.some((value) => value === null)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An information-option snapshot requires its service, fulfillment, and point cost.',
+      });
+    }
+    if (option.kind !== 'information' && fulfillmentFields.some((value) => value !== null)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Treatment-option snapshots cannot contain information-service fulfillment data.',
+      });
+    }
+  });
+export type DeveloperAttemptReviewOption = z.infer<typeof DeveloperAttemptReviewOptionSchema>;
+
+export const DeveloperAttemptReviewSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    attemptId: StableIdSchema,
+    caseId: StableIdSchema,
+    blueprintId: StableIdSchema,
+    caseContentVersion: ContentVersionSchema,
+    seed: z.string().min(1),
+    engineVersion: z.string().min(1),
+    encounterMode: z.literal('developer'),
+    reviewerNote: z.string().min(1).max(8000),
+    availableOptions: z.array(DeveloperAttemptReviewOptionSchema).min(1),
+    attemptSnapshot: CompletedAttemptSchema,
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict()
+  .superRefine((review, context) => {
+    const attempt = review.attemptSnapshot;
+    const matchingFields: ReadonlyArray<
+      [
+        keyof Pick<
+          typeof review,
+          'attemptId' | 'caseId' | 'blueprintId' | 'caseContentVersion' | 'seed'
+        >,
+        string,
+      ]
+    > = [
+      ['attemptId', attempt.id],
+      ['caseId', attempt.caseId],
+      ['blueprintId', attempt.blueprintId],
+      ['caseContentVersion', attempt.caseContentVersion],
+      ['seed', attempt.seed],
+    ];
+    for (const [field, expected] of matchingFields) {
+      if (review[field] !== expected) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [field],
+          message: `Developer review ${field} must match its immutable attempt snapshot.`,
+        });
+      }
+    }
+
+    const expectedOptions = new Map<string, boolean>();
+    const selections = attempt.submittedTreatment;
+    const addExpected = (kind: DeveloperAttemptReviewOption['kind'], ids: readonly string[]) => {
+      for (const id of ids) expectedOptions.set(`${kind}:${id}`, true);
+    };
+    for (const action of attempt.caseInstance.informationActions) {
+      expectedOptions.set(
+        `information:${action.actionId}`,
+        attempt.purchases.some((purchase) => purchase.actionId === action.actionId),
+      );
+    }
+    addExpected('start_medication', selections.startMedicationIds);
+    addExpected('stop_medication', selections.stopMedicationIds);
+    addExpected('continue_medication', selections.continueMedicationIds);
+    addExpected('nonmedication', selections.interventionIds);
+    if (selections.dispositionId) addExpected('disposition', [selections.dispositionId]);
+
+    const available = attempt.caseInstance.availableTreatments;
+    const expectedKeys = new Set<string>([
+      ...attempt.caseInstance.informationActions.map((action) => `information:${action.actionId}`),
+      ...available.startMedicationIds.map((id) => `start_medication:${id}`),
+      ...available.stopMedicationIds.map((id) => `stop_medication:${id}`),
+      ...available.continueMedicationIds.map((id) => `continue_medication:${id}`),
+      ...available.interventionIds.map((id) => `nonmedication:${id}`),
+      ...available.dispositionIds.map((id) => `disposition:${id}`),
+    ]);
+    const seen = new Set<string>();
+    for (const [index, option] of review.availableOptions.entries()) {
+      const key = `${option.kind}:${option.optionId}`;
+      if (!expectedKeys.has(key)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['availableOptions', index],
+          message: 'Developer review contains an option that was not available for this attempt.',
+        });
+      }
+      if (seen.has(key)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['availableOptions', index],
+          message: 'Developer review option snapshots must be unique by kind and ID.',
+        });
+      }
+      seen.add(key);
+      const shouldBeSelected = expectedOptions.get(key) ?? false;
+      if (option.selected !== shouldBeSelected) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['availableOptions', index, 'selected'],
+          message: 'Developer review selection state must match the submitted attempt.',
+        });
+      }
+    }
+    for (const key of expectedKeys) {
+      if (!seen.has(key)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['availableOptions'],
+          message: `Developer review is missing the available option ${key}.`,
+        });
+      }
+    }
+  });
+export type DeveloperAttemptReview = z.infer<typeof DeveloperAttemptReviewSchema>;
+
 export const PatientQueueSlotSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -1819,6 +2431,7 @@ export const ContentFlagSchema = z
       'penalty',
       'rationale',
       'missing_alternative',
+      'needs_additional_source',
       'narrative_ambiguity',
       'ui_or_engine_bug',
     ]),
@@ -1856,6 +2469,7 @@ export const ClinicalReviewTicketSchema = z
       'scoring',
       'narrative',
       'clinical_conflict',
+      'source_gap',
     ]),
     priority: z.enum(['low', 'medium', 'high', 'blocking']),
     status: ClinicalTicketStatusSchema,
@@ -1957,13 +2571,56 @@ export type SourceRequest = z.infer<typeof SourceRequestSchema>;
 export const ClinicalTicketExportBundleSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
-    exportVersion: z.literal(2),
+    exportVersion: z.literal(5),
+    bundleId: StableIdSchema,
+    buildKind: z.enum(['local_developer', 'portable_reviewer']),
+    assignmentId: StableIdSchema.nullable(),
     exportedAt: z.string().datetime(),
     engineVersion: z.string().min(1),
     profileId: StableIdSchema,
     tickets: z.array(ClinicalReviewTicketSchema),
+    attemptReviews: z.array(DeveloperAttemptReviewSchema),
+    flags: z.array(ContentFlagSchema),
+    completedAttempts: z.array(CompletedAttemptSchema),
   })
-  .strict();
+  .strict()
+  .superRefine((bundle, context) => {
+    if (bundle.buildKind === 'portable_reviewer' && bundle.assignmentId === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['assignmentId'],
+        message: 'A portable Reviewer export must identify its finite assignment.',
+      });
+    }
+    const completedAttemptIds = new Set(bundle.completedAttempts.map((attempt) => attempt.id));
+    for (const [index, review] of bundle.attemptReviews.entries()) {
+      if (!completedAttemptIds.has(review.attemptId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['attemptReviews', index, 'attemptId'],
+          message: 'Every attempt review must have its completed attempt in the export.',
+        });
+      }
+    }
+    for (const [index, flag] of bundle.flags.entries()) {
+      if (!completedAttemptIds.has(flag.attemptId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['flags', index, 'attemptId'],
+          message: 'Every content flag must have its completed attempt in the export.',
+        });
+      }
+    }
+    for (const [index, ticket] of bundle.tickets.entries()) {
+      if (ticket.attemptId !== null && !completedAttemptIds.has(ticket.attemptId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tickets', index, 'attemptId'],
+          message: 'Every attempt-linked ticket must have its completed attempt in the export.',
+        });
+      }
+    }
+  });
 export type ClinicalTicketExportBundle = z.infer<typeof ClinicalTicketExportBundleSchema>;
 
 export const LegacySaveArchiveEntrySchema = z
@@ -1981,12 +2638,13 @@ export type LegacySaveArchiveEntry = z.infer<typeof LegacySaveArchiveEntrySchema
 export const SaveDataSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
-    saveDataVersion: z.literal(4),
+    saveDataVersion: z.literal(5),
     profile: PlayerProfileSchema,
     attempts: z.array(CompletedAttemptSchema),
     flags: z.array(ContentFlagSchema),
     patientQueues: PatientQueueStateSchema,
     clinicalTickets: z.array(ClinicalReviewTicketSchema),
+    attemptReviews: z.array(DeveloperAttemptReviewSchema),
     legacyArchive: z.array(LegacySaveArchiveEntrySchema),
   })
   .strict();
@@ -2163,6 +2821,7 @@ export const PatientScaffoldRequestSchema = z
           evidenceSourceIds: z.array(StableIdSchema),
           sourceDocumentId: StableIdSchema,
           sourceChunkIds: z.array(StableIdSchema).min(1),
+          proposedImpactContentIds: z.array(StableIdSchema).default([]),
           contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
           summary: z.string().min(20).max(800),
         })
@@ -2356,5 +3015,5 @@ export const EncounterCommandSchema = z.discriminatedUnion('type', [
 ]);
 export type EncounterCommand = z.infer<typeof EncounterCommandSchema>;
 
-export const SaveDataVersionSchema = z.literal(4);
+export const SaveDataVersionSchema = z.literal(5);
 export type SaveDataVersion = z.infer<typeof SaveDataVersionSchema>;

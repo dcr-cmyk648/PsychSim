@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
+  "authority": "formal_publication",
+  "sourceType": "correction_notice",
+  "title": "Corrigendum to Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+  "authors": [],
+  "organization": "The Canadian Journal of Psychiatry",
+  "publicationYear": 2025,
+  "publicationDate": "2025-06-09",
+  "lastReviewedDate": null,
+  "versionLabel": "Published corrigendum",
+  "containerTitle": "The Canadian Journal of Psychiatry",
+  "volume": "70",
+  "issue": "8",
+  "pages": "652",
+  "doi": "10.1177/07067437251349087",
+  "pmid": "40490255",
+  "url": "https://pubmed.ncbi.nlm.nih.gov/40490255/",
+  "citation": "Corrigendum to Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults. Can J Psychiatry. 2025;70(8):652. doi:10.1177/07067437251349087.",
+  "knownContentHashes": [],
+  "jurisdictions": ["Canada"],
+  "populations": ["Adults with major depressive disorder"],
+  "settings": ["Community-based psychiatry and mental-health care"],
+  "sourceRelations": [
+    {
+      "sourceId": "evidence.canmat.mdd-adults.2023-update",
+      "relationType": "corrects",
+      "note": "Published correction notice for the CANMAT guideline. The exact correction and whether it has any clinical-rule impact remain explicit review items."
+    }
+  ],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "not_verified",
+    "adaptationStatus": "not_verified",
+    "commercialUseStatus": "not_verified",
+    "aiUseStatus": "not_verified",
+    "localExtractionStatus": "not_verified",
+    "licenseLabel": null,
+    "licenseUrl": null,
+    "termsUrl": "https://pmc.ncbi.nlm.nih.gov/about/copyright/",
+    "note": "Bibliographic metadata and the correction relationship are verified. The correction record is not in the PMC Open Access Subset, so no local full-text ingestion was performed."
+  },
+  "metadataReviewedAt": "2026-07-23T16:40:00.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

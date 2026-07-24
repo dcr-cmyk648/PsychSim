@@ -75,6 +75,7 @@ describe('patient scaffolding', () => {
             evidenceSourceIds: [],
             sourceDocumentId: artifact.document.id,
             sourceChunkIds: artifact.chunks.map((chunk) => chunk.id),
+            proposedImpactContentIds: ['diagnosis.major-depressive-disorder'],
             contributionTypes: ['context_only'],
             summary:
               'Synthetic test-only takeaway proving that concise source use and chunk provenance remain attached.',
@@ -108,6 +109,7 @@ describe('patient scaffolding', () => {
       authority: 'expert_opinion',
       evidenceSourceIds: [],
       sourceDocumentId: artifact.document.id,
+      targetContentIds: ['case.generated.mdd-source-test'],
       contributionTypes: ['context_only'],
       medicalReviewStatus: 'unreviewed',
     });
@@ -119,6 +121,13 @@ describe('patient scaffolding', () => {
     expect(compiled.auditTickets).toHaveLength(2);
     expect(compiled.auditTickets.every((ticket) => ticket.requiresClinicalAcumen)).toBe(true);
     expect(compiled.auditTickets[0]).toMatchObject({ status: 'proposed', priority: 'blocking' });
+    expect(compiled.auditTickets[1]!.targetContentIds).toEqual(
+      expect.arrayContaining([
+        artifact.document.id,
+        artifact.chunks[0]!.id,
+        'diagnosis.major-depressive-disorder',
+      ]),
+    );
     await expect(readFile(compiled.blueprintPath, 'utf8')).resolves.toContain(
       'case.generated.mdd-source-test',
     );

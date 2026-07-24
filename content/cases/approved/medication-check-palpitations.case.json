@@ -131,7 +131,7 @@
   "opening": {
     "titleTemplate": "{{patient.name}}",
     "chiefComplaintTemplate": "{{patient.chiefComplaint}}",
-    "summaryTemplate": "{{patient.age}} years old · {{patient.occupation}}",
+    "summaryTemplate": "{{patient.name}} is a {{patient.age}}-year-old {{patient.occupation}} who presents with “{{patient.chiefComplaint}}.”",
     "contextTemplate": "Scheduled outpatient visit",
     "knownMedicationIds": ["medication.citalopram"],
     "knownHistory": [],
@@ -148,8 +148,10 @@
       "target": "patient.name",
       "clinicallyCritical": false,
       "generator": {
-        "type": "catalogChoice",
-        "poolId": "variant-pool.fictional-names.general-adult"
+        "type": "fictionalName",
+        "firstNamePoolId": "variant-pool.fictional-first-names.general-adult",
+        "lastNamePoolId": "variant-pool.fictional-last-names.general-adult",
+        "middleInitialProbability": 0.25
       }
     },
     {

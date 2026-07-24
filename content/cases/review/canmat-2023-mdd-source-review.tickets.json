@@ -44,7 +44,7 @@
     "sourceAuthority": "source_document",
     "ticketType": "treatment_pathway",
     "priority": "blocking",
-    "status": "proposed",
+    "status": "accepted_for_workflow",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": "case.first-visit-depression",
@@ -62,10 +62,12 @@
     "conflictContentIds": ["rule.mdd-psychotherapy"],
     "proposedRouting": "First assign a clinically supported severity and safety-risk profile from structured patient facts, then compare the database route and alternative routes with CANMAT Q.3.a and Q.3.b.",
     "guidance": "The current case rewards an antidepressant plus psychotherapy and penalizes omission of psychotherapy. CANMAT distinguishes mild, moderate, and severe episodes: psychotherapy may be preferred for mild illness, psychotherapy or antidepressant medication may each be an initial option for moderate illness, and combined treatment is emphasized more strongly for severe illness. Decide what severity this patient actually represents and whether medication-only, psychotherapy-only, and combined routes should each be accepted or differently weighted.",
+    "reviewerNotes": "Psychiatrist/developer direction: align psychotherapy and medication as peer treatment modalities. When the reviewed algorithm ranks them equally, either one appropriate medication or one appropriate psychotherapy is a complete acceptable treatment. Add a combination bonus only when the algorithm ranks combination treatment more highly. A compatible medication-plus-therapy combination that the algorithm does not address remains acceptable and neutral. Evaluate the whole set for parsimony: selecting several primary psychotherapy types or multiple same-role antidepressants is shotgun treatment unless an explicit pathway supports it; dangerous or duplicate medication combinations receive their safety consequence. Investigation shotgun behavior should also lose points, ordinarily through cumulative action costs rather than duplicate clinical penalties.",
+    "reviewerNotesUpdatedAt": "2026-07-23T20:15:33Z",
     "resurfacingTrigger": "When severity facts, safety facts, psychotherapy availability, or initial-treatment guidance changes.",
     "resolution": null,
     "createdAt": "2026-07-22T22:00:00.000Z",
-    "updatedAt": "2026-07-22T22:00:00.000Z"
+    "updatedAt": "2026-07-23T20:15:33Z"
   },
   {
     "schemaVersion": 1,
@@ -173,5 +175,32 @@
     "resolution": null,
     "createdAt": "2026-07-22T22:00:00.000Z",
     "updatedAt": "2026-07-22T22:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.source.bupropion.seizure-history-nuance",
+    "title": "Source the bupropion and controlled-seizure-history judgment",
+    "sourceKind": "engine_audit",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "source_gap",
+    "priority": "high",
+    "status": "proposed",
+    "requiresClinicalAcumen": true,
+    "attemptId": null,
+    "blueprintId": null,
+    "caseContentVersion": null,
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": ["medication.bupropion"],
+    "dependencyTicketIds": ["ticket.source.canmat-mdd.antidepressant-baseline"],
+    "conflictContentIds": [],
+    "proposedRouting": "Review current regulatory labeling, seizure-risk data, and clinically relevant evidence separately. Preserve the psychiatrist/developer interpretation as its own future opinion record even if publications are attached; do not turn a contextual study into a blanket guideline recommendation.",
+    "guidance": "Psychiatrist/developer opinion to source: bupropion may sometimes be used in a patient whose seizure disorder is well controlled, but it is almost never a good or first option in that setting. The future rule should distinguish a heavily penalized relative risk from an absolute hard block when the reviewed facts support that nuance. No point value or active fit rule is authorized by this ticket.",
+    "reviewerNotes": "",
+    "reviewerNotesUpdatedAt": null,
+    "resurfacingTrigger": "When bupropion safety evidence, regulatory labeling, seizure-history facts, or contraindication-severity policy changes.",
+    "resolution": null,
+    "createdAt": "2026-07-24T03:25:00.000Z",
+    "updatedAt": "2026-07-24T03:25:00.000Z"
   }
 ]

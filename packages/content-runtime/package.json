@@ -5,7 +5,10 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./developer": "./src/developer-content.ts"
+    "./developer": "./src/developer-content.ts",
+    "./review-cohort": "./src/review-cohort.ts",
+    "./reviewer": "./src/reviewer-content.ts",
+    "./reviewer-assignment": "./src/reviewer-assignment.ts"
   },
   "dependencies": {
     "@psychsim/engine": "workspace:*",

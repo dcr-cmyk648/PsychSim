@@ -5,13 +5,25 @@ import {
   PlayerProfileSchema,
 } from '@psychsim/schemas';
 
+import aceGadGuidelineJson from '../../../content/catalogs/evidence/formal/ace-gad-2025-guideline.evidence.json';
+import apaBpdGuidelineJson from '../../../content/catalogs/evidence/formal/apa-bpd-second-edition-2024-guideline.evidence.json';
+import apaDeliriumGuidelineJson from '../../../content/catalogs/evidence/formal/apa-delirium-2025-guideline.evidence.json';
+import asamBenzodiazepineTaperingGuidelineJson from '../../../content/catalogs/evidence/formal/asam-benzodiazepine-tapering-2025-guideline.evidence.json';
+import bapCatatoniaGuidelineJson from '../../../content/catalogs/evidence/formal/bap-catatonia-2023-guideline.evidence.json';
+import canmatMddCorrigendumJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-corrigendum-2025.evidence.json';
 import canmatMddGuidelineJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json';
 import fdaCitalopramLabelJson from '../../../content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json';
+import niceSelfHarmGuidelineJson from '../../../content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json';
+import vaDodSuicideRiskGuidelineJson from '../../../content/catalogs/evidence/formal/va-dod-suicide-risk-2024-guideline.evidence.json';
+import whoMhgapGuidelineJson from '../../../content/catalogs/evidence/formal/who-mhgap-2023-guideline.evidence.json';
 import bipolarSpectrumDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/bipolar-spectrum-disorder.diagnosis.json';
 import borderlinePersonalityDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/borderline-personality-disorder.diagnosis.json';
 import majorDepressiveDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/major-depressive-disorder.diagnosis.json';
 import medicationInducedAkathisiaDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/medication-induced-akathisia.diagnosis.json';
 import substanceInducedMoodDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/substance-induced-mood-disorder.diagnosis.json';
+import generalizedAnxietyDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/generalized-anxiety-disorder.diagnosis.json';
+import posttraumaticStressDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/posttraumatic-stress-disorder.diagnosis.json';
+import schizophreniaSpectrumDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/schizophrenia-spectrum-disorder.diagnosis.json';
 import servicesJson from '../../../content/catalogs/services/services.json';
 import fluoxetineJson from '../../../content/catalogs/medications/definitions/fluoxetine.medication.json';
 import aripiprazoleJson from '../../../content/catalogs/medications/definitions/aripiprazole.medication.json';
@@ -23,6 +35,9 @@ import escitalopramJson from '../../../content/catalogs/medications/definitions/
 import bupropionJson from '../../../content/catalogs/medications/definitions/bupropion.medication.json';
 import mirtazapineJson from '../../../content/catalogs/medications/definitions/mirtazapine.medication.json';
 import citalopramJson from '../../../content/catalogs/medications/definitions/citalopram.medication.json';
+import lithiumJson from '../../../content/catalogs/medications/definitions/lithium.medication.json';
+import olanzapineJson from '../../../content/catalogs/medications/definitions/olanzapine.medication.json';
+import quetiapineJson from '../../../content/catalogs/medications/definitions/quetiapine.medication.json';
 import formulariesJson from '../../../content/catalogs/medications/formularies.json';
 import treatmentsJson from '../../../content/catalogs/treatments/treatments.json';
 import locationsJson from '../../../content/catalogs/locations/locations.json';
@@ -51,14 +66,29 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.1.0',
-  evidenceSources: [canmatMddGuidelineJson, fdaCitalopramLabelJson],
+  contentVersion: '3.3.0',
+  evidenceSources: [
+    aceGadGuidelineJson,
+    apaBpdGuidelineJson,
+    apaDeliriumGuidelineJson,
+    asamBenzodiazepineTaperingGuidelineJson,
+    bapCatatoniaGuidelineJson,
+    canmatMddGuidelineJson,
+    canmatMddCorrigendumJson,
+    fdaCitalopramLabelJson,
+    niceSelfHarmGuidelineJson,
+    vaDodSuicideRiskGuidelineJson,
+    whoMhgapGuidelineJson,
+  ],
   diagnoses: [
     majorDepressiveDisorderDiagnosisJson,
     bipolarSpectrumDiagnosisJson,
     borderlinePersonalityDisorderDiagnosisJson,
     substanceInducedMoodDiagnosisJson,
     medicationInducedAkathisiaDiagnosisJson,
+    generalizedAnxietyDisorderDiagnosisJson,
+    posttraumaticStressDisorderDiagnosisJson,
+    schizophreniaSpectrumDisorderDiagnosisJson,
   ],
   services: servicesJson,
   medications: [
@@ -72,6 +102,9 @@ export const catalogs = CatalogBundleSchema.parse({
     bupropionJson,
     mirtazapineJson,
     citalopramJson,
+    lithiumJson,
+    olanzapineJson,
+    quetiapineJson,
   ],
   formularies: formulariesJson,
   treatments: treatmentsJson,

@@ -4,7 +4,13 @@ PsychSim is a browser-based psychiatric clinic-building game prototype. Mileston
 
 Cross-device Codex work uses one canonical write-capable thread per local worktree. Start every new or resumed thread from [PROJECT_STATE.md](PROJECT_STATE.md), run `./scripts/codex-handoff status`, and follow [the phone/Mac handoff guide](docs/CODEX_THREAD_HANDOFF.md) before editing. Conversation history is not project memory.
 
-The two runtime patients are fictional, synthetic, medically unreviewed, and not authoritative treatment guidance. Waiting-room cards intentionally show only patient name, chief complaint, and setting; hidden case labels and diagnoses are never used as launcher copy. No external service, account, API key, backend, or AI call is required to play.
+The ordinary Player build currently has two approved-for-prototype patients. A separate portable
+Reviewer build adds ten explicitly allowlisted common-psychiatry review scenarios for clinical and
+gameplay feedback. Every one of these patients is fictional, synthetic, medically unreviewed, and
+not authoritative treatment guidance. Waiting-room cards intentionally show only patient name,
+chief complaint, and setting; hidden case labels, diagnoses, decision-policy names, and source
+organizations are never launcher copy. No external service, account, API key, backend, or AI call
+is required to play.
 
 ## Quick start
 
@@ -19,11 +25,13 @@ Open the local URL printed by Vite. Other root commands:
 
 ```sh
 pnpm build
+pnpm build:reviewer
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:handoff
 pnpm test:e2e
+pnpm test:e2e:reviewer
 pnpm content:validate
 pnpm content:sources:validate
 pnpm content:scan
@@ -32,6 +40,9 @@ pnpm content:watch
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
+pnpm content:diagnoses:validate
+pnpm content:diagnoses:search -- "major depressive"
+pnpm content:diagnoses:import -- /path/to/icd10cm-order-2026.txt
 pnpm content:compile
 pnpm content:impact medication.bupropion
 pnpm demo:reference-runs
@@ -46,28 +57,147 @@ The first facility move becomes eligible at 2,500 lifetime points and separately
 
 The ECG patient is playable before ownership through a 500-point outside service. Owning the machine automatically fulfills the same order in house for 70 points; the receipt reports the 430-point external cost avoided without changing any clinical rule or result.
 
-The hub includes reversible Endgame and local-only Developer practice modes. Endgame derives a highest-tier clinic with every currently modeled capability and multiple approved patient slots. Developer mode also exposes review content that has not yet been run, supports reroll/reset, and shows the local clinical-ticket queue. Every ticket has one plain-language “What should Codex do?” field; internal lifecycle statuses are not user-facing. Saving instructions persists them in browser IndexedDB and automatically refreshes the fixed gitignored Codex handoff file at `content/generated/local-review-tickets/tickets.json`; after reviewing, the user only needs to tell Codex that the local review is ready. Codex infers the intended action from the prose and asks only when a material choice remains ambiguous. “Update Codex handoff file” retries or refreshes that copy, while “Export JSON” downloads a backup. Practice receipts bank zero points. Production builds exclude Developer content and the writable local endpoint.
+The hub includes reversible Endgame and local-only Developer practice modes. Endgame derives a
+highest-tier clinic with every currently modeled capability and multiple approved patient slots.
+Local Developer mode also exposes review content that has not yet been run, supports reroll/reset,
+and shows the clinical-ticket, source-request, and uncited-opinion queues. Every ticket has one
+plain-language “What should Codex do?” field; internal lifecycle statuses are not user-facing.
+Ticket instructions and “Case and app experience notes” persist in IndexedDB and automatically
+refresh the fixed gitignored Codex handoff file at
+`content/generated/local-review-tickets/tickets.json`. “Update Codex handoff file” retries that
+copy, while JSON export is a backup. The ordinary Player build contains neither these queues nor the
+writable local endpoint.
+
+The portable Reviewer build is the controlled phone/desktop review surface. It uses a separate
+assignment-versioned IndexedDB database, provides the all-capabilities practice clinic, and loads
+the two prototype patients plus exactly ten medically unreviewed reviewer-cohort scenarios. It
+does not expose source organizations before submission, arbitrary review globs, preloaded local
+Developer ticket/source/opinion queues, or a workspace writer. Reviewer-created guidance, flags,
+and tickets still remain available for export. Mobile uses Patient, Revealed, Investigate,
+Treatment, and Results/review tabs; purchased results also appear in a dismissible mobile dialog
+and remain permanently available newest-first in Revealed. After submission, the feedback box is
+near the top of Results. Every completed receipt can be reopened after reload so an interrupted
+phone session does not strand unsaved feedback.
+
+Reviewer feedback is local to that browser/device/origin until export. Several case comments,
+item flags, and generated tickets can be accumulated and exported together as one version-5 JSON
+bundle. It includes the assignment ID, every completed attempt, exact resolved patient and event
+history, normalized offered options for commented cases, selections, receipt, and rule trace. The
+reviewer can email that one file to the project owner. There is currently no account sync, server
+backup, bundle import, or application authentication; export before clearing site data, switching
+browsers, or moving devices. Do not enter real patient information or other identifiable material
+in free-text feedback.
+
+The assignment ID also versions the browser database. Any material cohort or policy revision must
+use a new assignment ID so old run history cannot hide revised patients or mix revisions in one
+export.
+
+Every post-submit receipt groups its rule trace by workup, treatment, medication changes, safety,
+nonmedication care, disposition, and efficiency, with point-changing rows first and zero-point rows
+still inspectable. It also shows a care-point comparison bar and the player's exact plan beside the
+declared database-plan replay for that patient and clinic. The database value normally sets the bar
+maximum; an above-plan player score expands the scale and leaves a labeled database marker inside
+it. This is an auditable finite benchmark, not a claim that every possible combination was
+searched. Practice receipts bank zero points.
 
 Numeric laboratory results use an EMR-style `Test · Result · Reference interval · Flag` table with familiar display units, UCUM codes in the data model, and explicit normal/high/low interpretation. Reference intervals belong to versioned test profiles rather than being treated as universal; see [LAB_RESULTS.md](docs/LAB_RESULTS.md).
 
-The local authoring slice now hashes and extracts PDF, DOCX, TXT, and Markdown sources into gitignored document/chunk records. A controlled scaffold request can turn an existing reviewed-as-a-template case into a new medically unreviewed Developer patient with source provenance and blocking clinical-audit tickets. It does not infer clinical rules or call an AI provider. See [DOCUMENT_INGESTION.md](docs/DOCUMENT_INGESTION.md) and [the scaffold example](content/cases/blueprints/basic-mdd-scaffold.example.json).
+The local authoring slice now hashes and extracts PDF, DOCX, TXT, and Markdown sources into
+gitignored document/chunk records. A controlled scaffold request can turn an existing
+reviewed-as-a-template case into a new medically unreviewed Developer patient with source
+provenance, proposed shared impact IDs, and blocking clinical-audit tickets. It does not infer
+clinical rules or call an AI provider. See
+[DOCUMENT_INGESTION.md](docs/DOCUMENT_INGESTION.md) and
+[the scaffold example](content/cases/blueprints/basic-mdd-scaffold.example.json).
 
-Formal literature has a separate, tracked evidence catalog. Each article, guideline, or regulatory document receives one stable bibliographic record; case and medication contribution notes say exactly which rule it informed and how. Receipt traces show those citations and contribution statements. Rules without a linked formal contribution display `Expert opinion` rather than receiving an inferred citation. Run `pnpm content:evidence` to audit cataloged publications, linked contributions, unused sources, and implicit expert-opinion rules.
+Formal literature has a separate, tracked evidence catalog. Each article, guideline, regulatory
+document, or correction receives one stable record with bibliography, scope, source relationships,
+and explicit full-text/reuse/AI/local-extraction policy. A public download link is not treated as
+permission to process a source. Case and medication contribution notes say exactly which rule a
+source informed and how; catalog presence alone changes nothing. Receipt traces show those
+citations and contribution statements. Rules without a linked formal contribution display
+`Expert opinion` rather than receiving an inferred citation. Run `pnpm content:evidence` to audit
+sources, access gates, correction edges, linked contributions, unused sources, and implicit
+expert-opinion rules.
 
-The clinical-model checkpoint now includes one file per diagnosis family, top-down base/severity/specifier composition, deterministic gameplay-critical patient-context variants, multi-diagnosis conflict quarantine, and a five-dimensional complexity vector. Diagnosis guidance is qualitative and point-free until separately balanced. MDD severity and optional comorbidity generation remain disabled in approved content pending source and policy decisions; see [DIAGNOSIS_ENGINE.md](docs/DIAGNOSIS_ENGINE.md).
+Source reuse has a separate machine-validated rights gate: bibliography, permission to process,
+medical review, and runtime inclusion are independent decisions. A gitignored local CDC/NCHS
+ICD-10-CM FY 2026 F01–F99 cache supplies 1,112 standardized codes and titles for U.S.
+authoring/search under a documented narrow fair-use assessment; it supplies no criteria,
+treatment, or approval and cannot enter the browser bundle or repository distribution. Playable
+diagnosis files may later carry compact reviewed mappings to it. Source-specific terms control:
+the WHO CDDR PDF is CC BY-NC-ND 3.0 IGO despite a conflicting generic licence link on its landing
+page, so both CDDR and DSM-5-TR remain metadata-only pending permission for the intended
+transformation. See [the source-use policy](docs/SOURCE_USE_POLICY.md) and
+[the diagnosis-catalog contract](content/catalogs/diagnoses/README.md).
 
-The CANMAT MDD source has been decomposed into five unresolved Developer tickets rather than applied automatically. Three additional ECG tickets cover necessity/weight, continuation versus switching, and disposition. Switch to Developer mode on the local server to review and disposition them; resolving a ticket records workflow state but does not silently rewrite clinical JSON.
+The clinical-model checkpoint now includes one file per diagnosis family, top-down
+base/severity/specifier composition, deterministic gameplay-critical patient-context variants,
+conservative blocking conflict detection, and a five-dimensional complexity vector. The next
+compiler is specified to quarantine structural/no-safe-route states while preserving valid
+clinical tension as traceable; that narrower classification is not implemented yet. The next recorded
+boundary splits reusable patient templates, resolved patients, frozen encounters, regimen/prior
+trial records, and compiled focused rubrics so future poly-diagnosis patients do not require copied
+per-case treatment plans. Diagnosis guidance is qualitative and point-free until separately
+balanced. MDD severity and optional comorbidity generation remain disabled in approved content
+pending source and compiler gates; see [DIAGNOSIS_ENGINE.md](docs/DIAGNOSIS_ENGINE.md) and
+[PATIENT_GENERATION_ENGINE.md](docs/PATIENT_GENERATION_ENGINE.md).
+
+The CANMAT MDD source has been decomposed into five unresolved Developer tickets rather than
+applied automatically. The 2023 WHO mhGAP guideline is now cataloged as a broad non-specialist
+baseline; its DEP1–DEP4 depression section produced one source-linked Developer patient and four
+recommendation-level tickets without changing executable shared guidance. The MDD diagnosis file
+retains only an unreviewed context note that explicitly does not define criteria or severity.
+Receipt flags include
+`Needs another guideline/source`, which creates a local evidence-gap ticket rather than filling the
+gap by inference. See the [WHO source map](docs/WHO_MHGAP_2023_SOURCE_MAP.md). Three additional ECG
+tickets cover necessity/weight, continuation versus switching, and disposition. Switch to
+Developer mode on the local server to play the review patient and enter plain-language instructions;
+saving a ticket never silently rewrites clinical JSON.
+
+The subsequent recommended-guideline intake added verified metadata for VA/DoD suicide risk, NICE
+self-harm, APA BPD, APA delirium, the CANMAT corrigendum, BAP catatonia, Singapore ACE GAD, and ASAM
+benzodiazepine tapering. VA/DoD, CANMAT, and BAP joined WHO in the protected local extraction
+pipeline. NICE, APA, ACE, and ASAM remain metadata-only because their current terms require
+permission or prohibit AI ingestion. Eight new Developer tickets own those access and clinical
+scope decisions; no recommendation or point rule was activated. See the
+[recommended-guideline intake map](docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md).
 
 ## Static deployment
 
-The application is GitHub Pages-ready. [The Pages workflow](.github/workflows/pages.yml) runs formatting, lint, typecheck, unit/content/browser gates, builds with the repository subpath as Vite's base URL, verifies that private source and Developer content are absent, and deploys `apps/web/dist` when Pages is available. Public repositories deploy automatically. A private repository deploys only when its GitHub plan supports Pages and the repository variable `PSYCHSIM_ENABLE_PAGES=true` is set; otherwise the verification/build job stays green and deployment is skipped. Local builds continue to use `/`; reproduce the Pages shape with:
+The application is GitHub Pages-ready. [The Pages workflow](.github/workflows/pages.yml) runs on
+`beta` and `main`, but only `main` can deploy. It runs formatting, lint, typecheck, unit/content,
+ordinary browser, and mobile Reviewer gates; verifies both the approved Player build and the
+separate portable Reviewer build; then deploys the Reviewer artifact with the repository subpath
+as Vite's base URL. Public repositories deploy automatically. A private repository deploys only
+when its GitHub plan supports Pages and the repository variable `PSYCHSIM_ENABLE_PAGES=true` is set;
+otherwise verification remains green and deployment is skipped. Local builds continue to use `/`;
+reproduce the Pages artifact with:
 
 ```sh
-VITE_BASE_PATH=/PsychSim/ pnpm build
+VITE_BASE_PATH=/PsychSim/ pnpm build:reviewer
 ```
 
-Pages is a static host only. Saves, patient queues, attempts, and points remain in that browser's IndexedDB; there is no account sync or server database. The production deployment includes approved-for-prototype patients only and never includes the local source inbox, extracted text, review patients, clinical-ticket writer, or AI SDK.
+Pages is a static host only. The deployed artifact contains the explicit portable Reviewer
+assignment, not the local Developer environment and not arbitrary draft/review content. It never
+contains the source inbox, extracted text, authoring classifications, local source/opinion/ticket
+queues, writable workspace endpoint, or an AI SDK. Saves and review bundles remain local to the
+browser until manual export.
+
+After this checkpoint, ordinary feature work is committed and pushed on `beta`. `main` is the
+stable distributed/Pages branch and receives the verified `beta` branch only after the user
+explicitly requests a whole-branch promotion such as “push to main.” The local working copy
+returns to `beta` after promotion.
 
 ## Documents
 
-Start with [PROJECT_STATE.md](PROJECT_STATE.md), [GAME_DESIGN.md](docs/GAME_DESIGN.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [LAB_RESULTS.md](docs/LAB_RESULTS.md), and [DECISIONS.md](docs/DECISIONS.md). Contributor constraints live in [AGENTS.md](AGENTS.md), milestone sequencing is in [ROADMAP.md](docs/ROADMAP.md), and phone/Mac coordination is in [CODEX_THREAD_HANDOFF.md](docs/CODEX_THREAD_HANDOFF.md).
+Start with [PROJECT_STATE.md](PROJECT_STATE.md), [GAME_DESIGN.md](docs/GAME_DESIGN.md),
+[ARCHITECTURE.md](docs/ARCHITECTURE.md),
+[PATIENT_GENERATION_ENGINE.md](docs/PATIENT_GENERATION_ENGINE.md),
+[MEDICATION_AND_INTERVENTION_DATA.md](docs/MEDICATION_AND_INTERVENTION_DATA.md),
+[SOURCE_USE_POLICY.md](docs/SOURCE_USE_POLICY.md),
+[RECOMMENDED_GUIDELINE_SOURCE_MAP.md](docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md),
+[WHO_MHGAP_2023_SOURCE_MAP.md](docs/WHO_MHGAP_2023_SOURCE_MAP.md),
+[LAB_RESULTS.md](docs/LAB_RESULTS.md), and [DECISIONS.md](docs/DECISIONS.md). Contributor constraints
+live in [AGENTS.md](AGENTS.md), milestone sequencing is in [ROADMAP.md](docs/ROADMAP.md), and
+phone/Mac coordination is in [CODEX_THREAD_HANDOFF.md](docs/CODEX_THREAD_HANDOFF.md).

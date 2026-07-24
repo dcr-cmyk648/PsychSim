@@ -67,6 +67,7 @@ const caseToken = (blueprintId: string): string =>
     .slice(0, 80);
 
 const outputFilename = (blueprintId: string): string => `${caseToken(blueprintId)}.case.json`;
+const uniqueIds = (ids: readonly string[]): string[] => [...new Set(ids)];
 
 const resetRuleReview = (blueprint: CaseBlueprint): void => {
   blueprint.patientRecord.treatmentReference.review = { ...UNREVIEWED_RULE };
@@ -115,10 +116,10 @@ export const buildPatientScaffold = (
     prototype: true,
     disclaimer:
       'Fictional, synthetic, medically unreviewed developer scaffold; not authoritative treatment guidance.',
-    sourceDocumentIds: request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId),
-    evidenceSourceIds: [
-      ...new Set(request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds)),
-    ],
+    sourceDocumentIds: uniqueIds(request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId)),
+    evidenceSourceIds: uniqueIds(
+      request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds),
+    ),
   };
   candidate.patientRecord.id = `patient-record.${caseToken(request.blueprintId)}`;
   candidate.patientRecord.sourceUseNotes = request.sourceUses.map((sourceUse, index) => ({
@@ -236,11 +237,11 @@ export const compilePatientScaffold = async (
           : 'deterministic-mock-scaffold',
     promptVersion: 'patient-scaffold-request-v1',
     generatedAt,
-    sourceDocumentIds: request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId),
-    sourceChunkIds: request.sourceUses.flatMap((sourceUse) => sourceUse.sourceChunkIds),
-    evidenceSourceIds: [
-      ...new Set(request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds)),
-    ],
+    sourceDocumentIds: uniqueIds(request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId)),
+    sourceChunkIds: uniqueIds(request.sourceUses.flatMap((sourceUse) => sourceUse.sourceChunkIds)),
+    evidenceSourceIds: uniqueIds(
+      request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds),
+    ),
     blueprintId: blueprint.id,
     generatorVersion: 'psychsim-patient-scaffolder-1',
     validationResults: [
@@ -312,11 +313,13 @@ export const compilePatientScaffold = async (
       caseContentVersion: blueprint.contentVersion,
       receiptItemId: null,
       receiptItemSnapshot: null,
-      targetContentIds: [
+      targetContentIds: uniqueIds([
         blueprint.id,
         ...request.sourceUses.map((sourceUse) => sourceUse.sourceDocumentId),
         ...request.sourceUses.flatMap((sourceUse) => sourceUse.evidenceSourceIds),
-      ],
+        ...request.sourceUses.flatMap((sourceUse) => sourceUse.sourceChunkIds),
+        ...request.sourceUses.flatMap((sourceUse) => sourceUse.proposedImpactContentIds),
+      ]),
       dependencyTicketIds: [`ticket.audit.${caseToken(blueprint.id)}.template-inheritance`],
       conflictContentIds: [],
       proposedRouting:

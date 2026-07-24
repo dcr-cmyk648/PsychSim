@@ -1,8 +1,14 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-import { CaseBlueprintSchema, type CaseBlueprint } from '@psychsim/schemas';
+import {
+  CaseBlueprintSchema,
+  EvidenceSourceDefinitionSchema,
+  SourceUseDecisionCatalogSchema,
+  type CaseBlueprint,
+} from '@psychsim/schemas';
 import { approvedCaseBlueprints, catalogs } from '@psychsim/content-runtime';
+import { contentRegistry } from '../../../packages/content-runtime/src/registry';
 
 const reviewDirectory = resolve('content/cases/review');
 
@@ -18,6 +24,29 @@ const reviewBlueprints = await Promise.all(
 );
 
 const blueprints: readonly CaseBlueprint[] = [...approvedCaseBlueprints, ...reviewBlueprints];
+const evidenceSources = (
+  await Promise.all(
+    contentRegistry.entries
+      .filter((entry) => entry.kind === 'evidence_source')
+      .map(async (entry) =>
+        EvidenceSourceDefinitionSchema.parse(
+          JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+        ),
+      ),
+  )
+).sort((left, right) => left.id.localeCompare(right.id));
+const sourceUseDecisionEntry = contentRegistry.entries.find(
+  (entry) => entry.kind === 'source_use_decision_catalog',
+);
+if (!sourceUseDecisionEntry) {
+  throw new Error('The content registry does not identify a source-use decision catalog.');
+}
+const sourceUseDecisions = SourceUseDecisionCatalogSchema.parse(
+  JSON.parse(await readFile(resolve(sourceUseDecisionEntry.path), 'utf8')) as unknown,
+);
+const sourceUseDecisionByEvidenceId = new Map(
+  sourceUseDecisions.decisions.map((decision) => [decision.evidenceSourceId, decision]),
+);
 
 const caseRuleReviews = (blueprint: CaseBlueprint) => [
   blueprint.patientRecord.treatmentReference.review,
@@ -36,10 +65,28 @@ const caseRuleReviews = (blueprint: CaseBlueprint) => [
 console.log('PsychSim evidence catalog and contribution audit');
 console.log('Catalog presence verifies bibliography only; it does not confer medical approval.');
 
-for (const source of catalogs.evidenceSources) {
+for (const source of evidenceSources) {
   console.log(`\n${source.id}`);
   console.log(`  ${source.citation}`);
   console.log(`  ${source.url}`);
+  console.log(
+    `  Access metadata: full text ${source.accessPolicy.fullTextStatus}; reuse ${source.accessPolicy.reuseStatus}; adaptation ${source.accessPolicy.adaptationStatus}; AI ${source.accessPolicy.aiUseStatus}; local extraction ${source.accessPolicy.localExtractionStatus}; commercial ${source.accessPolicy.commercialUseStatus}.`,
+  );
+  const sourceUseDecision = sourceUseDecisionByEvidenceId.get(source.id);
+  if (!sourceUseDecision) {
+    console.log('  Source-use decision: MISSING (validation error).');
+  } else {
+    const permissions = sourceUseDecision.permissions;
+    console.log(
+      `  Source-use decision: ${sourceUseDecision.decisionStatus} via ${sourceUseDecision.legalBasis}; store ${permissions.localFullTextStorage ? 'yes' : 'no'}; extract ${permissions.localTextExtraction ? 'yes' : 'no'}; index ${permissions.localStructuredIndexing ? 'yes' : 'no'}; AI ${permissions.aiAssistedProcessing ? 'yes' : 'no'}; derive ${permissions.derivedClinicalContent ? 'yes' : 'no'}; runtime ${permissions.runtimeRedistribution ? 'yes' : 'no'}; commercial ${permissions.commercialDistribution ? 'yes' : 'no'}.`,
+    );
+    if (sourceUseDecision.attributionStatement) {
+      console.log(`  Attribution: ${sourceUseDecision.attributionStatement}`);
+    }
+  }
+  for (const relation of source.sourceRelations) {
+    console.log(`  Relation: ${relation.relationType} ${relation.sourceId}`);
+  }
   const uses = blueprints.flatMap((blueprint) =>
     blueprint.patientRecord.sourceUseNotes
       .filter((note) => note.evidenceSourceIds.includes(source.id))

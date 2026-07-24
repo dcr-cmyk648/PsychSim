@@ -9,39 +9,178 @@
 PsychSim is a static browser application in a pnpm workspace. Zod schemas form the data boundary, JSON content supplies stable reviewed inputs, pure TypeScript produces deterministic state transitions and point-rule traces, React renders those values, and an IndexedDB repository persists versioned saves.
 
 ```text
-approved JSON catalogs + case blueprint
+approved JSON catalogs + patient template
                  │ Zod parse + reference validation
                  ▼
         content-runtime static bundle
                  │
                  ▼
- diagnosis composition + seeded patient context
+ diagnosis/decision composition + deterministic constraints
                  │
                  ▼
- seeded instantiation → pure encounter engine → care points → settlement → receipt
+ patient instance → encounter compilation → pure encounter engine
+                                           │
+                                           ▼
+                              care points → settlement → receipt
                  │                                      │
                  └──────────────── React UI ─────────────┘
                                       │
                                IndexedDB repository
 ```
 
+The current prototype still feeds `CaseBlueprint` directly into `CaseInstance`; that is a
+versioned compatibility path, not the target authoring boundary. The generated-patient migration is
+specified in [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).
+
 ## Package responsibilities
 
-`@psychsim/schemas` owns stable IDs, schema/content versions, catalogs, the content registry, diagnosis families/severity/specifiers, qualitative diagnosis rules, bounded patient composition and gameplay-critical context dimensions, per-test generators, structured reference intervals, rule-level review records, patient records, blueprints/instances, declarative predicates, encounter events, point-report/receipt/settlement models, persistent patient queues, local clinical tickets/export bundles, developer source requests, clinic/save/flag data, upgrade/decor/facility definitions, source manifests/documents/chunks, generation provenance, and patient-scaffold requests. Upgrade definitions declare kind, point cost, lifetime/facility/department/prerequisite gates, granted capabilities/formularies, related services, per-use cost metadata, patient-category effects, and player-facing capability labels. Facility definitions own their locations, default location, threshold, slot count, and permitted purchases; decor definitions own satisfaction contribution, display slot, and visual token. The universal information catalog owns neutral menu presentation, SOAP/source metadata, and service references; patient files own structured results, observations, authored pathways, internal progression-pool classification, and rule classifications. Types are inferred from schemas except the recursive predicate unions.
+`@psychsim/schemas` owns stable IDs, schema/content versions, catalogs, the content registry,
+diagnosis families/severity/specifiers, qualitative diagnosis rules, bounded patient composition and
+gameplay-critical context dimensions, per-test generators, structured reference intervals,
+rule-level review records, patient records, blueprints/instances, declarative predicates, encounter
+events, point-report/receipt/settlement models, persistent patient queues, local clinical
+tickets/export bundles, developer source requests, clinic/save/flag data, upgrade/decor/facility
+definitions, source manifests/documents/chunks, generation provenance, and patient-scaffold
+requests. It also owns authoring-only diagnosis-classification releases and terms, compact reviewed
+diagnosis-classification bindings, and source-use decisions that separately gate storage,
+extraction, local indexing, AI processing, derived clinical content, redistribution, and commercial use. The next schema
+version adds typed facts/derivations, internal condition states, separate
+chart diagnosis entries, medication-regimen entries, structured prior trials, decision policies,
+patient templates, and frozen encounter instances without reinterpreting old snapshots. Upgrade
+definitions declare kind, point cost, lifetime/facility/department/prerequisite gates, granted
+capabilities/formularies, related services, per-use cost metadata, patient-category effects, and
+player-facing capability labels. Facility definitions own their locations, default location,
+threshold, slot count, and permitted purchases; decor definitions own satisfaction contribution,
+display slot, and visual token. The universal information catalog owns neutral menu presentation,
+SOAP/source metadata, and service references; patient templates own structured results, narrow
+overrides, internal progression-pool classification, and generation constraints. Types are inferred
+from schemas except the recursive predicate unions.
 
-`@psychsim/engine` owns top-down diagnosis composition and conflict reports; deterministic clinical-context, demographic, finding, and test variation; service resolution; effective-formulary calculation; atomic upgrade/facility/decor offers and purchases; deterministic satisfaction calculation; persistent queue construction/relocation; encounter commands; predicate evaluation; points-only progression overlays; care-point evaluation; economy; receipts; replay; and eligibility. Diagnosis composition is qualitative and point-free. It has no React import, browser global, network call, wall-clock decision, mutable singleton, or runtime AI.
+`@psychsim/engine` owns top-down diagnosis and decision-policy composition, typed-fact derivation,
+conflict reports, constrained patient generation, focused encounter compilation, deterministic
+clinical-context/demographic/finding/test variation, service resolution, effective-formulary
+calculation, atomic upgrade/facility/decor offers and purchases, deterministic satisfaction
+calculation, persistent queue construction/relocation, encounter commands, predicate evaluation,
+points-only progression overlays, care-point evaluation, economy, receipts, replay, and
+eligibility. Diagnosis composition is qualitative and point-free. It has no React import, browser
+global, network call, wall-clock decision, mutable singleton, or runtime AI.
 
-`@psychsim/content-runtime` explicitly imports approved JSON only, parses it at module load, supplies the starting clinic, cross-checks imports and dependency edges against `content/registry.json`, performs semantic reference validation, and executes reference policies. Its pure rule inspector derives compact review rows from parsed blueprints and catalogs; it does not duplicate point evaluation or mutate content. A separate development entry discovers review patients/tickets and the tracked source-request queue. A production build cannot discover arbitrary draft files or evidence-gap records.
+`@psychsim/content-runtime` has three explicit entry boundaries. Its ordinary root entry imports
+approved JSON only, parses it at module load, supplies the starting clinic, cross-checks imports and
+dependency edges against `content/registry.json`, performs semantic reference validation, and
+executes reference policies. The local `./developer` entry discovers review patients/tickets and
+the tracked source-request queue. The portable `./reviewer` entry imports one finite assignment of
+ten named scenario files and their eight schema-parsed provisional decision policies; it never
+globs a lifecycle directory. A tiny `./reviewer-assignment` entry owns the assignment identity used
+to namespace its save database and export bundles. The normal root index exports none of these
+reviewer modules. Its pure rule inspector derives compact review rows from parsed blueprints and
+catalogs; it does not duplicate point evaluation or mutate content.
 
-Formal bibliographic metadata is static runtime-safe content under `content/catalogs/evidence/formal`, distinct from private document bytes. A case or medication contribution links a cataloged source to exact target IDs and snapshots the citation plus contribution statement into the rule trace. If no contribution is linked, the engine snapshots `Expert opinion`. This makes historical receipts auditable without bundling copyrighted source text or implying that bibliographic verification equals clinical approval.
+Formal source metadata is static content under `content/catalogs/evidence/formal`, distinct from
+private document/database bytes. It covers publications plus structured databases and includes
+version/scope fields, access/reuse/AI/local-extraction policy, and validated relationships for
+corrections, updates, supersession, companions, and executive summaries. A case or medication
+contribution links a cataloged source to exact target IDs and snapshots the citation plus
+contribution statement into the rule trace. If no contribution is linked, the engine snapshots
+`Expert opinion`. This makes historical receipts auditable without bundling copyrighted source
+text or implying that bibliographic verification equals clinical approval.
 
-`@psychsim/web` owns presentation, transient UI state, accessibility, local Developer tools, and the persistence boundary. It may add real timestamps when saving attempts, flags, reviewer notes, and tickets; those timestamps never affect clinical behavior. Developer ticket cards receive a derived exact-rule audit keyed by blueprint ID and can show targeted values without running the patient. A separate source-needed panel displays the tracked evidence questions and Drive destination but does not download, ingest, or apply anything. IndexedDB sits behind `SaveRepository`, allowing migrations or another local adapter later. In development only, a fixed Vite middleware endpoint atomically mirrors a schema-validated ticket bundle to `content/generated/local-review-tickets/tickets.json`; each ticket-review save updates both stores, and a visible retry control can refresh the file. Playwright selects the separate fixed `tickets.e2e.json` target so test execution cannot overwrite human decisions. Production contains no writable endpoint. Pre-release v4 archives incompatible legacy 0–100 receipts as opaque local payloads rather than pretending they use the new point model.
+Evidence precedence belongs in the future claim-resolution layer, not in static source metadata.
+The resolver compares compatible claims by question-specific design fit, bias/certainty,
+directness/applicability, currency, and correction state. It retains unresolved disagreement and
+never turns a source type or publication date into a hidden universal authority score. Aggregate
+sources such as DrugCentral remain authoring-only until their source-use decision explicitly
+permits a separately licensed runtime contribution.
 
-`@psychsim/content-cli` is developer-side. It implements validation, reference runs, reverse-impact reporting, SHA-256 source scanning, bounded PDF/DOCX/TXT/Markdown extraction, source review listings, controlled patient scaffolding, production-bundle checks, and a before/after ECG ownership economy report. It is not imported by the web app. Extracted records and generation provenance are local and ignored; an intentionally reviewed patient scaffold and its blocking audit tickets can be committed under `content/cases/review`.
+The future medication/intervention authoring compiler is also outside the browser runtime. It
+combines source-cleared identity and regulatory imports, structured evidence claims, separate
+Developer opinions, and reviewed rule transformations into the small approved runtime subset.
+PsychSim stable IDs remain primary over RxCUIs, UNIIs, application/product IDs, and external
+classification identifiers. A generated medication audit may assemble direct and class-level
+knowledge for one review page, but it is disposable output rather than a second source of truth.
+No source import, label change, or comparative-effect estimate writes a gameplay rule or point
+value directly. See `docs/MEDICATION_AND_INTERVENTION_DATA.md`.
+
+`@psychsim/web` owns presentation, transient UI state, accessibility, local Developer tools, and the
+persistence boundary. It may add real timestamps when saving attempts, flags, reviewer notes,
+tickets, and Developer attempt reviews; those timestamps never affect clinical behavior. A
+`DeveloperAttemptReview` embeds the immutable `CompletedAttempt` plus a normalized snapshot of
+every information, medication, nonmedication, and disposition option shown for that attempt,
+including displayed service fulfillment/cost and whether it was chosen. This makes free-form
+comments auditable even after catalogs change. IndexedDB sits behind `SaveRepository`.
+
+The ordinary Player and local Developer surfaces use `psychsim-local-save`. The portable Reviewer
+uses an assignment-namespaced database, forces practice progression, and can reopen every completed
+receipt after reload. Its version-5 download contains build kind, assignment identity, engine
+version, all completed attempts, case comments and normalized option snapshots, flags, and tickets.
+Several cases can be reviewed before one manual export. The export is the only cross-device
+durability mechanism; there is no sync or import. In local development only, the fixed Vite
+middleware mirrors the same schema-validated bundle to
+`content/generated/local-review-tickets/tickets.json`; Playwright uses the separate
+`tickets.e2e.json` target. The portable Reviewer contains no middleware endpoint, local
+source/opinion/ticket queues, or arbitrary file writer.
+
+The assignment ID is a persistence migration boundary, not merely a label. A material change to
+cohort membership, scenario semantics, policy semantics, or intended reviewer content requires a
+new ID so prior run history cannot suppress revised patients and exports cannot mix assignment
+revisions. The current bundle identifies build kind rather than an exact Git revision; exact
+release-commit identity remains a future export enhancement.
+
+`@psychsim/content-cli` is developer-side. It implements validation, reference runs, reverse-impact
+reporting, SHA-256 source scanning, bounded PDF/DOCX/TXT/Markdown extraction, source review
+listings, controlled patient scaffolding, production-bundle checks, and a before/after ECG
+ownership economy report. It is not imported by the web app. Extracted records and generation
+provenance are local and ignored; an intentionally generated patient scaffold and its blocking
+audit tickets can be committed under `content/cases/review`. A source request can name proposed
+shared impact IDs for ticket routing, but the compiler keeps those separate from owner-local
+evidence contributions and never applies them as rules. The CLI also validates and searches the
+pinned authoring-only ICD-10-CM catalog and deterministically reimports it only after verifying the
+official release-member hash. Those commands never add the classification payload to
+`CatalogBundle` or the web app.
+
+## Source-rights and diagnosis-classification boundary
+
+Bibliographic metadata, lawful processing, medical review, and runtime inclusion are independent
+gates. `EvidenceSourceDefinition` describes a source; `SourceUseDecision` records what PsychSim may
+do with it; rule-level contributions and clinical review determine whether derived behavior may
+execute. A blocked or absent rights decision permits metadata only. See
+[SOURCE_USE_POLICY.md](SOURCE_USE_POLICY.md).
+
+`content/catalogs/diagnoses/classifications/` is an authoring-only namespace. Its tracked FY 2026
+ICD-10-CM F01–F99 release manifest pins dates, source hashes, importer version, term count, and
+normalized output. The generated code-title cache is gitignored and retained only in the local
+workspace under its narrow U.S. fair-use decision. Registry entries are `runtimeIncluded: false`,
+bundle-safety checks reject the directory and its stable term IDs, and the payload is absent from
+`CatalogBundle`.
+
+A playable `DiagnosisDefinition` may carry only compact reviewed bindings containing a
+classification release ID, code, mapping relation (`exact_match`, `broader_than_code`,
+`narrower_than_code`, or `related`), note, and review record. Label similarity and file order never
+create a mapping. A binding supplies neither criteria nor treatment guidance.
+
+The source-specific notice controls when a landing page and a document disagree. Page iv of the
+official 2024 WHO CDDR PDF identifies that work as CC BY-NC-ND 3.0 IGO and prohibits adaptations
+without permission, despite the publication page linking a generic ShareAlike deed. The separate
+ICD-11 digital classification/API is also NoDerivatives. CDDR and DSM-5-TR therefore remain
+bibliographic metadata only: neither source's text enters source folders, prompts, fixtures,
+generated content, or runtime data without written permission.
+
+The current classification schema is deliberately ICD-10-CM-specific. A future ICD-11
+exact-identifier catalog must use its own URI-bearing schema so code, title, and WHO URI remain
+together as required by the API terms. It must receive a separate source-use decision and cannot
+reuse the ICD-10-CM importer or imply permission to derive diagnostic rules.
 
 ## Static content flow
 
-Content moves through `blueprints → drafts → review → approved → deprecated`. Only explicit imports from `content/cases/approved` enter the production bundle. The registry records where content lives, but does not override that allowlist. A validator rejects invalid IDs, predicates, registry paths, facility/location/upgrade/decor relationships, finding constraints, missing per-test files, unsafe generation ranges, indicated-action rewards that do not exceed cost, SOAP-boundary violations, pre-submit assessment/answer hints, references, unsafe eligibility at every compatible facility location, medical-approval claims, insufficient presentation variation, and critical-field variants. A development-only glob import exposes approved plus every schema-valid review patient and companion ticket bundle in Developer mode. A generated review file becomes playable after a development-server restart without changing React code. Compile-time dead-code elimination and explicit forbidden-content scanning keep that module out of production.
+Content moves through `blueprints → drafts → review → approved → deprecated`. The ordinary Player
+artifact imports only `content/cases/approved`. The local Developer entry may discover schema-valid
+review files. The separately flagged portable Reviewer artifact is a distribution exception for
+review, not a lifecycle promotion: it imports only the ten exact scenario IDs and paths in its
+assignment allowlist, and every compiled rule remains medically unreviewed. The registry records
+where content lives but never overrides an entry allowlist. Validators cover schemas, references,
+eligibility, provenance, reference policies, and all compiled Reviewer scenarios. Bundle scanning
+rejects every other authoring-only registry marker; Reviewer mode relaxes the scanner only for the
+ten exact ID/path pairs.
 
 The initial prototype has a temporary distinction: its lifecycle placement is approved for bundling and playtesting, while `medicalReviewStatus` remains `unreviewed`. The UI always shows that status. A future clinical approval workflow must add reviewer metadata before content can claim medical approval.
 
@@ -49,7 +188,19 @@ The initial prototype has a temporary distinction: its lifecycle placement is ap
 
 `instantiateCase(blueprint, seed, catalogs)` hashes `blueprint ID + seed + stable generator ID`. It resolves only declared choice, catalog-choice, weighted-choice, integer/decimal range, text-template, reviewed clinical-context options, constrained finding selection, and per-test generators. No arbitrary code and no `Math.random` are allowed. Clinical-context options are critical: the selected option and its tags are saved, and its present/absent bindings are materialized into the same structured findings a player can reveal. Cosmetic variants cannot change those rules. Criteria-bearing finding sets declare minimum/maximum positives and required present/absent IDs. A test definition chooses the highest-priority matching profile from declared age, sex-for-reference, diagnosis, and resolved clinical-tag context. Unspecified numeric values may vary only inside catalog-defined normal or mild incidental ranges and cannot change the rubric. Results retain UCUM units, structured low/high interval bounds, source/population labels, and derived normal/high/low interpretation. The saved CaseInstance stores the internal seed and every resolved value; the UI never displays the seed.
 
-Diagnosis files are composed separately from patient instantiation. `composeDiagnosisGuidance` applies base, severity, specifier, and other active-diagnosis rules, derives tags and a five-dimensional complexity vector, and returns stable conflicts. It never assigns points or chooses a source winner. See [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md).
+Diagnosis files are composed separately from patient instantiation.
+`composeDiagnosisGuidance` applies base, severity, specifier, and other active-diagnosis rules,
+derives tags and a five-dimensional complexity vector, and returns stable blocking conflicts. It
+never assigns points or chooses a source winner. The next compiler narrows that conservative
+checkpoint: structural invalidity/no-safe-route states quarantine; a reviewed safety constraint may
+govern valid clinical tension while both rules remain traceable; evidence disagreement stays
+disabled behind a ticket; and balance disagreement remains outside qualitative guidance. That
+compiler consumes internal conditions rather than chart claims, addresses regimen entries
+independently, measures the resolved patient against a provisional template complexity envelope,
+and limits positive guidance to the focused decision horizon while retaining global
+safety/interaction rules. See
+[DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) and
+[PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).
 
 The launcher renders from that resolved CaseInstance—not internal case metadata—so it can show only patient name and chief complaint. Hidden diagnosis/category fields remain content and validation inputs and are never used as player-facing case labels.
 
@@ -57,23 +208,61 @@ Encounter commands return new values and typed `Result` failures. Stable event I
 
 ## Service, location, and eligibility boundaries
 
-Service definitions enumerate fulfillment methods with costs and capability/location requirements. Resolution unions location and clinic capabilities, filters available methods, and deterministically chooses cost then stable ID. Equipment purchase previews the projected clinic through the same resolver, so store estimates and encounter costs cannot diverge. Eligibility checks compatible location/lifetime points, every objective required by at least one complete accepted path, medication-tag and formulary satisfiability, intervention/disposition capability requirements, and safe referral/transfer. Validation constructs a baseline clinic for every compatible facility location rather than checking only the starter and Endgame overlays. Existing medications remain available to stop or explicitly continue even when they are not stocked for a new start. Department satisfiability becomes stricter in Milestone 4 without changing patient files.
+Service definitions enumerate fulfillment methods with costs and capability/location requirements.
+Resolution unions location and clinic capabilities, filters available methods, and deterministically
+chooses cost then stable ID. Equipment purchase previews the projected clinic through the same
+resolver, so store estimates and encounter costs cannot diverge. Eligibility checks compatible
+location/lifetime points, every objective required by at least one complete accepted path,
+medication-tag and formulary satisfiability, intervention/disposition capability requirements, and
+safe referral/transfer. Validation constructs a baseline clinic for every compatible facility
+location rather than checking only the starter and Endgame overlays. Existing regimen entries
+remain available to stop or explicitly continue even when their catalog medication is not stocked
+for a new start. Department satisfiability becomes stricter in Milestone 4 without changing
+patient-template content.
 
 `getUpgradeOffer` is a read-only pure quote across equipment, formulary, facility, and decor catalogs. It reports blockers, current/projected service methods, per-use savings, break-even uses, target facility/slot count, and before/after ambience where relevant. `purchaseUpgrade` re-evaluates the same gates and either returns one validated ClinicState with the exact point deduction and granted IDs or a typed failure with the input unchanged. A facility transition resolves locations and baseline capabilities declaratively while preserving earlier purchases. Decor recomputes a catalog-configured rational satisfaction curve. Purchases never reduce lifetime points, permit debt, or run in practice modes. The browser persists the returned ClinicState through the existing SaveRepository.
 
-The profile persists standard clinic state, mode, and complete resolved queue slots. Calling queue fill twice leaves a Normal patient unchanged; completing the slot retires its chief complaint into a bounded recent-history list before a replacement is generated. When a facility move changes location IDs, the same resolved waiting patient is relocated to the compatible new outpatient location rather than regenerated, and newly available slots are then filled. Endgame is a pure derived overlay that selects the highest declared facility/location, unions capabilities/formularies/purchases, increases approved patient slots, and permits manual refresh. Developer uses the same overlay but a development-only content pool, tracks patient definitions already run, and permits reroll/reset. Practice settlements set `bankedClinicPointsEarned` to zero. Diagnosis and `starter`/`transitional`/`advanced` pool metadata remain internal.
+The profile persists standard clinic state, mode, and complete resolved queue slots. Calling queue
+fill twice leaves a Normal patient unchanged; completing the slot retires its chief complaint into
+a bounded recent-history list before a replacement is generated. When a facility move changes
+location IDs, the same resolved waiting patient is relocated to the compatible new outpatient
+location rather than regenerated, and newly available slots are then filled. Endgame is a pure
+derived overlay that selects the highest declared facility/location, unions
+capabilities/formularies/purchases, increases approved patient slots, and permits manual refresh.
+Local Developer uses the same overlay with its development content pool. Portable Reviewer uses
+the overlay with its finite assignment, hides source provenance before submission, tracks
+definitions already run, and permits reroll/reset. Practice settlements bank zero points.
+Diagnosis, source organization, and `starter`/`transitional`/`advanced` pool metadata remain
+internal before submission.
 
-Receipt feedback is persisted as `ContentFlag` and `ClinicalReviewTicket`. Guidance snapshots the disputed receipt row and records routing, target/dependency/conflict IDs, whether clinical acumen is required, internal status, reviewer instructions with their update timestamp, optional resurfacing trigger, and resolution. The UI deliberately hides the internal status taxonomy and asks only what Codex should do. It remains a proposal queue: browser feedback never edits JSON catalogs or patient files. Developer mode may download the queue or ask the development server to mirror it to one gitignored queue file; that file remains a proposal bundle, not runtime content. Checked-in ticket definitions may refresh descriptive fields and exact target IDs on reload while preserving the browser's reviewer prose, timestamps, and resolution.
+Receipt feedback is persisted as `ContentFlag` and `ClinicalReviewTicket`. Guidance snapshots the
+disputed receipt row and records routing, target/dependency/conflict IDs, whether clinical acumen is
+required, internal status, reviewer instructions with their update timestamp, optional resurfacing
+trigger, and resolution. `Needs another guideline/source` produces a `source_gap` ticket so Codex
+can check existing evidence and create or update a `SourceRequest`; it does not synthesize a rule.
+The UI deliberately hides the internal status taxonomy and asks only what Codex should do. It
+remains a proposal queue: browser feedback never edits JSON catalogs or patient files. Developer
+mode may download the queue or ask the development server to mirror it to one gitignored queue
+file; that file remains a proposal bundle, not runtime content. Checked-in ticket definitions may
+refresh descriptive fields and exact target IDs on reload while preserving the browser's reviewer
+prose, timestamps, and resolution.
 
 ## Local authoring boundary
 
 `content/source-docs` is outside runtime and gitignored. `content:scan` hashes local inbox bytes, records a versioned manifest, identifies exact duplicates by hash, and quarantines unsupported or oversized files without deletion. `content:extract` parses PDF pages, DOCX text, TXT, and Markdown into hashed `SourceDocument`/`SourceChunk` artifacts with page or section context, then retains originals in processed/archive/quarantine. Text is untrusted inert data, extraction is idempotent, and every private artifact remains outside Vite and Git.
 
-A formal publication has a second, tracked representation containing citation metadata only. Known byte hashes can associate a private copy with that entry without committing its text. Source-use records are the third layer: they state whether authority is `formal_publication` or `expert_opinion`, list every relevant formal-source ID, identify target rules, classify the contribution, and summarize how it was used.
+A formal publication has a second, tracked representation containing citation and lawful-processing metadata only. Known byte hashes can associate a private copy with that entry without committing its text. A public download link is insufficient when the publisher requires permission for reuse or AI use; those records remain metadata-only. Source-use records are the third layer: they state whether authority is `formal_publication` or `expert_opinion`, list every relevant formal-source ID, identify target rules, classify the contribution, and summarize how it was used.
 
 `content:draft <request.json>` is deliberately narrower than clinical generation. It requires an explicit runtime template, verified source-document/chunk IDs when sources are cited, a new stable patient ID, an adult age range, and at least ten brief chief-complaint variants. It copies executable mechanics, resets every inherited clinical rule to unreviewed, runs schema/reference/eligibility validation, and emits a review-only patient plus blocking clinical audit tickets. It never interprets source prose or silently converts a claim into a score. `content:compile` validates all Developer patients, while `content:review` lists the local review surface.
 
 The connected Drive folder `PsychSim documents` is a remote discovery inbox. An explicit user-requested scan lists provider metadata and stores it in a local-only manifest. Connector access and local extraction are separate trust boundaries: a Drive file must be downloaded into the protected local inbox before its bytes can be hashed and extracted by the CLI. Sources are handled one at a time for claim and impact review.
+
+The user's SharePoint residency-article aggregate follows the same private-byte boundary but needs
+one additional logical segmentation layer: one physical `SourceDocument` contains multiple
+`AuthoredSourceUnit` articles, each of which can yield atomic Developer-opinion and bibliographic
+candidates. The current environment has no SharePoint connector. A heading-preserving manual
+export must enter the local or Drive inbox; exact article prose remains private and only accepted
+concise opinions become tracked content.
 
 Before discovery, a versioned `SourceRequest` may identify the unresolved question and its acceptable evidence. Requests are tracked under review content, registered as runtime-excluded, and validated against exact content and ticket IDs. Linking a source moves the evidence workflow forward but never changes the executable rule; a separate contribution, content version, impact scan, and clinical review remain mandatory.
 
@@ -81,4 +270,9 @@ The remaining Milestone 7 work adds an optional developer-side provider abstract
 
 ## Browser-only limitations
 
-Milestone 3 remains single-device and local-only: no account sync, server recovery, collaboration, public leaderboard, or remote review queue. IndexedDB can be cleared by the browser. There is no anti-cheat, server authority, or protected economy. These are intentional product constraints, not missing backend tasks.
+Milestone 3 remains single-device and local-only: no account sync, server recovery, collaboration,
+public leaderboard, remote review queue, or review-bundle import. IndexedDB can be cleared by the
+browser, and a portable reviewer must export before clearing site data or changing
+device/browser/origin. Pages provides no application authentication; access control, if desired,
+must be supplied outside this static app. There is no anti-cheat, server authority, or protected
+economy. These are intentional product constraints, not missing backend tasks.

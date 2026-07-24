@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.schizophrenia-relapse",
+  "internalTitle": "Reviewer cohort: schizophrenia relapse",
+  "difficultyTier": 3,
+  "patientPool": "advanced",
+  "tags": ["reviewer-cohort", "schizophrenia", "psychosis", "adherence", "escalation"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.schizophrenia-spectrum-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.psychotic"]
+    }
+  ],
+  "clinicalTagIds": [
+    "clinical-tag.psychotic-symptoms",
+    "clinical-tag.inconsistent-adherence",
+    "clinical-tag.impaired-self-care",
+    "clinical-tag.requires-escalation"
+  ],
+  "criticalFacts": {
+    "focusedDecision": "acute-psychotic-relapse",
+    "acuteSafetyConcern": true,
+    "impairedSelfCare": true,
+    "substanceIntoxication": false
+  },
+  "ageRange": { "minimum": 24, "maximum": 58 },
+  "chiefComplaintChoices": [
+    "People are watching me",
+    "I hear voices",
+    "My neighbors are tracking me",
+    "Someone is following me",
+    "The voices are back",
+    "I do not feel safe at home",
+    "My thoughts are being monitored",
+    "Family says I am acting strangely",
+    "I stopped my medication",
+    "People can read my thoughts",
+    "The television is sending messages",
+    "I cannot trust anyone"
+  ],
+  "durationChoices": ["five days", "one week", "ten days", "about two weeks"],
+  "bothersomeness": "extremely",
+  "settingText": "Solo psychiatric office · urgent outpatient visit",
+  "knownHistory": ["A schizophrenia-spectrum diagnosis appears in outside records."],
+  "medicationRegimen": [
+    {
+      "schemaVersion": 1,
+      "id": "regimen.review-schizophrenia.aripiprazole",
+      "medicationId": "medication.aripiprazole",
+      "status": "prescribed_not_taking",
+      "adherence": "not_taking",
+      "prescribedForDiagnosisId": "diagnosis.schizophrenia-spectrum-disorder",
+      "source": "outside_record",
+      "knownAtOpening": true
+    }
+  ],
+  "priorMedicationTrials": [],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.psychosis",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-schizophrenia.auditory-hallucinations",
+            "labelVariants": ["Auditory hallucinations", "Voices"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-schizophrenia.persecution",
+            "labelVariants": ["Persecutory beliefs", "Belief of being monitored"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-schizophrenia.disorganization",
+            "labelVariants": ["Disorganized thought process", "Loose associations"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-schizophrenia.command",
+            "labelVariants": ["Command hallucinations", "Commands to harm"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-schizophrenia.psychosis"]
+      }
+    },
+    {
+      "actionId": "info.history.violence-risk",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-schizophrenia.violence-intent",
+            "labelVariants": ["Current violent intent", "Intent to harm others"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.review-schizophrenia.self-care",
+            "labelVariants": ["Unable to maintain basic self-care", "Marked self-care decline"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-schizophrenia.agitation",
+            "labelVariants": ["Severe agitation", "Immediate behavioral aggression"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.review-schizophrenia.safety"]
+      }
+    },
+    {
+      "actionId": "info.physical.mental-status",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-schizophrenia.mse-thought",
+            "labelVariants": ["Disorganized thought process", "Thought disorganization"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-schizophrenia.mse-insight",
+            "labelVariants": ["Limited insight", "Poor illness awareness"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-schizophrenia.mse-attention",
+            "labelVariants": ["Fluctuating attention", "Altered level of consciousness"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-schizophrenia.mse"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.schizophrenia.relapse"
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "diagnosis.major-depressive-disorder",
   "label": "Major depressive disorder",
   "description": "Diagnosis-family structure for shared MDD rules, episode-severity branches, and later reviewed specifiers.",
@@ -85,5 +85,18 @@
   "specifiers": [],
   "comorbidityRelationships": [],
   "complexityContributions": [],
-  "sourceUseNotes": []
+  "sourceUseNotes": [
+    {
+      "id": "source-use.diagnosis-mdd.who-mhgap-dep1-4-context",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.who.mhgap-mns.2023"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": ["diagnosis.major-depressive-disorder"],
+      "contributionTypes": ["context_only"],
+      "contribution": "WHO mhGAP DEP1-DEP4 is retained as broad non-specialist treatment context. It does not define PsychSim's MDD diagnostic criteria or operational severity thresholds, and no diagnosis-owned rule has been activated from it.",
+      "generatedBy": "ai",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
 }

@@ -40,6 +40,36 @@ export const resolveVariant = (
       const index = Math.min(values.length - 1, Math.floor(unit * values.length));
       return values[index] ?? values[0] ?? '';
     }
+    case 'fictionalName': {
+      const firstNames = pools.find((pool) => pool.id === generator.firstNamePoolId)?.values;
+      const lastNames = pools.find((pool) => pool.id === generator.lastNamePoolId)?.values;
+      if (!firstNames?.length) {
+        throw new Error(`Unknown or empty first-name pool: ${generator.firstNamePoolId}`);
+      }
+      if (!lastNames?.length) {
+        throw new Error(`Unknown or empty last-name pool: ${generator.lastNamePoolId}`);
+      }
+      const firstName =
+        firstNames[
+          Math.min(
+            firstNames.length - 1,
+            Math.floor(seededUnit(seed, `${key}:first`) * firstNames.length),
+          )
+        ] ?? firstNames[0]!;
+      const lastName =
+        lastNames[
+          Math.min(
+            lastNames.length - 1,
+            Math.floor(seededUnit(seed, `${key}:last`) * lastNames.length),
+          )
+        ] ?? lastNames[0]!;
+      const includesMiddleInitial =
+        seededUnit(seed, `${key}:middle-present`) < generator.middleInitialProbability;
+      const middleInitial = String.fromCharCode(
+        65 + Math.min(25, Math.floor(seededUnit(seed, `${key}:middle-letter`) * 26)),
+      );
+      return `${firstName}${includesMiddleInitial ? ` ${middleInitial}.` : ''} ${lastName}`;
+    }
     case 'weightedChoice': {
       const totalWeight = generator.options.reduce((sum, option) => sum + option.weight, 0);
       let cursor = unit * totalWeight;

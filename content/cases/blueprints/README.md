@@ -13,3 +13,8 @@ Then open Developer mode. Vite discovers every `*.case.json` in the review folde
 The scaffolder is deliberately conservative. It changes neutral presentation variation, internal IDs, age range, and source-use metadata while inheriting executable clinical rules from the selected approved template. It does **not** infer a new diagnosis or propagate article text into scoring. Each generated package includes blocking clinical-review tickets for the inherited logic and source application. Edit and resolve those proposals before any promotion.
 
 For a source-backed request, run `pnpm content:scan` and `pnpm content:extract` first, inspect IDs with `pnpm content:review`, then populate `sourceUses` with explicit `authority`, formal `evidenceSourceIds` or an empty list for Expert opinion, exact document/chunk IDs, contribution categories, and an original concise summary. Every formal ID must already have a tracked entry under `content/catalogs/evidence/formal/`; use `pnpm content:evidence` to audit them. Raw text remains under the gitignored source-document boundary. The tracked example is source-free so a clean checkout can exercise the mechanics without private files.
+
+Each source use may also declare `proposedImpactContentIds`. These targets are copied only into the
+source-application ticket; they are not automatic clinical changes or owner-local evidence
+contributions. Use exact diagnosis, medication, treatment, test, pathway, and rule IDs so review can
+distinguish a shared-catalog change from a patient-only exception.

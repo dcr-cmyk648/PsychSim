@@ -4,11 +4,74 @@
 
 The receipt exposes a local flag control for the whole encounter, each receipt item, and each rule trace. A ContentFlag records stable ID, case/blueprint/content version, seed, engine version, attempt ID, disputed item, category, clinical-review requirement, note, open status, and timestamp. The associated CompletedAttempt preserves the resolved CaseInstance, clinic snapshot, event/action history, submitted combination, point report, and exact rule trace. Flags and attempts persist together in IndexedDB.
 
-Categories cover the whole encounter, information result, workup objective, treatment grade, interaction rule, penalty, rationale, missing acceptable alternative, narrative ambiguity, and UI/engine bug. Capturing a flag does not modify or re-score the historical attempt.
+Categories cover the whole encounter, information result, workup objective, treatment grade,
+interaction rule, penalty, rationale, missing acceptable alternative, need for another
+guideline/source, narrative ambiguity, and UI/engine bug. A source-gap flag creates a local ticket
+whose next step is to check existing evidence and then create or update a tracked `SourceRequest`;
+it never authorizes the engine or Codex to invent the missing rule. Capturing a flag does not modify
+or re-score the historical attempt.
 
-On the local development server, every receipt row also has “Add guidance.” Guidance creates a proposed `ClinicalReviewTicket` with the exact row snapshot, patient/content version, requested ticket type, whether clinical acumen is required, target IDs, dependency/conflict slots, proposed routing, optional resurfacing trigger, and timestamps. A clinically marked flag also creates a ticket. Developer mode shows the local queue and gives every existing or newly created ticket one editable “What should Codex do?” field. Lifecycle status remains internal because the prior user-facing status menu contained overlapping choices. Saving instructions persists the prose and update timestamp in IndexedDB, marks the ticket internally as reviewed, and atomically mirrors the complete versioned bundle to the fixed gitignored path `content/generated/local-review-tickets/tickets.json`. “Update Codex handoff file” retries or refreshes the mirror; “Export JSON” downloads the same portable bundle. Automated browser tests write only to `tickets.e2e.json`, never the human handoff file.
+On the local development server, every receipt row also has “Add guidance.” Guidance creates a proposed `ClinicalReviewTicket` with the exact row snapshot, patient/content version, requested ticket type, whether clinical acumen is required, target IDs, dependency/conflict slots, proposed routing, optional resurfacing trigger, and timestamps. A clinically marked flag also creates a ticket. Developer mode shows the local queue and gives every existing or newly created ticket one editable “What should Codex do?” field. Lifecycle status remains internal because the prior user-facing status menu contained overlapping choices.
 
-The intended handoff is deliberately simple: describe the desired outcome on each ticket, save the instructions, then tell Codex that the local review is ready. Codex reads the fixed workspace file, infers whether the user requested implementation, preservation, deferral, sourcing, or clarification, and asks only when the prose leaves a material ambiguity. Any resulting content change still uses normal versioning and validation. No browser console, manual JSON editing, status taxonomy, or pasted transcript is required.
+At the end of a Developer or portable Reviewer patient, a separate “Case and app experience notes”
+box accepts clinical/scoring observations as well as subjective pacing, clarity, mobile usability,
+screen-density, and overall-app comments. Saving upserts one `DeveloperAttemptReview` for that
+exact attempt. It embeds the resolved patient, seed, clinic and case versions, purchases, submitted
+treatment/disposition, ordered events, point report, receipt, and rule trace. It also freezes every
+option that was visible, its catalog label and section, whether the reviewer chose it, and—for
+information actions—the fulfillment method and displayed cost. Thus “I missed suicide risk
+assessment and was not penalized” can be checked against proof that the action was available,
+unpurchased, and absent or present in the trace. The review does not require the user to manually
+enumerate selections or reproduce a seed.
+
+The receipt organizes the explanatory trace into stable domains and places point-changing rules
+before zero-point supporting rules. No trace row is discarded; zero-point rows remain available in
+an expandable section so a reviewer can still inspect provenance and predicate outcomes. Every
+post-submit receipt also replays the declared reference solutions against the exact saved patient,
+starting clinic, encounter location, and service fulfillment costs. The player and the
+completed declared `database_plan` replay appear in parallel, with exact investigations,
+treatments, disposition, care points, workup cost, and payout. A comparison bar normally uses the
+database score as its maximum and expands to an above-plan player score while marking the database
+value. Developer mode additionally exposes the current engine version and all declared policy
+results. The policies are a finite audit set rather than an exhaustive search; an invalid replay
+remains visible as an audit failure.
+
+Developer mode also exposes a searchable “Opinions needing references” inventory. It derives
+uncited rule-level clinical claims from current patient, medication, diagnosis, workup,
+disposition, safety, and test definitions, then deduplicates copied rule IDs across owning files.
+It links existing `SourceRequest` records where targets overlap and distinguishes clinical
+direction requiring evidence from exact point magnitudes that remain game-balance judgment. This
+inventory is a read-only audit surface, not the still-pending dedicated Developer-opinion
+provenance schema and not 1:1 automatic ticket creation.
+
+Local Developer mode saves either ticket instructions or an attempt review to IndexedDB first and
+then atomically mirrors the complete versioned bundle to the fixed gitignored path
+`content/generated/local-review-tickets/tickets.json`. A failed mirror never discards the browser
+record. “Update Codex handoff file” retries the mirror. Automated browser tests write only to
+`tickets.e2e.json`, never the human handoff file. Normal and Endgame receipts do not expose the
+whole-case review box.
+
+Portable Reviewer is a separate static artifact for a colleague using desktop or phone. It has no
+workspace writer or local authoring queues. Its assignment-versioned IndexedDB retains patient
+slots, completed attempts, flags, tickets, and multiple case notes on that one browser/device. A
+completed receipt can be reopened after reload to add or edit feedback. Manual Export downloads
+one version-5 JSON bundle containing build kind, assignment identity, engine version, all completed
+attempts, all `DeveloperAttemptReview` option snapshots, all flags, and all tickets. The reviewer
+can complete several cases and email the single file to the project owner. There is no server sync
+or formal bundle import yet; export before clearing browser data or moving devices. Free-text notes
+must never contain real patient information or other identifiable clinical material. A material
+cohort or policy revision receives a new assignment ID rather than silently sharing old run history
+and exports.
+
+The local handoff is deliberately simple: describe the desired outcome on tickets and/or record
+playthrough observations on receipts, save, then tell Codex that the local review is ready. Codex
+reads `tickets`, `attemptReviews`, `flags`, and `completedAttempts` from the fixed workspace file.
+For a remote reviewer, the owner supplies the exported bundle to Codex after receiving it. Codex
+uses each captured attempt to identify the concrete action, selection, receipt item, and rule trace
+implicated by the prose, then infers whether the user requested implementation, preservation,
+deferral, sourcing, or clarification. It asks only when a material ambiguity remains. Any
+resulting content change still uses normal versioning and validation. Saving or exporting feedback
+is never authorization to change a clinical rule and never grants medical approval.
 
 This lightweight queue adopts the useful workflow invariants from the user's book repository:
 
@@ -33,6 +96,13 @@ A scaffold can be played immediately to evaluate wording, variation, menus, and 
 A tracked `*.tickets.json` file may decompose one formal source into proposed rule-level questions without attaching that publication to an executable rule. Developer mode loads these packets into the same local queue. The first example, `canmat-2023-mdd-source-review.tickets.json`, separates assessment/workup, severity and initial modality, broad antidepressant baseline/fit, psychotherapy, and disposition. Each ticket names exact candidate targets, source section routing, conflicts, dependencies, and resurfacing conditions. It paraphrases only the narrow candidate contribution and does not include private extracted text.
 
 Creating or accepting a ticket is not source application. A formal `EvidenceContribution`, target rule review update, content-version change, impact scan, and affected reference policies are still required after the user adjudicates the question. This keeps “the paper exists,” “the source may support this claim,” and “this exact game rule has been clinically approved” as three separate states.
+
+The recommended-guideline intake adds a fourth gate: “the source is lawful to process in this
+workflow.” NICE, APA, ACE Singapore, and ASAM currently remain metadata-only under their published
+terms. Their tickets ask for permission or scope adjudication; they do not paraphrase inaccessible
+recommendations. VA/DoD, CANMAT, BAP, and WHO have local protected documents, but their rule-level
+tickets remain medically unreviewed. A published correction is a separate evidence record linked
+to the affected source and must be checked before downstream review continues.
 
 ## Exact rule audit and source-needed queue
 
@@ -76,7 +146,13 @@ Changing a rubric creates a new content version. It does not mutate the original
 
 Prototype and generated cases begin medically unreviewed. Approval is rule-level: workup objectives, treatment grades, conditional requirements, pathways, score rules, medication modifiers/tag sets, and test profiles/components each carry a review record. An approved rule requires explicit reviewer identity and review time. A future case release gate additionally checks content version/hash, validation and reference-run results, alternatives, contraindications, explanations, and provenance. A generator, critic, validator, or product engineer cannot grant clinical approval by itself.
 
-Before any content is eligible for wider distribution, tests must cover the database plan, at least one defensible alternative, shotgun, unsafe treatment, each safety cap, treatment-specific prerequisites, eligibility at every compatible location, critical invariance across seeds, and bundle isolation. Reviewers should be able to dispute individual rules without accepting the rest of a case.
+Before content is eligible for ordinary Player release or any distribution that implies clinical
+approval, tests must cover the database plan, at least one defensible alternative, shotgun, unsafe
+treatment, each safety cap, treatment-specific prerequisites, eligibility at every compatible
+location, critical invariance across seeds, and bundle isolation. A bounded portable Reviewer
+artifact may distribute explicitly unreviewed content only through its exact assignment allowlist
+and prominent disclaimer. Reviewers should be able to dispute individual rules without accepting
+the rest of a case.
 
 ## New-study impact workflow
 
@@ -84,4 +160,23 @@ A newly discovered article is reviewed one at a time. Extraction first creates s
 
 Before a formal publication can be cited, its bibliographic record must exist in `content/catalogs/evidence/formal/`. Bibliographic verification checks identity and citation metadata only. Each proposed application separately records the target rules and how the source contributed. If a note or judgment has no formal record, reviewers classify it as Expert opinion instead of attaching a nearby or guessed citation. `pnpm content:evidence` exposes formal sources with no linked use, every linked contribution, explicit expert notes, and the count of uncited rules that therefore display as Expert opinion.
 
-Changes to shared medication knowledge create impact tickets for every dependent patient; they do not propagate automatically. Patient-specific exceptions stay in that patient's file instead of weakening a global rule. Personal notebook/iOS material starts as an inactive author override until separately sourced and reviewed. Conflicting guideline, review, trial, or author-note claims remain linked tickets with no automatic precedence; the user accepts, narrows, rejects, defers, or supersedes them. Accepted changes create new content versions; old attempts retain their historical snapshots. Rejection records the rationale so the same source claim is not repeatedly re-proposed without new evidence.
+Changes to shared medication knowledge create impact tickets for every dependent patient; they do
+not propagate automatically. Patient-specific exceptions stay in that patient's file instead of
+weakening a global rule. Personal notebook/iOS material starts as an inactive author override until
+separately sourced and reviewed.
+
+Evidence comparison first partitions by question, population, intervention, comparator, outcome,
+time horizon, and setting. It may prefer a contribution only when corrections/supersession and
+question-specific design fit, bias/certainty, directness/applicability, and currency make it
+unambiguously dominant. Otherwise conflicting guideline, review, trial, aggregate, or author-note
+claims remain linked and `contested`; the user accepts, narrows, rejects, defers, or supersedes
+them. A newer publication or higher nominal source tier alone never resolves the ticket. Accepted
+changes create new content versions; old attempts retain their historical snapshots. Rejection
+records the rationale so the same source claim is not repeatedly re-proposed without new evidence.
+
+A multi-article personal archive is reviewed one logical article or small topic cluster at a time.
+The review shows the original date/currentness, proposed atomic Developer opinions, target IDs,
+citation candidates and their verification status, and newer evidence that may support, limit, or
+challenge the opinion. The user can preserve historical context, update the concise judgment,
+retain it as an expert bridge, or reject it. The exact private article prose never becomes the
+review ticket or runtime content.

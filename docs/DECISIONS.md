@@ -268,20 +268,687 @@ Status: accepted. A versioned, tracked, runtime-excluded `SourceRequest` records
 
 ## D-067 — Diagnosis families own qualitative top-down guidance
 
-Status: accepted. Each diagnosis family has one file containing rules shared by the family plus nested severity and specifier branches. Composition order is base, selected severity, selected specifiers, then other active diagnoses. Reusable diagnosis rules use qualitative stances and constrained catalog targets; they do not own point values or case-local predicates. Patient files continue to own the resolved presentation, broad authored route, case-specific exceptions, and provenance.
+Status: accepted. Each diagnosis family has one file containing rules shared by the family plus
+nested severity and specifier branches. Composition order is base, selected severity, selected
+specifiers, then other active diagnoses. Reusable diagnosis rules use qualitative stances and
+constrained catalog targets; they do not own point values or case-local predicates. Patient
+templates own the generation envelope, focused decision state, narrow case-specific exceptions, and
+provenance; resolved patient and encounter instances preserve the compiled result.
 
 ## D-068 — Critical random context must bind visible facts to fit inputs
 
-Status: accepted. A fact that can change treatment fit, workup, safety, diagnosis, or complexity is not a cosmetic variant. A reviewed patient clinical-context dimension resolves one gameplay-weighted option deterministically, saves it in the CaseInstance, binds the same structured findings for every option, and contributes its tags to downstream rules. The distribution is labeled a game weight, not prevalence. Cosmetic presentation variants remain clinically inert.
+Status: accepted. A fact that can change treatment fit, workup, safety, diagnosis, or complexity is
+not a cosmetic variant. A reviewed patient clinical-context dimension resolves one gameplay-weighted
+option deterministically, saves it in the CaseInstance, binds the same structured findings for every
+option, and contributes derived tags to downstream rules. D-073 clarifies that the typed fact or
+measurement is the source of truth. The distribution is labeled a game weight, not prevalence.
+Cosmetic presentation variants remain clinically inert.
 
 ## D-069 — Incompatible diagnosis guidance quarantines the composition
 
-Status: accepted. Missing definitions, duplicated active diagnoses, source-disabled severity, invalid or mutually exclusive specifiers, mutually exclusive diagnoses, and incompatible active recommendation stances produce stable conflicts. File order, recency, diagnosis count, and apparent specificity cannot automatically choose a clinical winner. A future patient-specific override must be explicit, sourced or labeled expert opinion, versioned, and reviewable.
+Status: accepted for the current low-complexity checkpoint; requires narrowing before complex
+generation. Missing definitions, duplicated active diagnoses, source-disabled severity, invalid or
+mutually exclusive specifiers, mutually exclusive diagnoses, and incompatible active
+recommendation stances produce stable conflicts. File order, recency, diagnosis count, and apparent
+specificity cannot automatically choose a clinical winner. A future patient-specific override must
+be explicit, sourced or labeled expert opinion, versioned, and reviewable. Realistic
+multi-diagnosis patients will also contain valid benefit-versus-risk tensions, so D-077 requires the
+next compiler to distinguish those from malformed or unwinnable content.
 
 ## D-070 — Patient complexity is a vector before it is a level
 
 Status: provisional pending playtesting. Diagnosis count alone does not set patient level. The engine traces separate diagnostic, pharmacologic, workup, safety/disposition, and information-burden contributions. It does not yet collapse them into one unlock tier. The future aggregation policy must be versioned and tested against case duration and reference patients rather than embedded in diagnosis files.
 
-## D-071 — Random comorbidity selection waits for a pool-policy decision
+## D-071 — Optional comorbidity pools belong to patient families
 
-Status: open. Patient schemas can describe bounded optional contributing diagnoses and the composer can validate a resolved multi-diagnosis case, but approved patients do not yet generate optional comorbidities. The recommended policy is that each patient family explicitly owns its candidate pool and game weights while diagnosis files own compatibility/overlap metadata. Global free mixing and unstated prevalence assumptions remain prohibited until the user confirms the policy.
+Status: accepted. Each patient template explicitly owns its candidate comorbidities, constraints,
+and game-selection weights. Diagnosis files own compatibility, overlap, and exclusion metadata but
+do not create a global random-mixing pool. Game weights are not labeled as epidemiologic
+prevalence. Every resolved combination remains subject to deterministic consistency,
+accessibility, and safe-route validation.
+
+## D-072 — Objective fit and discovery credit are separate
+
+Status: accepted. A resolved patient fact can affect the objective fit or safety of a treatment
+even if the player did not ask about it. A separate workup rule evaluates whether the player
+obtained the relevant information. Receipts trace the treatment-fit effect and the
+discovery/omission effect independently; neither is silently substituted for the other.
+
+## D-073 — Typed facts own values; derived tags provide cross-file indirection
+
+Status: accepted. Reusable stable tags such as a high-BMI context remain valid references across
+diagnosis, medication, workup, and patient files. A typed clinical fact, category, or measurement is
+the source of truth, and a versioned derivation produces the tag. Free strings cannot independently
+claim a value or contradict the resolved fact. The fact, derivation version, and derived tag are
+saved for replay and audit.
+
+## D-074 — One selected diagnostic standard owns criteria and severity
+
+Status: accepted for now. A diagnosis family identifies one versioned diagnostic standard for
+criteria, severity, and specifier semantics. Treatment guidelines consume those states and may add
+recommendations, but do not redefine the diagnosis in their own files. Conflicting or newer
+standards enter the evidence/ticket workflow rather than silently changing generated patients.
+
+## D-075 — Source-controlled patient files are generator templates, not fixed people
+
+Status: accepted as the target architecture. Every playable person is deterministically generated
+and saved as a resolved instance. A source-controlled patient template describes the setting,
+condition and chart-record constraints, medication and prior-trial constraints, presentation
+modules, encounter focus, and narrow patient-specific adjustments. Shared diagnosis, medication,
+test, therapy, and decision-policy knowledge is referenced rather than copied into a per-case
+treatment plan. “Case” may remain player-facing shorthand, but schemas distinguish template,
+patient instance, encounter instance, and attempt.
+
+## D-076 — The clinical engine must represent complex records without grading a complete plan
+
+Status: accepted as a long-range engine requirement. The data model must eventually support a
+hospital patient with multiple internal conditions, diagnosis records of varying reliability,
+duplicate medication/classes, many active regimen entries, structured prior trials, and an acute
+syndrome such as delirium. Each encounter still grades focused initial questioning/workup and the
+best immediate decision, with necessary companion safety actions, rather than requiring an
+exhaustive treatment plan for every active problem.
+
+## D-077 — Clinical tension is not the same as invalid generation
+
+Status: accepted. The compiler distinguishes structural invalidity, clinically meaningful
+benefit-versus-risk tension, disagreement between evidence sources, and disagreement only about
+point magnitude. Structural impossibility, inaccessible required care, and the absence of any safe
+route remain quarantine conditions. A reviewed safety constraint may govern an otherwise valid
+clinical tension while the competing benefit and safety rules both remain visible in the trace.
+A patient-specific override is required only when the general reviewed rules cannot resolve the
+patient state safely. Evidence disagreement creates a ticket and keeps the disputed executable
+change disabled. Point-magnitude disagreement routes to balance review without changing the
+accepted clinical direction.
+
+Implementation note: this is the binding policy for the next generated-patient compiler. The
+current `composeDiagnosisGuidance` checkpoint still reports every opposing stance as the older
+blocking `RULE_STANCE_CONFLICT`; it must not be described as implementing this taxonomy yet.
+
+## D-078 — Complexity aggregation remains deliberately unset
+
+Status: accepted provisionally. A patient template declares a target envelope across the existing
+diagnostic, pharmacologic, workup, safety/disposition, and information-burden dimensions. After
+composition and deterministic generation, the engine measures the resolved patient rather than
+assuming the template hit its target. A generated candidate is accepted, deterministically retried,
+or quarantined according to the envelope. The envelope will be workshopped against reference
+patients before any scalar player-facing level, unlock formula, or permanent generation budget is
+introduced.
+
+Implementation note: the current engine exposes the five-axis trace only. Template envelopes,
+deterministic retry, and quarantine-by-envelope remain planned compiler work.
+
+## D-079 — WHO mhGAP is a baseline source map, not automatic specialist authority
+
+Status: accepted. The 2023 WHO mhGAP guideline is cataloged and processed as a broad baseline for
+candidate diagnosis, treatment, safety, monitoring, and patient-template work. Its intended
+non-specialist and global/resource-sensitive context, recommendation strength, and certainty must
+remain visible. Source text is mapped one recommendation group at a time, beginning with depression
+DEP1–DEP4. A WHO recommendation can create medically unreviewed claims, scaffolds, tickets, and
+source requests, but it does not automatically activate scoring or outrank a more specific source.
+Specialist guidance, diagnostic standards, medication files, and patient-specific facts may refine
+or conflict with it; those disagreements stay explicit in the ticket workflow.
+
+## D-080 — Source-derived patients enter through Developer review
+
+Status: accepted. The first source-derived output is a small number of deterministic,
+medically-unreviewed Developer-mode patient scaffolds rather than bulk case generation. Each
+scaffold retains exact evidence-source, local source-document, and source-chunk provenance and has
+blocking inherited-rule and source-application tickets. The reviewer may flag the whole encounter,
+a receipt row, or an exact rule. “Needs another guideline or source” is a first-class flag category;
+it creates a local ticket for Codex to convert into a tracked source request rather than inventing
+missing guidance. Nothing is promoted or added to executable shared guidance merely because the
+scaffold is playable.
+
+## D-081 — Clinical gameplay is a best-next-step snapshot
+
+Status: accepted; narrows any earlier longitudinal language. A PsychSim encounter asks what the
+player should do at this moment: read the short stem, buy focused history/examination/lab/imaging
+information, choose an intervention combination, and choose a disposition. It is not a longitudinal
+care simulator. Historical prior trials, adherence, response, adverse effects, and recent changes
+may inform the snapshot, but the engine does not require follow-up intervals, monitoring plans,
+reassessment schedules, adequate-trial clocks, or future contingency planning. A later source may
+inform a different continuation or withdrawal patient without adding virtual time to the current
+encounter.
+
+## D-082 — Clinical state, source support, and player knowledge never collapse
+
+Status: accepted. The resolved patient owns the modeled facts; evidence records explain where
+candidate clinical behavior came from; encounter events determine what the player has actually
+learned. UI wording may make a pre-reveal option feel natural and compact, but the backend and
+receipt must always disentangle those three layers. Unknown is not false. A lower-priority routine
+path may be deferred by a relevant finding or missing selected-treatment prerequisite, but the
+engine does not impose one rigid universal hierarchy on every patient.
+
+## D-083 — Primary choices dominate points; fit remains rich but bounded
+
+Status: accepted as the scoring contract for the next engine pass. The complete intervention
+combination and disposition are co-primary decisions and own most available points. Explicit
+medication, diagnosis, symptom, BMI, metabolic, prior-trial, interaction, and preference modifiers
+may stack within a bounded goodness-of-fit budget so a careful choice matters without outweighing a
+critical error. A contraindicated intervention receives no positive fit modifiers; `discouraged`,
+`avoid`, and `contraindicated` remain distinct reviewed severities. Information/workup rewards have
+per-action or category caps, and missing workup is penalized only for a big miss or an explicit
+patient/treatment prerequisite. Unnecessary tests usually lose only their cost unless independently
+harmful. One underlying mistake receives only the worst applicable consequence through a stable
+issue ID rather than stacked duplicate penalties.
+
+## D-084 — Reusable findings are stable atoms and absent diagnoses permit symptoms
+
+Status: accepted. Any symptom, observation, history item, or other concept reused across multiple
+owners receives a shared stable definition rather than copied prose. Diagnosis, patient-template,
+test, scale, and presentation-module files reference those atoms. A diagnosis constrains a coherent
+criteria-bearing set but does not monopolize its symptoms: a patient without that diagnosis may
+still have common, subthreshold, or context-appropriate findings such as intermittent anxiety or
+sleep difficulty. Shared atoms increase uniformity and variation without allowing a unique phrase
+to identify a memorized patient. D-087 defines how multiple owners constrain the same atom.
+
+## D-085 — Developer opinion remains a distinct provenance object when sources are attached
+
+Status: accepted as a target model; schema implementation remains pending. An authorized
+psychiatrist/developer judgment is labeled `Developer opinion` and stored separately in a concise,
+versioned form. A later source review may mark a publication as supporting, contextualizing, or
+challenging/limiting that opinion, but the opinion does not become a direct guideline recommendation
+merely because a source is linked. Where the judgment is more specific or interpretive than the
+publication, the provenance remains both the publication relationship and Developer opinion.
+This supersedes D-057's assumption that an expert-opinion object can never have a formal-source
+relationship; existing `EvidenceContribution` validation remains unchanged until a dedicated
+developer-opinion/source-relation schema is implemented.
+
+## D-086 — Lawful processing and publication corrections are evidence gates
+
+Status: accepted. A formal evidence record now states full-text availability, reuse status, AI-use
+status, local-extraction status, license/terms links, jurisdiction, population, setting, version,
+and review dates. Free-to-read does not mean permitted for AI ingestion. Sources that require
+permission or prohibit AI use remain metadata-only and generate access tickets rather than inferred
+claims. Corrections, updates, superseding publications, companions, and executive summaries are
+separate source records with validated relationships. None of these records activates clinical
+behavior without a rule-level contribution and human review.
+
+## D-087 — Shared findings resolve from traced constraints, never file precedence
+
+Status: accepted as the compiler contract; runtime implementation remains pending. A diagnosis,
+patient template, comorbidity module, medication, scale, or background module contributes a typed
+constraint to a shared finding rather than assigning the final value directly. Initially supported
+constraint roles are equivalent to `required-present`, `required-absent`,
+`diagnostic-requirement`, `weighted-tendency`, and `no-opinion`.
+
+The deterministic resolver first honors explicit case-critical facts, then satisfies active
+diagnostic/cardinality requirements, combines compatible weighted tendencies, and finally draws
+unconstrained background variation. An author may fix a critical result only through an explicit,
+versioned patient/template constraint with a reviewable reason. A hard contradiction is never
+resolved by load order, file recency, apparent specificity, or diagnosis count; it produces a
+stable conflict and clinical-review ticket or quarantines the generated candidate when no safe,
+coherent resolution exists.
+
+The resolved `PatientInstance` saves every contributing owner, constraint, derivation version,
+deterministic draw, final value, and conflict outcome. The player-facing result may blend those
+influences into a compact finding, while the developer audit and post-submission explanation can
+disentangle them. This decision specifies composition behavior but does not yet choose numerical
+probability calibration for soft tendencies.
+
+## D-088 — Coherent incidental findings may promote an internal diagnosis
+
+Status: superseded by D-089 before runtime implementation. Automatic diagnosis promotion from
+independent background findings was judged too likely to turn a symptom randomizer into an
+uncontrolled syndrome generator.
+
+## D-089 — Full syndromes come from condition modules, not coincidental background draws
+
+Status: accepted as the generation contract; runtime implementation remains pending. Ordinary
+background variation may produce isolated, overlapping, and subthreshold symptoms, but it must not
+independently assemble a complete coherent syndrome such as mania. A full additional condition
+enters the internal `ConditionState` only through a template-required condition or a deliberately
+eligible optional-comorbidity module selected at the condition level. The post-submission
+Developer audit distinguishes those origins.
+
+After findings are resolved, reviewed operational criteria act as a consistency validator. If
+background draws nevertheless satisfy an unrequested full syndrome, that is a generation defect:
+the candidate is deterministically retried or quarantined rather than silently promoted. Diagnosis
+definitions also declare reviewed incompatibilities. A generated patient containing incompatible
+active conditions, or a condition incompatible with the template's intended decision state, is
+invalid and receives the same retry/quarantine treatment. Chart diagnosis entries remain separate
+and may still contain inaccurate or historically superseded labels.
+
+This guardrail does not remove subthreshold human variation or prevent those findings from
+affecting treatment fit. It prevents independent random facts from silently replacing the authored
+question-bank decision state.
+
+## D-090 — Patient templates bound diagnoses and minimally repair random threshold crossings
+
+Status: accepted as the simpler generation policy; runtime implementation remains pending. A
+patient template declares the diagnoses that a generated patient may contain: required conditions
+and a small explicit pool of eligible optional conditions. The generator does not discover
+additional diagnoses from arbitrary background facts.
+
+After findings are resolved, operational criteria may be used as a guardrail. If disposable
+background findings accidentally push the patient across the threshold for a diagnosis outside the
+template's allowed set, the generator removes the smallest deterministic set of lowest-priority
+background findings needed to return below that threshold. Authored critical facts,
+diagnosis-required findings, medication effects, and other protected facts are never removed by
+this cleanup. The repair and removed finding origins remain visible in the Developer audit.
+
+The initial repair budget should remain deliberately small—normally one or two background
+findings. If the patient cannot be repaired within that budget, the candidate is regenerated or
+quarantined because its randomization is too aggressive. This narrows D-089's default
+retry/quarantine behavior and prevents the finding system from becoming a comprehensive diagnostic
+inference engine.
+
+## D-091 — Diagnosis compatibility uses two narrow reviewed relationships
+
+Status: accepted provisionally and intentionally minimal. Diagnosis definitions may declare
+`mutually_exclusive` when two internal condition states cannot coexist in the specified context,
+or `reframes` when one condition changes how another symptom cluster is classified. Unspecified
+pairs are allowed; the project will not attempt an exhaustive all-diagnosis compatibility matrix.
+Relationships may be scoped to current episode, lifetime diagnostic truth, or a template's focused
+decision state and retain source or Developer-opinion provenance.
+
+For example, a template requiring routine unipolar MDD is invalid when a bipolar condition module
+is also active, while depressive symptoms remain valid within bipolar disorder. Historical or
+questionable chart labels are not deleted because chart diagnosis entries remain separate from
+internal condition truth.
+
+## D-092 — Safety information uses a routine screen followed by a purchasable assessment
+
+Status: accepted as the question-bank information contract; runtime catalog migration remains
+pending. Obtaining general psychiatric history reveals a concise routine suicide-safety screen as
+one part of that broader result. The screen remains a structured patient report and does not state
+that outpatient care is appropriate or otherwise make the disposition decision for the player.
+
+`Suicide and self-harm assessment` remains a separate, universally searchable History action with
+its own point cost. Purchasing it reveals the detailed structured fields together: current
+ideation with passive/active distinction, intent, specific plan, recent preparatory behavior or
+attempt, access to relevant means, prior attempts, and applicable acute modifiers. Findings that
+also belong to another observation or history domain reference the same resolved fact atoms rather
+than creating duplicate truths.
+
+Until the detailed assessment is purchased, its component fields remain unknown even when the
+routine screen is negative. The screen exists to help the player decide whether the added
+information is worth its cost. Both actions are stable catalog options shared across patients;
+only their structured results and case-specific scoring relevance vary.
+
+## D-093 — Detailed safety assessment is conditionally valuable and can substitute for screening
+
+Status: accepted as the information-economy rule; runtime implementation remains pending. A
+positive or ambiguous routine safety screen, or another relevant resolved safety clue, activates a
+high-value conditional objective for the detailed suicide and self-harm assessment. Its clinical
+reward must exceed its point cost. After an entirely negative routine screen with no other relevant
+clue, the detailed assessment remains available but ordinarily earns no additional clinical
+points; its consequence is the points spent rather than a separate clinical penalty.
+
+Purchasing the detailed assessment directly fulfills the routine safety-screen subobjective because
+it contains that information, but it does not fulfill unrelated components of general psychiatric
+history. This avoids a mandatory click sequence. If important suicide-related patient facts exist
+and the player obtains neither screening nor detailed assessment, the omission remains eligible for
+a major penalty. The receipt traces the screen, conditional trigger, detailed assessment, and
+omission separately. The game-specific trigger and point values are reviewed Developer opinion
+informed by the source, not a point formula attributed directly to the VA/DoD guideline.
+
+## D-094 — Wrong-disposition penalties are asymmetric and issue-deduplicated
+
+Status: accepted as the disposition-scoring contract; exact point values remain pending
+playtesting. Disposition is a co-primary encounter decision. Unsafe under-escalation is the most
+severe class: choosing routine outpatient care when emergency transfer is clearly required loses
+the disposition reward and receives a large additional consequence that may reduce encounter
+payout to zero. Gross over-escalation is also a major error: unnecessary emergency transfer for a
+clearly manageable outpatient forfeits the disposition reward and imposes a substantial point
+cost. Unnecessary urgent assessment is penalized less than unnecessary emergency transfer but must
+still be meaningful.
+
+The initial content set uses clear disposition states. A database plan may explicitly accept
+multiple dispositions when genuine ambiguity is intentionally authored, but ambiguous
+intermediate-risk generation is deferred until clear cases are fair in playtesting. One wrong
+disposition produces one stable issue and one combined itemized consequence; its receipt row may
+explain safety, resource use, and plan mismatch without stacking duplicate penalties. Unsafe
+under-escalation remains worse than over-escalation, while over-escalation remains costly enough
+that sending every patient to the emergency department is not a viable strategy.
+
+## D-095 — BFCRS is searchable everywhere while catatonia patients are setting-weighted
+
+Status: accepted as the catatonia encounter contract; exact scale-content ingestion remains
+permission-gated. The universal investigation catalog includes a named Bush–Francis Catatonia
+Rating Scale examination under Physical/Mental Status. Availability of the examination does not
+make it point-relevant in every patient. Catatonia assessment receives points only when the
+authored patient contains fair motor, behavioral, historical, or severity clues.
+
+Catatonia-focused patient templates are weighted primarily toward inpatient, hospital, and
+consultation-liaison pools. They are very rare in the routine outpatient pool and are not part of
+the initial low-level “couch and clipboard” patient set. These are game-selection weights rather
+than asserted epidemiologic prevalence. A template still declares its compatible locations and
+must pass the ordinary safe-route validator.
+
+The original BFCRS publication and University of Rochester assessment resources are publicly
+identifiable, but an explicit license for reproducing their exact item wording in PsychSim has not
+yet been verified. The game may reserve the stable action and structured-result architecture now,
+but must not copy the instrument text until the source and reuse gate is resolved.
+
+## D-096 — The player-facing BFCRS result is score-only
+
+Status: accepted. After the player purchases the BFCRS examination, the ordinary encounter UI
+shows only the resolved BFCRS score. It does not display an item list, interpretation,
+scale-derived diagnosis, or disposition recommendation. Any item-level inputs required to
+reproduce the score remain internal structured data and may be inspected only in the Developer
+audit; they are not part of the normal player-facing result.
+
+The source/reuse gate in D-095 still applies because calculating a faithful score may require
+versioned item definitions and scoring anchors even when those items are not displayed.
+
+## D-097 — Treatment scoring evaluates the complete intervention set with parsimony
+
+Status: accepted as the general treatment-combination contract; runtime implementation remains
+pending. Medication and psychotherapy are peer treatment modalities rather than a primary
+medication grade plus a secondary nonmedication checkbox. When a reviewed algorithm ranks
+medication and psychotherapy equally, one appropriate selection from either modality can fully
+satisfy the primary treatment objective. When the source explicitly favors combination treatment,
+one compatible medication plus one compatible psychotherapy receives a combination bonus. When a
+combination is source-silent but neither redundant nor harmful, it remains acceptable without an
+automatic bonus or penalty.
+
+The evaluator applies reviewed cardinality and redundancy rules to the final set. Starting two
+same-role antidepressants or selecting several simultaneous primary psychotherapies is penalized
+unless an explicit combination pathway supports it. A contraindicated or dangerous duplicate
+receives the applicable safety consequence and cannot collect positive fit modifiers. One
+medication plus one therapy is not shotgun treatment merely because combination is neutral in a
+particular algorithm.
+
+Investigation parsimony remains primarily economic: every action costs points, indicated actions
+earn more than their cost, and unsupported shotgun actions accumulate costs without clinical
+reward. They do not also receive a duplicate clinical penalty unless independently low-value,
+harmful, or part of a specifically reviewed waste rule. Treatment and workup reference runs must
+include parsimonious, compatible-combination, shotgun, and unsafe selections.
+
+## D-098 — Whole-patient Developer feedback is attempt-linked and uses the ticket handoff
+
+Status: accepted and implemented. Every completed Developer-mode patient exposes one editable
+“Case and app experience notes” field after the receipt. The note is not an isolated text blob and
+is not forced into a single clinical-ticket category. Its `DeveloperAttemptReview` freezes the exact
+`CompletedAttempt` plus a normalized snapshot of every information, medication, nonmedication, and
+disposition option offered, including the option label, section, selection state, and displayed
+service fulfillment/cost where applicable.
+
+Save-data v5 persists these reviews in IndexedDB. Saving or revising one then refreshes the same
+fixed, gitignored Codex handoff bundle used by ticket instructions; a writer failure leaves the
+browser copy intact and can be retried from the Developer hub. When the user says reviews are
+ready, Codex reads both arrays and grounds comments in the captured patient, choices, events,
+receipt, and rule trace before proposing a change. A review note does not directly mutate content
+or confer medical approval. The box is absent from Normal and Endgame receipts. The ordinary
+Player artifact has neither the writer nor this review workflow; D-110 adds the separate finite
+portable Reviewer exception without the writer.
+
+## D-099 — Developer receipts expose categorized traces and a tested reference benchmark
+
+Status: accepted and implemented from
+`review.attempt.case.medication-check-palpitations.1`. Rule traces are grouped into workup,
+medication selection, medication changes, safety/interactions, nonmedication care, disposition,
+and efficiency. Point-changing rows appear first; zero-point rows remain available in a
+collapsible subsection. Grouping changes presentation only and preserves the complete stored trace.
+
+Developer mode uses the explicitly displayed current engine version to replay each reference
+solution already declared by the saved `CaseInstance` against that exact patient, clinic snapshot,
+encounter location, and resolved service costs. The receipt shows the highest-payout successful
+replay, all actions and selections that produced it, and a comparison of every declared replay.
+Ties resolve by care points, lower workup expense, then stable ID. The UI calls this the “highest
+tested reference payout,” never a global optimum, because the engine does not exhaustively search
+arbitrary treatment combinations. Invalid reference policies remain visible. Normal and Endgame
+receipts do not expose this answer key. No clinical rule, patient content, or point value changed
+while processing this review.
+
+## D-100 — Post-submit results compare the player plan with the tested database plan
+
+Status: accepted and implemented; supersedes only D-099's restriction of the benchmark to
+Developer mode. After treatment is locked, Normal, Endgame, and Developer receipts may expose the
+database comparison because it is now part of the requested debrief rather than a live answer
+hint. The player's exact purchased information, resolved cost/fulfillment, treatment, and
+disposition appear beside the completed declared `database_plan` replay for the same
+saved patient and clinic snapshot.
+
+The database-plan care score normally sets the full comparison-bar scale and the player score fills
+it. If the player exceeds the database score, the scale expands to the player total and retains a
+labeled database marker inside the bar. A negative player score has zero visual fill while its
+signed value remains explicit. The full all-reference table and replay failures remain
+Developer-only. The benchmark is always labeled finite/database-calculated rather than globally
+optimal.
+
+## D-101 — Developer mode inventories uncited opinions without inventing sources
+
+Status: accepted and implemented as an audit surface; D-085's dedicated Developer-opinion
+provenance object remains pending. Developer mode derives a searchable list of current rule-level
+clinical claims that have no formal `EvidenceContribution`. Copies of a stable rule across patient
+scaffolds are one inventory entry with multiple owners rather than dozens of duplicate tickets.
+Existing `SourceRequest` records are linked when their target IDs overlap; uncovered entries are
+visibly marked as needing a future source ticket.
+
+The inventory asks for evidence supporting the clinical direction. Exact point values, caps, and
+other game weights remain Developer balance judgment and are not misrepresented as claims a paper
+must supply. The list is read-only and does not auto-attach evidence, approve rules, or create a
+ticket for every occurrence.
+
+## D-102 — Standardized diagnosis classification is authoring-only
+
+Status: accepted and implemented. PsychSim keeps the comprehensive standardized diagnosis index
+separate from the small playable diagnosis-rule catalog. The tracked CDC/NCHS ICD-10-CM FY 2026
+F01–F99 release manifest pins an expected local cache of 1,112 exact codes/titles,
+billable/category state, source order, and PsychSim-derived code-prefix navigation. It records the
+official archive hash, source-member hash, April 2026 verification artifact, importer version, term
+count, and normalized output hash.
+
+The generated terms are gitignored local data under D-103's narrow U.S. fair-use assessment. The
+classification directory and stable term IDs are excluded from `CatalogBundle`, repository
+distribution, and production output. An ICD entry never supplies diagnostic requirements,
+severity, treatment, scoring, or medical approval. A playable diagnosis may later hold a compact
+independently reviewed mapping with an explicit release, code, semantic relation, note, and review
+record. Label similarity and file order never create mappings.
+
+## D-103 — Source use and fair use are explicit, independently validated gates
+
+Status: accepted and implemented. Every authoring-only formal source has a separate
+`SourceUseDecision` before its text is stored, extracted, processed with AI, transformed into
+structured content, redistributed at runtime, or used commercially. The record states its legal
+basis, territory, exact permitted uses, attribution, required notices, commercial/ShareAlike
+limits, third-party handling, reviewer role, timestamp, and rationale. Bibliographic verification,
+lawful processing, medical review, and runtime inclusion remain independent decisions.
+
+Fair use is not PsychSim's default ingestion license and private/noncommercial study is not treated
+as an automatic exemption. Any proposed fair-use exception must identify a precise bounded use and
+record purpose/character, nature of the work, amount/substantiality, market effect, reviewer,
+timestamp, and conclusion. The schema rejects `legalBasis: "fair_use"` without that four-factor
+assessment. One current decision permits a gitignored, non-AI, noncommercial U.S.
+authoring/search cache of ICD-10-CM F01–F99 code-title data and expressly forbids runtime,
+repository, export, or commercial redistribution. A separate decision covers only the existing
+independently worded citalopram safety proposition, without storing, extracting, quoting, or
+redistributing label text. Neither assessment is a blanket educational exemption or permission to
+ingest the broader source.
+
+## D-104 — Diagnostic background uses a layered lawful-source strategy
+
+Status: accepted and implemented as an authoring boundary; no new clinical rule is activated.
+The official CDC/NCHS ICD-10-CM release supplies a local U.S. psychiatric classification lookup
+only under D-103's narrow fair-use record. CDC states that WHO owns ICD-10, WHO directs U.S.
+modification licensing questions to NCHS, and ICD-11 Creative Commons terms are not imported into
+the ICD-10-CM decision. Common playable diagnoses should draw original structured feature packs
+from verified reusable federal sources such as NIMH, VA/DoD, VA, SAMHSA, NIAAA, CDC, or other
+source-specific open material.
+Treatment/safety guidelines remain distinct from diagnostic requirements. Any residual clinical
+delta is a concise, separately labeled Developer opinion.
+
+Source-specific terms control over generic landing-page metadata. The 2024 WHO CDDR landing page
+links a generic ShareAlike deed, but page iv of the official PDF identifies that work as CC
+BY-NC-ND 3.0 IGO and expressly prohibits adaptations without WHO permission. The ICD-11 digital
+classification/API is separately NoDerivatives. CDDR and DSM-5-TR therefore remain metadata-only
+and outside extraction, AI-assisted authoring, comprehensive paraphrase, and runtime content until
+written permission changes their recorded decisions. Commercial question banks are not evidence
+that PsychSim may copy DSM or the banks; independently authored clinical puzzles may test the same
+facts without reproducing protected expression. Any future exact ICD-11 identifier catalog requires
+a separate URI-bearing schema and source-use decision; the ICD-10-CM importer cannot be reused.
+
+## D-105 — Medication and intervention knowledge separates facts, claims, opinions, rules, and points
+
+Status: accepted as an architecture checkpoint; no medication rule, point value, patient, or
+runtime treatment behavior changed. The current medication definition remains a compatibility
+shape while future authoring separates: stable ingredient/formulation identity; sourced
+classification and product/regulatory facts; population- and outcome-scoped evidence claims;
+concise Developer opinions; executable game rules; and balance values. An imported fact or
+comparative estimate cannot become a scoring rule directly, and a scoring rule cannot acquire its
+point magnitude from a source file.
+
+Each medication and therapy still has a stable one-record editing surface. Shared class knowledge
+and evidence claims remain normalized, while a reproducible generated audit view assembles every
+direct and inherited claim, opinion, rule, source, and impacted patient for one intervention. This
+avoids both duplicating shared claims and forcing the reviewer to browse a graph manually.
+PsychSim stable IDs remain primary when external RxCUIs, UNIIs, product/application identifiers, or
+classification relationships change.
+
+Medication definitions begin at ingredient level. Formulation/product entities are added only
+when route, release pattern, delivery program, formulary availability, or a reviewed clinical
+distinction affects gameplay. Therapy definitions distinguish generic modality, referral,
+protocol-based delivery, and complete manualized program; a menu label alone does not establish
+fidelity. Exact manuals, worksheets, scripts, skills curricula, and training materials remain
+outside the database absent item-specific permission.
+
+## D-106 — Public identity/regulatory data and open evidence are the medication source backbone
+
+Status: accepted as a source boundary; actual importers, new evidence records, and clinical
+transformations remain pending. Source-cleared RxNorm Current Prescribable Content, FDA/GSRS,
+Drugs@FDA, carefully scoped DailyMed/openFDA records, FDA safety overlays, and selected NLM
+specialist records are the preferred bulk factual scaffold. Condition-specific guidelines,
+item-cleared systematic reviews, comparative studies, and landmark-trial records supply clinical
+context. All imports begin authoring-only and medically unreviewed; source versions and hashes are
+pinned, and later changes create impact tickets rather than overwriting runtime rules.
+
+Carlat and UpToDate remain metadata/private-human-consultation sources because their current terms
+prohibit the relevant derivative and AI/automated processing without permission. Cambridge Core's
+noncommercial text/data-mining policy does not create blanket permission for every Stahl edition,
+access product, AI workflow, persistent database, or future commercial use. Cochrane is evaluated
+review by review, PubMed/PMC article by article, and AHRQ report by report. Restricted-source
+knowledge supplied by the psychiatrist remains Developer opinion unless a separately reusable
+formal source supports the claim.
+
+The CC BY 4.0 Cipriani 2018 adult-MDD antidepressant re-analysis dataset is a strong candidate
+comparative fixture, but its acute monotherapy population-average findings must not become a
+universal drug ranking. STAR\*D supports narrow prior-trial/sequencing context rather than a
+deterministic medication ladder. ClinicalTrials.gov supplies provenance and submitted trial
+records, not efficacy authority. DrugCentral's CC BY-SA database was left as the first explicit
+workshop decision because its breadth had to be weighed against source-mixing, currentness, and
+ShareAlike/database-right obligations before any bytes were imported; D-107 resolves that choice.
+
+## D-107 — DrugCentral is a gated, authoring-only aggregate seed
+
+Status: accepted and implemented as a source-metadata and rights gate; no database bytes, clinical
+claim, executable rule, point value, or runtime data were imported. DrugCentral's public
+2023-11-01 database dump is cataloged as a `structured_database` under CC BY-SA 4.0. It is useful
+for broad medication identity, product, indication, pharmacology, safety, and upstream-source
+discovery, but its aggregate records are low-authority seeds rather than clinical truth.
+
+The initial `SourceUseDecision` permits local deterministic storage, extraction/indexing, and
+original medically unreviewed claim candidates. It blocks AI-assisted processing, runtime
+redistribution, and commercial distribution until an isolated attribution/ShareAlike data package
+and item-level upstream-rights review exist. Every derived candidate must retain release, record
+origin, available upstream identifiers, transformation, licence, and `aggregator` source role. A
+verified direct source can replace DrugCentral as support for the exact fact without deleting the
+discovery trail. DrugCentral never selects first-line status, safety severity, executable
+behavior, or care points.
+
+## D-108 — Evidence precedence is tiered by question and multiple visible dimensions
+
+Status: accepted as an authoring contract; claim/body schemas and resolver remain unimplemented.
+PsychSim does not assign one permanent rank or numeric authority score to an entire source.
+Evidence design is evaluated for the exact question: an applicable current synthesis often anchors
+average efficacy; appropriate observational evidence can be more informative for rare or delayed
+harms and excluded populations; controlled human PK evidence and current regulatory material can
+anchor interaction or labeling propositions. Guideline recommendations remain decision products
+with population, jurisdiction, values, feasibility, and certainty context rather than raw effect
+estimates.
+
+Future claims separate source role, study design, question-design fit, result-level bias or
+source-supplied certainty, directness/applicability, currency/search-through date,
+correction/supersession, and upstream provenance. GRADE-style certainty belongs to a compatible
+body of evidence, not automatically to one publication. A newer study beyond a synthesis search
+date triggers update review rather than automatically winning. Only Pareto-dominant,
+like-for-like evidence can be preferred automatically; clinically meaningful nondominated
+disagreement remains `contested` and creates a ticket. Developer opinion may bridge an evidence or
+applicability gap but never inherits a cited source's certainty, and evidence resolution never
+assigns points.
+
+## D-109 — The residency-article aggregate is a private container for dated Developer opinions
+
+Status: accepted as an intake design; no SharePoint bytes or opinions have been imported. The long
+aggregate export is one private, hashed `SourceDocument` containing many logical
+`AuthoredSourceUnit` articles, not one formal source or one mega-opinion. Each article unit keeps
+its original title, byline, URL/venue, original and revision dates, section/chunk provenance,
+asserted authorship, rights status, and currentness. Short atomic `DeveloperOpinion` candidates and
+unverified bibliographic candidates derive from those units.
+
+The residency articles are initially dated psychiatrist/developer synthesis. Personal authorship
+does not automatically prove ownership of the residency site's exact expression, so article prose
+and third-party tables, figures, scales, quotations, or screenshots stay private and out of
+runtime. Embedded citations become formal evidence only after independent bibliographic,
+source-use, and exact-claim verification. Later evidence can support, partially support,
+contextualize, challenge, or limit an opinion without erasing its interpretive delta. Intake and
+review proceed one article or small topic cluster at a time; accepted opinions still require a
+separate content-change proposal, impact scan, clinical review, and balance decision before
+gameplay changes.
+
+## D-110 — Portable Reviewer is a finite static artifact, not public Developer mode
+
+Status: accepted and implemented; extends D-038, D-056, and D-098 without promoting review
+content. PsychSim now has three web artifacts: the ordinary Player build with approved-for-prototype
+patients, the local Vite Developer environment with authoring queues and its fixed workspace
+writer, and a portable Reviewer build selected by `VITE_PSYCHSIM_REVIEW_BUILD=1`. The Reviewer
+artifact forces practice mode and imports the two prototypes plus exactly ten named
+common-psychiatry `ReviewCaseScenario` files through one explicit package subpath. It never uses the
+Developer review glob.
+
+Every cohort patient and rule remains fictional, synthetic, medically unreviewed, and
+`lifecycle: "review"`. Inclusion in the Reviewer artifact is a review-distribution exception, not
+runtime/lifecycle approval. Its bundle scanner allowlist matches ten exact stable-ID/path pairs;
+all other review patients, source documents, extraction records, classifications, source/opinion
+queues, clinical ticket definitions, and the writable local endpoint remain forbidden. Launcher
+cards hide source provenance and every other answer hint. GitHub Pages deploys this Reviewer
+artifact from `main` so a colleague can use it on a phone without a local console.
+
+## D-111 — Portable reviews are assignment-local until one complete manual export
+
+Status: accepted and implemented; extends D-046 and D-098. Each portable Reviewer assignment owns
+a stable ID and a separately named IndexedDB database. Patient run history, completed attempts,
+flags, generated tickets, and multiple case/app-experience notes persist on that browser, device,
+and origin. Every completed receipt remains reopenable after reload, including when the tab was
+evicted after submission but before a comment was saved.
+
+The version-5 JSON export identifies build kind, assignment, and engine version and includes every
+completed attempt, every exact normalized option snapshot attached to a case comment, all flags,
+and all tickets. Attempt-linked feedback is rejected if its completed attempt is absent. A reviewer
+may complete several cases and email one file to the owner. There is no account sync, server
+backup, application login, or bundle import. The UI warns the reviewer to export before clearing
+site data or switching devices and not to enter identifiable patient information. Download object
+URLs are revoked after a delay to avoid racing mobile Safari. Saving/exporting feedback never
+edits content or confers clinical approval.
+
+The assignment ID is a persistence-version boundary. Any material change to cohort membership,
+scenario or policy semantics, or intended reviewer content must receive a new assignment ID; the
+same ID must never silently represent a revised package. This prevents prior run history from
+suppressing revised patients and prevents mixed-revision browser data. Version 5 does not yet store
+an exact Git/release commit, so “build kind” must not be described as exact build reproduction.
+
+## D-112 — Fictional names resolve first, last, and optional middle initial independently
+
+Status: accepted and implemented. Shared curated pools contain at least one hundred first names and
+one hundred last names. The deterministic `fictionalName` generator hashes separate stable
+subkeys for the first name, last name, middle-initial presence, and middle-initial letter. The
+default reviewed presentation probability is 25% for one middle initial. The same blueprint/seed
+always resolves the same complete name; first/last recombination produces more than ten thousand
+base pairings before age, complaint, occupation, and wording variation. Names remain
+noncritical/cosmetic and never change diagnosis, fit, scoring, safety, or disposition.
+
+## D-113 — Development is beta-first and main is the explicit distribution branch
+
+Status: accepted as the durable Git workflow after this portable Reviewer checkpoint. `beta` is
+the normal local and remote feature-integration branch. Validated checkpoints are developed and
+pushed there. `main` is the stable GitHub Pages/distributed copy and changes only when the user
+explicitly says `push to main` or gives equivalently clear promotion authorization. That
+instruction authorizes promoting the verified beta branch as a whole; it does not authorize
+cherry-picking convenient pieces, bypassing gates, force-pushing, or discarding divergence.
+
+The Pages workflow verifies both `beta` and `main`, but configure/upload/deploy steps are restricted
+to `main`. After a successful promotion, the working copy returns to `beta`.
+`PROJECT_STATE.md` records the exact current branch, HEAD, remote relation, and last deployed
+checkpoint. Unexpected local/remote divergence stops the workflow for inspection rather than being
+resolved destructively.

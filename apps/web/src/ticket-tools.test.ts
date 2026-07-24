@@ -42,11 +42,21 @@ describe('developer ticket tools', () => {
       exportedAt: '2026-07-22T12:30:00.000Z',
       engineVersion: '0.2.0',
       profileId: 'profile.local',
+      buildKind: 'local_developer',
+      assignmentId: null,
       tickets: [ticket],
+      attemptReviews: [],
+      flags: [],
+      completedAttempts: [],
     });
     expect(bundle).toMatchObject({
-      exportVersion: 2,
+      exportVersion: 5,
+      buildKind: 'local_developer',
+      assignmentId: null,
       tickets: [{ ...ticket, reviewerNotes: '', reviewerNotesUpdatedAt: null }],
+      attemptReviews: [],
+      flags: [],
+      completedAttempts: [],
     });
   });
 
@@ -65,7 +75,12 @@ describe('developer ticket tools', () => {
       exportedAt: '2026-07-22T12:30:00.000Z',
       engineVersion: '0.2.0',
       profileId: 'profile.local',
+      buildKind: 'local_developer',
+      assignmentId: null,
       tickets: [ticket],
+      attemptReviews: [],
+      flags: [],
+      completedAttempts: [],
     });
 
     await expect(writeClinicalTicketBundleToWorkspace(bundle)).resolves.toBe(

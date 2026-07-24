@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.lithium",
+  "label": "Lithium",
+  "classes": ["mood stabilizer"],
+  "tags": [
+    "mood-stabilizer",
+    "bipolar-treatment",
+    "requires-level-monitoring",
+    "requires-thyroid-monitoring",
+    "requires-renal-monitoring"
+  ],
+  "sourceUseNotes": [],
+  "fitModifiers": [],
+  "authorOverrides": []
+}

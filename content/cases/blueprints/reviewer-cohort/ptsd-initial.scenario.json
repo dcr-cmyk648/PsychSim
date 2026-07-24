@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.ptsd-initial",
+  "internalTitle": "Reviewer cohort: initial PTSD",
+  "difficultyTier": 2,
+  "patientPool": "transitional",
+  "tags": ["reviewer-cohort", "ptsd", "psychotherapy"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.posttraumatic-stress-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.trauma-related"]
+    }
+  ],
+  "clinicalTagIds": ["clinical-tag.trauma-symptoms", "clinical-tag.outpatient-stable"],
+  "criticalFacts": {
+    "focusedDecision": "initial-trauma-treatment",
+    "acuteSafetyConcern": false,
+    "substanceWithdrawal": false
+  },
+  "ageRange": { "minimum": 23, "maximum": 64 },
+  "chiefComplaintChoices": [
+    "Nightmares",
+    "Trauma symptoms",
+    "Cannot stop remembering it",
+    "Avoiding reminders",
+    "Always on guard",
+    "Flashbacks",
+    "Poor sleep after trauma",
+    "Feeling unsafe",
+    "Memories keep returning",
+    "Startling easily",
+    "Anxiety after trauma",
+    "Cannot relax since it happened"
+  ],
+  "durationChoices": ["four months", "seven months", "about a year", "eighteen months"],
+  "bothersomeness": "extremely",
+  "settingText": "Solo psychiatric office · outpatient intake",
+  "knownHistory": [],
+  "medicationRegimen": [],
+  "priorMedicationTrials": [],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.trauma",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-ptsd.exposure",
+            "labelVariants": ["Traumatic exposure", "Qualifying traumatic event"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-ptsd.intrusion",
+            "labelVariants": ["Intrusive memories", "Recurrent trauma memories"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-ptsd.avoidance",
+            "labelVariants": ["Avoidance of reminders", "Trauma-related avoidance"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-ptsd.hyperarousal",
+            "labelVariants": ["Hypervigilance", "Increased arousal"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-ptsd.dissociation",
+            "labelVariants": ["Persistent dissociation", "Current depersonalization"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-ptsd.trauma-syndrome"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.ptsd.initial"
+}

@@ -8,6 +8,9 @@
   "authors": [],
   "organization": "U.S. Food and Drug Administration",
   "publicationYear": 2023,
+  "publicationDate": "2023",
+  "lastReviewedDate": null,
+  "versionLabel": "NDA 215428/S-002",
   "containerTitle": "Drugs@FDA",
   "volume": null,
   "issue": null,
@@ -17,6 +20,23 @@
   "url": "https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=2f815b0c-6da7-cb61-e89c-7de628092d0d",
   "citation": "U.S. Food and Drug Administration. Citalopram Capsules: Highlights of Prescribing Information. NDA 215428/S-002. 2023.",
   "knownContentHashes": [],
+  "jurisdictions": ["United States"],
+  "populations": ["Patients for whom citalopram capsules are prescribed"],
+  "settings": ["Medication prescribing and dispensing"],
+  "sourceRelations": [],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "not_verified",
+    "adaptationStatus": "not_verified",
+    "commercialUseStatus": "not_verified",
+    "aiUseStatus": "not_verified",
+    "localExtractionStatus": "not_verified",
+    "licenseLabel": null,
+    "licenseUrl": null,
+    "termsUrl": "https://www.fda.gov/about-fda/about-website/website-policies",
+    "note": "The prescribing information is publicly accessible. Reuse and AI-processing status have not been separately adjudicated, so this pass retains metadata only."
+  },
+  "metadataReviewedAt": "2026-07-23T16:40:00.000Z",
   "bibliographicStatus": "verified",
   "medicalReviewStatus": "unreviewed"
 }

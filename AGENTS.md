@@ -29,14 +29,31 @@ The handoff command never stages, commits, pushes, resets, restores, or merges f
 - `apps/web/`: React/Vite presentation and browser persistence. UI components may call public engine functions but never implement point rules.
 - `packages/schemas/`: versioned Zod schemas and inferred TypeScript types. Zod is the source of truth for content and saves.
 - `packages/engine/`: pure, deterministic encounter, scoring, economy, service, progression, satisfaction, eligibility, and replay logic. No React or browser globals.
-- `packages/content-runtime/`: imports only approved runtime content, parses it, validates references, and exposes fixtures/reference runs.
+- `packages/content-runtime/`: its ordinary root/Player entry imports approved runtime content,
+  parses it, validates references, and exposes fixtures/reference runs. The explicit
+  development-only `./developer` and finite static `./reviewer` subpaths are quarantined
+  exceptions and must never leak through the root entry.
 - `content/registry.json`: persistent stable-ID-to-file relationship map; keep it synchronized with explicit runtime imports.
 - `content/catalogs/`: stable-ID catalogs. Investigation menus are shared; each test and medication has its own definition file; curated demographic pools live here.
-- `content/cases/{blueprints,drafts,review,approved,deprecated}/`: explicit content lifecycle. Production imports only `approved/`.
+- `content/cases/{blueprints,drafts,review,approved,deprecated}/`: explicit content lifecycle. The
+  ordinary Player artifact imports only `approved/`; local Developer mode and the exact portable
+  Reviewer assignment are controlled review exceptions, not lifecycle promotion.
 - `content/source-docs/`: local-only future authoring boundary; raw files, extracted text, and manifests are ignored.
 - `tools/content-cli/`: developer-side deterministic validation and reference runners. Later ingestion/AI tools remain here, never in the web bundle.
 - `tests/`: cross-package and Playwright acceptance tests.
 - `docs/`: product, architecture, scoring, content, review, ingestion, roadmap, and decision contracts.
+
+## Branch and release workflow
+
+- `beta` is the normal local development branch after the portable Reviewer checkpoint. Start new
+  feature work there and push its validated checkpoints to `origin/beta`.
+- `main` is the stable distributed/GitHub Pages branch. Do not develop directly on it after the
+  `beta` branch exists.
+- The user saying `push to main` (or an equally explicit instruction) authorizes promoting the
+  validated `beta` branch as a whole to `main`. It does not authorize selecting only convenient
+  commits, force-pushing, dropping local work, or bypassing quality gates.
+- Stop if `main`, `beta`, or their remotes have diverged unexpectedly. Inspect and report the
+  relation before any merge. Return the working copy to `beta` after a successful promotion.
 
 ## Setup and commands
 
@@ -46,11 +63,13 @@ Use Node 22 or newer and pnpm 10.13.1 (the pinned `packageManager`).
 pnpm install
 pnpm dev
 pnpm build
+pnpm build:reviewer
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:handoff
 pnpm test:e2e
+pnpm test:e2e:reviewer
 pnpm content:validate
 pnpm content:sources:validate
 pnpm content:scan
@@ -61,6 +80,9 @@ pnpm content:review
 pnpm content:evidence
 pnpm content:compile
 pnpm content:impact medication.bupropion
+pnpm content:diagnoses:validate
+pnpm content:diagnoses:search -- "major depressive"
+pnpm content:diagnoses:import -- /path/to/icd10cm-order-2026.txt
 pnpm demo:reference-runs
 pnpm format:check
 ```
@@ -77,10 +99,61 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Investigation labels, neutral descriptions, categories, and service IDs belong in the shared information-action catalog. Cases supply results and post-submit scoring only; never add case-answer hints to the pre-submit menu or result prose.
 - Patient launchers render the resolved fictional name and chief complaint only. Never expose metadata titles, diagnostic categories, pathway names, “straightforward” descriptions, or other answer hints.
 - Enforce SOAP only as a content boundary: history/collateral is Subjective; examinations, measurements, records, labs, and imaging are Objective; Assessment/Plan conclusions appear only after submission. PsychSim is not a note-writing simulator.
-- Patient files own diagnoses, clinical tags, structured observations, authored pathways, source-use notes, and case-specific results. Shared medication knowledge belongs in per-medication files; preserve human overrides separately from generated suggestions.
-- Diagnosis-family files own qualitative guidance shared across patients. Compose base rules, then a selected severity branch, then specifiers and other active diagnoses. Diagnosis files never own unexplained point values. Missing definitions, source-disabled severity, mutually exclusive selections, and incompatible active guidance quarantine the composition; never select a clinical winner from file order.
-- Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Do not enable optional-comorbidity generation until its patient-family pool policy is recorded.
+- Patient templates own generation constraints, focused encounter state, structured observations,
+  narrow reviewed overrides, source-use notes, and case-specific results; they do not copy complete
+  treatment plans. Resolved patients separately save internal condition states, chart diagnosis
+  entries, medication-regimen entries, prior trials, typed facts, derived tags, and all generated
+  values. Shared diagnosis, medication, test, therapy, disposition, and decision-policy knowledge
+  belongs in its catalog. Preserve human overrides separately from generated suggestions.
+- Diagnosis-family files own qualitative guidance shared across patients. Compose base rules, then a
+  selected severity branch, then specifiers and other active diagnoses. Diagnosis files never own
+  unexplained point values. Missing definitions, source-disabled severity, mutually exclusive
+  selections, inaccessible required care, and no-safe-route states quarantine. A reviewed safety
+  rule may govern a valid benefit-versus-risk tension while both sides remain visible in the trace;
+  evidence disagreement stays disabled behind a ticket and point-magnitude disagreement routes to
+  balance review. Never select a clinical winner from file order.
+- Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Optional-comorbidity pools are patient-family-owned; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, replay, and safe-route validation.
+- Treat typed clinical facts and measurements as sources of truth. Stable clinical tags are
+  versioned derived relationship keys; never let a free tag contradict its originating fact.
+- Represent future current medications as regimen-entry instances rather than a medication-ID set,
+  so duplicates can be targeted independently. Represent prior trials as structured records with
+  categorical adequacy, adherence, response, tolerability, and source fields.
+- Compile only positive rules relevant to the encounter's focused decision horizon, while retaining
+  global safety and interaction rules. Do not grade a complex patient against an exhaustive plan for
+  every background problem.
 - Keep private extracted documents, formal bibliographic sources, and clinical contributions separate. Every formal article/guideline/regulatory source has one stable file under `content/catalogs/evidence/formal/`. Every use names the catalog IDs, target content IDs, contribution types, and a concise statement of what the source contributed. A rule without a formal contribution is labeled `Expert opinion`; never invent a citation for notes, notebooks, or unsourced judgment. Bibliographic verification does not confer medical approval.
+- Evidence precedence is claim- and question-specific, not one global source pyramid or numeric
+  authority score. Keep source role, design fit, bias/certainty, directness/applicability,
+  currency/search-through date, corrections/supersession, and upstream provenance separate.
+  GRADE-style certainty belongs to a compatible body of evidence. Prefer evidence automatically
+  only when it is unambiguously dominant across relevant dimensions; otherwise preserve the
+  disagreement and open a ticket. Developer opinion may bridge an applicability gap but never
+  inherits a cited source's certainty or assigns point values.
+- DrugCentral is an authoring-only `structured_database` seed under its recorded CC BY-SA gate.
+  Preserve release, record/upstream provenance, attribution, changes, ShareAlike obligations, and
+  unreviewed status. Do not download or import it until the curated scope and isolated importer
+  boundary exist; do not route its derived records into runtime under the current source-use
+  decision.
+- A private multi-article archive is one hashed physical `SourceDocument` containing many logical
+  authored units and atomic Developer-opinion candidates. Preserve original dates, article
+  boundaries, asserted authorship versus verified rights, currentness, exact local provenance, and
+  unverified citation candidates. Never flatten it into one formal source, redistribute article
+  prose, or promote embedded references without independent verification.
+- Keep the authoring-only diagnosis classification catalog separate from playable diagnosis
+  definitions. Exact codes, titles, billable/category state, and hierarchy may support search and
+  reviewed mappings; they never supply criteria, severity, treatment, or medical approval and must
+  remain outside the browser bundle.
+- Check a formal source's full-text, reuse, AI-use, and local-extraction policy before downloading
+  or parsing it. Public readability is not permission for AI-assisted ingestion. Keep
+  permission-required or prohibited sources metadata-only, never route around terms through a
+  mirror, and represent corrections/updates as separate validated source relationships rather than
+  silently rewriting the older record.
+- Follow `docs/SOURCE_USE_POLICY.md`. Any source used beyond bibliographic metadata needs an
+  explicit `SourceUseDecision` recording legal basis, territory, permitted storage/extraction/local
+  indexing/AI/derived-clinical/redistribution uses, attribution and notices, commercial and ShareAlike limits, and
+  third-party handling. Fair use is never an implicit ingestion basis: a proposed exception must
+  contain the complete four-factor `FairUseAssessment`, or the schema rejects it. DSM content stays
+  metadata-only and out of AI tooling unless written APA permission changes the recorded decision.
 - Every laboratory or diagnostic study has its own file under `content/catalogs/tests/definitions/`. It owns context inputs, generation profiles, reference-interval set/population metadata, UCUM units, ranges, precision, and bounded incidental behavior. Numeric results must render value, unit, reference interval, and `N`/`H`/`L` interpretation. Values are deterministic; at most one incidental flag is generated per panel, it stays inside a tightly reviewed mild range, remains noncritical/non-case-defining, and never alters the rubric. Patient-authored observations always override generation.
 - Information results are structured finding sets, not memorable prose paragraphs. Use short swappable labels and explicit outcomes (`present`, `absent`, `normal`, `high`, `low`, `positive`, `negative`). Criteria-driven syndromes use declarative minimum/maximum/required finding constraints.
 - Label nonexact treatment evaluation as engine-inferred. Do not present catalog heuristics as an authored or medically reviewed patient pathway.
@@ -94,8 +167,44 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Facility thresholds grant purchase eligibility only. Facility moves and decor use the same pure atomic purchase path, preserve prior ownership and lifetime points, and cannot create debt.
 - Decor lives in `content/catalogs/decor/`; it may change hub visuals and the capped positive-reward multiplier only. It must never alter care rules, safety errors, treatment grades, or disposition correctness.
 - Patient pool metadata (`starter`, `transitional`, `advanced`) is internal selection data. Never expose it as a diagnosis or answer hint on a waiting-room card.
-- Normal queues use approved patients and persist each resolved patient in its slot until completed. Endgame is a reversible derived clinic overlay with approved patients, all defined capabilities, and manual slot refresh. Developer mode exists only on the local development server, loads approved plus review content, shows each not-yet-run patient definition once, supports reroll/reset, and banks no practice rewards. Production must tree-shake developer content.
-- Receipt guidance and clinically disputed items create local proposed tickets. A ticket never mutates patient, medication, test, pathway, or scoring content directly. Preserve source snapshot, target IDs, dependencies/conflicts, clinical-acumen flag, internal status, reviewer instructions and their timestamp, resolution, and resurfacing trigger. The user-facing UI presents one plain-language instruction field rather than lifecycle statuses. Developer ticket instructions persist in IndexedDB and mirror to the fixed gitignored Codex handoff file; browser tests use a separate fixed `.e2e` file so they cannot overwrite human review. Read the handoff file only after the user says the review is ready, infer the requested action from their prose, and ask only when a material ambiguity would change the result. Never treat saving instructions as an executable content edit. Developer mode may export the same versioned bundle as JSON. Triage technical blockers before clinical changes where dependencies require it; implemented work creates versioned file changes and reruns affected validation/reference policies.
+- Normal queues use approved patients and persist each resolved patient in its slot until completed. Endgame is a reversible derived clinic overlay with approved patients, all defined capabilities, and manual slot refresh. Developer mode exists only on the local development server, loads approved plus review content, shows each not-yet-run patient definition once, supports reroll/reset, and banks no practice rewards. Normal production must tree-shake developer content. The separately flagged portable Reviewer build may statically import only its explicit finite, medically unreviewed assignment; it must exclude local ticket/source/opinion queues and the writable workspace endpoint.
+- Receipt guidance and clinically disputed items create local proposed tickets. A ticket never
+  mutates patient, medication, test, pathway, or scoring content directly. `Needs another
+guideline/source` creates a `source_gap` ticket; check existing evidence before creating or
+  updating a `SourceRequest`, and never infer the missing rule. Preserve source snapshot, target
+  IDs, dependencies/conflicts, clinical-acumen flag, internal status, reviewer instructions and
+  their timestamp, resolution, and resurfacing trigger. The user-facing UI presents one
+  plain-language instruction field rather than lifecycle statuses. Developer ticket instructions
+  persist in IndexedDB and mirror to the fixed gitignored Codex handoff file; browser tests use a
+  separate fixed `.e2e` file so they cannot overwrite human review. Read the handoff file only after
+  the user says the review is ready, infer the requested action from their prose, and ask only when
+  a material ambiguity would change the result. Never treat saving instructions as an executable
+  content edit. Developer mode may export the same versioned bundle as JSON. Triage technical
+  blockers before clinical changes where dependencies require it; implemented work creates
+  versioned file changes and reruns affected validation/reference policies.
+- A completed Developer-mode patient can also create one editable `DeveloperAttemptReview`.
+  Preserve its immutable completed-attempt snapshot and the normalized snapshot of every available
+  information/treatment/disposition option, including choice state and displayed fulfillment cost.
+  Saving the prose updates IndexedDB first and then the same fixed Codex handoff bundle. When the
+  user says patient reviews are ready, inspect `attemptReviews` as well as `tickets`; use the
+  captured patient, events, choices, receipt, and trace to turn each observation into the smallest
+  appropriate ticket or versioned change. Do not infer what the reviewer saw from current content,
+  and do not treat a saved case review as automatic authorization to alter clinical rules.
+- The portable Reviewer build uses the same exact-attempt review record on desktop or mobile.
+  Several completed-case reviews, flags, and tickets persist in its separate IndexedDB database and
+  export together in one versioned JSON file. That browser/device is the only durable copy until
+  export; clearing site data loses it. The portable build never writes into the repository.
+- `REVIEWER_ASSIGNMENT_ID` is part of persisted/exported identity. Bump it whenever cohort
+  membership, scenario or policy semantics, or the intended review package changes materially.
+  Never reuse an assignment ID for a changed cohort: stale run history could suppress patients and
+  mixed-revision exports would no longer be auditable.
+- Every post-submit receipt compares the player's exact plan with the completed declared
+  `database_plan` replay for the same saved patient, clinic, location, and fulfillment costs.
+  Show both plans side by side and render care points on a bar whose normal maximum is the database
+  plan; if the player exceeds it, expand the scale to the player score and mark the database value
+  inside the bar. Label this as a finite tested database benchmark, never a globally optimal
+  solution unless an exhaustive search actually exists. Developer mode may additionally show every
+  declared replay and invalid replay failures.
 
 ## Runtime AI prohibition
 
@@ -105,7 +214,10 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
 
 - Prototype content must say `fictional: true`, `synthetic: true`, and `medicalReviewStatus: "unreviewed"`, with an on-screen non-authoritative disclaimer.
 - Never invent citations or imply clinician approval. Generated material cannot approve itself.
-- Lifecycle is `blueprint → draft → review → approved → deprecated`. Production imports only `approved/`; developer tooling may inspect other states.
+- Lifecycle is `blueprint → draft → review → approved → deprecated`. Normal gameplay production
+  imports only `approved/`; developer tooling may inspect other states. A purpose-built portable
+  Reviewer artifact may import only the explicit review assignment registered for that build and
+  must label all such content medically unreviewed.
 - Medical approval is rule-level. Workup, treatment, safety, scoring, medication-fit, and test-generation rules each require an independent review record; approved rules require reviewer identity and review timestamp. Case-level release metadata cannot approve embedded rules. Until that workflow is completed, content remains medically unreviewed even if allowed in the prototype bundle.
 - Every rule change requires schema validation, reference-run review, and tests for accepted alternatives and unsafe behavior.
 - Preserve historical content versions needed to replay old attempts. Do not silently rewrite a stored attempt.
@@ -122,4 +234,12 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
 
 ## Definition of done for future changes
 
-A change is done only when it stays within the active milestone; preserves deterministic replay and versioned schemas; includes explanatory rule traces and itemized finances where behavior changes; adds/updates content validation and reference policies; preserves accessibility and keyboard use; keeps source material and AI SDKs out of production; updates relevant docs/decisions; and passes `lint`, `typecheck`, `test`, `content:validate`, `test:e2e`, and `build`. Do not begin the next roadmap milestone merely because the current change is complete.
+A change is done only when it stays within the active milestone; preserves deterministic replay and
+versioned schemas; includes explanatory rule traces and itemized finances where behavior changes;
+adds/updates content validation and reference policies; preserves accessibility and keyboard use;
+keeps source material and AI SDKs out of production; updates relevant docs/decisions; and passes
+`lint`, `typecheck`, `test`, `content:validate`, `test:e2e`, and `build`. Reviewer-surface changes
+must additionally pass local 390 px and 320 px `test:e2e:reviewer` projects, the CI
+iPhone/WebKit project, `build:reviewer`, assignment allowlist validation, and both normal/Reviewer
+bundle-isolation checks. Do not begin the next roadmap milestone merely because the current change
+is complete.

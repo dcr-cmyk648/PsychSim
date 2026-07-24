@@ -17,6 +17,10 @@ test-results/
 content/generated/*
 !content/generated/.gitkeep
 
+# Licensed/fair-use diagnosis classification payloads are local authoring caches.
+# Track release metadata/importers, not full code-title catalogs.
+content/catalogs/diagnoses/classifications/*/*/terms.json
+
 # Source documents and derived text are private, local-only authoring inputs.
 content/source-docs/inbox/*
 content/source-docs/processed/*

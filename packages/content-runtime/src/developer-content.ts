@@ -7,8 +7,11 @@ import {
 
 import { approvedCaseBlueprints, catalogs, startingClinic } from './content';
 import { milestoneTwoClinicalAuditTickets } from './milestone-two-review-tickets';
+import { buildDeveloperOpinionReferenceNeeds } from './opinion-audit';
 import { buildCaseRuleAudit } from './review-inspector';
-export { developerSourceRequests } from './source-requests';
+import { reviewerCaseBlueprints } from './reviewer-content';
+import { developerSourceRequests } from './source-requests';
+export { developerSourceRequests };
 
 const reviewCaseModules = import.meta.glob('../../../content/cases/review/*.case.json', {
   eager: true,
@@ -25,10 +28,17 @@ const reviewCaseBlueprints = Object.entries(reviewCaseModules)
 export const developerCaseBlueprints: readonly CaseBlueprint[] = [
   ...approvedCaseBlueprints,
   ...reviewCaseBlueprints,
+  ...reviewerCaseBlueprints,
 ];
 
 export const developerCaseRuleAudits = developerCaseBlueprints.map((blueprint) =>
   buildCaseRuleAudit(blueprint, catalogs, startingClinic),
+);
+
+export const developerOpinionReferenceNeeds = buildDeveloperOpinionReferenceNeeds(
+  developerCaseBlueprints,
+  catalogs,
+  developerSourceRequests,
 );
 
 const generatedTicketModules = import.meta.glob('../../../content/cases/review/*.tickets.json', {

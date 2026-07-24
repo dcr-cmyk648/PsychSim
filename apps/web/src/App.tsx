@@ -18,7 +18,9 @@ import {
   catalogs,
   startingProfile,
   type CaseRuleAudit,
+  type DeveloperOpinionReferenceNeed,
 } from '@psychsim/content-runtime';
+import { REVIEWER_ASSIGNMENT_ID } from '@psychsim/content-runtime/reviewer-assignment';
 import {
   ENGINE_VERSION,
   completeEncounter,
@@ -28,6 +30,7 @@ import {
   refreshPatientQueue,
   rerollDeveloperSlot,
   purchaseUpgrade,
+  replayEncounter,
   requireCompleted,
   resetDeveloperRunHistory,
   resolveClinicForProgressionMode,
@@ -36,23 +39,35 @@ import {
 
 import { ClinicHub, type PatientSlotPreview } from './components/ClinicHub';
 import { EncounterView } from './components/EncounterView';
+import { MobileWorkflowTabs, type MobileWorkflowPane } from './components/MobileWorkflowTabs';
 import { ReceiptView, type GuidanceDraft } from './components/ReceiptView';
+import { buildDeveloperAttemptReview } from './attempt-review';
 import { mergeDeveloperAuditTickets } from './developer-review-state';
 import { IndexedDbSaveRepository } from './persistence';
+import { buildReferenceSolutionAudit } from './reference-audit';
 
 type Screen = 'hub' | 'encounter' | 'receipt';
 
-const developerTicketTools = import.meta.env.DEV ? import('./ticket-tools') : null;
+const REVIEWER_BUILD = import.meta.env.VITE_PSYCHSIM_REVIEW_BUILD === '1';
+const REVIEW_TOOLS_ENABLED = import.meta.env.DEV || REVIEWER_BUILD;
+const reviewExportTools = REVIEW_TOOLS_ENABLED ? import('./review-export') : null;
+const localTicketWriterTools = import.meta.env.DEV ? import('./ticket-tools') : null;
 
 const createInitialSave = (): SaveData =>
   SaveDataSchema.parse({
     schemaVersion: 1,
-    saveDataVersion: 4,
-    profile: startingProfile,
+    saveDataVersion: 5,
+    profile: REVIEWER_BUILD
+      ? {
+          ...startingProfile,
+          progressionMode: 'developer',
+        }
+      : startingProfile,
     attempts: [],
     flags: [],
     patientQueues: emptyPatientQueueState(),
     clinicalTickets: [],
+    attemptReviews: [],
     legacyArchive: [],
   });
 
@@ -64,8 +79,9 @@ const withFilledQueues = (
   developerBlueprints: readonly CaseBlueprint[],
   developerAuditTickets: readonly ClinicalReviewTicket[] = [],
 ): SaveData => {
-  const normalizedMode =
-    saveData.profile.progressionMode === 'developer' && !import.meta.env.DEV
+  const normalizedMode = REVIEWER_BUILD
+    ? 'developer'
+    : saveData.profile.progressionMode === 'developer' && !import.meta.env.DEV
       ? 'standard'
       : saveData.profile.progressionMode;
   const profile =
@@ -88,17 +104,27 @@ const withFilledQueues = (
 };
 
 export default function App() {
-  const repository = useMemo(() => new IndexedDbSaveRepository(), []);
+  const repository = useMemo(
+    () =>
+      new IndexedDbSaveRepository(
+        REVIEWER_BUILD ? `psychsim-${REVIEWER_ASSIGNMENT_ID}` : 'psychsim-local-save',
+      ),
+    [],
+  );
   const [developerBlueprints, setDeveloperBlueprints] =
     useState<readonly CaseBlueprint[]>(approvedCaseBlueprints);
   const [developerCaseRuleAudits, setDeveloperCaseRuleAudits] = useState<readonly CaseRuleAudit[]>(
     [],
   );
+  const [developerOpinionReferenceNeeds, setDeveloperOpinionReferenceNeeds] = useState<
+    readonly DeveloperOpinionReferenceNeed[]
+  >([]);
   const [developerSourceRequests, setDeveloperSourceRequests] = useState<readonly SourceRequest[]>(
     [],
   );
   const [saveData, setSaveData] = useState<SaveData | null>(null);
   const [screen, setScreen] = useState<Screen>('hub');
+  const [mobileWorkflowPane, setMobileWorkflowPane] = useState<MobileWorkflowPane>('patient');
   const [encounter, setEncounter] = useState<EncounterState | null>(null);
   const [attempt, setAttempt] = useState<CompletedAttempt | null>(null);
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
@@ -114,14 +140,27 @@ export default function App() {
           blueprints: module.developerCaseBlueprints,
           auditTickets: module.developerClinicalAuditTickets,
           caseRuleAudits: module.developerCaseRuleAudits,
+          opinionReferenceNeeds: module.developerOpinionReferenceNeeds,
           sourceRequests: module.developerSourceRequests,
         }))
-      : Promise.resolve({
-          blueprints: approvedCaseBlueprints as readonly CaseBlueprint[],
-          auditTickets: [] as readonly ClinicalReviewTicket[],
-          caseRuleAudits: [] as readonly CaseRuleAudit[],
-          sourceRequests: [] as readonly SourceRequest[],
-        });
+      : REVIEWER_BUILD
+        ? import('@psychsim/content-runtime/reviewer').then((module) => ({
+            blueprints: [
+              ...approvedCaseBlueprints,
+              ...module.reviewerCaseBlueprints,
+            ] as readonly CaseBlueprint[],
+            auditTickets: [] as readonly ClinicalReviewTicket[],
+            caseRuleAudits: [] as readonly CaseRuleAudit[],
+            opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
+            sourceRequests: [] as readonly SourceRequest[],
+          }))
+        : Promise.resolve({
+            blueprints: approvedCaseBlueprints as readonly CaseBlueprint[],
+            auditTickets: [] as readonly ClinicalReviewTicket[],
+            caseRuleAudits: [] as readonly CaseRuleAudit[],
+            opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
+            sourceRequests: [] as readonly SourceRequest[],
+          });
     void Promise.all([repository.load(), developerContent])
       .then(async ([saved, developerData]) => {
         if (!active) return;
@@ -134,6 +173,7 @@ export default function App() {
         if (!active) return;
         setDeveloperBlueprints(developerData.blueprints);
         setDeveloperCaseRuleAudits(developerData.caseRuleAudits);
+        setDeveloperOpinionReferenceNeeds(developerData.opinionReferenceNeeds);
         setDeveloperSourceRequests(developerData.sourceRequests);
         setSaveData(hydrated);
       })
@@ -150,6 +190,14 @@ export default function App() {
     };
   }, [repository]);
 
+  useEffect(() => {
+    if (screen !== 'receipt') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('receipt-title')?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [screen]);
+
   const effectiveClinic = useMemo(
     () =>
       saveData
@@ -160,6 +208,10 @@ export default function App() {
           )
         : null,
     [saveData],
+  );
+  const referenceSolutionAudit = useMemo(
+    () => (attempt ? buildReferenceSolutionAudit(attempt, catalogs) : null),
+    [attempt],
   );
 
   const patientSlots = useMemo<PatientSlotPreview[]>(() => {
@@ -189,6 +241,7 @@ export default function App() {
     setAttempt(null);
     setActiveSlotId(slotId);
     setEncounterMode(saveData.profile.progressionMode);
+    setMobileWorkflowPane('patient');
     setError(null);
     setScreen('encounter');
     window.scrollTo({ top: 0 });
@@ -211,8 +264,45 @@ export default function App() {
     openEncounter(attempt.caseInstance, locationId, null);
   };
 
+  const openSavedAttemptForReview = (attemptId: string): void => {
+    if (!saveData || !REVIEW_TOOLS_ENABLED) return;
+    const savedAttempt = saveData.attempts.find((candidate) => candidate.id === attemptId);
+    if (!savedAttempt) {
+      setError('That saved case receipt is no longer available.');
+      return;
+    }
+    const replay = replayEncounter(
+      savedAttempt.caseInstance,
+      savedAttempt.clinicStateAtStart,
+      savedAttempt.events,
+      catalogs,
+    );
+    if (!replay.ok || replay.value.status !== 'submitted') {
+      setError(
+        replay.ok
+          ? 'That saved case did not replay to a submitted receipt.'
+          : `That saved case could not be reopened: ${replay.error.message}`,
+      );
+      return;
+    }
+    setEncounter(replay.value);
+    setAttempt(savedAttempt);
+    setActiveSlotId(null);
+    setEncounterMode('developer');
+    setMobileWorkflowPane('results');
+    setError(null);
+    setScreen('receipt');
+    window.scrollTo({ top: 0 });
+  };
+
   const setProgressionMode = async (mode: ProgressionMode): Promise<void> => {
-    if (!saveData || (mode === 'developer' && !import.meta.env.DEV)) return;
+    if (
+      !saveData ||
+      (mode === 'developer' && !REVIEW_TOOLS_ENABLED) ||
+      (REVIEWER_BUILD && mode !== 'developer')
+    ) {
+      return;
+    }
     const nextSave = withFilledQueues(
       SaveDataSchema.parse({
         ...saveData,
@@ -341,6 +431,7 @@ export default function App() {
       setEncounter(completed.state);
       setAttempt(completedAttempt);
       setActiveSlotId(null);
+      setMobileWorkflowPane('results');
       setScreen('receipt');
       window.scrollTo({ top: 0 });
     } catch (caught) {
@@ -383,8 +474,12 @@ export default function App() {
           sourceKind: 'content_flag',
           sourceAuthority: 'developer_observation',
           ticketType:
-            draft.issueCategory === 'ui_or_engine_bug' ? 'technical' : 'clinical_conflict',
-          priority: 'medium',
+            draft.issueCategory === 'ui_or_engine_bug'
+              ? 'technical'
+              : draft.issueCategory === 'needs_additional_source'
+                ? 'source_gap'
+                : 'clinical_conflict',
+          priority: draft.issueCategory === 'needs_additional_source' ? 'high' : 'medium',
           status: 'proposed',
           requiresClinicalAcumen: true,
           attemptId: attempt.id,
@@ -397,7 +492,9 @@ export default function App() {
           dependencyTicketIds: [],
           conflictContentIds: [],
           proposedRouting:
-            'Review the patient record, applicable catalog definition, and supporting source notes before changing durable content.',
+            draft.issueCategory === 'needs_additional_source'
+              ? 'Identify the exact unresolved clinical question and affected rule, check existing evidence first, then create or update a tracked source request. Do not infer the missing guidance.'
+              : 'Review the patient record, applicable catalog definition, and supporting source notes before changing durable content.',
           guidance: draft.note || 'Clinical review requested from the local case receipt.',
           resurfacingTrigger: null,
           resolution: null,
@@ -453,26 +550,33 @@ export default function App() {
   };
 
   const ticketBundleFor = async (sourceSave: SaveData) => {
-    const tools = await developerTicketTools;
+    const tools = await reviewExportTools;
     if (!tools) return null;
     const { buildClinicalTicketExportBundle } = tools;
     return buildClinicalTicketExportBundle({
       exportedAt: new Date().toISOString(),
       engineVersion: ENGINE_VERSION,
       profileId: sourceSave.profile.id,
+      buildKind: REVIEWER_BUILD ? 'portable_reviewer' : 'local_developer',
+      assignmentId: REVIEWER_BUILD ? REVIEWER_ASSIGNMENT_ID : null,
       tickets: sourceSave.clinicalTickets,
+      attemptReviews: sourceSave.attemptReviews,
+      flags: sourceSave.flags,
+      completedAttempts: sourceSave.attempts,
     });
   };
 
   const exportTickets = async (): Promise<void> => {
-    if (!import.meta.env.DEV || !saveData) return;
+    if (!REVIEW_TOOLS_ENABLED || !saveData) return;
     const bundle = await ticketBundleFor(saveData);
     if (!bundle) return;
-    const tools = await developerTicketTools;
+    const tools = await reviewExportTools;
     if (!tools) return;
     const { downloadClinicalTicketBundle } = tools;
     downloadClinicalTicketBundle(bundle);
-    setTicketToolStatus(`Exported ${bundle.tickets.length} ticket(s) as a versioned JSON bundle.`);
+    setTicketToolStatus(
+      `Download started for one versioned JSON bundle with ${bundle.completedAttempts.length} completed case(s), ${bundle.attemptReviews.length} case review(s), ${bundle.flags.length} flag(s), and ${bundle.tickets.length} ticket(s). Confirm that the file appears in your browser's downloads before clearing this device.`,
+    );
   };
 
   const writeTicketsToWorkspace = async (
@@ -483,13 +587,13 @@ export default function App() {
     const bundle = await ticketBundleFor(sourceSave);
     if (!bundle) return false;
     try {
-      const tools = await developerTicketTools;
+      const tools = await localTicketWriterTools;
       if (!tools) return false;
       const { writeClinicalTicketBundleToWorkspace } = tools;
       const path = await writeClinicalTicketBundleToWorkspace(bundle);
       setTicketToolStatus(
         successMessage ??
-          `Updated the Codex handoff file with ${bundle.tickets.length} ticket(s) at ${path}. You can now tell Codex the review is ready.`,
+          `Updated the Codex handoff file with ${bundle.tickets.length} ticket(s) and ${bundle.attemptReviews.length} attempt review(s) at ${path}. You can now tell Codex the review is ready.`,
       );
       return true;
     } catch (caught) {
@@ -542,6 +646,40 @@ export default function App() {
     );
   };
 
+  const saveDeveloperAttemptReview = async (reviewerNote: string): Promise<boolean> => {
+    if (!REVIEW_TOOLS_ENABLED || encounterMode !== 'developer' || !saveData || !attempt) {
+      return false;
+    }
+    const existingReview = saveData.attemptReviews.find(
+      (candidate) => candidate.attemptId === attempt.id,
+    );
+    const review = buildDeveloperAttemptReview({
+      attempt,
+      catalogs,
+      engineVersion: ENGINE_VERSION,
+      reviewerNote,
+      timestamp: new Date().toISOString(),
+      existingReview,
+    });
+    const attemptReviews = existingReview
+      ? saveData.attemptReviews.map((candidate) =>
+          candidate.attemptId === attempt.id ? review : candidate,
+        )
+      : [...saveData.attemptReviews, review];
+    const nextSave = SaveDataSchema.parse({ ...saveData, attemptReviews });
+    await persist(nextSave);
+    if (REVIEWER_BUILD) {
+      setTicketToolStatus(
+        `Saved this case review in this browser. ${attemptReviews.length} case review(s) are ready for one JSON export.`,
+      );
+      return true;
+    }
+    return writeTicketsToWorkspace(
+      nextSave,
+      `Saved your review of ${attempt.caseInstance.opening.title} with the exact attempt snapshot and updated the Codex handoff file.`,
+    );
+  };
+
   if (!saveData) {
     return (
       <main className="loading-screen" aria-live="polite">
@@ -572,10 +710,13 @@ export default function App() {
           clinicState={effectiveClinic ?? saveData.profile.clinic}
           catalogs={catalogs}
           patientSlots={patientSlots}
-          developerModeAvailable={import.meta.env.DEV}
+          developerModeAvailable={REVIEW_TOOLS_ENABLED}
+          reviewerBuild={REVIEWER_BUILD}
           caseRuleAudits={developerCaseRuleAudits}
+          opinionReferenceNeeds={developerOpinionReferenceNeeds}
           sourceRequests={developerSourceRequests}
           onStart={startPatientSlot}
+          onOpenSavedAttempt={openSavedAttemptForReview}
           onSetMode={(mode) => void setProgressionMode(mode)}
           onRefresh={() => void refreshSlots()}
           onRerollDeveloper={(slotId) => void rerollDeveloperPatient(slotId)}
@@ -588,24 +729,74 @@ export default function App() {
           upgradeStatus={upgradeStatus}
         />
       ) : null}
-      {screen === 'encounter' && encounter ? (
-        <EncounterView
-          state={encounter}
-          catalogs={catalogs}
-          onStateChange={setEncounter}
-          onSubmit={() => void finishEncounter()}
-          onExit={() => setScreen('hub')}
-        />
-      ) : null}
-      {screen === 'receipt' && attempt ? (
-        <ReceiptView
-          attempt={attempt}
-          developerToolsEnabled={import.meta.env.DEV}
-          onBackToClinic={() => setScreen('hub')}
-          onReplay={replayAttempt}
-          onFlag={saveFlag}
-          onSaveGuidance={saveGuidance}
-        />
+      {(screen === 'encounter' || screen === 'receipt') && encounter ? (
+        <div
+          id="main-content"
+          className={`case-workflow phase-${screen} active-${mobileWorkflowPane}`}
+          data-testid="case-workflow"
+        >
+          <MobileWorkflowTabs
+            activePane={mobileWorkflowPane}
+            includeResults={screen === 'receipt'}
+            onChange={setMobileWorkflowPane}
+          />
+          {screen === 'encounter' ? (
+            <EncounterView
+              state={encounter}
+              catalogs={catalogs}
+              onStateChange={setEncounter}
+              onSubmit={() => void finishEncounter()}
+              onExit={() => setScreen('hub')}
+              mobileActivePane={mobileWorkflowPane}
+              onMobilePaneChange={setMobileWorkflowPane}
+            />
+          ) : null}
+          {screen === 'receipt' && attempt ? (
+            <>
+              <div className="receipt-review-context">
+                <EncounterView
+                  state={encounter}
+                  catalogs={catalogs}
+                  onStateChange={setEncounter}
+                  onSubmit={() => undefined}
+                  onExit={() => setScreen('hub')}
+                  mobileActivePane={mobileWorkflowPane}
+                  onMobilePaneChange={setMobileWorkflowPane}
+                  readOnly
+                />
+              </div>
+              <div
+                id="mobile-panel-results"
+                className="receipt-results-context"
+                role="tabpanel"
+                aria-labelledby="mobile-tab-results"
+              >
+                <ReceiptView
+                  attempt={attempt}
+                  developerToolsEnabled={REVIEW_TOOLS_ENABLED}
+                  developerCaseReviewEnabled={REVIEW_TOOLS_ENABLED && encounterMode === 'developer'}
+                  portableReviewerBuild={REVIEWER_BUILD}
+                  referenceSolutionAudit={referenceSolutionAudit}
+                  initialDeveloperReviewNote={
+                    saveData.attemptReviews.find((review) => review.attemptId === attempt.id)
+                      ?.reviewerNote ?? ''
+                  }
+                  onBackToClinic={() => setScreen('hub')}
+                  onReplay={replayAttempt}
+                  onExportReviews={() => void exportTickets()}
+                  reviewExportAvailable={
+                    saveData.attemptReviews.length > 0 ||
+                    saveData.flags.length > 0 ||
+                    saveData.clinicalTickets.length > 0
+                  }
+                  onFlag={saveFlag}
+                  onSaveGuidance={saveGuidance}
+                  onSaveDeveloperReview={saveDeveloperAttemptReview}
+                />
+              </div>
+            </>
+          ) : null}
+        </div>
       ) : null}
     </>
   );

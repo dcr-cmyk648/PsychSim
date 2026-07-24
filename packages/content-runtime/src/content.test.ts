@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { instantiateCase, resolveNumericTestProfile } from '@psychsim/engine';
+import { instantiateCase, resolveNumericTestProfile, resolveVariant } from '@psychsim/engine';
 import {
+  CatalogBundleSchema,
   CaseInstanceSchema,
+  DiagnosisDefinitionSchema,
+  EvidenceSourceDefinitionSchema,
   PatientObservationSchema,
   SourceUseNoteSchema,
   WorkupObjectiveSchema,
@@ -30,6 +33,23 @@ describe('prototype content', () => {
     }
   });
 
+  it('rejects authoring-only records from the strict runtime catalog while diagnoses parse', () => {
+    const runtimeCatalog = CatalogBundleSchema.parse(structuredClone(catalogs));
+    const parsedDiagnoses = DiagnosisDefinitionSchema.array().parse(runtimeCatalog.diagnoses);
+    expect(parsedDiagnoses.length).toBeGreaterThan(0);
+    expect(parsedDiagnoses.map((diagnosis) => diagnosis.id)).toEqual(
+      catalogs.diagnoses.map((diagnosis) => diagnosis.id),
+    );
+    for (const key of ['diagnosisClassifications', 'sourceUseDecisions'] as const) {
+      expect(
+        CatalogBundleSchema.safeParse({
+          ...structuredClone(catalogs),
+          [key]: [],
+        }).success,
+      ).toBe(false);
+    }
+  });
+
   it('defaults pre-pool saved case instances to the starter pool during parsing', () => {
     const legacyInstance = structuredClone(
       instantiateCase(prototypeCaseBlueprint, 'legacy-pool-default', catalogs),
@@ -51,6 +71,31 @@ describe('prototype content', () => {
           sourceType: 'regulatory_document',
           medicalReviewStatus: 'unreviewed',
         }),
+        expect.objectContaining({
+          id: 'evidence.who.mhgap-mns.2023',
+          organization: 'World Health Organization',
+          publicationYear: 2023,
+          medicalReviewStatus: 'unreviewed',
+        }),
+        expect.objectContaining({
+          id: 'evidence.va-dod.suicide-risk.2024',
+          versionLabel: 'Version 3.0',
+          medicalReviewStatus: 'unreviewed',
+        }),
+        expect.objectContaining({
+          id: 'evidence.bap.catatonia.2023',
+          accessPolicy: expect.objectContaining({
+            reuseStatus: 'open_license',
+            localExtractionStatus: 'allowed',
+          }),
+        }),
+        expect.objectContaining({
+          id: 'evidence.apa.bpd-treatment.second-edition.2024',
+          accessPolicy: expect.objectContaining({
+            aiUseStatus: 'prohibited',
+            localExtractionStatus: 'prohibited',
+          }),
+        }),
       ]),
     );
     const fdaContribution = medicationCheckPalpitationsBlueprint.patientRecord.sourceUseNotes[0];
@@ -65,6 +110,40 @@ describe('prototype content', () => {
         caseDefinition.patientRecord.sourceUseNotes.flatMap((note) => note.evidenceSourceIds),
       ),
     ).not.toContain('evidence.canmat.mdd-adults.2023-update');
+    expect(
+      approvedCaseBlueprints.flatMap((caseDefinition) =>
+        caseDefinition.patientRecord.sourceUseNotes.flatMap((note) => note.evidenceSourceIds),
+      ),
+    ).not.toContain('evidence.who.mhgap-mns.2023');
+  });
+
+  it('tracks a correction as a separate source with a validated relationship', () => {
+    const correction = catalogs.evidenceSources.find(
+      (source) => source.id === 'evidence.canmat.mdd-adults.2023-update-corrigendum.2025',
+    )!;
+    expect(correction).toMatchObject({
+      sourceType: 'correction_notice',
+      sourceRelations: [
+        {
+          sourceId: 'evidence.canmat.mdd-adults.2023-update',
+          relationType: 'corrects',
+        },
+      ],
+    });
+
+    const invalid = structuredClone(catalogs);
+    invalid.evidenceSources.find(
+      (source) => source.id === correction.id,
+    )!.sourceRelations[0]!.sourceId = 'evidence.missing';
+    expect(
+      validateCatalogs(invalid).issues.some(
+        (issue) => issue.code === 'INVALID_EVIDENCE_SOURCE_RELATION',
+      ),
+    ).toBe(true);
+
+    const missingCorrectedSource = structuredClone(correction);
+    missingCorrectedSource.sourceRelations = [];
+    expect(EvidenceSourceDefinitionSchema.safeParse(missingCorrectedSource).success).toBe(false);
   });
 
   it('rejects formal contributions that cite an uncataloged publication', () => {
@@ -168,6 +247,15 @@ describe('prototype content', () => {
         (level) => level.generationStatus === 'disabled_pending_source' && level.rules.length === 0,
       ),
     ).toBe(true);
+    expect(mdd.sourceUseNotes).toEqual([
+      expect.objectContaining({
+        id: 'source-use.diagnosis-mdd.who-mhgap-dep1-4-context',
+        evidenceSourceIds: ['evidence.who.mhgap-mns.2023'],
+        contributionTypes: ['context_only'],
+        medicalReviewStatus: 'unreviewed',
+      }),
+    ]);
+    expect(mdd.baseRules).toEqual([]);
   });
 
   it('rejects missing diagnosis files and invalid patient diagnosis qualifiers', () => {
@@ -456,6 +544,13 @@ describe('prototype content', () => {
     expect(findAffectedContentIds(contentRegistry, ['registry.catalog.tests'])).toEqual(
       expect.arrayContaining(['case.first-visit-depression', 'case.restless-after-augmentation']),
     );
+    expect(findAffectedContentIds(contentRegistry, ['evidence.who.mhgap-mns.2023'])).toEqual(
+      expect.arrayContaining([
+        'registry.catalog.diagnoses',
+        'case.first-visit-depression',
+        'case.medication-check-palpitations',
+      ]),
+    );
   });
 
   it('rejects assessment, plan, or scoring hints in pre-submission findings', () => {
@@ -509,6 +604,53 @@ describe('prototype content', () => {
     expect(instantiateCase(prototypeCaseBlueprint, 'repeatable-seed', catalogs)).toEqual(
       instantiateCase(prototypeCaseBlueprint, 'repeatable-seed', catalogs),
     );
+  });
+
+  it('builds names from large independent pools with a deterministic 25% middle-initial chance', () => {
+    const firstNames = catalogs.variantPools.find(
+      (pool) => pool.id === 'variant-pool.fictional-first-names.general-adult',
+    )!;
+    const lastNames = catalogs.variantPools.find(
+      (pool) => pool.id === 'variant-pool.fictional-last-names.general-adult',
+    )!;
+    expect(firstNames.kind).toBe('fictional_first_name');
+    expect(lastNames.kind).toBe('fictional_last_name');
+    expect(firstNames.values.length).toBeGreaterThanOrEqual(100);
+    expect(lastNames.values.length).toBeGreaterThanOrEqual(100);
+
+    const nameVariant = prototypeCaseBlueprint.variants.find(
+      (variant) => variant.target === 'patient.name',
+    );
+    if (!nameVariant || nameVariant.generator.type !== 'fictionalName') {
+      throw new Error('Expected the prototype patient to use the fictional-name generator.');
+    }
+    const names = Array.from({ length: 4_000 }, (_, index) =>
+      String(
+        resolveVariant(
+          nameVariant.generator,
+          `name-pool-${index}`,
+          nameVariant.id,
+          catalogs.variantPools,
+        ),
+      ),
+    );
+    const withMiddleInitial = names.filter((name) => / [A-Z]\. /.test(name));
+    expect(withMiddleInitial.length / names.length).toBeGreaterThan(0.22);
+    expect(withMiddleInitial.length / names.length).toBeLessThan(0.28);
+
+    const withoutMiddle = names.map((name) => name.replace(/ [A-Z]\. /, ' '));
+    const firstToLast = new Map<string, Set<string>>();
+    const lastToFirst = new Map<string, Set<string>>();
+    for (const name of withoutMiddle) {
+      const firstSpace = name.indexOf(' ');
+      const first = name.slice(0, firstSpace);
+      const last = name.slice(firstSpace + 1);
+      firstToLast.set(first, (firstToLast.get(first) ?? new Set()).add(last));
+      lastToFirst.set(last, (lastToFirst.get(last) ?? new Set()).add(first));
+    }
+    expect([...firstToLast.values()].some((values) => values.size > 10)).toBe(true);
+    expect([...lastToFirst.values()].some((values) => values.size > 10)).toBe(true);
+    expect(new Set(names).size).toBeGreaterThan(2_500);
   });
 
   it('varies short chief complaints and other declared noncritical fields across seeds', () => {

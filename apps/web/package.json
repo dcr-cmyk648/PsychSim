@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "reviewer:e2e-server": "VITE_PSYCHSIM_REVIEW_BUILD=1 vite build && vite preview --host 127.0.0.1 --port 43818 --strictPort"
   },
   "dependencies": {
     "@psychsim/content-runtime": "workspace:*",

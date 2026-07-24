@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.bipolar-depression",
+  "internalTitle": "Reviewer cohort: bipolar depression",
+  "difficultyTier": 3,
+  "patientPool": "advanced",
+  "tags": ["reviewer-cohort", "bipolar", "depressive-episode"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    },
+    {
+      "id": "diagnosis.major-depressive-disorder",
+      "role": "excluded",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"]
+    }
+  ],
+  "clinicalTagIds": [
+    "clinical-tag.depressive-symptoms",
+    "clinical-tag.past-mania",
+    "clinical-tag.outpatient-stable"
+  ],
+  "criticalFacts": {
+    "focusedDecision": "bipolar-depression-treatment",
+    "acuteSafetyConcern": false,
+    "pastMania": true,
+    "currentMania": false
+  },
+  "ageRange": { "minimum": 25, "maximum": 59 },
+  "chiefComplaintChoices": [
+    "Depression",
+    "Low mood",
+    "Loss of interest",
+    "Bipolar depression",
+    "Feeling down",
+    "No motivation",
+    "Nothing feels enjoyable",
+    "Low energy",
+    "Depressive episode",
+    "Mood is low",
+    "Trouble enjoying things",
+    "Anhedonia"
+  ],
+  "durationChoices": ["six weeks", "two months", "ten weeks", "about three months"],
+  "bothersomeness": "extremely",
+  "settingText": "Solo psychiatric office · outpatient medication consultation",
+  "knownHistory": ["A previous hospitalization was documented during a markedly elevated episode."],
+  "medicationRegimen": [],
+  "priorMedicationTrials": [
+    {
+      "schemaVersion": 1,
+      "id": "trial.review-bipolar-depression.lithium",
+      "medicationId": "medication.lithium",
+      "adequacy": "unclear",
+      "adherence": "unknown",
+      "response": "unknown",
+      "tolerability": "unknown",
+      "source": "patient_report",
+      "summary": "A remote lithium trial is recalled, but adequacy, response, and tolerability are unclear."
+    }
+  ],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-bipolar-depression.low-mood",
+            "labelVariants": ["Depressed mood", "Low mood"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-bipolar-depression.anhedonia",
+            "labelVariants": ["Anhedonia", "Reduced interest"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-bipolar-depression.energy",
+            "labelVariants": ["Low energy", "Fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-bipolar-depression.sleep",
+            "labelVariants": ["Increased sleep", "Hypersomnia"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-bipolar-depression.concentration",
+            "labelVariants": ["Reduced concentration", "Poor focus"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-bipolar-depression.depressive-syndrome"]
+      }
+    },
+    {
+      "actionId": "info.history.mania",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-bipolar-depression.past-elevated-mood",
+            "labelVariants": ["Past elevated or irritable mood", "Prior manic mood change"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-bipolar-depression.past-sleep",
+            "labelVariants": ["Past decreased need for sleep", "Prior reduced need for sleep"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-bipolar-depression.past-impairment",
+            "labelVariants": ["Past marked impairment", "Prior severe functional change"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-bipolar-depression.current-mania",
+            "labelVariants": ["Current manic symptoms", "Current elevated episode"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-bipolar-depression.past-mania"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.bipolar-depression"
+}

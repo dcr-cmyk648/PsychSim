@@ -14,7 +14,7 @@ const LOCAL_TICKET_PATH = fileURLToPath(
   ),
 );
 const LOCAL_TICKET_DISPLAY_PATH = `content/generated/local-review-tickets/${LOCAL_TICKET_FILE_NAME}`;
-const MAX_TICKET_BUNDLE_BYTES = 2_000_000;
+const MAX_REVIEW_BUNDLE_BYTES = 20_000_000;
 
 const localTicketWriter = (): Plugin => ({
   name: 'psychsim-local-ticket-writer',
@@ -33,8 +33,8 @@ const localTicketWriter = (): Plugin => ({
         for await (const chunk of request) {
           const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
           size += buffer.length;
-          if (size > MAX_TICKET_BUNDLE_BYTES) {
-            throw new Error('Ticket bundle exceeds the 2 MB local-development limit.');
+          if (size > MAX_REVIEW_BUNDLE_BYTES) {
+            throw new Error('Developer review bundle exceeds the 20 MB local-development limit.');
           }
           chunks.push(buffer);
         }
@@ -43,18 +43,58 @@ const localTicketWriter = (): Plugin => ({
           typeof raw !== 'object' ||
           raw === null ||
           !('exportVersion' in raw) ||
-          raw.exportVersion !== 2 ||
+          raw.exportVersion !== 5 ||
+          !('completedAttempts' in raw) ||
+          !Array.isArray(raw.completedAttempts) ||
           !('tickets' in raw) ||
           !Array.isArray(raw.tickets) ||
+          !('attemptReviews' in raw) ||
+          !Array.isArray(raw.attemptReviews) ||
+          !('flags' in raw) ||
+          !Array.isArray(raw.flags) ||
           !raw.tickets.every(
             (ticket) =>
               typeof ticket === 'object' &&
               ticket !== null &&
               'reviewerNotes' in ticket &&
               typeof ticket.reviewerNotes === 'string',
+          ) ||
+          !raw.attemptReviews.every(
+            (review) =>
+              typeof review === 'object' &&
+              review !== null &&
+              'reviewerNote' in review &&
+              typeof review.reviewerNote === 'string' &&
+              'availableOptions' in review &&
+              Array.isArray(review.availableOptions) &&
+              'attemptSnapshot' in review &&
+              typeof review.attemptSnapshot === 'object' &&
+              review.attemptSnapshot !== null,
+          ) ||
+          !raw.flags.every(
+            (flag) =>
+              typeof flag === 'object' &&
+              flag !== null &&
+              'attemptId' in flag &&
+              typeof flag.attemptId === 'string' &&
+              'note' in flag &&
+              typeof flag.note === 'string',
+          ) ||
+          !raw.completedAttempts.every(
+            (attempt) =>
+              typeof attempt === 'object' &&
+              attempt !== null &&
+              'id' in attempt &&
+              typeof attempt.id === 'string' &&
+              'caseInstance' in attempt &&
+              typeof attempt.caseInstance === 'object' &&
+              attempt.caseInstance !== null &&
+              'receipt' in attempt &&
+              typeof attempt.receipt === 'object' &&
+              attempt.receipt !== null,
           )
         ) {
-          throw new Error('Ticket bundle has an unsupported shape.');
+          throw new Error('Developer review bundle has an unsupported shape.');
         }
         await mkdir(dirname(LOCAL_TICKET_PATH), { recursive: true });
         const temporaryPath = `${LOCAL_TICKET_PATH}.tmp`;

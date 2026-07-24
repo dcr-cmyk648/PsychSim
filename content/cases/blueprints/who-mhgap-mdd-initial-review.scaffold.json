@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "requestVersion": 1,
+  "id": "patient-scaffold.who-mhgap-mdd-initial-review",
+  "blueprintId": "case.review.who-mhgap-mdd-initial",
+  "templateBlueprintId": "case.first-visit-depression",
+  "internalTitle": "WHO mhGAP initial-depression review patient",
+  "sourceUses": [
+    {
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.who.mhgap-mns.2023"],
+      "sourceDocumentId": "source-document.90f1220536d6323b8d84",
+      "sourceChunkIds": [
+        "source-chunk.90f1220536d6323b8d84.87",
+        "source-chunk.90f1220536d6323b8d84.88"
+      ],
+      "proposedImpactContentIds": [
+        "diagnosis.major-depressive-disorder",
+        "medication-tag-set.mdd-antidepressant",
+        "medication.citalopram",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.sertraline",
+        "grade.mdd-optimal-sertraline",
+        "grade.mdd-strong-escitalopram",
+        "grade.mdd-acceptable-other-antidepressant"
+      ],
+      "contributionTypes": ["treatment", "medication_fit", "safety"],
+      "summary": "WHO DEP1 supplies a conditional, very-low-certainty baseline for selected SSRIs or amitriptyline in moderate-to-severe depression, with selection shaped by adverse effects, availability, patient context, and preferences."
+    },
+    {
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.who.mhgap-mns.2023"],
+      "sourceDocumentId": "source-document.90f1220536d6323b8d84",
+      "sourceChunkIds": [
+        "source-chunk.90f1220536d6323b8d84.90",
+        "source-chunk.90f1220536d6323b8d84.91",
+        "source-chunk.90f1220536d6323b8d84.92"
+      ],
+      "proposedImpactContentIds": [
+        "diagnosis.major-depressive-disorder",
+        "path.mdd-single-antidepressant-outpatient",
+        "rule.mdd-psychotherapy",
+        "rule.mdd-behavioral-activation",
+        "intervention.psychotherapy.cbt",
+        "intervention.psychotherapy.ipt",
+        "intervention.psychotherapy.supportive",
+        "intervention.behavioral-activation"
+      ],
+      "contributionTypes": ["treatment"],
+      "summary": "WHO DEP3 and DEP4 support several structured psychological interventions and describe psychological or combined treatment choices for moderate-to-severe depression as preference- and context-sensitive."
+    }
+  ],
+  "chiefComplaintChoices": [
+    "Low mood",
+    "Loss of interest",
+    "No motivation",
+    "Always tired",
+    "Cannot focus",
+    "Feeling empty",
+    "No energy",
+    "Sleeping poorly",
+    "Hard to function",
+    "Not feeling like myself",
+    "Nothing feels enjoyable",
+    "Trouble getting started"
+  ],
+  "ageRange": {
+    "minimum": 24,
+    "maximum": 52
+  },
+  "createdBy": "codex"
+}

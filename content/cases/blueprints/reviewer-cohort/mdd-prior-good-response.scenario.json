@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.mdd-prior-good-response",
+  "internalTitle": "Reviewer cohort: recurrent MDD with prior good response",
+  "difficultyTier": 2,
+  "patientPool": "transitional",
+  "tags": ["reviewer-cohort", "mdd", "prior-trial", "prior-remission"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.major-depressive-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"]
+    },
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "excluded",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    }
+  ],
+  "clinicalTagIds": [
+    "clinical-tag.depressive-symptoms",
+    "clinical-tag.prior-medication-remission",
+    "clinical-tag.outpatient-stable"
+  ],
+  "criticalFacts": {
+    "focusedDecision": "recurrent-treatment-selection",
+    "acuteSafetyConcern": false,
+    "pastMania": false,
+    "currentlyTakingPsychiatricMedication": false
+  },
+  "ageRange": { "minimum": 30, "maximum": 66 },
+  "chiefComplaintChoices": [
+    "Depression is back",
+    "Low mood again",
+    "Loss of interest again",
+    "Feeling depressed again",
+    "Symptoms returned",
+    "Anhedonia returned",
+    "Mood has worsened",
+    "No motivation again",
+    "Depression has recurred",
+    "Feeling down again",
+    "Low energy and mood",
+    "Another depressive episode"
+  ],
+  "durationChoices": ["five weeks", "seven weeks", "two months", "about three months"],
+  "bothersomeness": "very",
+  "settingText": "Solo psychiatric office · outpatient return consultation",
+  "knownHistory": [],
+  "medicationRegimen": [],
+  "priorMedicationTrials": [
+    {
+      "schemaVersion": 1,
+      "id": "trial.review-mdd-prior-good.sertraline",
+      "medicationId": "medication.sertraline",
+      "adequacy": "adequate",
+      "adherence": "consistent",
+      "response": "remission",
+      "tolerability": "tolerated",
+      "source": "patient_report",
+      "summary": "Prior adequate trial was well tolerated and associated with remission."
+    }
+  ],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-mdd-prior-good.low-mood",
+            "labelVariants": ["Depressed mood", "Low mood"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-prior-good.anhedonia",
+            "labelVariants": ["Anhedonia", "Reduced interest"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-prior-good.energy",
+            "labelVariants": ["Low energy", "Fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-prior-good.sleep",
+            "labelVariants": ["Sleep disturbance", "Poor sleep"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-prior-good.concentration",
+            "labelVariants": ["Reduced concentration", "Poor focus"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-mdd-prior-good.depressive-syndrome"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.mdd.initial"
+}

@@ -1,6 +1,6 @@
 import { PlayerProfileSchema, SaveDataSchema, type SaveData } from '@psychsim/schemas';
 
-const DATABASE_NAME = 'psychsim-local-save';
+const DEFAULT_DATABASE_NAME = 'psychsim-local-save';
 const STORE_NAME = 'save-data';
 const SAVE_KEY = 'primary';
 
@@ -46,7 +46,14 @@ const migrateLegacyNode = (value: unknown): unknown => {
 
 /** Migrate the only pre-release save shape without mutating the stored value. */
 export const migrateSaveData = (value: unknown): unknown => {
-  if (!isRecord(value) || value.saveDataVersion === 4) return value;
+  if (!isRecord(value) || value.saveDataVersion === 5) return value;
+  if (value.saveDataVersion === 4) {
+    return {
+      ...value,
+      saveDataVersion: 5,
+      attemptReviews: Array.isArray(value.attemptReviews) ? value.attemptReviews : [],
+    };
+  }
   const sourceSaveDataVersion =
     typeof value.saveDataVersion === 'number' ? value.saveDataVersion : 0;
   const migrated = migrateLegacyNode(value);
@@ -84,7 +91,7 @@ export const migrateSaveData = (value: unknown): unknown => {
   if (!profile.success) return migrated;
   return {
     schemaVersion: 1,
-    saveDataVersion: 4,
+    saveDataVersion: 5,
     profile: profile.data,
     attempts: [],
     flags: [],
@@ -98,6 +105,7 @@ export const migrateSaveData = (value: unknown): unknown => {
       recentChiefComplaints: [],
     },
     clinicalTickets: [],
+    attemptReviews: [],
     legacyArchive: [
       {
         schemaVersion: 1,
@@ -119,9 +127,11 @@ const requestResult = <T>(request: IDBRequest<T>): Promise<T> =>
   });
 
 export class IndexedDbSaveRepository implements SaveRepository {
+  constructor(private readonly databaseName = DEFAULT_DATABASE_NAME) {}
+
   private openDatabase(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DATABASE_NAME, 1);
+      const request = indexedDB.open(this.databaseName, 1);
       request.onupgradeneeded = () => {
         if (!request.result.objectStoreNames.contains(STORE_NAME)) {
           request.result.createObjectStore(STORE_NAME);

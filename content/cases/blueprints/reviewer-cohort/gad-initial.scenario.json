@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.gad-initial",
+  "internalTitle": "Reviewer cohort: initial GAD",
+  "difficultyTier": 1,
+  "patientPool": "starter",
+  "tags": ["reviewer-cohort", "gad", "initial-treatment"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.generalized-anxiety-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.anxiety"]
+    },
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "excluded",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    }
+  ],
+  "clinicalTagIds": ["clinical-tag.anxiety-symptoms", "clinical-tag.outpatient-stable"],
+  "criticalFacts": {
+    "focusedDecision": "initial-treatment",
+    "acuteSafetyConcern": false,
+    "substanceWithdrawal": false
+  },
+  "ageRange": { "minimum": 22, "maximum": 60 },
+  "chiefComplaintChoices": [
+    "Anxiety",
+    "Constant worry",
+    "Cannot stop worrying",
+    "Feeling on edge",
+    "Too much worry",
+    "Always tense",
+    "Worrying all day",
+    "Anxious most days",
+    "Persistent anxiety",
+    "Restless and worried",
+    "Trouble controlling worry",
+    "Nervous all the time"
+  ],
+  "durationChoices": ["eight months", "about a year", "eighteen months", "two years"],
+  "bothersomeness": "very",
+  "settingText": "Solo psychiatric office · outpatient intake",
+  "knownHistory": [],
+  "medicationRegimen": [],
+  "priorMedicationTrials": [],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.anxiety-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-gad.excessive-worry",
+            "labelVariants": ["Excessive worry", "Persistent worry"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-gad.control",
+            "labelVariants": ["Difficulty controlling worry", "Worry is hard to stop"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-gad.restlessness",
+            "labelVariants": ["Restlessness", "Feeling on edge"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-gad.tension",
+            "labelVariants": ["Muscle tension", "Physical tension"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-gad.concentration",
+            "labelVariants": ["Reduced concentration", "Difficulty focusing"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-gad.panic",
+            "labelVariants": ["Unexpected panic attacks", "Discrete panic episodes"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-gad.anxiety-syndrome"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.gad.initial"
+}

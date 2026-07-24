@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0",
   "id": "diagnosis.bipolar-spectrum-disorder",
   "label": "Bipolar-spectrum disorder",
-  "description": "Unreviewed diagnosis-family placeholder for patient composition and rule-reference validation.",
+  "description": "Unreviewed diagnosis-family placeholder for patient composition, episode-state review, and later reviewed treatment rules.",
   "medicalReviewStatus": "unreviewed",
   "baseClinicalTagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"],
   "baseRules": [],
@@ -11,5 +11,18 @@
   "specifiers": [],
   "comorbidityRelationships": [],
   "complexityContributions": [],
-  "sourceUseNotes": []
+  "sourceUseNotes": [
+    {
+      "id": "source-use.diagnosis-bipolar.who-mhgap-psy-context",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.who.mhgap-mns.2023"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": ["diagnosis.bipolar-spectrum-disorder"],
+      "contributionTypes": ["context_only"],
+      "contribution": "WHO mhGAP PSY7-PSY9 is retained as broad adult mania, maintenance, and bipolar-depression treatment context. It does not define PsychSim diagnostic criteria, episode-state thresholds, or executable scoring without separate review.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
 }

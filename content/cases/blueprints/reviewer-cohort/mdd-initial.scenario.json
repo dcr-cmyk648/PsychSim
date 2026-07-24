@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.mdd-initial",
+  "internalTitle": "Reviewer cohort: initial MDD",
+  "difficultyTier": 1,
+  "patientPool": "starter",
+  "tags": ["reviewer-cohort", "mdd", "initial-treatment"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.major-depressive-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"]
+    },
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "excluded",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    }
+  ],
+  "clinicalTagIds": ["clinical-tag.depressive-symptoms", "clinical-tag.outpatient-stable"],
+  "criticalFacts": {
+    "focusedDecision": "initial-treatment",
+    "acuteSafetyConcern": false,
+    "pastMania": false
+  },
+  "ageRange": { "minimum": 24, "maximum": 58 },
+  "chiefComplaintChoices": [
+    "Depression",
+    "Low mood",
+    "Loss of interest",
+    "No motivation",
+    "Feeling down",
+    "Nothing feels enjoyable",
+    "Low energy",
+    "Feeling depressed",
+    "Trouble enjoying things",
+    "Mood problems",
+    "Fatigue and low mood",
+    "Anhedonia"
+  ],
+  "durationChoices": ["six weeks", "two months", "about ten weeks", "three months"],
+  "bothersomeness": "very",
+  "settingText": "Solo psychiatric office · outpatient intake",
+  "knownHistory": [],
+  "medicationRegimen": [],
+  "priorMedicationTrials": [],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-mdd-initial.depressed-mood",
+            "labelVariants": ["Depressed mood", "Low mood"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-initial.anhedonia",
+            "labelVariants": ["Reduced interest", "Anhedonia"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-initial.fatigue",
+            "labelVariants": ["Fatigue", "Low energy"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-initial.sleep",
+            "labelVariants": ["Sleep disturbance", "Poor sleep"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-initial.concentration",
+            "labelVariants": ["Reduced concentration", "Poor focus"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-initial.appetite",
+            "labelVariants": ["Reduced appetite", "Appetite change"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-mdd-initial.depressive-syndrome"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.mdd.initial"
+}

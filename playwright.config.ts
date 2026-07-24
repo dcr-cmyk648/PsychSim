@@ -10,6 +10,7 @@ const localChromeChannel =
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: 'reviewer-mobile.spec.ts',
   fullyParallel: false,
   retries: 0,
   reporter: [['list']],

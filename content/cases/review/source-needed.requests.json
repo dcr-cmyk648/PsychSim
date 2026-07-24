@@ -119,7 +119,7 @@
     "id": "source-request.mdd.severity-thresholds",
     "title": "Structured mild, moderate, and severe MDD generation",
     "question": "Which current authoritative criteria should PsychSim use to distinguish mild, moderate, and severe depressive episodes using symptom count, symptom intensity, distress, functional impairment, psychosis, and safety findings?",
-    "whyNeeded": "The randomized symptom set must remain internally coherent: a generated severity label cannot conflict with the number or intensity of positive criteria or with functional impairment. CANMAT treatment tiers alone do not fully specify the generator.",
+    "whyNeeded": "The randomized symptom set must remain internally coherent: a generated severity label cannot conflict with the number or intensity of positive criteria or with functional impairment. CANMAT treatment tiers and WHO mhGAP's moderate-to-severe treatment scope do not operationalize the diagnostic generator thresholds.",
     "targetContentIds": [
       "case.first-visit-depression",
       "diagnosis.major-depressive-disorder",
@@ -130,7 +130,11 @@
       "path.mdd-single-antidepressant-outpatient",
       "info.history.depressive-symptoms"
     ],
-    "linkedTicketIds": ["ticket.source.canmat-mdd.initial-modality"],
+    "linkedTicketIds": [
+      "ticket.source.canmat-mdd.initial-modality",
+      "ticket.source.who-mhgap.dep1-antidepressant-baseline",
+      "ticket.source.who-mhgap.dep4-treatment-modality"
+    ],
     "preferredSourceTypes": [
       "clinical_guideline",
       "professional_guidance",
@@ -146,7 +150,10 @@
       "provider": "google_drive",
       "folderLabel": "PsychSim documents"
     },
-    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "existingEvidenceSourceIds": [
+      "evidence.canmat.mdd-adults.2023-update",
+      "evidence.who.mhgap-mns.2023"
+    ],
     "receivedEvidenceSourceIds": [],
     "sourceDocumentIds": [],
     "sourceChunkIds": [],
@@ -154,7 +161,7 @@
     "status": "needs_source",
     "resolutionNote": null,
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-23T00:00:00.000Z"
+    "updatedAt": "2026-07-23T14:55:00.000Z"
   },
   {
     "schemaVersion": 1,
@@ -170,7 +177,11 @@
       "rule.mdd-emergency-escalation",
       "info.history.suicide-safety"
     ],
-    "linkedTicketIds": ["ticket.source.canmat-mdd.disposition-severity"],
+    "linkedTicketIds": [
+      "ticket.source.canmat-mdd.disposition-severity",
+      "ticket.source.va-dod-suicide-risk.2024-intake",
+      "ticket.source.nice-self-harm.ng225-access"
+    ],
     "preferredSourceTypes": [
       "clinical_guideline",
       "professional_guidance",
@@ -186,14 +197,17 @@
       "provider": "google_drive",
       "folderLabel": "PsychSim documents"
     },
-    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
-    "receivedEvidenceSourceIds": [],
-    "sourceDocumentIds": [],
+    "existingEvidenceSourceIds": [
+      "evidence.canmat.mdd-adults.2023-update",
+      "evidence.nice.self-harm.ng225.2022"
+    ],
+    "receivedEvidenceSourceIds": ["evidence.va-dod.suicide-risk.2024"],
+    "sourceDocumentIds": ["source-document.3fdd289a235399016d65"],
     "sourceChunkIds": [],
     "sourceUseNoteIds": [],
-    "status": "needs_source",
+    "status": "source_received",
     "resolutionNote": null,
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-23T00:00:00.000Z"
+    "updatedAt": "2026-07-23T16:45:00.000Z"
   }
 ]

@@ -10,9 +10,9 @@ Gate: documents agree on no virtual time, deterministic browser play, one visibl
 
 ## Milestone 1 — First playable clinical vertical slice (complete)
 
-Delivered: strict versioned schemas including rule-level review records; deterministic seeded instantiation; atomic finding sets; one-file-per-test contextual generation with UCUM units and EMR-style reference-interval display; pure encounter/points/economy/service/replay/eligibility/queue logic; starting solo office; one playable medically unreviewed MDD starter case with one broad primary medication-tag pathway plus one review-only engine fixture; a 36-option universal information catalog with immediate case-specific results; searchable structured treatment UI; itemized all-points receipt and full trace; durable Normal/Endgame/Developer queues; local profile/attempt/flag/ticket persistence; reviewer notes, developer ticket triage, automatic fixed-path Codex handoff mirror, and JSON export; content validation; four executable starter policies; unit and Playwright coverage.
+Delivered: strict versioned schemas including rule-level review records; deterministic seeded instantiation; atomic finding sets; one-file-per-test contextual generation with UCUM units and EMR-style reference-interval display; pure encounter/points/economy/service/replay/eligibility/queue logic; starting solo office; one playable medically unreviewed MDD starter case with one broad primary medication-tag pathway plus one review-only engine fixture; a 36-option universal information catalog with immediate case-specific results; searchable structured treatment UI; itemized all-points receipt and full trace; durable Normal/Endgame/Developer queues; local profile/attempt/flag/ticket persistence; Developer whole-case review notes with immutable attempt/all-option snapshots; reviewer notes, developer ticket triage, automatic fixed-path Codex handoff mirror, and JSON export; content validation; four executable starter policies; unit and Playwright coverage.
 
-Gate: one complete case plays opening-to-receipt; reload preserves profile/attempt/patient slot/tickets; same seed/history is deterministic; tests prove complaint variation, criteria-constrained findings, immediate results, costs, nonrepeatability, negative-test credit, indicated reward above cost, omissions, waste, fit modifiers, alternative paths, discontinuation, dangerous combination, path-specific requirements, zero-floor settlement, service independence, reference ordering, Developer-content isolation, and AI/source bundle isolation; lint, typecheck, tests, e2e, validation, and production build pass.
+Gate: one complete case plays opening-to-receipt; reload preserves profile/attempt/patient slot/tickets/Developer attempt reviews; same seed/history is deterministic; a whole-case review preserves every offered option and exact choices; tests prove complaint variation, criteria-constrained findings, immediate results, costs, nonrepeatability, negative-test credit, indicated reward above cost, omissions, waste, fit modifiers, alternative paths, discontinuation, dangerous combination, path-specific requirements, zero-floor settlement, service independence, reference ordering, Developer-content isolation, and AI/source bundle isolation; lint, typecheck, tests, e2e, validation, and production build pass.
 
 ## Milestone 2 — First clinic-building loop (complete)
 
@@ -26,11 +26,73 @@ Delivered: explicit starter/transitional/advanced patient-pool metadata; a one-s
 
 Gate: unit/component/browser tests prove lifetime eligibility does not grant ownership, balance spending leaves lifetime progression unchanged, facility/decor purchases are atomic, prior ECG ownership survives a move, waiting patients persist while slot count grows, decor visibly persists after reload, diminishing returns remain under the catalog cap, care-point traces remain identical, and unsafe play remains unprofitable. Both approved patients remain available through safe external services at all declared Normal locations; the starter pool remains repeatable. No departments or new clinically inferred patients were added.
 
-## Pre-Milestone 4 — Diagnosis/composition engine foundation
+## Pre-Milestone 4 — Diagnosis/composition and generated-patient engine
 
-Scope: one file per diagnosis family; shared → severity → specifier composition; qualitative recommendation stances; constrained patient/treatment context predicates; deterministic gameplay-critical context dimensions that keep findings and fit tags aligned; bounded multi-diagnosis authoring; conflict quarantine; multidimensional complexity; reference and provenance validation.
+Delivered foundation: one file per diagnosis family; shared → severity → specifier composition;
+qualitative recommendation stances; constrained patient/treatment context predicates; deterministic
+gameplay-critical context dimensions that keep findings and fit tags aligned; bounded
+multi-diagnosis authoring; conservative conflict quarantine; multidimensional complexity; reference
+and provenance validation.
 
-Gate: current runtime behavior and reference runs remain unchanged; unsourced severity cannot generate; missing or incompatible diagnosis content fails validation; a resolved critical context is deterministic, saved, visible through its bound finding, and available to fit logic; conflicting diagnosis guidance has no automatic winner; no point mapping, department work, or new clinical recommendation is invented. Optional-comorbidity selection and complexity-to-level mapping remain disabled until the recorded open decisions are resolved.
+Additional delivered slice: the 2023 WHO mhGAP guideline is cataloged and locally extracted under
+the protected source boundary; depression DEP1–DEP4 has exact chunk provenance,
+recommendation-level Developer tickets, and one deterministic medically-unreviewed source-linked
+MDD scaffold. A receipt can flag `Needs another guideline/source`, producing a local source-gap
+ticket. None of these records activates shared clinical guidance.
+
+Portable review checkpoint: an explicitly allowlisted, medically unreviewed common-psychiatry
+assignment compiles ten separate patient scenarios (five MDD decision states plus GAD, bipolar
+depression, acute mania, schizophrenia relapse, and PTSD) through eight shared provisional
+decision policies. The separate static Reviewer artifact includes mobile workspace tabs,
+mobile-only immediate-result dialogs, newest/oldest reveal ordering, read-only post-submit context,
+near-top general feedback, reopenable completed receipts, an assignment-versioned IndexedDB, and
+one version-5 export containing multiple completed attempts/reviews/flags/tickets. GitHub Pages
+deploys this finite Reviewer artifact from `main`; it does not include the local Developer glob,
+source/opinion/ticket queues, writer endpoint, source bytes, or AI tooling.
+
+Portable review gate: every scenario passes schema, registry, reference, semantic eligibility, and
+four-policy ordering checks in the all-capabilities Reviewer clinic; ordinary Player and Reviewer
+bundles pass separate isolation scans; local Chromium phone tests at 390 px and 320 px plus a
+required CI iPhone/WebKit run prove immediate results, tab navigation, no horizontal overflow,
+post-submit Results selection, reload/reopen recovery, two distinct completed cases, persistence,
+and one combined exact export. The cohort remains medically unreviewed, and remote bundle import,
+historical re-scoring, and rubric editing remain Milestone 5 work.
+
+Medication/intervention authoring checkpoint: the target background database now separates
+normalized identity and regulatory facts, structured evidence claims, Developer opinions,
+executable clinical rules, and point balance. Public RxNorm/FDA/NLM sources form the preferred bulk
+factual scaffold; comparative evidence and guidelines remain separately scoped. Proprietary
+references are human-only absent permission, and psychotherapy manuals are not copied. This is a
+documented boundary only: no medication importer, therapy migration, clinical claim, or scoring
+change has been implemented.
+
+DrugCentral is now registered as an authoring-only `structured_database` seed under a restrictive
+initial CC BY-SA gate: local deterministic indexing and unreviewed derived candidates are allowed,
+while AI-assisted processing and runtime/commercial redistribution remain blocked pending an
+isolated ShareAlike package. Evidence precedence is specified as claim- and question-specific
+rather than one pyramid score. The user's private residency-article aggregate is designed as one
+physical source containing many dated logical article units and atomic Developer opinions; no
+SharePoint bytes have been imported.
+
+Remaining scope before complex generation: typed clinical facts and derived tags; internal condition
+states separate from chart diagnosis records; regimen-entry and prior-trial records; sourced
+decision-policy nodes; source-controlled patient templates that compile deterministic patient and
+encounter instances; focused decision horizons; patient-family-owned optional-comorbidity
+selection; a conflict taxonomy that preserves valid clinical tension; versioned patient-specific
+overrides; medication identity/evidence/opinion schemas; claim-specific evidence-body resolution;
+logical authored-source units and opinion/evidence relationships; and one source-cleared, tightly
+scoped medication import proof before broad catalog expansion.
+
+Gate: current runtime behavior and reference runs remain unchanged; old snapshots replay through a
+versioned migration; unsourced severity cannot generate; the same template and seed reproduce the
+same complete patient/regimen/trial state; duplicate medications are independently addressable;
+chart claims do not automatically activate internal-condition rules; only decision-relevant
+positive rules plus global safety rules enter a focused encounter; every generated encounter has
+accessible questioning/workup and a safe best-next-step route; structural invalidity quarantines
+while clinical/evidence/balance conflicts remain distinguishable; no point mapping, department
+work, or new clinical recommendation is invented. Templates may use a provisional multidimensional
+target envelope, but complexity-to-level display and progression mapping remain disabled until
+reference-patient testing supports them.
 
 ## Milestone 4 — Departments and broader services
 
@@ -42,7 +104,11 @@ Gate: case/location validator proves safe workup, acceptable treatment, and safe
 
 Scope: build on the Milestone 1 proposed-ticket queue with exact attempt replay; review inspector; dependency/conflict and supersession workflows; rubric editing; historical comparison/re-score; JSON bundles; reference-policy simulations and QA reports; generated content indexes.
 
-Gate: historical records are immutable and reproducible; current-engine comparisons are labeled; rubric edits create versions; flag statuses/audit metadata persist; imports are schema/size validated; no unreviewed case silently reaches production.
+Gate: historical records are immutable and reproducible; current-engine comparisons are labeled;
+rubric edits create versions; flag statuses/audit metadata persist; imports are schema/size
+validated; no unreviewed case silently reaches the ordinary Player artifact. A finite portable
+Reviewer assignment remains an explicitly labeled, exact-allowlist exception rather than a
+clinical or lifecycle approval.
 
 ## Milestone 6 — Source-document ingestion
 
@@ -54,7 +120,12 @@ Gate: idempotence and crash recovery; exact duplicates detected by hash; failure
 
 ## Milestone 7 — AI-assisted drafting
 
-Status: one non-AI precursor is delivered. An explicit scaffold request can create a playable, medically unreviewed Developer patient from a named template, verified local source references, and controlled presentation variants. It resets inherited rule reviews and emits blocking audit tickets. It does not infer clinical claims, call a provider, perform critic/repair, or approve content.
+Status: one non-AI precursor is delivered. An explicit scaffold request can create a playable,
+medically unreviewed Developer patient from a named template, verified local source references,
+controlled presentation variants, and proposed shared impact IDs. It deduplicates provenance,
+resets inherited rule reviews, and emits blocking audit tickets. The WHO-linked MDD scaffold proves
+the local workflow. It does not infer clinical claims, call a provider, perform critic/repair, or
+approve content.
 
 Scope: provider abstraction and mock; optional explicit external provider; constrained structured single-case draft; critic and repair; provenance; external-send confirmation; deterministic validation and policy bots; human approval gate.
 

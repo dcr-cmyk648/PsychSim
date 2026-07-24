@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "diagnosis.generalized-anxiety-disorder",
+  "label": "Generalized anxiety disorder",
+  "description": "Unreviewed diagnosis-family placeholder for focused GAD patient generation and later reviewed treatment rules.",
+  "medicalReviewStatus": "unreviewed",
+  "baseClinicalTagIds": ["diagnosis-tag.anxiety"],
+  "baseRules": [],
+  "severityAxis": null,
+  "specifiers": [],
+  "comorbidityRelationships": [],
+  "complexityContributions": [],
+  "sourceUseNotes": [
+    {
+      "id": "source-use.diagnosis-gad.who-mhgap-anx-context",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.who.mhgap-mns.2023"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": ["diagnosis.generalized-anxiety-disorder"],
+      "contributionTypes": ["context_only"],
+      "contribution": "WHO mhGAP ANX1-ANX6 is retained as broad treatment context. It does not define PsychSim diagnostic criteria, severity thresholds, or executable scoring without separate review.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
+}

@@ -4,7 +4,7 @@
   "id": "medication.aripiprazole",
   "label": "Aripiprazole",
   "classes": ["second-generation antipsychotic"],
-  "tags": ["cyp2d6-substrate", "akathisia-risk"],
+  "tags": ["antipsychotic", "bipolar-treatment", "cyp2d6-substrate", "akathisia-risk"],
   "fitModifiers": [],
   "authorOverrides": []
 }

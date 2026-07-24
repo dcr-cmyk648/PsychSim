@@ -47,6 +47,41 @@ describe('runtime boundaries', () => {
     expect(runtimeEntry).not.toContain('source-needed.requests');
   });
 
+  it('keeps diagnosis classification and source-use records authoring-only', async () => {
+    const [runtimeEntry, runtimeIndex, registryText] = await Promise.all([
+      readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('content/registry.json'), 'utf8'),
+    ]);
+    const runtimeSource = `${runtimeEntry}\n${runtimeIndex}`;
+    for (const marker of [
+      'content/catalogs/diagnoses/classifications',
+      'content/catalogs/evidence/source-use-decisions.json',
+      'evidence.cdc-nchs.icd10cm.2026',
+      'evidence.who.icd11-cddr.2024',
+      'evidence.nimh.mental-health-topics.current',
+      'evidence.apa.dsm5tr.2022',
+    ]) {
+      expect(runtimeSource).not.toContain(marker);
+    }
+    expect(runtimeIndex).not.toContain("export * from './registry'");
+
+    const registry = JSON.parse(registryText) as {
+      entries: Array<{ id: string; kind: string; runtimeIncluded: boolean }>;
+    };
+    const authoringIds = [
+      'registry.catalog.diagnosis-classifications.icd10cm-2026',
+      'registry.catalog.source-use-decisions',
+      'evidence.cdc-nchs.icd10cm.2026',
+      'evidence.who.icd11-cddr.2024',
+      'evidence.nimh.mental-health-topics.current',
+      'evidence.apa.dsm5tr.2022',
+    ];
+    const authoringEntries = registry.entries.filter((entry) => authoringIds.includes(entry.id));
+    expect(authoringEntries.map((entry) => entry.id).sort()).toEqual([...authoringIds].sort());
+    expect(authoringEntries.every((entry) => entry.runtimeIncluded === false)).toBe(true);
+  });
+
   it('gitignores every private source-document material directory', async () => {
     const ignore = await readFile(resolve('.gitignore'), 'utf8');
     for (const folder of [

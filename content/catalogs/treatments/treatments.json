@@ -92,6 +92,26 @@
   {
     "schemaVersion": 1,
     "contentVersion": "1.0.0",
+    "id": "intervention.psychotherapy.trauma-focused-cbt",
+    "label": "Trauma-focused cognitive behavioral therapy",
+    "kind": "nonmedication",
+    "category": "psychotherapy",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "intervention.psychotherapy.emdr",
+    "label": "Eye movement desensitization and reprocessing (EMDR)",
+    "kind": "nonmedication",
+    "category": "psychotherapy",
+    "safeReferral": false,
+    "requiredCapabilities": ["counseling.basic"]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "disposition.outpatient-followup",
     "label": "Close outpatient follow-up",
     "kind": "disposition",

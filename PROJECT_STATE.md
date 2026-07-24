@@ -1,81 +1,165 @@
 # PsychSim project state
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
-## Repository state
+## Operational state
 
-- Current branch: `main`.
-- Current phase: Milestone 3 complete; pre-Milestone 4 diagnosis/patient-composition engine checkpoint complete.
-- Current block: wait for the user’s data-model decisions and additional guidelines before enabling optional comorbidity generation, sourced severity, diagnosis-derived scoring, or new clinical point values.
-- Latest relevant implementation commit: `ac47eb7` (`Build diagnosis composition engine foundation`).
-- Expected working tree: clean after the current checkpoint commit.
-- Remote synchronized: `ac47eb7` is on `origin/main`; GitHub Actions run `30014038038` passed formatting, lint, typecheck, unit/content/browser gates, source boundaries, Developer compilation, and the production build.
+- Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
+- Current branch while this release unit is being prepared: `main`, tracking `origin/main`.
+- The working tree contains the canonical source/evidence, patient-generation, receipt-audit, and
+  portable-Reviewer checkpoint accumulated in this thread. It must be committed as one intentional
+  project checkpoint; none of it is unrelated scratch work.
+- Last synchronized commit before this checkpoint: `efc38eb` (`Record diagnosis engine checkpoint
+state`).
+- Expected final state for this unit: verified checkpoint on `origin/main`, GitHub Pages deployed
+  from that `main` commit, then a clean local `beta` tracking `origin/beta`.
+- `beta` is the durable development branch after this release. `main` changes again only after an
+  explicit whole-beta promotion request from the user.
 
-## Last completed action
+## Current phase and bounded checkpoint
 
-The user redirected work away from hand-tuning point values and toward the reusable clinical engine. The checkpoint now has:
+Milestone 3 remains complete. Do not begin departments/Milestone 4. The active work is a
+pre-Milestone-4 clinical-authoring and portable-review checkpoint:
 
-- a read-only exact-rule audit on every Developer ticket plus a five-item, runtime-excluded source-request queue;
-- one versioned file per diagnosis family, including medically unreviewed placeholders for MDD, bipolar-spectrum disorder, substance-induced mood disorder, medication-induced akathisia, and borderline personality disorder;
-- top-down diagnosis composition across shared rules, selected severity, selected specifiers, and multiple active diagnoses;
-- point-free qualitative recommendation stances with constrained patient and treatment predicates;
-- deterministic gameplay-critical patient context that binds the same short structured finding to the tags used by treatment-fit logic and saves the resolved choice in the CaseInstance;
-- blocking conflicts for missing definitions, disabled severity, mutually exclusive diagnoses/specifiers, and incompatible active guidance;
-- a traceable five-dimensional complexity vector without a premature player-level formula;
-- semantic validation for all diagnosis, rule, evidence, patient-composition, context-binding, test-profile, source-request, and registry references.
+1. Preserve the question-bank snapshot model: investigate, choose the immediate intervention and
+   disposition, submit, and audit points. Do not add longitudinal monitoring simulation.
+2. Keep patient state, reusable diagnosis/medication/test knowledge, focused decision policies,
+   and point balance separable.
+3. Distribute one finite, explicitly unreviewed Reviewer assignment so a psychiatrist colleague can
+   play multiple patients on a phone and return one exact feedback bundle.
 
-MDD mild/moderate/severe live in one family file but remain `disabled_pending_source` with no invented thresholds or treatment rules. Optional comorbidity authoring is modeled, while random selection is absent from approved patients pending a pool-policy decision. No approved case, treatment point, workup point, settlement value, or reference policy changed.
+## Portable Reviewer checkpoint
 
-Format, lint, strict typecheck, 109 TypeScript tests, 10 handoff tests, content/source validation, two Developer-patient compiles, evidence audit, reference runs, three browser tests, and production build/bundle isolation pass. The only build notice is Vite’s existing chunk-size advisory.
+- Three web boundaries now exist:
+  - ordinary Player: approved-for-prototype root content only;
+  - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
+  - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
+- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07`.
+- The ten scenarios cover five MDD decision states plus initial GAD, bipolar depression, acute
+  mania, schizophrenia relapse, and PTSD. Eight provisional shared policies compile them into the
+  current engine. Every case and executable clinical rule is fictional, synthetic, and medically
+  unreviewed.
+- The assignment uses its own IndexedDB namespace and forced practice clinic. Patient run history,
+  attempts, flags, generated tickets, and multiple case/app-experience reviews survive reload on
+  the same browser/device/origin.
+- Mobile has Patient, Revealed, Investigate, Treatment, and Results/review tabs. Purchased results
+  appear immediately in a native dialog and remain in Revealed, newest first by default. The tab
+  strip scrolls horizontally without moving the document; the disclaimer no longer overlaps it at
+  320 px.
+- A submitted or historical receipt can be reopened after reload. The feedback box is near the top
+  of Results and accepts both case-specific and general app-experience comments.
+- Version-5 manual export contains `buildKind`, `assignmentId`, `bundleId`, `engineVersion`, every
+  completed attempt, every exact option snapshot for case comments, all flags, and all tickets.
+  Attempt-linked feedback is rejected without its historical attempt. Several cases export in one
+  file suitable for email.
+- There is no remote sync, login, server backup, or bundle import. The reviewer must confirm the
+  download before clearing site data or switching devices and must not enter PHI.
+- A material cohort or policy revision must bump `REVIEWER_ASSIGNMENT_ID`; never reuse this ID for
+  changed reviewer content.
 
-## Current work
+## Content, evidence, and generation state
 
-Proceed in this order:
+- The ordinary investigation menu is a shared 36-action catalog; cases own structured immediate
+  results and post-submit rules, never answer-hint descriptions.
+- Fictional first and last names resolve independently from large curated pools, with a
+  deterministic 25% middle-initial chance and more than 10,000 base name combinations.
+- Diagnosis-family definitions exist for MDD, bipolar spectrum, GAD, PTSD, schizophrenia spectrum,
+  BPD, medication-induced akathisia, and substance-induced mood disorder. The ten-case Reviewer
+  cohort exercises only provisional focused policies; it does not establish approved shared
+  clinical guidance.
+- Source-use decisions remain separate from bibliography, clinical contribution, rule review, and
+  runtime inclusion. DSM and WHO CDDR remain metadata-only. The local ICD-10-CM cache remains
+  gitignored authoring/search data and never enters the browser bundle.
+- DrugCentral remains an authoring-only aggregate seed. No database dump, bulk medication importer,
+  or clinical rule was activated.
+- The private residency-article aggregate remains pending user export/no-PHI acknowledgment. No
+  SharePoint bytes or opinions were imported.
+- The next unresolved product decision, after this release unit, is whether the first structured
+  medication import uses a curated board-relevant psychiatry allowlist or every U.S.
+  psychiatric-labeled ingredient. Present that decision one at a time; do not download DrugCentral
+  or implement the importer before it is resolved.
 
-1. Ask the user to resolve the six focused questions in `docs/DIAGNOSIS_ENGINE.md`: conflict handling, comorbidity pool ownership, objective fit versus discovery credit, complexity aggregation, patient-specific overrides, and typed clinical facts versus free tag strings.
-2. Record each answer in `docs/DECISIONS.md` before extending the schema or enabling generation.
-3. When the user supplies additional guidelines, process one source and one claim set at a time. Create exact contributions/tickets; do not propagate a publication directly into diagnosis, medication, test, or patient rules.
-4. Populate one diagnosis family only after its reusable rules, severity/specifier boundaries, conflicts, and provenance are explicit. Keep its recommendation stance qualitative until a separate balance policy is reviewed.
-5. Add a patient-family clinical-context dimension only when every option controls the same structured findings and every clinically relevant random value is replayable.
-6. Re-run affected validation/reference policies for every executable rule change. Do not start departments/Milestone 4 while this clinical model is still being settled.
+## Review and provenance state
 
-## Exact next action
+- Receipt traces are categorized and complete. Point-changing rows appear first; zero-point rules
+  remain inspectable.
+- Receipts show a care-point bar and the player's exact plan beside the declared database-plan
+  replay. The benchmark is finite and auditable, not a claim of global optimality.
+- Local Developer ticket instructions and attempt reviews save to IndexedDB and mirror to
+  `content/generated/local-review-tickets/tickets.json`. The existing human handoff file is still a
+  legacy version-3 artifact until the next intentional browser save; do not overwrite it merely to
+  modernize it. The current schema/writer/export is version 5. Playwright uses the separate
+  `tickets.e2e.json`.
+- Portable Reviewer never exposes preloaded local source/opinion/ticket queues or the writer
+  endpoint. Reviewer-created guidance, flags, and tickets may be included in the manual export.
+- Saving feedback is not clinical approval and is not authorization to edit a rule.
 
-Receive and record the user’s engine-policy answers. The recommended first implementation after that is a first-class typed clinical-fact/derivation catalog plus a versioned patient-specific override record, followed by deterministic patient-family comorbidity selection if the recommended pool policy is accepted. Do not tune existing point magnitudes or enable MDD severity before its open source request is resolved.
+## Verification for the current worktree
 
-## Blockers and review state
+Passed locally on 2026-07-24:
 
-- No technical blocker is known.
-- Six architecture choices remain open in `docs/DIAGNOSIS_ENGINE.md`; the implementation intentionally does not guess them.
-- Five tracked source requests remain open: ECG monitoring necessity, ECG continuation/switching, TSH indications, MDD severity thresholds, and suicide-risk/disposition mapping.
-- Formal-source catalog presence is not medical approval.
-- CANMAT is cataloged and ticketed but still has no applied contribution.
-- The ECG source contribution is recorded, while its clinical rule weights and decisions remain medically unreviewed.
-- Ten tickets contain reviewer instructions. Their internal legacy statuses are not user decisions and must not block interpretation of the prose.
-- Current diagnosis files are structural and medically unreviewed; placeholder relationships and treatment rules are intentionally empty.
-- Optional-comorbidity probabilities are authoring data only until a selection policy is accepted and implemented.
-- The current exact-rule audit is a display/inspection layer only; all values remain medically unreviewed unless their individual review record says otherwise.
-- Milestone 4 is intentionally not started.
+- `pnpm format:check`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`: 20 files, 142 TypeScript tests; 10 handoff tests
+- `pnpm content:validate`: catalogs, registry, evidence/source-use, approved/review/cohort content
+- `pnpm content:sources:validate`: 5 discovery candidates; 4 local extracted artifacts
+- `pnpm content:compile`: 3 local review patients plus 10 portable Reviewer scenarios
+- `pnpm content:evidence`
+- `pnpm content:diagnoses:validate`: 1,112 local ICD-10-CM terms
+- `pnpm demo:reference-runs`
+- `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests
+- `pnpm test:e2e:reviewer`: 390 px and 320 px Chromium phone projects, including two cases,
+  reload/reopen, multiple feedback notes, and one exact export
+- `pnpm build`: explicit Player bundle verification
+- `pnpm build:reviewer`: explicit exact-allowlist Reviewer bundle verification
+- `git diff --check`
 
-## Files to read for the current task
+The local Playwright WebKit 18.5 binary cannot launch on this Intel macOS 14.1 host and exits with a
+pre-page `Bus error`. The Pages workflow installs Chromium and WebKit on Ubuntu; its required
+iPhone/WebKit project is the release verdict. Do not describe WebKit as passed until that GitHub
+check succeeds. Vite's existing >500 kB chunk advisory remains nonblocking.
+
+## Reference-policy checkpoints
+
+Fictional, synthetic, medically unreviewed prototypes:
+
+- Initial MDD:
+  - database plan: 450 care, 80 investigation, 1,070 payout points;
+  - strong alternative: 445 care, 80 investigation, 1,065 payout;
+  - shotgun: 430 care, 7,670 investigation, 0 payout;
+  - unsafe: -935 care, 80 investigation, 0 payout.
+- Medication/palpitations:
+  - database plan: 1,140 care, 630 investigation, 1,310 payout;
+  - strong alternative: 1,135 care, 630 investigation, 1,305 payout;
+  - shotgun: 1,120 care, 7,670 investigation, 0 payout;
+  - unsafe: -1,155 care, 130 investigation, 0 payout.
+
+## Files to read before continuing
 
 - `AGENTS.md`
 - `README.md`
-- `PROJECT_STATE.md`
-- `docs/CODEX_THREAD_HANDOFF.md`
+- `docs/DECISIONS.md` (through D-113)
 - `docs/ROADMAP.md`
-- `docs/DIAGNOSIS_ENGINE.md`
+- `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
-- `docs/DECISIONS.md`
-- `content/registry.json`
-- `content/catalogs/diagnoses/definitions/`
-- `content/cases/review/source-needed.requests.json`
-- `packages/schemas/src/index.ts`
-- `packages/engine/src/diagnosis.ts`
-- `packages/engine/src/case.ts`
-- `packages/content-runtime/src/validation.ts`
-- `packages/content-runtime/src/review-inspector.ts`
-- `packages/content-runtime/src/source-requests.ts`
-- `apps/web/src/components/CaseRuleAuditView.tsx`
-- `apps/web/src/components/SourceRequestQueue.tsx`
+- `docs/MEDICATION_AND_INTERVENTION_DATA.md`
+- `docs/SOURCE_USE_POLICY.md`
+- `packages/content-runtime/src/reviewer-assignment.ts`
+- `packages/content-runtime/src/reviewer-content.ts`
+- `packages/content-runtime/src/review-cohort.ts`
+- `apps/web/src/App.tsx`
+- `apps/web/src/components/ClinicHub.tsx`
+- `apps/web/src/components/EncounterView.tsx`
+- `apps/web/src/components/ReceiptView.tsx`
+- `apps/web/src/review-export.ts`
+- `tests/e2e/reviewer-mobile.spec.ts`
+- `.github/workflows/pages.yml`
+
+## Exact next action
+
+Commit the entire intentional checkpoint on `main`, push it, monitor the verification/Pages run,
+and resolve any CI-only WebKit failure without broadening scope. After Pages succeeds, create and
+push `beta`, check it out, update this file with exact release/branch state, and stop. The next
+product discussion after that is the single medication-allowlist decision described above.

@@ -53,6 +53,9 @@
   ],
   "organization": "Canadian Network for Mood and Anxiety Treatments",
   "publicationYear": 2024,
+  "publicationDate": "2024-05-06",
+  "lastReviewedDate": null,
+  "versionLabel": "CANMAT 2023 update; version of record published in 2024",
   "containerTitle": "The Canadian Journal of Psychiatry",
   "volume": "69",
   "issue": "9",
@@ -61,7 +64,27 @@
   "pmid": "38711351",
   "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
   "citation": "Lam RW, Kennedy SH, Adams C, et al. Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults. Can J Psychiatry. 2024;69(9):641-687. doi:10.1177/07067437241245384.",
-  "knownContentHashes": ["323e08bb8f71325f659d23dd0d813f93136a138c19305b3ba6e669e9a2d5e530"],
+  "knownContentHashes": [
+    "323e08bb8f71325f659d23dd0d813f93136a138c19305b3ba6e669e9a2d5e530",
+    "412aade56104fd394503c2fc0e2a4ac28c4027e8e27a943786ca10d7c4f3bc7d"
+  ],
+  "jurisdictions": ["Canada"],
+  "populations": ["Adults with major depressive disorder"],
+  "settings": ["Community-based psychiatry and mental-health care"],
+  "sourceRelations": [],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "open_license",
+    "adaptationStatus": "permitted",
+    "commercialUseStatus": "permitted",
+    "aiUseStatus": "permitted",
+    "localExtractionStatus": "allowed",
+    "licenseLabel": "Creative Commons Attribution (CC BY)",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "termsUrl": "https://pmc.ncbi.nlm.nih.gov/about/copyright/",
+    "note": "The PMC Open Access API identifies PMCID PMC11351064 as CC BY. A locally extracted copy is retained only in the gitignored authoring area."
+  },
+  "metadataReviewedAt": "2026-07-23T16:40:00.000Z",
   "bibliographicStatus": "verified",
   "medicalReviewStatus": "unreviewed"
 }

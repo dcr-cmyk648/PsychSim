@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.mdd-adherence",
+  "internalTitle": "Reviewer cohort: MDD with inconsistent adherence",
+  "difficultyTier": 2,
+  "patientPool": "transitional",
+  "tags": ["reviewer-cohort", "mdd", "adherence", "current-medication"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.major-depressive-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"]
+    },
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "excluded",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    }
+  ],
+  "clinicalTagIds": [
+    "clinical-tag.depressive-symptoms",
+    "clinical-tag.inconsistent-adherence",
+    "clinical-tag.outpatient-stable"
+  ],
+  "criticalFacts": {
+    "focusedDecision": "apparent-nonresponse",
+    "acuteSafetyConcern": false,
+    "pastMania": false,
+    "currentExposureAdequate": false
+  },
+  "ageRange": { "minimum": 25, "maximum": 60 },
+  "chiefComplaintChoices": [
+    "Medication is not working",
+    "Still depressed",
+    "Mood is not better",
+    "Ongoing low mood",
+    "No improvement",
+    "Still no motivation",
+    "Persistent depression",
+    "Treatment is not helping",
+    "Low mood despite medication",
+    "Still tired and down",
+    "Continued anhedonia",
+    "Depressive symptoms continue"
+  ],
+  "durationChoices": ["two months", "ten weeks", "about three months", "several months"],
+  "bothersomeness": "very",
+  "settingText": "Solo psychiatric office · outpatient medication visit",
+  "knownHistory": ["Sertraline appears on the active medication list."],
+  "medicationRegimen": [
+    {
+      "schemaVersion": 1,
+      "id": "regimen.review-mdd-adherence.sertraline",
+      "medicationId": "medication.sertraline",
+      "status": "active",
+      "adherence": "intermittent",
+      "prescribedForDiagnosisId": "diagnosis.major-depressive-disorder",
+      "source": "patient_report",
+      "knownAtOpening": true
+    }
+  ],
+  "priorMedicationTrials": [],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-mdd-adherence.low-mood",
+            "labelVariants": ["Depressed mood", "Low mood"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-adherence.anhedonia",
+            "labelVariants": ["Anhedonia", "Reduced interest"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-adherence.energy",
+            "labelVariants": ["Low energy", "Fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-adherence.sleep",
+            "labelVariants": ["Sleep disturbance", "Poor sleep"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-adherence.concentration",
+            "labelVariants": ["Reduced concentration", "Poor focus"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-mdd-adherence.depressive-syndrome"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.mdd.adherence"
+}

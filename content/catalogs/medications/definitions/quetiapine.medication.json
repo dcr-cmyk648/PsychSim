@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.quetiapine",
+  "label": "Quetiapine",
+  "classes": ["second-generation antipsychotic"],
+  "tags": [
+    "antipsychotic",
+    "bipolar-treatment",
+    "bipolar-depression-option",
+    "metabolic-risk",
+    "sedating"
+  ],
+  "sourceUseNotes": [],
+  "fitModifiers": [],
+  "authorOverrides": []
+}

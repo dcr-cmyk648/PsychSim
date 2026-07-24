@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.1.0",
+  "contentVersion": "3.5.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -13,7 +13,41 @@
       "kind": "diagnosis_catalog",
       "path": "content/catalogs/diagnoses/definitions",
       "runtimeIncluded": true,
-      "dependsOnIds": ["registry.catalog.information-actions", "registry.catalog.treatments"]
+      "dependsOnIds": [
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023"
+      ]
+    },
+    {
+      "id": "registry.catalog.diagnosis-classifications.icd10cm-2026",
+      "kind": "diagnosis_classification_catalog",
+      "path": "content/catalogs/diagnoses/classifications/icd-10-cm/2026",
+      "runtimeIncluded": false,
+      "dependsOnIds": ["evidence.cdc-nchs.icd10cm.2026"]
+    },
+    {
+      "id": "registry.catalog.source-use-decisions",
+      "kind": "source_use_decision_catalog",
+      "path": "content/catalogs/evidence/source-use-decisions.json",
+      "runtimeIncluded": false,
+      "dependsOnIds": [
+        "evidence.ace-singapore.gad.2025",
+        "evidence.apa.bpd-treatment.second-edition.2024",
+        "evidence.apa.delirium.2025",
+        "evidence.apa.dsm5tr.2022",
+        "evidence.asam.benzodiazepine-tapering.2025",
+        "evidence.bap.catatonia.2023",
+        "evidence.canmat.mdd-adults.2023-update",
+        "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
+        "evidence.cdc-nchs.icd10cm.2026",
+        "evidence.fda.citalopram-capsules-label.2023",
+        "evidence.nice.self-harm.ng225.2022",
+        "evidence.nimh.mental-health-topics.current",
+        "evidence.va-dod.suicide-risk.2024",
+        "evidence.who.icd11-cddr.2024",
+        "evidence.who.mhgap-mns.2023"
+      ]
     },
     {
       "id": "registry.catalog.services",
@@ -71,16 +105,101 @@
       "runtimeIncluded": false
     },
     {
+      "id": "evidence.ace-singapore.gad.2025",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/ace-gad-2025-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.apa.bpd-treatment.second-edition.2024",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/apa-bpd-second-edition-2024-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.apa.delirium.2025",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/apa-delirium-2025-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.asam.benzodiazepine-tapering.2025",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/asam-benzodiazepine-tapering-2025-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.bap.catatonia.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/bap-catatonia-2023-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
       "id": "evidence.canmat.mdd-adults.2023-update",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json",
       "runtimeIncluded": true
     },
     {
+      "id": "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/canmat-2023-mdd-corrigendum-2025.evidence.json",
+      "runtimeIncluded": true,
+      "dependsOnIds": ["evidence.canmat.mdd-adults.2023-update"]
+    },
+    {
       "id": "evidence.fda.citalopram-capsules-label.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.nice.self-harm.ng225.2022",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.va-dod.suicide-risk.2024",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/va-dod-suicide-risk-2024-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.who.mhgap-mns.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/who-mhgap-2023-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.cdc-nchs.icd10cm.2026",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/cdc-nchs-icd10cm-2026.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.drugcentral.database.2023-11-01",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/drugcentral-2023-database.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.who.icd11-cddr.2024",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/who-icd11-cddr-2024.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.nimh.mental-health-topics.current",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nimh-mental-health-topics.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.apa.dsm5tr.2022",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/apa-dsm5tr-2022.evidence.json",
+      "runtimeIncluded": false
     },
     {
       "id": "registry.catalog.upgrades",
@@ -161,6 +280,181 @@
       "runtimeIncluded": true
     },
     {
+      "id": "medication.lithium",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/lithium.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.olanzapine",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/olanzapine.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "medication.quetiapine",
+      "kind": "medication",
+      "path": "content/catalogs/medications/definitions/quetiapine.medication.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "case.review-cohort.mdd-initial",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/mdd-initial.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "registry.catalog.variant-pools",
+        "evidence.who.mhgap-mns.2023",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.bupropion",
+        "medication.mirtazapine"
+      ]
+    },
+    {
+      "id": "case.review-cohort.mdd-adherence",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/mdd-adherence.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.canmat.mdd-adults.2023-update",
+        "medication.sertraline",
+        "medication.fluoxetine"
+      ]
+    },
+    {
+      "id": "case.review-cohort.mdd-adequate-nonresponse",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/mdd-adequate-nonresponse.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.canmat.mdd-adults.2023-update",
+        "medication.sertraline",
+        "medication.bupropion",
+        "medication.mirtazapine",
+        "medication.fluoxetine"
+      ]
+    },
+    {
+      "id": "case.review-cohort.mdd-prior-good-response",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/mdd-prior-good-response.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023",
+        "medication.sertraline"
+      ]
+    },
+    {
+      "id": "case.review-cohort.mdd-prior-intolerance",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/mdd-prior-intolerance.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023",
+        "medication.fluoxetine"
+      ]
+    },
+    {
+      "id": "case.review-cohort.gad-initial",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/gad-initial.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.buspirone"
+      ]
+    },
+    {
+      "id": "case.review-cohort.bipolar-depression",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/bipolar-depression.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023",
+        "medication.quetiapine",
+        "medication.lithium",
+        "medication.olanzapine",
+        "medication.fluoxetine"
+      ]
+    },
+    {
+      "id": "case.review-cohort.acute-mania",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/acute-mania.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023",
+        "medication.olanzapine",
+        "medication.quetiapine",
+        "medication.haloperidol"
+      ]
+    },
+    {
+      "id": "case.review-cohort.schizophrenia-relapse",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/schizophrenia-relapse.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023",
+        "medication.aripiprazole",
+        "medication.olanzapine",
+        "medication.haloperidol"
+      ]
+    },
+    {
+      "id": "case.review-cohort.ptsd-initial",
+      "kind": "patient",
+      "path": "content/cases/blueprints/reviewer-cohort/ptsd-initial.scenario.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.treatments",
+        "evidence.who.mhgap-mns.2023"
+      ]
+    },
+    {
       "id": "case.first-visit-depression",
       "kind": "patient",
       "path": "content/cases/approved/first-visit-depression.case.json",
@@ -211,6 +505,57 @@
         "medication.fluoxetine",
         "medication.bupropion",
         "medication.mirtazapine"
+      ]
+    },
+    {
+      "id": "case.review.basic-mdd-scaffold",
+      "kind": "patient",
+      "path": "content/cases/review/review-basic-mdd-scaffold.case.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.services",
+        "registry.catalog.treatments",
+        "registry.catalog.formularies",
+        "registry.catalog.locations",
+        "registry.catalog.variant-pools",
+        "registry.catalog.tests",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.bupropion",
+        "medication.mirtazapine",
+        "medication.buspirone",
+        "medication.aripiprazole",
+        "medication.haloperidol"
+      ]
+    },
+    {
+      "id": "case.review.who-mhgap-mdd-initial",
+      "kind": "patient",
+      "path": "content/cases/review/review-who-mhgap-mdd-initial.case.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.services",
+        "registry.catalog.treatments",
+        "registry.catalog.formularies",
+        "registry.catalog.locations",
+        "registry.catalog.variant-pools",
+        "registry.catalog.tests",
+        "evidence.who.mhgap-mns.2023",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.bupropion",
+        "medication.mirtazapine",
+        "medication.buspirone",
+        "medication.aripiprazole",
+        "medication.haloperidol"
       ]
     },
     {

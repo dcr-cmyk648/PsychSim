@@ -42,14 +42,16 @@ test('completes a patient, stores review guidance, and preserves the profile and
   ]) {
     await page.getByRole('button', { name: actionName }).click();
   }
+  await expect(page.getByRole('dialog')).toBeHidden();
 
   await expect(page.getByText('80 pts', { exact: true }).first()).toBeVisible();
-  await expect(
-    page
-      .locator('.result-card')
-      .filter({ hasText: 'Suicide and self-harm assessment' })
-      .getByText('+', { exact: true }),
-  ).toBeVisible();
+  const positiveSafetyMarker = page
+    .locator('.result-card')
+    .filter({ hasText: 'Suicide and self-harm assessment' })
+    .getByLabel('Present')
+    .first();
+  await expect(positiveSafetyMarker).toBeVisible();
+  await expect(positiveSafetyMarker).toHaveCSS('color', 'rgb(255, 118, 94)');
 
   await page.getByRole('button', { name: /Sertraline/ }).click();
   await page.getByRole('button', { name: /Cognitive behavioral therapy/ }).click();
@@ -60,10 +62,28 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await page.getByRole('button', { name: 'Lock in treatment' }).click();
 
   await expect(page.getByRole('heading', { name: '0 points vs database plan' })).toBeVisible();
+  await expect(
+    page.getByRole('meter', { name: 'Player care points compared with the database plan' }),
+  ).toHaveAttribute('aria-valuetext', '450 player care points; 450 database-plan care points');
+  const planComparison = page.locator('.plan-comparison-panel');
+  await expect(
+    planComparison.getByRole('heading', {
+      name: 'What you did vs the database-calculated plan',
+    }),
+  ).toBeVisible();
+  await expect(planComparison.getByRole('heading', { name: 'Your submitted plan' })).toBeVisible();
+  await expect(planComparison.getByRole('heading', { name: 'Database plan' })).toBeVisible();
   await expect(page.getByText('+1,070 pts')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Itemized case receipt' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Categorized rule trace' })).toBeVisible();
+  const workupTraceCategory = page
+    .locator('.trace-category')
+    .filter({ has: page.getByRole('heading', { name: 'Workup' }) });
+  await expect(workupTraceCategory).toContainText('point-relevant');
+  await expect(page.locator('.zero-point-rules').first()).toBeVisible();
   await expect(page.getByText(/clinical score|clinical rank|optimal-plan/i)).toHaveCount(0);
   await expect(page.getByText(/case seed/i)).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Case and app experience notes' })).toHaveCount(0);
   const uncitedTrace = page
     .locator('.trace-list details')
     .filter({ hasText: 'Assess suicide risk and outpatient suitability' });
@@ -80,7 +100,8 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await expect(page.getByText(/Guidance saved as a proposed local review ticket/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Flag', exact: true }).first().click();
-  await page.getByLabel('Note').fill('Prototype review note');
+  await page.getByLabel('Issue category').selectOption('needs_additional_source');
+  await page.getByLabel('Note').fill('Find a more specific guideline for this rule.');
   await page.getByRole('button', { name: 'Save locally' }).click();
   await expect(page.getByText('Flag and clinical-review ticket saved locally.')).toBeVisible();
 
@@ -114,14 +135,23 @@ test('completes a patient, stores review guidance, and preserves the profile and
   ).toBeDisabled();
 
   await page.getByRole('button', { name: 'Developer' }).click();
+  await expect(page.getByRole('heading', { name: 'Opinions needing references' })).toBeVisible();
+  await expect(
+    page.getByRole('searchbox', {
+      name: 'Search opinions, rule IDs, medications, tests, or source requests',
+    }),
+  ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Clinical and content tickets' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Sources needed' })).toBeVisible();
   await expect(page.locator('.source-request-card')).toHaveCount(5);
+  await expect(page.getByText('World Health Organization').first()).toBeVisible();
   await expect(page.getByText('TSH use in an initial depressive presentation')).toBeVisible();
   await expect(
     page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   ).toBeVisible();
   await expect(page.getByText(/Receipt guidance:/)).toBeVisible();
+  await expect(page.getByText('Review flagged needs additional source')).toBeVisible();
+  await expect(page.getByText('Resolve WHO DEP4 treatment-modality implications')).toBeVisible();
   const dispositionTicket = page.locator('.ticket-card').filter({
     has: page.getByText('Audit escalation and disposition penalties'),
   });
@@ -140,7 +170,7 @@ test('completes a patient, stores review guidance, and preserves the profile and
     page.getByText(/Saved your instructions.*updated the Codex handoff file/),
   ).toBeVisible();
   await page.reload();
-  await page.getByText(/Reviewed locally · 1/).click();
+  await page.getByText(/Reviewed locally · [1-9][0-9]*/).click();
   const persistedBaselineTicket = page.locator('.ticket-card').filter({
     has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   });
@@ -152,7 +182,163 @@ test('completes a patient, stores review guidance, and preserves the profile and
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export JSON' }).click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/psychsim-clinical-tickets-.*\.review-bundle\.json/);
+  expect(download.suggestedFilename()).toMatch(
+    /psychsim-reviewer-feedback-.*\.review-bundle\.json/,
+  );
+});
+
+test('saves a Developer case review with the exact patient, options, choices, and receipt', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Developer' }).click();
+  await page
+    .getByRole('button', { name: /Open chart for/ })
+    .first()
+    .click();
+
+  await page
+    .getByRole('button', { name: /Presenting problem and timeline, 20 points, in house/ })
+    .click();
+  await page.getByRole('button', { name: /Sertraline/ }).click();
+  await page.getByRole('button', { name: /Close outpatient follow-up/ }).click();
+  await page.getByRole('button', { name: 'Lock in treatment' }).click();
+
+  const referenceAudit = page.locator('.plan-comparison-panel');
+  await expect(
+    referenceAudit.getByRole('heading', {
+      name: 'What you did vs the database-calculated plan',
+    }),
+  ).toBeVisible();
+  await expect(referenceAudit).toContainText(
+    'not proof that every possible combination was exhaustively searched',
+  );
+  await expect(referenceAudit.getByRole('heading', { name: 'Your submitted plan' })).toBeVisible();
+  await expect(referenceAudit.getByRole('heading', { name: 'Database plan' })).toBeVisible();
+  await expect(
+    referenceAudit.getByRole('heading', { name: 'Information and tests' }).first(),
+  ).toBeVisible();
+  await expect(
+    referenceAudit.getByRole('heading', { name: 'Treatment and disposition' }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('meter', { name: 'Player care points compared with the database plan' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Case and app experience notes' })).toBeVisible();
+  const reviewNote =
+    'I missed suicide risk assessment and was not penalized. Sertraline should rank acceptable.';
+  await page.getByRole('textbox', { name: 'Your feedback' }).fill(reviewNote);
+  await page.getByRole('button', { name: 'Save feedback for Codex' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Review saved locally with the exact patient, options, selections, events, and receipt',
+  );
+
+  const savedReview = await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('psychsim-local-save', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const transaction = database.transaction('save-data', 'readonly');
+    const save = await new Promise<{
+      attemptReviews: Array<{
+        reviewerNote: string;
+        availableOptions: Array<{
+          kind: string;
+          optionId: string;
+          label: string;
+          selected: boolean;
+          pointCost: number | null;
+        }>;
+        attemptSnapshot: {
+          seed: string;
+          caseInstance: { opening: { title: string }; informationActions: unknown[] };
+          purchases: Array<{ actionId: string }>;
+          submittedTreatment: {
+            startMedicationIds: string[];
+            dispositionId: string | null;
+          };
+          events: Array<{ type: string }>;
+          receipt: { items: unknown[] };
+        };
+      }>;
+    }>((resolve, reject) => {
+      const request = transaction.objectStore('save-data').get('primary');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    database.close();
+    const review = save.attemptReviews.at(-1);
+    if (!review) throw new Error('Expected a saved Developer attempt review.');
+    return review;
+  });
+
+  expect(savedReview.reviewerNote).toBe(reviewNote);
+  expect(savedReview.attemptSnapshot.seed).toBeTruthy();
+  expect(savedReview.attemptSnapshot.caseInstance.opening.title).toBeTruthy();
+  expect(savedReview.attemptSnapshot.purchases).toEqual([
+    expect.objectContaining({ actionId: 'info.history.presenting-problem' }),
+  ]);
+  expect(savedReview.attemptSnapshot.submittedTreatment).toMatchObject({
+    startMedicationIds: ['medication.sertraline'],
+    dispositionId: 'disposition.outpatient-followup',
+  });
+  expect(savedReview.attemptSnapshot.events.map((event) => event.type)).toEqual(
+    expect.arrayContaining([
+      'EncounterStarted',
+      'InformationPurchased',
+      'TreatmentSelectionsChanged',
+      'EncounterSubmitted',
+      'CarePointsCalculated',
+      'SettlementCalculated',
+    ]),
+  );
+  expect(savedReview.attemptSnapshot.receipt.items.length).toBeGreaterThan(0);
+  expect(savedReview.availableOptions).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        optionId: 'info.history.presenting-problem',
+        selected: true,
+        pointCost: 20,
+      }),
+      expect.objectContaining({
+        optionId: 'info.history.suicide-safety',
+        selected: false,
+      }),
+      expect.objectContaining({
+        optionId: 'medication.sertraline',
+        kind: 'start_medication',
+        selected: true,
+      }),
+      expect.objectContaining({
+        optionId: 'disposition.outpatient-followup',
+        kind: 'disposition',
+        selected: true,
+      }),
+    ]),
+  );
+
+  await page.reload();
+  const persistedNote = await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('psychsim-local-save', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const transaction = database.transaction('save-data', 'readonly');
+    const note = await new Promise<string>((resolve, reject) => {
+      const request = transaction.objectStore('save-data').get('primary');
+      request.onsuccess = () =>
+        resolve(
+          (request.result as { attemptReviews: Array<{ reviewerNote: string }> }).attemptReviews[0]!
+            .reviewerNote,
+        );
+      request.onerror = () => reject(request.error);
+    });
+    database.close();
+    return note;
+  });
+  expect(persistedNote).toBe(reviewNote);
 });
 
 test('keeps Endgame practice rewards out of the standard point bank', async ({ page }) => {

@@ -9,10 +9,11 @@ import type {
   SaveData,
   SourceRequest,
 } from '@psychsim/schemas';
-import type { CaseRuleAudit } from '@psychsim/content-runtime';
+import type { CaseRuleAudit, DeveloperOpinionReferenceNeed } from '@psychsim/content-runtime';
 import { getPurchasableUpgradeDefinitions, getUpgradeOffer } from '@psychsim/engine';
 
 import { CaseRuleAuditView } from './CaseRuleAuditView';
+import { DeveloperOpinionQueue } from './DeveloperOpinionQueue';
 import { SourceRequestQueue } from './SourceRequestQueue';
 
 export interface PatientSlotPreview {
@@ -28,9 +29,12 @@ interface ClinicHubProps {
   catalogs: CatalogBundle;
   patientSlots: PatientSlotPreview[];
   developerModeAvailable: boolean;
+  reviewerBuild?: boolean;
   caseRuleAudits: readonly CaseRuleAudit[];
+  opinionReferenceNeeds: readonly DeveloperOpinionReferenceNeed[];
   sourceRequests: readonly SourceRequest[];
   onStart: (slotId: string) => void;
+  onOpenSavedAttempt?: (attemptId: string) => void;
   onSetMode: (mode: ProgressionMode) => void;
   onRefresh: () => void;
   onRerollDeveloper: (slotId: string) => void;
@@ -54,6 +58,17 @@ const TIER_LABELS: Record<ClinicState['facilityTier'], string> = {
 };
 
 const tierLabel = (clinic: ClinicState): string => TIER_LABELS[clinic.facilityTier];
+const reviewProvenanceLabel = (casePreview: CaseInstance, catalogs: CatalogBundle): string => {
+  const labels = [
+    ...new Set(
+      casePreview.metadata.evidenceSourceIds.flatMap((id) => {
+        const source = catalogs.evidenceSources.find((candidate) => candidate.id === id);
+        return source ? [source.organization ?? source.title] : [];
+      }),
+    ),
+  ];
+  return labels.length > 0 ? labels.join(' · ') : 'No formal source linked';
+};
 
 const MODE_LABELS: ReadonlyArray<{ id: ProgressionMode; label: string }> = [
   { id: 'standard', label: 'Normal' },
@@ -173,9 +188,12 @@ export function ClinicHub({
   catalogs,
   patientSlots,
   developerModeAvailable,
+  reviewerBuild = false,
   caseRuleAudits,
+  opinionReferenceNeeds,
   sourceRequests,
   onStart,
+  onOpenSavedAttempt = () => undefined,
   onSetMode,
   onRefresh,
   onRerollDeveloper,
@@ -189,6 +207,7 @@ export function ClinicHub({
 }: ClinicHubProps) {
   const { clinic, progressionMode } = saveData.profile;
   const latestAttempt = saveData.attempts.at(-1);
+  const reviewedAttemptIds = new Set(saveData.attemptReviews.map((review) => review.attemptId));
   const reviewTickets = [...saveData.clinicalTickets]
     .filter((ticket) => ticket.status !== 'resolved')
     .sort(
@@ -233,13 +252,15 @@ export function ClinicHub({
           <p className="eyebrow">{tierLabel(clinicState)}</p>
           <h1 id="clinic-title">{clinicState.label}</h1>
           <p className="banner-copy">
-            {progressionMode === 'standard'
-              ? clinic.facilityTier === 'solo_office'
-                ? 'One room, a starter formulary, and a waiting patient.'
-                : `${currentFacility?.patientSlotCount ?? 1} persistent patient slots with every earlier purchase preserved.`
-              : progressionMode === 'endgame'
-                ? 'Practice mode with all approved patients and modeled capabilities unlocked.'
-                : 'Local content-development mode: review content appears once until reset.'}
+            {reviewerBuild
+              ? 'Portable reviewer mode: complete assigned patients, save case or app-experience comments, then export one JSON bundle.'
+              : progressionMode === 'standard'
+                ? clinic.facilityTier === 'solo_office'
+                  ? 'One room, a starter formulary, and a waiting patient.'
+                  : `${currentFacility?.patientSlotCount ?? 1} persistent patient slots with every earlier purchase preserved.`
+                : progressionMode === 'endgame'
+                  ? 'Practice mode with all approved patients and modeled capabilities unlocked.'
+                  : 'Local content-development mode: review content appears once until reset.'}
           </p>
         </div>
         <dl className="profile-stats" aria-label="Clinic profile">
@@ -261,20 +282,26 @@ export function ClinicHub({
           </div>
         </dl>
         <div className="mode-control">
-          <span className="debug-label">LOCAL MODE</span>
+          <span className="debug-label">{reviewerBuild ? 'PORTABLE REVIEW' : 'LOCAL MODE'}</span>
           <div className="mode-buttons" aria-label="Game mode">
-            {MODE_LABELS.filter((mode) => mode.id !== 'developer' || developerModeAvailable).map(
-              (mode) => (
-                <button
-                  key={mode.id}
-                  className="secondary-button"
-                  type="button"
-                  aria-pressed={progressionMode === mode.id}
-                  onClick={() => onSetMode(mode.id)}
-                >
-                  {mode.label}
-                </button>
-              ),
+            {reviewerBuild ? (
+              <button className="secondary-button" type="button" aria-pressed="true">
+                Reviewer
+              </button>
+            ) : (
+              MODE_LABELS.filter((mode) => mode.id !== 'developer' || developerModeAvailable).map(
+                (mode) => (
+                  <button
+                    key={mode.id}
+                    className="secondary-button"
+                    type="button"
+                    aria-pressed={progressionMode === mode.id}
+                    onClick={() => onSetMode(mode.id)}
+                  >
+                    {mode.label}
+                  </button>
+                ),
+              )
             )}
           </div>
         </div>
@@ -308,6 +335,12 @@ export function ClinicHub({
                     <span>Setting</span>
                     {slot.settingLabel}
                   </p>
+                  {progressionMode === 'developer' && !reviewerBuild ? (
+                    <p className="setting-label">
+                      <span>Review provenance</span>
+                      {reviewProvenanceLabel(slot.casePreview, catalogs)}
+                    </p>
+                  ) : null}
                   <h3>{slot.casePreview.opening.title}</h3>
                   <p className="chief-complaint">
                     <span>Chief complaint</span>“{slot.casePreview.opening.chiefComplaint}”
@@ -337,13 +370,15 @@ export function ClinicHub({
           ) : (
             <div className="empty-queue">
               <p>
-                {progressionMode === 'developer'
-                  ? 'Every currently loaded patient definition has been run.'
-                  : 'No eligible patients are waiting.'}
+                {reviewerBuild
+                  ? 'Every assigned patient definition has been run.'
+                  : progressionMode === 'developer'
+                    ? 'Every currently loaded patient definition has been run.'
+                    : 'No eligible patients are waiting.'}
               </p>
               {progressionMode === 'developer' ? (
                 <button className="secondary-button" type="button" onClick={onResetDeveloper}>
-                  Reset developer run history
+                  Reset {reviewerBuild ? 'reviewer' : 'developer'} run history
                 </button>
               ) : null}
             </div>
@@ -542,9 +577,101 @@ export function ClinicHub({
         </section>
       ) : null}
 
-      {progressionMode === 'developer' ? <SourceRequestQueue requests={sourceRequests} /> : null}
+      {reviewerBuild && progressionMode === 'developer' ? (
+        <section
+          className="ticket-queue reviewer-export-panel"
+          aria-labelledby="review-export-title"
+        >
+          <div className="queue-heading">
+            <div>
+              <p className="eyebrow">Portable review bundle</p>
+              <h2 id="review-export-title">Export all saved feedback</h2>
+            </div>
+            <button
+              className="primary-button"
+              type="button"
+              disabled={
+                saveData.attemptReviews.length === 0 &&
+                saveData.flags.length === 0 &&
+                saveData.clinicalTickets.length === 0
+              }
+              onClick={onExportTickets}
+            >
+              Export all feedback
+            </button>
+          </div>
+          <p className="ticket-handoff-explanation">
+            Feedback is stored only in this browser on this device until you export it. One JSON
+            file includes every saved case comment, the exact patient/options/choices/receipt/rule
+            trace behind each comment, plus all item flags and generated tickets. You can review
+            multiple cases before exporting and email the single file to the project owner.
+          </p>
+          <dl className="review-export-counts">
+            <div>
+              <dt>Completed cases</dt>
+              <dd>{saveData.attempts.length}</dd>
+            </div>
+            <div>
+              <dt>Saved case comments</dt>
+              <dd>{saveData.attemptReviews.length}</dd>
+            </div>
+            <div>
+              <dt>Item flags</dt>
+              <dd>{saveData.flags.length}</dd>
+            </div>
+            <div>
+              <dt>Review tickets</dt>
+              <dd>{saveData.clinicalTickets.length}</dd>
+            </div>
+          </dl>
+          {saveData.attempts.length > 0 ? (
+            <details
+              className="reviewer-attempt-list"
+              open={saveData.attempts.some((attempt) => !reviewedAttemptIds.has(attempt.id))}
+            >
+              <summary>Open a completed case receipt</summary>
+              <ul>
+                {saveData.attempts.map((attempt) => {
+                  const hasComment = reviewedAttemptIds.has(attempt.id);
+                  return (
+                    <li key={attempt.id}>
+                      <div>
+                        <strong>{attempt.caseInstance.opening.title}</strong>
+                        <small>
+                          “{attempt.caseInstance.opening.chiefComplaint}” ·{' '}
+                          {hasComment ? 'Comment saved' : 'Needs comment'}
+                        </small>
+                      </div>
+                      <button
+                        className="small-button"
+                        type="button"
+                        onClick={() => onOpenSavedAttempt(attempt.id)}
+                      >
+                        {hasComment ? 'Edit feedback' : 'Add feedback'}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          ) : null}
+          {ticketToolStatus ? (
+            <p className="ticket-tool-status" role="status">
+              {ticketToolStatus}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
-      {progressionMode === 'developer' ? (
+      {progressionMode === 'developer' && !reviewerBuild ? (
+        <DeveloperOpinionQueue entries={opinionReferenceNeeds} />
+      ) : null}
+
+      {progressionMode === 'developer' && !reviewerBuild ? (
+        <SourceRequestQueue requests={sourceRequests} />
+      ) : null}
+
+      {progressionMode === 'developer' && !reviewerBuild ? (
         <section className="ticket-queue" aria-labelledby="ticket-queue-title">
           <div className="queue-heading">
             <div>

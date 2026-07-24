@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.mdd-prior-intolerance",
+  "internalTitle": "Reviewer cohort: MDD with prior medication intolerance",
+  "difficultyTier": 2,
+  "patientPool": "transitional",
+  "tags": ["reviewer-cohort", "mdd", "prior-trial", "prior-intolerance"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.major-depressive-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"]
+    },
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "excluded",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    }
+  ],
+  "clinicalTagIds": [
+    "clinical-tag.depressive-symptoms",
+    "clinical-tag.prior-medication-intolerance",
+    "clinical-tag.outpatient-stable"
+  ],
+  "criticalFacts": {
+    "focusedDecision": "treatment-selection-after-intolerance",
+    "acuteSafetyConcern": false,
+    "pastMania": false,
+    "currentlyTakingPsychiatricMedication": false
+  },
+  "ageRange": { "minimum": 23, "maximum": 61 },
+  "chiefComplaintChoices": [
+    "Need another treatment",
+    "Depression",
+    "Low mood",
+    "Medication caused problems",
+    "Still depressed",
+    "Loss of interest",
+    "Need a different option",
+    "Feeling down",
+    "No motivation",
+    "Ongoing anhedonia",
+    "Low energy and mood",
+    "Depressive symptoms"
+  ],
+  "durationChoices": ["seven weeks", "two months", "about three months", "four months"],
+  "bothersomeness": "very",
+  "settingText": "Solo psychiatric office · outpatient consultation",
+  "knownHistory": [],
+  "medicationRegimen": [],
+  "priorMedicationTrials": [
+    {
+      "schemaVersion": 1,
+      "id": "trial.review-mdd-intolerance.fluoxetine",
+      "medicationId": "medication.fluoxetine",
+      "adequacy": "inadequate",
+      "adherence": "consistent",
+      "response": "unknown",
+      "tolerability": "stopped_adverse_effect",
+      "source": "patient_report",
+      "summary": "Prior trial was stopped early because of adverse effects; efficacy was not established."
+    }
+  ],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-mdd-intolerance.low-mood",
+            "labelVariants": ["Depressed mood", "Low mood"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-intolerance.anhedonia",
+            "labelVariants": ["Anhedonia", "Reduced interest"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-intolerance.energy",
+            "labelVariants": ["Low energy", "Fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-intolerance.guilt",
+            "labelVariants": ["Excessive guilt", "Self-critical thoughts"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-intolerance.concentration",
+            "labelVariants": ["Reduced concentration", "Poor focus"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-mdd-intolerance.depressive-syndrome"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.mdd.initial"
+}

@@ -27,6 +27,20 @@ The two path costs are authored sendout baselines for a compatible starter clini
 
 The UI never calls this an “optimal plan.” A player may exceed the database-plan subtotal when a reviewed catalog fit modifier makes another reasonable choice fit the generated patient better. Care points are not clamped to 0–100 and may be negative after unsafe care.
 
+Every post-submit receipt renders a comparison bar and parallel plan cards. Ordinarily the
+database-plan care points define the full bar and the player's care points define its fill. If the
+player exceeds that target, the scale expands to the player score and a labeled marker preserves
+the database score inside the filled bar. Negative care totals retain their signed label and use
+zero visual fill. The parallel cards preserve the exact investigations, fulfillment/costs,
+treatments, and disposition selected by the player beside the completed declared `database_plan`
+replay.
+
+The replay uses the completed attempt's exact patient, clinic, location, and available fulfillment
+methods. Deterministic ordering is payout first, then care points, then lower workup expense, then
+stable ID. This is not a global optimizer and must not be labeled “best possible”: unlisted
+combinations have not been searched. Developer mode additionally shows every declared policy
+result and any invalid replay failure.
+
 ## Workup objectives
 
 Each objective has a stable ID, importance, JSON-safe satisfaction predicate, points when obtained, omission penalty, and explanations. `any` represents explicit alternatives. An appropriate negative result receives full points because ordering the information—not whether it is positive—is evaluated.
@@ -39,18 +53,26 @@ The starter MDD patient uses four focused histories costing 80 points total. The
 
 The final combination is evaluated in named layers:
 
-1. Base treatment grade for the complete medication selection.
-2. Patient-fit modifiers from the selected medication's own file.
+1. Base treatment grade for the complete intervention selection.
+2. Patient-fit modifiers from the selected medication and therapy files.
 3. Treatment-specific workup requirements.
 4. Medication discontinuation rules.
 5. Interaction and contraindication rules.
-6. Nonmedication selections.
+6. Combination support, redundancy, and parsimony.
 7. Disposition.
 8. Efficiency.
 
 The itemized receipt keeps these layers separate. For example, a selected SSRI can show a +100 base award and a separate +0 patient-fit row. It did not “earn zero”; it simply had no additional patient-specific adjustment. The current medically unreviewed mirtazapine prototype has a +35 insomnia fit modifier and a −50 high-BMI-without-countervailing-reason modifier. Those values exercise architecture and remain reviewable clinical content, not authoritative guidance.
 
 Exact complete matches are labeled `authored_pathway`. A nonexact programmed result is prominently labeled `engine_inferred`; the receipt says deterministic catalog rules estimated it. `unmatched` means no programmed route recognized the combination and invites a missing-alternative ticket.
+
+Medication and psychotherapy are peer modalities. A reviewed pathway may define either as a
+single sufficient treatment, explicitly reward one compatible medication-plus-therapy
+combination, or treat that combination as neutral and acceptable when the source does not prefer
+it. Cardinality and redundancy rules prevent “select everything” play: multiple same-role
+antidepressants or several simultaneous primary psychotherapies require explicit support or lose
+points. Investigation shotgun behavior is ordinarily penalized through cumulative point costs
+without duplicate clinical deductions.
 
 ## Safety and disposition
 

@@ -10,7 +10,11 @@ import {
   prototypeCaseBlueprint,
   startingProfile,
 } from '@psychsim/content-runtime';
-import { developerSourceRequests } from '@psychsim/content-runtime/developer';
+import {
+  developerCaseBlueprints,
+  developerOpinionReferenceNeeds,
+  developerSourceRequests,
+} from '@psychsim/content-runtime/developer';
 import { emptyPatientQueueState, instantiateCase } from '@psychsim/engine';
 import { ClinicalReviewTicketSchema, SaveDataSchema } from '@psychsim/schemas';
 
@@ -23,12 +27,13 @@ describe('ClinicHub', () => {
     const onStart = vi.fn();
     const saveData = SaveDataSchema.parse({
       schemaVersion: 1,
-      saveDataVersion: 4,
+      saveDataVersion: 5,
       profile: startingProfile,
       attempts: [],
       flags: [],
       patientQueues: emptyPatientQueueState(),
       clinicalTickets: [],
+      attemptReviews: [],
       legacyArchive: [],
     });
     const casePreview = instantiateCase(prototypeCaseBlueprint, 'prototype-1', catalogs);
@@ -47,6 +52,7 @@ describe('ClinicHub', () => {
         ]}
         developerModeAvailable
         caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
         sourceRequests={[]}
         onStart={onStart}
         onSetMode={vi.fn()}
@@ -75,7 +81,7 @@ describe('ClinicHub', () => {
     const onPurchaseUpgrade = vi.fn();
     const saveData = SaveDataSchema.parse({
       schemaVersion: 1,
-      saveDataVersion: 4,
+      saveDataVersion: 5,
       profile: {
         ...startingProfile,
         clinic: { ...startingProfile.clinic, clinicPoints: 1_500 },
@@ -84,6 +90,7 @@ describe('ClinicHub', () => {
       flags: [],
       patientQueues: emptyPatientQueueState(),
       clinicalTickets: [],
+      attemptReviews: [],
       legacyArchive: [],
     });
     render(
@@ -94,6 +101,7 @@ describe('ClinicHub', () => {
         patientSlots={[]}
         developerModeAvailable
         caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
         sourceRequests={[]}
         onStart={vi.fn()}
         onSetMode={vi.fn()}
@@ -130,12 +138,13 @@ describe('ClinicHub', () => {
     };
     const saveData = SaveDataSchema.parse({
       schemaVersion: 1,
-      saveDataVersion: 4,
+      saveDataVersion: 5,
       profile: { ...startingProfile, clinic },
       attempts: [],
       flags: [],
       patientQueues: emptyPatientQueueState(),
       clinicalTickets: [],
+      attemptReviews: [],
       legacyArchive: [],
     });
     const { container } = render(
@@ -146,6 +155,7 @@ describe('ClinicHub', () => {
         patientSlots={[]}
         developerModeAvailable
         caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
         sourceRequests={[]}
         onStart={vi.fn()}
         onSetMode={vi.fn()}
@@ -197,24 +207,37 @@ describe('ClinicHub', () => {
     });
     const saveData = SaveDataSchema.parse({
       schemaVersion: 1,
-      saveDataVersion: 4,
+      saveDataVersion: 5,
       profile: { ...startingProfile, progressionMode: 'developer' },
       attempts: [],
       flags: [],
       patientQueues: emptyPatientQueueState(),
       clinicalTickets: [ticket],
+      attemptReviews: [],
       legacyArchive: [],
     });
+    const whoReviewBlueprint = developerCaseBlueprints.find(
+      (blueprint) => blueprint.id === 'case.review.who-mhgap-mdd-initial',
+    )!;
+    const whoReviewPreview = instantiateCase(whoReviewBlueprint, 'who-review-preview', catalogs);
     render(
       <ClinicHub
         saveData={saveData}
         clinicState={saveData.profile.clinic}
         catalogs={catalogs}
-        patientSlots={[]}
+        patientSlots={[
+          {
+            id: 'patient-slot-who-review',
+            casePreview: whoReviewPreview,
+            settingLabel: 'Integrated Center · Outpatient',
+            locationId: 'location.endgame.outpatient',
+          },
+        ]}
         developerModeAvailable
         caseRuleAudits={[
           buildCaseRuleAudit(prototypeCaseBlueprint, catalogs, startingProfile.clinic),
         ]}
+        opinionReferenceNeeds={developerOpinionReferenceNeeds}
         sourceRequests={developerSourceRequests.slice(0, 1)}
         onStart={vi.fn()}
         onSetMode={vi.fn()}
@@ -238,7 +261,11 @@ describe('ClinicHub', () => {
     expect(screen.getByText(/-450 pts/)).toBeVisible();
     expect(screen.getByText('200 when true')).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Sources needed' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Opinions needing references' })).toBeVisible();
+    expect(screen.getByLabelText(/Search opinions/)).toBeVisible();
+    expect(screen.getByText(/Mirtazapine: bonus fit/)).toBeInTheDocument();
     expect(screen.getAllByText('PsychSim documents').length).toBeGreaterThan(0);
+    expect(screen.getByText('World Health Organization')).toBeVisible();
 
     fireEvent.change(notes, {
       target: { value: 'Allow any first-line SSRI, then apply medication-fit modifiers.' },

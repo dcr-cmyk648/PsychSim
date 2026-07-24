@@ -115,6 +115,15 @@ const presentationVariantCardinality = (
         cardinality =
           catalogs.variantPools.find((pool) => pool.id === generator.poolId)?.values.length ?? 0;
       }
+      if (generator.type === 'fictionalName') {
+        const firstNames =
+          catalogs.variantPools.find((pool) => pool.id === generator.firstNamePoolId)?.values
+            .length ?? 0;
+        const lastNames =
+          catalogs.variantPools.find((pool) => pool.id === generator.lastNamePoolId)?.values
+            .length ?? 0;
+        cardinality = firstNames * lastNames * (generator.middleInitialProbability > 0 ? 27 : 1);
+      }
       if (generator.type === 'integerRange') cardinality = generator.max - generator.min + 1;
       if (generator.type === 'decimalRange') {
         cardinality = Math.floor((generator.max - generator.min) * 10 ** generator.decimals) + 1;
@@ -388,6 +397,9 @@ export const validateCaseBlueprint = (
   }
   const patientRecord = blueprint.patientRecord;
   const diagnosisById = new Map(catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis]));
+  const medicationById = new Map(
+    catalogs.medications.map((medication) => [medication.id, medication]),
+  );
   for (const duplicate of duplicateIds(patientRecord.diagnoses.map((diagnosis) => diagnosis.id))) {
     issues.push({
       severity: 'error',
@@ -452,6 +464,65 @@ export const validateCaseBlueprint = (
       code: `PATIENT_${conflict.code}`,
       message: `${patientRecord.id}: ${conflict.message}`,
     });
+  }
+  for (const duplicate of duplicateIds(patientRecord.medicationRegimen.map((entry) => entry.id))) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_MEDICATION_REGIMEN_ENTRY',
+      message: `${patientRecord.id} repeats regimen entry ${duplicate}.`,
+    });
+  }
+  for (const entry of patientRecord.medicationRegimen) {
+    if (!medicationById.has(entry.medicationId)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_REGIMEN_MEDICATION_REF',
+        message: `${entry.id} references ${entry.medicationId}.`,
+      });
+    }
+    if (entry.prescribedForDiagnosisId && !diagnosisById.has(entry.prescribedForDiagnosisId)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_REGIMEN_DIAGNOSIS_REF',
+        message: `${entry.id} references ${entry.prescribedForDiagnosisId}.`,
+      });
+    }
+    if (entry.status === 'active' && entry.adherence === 'not_taking') {
+      issues.push({
+        severity: 'error',
+        code: 'CONFLICTING_REGIMEN_STATUS',
+        message: `${entry.id} cannot be active while adherence is not_taking.`,
+      });
+    }
+  }
+  for (const duplicate of duplicateIds(
+    patientRecord.priorMedicationTrials.map((trial) => trial.id),
+  )) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_MEDICATION_TRIAL',
+      message: `${patientRecord.id} repeats trial ${duplicate}.`,
+    });
+  }
+  for (const trial of patientRecord.priorMedicationTrials) {
+    if (!medicationById.has(trial.medicationId)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_TRIAL_MEDICATION_REF',
+        message: `${trial.id} references ${trial.medicationId}.`,
+      });
+    }
+    if (
+      trial.adequacy === 'adequate' &&
+      trial.adherence !== 'consistent' &&
+      !['outside_record', 'prescriber_record'].includes(trial.source)
+    ) {
+      issues.push({
+        severity: 'warning',
+        code: 'TRIAL_ADEQUACY_NEEDS_REVIEW',
+        message: `${trial.id} is marked adequate despite ${trial.adherence} adherence.`,
+      });
+    }
   }
 
   if (patientRecord.diagnosisComposition) {
@@ -926,6 +997,24 @@ export const validateCaseBlueprint = (
         message: `${variant.id} references ${generator.poolId}.`,
       });
     }
+    if (generator.type === 'fictionalName') {
+      const firstPool = catalogs.variantPools.find((pool) => pool.id === generator.firstNamePoolId);
+      const lastPool = catalogs.variantPools.find((pool) => pool.id === generator.lastNamePoolId);
+      if (!firstPool || firstPool.kind !== 'fictional_first_name') {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_FIRST_NAME_POOL_REF',
+          message: `${variant.id} references ${generator.firstNamePoolId}.`,
+        });
+      }
+      if (!lastPool || lastPool.kind !== 'fictional_last_name') {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_LAST_NAME_POOL_REF',
+          message: `${variant.id} references ${generator.lastNamePoolId}.`,
+        });
+      }
+    }
   }
 
   const presentationVariants = presentationVariantCardinality(blueprint, catalogs);
@@ -1114,6 +1203,33 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     });
   }
   const evidenceSourceIds = new Set(catalogs.evidenceSources.map((source) => source.id));
+  for (const source of catalogs.evidenceSources) {
+    const relationKeys = source.sourceRelations.map(
+      (relation) => `${relation.relationType}:${relation.sourceId}`,
+    );
+    for (const duplicate of duplicateIds(relationKeys)) {
+      issues.push({
+        severity: 'error',
+        code: 'DUPLICATE_EVIDENCE_SOURCE_RELATION',
+        message: `${source.id}: ${duplicate}`,
+      });
+    }
+    for (const relation of source.sourceRelations) {
+      if (relation.sourceId === source.id) {
+        issues.push({
+          severity: 'error',
+          code: 'SELF_REFERENTIAL_EVIDENCE_SOURCE_RELATION',
+          message: `${source.id}: ${relation.relationType}`,
+        });
+      } else if (!evidenceSourceIds.has(relation.sourceId)) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_EVIDENCE_SOURCE_RELATION',
+          message: `${source.id}: ${relation.relationType} ${relation.sourceId}`,
+        });
+      }
+    }
+  }
   const diagnosisById = new Map(catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis]));
   const medicationIds = new Set(catalogs.medications.map((medication) => medication.id));
   const medicationTagIds = new Set(catalogs.medications.flatMap((medication) => medication.tags));
@@ -1126,6 +1242,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     diagnosis.id,
     ...diagnosis.baseRules.map((rule) => rule.id),
     ...diagnosis.complexityContributions.map((contribution) => contribution.id),
+    ...diagnosis.classificationBindings.map((binding) => binding.id),
     ...diagnosis.sourceUseNotes.map((note) => note.id),
     ...(diagnosis.severityAxis
       ? [
@@ -1157,6 +1274,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       diagnosis.id,
       ...diagnosis.baseRules.map((rule) => rule.id),
       ...diagnosis.complexityContributions.map((contribution) => contribution.id),
+      ...diagnosis.classificationBindings.map((binding) => binding.id),
       ...(diagnosis.severityAxis
         ? [
             diagnosis.severityAxis.id,
@@ -1232,6 +1350,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       ...(diagnosis.severityAxis?.levels.map((level) => level.review) ?? []),
       ...diagnosis.specifiers.map((specifier) => specifier.review),
       ...diagnosis.comorbidityRelationships.map((relationship) => relationship.review),
+      ...diagnosis.classificationBindings.map((binding) => binding.review),
     ];
     for (const review of nestedReviews) {
       if (review.status === 'approved' && review.sourceUseNoteIds.length === 0) {

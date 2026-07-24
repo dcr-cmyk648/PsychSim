@@ -28,7 +28,10 @@
       "medication.escitalopram",
       "medication.bupropion",
       "medication.mirtazapine",
-      "medication.citalopram"
+      "medication.citalopram",
+      "medication.lithium",
+      "medication.olanzapine",
+      "medication.quetiapine"
     ]
   }
 ]

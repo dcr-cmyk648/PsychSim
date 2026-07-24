@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "case.review-cohort.mdd-adequate-nonresponse",
+  "internalTitle": "Reviewer cohort: MDD after adequate nonresponse",
+  "difficultyTier": 2,
+  "patientPool": "transitional",
+  "tags": ["reviewer-cohort", "mdd", "prior-trial", "nonresponse"],
+  "compatibleLocationIds": ["location.solo-office.outpatient", "location.endgame.outpatient"],
+  "categoryIds": ["patient-category.outpatient", "patient-category.adult"],
+  "diagnoses": [
+    {
+      "id": "diagnosis.major-depressive-disorder",
+      "role": "primary",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"]
+    },
+    {
+      "id": "diagnosis.bipolar-spectrum-disorder",
+      "role": "excluded",
+      "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
+    }
+  ],
+  "clinicalTagIds": [
+    "clinical-tag.depressive-symptoms",
+    "clinical-tag.adequate-prior-trial",
+    "clinical-tag.outpatient-stable"
+  ],
+  "criticalFacts": {
+    "focusedDecision": "next-step-after-nonresponse",
+    "acuteSafetyConcern": false,
+    "pastMania": false,
+    "currentExposureAdequate": true
+  },
+  "ageRange": { "minimum": 28, "maximum": 63 },
+  "chiefComplaintChoices": [
+    "Medication did not help",
+    "Still depressed",
+    "No response to treatment",
+    "Persistent low mood",
+    "Still no interest",
+    "Depression has not improved",
+    "Treatment failed",
+    "Ongoing anhedonia",
+    "Low mood despite treatment",
+    "Still fatigued and depressed",
+    "No meaningful improvement",
+    "Continued depressive symptoms"
+  ],
+  "durationChoices": ["four months", "five months", "about six months", "most of this year"],
+  "bothersomeness": "extremely",
+  "settingText": "Solo psychiatric office · outpatient medication visit",
+  "knownHistory": ["Sertraline appears on the active medication list."],
+  "medicationRegimen": [
+    {
+      "schemaVersion": 1,
+      "id": "regimen.review-mdd-nonresponse.sertraline",
+      "medicationId": "medication.sertraline",
+      "status": "active",
+      "adherence": "consistent",
+      "prescribedForDiagnosisId": "diagnosis.major-depressive-disorder",
+      "source": "prescriber_record",
+      "knownAtOpening": true
+    }
+  ],
+  "priorMedicationTrials": [
+    {
+      "schemaVersion": 1,
+      "id": "trial.review-mdd-nonresponse.sertraline",
+      "medicationId": "medication.sertraline",
+      "adequacy": "adequate",
+      "adherence": "consistent",
+      "response": "none",
+      "tolerability": "tolerated",
+      "source": "prescriber_record",
+      "summary": "Adequate, consistently taken trial; tolerated without meaningful improvement."
+    }
+  ],
+  "informationOverrides": [
+    {
+      "actionId": "info.history.depressive-symptoms",
+      "defaultClassification": "essential",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-mdd-nonresponse.low-mood",
+            "labelVariants": ["Depressed mood", "Low mood"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-nonresponse.anhedonia",
+            "labelVariants": ["Anhedonia", "Reduced interest"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-nonresponse.energy",
+            "labelVariants": ["Low energy", "Fatigue"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-nonresponse.guilt",
+            "labelVariants": ["Excessive guilt", "Self-critical thoughts"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-mdd-nonresponse.concentration",
+            "labelVariants": ["Reduced concentration", "Poor focus"],
+            "outcome": "present"
+          }
+        ],
+        "shuffle": true,
+        "factsRevealed": ["fact.review-mdd-nonresponse.depressive-syndrome"]
+      }
+    }
+  ],
+  "decisionPolicyId": "policy.review.mdd.nonresponse"
+}
