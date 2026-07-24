@@ -6,14 +6,17 @@ Last updated: 2026-07-24
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch while this release unit is being published: `main`, tracking `origin/main`.
-- Implementation checkpoint: `ee7aef9` (`Add clinical authoring and portable reviewer checkpoint`),
-  based on the prior synchronized `efc38eb`.
+- Implementation checkpoint: `220a019` (`Fix mobile reviewer navigation focus`), following the
+  portable-review implementation in `ee7aef9` and release-state commit `5605ab2`.
 - The implementation tree is clean; this durable-state update is the only follow-up change before
-  pushing `main`.
+  pushing the WebKit fix to `main`.
 - Expected final state for this unit: verified checkpoint on `origin/main`, GitHub Pages deployed
   from that `main` commit, then a clean local `beta` tracking `origin/beta`.
 - `beta` is the durable development branch after this release. `main` changes again only after an
   explicit whole-beta promotion request from the user.
+- The repository is public and GitHub Pages is enabled at
+  `https://dcr-cmyk648.github.io/PsychSim/`. GitHub currently reports the legacy branch source;
+  the main-only workflow must still publish the verified Reviewer artifact.
 
 ## Current phase and bounded checkpoint
 
@@ -45,6 +48,9 @@ pre-Milestone-4 clinical-authoring and portable-review checkpoint:
   appear immediately in a native dialog and remain in Revealed, newest first by default. The tab
   strip scrolls horizontally without moving the document; the disclaimer no longer overlaps it at
   320 px.
+- Route changes have one post-commit instant-scroll owner. Opening a chart focuses its patient
+  heading without retaining the prior Hub scroll position; submitting on a phone lands on and
+  focuses the Reviewer feedback heading.
 - A submitted or historical receipt can be reopened after reload. The feedback box is near the top
   of Results and accepts both case-specific and general app-experience comments.
 - Version-5 manual export contains `buildKind`, `assignmentId`, `bundleId`, `engineVersion`, every
@@ -109,17 +115,18 @@ Passed locally on 2026-07-24:
 - `pnpm demo:reference-runs`
 - `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests
 - `pnpm test:e2e:reviewer`: 390 px and 320 px Chromium phone projects, including two cases,
-  reload/reopen, multiple feedback notes, and one exact export
+  reload/reopen, multiple feedback notes, one exact export, route focus, and scroll reset
 - `pnpm build`: explicit Player bundle verification
 - `pnpm build:reviewer`: explicit exact-allowlist Reviewer bundle verification
 - `git diff --check`
 
-The local Playwright WebKit 18.5 binary cannot launch on this Intel macOS 14.1 host and exits with a
-pre-page `Bus error`. The Pages workflow installs Chromium and WebKit on Ubuntu; its required
-iPhone/WebKit project is the release verdict. Do not describe WebKit as passed until that GitHub
-check succeeds. Vite's existing >500 kB chunk advisory remains nonblocking. The private repository
-variable `PSYCHSIM_ENABLE_PAGES=true` is set; Pages itself is not yet enabled/deployed and the
-workflow's main-only package job owns supported enablement.
+The first GitHub run for `5605ab2` passed all checks except its iPhone/WebKit project, where opening
+a chart retained 118 px of the old Hub scroll position. Commit `220a019` moves the reset after React
+navigation, makes it instant despite global smooth-scroll CSS, removes competing handler-level
+scrolls, and adds destination-heading focus assertions. The local Playwright WebKit 18.5 binary
+still cannot launch on this Intel macOS 14.1 host and exits with a pre-page `Bus error`; the next
+Ubuntu iPhone/WebKit job is the release verdict. Do not describe WebKit as passed until that
+GitHub check succeeds. Vite's existing >500 kB chunk advisory remains nonblocking.
 
 ## Reference-policy checkpoints
 
@@ -160,7 +167,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Commit this state update, push `main`, monitor the verification/Pages run, and resolve any CI-only
-WebKit failure without broadening scope. After Pages succeeds, create and push `beta`, check it
-out, update this file with exact release/branch state, and stop. The next product discussion after
-that is the single medication-allowlist decision described above.
+Commit this state update, push `main` at `220a019` plus this state commit, and monitor the
+verification/Pages run. After Pages succeeds, create and push `beta`, check it out, update this file
+with exact release/branch state, and stop. The next product discussion after that is the single
+medication-allowlist decision described above.
