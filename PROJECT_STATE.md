@@ -5,19 +5,18 @@ Last updated: 2026-07-24
 ## Operational state
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
-- Current branch while this release unit is being published: `main`, tracking `origin/main`.
+- Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
 - Implementation checkpoint: `b31e314` (`Make seed sweep timeouts explicit`), following the mobile
   navigation fix in `220a019`, portable-review implementation in `ee7aef9`, and release-state
   commit `5605ab2`.
-- The implementation tree is clean; this durable-state update is the only follow-up change before
-  pushing the WebKit fix to `main`.
-- Expected final state for this unit: verified checkpoint on `origin/main`, GitHub Pages deployed
-  from that `main` commit, then a clean local `beta` tracking `origin/beta`.
+- Released `origin/main`: `bccf717bc62edb5772886586a698eae28c7b207b`.
+- `beta` was created and pushed from that exact released main SHA; this durable-state update is its
+  only follow-up change.
 - `beta` is the durable development branch after this release. `main` changes again only after an
   explicit whole-beta promotion request from the user.
-- The repository is public and GitHub Pages is enabled at
-  `https://dcr-cmyk648.github.io/PsychSim/`. GitHub currently reports the legacy branch source;
-  the main-only workflow must still publish the verified Reviewer artifact.
+- The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Workflow
+  `30121728345` verified and deployed the Reviewer artifact from released `main`; the live bundle
+  contains assignment `reviewer-assignment.common-psychiatry.2026-07`.
 
 ## Current phase and bounded checkpoint
 
@@ -128,10 +127,14 @@ scrolls, and adds destination-heading focus assertions. The next run, `301215752
 formatting, lint, and typecheck but stopped before browser tests when a 500-seed deterministic
 generation test exceeded Vitest's default five-second timeout on the runner. Commit `b31e314`
 preserves its full sweep and gives it, plus the adjacent Reviewer invariant sweep, an explicit
-15-second ceiling. The local Playwright WebKit 18.5 binary still cannot launch on this Intel macOS
-14.1 host and exits with a pre-page `Bus error`; the next Ubuntu iPhone/WebKit job is the release
-verdict. Do not describe WebKit as passed until that GitHub check succeeds. Vite's existing >500 kB
-chunk advisory remains nonblocking.
+15-second ceiling. Replacement workflow `30121728345` passed every gate: unit/content validation,
+standard browser tests, the 390 px and 320 px Chromium Reviewer projects, iPhone 13/WebKit, Player
+and Reviewer bundle scanners, Pages packaging, and deployment. The live URL returns HTTP 200 and
+serves the expected Reviewer assignment bundle.
+
+The local Playwright WebKit 18.5 binary still cannot launch on this Intel macOS 14.1 host and exits
+with a pre-page `Bus error`; Linux CI WebKit is the verified release result. Vite's existing >500
+kB chunk advisory and GitHub's Node-action deprecation annotations are nonblocking.
 
 ## Reference-policy checkpoints
 
@@ -172,7 +175,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Commit this state update, push `main` at `b31e314` plus this state commit, and monitor the
-verification/Pages run. After Pages succeeds, create and push `beta`, check it out, update this file
-with exact release/branch state, and stop. The next product discussion after that is the single
-medication-allowlist decision described above.
+Commit and push this state-only update on `beta`, confirm the beta verification run, and stop. The
+next product discussion is the single medication-allowlist decision described above. Do not
+download DrugCentral, implement that importer, begin Milestone 4, or modify `main` until the user
+explicitly resolves or authorizes the relevant next step.
