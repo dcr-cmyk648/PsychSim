@@ -6,8 +6,9 @@ Last updated: 2026-07-24
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch while this release unit is being published: `main`, tracking `origin/main`.
-- Implementation checkpoint: `220a019` (`Fix mobile reviewer navigation focus`), following the
-  portable-review implementation in `ee7aef9` and release-state commit `5605ab2`.
+- Implementation checkpoint: `b31e314` (`Make seed sweep timeouts explicit`), following the mobile
+  navigation fix in `220a019`, portable-review implementation in `ee7aef9`, and release-state
+  commit `5605ab2`.
 - The implementation tree is clean; this durable-state update is the only follow-up change before
   pushing the WebKit fix to `main`.
 - Expected final state for this unit: verified checkpoint on `origin/main`, GitHub Pages deployed
@@ -123,10 +124,14 @@ Passed locally on 2026-07-24:
 The first GitHub run for `5605ab2` passed all checks except its iPhone/WebKit project, where opening
 a chart retained 118 px of the old Hub scroll position. Commit `220a019` moves the reset after React
 navigation, makes it instant despite global smooth-scroll CSS, removes competing handler-level
-scrolls, and adds destination-heading focus assertions. The local Playwright WebKit 18.5 binary
-still cannot launch on this Intel macOS 14.1 host and exits with a pre-page `Bus error`; the next
-Ubuntu iPhone/WebKit job is the release verdict. Do not describe WebKit as passed until that
-GitHub check succeeds. Vite's existing >500 kB chunk advisory remains nonblocking.
+scrolls, and adds destination-heading focus assertions. The next run, `30121575273`, passed
+formatting, lint, and typecheck but stopped before browser tests when a 500-seed deterministic
+generation test exceeded Vitest's default five-second timeout on the runner. Commit `b31e314`
+preserves its full sweep and gives it, plus the adjacent Reviewer invariant sweep, an explicit
+15-second ceiling. The local Playwright WebKit 18.5 binary still cannot launch on this Intel macOS
+14.1 host and exits with a pre-page `Bus error`; the next Ubuntu iPhone/WebKit job is the release
+verdict. Do not describe WebKit as passed until that GitHub check succeeds. Vite's existing >500 kB
+chunk advisory remains nonblocking.
 
 ## Reference-policy checkpoints
 
@@ -167,7 +172,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Commit this state update, push `main` at `220a019` plus this state commit, and monitor the
+Commit this state update, push `main` at `b31e314` plus this state commit, and monitor the
 verification/Pages run. After Pages succeeds, create and push `beta`, check it out, update this file
 with exact release/branch state, and stop. The next product discussion after that is the single
 medication-allowlist decision described above.
