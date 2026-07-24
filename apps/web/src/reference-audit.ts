@@ -8,7 +8,7 @@ import {
   ENGINE_VERSION,
   completeEncounter,
   purchaseInformationAction,
-  startEncounter,
+  startEncounterWithAutomaticIntake,
   updateTreatmentSelections,
 } from '@psychsim/engine';
 
@@ -102,8 +102,16 @@ const auditReferenceRun = (
   catalogs: CatalogBundle,
 ): AuditedReferenceRun => {
   try {
-    let state = startEncounter(attempt.caseInstance, attempt.clinicStateAtStart, locationId);
+    const started = startEncounterWithAutomaticIntake(
+      attempt.caseInstance,
+      attempt.clinicStateAtStart,
+      locationId,
+      catalogs,
+    );
+    if (!started.ok) throw new Error(`${started.error.code}: ${started.error.message}`);
+    let state = started.value;
     for (const actionId of solution.actionIds) {
+      if (state.purchases.some((purchase) => purchase.actionId === actionId)) continue;
       const purchase = purchaseInformationAction(state, actionId, catalogs);
       if (!purchase.ok) throw new Error(`${purchase.error.code}: ${purchase.error.message}`);
       state = purchase.value;

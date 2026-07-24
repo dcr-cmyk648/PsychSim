@@ -61,7 +61,10 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await page.getByRole('button', { name: /Close outpatient follow-up/ }).click();
   await page.getByRole('button', { name: 'Lock in treatment' }).click();
 
-  await expect(page.getByRole('heading', { name: '0 points vs database plan' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Case receipt', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/points vs database plan/i)).toHaveCount(0);
   await expect(
     page.getByRole('meter', { name: 'Player care points compared with the database plan' }),
   ).toHaveAttribute('aria-valuetext', '450 player care points; 450 database-plan care points');
@@ -87,7 +90,11 @@ test('completes a patient, stores review guidance, and preserves the profile and
   const uncitedTrace = page
     .locator('.trace-list details')
     .filter({ hasText: 'Assess suicide risk and outpatient suitability' });
+  await expect(
+    uncitedTrace.locator('summary').getByText('Expert opinion', { exact: true }),
+  ).toBeVisible();
   await uncitedTrace.locator('summary').click();
+  await expect(uncitedTrace.getByText('References & provenance')).toBeVisible();
   await expect(
     uncitedTrace.getByText(/Expert opinion: no formal publication is linked/),
   ).toBeVisible();
@@ -143,7 +150,10 @@ test('completes a patient, stores review guidance, and preserves the profile and
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Clinical and content tickets' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Sources needed' })).toBeVisible();
-  await expect(page.locator('.source-request-card')).toHaveCount(5);
+  await expect(page.locator('.source-request-card')).toHaveCount(6);
+  await expect(
+    page.getByText('Cyclothymia and duration-based near-miss generation', { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText('World Health Organization').first()).toBeVisible();
   await expect(page.getByText('TSH use in an initial depressive presentation')).toBeVisible();
   await expect(

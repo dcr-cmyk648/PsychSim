@@ -117,15 +117,56 @@ const resolveFinding = (
   outcome: FindingOutcome,
   seed: string,
   actionId: string,
-): ResolvedFinding => ({
-  id: finding.id,
-  label:
-    selectVariant(finding.labelVariants, seed, `${actionId}:${finding.id}:label`) ??
-    finding.labelVariants[0]!,
-  outcome,
-  valueText: selectVariant(finding.valueTextVariants, seed, `${actionId}:${finding.id}:value-text`),
-  origin: 'authored',
-});
+): ResolvedFinding => {
+  const durationProfile = finding.durationProfile;
+  const durationOption = durationProfile
+    ? durationProfile.options[
+        Math.min(
+          durationProfile.options.length - 1,
+          Math.floor(
+            seededUnit(seed, `${actionId}:${finding.id}:duration-option`) *
+              durationProfile.options.length,
+          ),
+        )
+      ]
+    : undefined;
+  const durationDisplay = durationOption
+    ? selectVariant(
+        durationOption.displayValueVariants,
+        seed,
+        `${actionId}:${finding.id}:${durationOption.id}:duration-display`,
+      )
+    : undefined;
+  const valueTemplate = selectVariant(
+    finding.valueTextVariants,
+    seed,
+    `${actionId}:${finding.id}:value-text`,
+  );
+  return {
+    id: finding.id,
+    label:
+      selectVariant(finding.labelVariants, seed, `${actionId}:${finding.id}:label`) ??
+      finding.labelVariants[0]!,
+    outcome,
+    valueText:
+      durationDisplay && valueTemplate
+        ? valueTemplate.replaceAll('{{duration}}', durationDisplay)
+        : valueTemplate,
+    durationMeasurement:
+      durationProfile && durationOption
+        ? {
+            profileId: durationProfile.id,
+            optionId: durationOption.id,
+            value: durationOption.value,
+            unit: durationOption.unit,
+            relatedDiagnosisId: durationProfile.relatedDiagnosisId,
+            interpretation: durationProfile.interpretation,
+            criterionId: durationProfile.criterionId,
+          }
+        : undefined,
+    origin: 'authored',
+  };
+};
 
 export const resolveInformationResult = (
   result: InformationResultBlueprint,

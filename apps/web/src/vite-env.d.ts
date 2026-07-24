@@ -9,3 +9,10 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
   glob(pattern: string, options: { eager: true; import: string }): Record<string, unknown>;
 }
+
+declare const __PSYCHSIM_DISTRIBUTION__: {
+  readonly schemaVersion: 1;
+  readonly distributionId: string;
+  readonly buildKind: 'player' | 'portable_reviewer';
+  readonly channel: string;
+};

@@ -70,7 +70,10 @@ export const buildCaseReceipt = (
       id: `receipt.${purchase.actionId}`,
       itemName: definition?.label ?? purchase.actionId,
       kind: 'information',
-      fulfillmentMethod: purchase.fulfillmentLabel,
+      fulfillmentMethod:
+        purchase.initiatedBy === 'automatic_intake'
+          ? `Automatic intake · ${purchase.fulfillmentLabel}`
+          : purchase.fulfillmentLabel,
       operatingCost: purchase.operatingCost,
       pointDelta: traces.reduce((sum, trace) => sum + trace.points, 0),
       scoreCategory: categoryForComponent(materialTrace?.component),
@@ -85,6 +88,7 @@ export const buildCaseReceipt = (
         pointReport.selectedPathwayId,
       ),
       externalCostAvoided: purchase.externalCostAvoided,
+      upgradeSavings: purchase.upgradeSavings,
     };
   });
 
@@ -138,6 +142,7 @@ export const buildCaseReceipt = (
             explanation: gradeTrace.explanation,
             acceptedPathwayMatch: pointReport.selectedPathwayId !== null,
             externalCostAvoided: 0,
+            upgradeSavings: 0,
           },
         ]
       : []),
@@ -158,6 +163,7 @@ export const buildCaseReceipt = (
               'The complete medication combination was evaluated for safety.',
             acceptedPathwayMatch: pointReport.selectedPathwayId !== null,
             externalCostAvoided: 0,
+            upgradeSavings: 0,
           },
         ]
       : []),
@@ -195,6 +201,7 @@ export const buildCaseReceipt = (
       explanation: materialTrace?.explanation ?? emptyExplanation,
       acceptedPathwayMatch: pointReport.selectedPathwayId !== null,
       externalCostAvoided: 0,
+      upgradeSavings: 0,
     };
   });
 

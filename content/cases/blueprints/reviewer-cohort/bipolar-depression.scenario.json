@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.bipolar-depression",
   "internalTitle": "Reviewer cohort: bipolar depression",
   "difficultyTier": 3,
@@ -46,7 +46,56 @@
     "Trouble enjoying things",
     "Anhedonia"
   ],
-  "durationChoices": ["six weeks", "two months", "ten weeks", "about three months"],
+  "durationProfile": {
+    "id": "duration-profile.review-bipolar-depression.current-episode",
+    "relatedDiagnosisId": "diagnosis.bipolar-spectrum-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-bipolar-depression.5-weeks",
+        "value": 5,
+        "unit": "week",
+        "displayValueVariants": ["five weeks", "about five weeks"]
+      },
+      {
+        "id": "duration.review-bipolar-depression.6-weeks",
+        "value": 6,
+        "unit": "week",
+        "displayValueVariants": ["six weeks", "about six weeks"]
+      },
+      {
+        "id": "duration.review-bipolar-depression.8-weeks",
+        "value": 8,
+        "unit": "week",
+        "displayValueVariants": ["eight weeks", "about two months"]
+      },
+      {
+        "id": "duration.review-bipolar-depression.10-weeks",
+        "value": 10,
+        "unit": "week",
+        "displayValueVariants": ["ten weeks", "about ten weeks"]
+      },
+      {
+        "id": "duration.review-bipolar-depression.12-weeks",
+        "value": 12,
+        "unit": "week",
+        "displayValueVariants": ["twelve weeks", "about three months"]
+      },
+      {
+        "id": "duration.review-bipolar-depression.16-weeks",
+        "value": 16,
+        "unit": "week",
+        "displayValueVariants": ["sixteen weeks", "about four months"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "extremely",
   "settingText": "Solo psychiatric office · outpatient medication consultation",
   "knownHistory": ["A previous hospitalization was documented during a markedly elevated episode."],

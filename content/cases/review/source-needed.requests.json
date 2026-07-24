@@ -209,5 +209,39 @@
     "resolutionNote": null,
     "createdAt": "2026-07-23T00:00:00.000Z",
     "updatedAt": "2026-07-23T16:45:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.cyclothymia.duration-discrimination",
+    "title": "Cyclothymia and duration-based near-miss generation",
+    "question": "Which legally reusable, current diagnostic source should PsychSim use for the adult and younger-person temporal criteria for cyclothymia, including how to represent a deliberately subthreshold duration near miss?",
+    "whyNeeded": "The duration generator now stores a numeric, diagnosis-scoped value and an authored interpretation. It must not label a one-year versus multi-year pattern as meeting or missing cyclothymia criteria until a reusable source and psychiatrist-reviewed mapping define the exact discriminator.",
+    "targetContentIds": ["diagnosis.bipolar-spectrum-disorder", "info.history.presenting-problem"],
+    "linkedTicketIds": ["ticket.source.cyclothymia.duration-discrimination"],
+    "preferredSourceTypes": [
+      "classification_standard",
+      "clinical_guideline",
+      "professional_guidance",
+      "book_chapter"
+    ],
+    "acceptanceCriteria": [
+      "Defines temporal criteria separately for relevant age populations.",
+      "Permits a concise paraphrased, declarative implementation under the source-use policy.",
+      "Supports a case-authored below-threshold relation without inferring a diagnosis from incidental background symptoms."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-24T00:00:00.000Z",
+    "updatedAt": "2026-07-24T00:00:00.000Z"
   }
 ]

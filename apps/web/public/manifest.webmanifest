@@ -1,0 +1,32 @@
+{
+  "id": "./",
+  "name": "PsychSim Clinic",
+  "short_name": "PsychSim",
+  "description": "A fictional psychiatric clinic-building game and portable case-review tool.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#030806",
+  "theme_color": "#030806",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icons/psychsim-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/psychsim-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/psychsim.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.5.0",
+  "contentVersion": "3.7.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -44,6 +44,7 @@
         "evidence.fda.citalopram-capsules-label.2023",
         "evidence.nice.self-harm.ng225.2022",
         "evidence.nimh.mental-health-topics.current",
+        "evidence.nlm.rxnorm-cpc.2026-07-06",
         "evidence.va-dod.suicide-risk.2024",
         "evidence.who.icd11-cddr.2024",
         "evidence.who.mhgap-mns.2023"
@@ -181,6 +182,12 @@
       "id": "evidence.drugcentral.database.2023-11-01",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/drugcentral-2023-database.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nlm-rxnorm-cpc-2026-07-06.evidence.json",
       "runtimeIncluded": false
     },
     {

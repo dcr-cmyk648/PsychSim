@@ -107,6 +107,8 @@ jobs:
       - name: Build portable Reviewer application
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_PSYCHSIM_DISTRIBUTION_ID: ${{ github.sha }}
+          VITE_PSYCHSIM_DISTRIBUTION_CHANNEL: main
         run: pnpm build:reviewer
 
       - name: Upload Pages artifact

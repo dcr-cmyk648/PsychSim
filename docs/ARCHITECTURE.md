@@ -8,6 +8,14 @@
 
 PsychSim is a static browser application in a pnpm workspace. Zod schemas form the data boundary, JSON content supplies stable reviewed inputs, pure TypeScript produces deterministic state transitions and point-rule traces, React renders those values, and an IndexedDB repository persists versioned saves.
 
+The Pages artifact also has a thin installation/distribution shell. A stable relative web manifest
+and generated icons support iPhone Home Screen installation. Vite injects and emits one
+Git-SHA-based distribution record; a browser-only update manager compares the compiled record with
+base-relative `version.json` and offers a cache-busting reload only at a safe hub screen. This
+infrastructure never enters the pure engine, never versions or clears IndexedDB, and adds no
+backend. Offline service-worker caching remains deferred; see
+[INSTALL_AND_UPDATES.md](INSTALL_AND_UPDATES.md).
+
 ```text
 approved JSON catalogs + patient template
                  │ Zod parse + reference validation
@@ -204,36 +212,70 @@ safety/interaction rules. See
 
 The launcher renders from that resolved CaseInstance—not internal case metadata—so it can show only patient name and chief complaint. Hidden diagnosis/category fields remain content and validation inputs and are never used as player-facing case labels.
 
-Encounter commands return new values and typed `Result` failures. Stable event IDs derive from encounter identity and event order. Purchases contain the exact structured result, fulfillment, and cost. A CompletedAttempt stores the full resolved case snapshot, clinic-at-start, events, purchases, final treatment, rule trace, receipt, content version, engine version through flags, and persistence timestamp. This is sufficient for exact historical replay without regenerating a patient.
+Encounter commands return new values and typed `Result` failures. Stable event IDs derive from
+encounter identity and event order. Purchases contain the exact structured result, fulfillment,
+cost, initiator, and any upgrade savings. Live starts pass the primitive empty encounter through
+`startEncounterWithAutomaticIntake`. That pure Result-returning step reads the clinic's persisted
+staff configuration, intersects it with patient-available actions, and purchases each configured
+action in the staff definition's stable allowlist order. The same structured result, facts, expense
+ledger, and `InformationPurchased` event are used as for a player purchase; `initiatedBy` and
+`initiatingStaffUpgradeId` preserve provenance. Historical replay deliberately starts from the
+empty primitive and replays the recorded events, avoiding duplicate automatic purchases. Reference
+policies use the automatic-start path and skip configured actions already obtained at chart
+opening. A CompletedAttempt stores the full resolved case snapshot, clinic-at-start, events,
+purchases, final treatment, rule trace, receipt, content version, engine version through flags, and
+persistence timestamp. This is sufficient for exact historical replay without regenerating a
+patient.
 
 ## Service, location, and eligibility boundaries
 
 Service definitions enumerate fulfillment methods with costs and capability/location requirements.
-Resolution unions location and clinic capabilities, filters available methods, and deterministically
-chooses cost then stable ID. Equipment purchase previews the projected clinic through the same
-resolver, so store estimates and encounter costs cannot diverge. Eligibility checks compatible
-location/lifetime points, every objective required by at least one complete accepted path,
-medication-tag and formulary satisfiability, intervention/disposition capability requirements, and
-safe referral/transfer. Validation constructs a baseline clinic for every compatible facility
-location rather than checking only the starter and Endgame overlays. Existing regimen entries
-remain available to stop or explicitly continue even when their catalog medication is not stocked
-for a new start. Department satisfiability becomes stricter in Milestone 4 without changing
+A fulfillment method may additionally require a named owned-and-configured staff upgrade.
+Investigation resolution supplies the information-action ID as context, unions location and clinic
+capabilities, filters methods against location plus that exact action's staff assignment, and
+deterministically chooses cost then stable ID. Generic service/capability resolution without action
+context cannot activate a staff-only method; this matters because several routine histories share
+one service. Equipment and staff quotes use the same resolver boundary, so store/configuration
+estimates and encounter costs cannot diverge. Eligibility checks compatible location/lifetime
+points, every objective required by at least one complete accepted path, medication-tag and
+formulary satisfiability, intervention/disposition capability requirements, and safe
+referral/transfer. Validation constructs a baseline clinic for every compatible facility location
+rather than checking only the starter and Endgame overlays. Existing regimen entries remain
+available to stop or explicitly continue even when their catalog medication is not stocked for a
+new start. Department satisfiability becomes stricter in Milestone 4 without changing
 patient-template content.
 
-`getUpgradeOffer` is a read-only pure quote across equipment, formulary, facility, and decor catalogs. It reports blockers, current/projected service methods, per-use savings, break-even uses, target facility/slot count, and before/after ambience where relevant. `purchaseUpgrade` re-evaluates the same gates and either returns one validated ClinicState with the exact point deduction and granted IDs or a typed failure with the input unchanged. A facility transition resolves locations and baseline capabilities declaratively while preserving earlier purchases. Decor recomputes a catalog-configured rational satisfaction curve. Purchases never reduce lifetime points, permit debt, or run in practice modes. The browser persists the returned ClinicState through the existing SaveRepository.
+`getUpgradeOffer` is a read-only pure quote across equipment, staff, formulary, facility, and decor
+catalogs. It reports blockers, current/projected service methods, per-use savings, break-even uses,
+target facility/slot count, and before/after ambience where relevant. `purchaseUpgrade`
+re-evaluates the same gates and atomically creates an empty persisted staff configuration when a
+staff upgrade is bought. `configureStaffAutomation` is a separate pure transaction: it requires
+ownership, rejects practice mode, duplicates, cross-staff collisions, nonallowlisted actions, and
+more than the cataloged maximum of three, then normalizes selections to catalog order. The current
+assistant's allowlist is finite and neutral; selected actions carry discounted but nonzero per-use
+costs. Hiring/configuration never adds salaries, time, capacity, departments, or treatment
+automation. A facility transition resolves locations and baseline capabilities declaratively while
+preserving earlier purchases and staff configuration. Decor recomputes a catalog-configured
+rational satisfaction curve. Purchases never reduce lifetime points, permit debt, or run in
+practice modes. The browser persists the returned ClinicState through the existing SaveRepository.
 
-The profile persists standard clinic state, mode, and complete resolved queue slots. Calling queue
-fill twice leaves a Normal patient unchanged; completing the slot retires its chief complaint into
-a bounded recent-history list before a replacement is generated. When a facility move changes
-location IDs, the same resolved waiting patient is relocated to the compatible new outpatient
-location rather than regenerated, and newly available slots are then filled. Endgame is a pure
-derived overlay that selects the highest declared facility/location, unions
-capabilities/formularies/purchases, increases approved patient slots, and permits manual refresh.
-Local Developer uses the same overlay with its development content pool. Portable Reviewer uses
-the overlay with its finite assignment, hides source provenance before submission, tracks
-definitions already run, and permits reroll/reset. Practice settlements bank zero points.
-Diagnosis, source organization, and `starter`/`transitional`/`advanced` pool metadata remain
-internal before submission.
+The profile persists standard clinic state, mode, complete resolved queue slots, staff ownership,
+and configured automatic action IDs. Configuration survives facility moves and affects only
+encounters opened after it is saved. Calling queue fill twice leaves a Normal patient unchanged;
+completing the slot retires its chief complaint into a bounded recent-history list before a
+replacement is generated. When a facility move changes location IDs, the same resolved waiting
+patient is relocated to the compatible new outpatient location rather than regenerated, and newly
+available slots are then filled. Endgame is a pure derived overlay that selects the highest
+declared facility/location, unions capabilities/formularies/purchases, increases approved patient
+slots, and permits manual refresh. Local Developer uses the same overlay with its development
+content pool. Portable Reviewer uses the overlay with its finite assignment, hides source
+provenance before submission, tracks definitions already run, and permits reroll/reset. Those
+derived practice clinics do not invent staff assignments, so existing reference cohorts do not
+silently gain free intake. Practice settlements bank zero points. Diagnosis, source organization,
+and `starter`/`transitional`/`advanced` pool metadata remain internal before submission.
+
+This bounded intake-assistant slice currently exists on `beta`; stable `main`/Pages remains
+unchanged until explicit whole-branch promotion.
 
 Receipt feedback is persisted as `ContentFlag` and `ClinicalReviewTicket`. Guidance snapshots the
 disputed receipt row and records routing, target/dependency/conflict IDs, whether clinical acumen is

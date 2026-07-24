@@ -5,7 +5,7 @@ import {
   purchaseInformationAction,
   requireCompleted,
   purchaseUpgrade,
-  startEncounter,
+  startEncounterWithAutomaticIntake,
   updateTreatmentSelections,
 } from '@psychsim/engine';
 
@@ -31,8 +31,11 @@ export const runReferenceSolution = (
   clinic: ClinicState = startingClinic,
 ): ReferenceRunResult => {
   const instance = instantiateCase(blueprint, seed, catalogs);
-  let state = startEncounter(instance, clinic, clinic.activeLocationId);
+  let state = requireCompleted(
+    startEncounterWithAutomaticIntake(instance, clinic, clinic.activeLocationId, catalogs),
+  );
   for (const actionId of solution.actionIds) {
+    if (state.purchases.some((purchase) => purchase.actionId === actionId)) continue;
     state = requireCompleted(purchaseInformationAction(state, actionId, catalogs));
   }
   state = requireCompleted(updateTreatmentSelections(state, solution.selections, catalogs));

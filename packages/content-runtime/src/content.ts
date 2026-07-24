@@ -66,7 +66,7 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.3.0',
+  contentVersion: '3.4.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,

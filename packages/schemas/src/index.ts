@@ -494,6 +494,7 @@ export const ServiceFulfillmentMethodSchema = z
     kind: z.enum(['outside_referral', 'contracted_partner', 'shared_service', 'in_house']),
     operatingCost: z.number().int().nonnegative(),
     requiredCapabilities: z.array(CapabilitySchema),
+    requiredStaffUpgradeId: StableIdSchema.optional(),
     allowedLocationIds: z.array(StableIdSchema).optional(),
     qualityModifier: z.number().min(0).default(1),
   })
@@ -1360,14 +1361,78 @@ export const FindingOutcomeSchema = z.enum([
 ]);
 export type FindingOutcome = z.infer<typeof FindingOutcomeSchema>;
 
+export const ClinicalDurationUnitSchema = z.enum(['day', 'week', 'month', 'year']);
+export type ClinicalDurationUnit = z.infer<typeof ClinicalDurationUnitSchema>;
+
+export const ClinicalDurationOptionSchema = z
+  .object({
+    id: StableIdSchema,
+    value: z.number().int().positive(),
+    unit: ClinicalDurationUnitSchema,
+    displayValueVariants: z.array(z.string().min(1).max(48)).min(1).max(12),
+  })
+  .strict();
+export type ClinicalDurationOption = z.infer<typeof ClinicalDurationOptionSchema>;
+
+export const ClinicalDurationProfileSchema = z
+  .object({
+    id: StableIdSchema,
+    relatedDiagnosisId: StableIdSchema.nullable(),
+    interpretation: z.enum(['supports_authored_state', 'designed_below_threshold', 'context_only']),
+    criterionId: StableIdSchema.nullable(),
+    options: z.array(ClinicalDurationOptionSchema).min(2).max(24),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    if (new Set(profile.options.map((option) => option.id)).size !== profile.options.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Clinical duration option IDs must be unique within a profile.',
+      });
+    }
+    if (profile.interpretation === 'designed_below_threshold' && !profile.criterionId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A below-threshold duration profile must name the reviewed criterion it misses.',
+      });
+    }
+    if (profile.interpretation !== 'designed_below_threshold' && profile.criterionId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Only a designed-below-threshold duration profile may name a criterion.',
+      });
+    }
+  });
+export type ClinicalDurationProfile = z.infer<typeof ClinicalDurationProfileSchema>;
+
 export const FindingBlueprintSchema = z
   .object({
     id: StableIdSchema,
     labelVariants: z.array(z.string().min(1).max(80)).min(1).max(12),
     outcome: z.union([FindingOutcomeSchema, z.literal('variable')]),
     valueTextVariants: z.array(z.string().min(1).max(120)).max(12).optional(),
+    durationProfile: ClinicalDurationProfileSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((finding, context) => {
+    if (!finding.durationProfile) return;
+    if (finding.outcome !== 'present') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A structured duration finding must have a present outcome.',
+      });
+    }
+    if (
+      !finding.valueTextVariants?.length ||
+      finding.valueTextVariants.some((template) => !template.includes('{{duration}}'))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A structured duration finding requires value text templates with {{duration}}.',
+      });
+    }
+  });
 export type FindingBlueprint = z.infer<typeof FindingBlueprintSchema>;
 
 export const FindingSelectionSchema = z
@@ -1480,6 +1545,22 @@ export const ResolvedFindingSchema = z
     outcome: FindingOutcomeSchema,
     valueText: z.string().min(1).max(240).optional(),
     numericMeasurement: ResolvedNumericMeasurementSchema.optional(),
+    durationMeasurement: z
+      .object({
+        profileId: StableIdSchema,
+        optionId: StableIdSchema,
+        value: z.number().int().positive(),
+        unit: ClinicalDurationUnitSchema,
+        relatedDiagnosisId: StableIdSchema.nullable(),
+        interpretation: z.enum([
+          'supports_authored_state',
+          'designed_below_threshold',
+          'context_only',
+        ]),
+        criterionId: StableIdSchema.nullable(),
+      })
+      .strict()
+      .optional(),
     origin: z.enum(['authored', 'generated_normal', 'generated_incidental']),
   })
   .strict();
@@ -1974,7 +2055,7 @@ export const ReviewCaseScenarioSchema = z
         message: 'Review-case age minimum must not exceed its maximum.',
       }),
     chiefComplaintChoices: z.array(z.string().min(1).max(120)).min(10),
-    durationChoices: z.array(z.string().min(1).max(80)).min(2).max(20),
+    durationProfile: ClinicalDurationProfileSchema,
     bothersomeness: z.enum(['not_at_all', 'somewhat', 'very', 'extremely']).nullable(),
     settingText: z.string().min(1).max(180),
     knownHistory: z.array(z.string().min(1).max(180)),
@@ -2013,6 +2094,16 @@ export const ClinicStateSchema = z
     capabilities: z.array(CapabilitySchema),
     ownedUpgradeIds: z.array(StableIdSchema),
     ownedEquipmentIds: z.array(StableIdSchema),
+    staffConfigurations: z
+      .array(
+        z
+          .object({
+            staffUpgradeId: StableIdSchema,
+            automaticInformationActionIds: z.array(StableIdSchema),
+          })
+          .strict(),
+      )
+      .default([]),
     formularyIds: z.array(StableIdSchema),
     clinicPoints: z.number().int().nonnegative(),
     lifetimePointsEarned: z.number().int().nonnegative(),
@@ -2031,9 +2122,23 @@ export const InformationPurchaseSchema = z
     fulfillmentLabel: z.string().min(1),
     operatingCost: z.number().int().nonnegative(),
     externalCostAvoided: z.number().int().nonnegative(),
+    upgradeSavings: z.number().int().nonnegative().default(0),
+    initiatedBy: z.enum(['player', 'automatic_intake']).default('player'),
+    initiatingStaffUpgradeId: StableIdSchema.nullable().default(null),
     result: InformationResultSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((purchase, context) => {
+    if (
+      (purchase.initiatedBy === 'automatic_intake') !==
+      (purchase.initiatingStaffUpgradeId !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Automatic intake purchases must name their initiating staff upgrade.',
+      });
+    }
+  });
 export type InformationPurchase = z.infer<typeof InformationPurchaseSchema>;
 
 export const EncounterEventSchema = z.discriminatedUnion('type', [
@@ -2164,6 +2269,7 @@ export const ReceiptItemSchema = z
     explanation: z.string().min(1),
     acceptedPathwayMatch: z.boolean(),
     externalCostAvoided: z.number().int().nonnegative(),
+    upgradeSavings: z.number().int().nonnegative().default(0),
   })
   .strict();
 export type ReceiptItem = z.infer<typeof ReceiptItemSchema>;
@@ -2881,6 +2987,14 @@ export const UpgradeDefinitionSchema = z
     patientCategoryIdsUnlocked: z.array(StableIdSchema).default([]),
     clinicalCapabilityLabels: z.array(z.string().min(1).max(160)).default([]),
     targetFacilityId: StableIdSchema.optional(),
+    staffAutomation: z
+      .object({
+        role: z.string().min(1).max(120),
+        eligibleInformationActionIds: z.array(StableIdSchema).min(1),
+        maximumAutomaticActions: z.number().int().positive(),
+      })
+      .strict()
+      .optional(),
     satisfactionPoints: z.number().nonnegative().optional(),
     displaySlotType: z.string().min(1).optional(),
     visualToken: StableIdSchema.optional(),
@@ -2974,8 +3088,26 @@ export type EquipmentDefinition = z.infer<typeof EquipmentDefinitionSchema>;
 
 export const StaffDefinitionSchema = UpgradeDefinitionSchema.extend({
   kind: z.literal('staff'),
-  role: z.string().min(1),
-}).strict();
+  staffAutomation: z.object({
+    role: z.string().min(1).max(120),
+    eligibleInformationActionIds: z.array(StableIdSchema).min(1),
+    maximumAutomaticActions: z.number().int().positive(),
+  }),
+})
+  .strict()
+  .superRefine((upgrade, context) => {
+    if (
+      new Set(upgrade.staffAutomation.eligibleInformationActionIds).size !==
+        upgrade.staffAutomation.eligibleInformationActionIds.length ||
+      upgrade.staffAutomation.maximumAutomaticActions >
+        upgrade.staffAutomation.eligibleInformationActionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Staff automation action IDs must be unique and the selection cap must fit.',
+      });
+    }
+  });
 export type StaffDefinition = z.infer<typeof StaffDefinitionSchema>;
 
 export const TreatmentProgramDefinitionSchema = UpgradeDefinitionSchema.extend({

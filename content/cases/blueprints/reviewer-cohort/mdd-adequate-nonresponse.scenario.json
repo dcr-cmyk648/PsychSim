@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.mdd-adequate-nonresponse",
   "internalTitle": "Reviewer cohort: MDD after adequate nonresponse",
   "difficultyTier": 2,
@@ -46,7 +46,56 @@
     "No meaningful improvement",
     "Continued depressive symptoms"
   ],
-  "durationChoices": ["four months", "five months", "about six months", "most of this year"],
+  "durationProfile": {
+    "id": "duration-profile.review-mdd-adequate-nonresponse.current-episode",
+    "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-mdd-adequate-nonresponse.4-months",
+        "value": 4,
+        "unit": "month",
+        "displayValueVariants": ["four months", "about four months"]
+      },
+      {
+        "id": "duration.review-mdd-adequate-nonresponse.5-months",
+        "value": 5,
+        "unit": "month",
+        "displayValueVariants": ["five months", "about five months"]
+      },
+      {
+        "id": "duration.review-mdd-adequate-nonresponse.6-months",
+        "value": 6,
+        "unit": "month",
+        "displayValueVariants": ["six months", "about half a year"]
+      },
+      {
+        "id": "duration.review-mdd-adequate-nonresponse.7-months",
+        "value": 7,
+        "unit": "month",
+        "displayValueVariants": ["seven months", "about seven months"]
+      },
+      {
+        "id": "duration.review-mdd-adequate-nonresponse.8-months",
+        "value": 8,
+        "unit": "month",
+        "displayValueVariants": ["eight months", "most of this year"]
+      },
+      {
+        "id": "duration.review-mdd-adequate-nonresponse.10-months",
+        "value": 10,
+        "unit": "month",
+        "displayValueVariants": ["ten months", "nearly a year"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "extremely",
   "settingText": "Solo psychiatric office · outpatient medication visit",
   "knownHistory": ["Sertraline appears on the active medication list."],

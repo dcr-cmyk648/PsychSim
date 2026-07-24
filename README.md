@@ -46,16 +46,28 @@ pnpm content:diagnoses:import -- /path/to/icd10cm-order-2026.txt
 pnpm content:compile
 pnpm content:impact medication.bupropion
 pnpm demo:reference-runs
+pnpm assets:icons
 ```
 
 On a machine without a locally installed Google Chrome, install Playwright's pinned browser once
 with `pnpm exec playwright install chromium` before `pnpm test:e2e`.
 
-The first profile begins with 250 spendable points and zero lifetime points earned. Investigation costs, care awards/penalties, reimbursement, purchases, and progression all use the same point unit. There is no letter grade, 0–100 score, credits, Reputation, or XP. The clinic store currently offers a 1,200-point ECG machine, an 800-point outpatient formulary expansion, two facility moves, and three decor items. Purchases reduce only the spendable balance; lifetime points never decrease. Encounter expenses never debit banked points directly—only the nonnegative settled payout is added. Saves, resolved patient slots, attempts, flags, review tickets, facility state, decor, and upgrade ownership use a small IndexedDB repository in the browser.
+The first profile begins with 250 spendable points and zero lifetime points earned. Investigation costs, care awards/penalties, reimbursement, purchases, and progression all use the same point unit. There is no letter grade, 0–100 score, credits, Reputation, or XP. The clinic store currently offers a 1,200-point ECG machine, an 800-point outpatient formulary expansion, the beta-only 900-point Clinical intake assistant, two facility moves, and three decor items. Purchases reduce only the spendable balance; lifetime points never decrease. Encounter expenses never debit banked points directly—only the nonnegative settled payout is added. Saves, resolved patient slots, attempts, flags, review tickets, facility state, decor, upgrade ownership, and configured staff intake actions use a small IndexedDB repository in the browser.
 
 The first facility move becomes eligible at 2,500 lifetime points and separately costs 1,800 spendable points, increasing the persistent queue from one to two slots. The multidisciplinary center becomes eligible at 7,500 lifetime points, requires the outpatient-clinic move, costs 5,000 spendable points, and adds a third slot. Waiting patients and previous purchases survive the move. The plant, framed print, and warm-lighting purchases appear in the hub and add diminishing ambience toward a cataloged 1.15× cap on positive rewards only; they never change clinical scoring or rescue unsafe care.
 
 The ECG patient is playable before ownership through a 500-point outside service. Owning the machine automatically fulfills the same order in house for 70 points; the receipt reports the 430-point external cost avoided without changing any clinical rule or result.
+
+The beta-only Clinical intake assistant becomes purchasable at 600 lifetime points and costs 900
+spendable points. After hiring, the player may configure up to three allowlisted routine
+actions—depressive-symptom checklist, anxiety-symptom checklist, medication reconciliation, or
+adherence review—to occur automatically whenever a chart opens. Each result is revealed immediately
+through the ordinary information-purchase path and still incurs a discounted, nonzero encounter
+cost. Automatic intake satisfies the same case rules as a manual purchase; it changes fulfillment
+and expense, not clinical correctness. Its normal `InformationPurchased` event records the
+automatic-intake origin and staff upgrade ID, so replay, receipts, and exported reviews remain
+auditable. There are no salaries, schedules, capacity queues, virtual time, departments, or
+automatic treatment decisions.
 
 The hub includes reversible Endgame and local-only Developer practice modes. Endgame derives a
 highest-tier clinic with every currently modeled capability and multiple approved patient slots.
@@ -94,11 +106,14 @@ export.
 
 Every post-submit receipt groups its rule trace by workup, treatment, medication changes, safety,
 nonmedication care, disposition, and efficiency, with point-changing rows first and zero-point rows
-still inspectable. It also shows a care-point comparison bar and the player's exact plan beside the
-declared database-plan replay for that patient and clinic. The database value normally sets the bar
-maximum; an above-plan player score expands the scale and leaves a labeled database marker inside
-it. This is an auditable finite benchmark, not a claim that every possible combination was
-searched. Practice receipts bank zero points.
+still inspectable. Each collapsed rule identifies whether it has formal references, mixed
+source/opinion provenance, Expert opinion, or only a legacy unavailable snapshot; expanded rows
+show the attempt-persisted citation and concise contribution statement. The receipt uses one
+care-point comparison bar and shows the player's exact plan beside the declared database-plan
+replay lower on the page. The database value normally sets the bar maximum; an above-plan player
+score expands the scale and leaves a labeled database marker inside it. This is an auditable finite
+benchmark, not a claim that every possible combination was searched. Practice receipts bank zero
+points.
 
 Numeric laboratory results use an EMR-style `Test · Result · Reference interval · Flag` table with familiar display units, UCUM codes in the data model, and explicit normal/high/low interpretation. Reference intervals belong to versioned test profiles rather than being treated as universal; see [LAB_RESULTS.md](docs/LAB_RESULTS.md).
 
@@ -163,6 +178,15 @@ permission or prohibit AI ingestion. Eight new Developer tickets own those acces
 scope decisions; no recommendation or point rule was activated. See the
 [recommended-guideline intake map](docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md).
 
+The beta catalog now also records the exact July 6, 2026 NLM RxNorm Current Prescribable Content
+release and a public-domain source-use decision for medication identity normalization only. The
+user-selected scope is a curated psychiatry/board-relevant allowlist, not every U.S. drug product.
+No RxNorm bytes, importer, clinical claim, formulary expansion, or medication point rule was added.
+Developer tickets separately queue the first identity list, the current thirteen-file provenance
+audit, therapy identity/fidelity normalization, and common outpatient diagnosis coverage. The
+existing treatment field already searches medications by label/class and searches nonmedication
+and disposition labels through one combined control.
+
 ## Static deployment
 
 The application is GitHub Pages-ready. [The Pages workflow](.github/workflows/pages.yml) runs on
@@ -189,10 +213,33 @@ stable distributed/Pages branch and receives the verified `beta` branch only aft
 explicitly requests a whole-branch promotion such as “push to main.” The local working copy
 returns to `beta` after promotion.
 
+### Install on an iPhone
+
+Open the public Pages address in Safari, use **Share → Add to Home Screen**, enable **Open as Web
+App**, and tap **Add**. The hub's **Install on iPhone** control shows the same instructions. The
+manifest uses a stable relative identity and includes dedicated 180, 192, and 512 pixel icons.
+
+Safari and an installed Home Screen app can use separate local storage. A reviewer who already
+completed work in Safari should export the feedback bundle before installing; installation does
+not copy that Safari database. Subsequent distribution updates preserve the installed app's
+IndexedDB.
+
+Each `main` Pages build uses the exact commit SHA as its distribution ID. The installed app checks
+a build-generated, non-cached `version.json` on launch, foreground, reconnection, every five
+minutes, and on demand. A mismatch displays a persistent update control. Reload is disabled during
+an encounter or receipt so transient clinical choices or reviewer prose are not discarded; return
+to the clinic and choose **Update now**. The reload includes the new release ID so stale Pages HTML
+cannot indefinitely pin the old hashed entry point. GitHub Pages may retain the marker at its edge
+for several minutes, so this is reliable eventual propagation on the next online check, not a
+promise of an instantaneous push while the app is closed. Broad offline/service-worker caching
+remains deliberately out of scope. See
+[INSTALL_AND_UPDATES.md](docs/INSTALL_AND_UPDATES.md).
+
 ## Documents
 
 Start with [PROJECT_STATE.md](PROJECT_STATE.md), [GAME_DESIGN.md](docs/GAME_DESIGN.md),
 [ARCHITECTURE.md](docs/ARCHITECTURE.md),
+[INSTALL_AND_UPDATES.md](docs/INSTALL_AND_UPDATES.md),
 [PATIENT_GENERATION_ENGINE.md](docs/PATIENT_GENERATION_ENGINE.md),
 [MEDICATION_AND_INTERVENTION_DATA.md](docs/MEDICATION_AND_INTERVENTION_DATA.md),
 [SOURCE_USE_POLICY.md](docs/SOURCE_USE_POLICY.md),

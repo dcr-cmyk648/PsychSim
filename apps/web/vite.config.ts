@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { mkdir, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +16,43 @@ const LOCAL_TICKET_PATH = fileURLToPath(
 );
 const LOCAL_TICKET_DISPLAY_PATH = `content/generated/local-review-tickets/${LOCAL_TICKET_FILE_NAME}`;
 const MAX_REVIEW_BUNDLE_BYTES = 20_000_000;
+
+const resolveDistributionId = (): string => {
+  const supplied = process.env.VITE_PSYCHSIM_DISTRIBUTION_ID ?? process.env.GITHUB_SHA;
+  if (supplied) return supplied.toLowerCase();
+  try {
+    return execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], {
+      encoding: 'utf8',
+      cwd: fileURLToPath(new URL('../..', import.meta.url)),
+    })
+      .trim()
+      .toLowerCase();
+  } catch {
+    return 'development';
+  }
+};
+
+const distribution = {
+  schemaVersion: 1 as const,
+  distributionId: resolveDistributionId(),
+  buildKind:
+    process.env.VITE_PSYCHSIM_REVIEW_BUILD === '1'
+      ? ('portable_reviewer' as const)
+      : ('player' as const),
+  channel: process.env.VITE_PSYCHSIM_DISTRIBUTION_CHANNEL ?? 'local',
+};
+
+const distributionManifest = (): Plugin => ({
+  name: 'psychsim-distribution-manifest',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'version.json',
+      source: `${JSON.stringify(distribution, null, 2)}\n`,
+    });
+  },
+});
 
 const localTicketWriter = (): Plugin => ({
   name: 'psychsim-local-ticket-writer',
@@ -120,7 +158,10 @@ const localTicketWriter = (): Plugin => ({
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH ?? '/',
-  plugins: [react(), localTicketWriter()],
+  define: {
+    __PSYCHSIM_DISTRIBUTION__: JSON.stringify(distribution),
+  },
+  plugins: [react(), distributionManifest(), localTicketWriter()],
   build: {
     sourcemap: true,
   },

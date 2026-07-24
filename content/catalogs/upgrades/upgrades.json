@@ -39,6 +39,41 @@
   },
   {
     "schemaVersion": 1,
+    "contentVersion": "3.1.0",
+    "id": "upgrade.staff.intake-assistant",
+    "label": "Clinical intake assistant",
+    "description": "Delegate a small set of routine checklists and medication-review tasks. Chosen actions are completed automatically at the beginning of each patient and still have a discounted per-patient point cost.",
+    "kind": "staff",
+    "purchaseCost": 900,
+    "minimumLifetimePoints": 600,
+    "prerequisiteUpgradeIds": [],
+    "allowedFacilityTiers": ["solo_office", "outpatient_clinic", "multidisciplinary_center"],
+    "grantsCapabilities": [],
+    "grantsFormularyIds": [],
+    "serviceIds": [
+      "service.history.medication-reconciliation",
+      "service.history.adherence",
+      "service.history.standard"
+    ],
+    "patientCategoryIdsUnlocked": [],
+    "clinicalCapabilityLabels": [
+      "Automatically reveal up to three selected routine intake actions",
+      "Discounted but nonzero operating cost for delegated work",
+      "Identical clinical findings and scoring regardless of who administers the checklist"
+    ],
+    "staffAutomation": {
+      "role": "Clinical intake assistant",
+      "eligibleInformationActionIds": [
+        "info.history.medication-reconciliation",
+        "info.history.adherence",
+        "info.history.depressive-symptoms",
+        "info.history.anxiety-symptoms"
+      ],
+      "maximumAutomaticActions": 3
+    }
+  },
+  {
+    "schemaVersion": 1,
     "contentVersion": "3.0.0",
     "id": "upgrade.facility.outpatient-clinic",
     "label": "Move into an outpatient clinic",

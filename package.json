@@ -32,6 +32,7 @@
     "content:diagnoses:import": "tsx tools/content-cli/src/import-icd10cm.ts",
     "content:diagnoses:validate": "tsx tools/content-cli/src/validate-diagnosis-classifications.ts",
     "content:diagnoses:search": "tsx tools/content-cli/src/search-diagnoses.ts",
+    "assets:icons": "tsx tools/content-cli/src/generate-app-icons.ts",
     "demo:reference-runs": "tsx tools/content-cli/src/reference-runs.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

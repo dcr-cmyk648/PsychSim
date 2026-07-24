@@ -952,3 +952,115 @@ to `main`. After a successful promotion, the working copy returns to `beta`.
 `PROJECT_STATE.md` records the exact current branch, HEAD, remote relation, and last deployed
 checkpoint. Unexpected local/remote divergence stops the workflow for inspection rather than being
 resolved destructively.
+
+## D-114 — Clinically meaningful duration is structured case state, not cosmetic prose
+
+Status: accepted and implemented for the finite Reviewer cohort. A duration finding owns a stable
+profile with numeric value/unit options, short swappable display variants, a related diagnosis,
+an authored interpretation, and rule-level review metadata. The deterministic resolver chooses one
+option, saves the numeric measurement and its stable option ID in the `CaseInstance`, and renders a
+brief generic sentence. The same seed repeats exactly; current cohort ranges vary within the
+authored diagnostic/episode state and do not change its rubric.
+
+Duration is not a noncritical `VariantSpecification`. A future diagnostic near miss must explicitly
+declare `designed_below_threshold` and name the reviewed diagnosis-owned criterion it misses. The
+schema rejects a below-threshold claim without that criterion. It does not prove that a range is
+clinically correct, infer a diagnosis, or activate cyclothymia criteria. Exact cyclothymia temporal
+constraints remain the source/clinical-review ticket
+`ticket.source.cyclothymia.duration-discrimination`.
+
+## D-115 — Background symptom variation is bounded and cannot manufacture a syndrome
+
+Status: accepted and implemented as a narrow Reviewer pilot. An otherwise neutral anxiety-history
+result may deterministically contain zero or one positive finding. All threshold-relevant atoms are
+variable and the declarative maximum is one, so the draw remains explicitly subthreshold and
+cannot create a full anxiety syndrome. Primary GAD scenarios continue to own their complete
+authored symptom set. This game-selection weight is not represented as epidemiologic prevalence,
+does not infer a new diagnosis, and does not silently alter the focused rubric.
+
+The validator now uses the same total-positive semantics as runtime when a finding set mixes fixed
+and variable atoms. More symptom families require a reviewed cap, required absences, an explanatory
+trace where points change, and consistency with D-084, D-087, D-089, and D-090. Pre-submit negative
+and positive findings are visually explicit chips plus glyphs; absence is never conveyed only by a
+plain list item or color.
+
+## D-116 — Routine intake staff automate selected actions through auditable service fulfillment
+
+Status: accepted and implemented as a bounded pre-Milestone-4 upgrade. The Clinical intake
+assistant is a voluntary 900-point staff purchase gated at 600 lifetime points. Ownership creates
+an empty persisted configuration. The player may select up to three of four neutral catalog
+actions: medication reconciliation, adherence review, depressive-symptom checklist, and
+anxiety-symptom checklist. Detailed suicide assessment, mania/psychosis, trauma, substance use,
+exams, labs, and imaging are deliberately excluded.
+
+Each configured action resolves automatically when the next encounter opens, reveals the same
+patient-authored result, fulfills the same workup predicate, and records an ordinary
+`InformationPurchased` event with `initiatedBy: "automatic_intake"` and the staff upgrade ID. Its
+action-specific in-house method has a discounted but nonzero cost. A shared service does not become
+cheap for unconfigured actions, and generic capability resolution cannot activate staff methods.
+Receipt rows preserve initiator, delegated fulfillment, cost, and upgrade savings. Historical
+replay starts empty and replays those persisted events; reference plans start with the same clinic
+routine and skip already purchased nonrepeatable actions.
+
+This is task delegation, not a department, salary, capacity queue, virtual clock, clinical
+recommendation, or automatic treatment. Exact purchase and per-use values are provisional game
+balance. Configuration affects future encounters only and remains empty in Endgame/Developer and
+portable Reviewer unless explicitly chosen in a standard clinic.
+
+## D-117 — One primary receipt meter and visible rule provenance
+
+Status: accepted and implemented. The old circular point seal and separate “points vs database
+plan” headline were removed. Desktop and mobile use one horizontal meter as the primary comparison:
+player care points fill the bar; the database-plan value is a labeled marker; an above-plan score
+expands the scale; a negative signed score remains explicit with zero visual fill. Detailed point
+subtotals and side-by-side plan audit remain lower-page explanations, not competing score graphics.
+
+Every collapsed rule row now announces `N references`, `Expert opinion`, a mixed
+source/opinion label, or `Provenance unavailable` for a legacy empty snapshot. Expanding the row
+shows the attempt-persisted citation/link and concise contribution statement. The UI never looks up
+new catalog sources while rendering a historical attempt and explicitly separates source
+contribution from game-balance point magnitude. Material Reviewer duration/content changes use the
+new assignment ID `reviewer-assignment.common-psychiatry.2026-07b`.
+
+## D-118 — Medication identity starts with a curated psychiatry allowlist and dated RxNorm CPC
+
+Status: accepted as an authoring boundary; no importer or runtime medication expansion is
+implemented. The first medication-identity scope is a curated board-relevant psychiatry ingredient
+allowlist rather than every U.S. psychiatric-labeled ingredient or product. The exact source seed
+is the July 6, 2026 U.S. National Library of Medicine RxNorm Current Prescribable Content monthly
+release. NLM's official files and terms describe its normalized names/codes as U.S. government
+public-domain data and the CPC subset as downloadable without a UMLS license. PsychSim records a
+machine-validated source-use decision with NLM acknowledgement, non-endorsement, exact-release, and
+currentness notices and excludes proprietary vocabularies from the full RxNorm distribution.
+
+RxNorm may populate identity, normalized name, alias, RxCUI, and relationship candidates only. It
+cannot establish diagnosis role, first-line status, efficacy, contraindications, interaction
+severity, monitoring, fit modifiers, formulary access, case availability, or points. Those remain
+separate sourced claims, Developer opinions, reviewed rules, and balance decisions. The proposed
+first identity wave and existing thirteen-medication provenance audit are queued as Developer
+tickets. Formulation depth is the next one-at-a-time product decision; do not implement a bulk
+importer before that decision and an isolated source-backed identity schema are complete.
+
+## D-119 — Phone installation uses a stable manifest and Git-SHA release marker without offline caching
+
+Status: accepted and implemented as an explicitly requested bounded distribution slice. PsychSim
+reuses the useful parts of the user's other apps: relative manifest identity, Apple Home Screen
+metadata, dedicated icons, in-app Safari instructions, and a build-generated version marker. It
+does not copy their hand-maintained cache names, unconditional service-worker activation, or
+origin-wide cache deletion. Those older patterns can drift and can evict caches belonging to
+another project on the shared GitHub Pages origin.
+
+Every Pages package from `main` compiles and emits the exact full commit SHA, Reviewer build kind,
+and `main` channel. Installed copies compare that strict `version.json` record on mount,
+foreground, reconnection, a five-minute interval, and manual request. A mismatch remains visible.
+Reload is unavailable during a patient or receipt and is explicitly initiated at the hub with the
+new release ID in the URL. This preserves in-progress choices and comments while preventing an
+old cached HTML entry point from indefinitely pinning hashed assets. GitHub Pages edge caching can
+delay discovery by several minutes, and a closed/offline web app cannot receive an update; the
+contract is reliable eventual discovery on a later online check, not an instantaneous push.
+
+The manifest ID/scope, origin, Reviewer assignment ID, and IndexedDB name remain independent of
+the release SHA. Updating never clears browser storage. The install UI warns that Safari and an
+iPhone Home Screen app can use separate storage, so existing Safari feedback must be exported
+before installation. Offline app-shell caching, service-worker migration, push, and device sync
+remain Milestone 8 work rather than being implied by “installable.”

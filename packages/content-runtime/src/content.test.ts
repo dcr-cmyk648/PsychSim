@@ -4,6 +4,7 @@ import { instantiateCase, resolveNumericTestProfile, resolveVariant } from '@psy
 import {
   CatalogBundleSchema,
   CaseInstanceSchema,
+  ClinicalDurationProfileSchema,
   DiagnosisDefinitionSchema,
   EvidenceSourceDefinitionSchema,
   PatientObservationSchema,
@@ -411,6 +412,51 @@ describe('prototype content', () => {
         (issue) => issue.code === 'IMPOSSIBLE_FINDING_SELECTION',
       ),
     ).toBe(true);
+
+    const mixedFixedAndVariable = structuredClone(prototypeCaseBlueprint);
+    const mixedSymptoms = mixedFixedAndVariable.informationActions.find(
+      (action) => action.actionId === 'info.history.depressive-symptoms',
+    )!;
+    const fixedId = mixedSymptoms.result.selection!.requiredPresentIds[0]!;
+    mixedSymptoms.result.findings.find((finding) => finding.id === fixedId)!.outcome = 'present';
+    mixedSymptoms.result.selection!.requiredPresentIds =
+      mixedSymptoms.result.selection!.requiredPresentIds.filter((id) => id !== fixedId);
+    expect(
+      validateCaseBlueprint(mixedFixedAndVariable, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'IMPOSSIBLE_FINDING_SELECTION',
+      ),
+    ).toBe(false);
+  });
+
+  it('requires an explicit criterion for a duration-authored near miss', () => {
+    expect(
+      ClinicalDurationProfileSchema.safeParse({
+        id: 'duration-profile.invalid-near-miss',
+        relatedDiagnosisId: 'diagnosis.bipolar-spectrum-disorder',
+        interpretation: 'designed_below_threshold',
+        criterionId: null,
+        options: [
+          {
+            id: 'duration.invalid.one-year',
+            value: 1,
+            unit: 'year',
+            displayValueVariants: ['one year'],
+          },
+          {
+            id: 'duration.invalid.eighteen-months',
+            value: 18,
+            unit: 'month',
+            displayValueVariants: ['eighteen months'],
+          },
+        ],
+        review: {
+          status: 'unreviewed',
+          reviewerId: null,
+          reviewedAt: null,
+          sourceUseNoteIds: [],
+        },
+      }).success,
+    ).toBe(false);
   });
 
   it('rejects invalid catalog references', () => {
@@ -428,6 +474,17 @@ describe('prototype content', () => {
     expect(
       validateCatalogs(invalid).issues.some(
         (issue) => issue.code === 'INVALID_UPGRADE_SERVICE_REF',
+      ),
+    ).toBe(true);
+
+    const invalidStaff = structuredClone(catalogs);
+    const staff = invalidStaff.upgrades.find(
+      (upgrade) => upgrade.id === 'upgrade.staff.intake-assistant',
+    )!;
+    staff.staffAutomation!.eligibleInformationActionIds = ['info.history.not-real'];
+    expect(
+      validateCatalogs(invalidStaff).issues.some(
+        (issue) => issue.code === 'INVALID_STAFF_AUTOMATION_ACTION',
       ),
     ).toBe(true);
   });

@@ -255,5 +255,36 @@
     "resolution": null,
     "createdAt": "2026-07-23T16:45:00.000Z",
     "updatedAt": "2026-07-23T16:45:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.source.cyclothymia.duration-discrimination",
+    "title": "Source cyclothymia duration and near-miss constraints",
+    "sourceKind": "engine_audit",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "source_gap",
+    "priority": "medium",
+    "status": "proposed",
+    "requiresClinicalAcumen": true,
+    "attemptId": null,
+    "blueprintId": null,
+    "caseContentVersion": null,
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "source-request.cyclothymia.duration-discrimination",
+      "diagnosis.bipolar-spectrum-disorder",
+      "info.history.presenting-problem"
+    ],
+    "dependencyTicketIds": [],
+    "conflictContentIds": [],
+    "proposedRouting": "Find a legally reusable diagnostic source, then define a diagnosis-owned temporal criterion and two explicit patient-template relations: meets and below. Keep incidental symptom variation incapable of generating full mania.",
+    "guidance": "The user wants duration to help distinguish a cyclothymic presentation from a deliberately subthreshold near miss, such as multi-year versus one-year symptom patterns. Do not infer exact criteria from unavailable DSM text or turn free background symptoms into a diagnosis. Review the exact age-specific temporal rule, source-use permission, and the shortest legible player-facing wording before enabling a cyclothymia case.",
+    "reviewerNotes": "",
+    "reviewerNotesUpdatedAt": null,
+    "resurfacingTrigger": "When a reusable classification or guideline source supplies cyclothymia temporal criteria.",
+    "resolution": null,
+    "createdAt": "2026-07-24T00:00:00.000Z",
+    "updatedAt": "2026-07-24T00:00:00.000Z"
   }
 ]

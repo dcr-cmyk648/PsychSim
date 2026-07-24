@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">PsychSim</title>
+  <desc id="description">A green psi mark on a dark clinical console grid.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07110d" />
+      <stop offset="1" stop-color="#020604" />
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#46e39e" stroke-opacity=".08" stroke-width="2" />
+    </pattern>
+  </defs>
+  <rect width="512" height="512" rx="104" fill="url(#background)" />
+  <rect x="18" y="18" width="476" height="476" rx="88" fill="url(#grid)" stroke="#2e7054" stroke-width="12" />
+  <circle cx="256" cy="256" r="164" fill="#07110d" stroke="#214738" stroke-width="8" />
+  <path
+    d="M168 144v72c0 55 32 92 72 99v52h-62v36h62v45h32v-45h62v-36h-62v-52c40-7 72-44 72-99v-72h-38v72c0 39-21 64-50 64s-50-25-50-64v-72zm69 0v84c0 23 7 40 19 49 12-9 19-26 19-49v-84z"
+    fill="#46e39e"
+  />
+  <path d="M130 118h252" stroke="#e8b84d" stroke-width="8" stroke-linecap="round" opacity=".8" />
+</svg>

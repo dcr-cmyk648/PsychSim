@@ -170,51 +170,53 @@ export const getUpgradeOffer = (
   }
   const owned = clinic.ownedUpgradeIds.includes(upgrade.id);
   const projectedClinic = owned ? clinic : previewUpgradeBenefits(clinic, upgrade, catalogs);
-  const serviceEconomics = upgrade.serviceIds.flatMap((serviceId) => {
-    const current = resolveServiceFulfillment(
-      serviceId,
-      clinic,
-      clinic.activeLocationId,
-      catalogs.services,
-      catalogs.locations,
-    );
-    const projected = resolveServiceFulfillment(
-      serviceId,
-      projectedClinic,
-      projectedClinic.activeLocationId,
-      catalogs.services,
-      catalogs.locations,
-    );
-    const service = catalogs.services.find((candidate) => candidate.id === serviceId);
-    if (!current.ok || !projected.ok || !service) return [];
-    const outsideCosts = service.fulfillmentMethods
-      .filter(
-        (method) =>
-          method.kind === 'outside_referral' &&
-          (!method.allowedLocationIds ||
-            method.allowedLocationIds.includes(clinic.activeLocationId)),
-      )
-      .map((method) => method.operatingCost);
-    const outsidePerUseCost = outsideCosts.length > 0 ? Math.min(...outsideCosts) : null;
-    return [
-      {
+  const serviceEconomics = (upgrade.kind === 'staff' ? [] : upgrade.serviceIds).flatMap(
+    (serviceId) => {
+      const current = resolveServiceFulfillment(
         serviceId,
-        serviceLabel: service.label,
-        currentMethodId: current.value.method.id,
-        currentMethodLabel: current.value.method.label,
-        currentPerUseCost: current.value.method.operatingCost,
-        projectedMethodId: projected.value.method.id,
-        projectedMethodLabel: projected.value.method.label,
-        projectedPerUseCost: projected.value.method.operatingCost,
-        outsidePerUseCost,
-        estimatedSavingsPerUse: Math.max(
-          0,
-          current.value.method.operatingCost - projected.value.method.operatingCost,
-        ),
-        externalCostAvoidedPerUse: projected.value.externalCostAvoided,
-      },
-    ];
-  });
+        clinic,
+        clinic.activeLocationId,
+        catalogs.services,
+        catalogs.locations,
+      );
+      const projected = resolveServiceFulfillment(
+        serviceId,
+        projectedClinic,
+        projectedClinic.activeLocationId,
+        catalogs.services,
+        catalogs.locations,
+      );
+      const service = catalogs.services.find((candidate) => candidate.id === serviceId);
+      if (!current.ok || !projected.ok || !service) return [];
+      const outsideCosts = service.fulfillmentMethods
+        .filter(
+          (method) =>
+            method.kind === 'outside_referral' &&
+            (!method.allowedLocationIds ||
+              method.allowedLocationIds.includes(clinic.activeLocationId)),
+        )
+        .map((method) => method.operatingCost);
+      const outsidePerUseCost = outsideCosts.length > 0 ? Math.min(...outsideCosts) : null;
+      return [
+        {
+          serviceId,
+          serviceLabel: service.label,
+          currentMethodId: current.value.method.id,
+          currentMethodLabel: current.value.method.label,
+          currentPerUseCost: current.value.method.operatingCost,
+          projectedMethodId: projected.value.method.id,
+          projectedMethodLabel: projected.value.method.label,
+          projectedPerUseCost: projected.value.method.operatingCost,
+          outsidePerUseCost,
+          estimatedSavingsPerUse: Math.max(
+            0,
+            current.value.method.operatingCost - projected.value.method.operatingCost,
+          ),
+          externalCostAvoidedPerUse: projected.value.externalCostAvoided,
+        },
+      ];
+    },
+  );
   const estimatedSavingsPerUse =
     serviceEconomics.length > 0
       ? serviceEconomics.reduce((total, item) => total + item.estimatedSavingsPerUse, 0)
@@ -273,12 +275,87 @@ export const purchaseUpgrade = (
     return err({ code, message: blocker.message });
   }
   const upgraded = previewUpgradeBenefits(clinic, offer.value.upgrade, catalogs);
+  const staffConfigurations =
+    offer.value.upgrade.kind === 'staff'
+      ? [
+          ...upgraded.staffConfigurations,
+          {
+            staffUpgradeId: offer.value.upgrade.id,
+            automaticInformationActionIds: [],
+          },
+        ]
+      : upgraded.staffConfigurations;
   return ok(
     ClinicStateSchema.parse({
       ...upgraded,
       clinicPoints: clinic.clinicPoints - offer.value.upgrade.purchaseCost,
       lifetimePointsEarned: clinic.lifetimePointsEarned,
       ownedUpgradeIds: addUnique(clinic.ownedUpgradeIds, [offer.value.upgrade.id]),
+      staffConfigurations,
     }),
   );
+};
+
+export const configureStaffAutomation = (
+  clinic: ClinicState,
+  staffUpgradeId: string,
+  automaticInformationActionIds: readonly string[],
+  catalogs: CatalogBundle,
+): Result<ClinicState> => {
+  if (clinic.debugUnlocksAllProgression) {
+    return err({
+      code: 'UPGRADE_PRACTICE_MODE',
+      message: 'Practice modes cannot change the clinic.',
+    });
+  }
+  const upgrade = catalogs.upgrades.find((candidate) => candidate.id === staffUpgradeId);
+  if (
+    !upgrade ||
+    upgrade.kind !== 'staff' ||
+    !upgrade.staffAutomation ||
+    !clinic.ownedUpgradeIds.includes(staffUpgradeId)
+  ) {
+    return err({
+      code: 'STAFF_NOT_OWNED',
+      message: 'That staff workflow is not owned by this clinic.',
+    });
+  }
+  if (new Set(automaticInformationActionIds).size !== automaticInformationActionIds.length) {
+    return err({
+      code: 'STAFF_CONFIGURATION_DUPLICATE',
+      message: 'A routine intake action cannot be selected twice.',
+    });
+  }
+  const allowlist = new Set(upgrade.staffAutomation.eligibleInformationActionIds);
+  if (
+    automaticInformationActionIds.length > upgrade.staffAutomation.maximumAutomaticActions ||
+    automaticInformationActionIds.some((id) => !allowlist.has(id))
+  ) {
+    return err({
+      code: 'STAFF_CONFIGURATION_INVALID',
+      message: `Choose no more than ${upgrade.staffAutomation.maximumAutomaticActions} allowed routine actions.`,
+    });
+  }
+  const assignedElsewhere = clinic.staffConfigurations
+    .filter((configuration) => configuration.staffUpgradeId !== staffUpgradeId)
+    .flatMap((configuration) => configuration.automaticInformationActionIds);
+  if (automaticInformationActionIds.some((id) => assignedElsewhere.includes(id))) {
+    return err({
+      code: 'STAFF_CONFIGURATION_CONFLICT',
+      message: 'A routine action cannot be assigned to more than one staff workflow.',
+    });
+  }
+  const normalizedIds = upgrade.staffAutomation.eligibleInformationActionIds.filter((id) =>
+    automaticInformationActionIds.includes(id),
+  );
+  const staffConfigurations = [
+    ...clinic.staffConfigurations.filter(
+      (configuration) => configuration.staffUpgradeId !== staffUpgradeId,
+    ),
+    {
+      staffUpgradeId,
+      automaticInformationActionIds: normalizedIds,
+    },
+  ];
+  return ok(ClinicStateSchema.parse({ ...clinic, staffConfigurations }));
 };

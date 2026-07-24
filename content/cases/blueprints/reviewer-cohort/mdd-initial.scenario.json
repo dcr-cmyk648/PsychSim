@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.mdd-initial",
   "internalTitle": "Reviewer cohort: initial MDD",
   "difficultyTier": 1,
@@ -41,7 +41,56 @@
     "Fatigue and low mood",
     "Anhedonia"
   ],
-  "durationChoices": ["six weeks", "two months", "about ten weeks", "three months"],
+  "durationProfile": {
+    "id": "duration-profile.review-mdd-initial.current-episode",
+    "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-mdd-initial.5-weeks",
+        "value": 5,
+        "unit": "week",
+        "displayValueVariants": ["five weeks", "about five weeks"]
+      },
+      {
+        "id": "duration.review-mdd-initial.6-weeks",
+        "value": 6,
+        "unit": "week",
+        "displayValueVariants": ["six weeks", "about six weeks"]
+      },
+      {
+        "id": "duration.review-mdd-initial.7-weeks",
+        "value": 7,
+        "unit": "week",
+        "displayValueVariants": ["seven weeks", "about seven weeks"]
+      },
+      {
+        "id": "duration.review-mdd-initial.8-weeks",
+        "value": 8,
+        "unit": "week",
+        "displayValueVariants": ["eight weeks", "about two months"]
+      },
+      {
+        "id": "duration.review-mdd-initial.10-weeks",
+        "value": 10,
+        "unit": "week",
+        "displayValueVariants": ["ten weeks", "about ten weeks"]
+      },
+      {
+        "id": "duration.review-mdd-initial.12-weeks",
+        "value": 12,
+        "unit": "week",
+        "displayValueVariants": ["twelve weeks", "about three months"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "very",
   "settingText": "Solo psychiatric office · outpatient intake",
   "knownHistory": [],

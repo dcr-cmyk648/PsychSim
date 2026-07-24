@@ -88,7 +88,13 @@ function ResultCard({
     <article className="result-card">
       <div className="result-card-heading">
         <h3>{actionLabel}</h3>
-        <span>{purchase.operatingCost} pts</span>
+        <span>
+          {purchase.initiatedBy === 'automatic_intake' ? (
+            <em className="automatic-intake-badge">Automatic intake</em>
+          ) : null}
+          {purchase.operatingCost} pts
+          {purchase.upgradeSavings > 0 ? <small>saved {purchase.upgradeSavings} pts</small> : null}
+        </span>
       </div>
       {numericFindings.length > 0 ? (
         <div className="lab-table-scroll">
@@ -134,15 +140,18 @@ function ResultCard({
       {narrativeFindings.length > 0 ? (
         <ul className="finding-list">
           {narrativeFindings.map((finding) => (
-            <li key={finding.id}>
+            <li key={finding.id} className={`finding-row outcome-${finding.outcome}`}>
               <b
                 className={`finding-marker outcome-${finding.outcome}`}
                 aria-label={findingOutcomeLabel(finding.outcome)}
               >
                 {findingMarker(finding.outcome)}
               </b>
-              <span>
-                {finding.label}
+              <span className="finding-content">
+                <span className={`finding-outcome-chip outcome-${finding.outcome}`}>
+                  {findingOutcomeLabel(finding.outcome)}
+                </span>
+                <span>{finding.label}</span>
                 {finding.valueText ? <small>{finding.valueText}</small> : null}
               </span>
             </li>

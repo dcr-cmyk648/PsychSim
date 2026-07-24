@@ -21,7 +21,10 @@ export const replayEncounter = (
   let state = startEncounter(caseInstance, clinicState, start.locationId);
   for (const event of events.slice(1)) {
     if (event.type === 'InformationPurchased') {
-      const next = purchaseInformationAction(state, event.purchase.actionId, catalogs);
+      const next = purchaseInformationAction(state, event.purchase.actionId, catalogs, {
+        initiatedBy: event.purchase.initiatedBy,
+        initiatingStaffUpgradeId: event.purchase.initiatingStaffUpgradeId,
+      });
       if (!next.ok) return err({ code: 'REPLAY_FAILED', message: next.error.message });
       state = next.value;
     } else if (event.type === 'TreatmentSelectionsChanged') {

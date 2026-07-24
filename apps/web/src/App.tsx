@@ -24,6 +24,7 @@ import { REVIEWER_ASSIGNMENT_ID } from '@psychsim/content-runtime/reviewer-assig
 import {
   ENGINE_VERSION,
   completeEncounter,
+  configureStaffAutomation,
   consumePatientSlot,
   emptyPatientQueueState,
   ensurePatientQueues,
@@ -34,10 +35,11 @@ import {
   requireCompleted,
   resetDeveloperRunHistory,
   resolveClinicForProgressionMode,
-  startEncounter,
+  startEncounterWithAutomaticIntake,
 } from '@psychsim/engine';
 
 import { ClinicHub, type PatientSlotPreview } from './components/ClinicHub';
+import { DistributionControls } from './components/DistributionControls';
 import { EncounterView } from './components/EncounterView';
 import { MobileWorkflowTabs, type MobileWorkflowPane } from './components/MobileWorkflowTabs';
 import { ReceiptView, type GuidanceDraft } from './components/ReceiptView';
@@ -192,13 +194,13 @@ export default function App() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const mobileReviewHeading =
+      const mobileReceiptHeading =
         screen === 'receipt' && window.matchMedia('(max-width: 760px)').matches
-          ? document.getElementById('developer-review-title')
+          ? document.getElementById('score-comparison-title')
           : null;
-      if (mobileReviewHeading) {
-        mobileReviewHeading.scrollIntoView({ block: 'center', behavior: 'instant' });
-        mobileReviewHeading.focus({ preventScroll: true });
+      if (mobileReceiptHeading) {
+        mobileReceiptHeading.scrollIntoView({ block: 'center', behavior: 'instant' });
+        mobileReceiptHeading.focus({ preventScroll: true });
         return;
       }
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -254,7 +256,17 @@ export default function App() {
     slotId: string | null,
   ): void => {
     if (!effectiveClinic || !saveData) return;
-    setEncounter(startEncounter(instance, effectiveClinic, locationId));
+    const started = startEncounterWithAutomaticIntake(
+      instance,
+      effectiveClinic,
+      locationId,
+      catalogs,
+    );
+    if (!started.ok) {
+      setError(started.error.message);
+      return;
+    }
+    setEncounter(started.value);
     setAttempt(null);
     setActiveSlotId(slotId);
     setEncounterMode(saveData.profile.progressionMode);
@@ -391,6 +403,32 @@ export default function App() {
     setUpgradeStatus(
       `${upgrade?.label ?? 'Upgrade'} purchased. ${result.value.clinicPoints.toLocaleString()} points remain.`,
     );
+  };
+
+  const updateStaffAutomation = async (
+    staffUpgradeId: string,
+    actionIds: readonly string[],
+  ): Promise<void> => {
+    if (!saveData || saveData.profile.progressionMode !== 'standard') return;
+    const result = configureStaffAutomation(
+      saveData.profile.clinic,
+      staffUpgradeId,
+      actionIds,
+      catalogs,
+    );
+    if (!result.ok) {
+      setUpgradeStatus(result.error.message);
+      return;
+    }
+    const nextSave = withFilledQueues(
+      SaveDataSchema.parse({
+        ...saveData,
+        profile: { ...saveData.profile, clinic: result.value },
+      }),
+      developerBlueprints,
+    );
+    await persist(nextSave);
+    setUpgradeStatus('Automatic intake choices saved. They apply to the next patient opened.');
   };
 
   const finishEncounter = async (): Promise<void> => {
@@ -713,6 +751,7 @@ export default function App() {
       <div className="prototype-notice" role="note">
         Fictional · Synthetic · Medically unreviewed prototype · Not treatment guidance
       </div>
+      <DistributionControls safeToReload={screen === 'hub'} showInstallControl={screen === 'hub'} />
       {error ? (
         <div className="global-error" role="alert">
           {error}
@@ -740,6 +779,9 @@ export default function App() {
           onExportTickets={() => void exportTickets()}
           ticketToolStatus={ticketToolStatus}
           onPurchaseUpgrade={(upgradeId) => void buyUpgrade(upgradeId)}
+          onConfigureStaffAutomation={(staffUpgradeId, actionIds) =>
+            void updateStaffAutomation(staffUpgradeId, actionIds)
+          }
           upgradeStatus={upgradeStatus}
         />
       ) : null}

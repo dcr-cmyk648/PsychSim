@@ -13,6 +13,7 @@
     "allowedUpgradeIds": [
       "upgrade.equipment.ecg",
       "upgrade.formulary.expanded-outpatient",
+      "upgrade.staff.intake-assistant",
       "upgrade.facility.outpatient-clinic",
       "decor.plant.pothos"
     ]
@@ -31,6 +32,7 @@
     "allowedUpgradeIds": [
       "upgrade.equipment.ecg",
       "upgrade.formulary.expanded-outpatient",
+      "upgrade.staff.intake-assistant",
       "upgrade.facility.multidisciplinary-center",
       "decor.plant.pothos",
       "decor.art.abstract-print"
@@ -50,6 +52,7 @@
     "allowedUpgradeIds": [
       "upgrade.equipment.ecg",
       "upgrade.formulary.expanded-outpatient",
+      "upgrade.staff.intake-assistant",
       "decor.plant.pothos",
       "decor.art.abstract-print",
       "decor.lighting.warm-lamps"
@@ -69,6 +72,7 @@
     "allowedUpgradeIds": [
       "upgrade.equipment.ecg",
       "upgrade.formulary.expanded-outpatient",
+      "upgrade.staff.intake-assistant",
       "upgrade.facility.outpatient-clinic",
       "upgrade.facility.multidisciplinary-center",
       "decor.plant.pothos",

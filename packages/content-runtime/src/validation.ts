@@ -275,6 +275,25 @@ export const validateCaseBlueprint = (
         .filter((finding) => finding.outcome === 'variable')
         .map((finding) => finding.id),
     );
+    const fixedPresentCount = action.result.findings.filter(
+      (finding) => finding.outcome === 'present',
+    ).length;
+    for (const finding of action.result.findings) {
+      const profile = finding.durationProfile;
+      if (!profile) continue;
+      if (
+        profile.relatedDiagnosisId &&
+        !blueprint.patientRecord.diagnoses.some(
+          (diagnosis) => diagnosis.id === profile.relatedDiagnosisId,
+        )
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_DURATION_DIAGNOSIS_REF',
+          message: `${action.actionId}/${finding.id} references ${profile.relatedDiagnosisId}.`,
+        });
+      }
+    }
     if (variableFindingIds.size > 0 && !action.result.selection) {
       issues.push({
         severity: 'error',
@@ -296,8 +315,9 @@ export const validateCaseBlueprint = (
       }
       if (
         selection.requiredPresentIds.some((id) => selection.requiredAbsentIds.includes(id)) ||
-        selection.minimumPresent < selection.requiredPresentIds.length ||
-        selection.maximumPresent > variableFindingIds.size
+        selection.maximumPresent < fixedPresentCount + selection.requiredPresentIds.length ||
+        selection.minimumPresent > fixedPresentCount + variableFindingIds.size ||
+        selection.maximumPresent > fixedPresentCount + variableFindingIds.size
       ) {
         issues.push({
           severity: 'error',
@@ -1546,6 +1566,25 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     }
   }
   for (const upgrade of purchaseDefinitions) {
+    if ((upgrade.kind === 'staff') !== (upgrade.staffAutomation !== undefined)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_STAFF_UPGRADE_SHAPE',
+        message: `${upgrade.id} has inconsistent staff automation metadata.`,
+      });
+    }
+    if (
+      upgrade.staffAutomation &&
+      (duplicateIds(upgrade.staffAutomation.eligibleInformationActionIds).length > 0 ||
+        upgrade.staffAutomation.maximumAutomaticActions >
+          upgrade.staffAutomation.eligibleInformationActionIds.length)
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_STAFF_AUTOMATION_LIMIT',
+        message: upgrade.id,
+      });
+    }
     if (upgrade.purchaseCost <= 0) {
       issues.push({
         severity: 'error',
@@ -1607,6 +1646,37 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
         }
       }
     }
+    if (upgrade.kind === 'staff' && upgrade.staffAutomation) {
+      for (const actionId of upgrade.staffAutomation.eligibleInformationActionIds) {
+        const action = catalogs.informationActions.find((candidate) => candidate.id === actionId);
+        const service = action
+          ? catalogs.services.find((candidate) => candidate.id === action.serviceId)
+          : undefined;
+        const delegatedMethod = service?.fulfillmentMethods.find(
+          (method) => method.requiredStaffUpgradeId === upgrade.id,
+        );
+        const ordinaryCost = service?.fulfillmentMethods
+          .filter((method) => method.requiredStaffUpgradeId === undefined)
+          .reduce<
+            number | null
+          >((lowest, method) => (lowest === null ? method.operatingCost : Math.min(lowest, method.operatingCost)), null);
+        if (
+          !action ||
+          !service ||
+          !delegatedMethod ||
+          delegatedMethod.operatingCost <= 0 ||
+          ordinaryCost === null ||
+          ordinaryCost === undefined ||
+          delegatedMethod.operatingCost >= ordinaryCost
+        ) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_STAFF_AUTOMATION_ACTION',
+            message: `${upgrade.id} cannot delegate ${actionId} at a nonzero discounted cost.`,
+          });
+        }
+      }
+    }
     if (upgrade.kind === 'formulary' && upgrade.grantsFormularyIds.length === 0) {
       issues.push({
         severity: 'error',
@@ -1638,6 +1708,21 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
         code: 'INCOMPLETE_DECOR_UPGRADE',
         message: upgrade.id,
       });
+    }
+  }
+  for (const service of catalogs.services) {
+    for (const method of service.fulfillmentMethods) {
+      if (!method.requiredStaffUpgradeId) continue;
+      const staffUpgrade = catalogs.upgrades.find(
+        (upgrade) => upgrade.id === method.requiredStaffUpgradeId,
+      );
+      if (!staffUpgrade || staffUpgrade.kind !== 'staff' || !staffUpgrade.staffAutomation) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_SERVICE_STAFF_REF',
+          message: `${service.id}/${method.id} references ${method.requiredStaffUpgradeId}.`,
+        });
+      }
     }
   }
   const modifierIds = catalogs.medications.flatMap((medication) => [

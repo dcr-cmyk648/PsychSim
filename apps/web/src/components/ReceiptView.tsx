@@ -79,9 +79,10 @@ export function ScoreComparisonBar({
       <div className="panel-heading-row">
         <div>
           <p className="panel-kicker">Care-point comparison</p>
-          <h2 id="score-comparison-title">Your score against the database plan</h2>
+          <h2 id="score-comparison-title" tabIndex={-1}>
+            Your care points
+          </h2>
         </div>
-        <span className="count-badge">{signed(difference)} pts</span>
       </div>
       <div className="score-bar-labels" aria-hidden="true">
         <span>0 pts</span>
@@ -114,13 +115,13 @@ export function ScoreComparisonBar({
           Database plan: <b>{databaseScore.toLocaleString()}</b>
         </span>
       </div>
-      <p className="score-comparison-note">
-        {playerScore > databaseScore
-          ? `You exceeded the database plan by ${difference.toLocaleString()} points, so the bar expands to your score and marks the database value inside it.`
-          : playerScore < 0
-            ? `The signed score is ${playerScore.toLocaleString()}; negative totals use zero bar fill while remaining visible in the labels and receipt.`
-            : 'The database-plan score sets the full bar. It is a comparison target, not a claim that no defensible plan can score higher.'}
-      </p>
+      {playerScore > databaseScore || playerScore < 0 ? (
+        <p className="score-comparison-note">
+          {playerScore > databaseScore
+            ? `Above database plan by ${difference.toLocaleString()} points. The bar expands to your score and marks the database value inside it.`
+            : `Signed score: ${signed(playerScore)} points. Negative totals keep zero visual fill and remain explicit here.`}
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -223,12 +224,33 @@ function TraceRuleDetails({
   trace: RuleTrace;
   onFlag: (ruleId: string) => void;
 }) {
+  const formalCount = trace.evidenceAttributions.filter(
+    (attribution) => attribution.authority === 'formal_publication',
+  ).length;
+  const hasExpertOpinion = trace.evidenceAttributions.some(
+    (attribution) => attribution.authority === 'expert_opinion',
+  );
+  const provenanceLabel =
+    trace.evidenceAttributions.length === 0
+      ? 'Provenance unavailable'
+      : formalCount > 0 && hasExpertOpinion
+        ? `${formalCount} ${formalCount === 1 ? 'source' : 'sources'} + opinion`
+        : formalCount > 0
+          ? `${formalCount} ${formalCount === 1 ? 'reference' : 'references'}`
+          : 'Expert opinion';
   return (
     <details
       className={trace.classification === 'critical_omission' ? 'critical-trace' : undefined}
     >
       <summary>
         <span>{trace.label}</span>
+        <small
+          className={`trace-provenance-badge${
+            trace.evidenceAttributions.length === 0 ? ' unavailable' : ''
+          }`}
+        >
+          {provenanceLabel}
+        </small>
         <b>{signed(trace.points)} pts</b>
       </summary>
       <p>{trace.explanation}</p>
@@ -238,28 +260,32 @@ function TraceRuleDetails({
         {displayLabel(trace.reviewStatus)}
       </small>
       <div className="evidence-attributions">
-        <b>Evidence basis</b>
-        <ul>
-          {trace.evidenceAttributions.map((attribution, index) => (
-            <li key={`${trace.ruleId}-evidence-${index}`}>
-              {attribution.authority === 'formal_publication' ? (
-                <>
-                  <span>Formal publication: </span>
-                  {attribution.url ? (
-                    <a href={attribution.url} target="_blank" rel="noreferrer">
-                      {attribution.citation}
-                    </a>
-                  ) : (
-                    attribution.citation
-                  )}
-                  <span> — Contribution: {attribution.contribution}</span>
-                </>
-              ) : (
-                <span>{attribution.contribution}</span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <b>References &amp; provenance</b>
+        {trace.evidenceAttributions.length > 0 ? (
+          <ul>
+            {trace.evidenceAttributions.map((attribution, index) => (
+              <li key={`${trace.ruleId}-evidence-${index}`}>
+                {attribution.authority === 'formal_publication' ? (
+                  <>
+                    <span>Formal publication: </span>
+                    {attribution.url ? (
+                      <a href={attribution.url} target="_blank" rel="noreferrer">
+                        {attribution.citation}
+                      </a>
+                    ) : (
+                      attribution.citation
+                    )}
+                    <span> — Contribution: {attribution.contribution}</span>
+                  </>
+                ) : (
+                  <span>{attribution.contribution}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Legacy trace: no provenance snapshot was stored with this attempt.</p>
+        )}
       </div>
       <button className="small-button" type="button" onClick={() => onFlag(trace.ruleId)}>
         Flag this rule
@@ -302,13 +328,13 @@ export function ReceiptView({
   const [developerReviewStatus, setDeveloperReviewStatus] = useState<string | null>(null);
   const [savingDeveloperReview, setSavingDeveloperReview] = useState(false);
   const variance = pointReport.actualWorkupExpense - pointReport.selectedPathWorkupCost;
-  const databaseDifference = pointReport.differenceFromDatabasePlan;
   const databaseComparisonRun =
     referenceSolutionAudit?.databaseRun ?? referenceSolutionAudit?.bestRun ?? null;
   const databaseComparisonScore =
     databaseComparisonRun?.carePoints ?? pointReport.databasePlanCarePoints;
   const guidanceItem = items.find((item) => item.id === guidanceItemId);
   const externalCostAvoided = items.reduce((total, item) => total + item.externalCostAvoided, 0);
+  const delegatedIntakeSavings = items.reduce((total, item) => total + item.upgradeSavings, 0);
   const traceGroups = TRACE_COMPONENT_ORDER.map((component) => {
     const rules = pointReport.ruleTrace.filter((trace) => trace.component === component);
     return {
@@ -431,15 +457,10 @@ export function ReceiptView({
   return (
     <main className="receipt-shell">
       <section className="receipt-hero" aria-labelledby="receipt-title">
-        <div className="point-seal" aria-label={`${pointReport.carePointsEarned} care points`}>
-          <span>Care</span>
-          <strong>{pointReport.carePointsEarned}</strong>
-          <small>points</small>
-        </div>
         <div className="receipt-title-block">
           <p className="eyebrow">Case settled · {displayLabel(pointReport.treatmentGrade)}</p>
           <h1 id="receipt-title" tabIndex={-1}>
-            {signed(databaseDifference)} points vs database plan
+            Case receipt
           </h1>
           <p>{pointReport.selectedPathwayLabel ?? 'No accepted complete pathway matched'}</p>
         </div>
@@ -470,12 +491,12 @@ export function ReceiptView({
         <span>{pointReport.treatmentEvaluationNotice}</span>
       </section>
 
-      {portableReviewerBuild ? developerReviewPanel : null}
-
       <ScoreComparisonBar
         playerScore={pointReport.carePointsEarned}
         databaseScore={databaseComparisonScore}
       />
+
+      {portableReviewerBuild ? developerReviewPanel : null}
 
       <div className="receipt-grid">
         <section className="receipt-panel" aria-labelledby="points-title">
@@ -562,6 +583,12 @@ export function ReceiptView({
               <div className="positive-row">
                 <dt>External cost avoided by upgrades</dt>
                 <dd>+{externalCostAvoided.toLocaleString()} pts</dd>
+              </div>
+            ) : null}
+            {delegatedIntakeSavings > 0 ? (
+              <div className="positive-row">
+                <dt>Delegated intake savings</dt>
+                <dd>+{delegatedIntakeSavings.toLocaleString()} pts</dd>
               </div>
             ) : null}
             <div className={variance > 0 ? 'negative-row' : 'positive-row'}>
@@ -700,8 +727,8 @@ export function ReceiptView({
                   <td>{item.fulfillmentMethod}</td>
                   <td>{item.operatingCost} pts</td>
                   <td>
-                    {item.externalCostAvoided > 0
-                      ? `+${item.externalCostAvoided.toLocaleString()} pts`
+                    {item.externalCostAvoided + item.upgradeSavings > 0
+                      ? `+${(item.externalCostAvoided + item.upgradeSavings).toLocaleString()} pts`
                       : '—'}
                   </td>
                   <td className={item.pointDelta < 0 ? 'negative-cell' : undefined}>
@@ -818,7 +845,9 @@ export function ReceiptView({
         <h2 id="trace-title">Categorized rule trace</h2>
         <p className="trace-intro">
           Rules that changed this receipt appear first in each category. Zero-point evaluations
-          remain available underneath so the full engine decision can still be audited.
+          remain available underneath so the full engine decision can still be audited. References
+          show what informed the clinical direction. Exact game-point weights are Developer balance
+          values and are not claims made by the cited source.
         </p>
         <div className="trace-category-list">
           {traceGroups.map((group) => (

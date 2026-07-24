@@ -84,6 +84,7 @@ pnpm content:diagnoses:validate
 pnpm content:diagnoses:search -- "major depressive"
 pnpm content:diagnoses:import -- /path/to/icd10cm-order-2026.txt
 pnpm demo:reference-runs
+pnpm assets:icons
 pnpm format:check
 ```
 
@@ -112,7 +113,7 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   rule may govern a valid benefit-versus-risk tension while both sides remain visible in the trace;
   evidence disagreement stays disabled behind a ticket and point-magnitude disagreement routes to
   balance review. Never select a clinical winner from file order.
-- Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Optional-comorbidity pools are patient-family-owned; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, replay, and safe-route validation.
+- Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Clinically meaningful duration is also structured saved case state; a deliberately below-threshold duration must name the reviewed diagnosis criterion it misses and cannot infer that criterion from prose. Optional-comorbidity pools are patient-family-owned; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, replay, and safe-route validation.
 - Treat typed clinical facts and measurements as sources of truth. Stable clinical tags are
   versioned derived relationship keys; never let a free tag contradict its originating fact.
 - Represent future current medications as regimen-entry instances rather than a medication-ID set,
@@ -155,19 +156,22 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   contain the complete four-factor `FairUseAssessment`, or the schema rejects it. DSM content stays
   metadata-only and out of AI tooling unless written APA permission changes the recorded decision.
 - Every laboratory or diagnostic study has its own file under `content/catalogs/tests/definitions/`. It owns context inputs, generation profiles, reference-interval set/population metadata, UCUM units, ranges, precision, and bounded incidental behavior. Numeric results must render value, unit, reference interval, and `N`/`H`/`L` interpretation. Values are deterministic; at most one incidental flag is generated per panel, it stays inside a tightly reviewed mild range, remains noncritical/non-case-defining, and never alters the rubric. Patient-authored observations always override generation.
-- Information results are structured finding sets, not memorable prose paragraphs. Use short swappable labels and explicit outcomes (`present`, `absent`, `normal`, `high`, `low`, `positive`, `negative`). Criteria-driven syndromes use declarative minimum/maximum/required finding constraints.
+- Information results are structured finding sets, not memorable prose paragraphs. Use short swappable labels and explicit outcomes (`present`, `absent`, `normal`, `high`, `low`, `positive`, `negative`), and render the outcome explicitly rather than relying only on color. Criteria-driven syndromes use declarative minimum/maximum/required finding constraints. Background positives require a reviewed subthreshold cap and must not silently infer a diagnosis or change the focused rubric.
 - Label nonexact treatment evaluation as engine-inferred. Do not present catalog heuristics as an authored or medically reviewed patient pathway.
 - Prefer one broad primary patient pathway using constrained medication tags/counts where possible. Keep medication-specific grades and fit modifiers separate; reserve additional authored pathways for distinct care routes and safety fallbacks for referral/transfer.
 - Scoring predicates are the constrained JSON-safe union in `@psychsim/schemas`; do not add arbitrary expressions or executable case code.
 - Reusable diagnosis selection predicates are narrower than case scoring predicates: they may inspect treatment selections only, never case-local fact IDs, purchased actions, service ownership, or browser state.
 - Score the final treatment combination. Do not put medication grades, interactions, or penalties in React components.
 - Clinical correctness is independent of fulfillment cost. Service ownership can change the financial receipt, never the clinical reward for an indicated test.
+- Staff automation is action-specific fulfillment, not free information. Persist an allowlisted configuration, buy each delegated action through the ordinary event path at a discounted nonzero cost, and preserve initiator/savings data for replay and receipts. Do not add salaries, schedules, capacity queues, departments, or treatment automation through this slice.
 - Points are the only visible unit. Care-point subtotals, investigation costs, reimbursement, banked balance, and lifetime progression all use points; there is no letter rank, 0–100 score, Reputation, XP, or credits layer. Store current spendable balance and lifetime points earned. Encounter expenses settle against that encounter; Normal-mode payout and the persistent bank have a zero floor.
+- The receipt uses one primary care-points-versus-database-plan meter. Each rule row exposes the provenance snapshot saved with that attempt; formal citations, mixed source/opinion derivation, Expert opinion, and unavailable legacy provenance remain distinguishable from game-balance point magnitude.
 - Model facility, location, department, formulary, and capability gates declaratively. Do not branch on named locations in UI code.
 - Facility thresholds grant purchase eligibility only. Facility moves and decor use the same pure atomic purchase path, preserve prior ownership and lifetime points, and cannot create debt.
 - Decor lives in `content/catalogs/decor/`; it may change hub visuals and the capped positive-reward multiplier only. It must never alter care rules, safety errors, treatment grades, or disposition correctness.
 - Patient pool metadata (`starter`, `transitional`, `advanced`) is internal selection data. Never expose it as a diagnosis or answer hint on a waiting-room card.
 - Normal queues use approved patients and persist each resolved patient in its slot until completed. Endgame is a reversible derived clinic overlay with approved patients, all defined capabilities, and manual slot refresh. Developer mode exists only on the local development server, loads approved plus review content, shows each not-yet-run patient definition once, supports reroll/reset, and banks no practice rewards. Normal production must tree-shake developer content. The separately flagged portable Reviewer build may statically import only its explicit finite, medically unreviewed assignment; it must exclude local ticket/source/opinion queues and the writable workspace endpoint.
+- The distributed iPhone install uses one stable relative manifest/scope and IndexedDB namespace. Every `main` Pages build emits its exact commit SHA in `version.json` and the compiled app. Installed copies check that marker on launch, foreground, reconnection, and a bounded interval, then offer a cache-busting reload only when the user is at the clinic hub. Never hand-maintain a cache version, reload during a patient/receipt, clear IndexedDB during an update, or add an offline service-worker cache without a separately reviewed migration and data-loss plan.
 - Receipt guidance and clinically disputed items create local proposed tickets. A ticket never
   mutates patient, medication, test, pathway, or scoring content directly. `Needs another
 guideline/source` creates a `source_gap` ticket; check existing evidence before creating or

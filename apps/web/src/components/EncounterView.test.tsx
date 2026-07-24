@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
-import { render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { catalogs, prototypeCaseBlueprint, startingClinic } from '@psychsim/content-runtime';
 import {
@@ -13,6 +13,8 @@ import {
 } from '@psychsim/engine';
 
 import { EncounterView } from './EncounterView';
+
+afterEach(cleanup);
 
 describe('EncounterView laboratory results', () => {
   it('shows numeric results with unit, reference interval, and an EMR-style flag', () => {
@@ -119,5 +121,73 @@ describe('EncounterView laboratory results', () => {
     );
     expect(marker).toHaveTextContent('+');
     expect(marker).toHaveClass(`outcome-${presentFinding.outcome}`);
+  });
+
+  it('renders absent findings as explicit, visually grouped negative results', () => {
+    const instance = instantiateCase(prototypeCaseBlueprint, 'negative-marker-display', catalogs);
+    const started = startEncounter(instance, startingClinic, 'location.solo-office.outpatient');
+    const purchased = requireCompleted(
+      purchaseInformationAction(started, 'info.history.mania', catalogs),
+    );
+    const absentFinding = purchased.purchases[0]!.result.findings.find(
+      (finding) => finding.outcome === 'absent' || finding.outcome === 'negative',
+    );
+    if (!absentFinding) throw new Error('Expected an absent mania finding fixture.');
+
+    render(
+      <EncounterView
+        state={purchased}
+        catalogs={catalogs}
+        onStateChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onExit={vi.fn()}
+      />,
+    );
+
+    const findingRow = screen.getByText(absentFinding.label).closest('li');
+    if (!findingRow) throw new Error('Expected a rendered negative finding row.');
+    expect(findingRow).toHaveClass('finding-row', `outcome-${absentFinding.outcome}`);
+    expect(
+      within(findingRow).getByText(absentFinding.outcome === 'negative' ? 'Negative' : 'Absent', {
+        selector: '.finding-outcome-chip',
+      }),
+    ).toBeVisible();
+    expect(
+      within(findingRow).getByLabelText(
+        absentFinding.outcome === 'negative' ? 'Negative' : 'Absent',
+      ),
+    ).toHaveTextContent('−');
+  });
+
+  it('searches the combined medication, therapy, and disposition menu', () => {
+    const instance = instantiateCase(prototypeCaseBlueprint, 'treatment-search', catalogs);
+    const started = startEncounter(instance, startingClinic, 'location.solo-office.outpatient');
+
+    render(
+      <EncounterView
+        state={started}
+        catalogs={catalogs}
+        onStateChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onExit={vi.fn()}
+      />,
+    );
+
+    const search = screen.getByRole('searchbox', {
+      name: 'Search medications, non-medication interventions, and dispositions',
+    });
+    fireEvent.change(search, { target: { value: 'sertraline' } });
+    expect(screen.getByRole('button', { name: /Sertraline/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /Fluoxetine/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Cognitive behavioral therapy/ }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: 'therapy' } });
+    expect(screen.getByRole('button', { name: /Cognitive behavioral therapy/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /Sertraline/ })).not.toBeInTheDocument();
+
+    fireEvent.change(search, { target: { value: 'outpatient' } });
+    expect(screen.getByRole('button', { name: /Close outpatient follow-up/i })).toBeVisible();
   });
 });

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.mdd-prior-intolerance",
   "internalTitle": "Reviewer cohort: MDD with prior medication intolerance",
   "difficultyTier": 2,
@@ -46,7 +46,56 @@
     "Low energy and mood",
     "Depressive symptoms"
   ],
-  "durationChoices": ["seven weeks", "two months", "about three months", "four months"],
+  "durationProfile": {
+    "id": "duration-profile.review-mdd-prior-intolerance.current-episode",
+    "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-mdd-prior-intolerance.7-weeks",
+        "value": 7,
+        "unit": "week",
+        "displayValueVariants": ["seven weeks", "about seven weeks"]
+      },
+      {
+        "id": "duration.review-mdd-prior-intolerance.8-weeks",
+        "value": 8,
+        "unit": "week",
+        "displayValueVariants": ["eight weeks", "about two months"]
+      },
+      {
+        "id": "duration.review-mdd-prior-intolerance.10-weeks",
+        "value": 10,
+        "unit": "week",
+        "displayValueVariants": ["ten weeks", "about ten weeks"]
+      },
+      {
+        "id": "duration.review-mdd-prior-intolerance.12-weeks",
+        "value": 12,
+        "unit": "week",
+        "displayValueVariants": ["twelve weeks", "about three months"]
+      },
+      {
+        "id": "duration.review-mdd-prior-intolerance.14-weeks",
+        "value": 14,
+        "unit": "week",
+        "displayValueVariants": ["fourteen weeks", "a little over three months"]
+      },
+      {
+        "id": "duration.review-mdd-prior-intolerance.16-weeks",
+        "value": 16,
+        "unit": "week",
+        "displayValueVariants": ["sixteen weeks", "about four months"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "very",
   "settingText": "Solo psychiatric office · outpatient consultation",
   "knownHistory": [],

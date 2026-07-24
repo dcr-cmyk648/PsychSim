@@ -90,6 +90,7 @@ export const buildDeveloperAttemptReview = ({
       encounterStarted.locationId,
       catalogs.services,
       catalogs.locations,
+      { informationActionId: action.actionId },
     );
     if (!fulfillment.ok) {
       throw new Error(

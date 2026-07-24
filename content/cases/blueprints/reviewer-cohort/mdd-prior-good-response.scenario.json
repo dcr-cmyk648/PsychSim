@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.mdd-prior-good-response",
   "internalTitle": "Reviewer cohort: recurrent MDD with prior good response",
   "difficultyTier": 2,
@@ -46,7 +46,56 @@
     "Low energy and mood",
     "Another depressive episode"
   ],
-  "durationChoices": ["five weeks", "seven weeks", "two months", "about three months"],
+  "durationProfile": {
+    "id": "duration-profile.review-mdd-prior-good-response.current-episode",
+    "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-mdd-prior-good-response.5-weeks",
+        "value": 5,
+        "unit": "week",
+        "displayValueVariants": ["five weeks", "about five weeks"]
+      },
+      {
+        "id": "duration.review-mdd-prior-good-response.6-weeks",
+        "value": 6,
+        "unit": "week",
+        "displayValueVariants": ["six weeks", "about six weeks"]
+      },
+      {
+        "id": "duration.review-mdd-prior-good-response.7-weeks",
+        "value": 7,
+        "unit": "week",
+        "displayValueVariants": ["seven weeks", "about seven weeks"]
+      },
+      {
+        "id": "duration.review-mdd-prior-good-response.8-weeks",
+        "value": 8,
+        "unit": "week",
+        "displayValueVariants": ["eight weeks", "about two months"]
+      },
+      {
+        "id": "duration.review-mdd-prior-good-response.10-weeks",
+        "value": 10,
+        "unit": "week",
+        "displayValueVariants": ["ten weeks", "about ten weeks"]
+      },
+      {
+        "id": "duration.review-mdd-prior-good-response.12-weeks",
+        "value": 12,
+        "unit": "week",
+        "displayValueVariants": ["twelve weeks", "about three months"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "very",
   "settingText": "Solo psychiatric office · outpatient return consultation",
   "knownHistory": [],

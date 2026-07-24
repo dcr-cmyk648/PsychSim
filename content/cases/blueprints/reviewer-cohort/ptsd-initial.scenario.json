@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.ptsd-initial",
   "internalTitle": "Reviewer cohort: initial PTSD",
   "difficultyTier": 2,
@@ -36,7 +36,56 @@
     "Anxiety after trauma",
     "Cannot relax since it happened"
   ],
-  "durationChoices": ["four months", "seven months", "about a year", "eighteen months"],
+  "durationProfile": {
+    "id": "duration-profile.review-ptsd-initial.current-symptoms",
+    "relatedDiagnosisId": "diagnosis.posttraumatic-stress-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-ptsd-initial.4-months",
+        "value": 4,
+        "unit": "month",
+        "displayValueVariants": ["four months", "about four months"]
+      },
+      {
+        "id": "duration.review-ptsd-initial.6-months",
+        "value": 6,
+        "unit": "month",
+        "displayValueVariants": ["six months", "about half a year"]
+      },
+      {
+        "id": "duration.review-ptsd-initial.7-months",
+        "value": 7,
+        "unit": "month",
+        "displayValueVariants": ["seven months", "about seven months"]
+      },
+      {
+        "id": "duration.review-ptsd-initial.9-months",
+        "value": 9,
+        "unit": "month",
+        "displayValueVariants": ["nine months", "most of a year"]
+      },
+      {
+        "id": "duration.review-ptsd-initial.12-months",
+        "value": 12,
+        "unit": "month",
+        "displayValueVariants": ["one year", "about a year"]
+      },
+      {
+        "id": "duration.review-ptsd-initial.18-months",
+        "value": 18,
+        "unit": "month",
+        "displayValueVariants": ["eighteen months", "about a year and a half"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "extremely",
   "settingText": "Solo psychiatric office · outpatient intake",
   "knownHistory": [],

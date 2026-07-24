@@ -16,7 +16,27 @@ The location-compatible menu is deliberately stable across cases: neutral search
 
 Result prose stops at Subjective and Objective facts. It may report what the patient/collateral said, what the clinician observed/measured, or what a record/test reported. It must not tell the player that outpatient care is suitable, a diagnosis is supported, a treatment is appropriate, or an action is defensible/redundant before submission.
 
-Information results are short structured findings, not case-specific prose paragraphs. History commonly appears as atomic `+` and `−` findings whose labels and order can vary. A criteria-bearing patient definition declares the required and allowed number of positives; the MDD prototype deterministically selects five to seven depressive symptoms while preserving required core symptoms. This makes a patient family recombinable without letting a memorable anecdote become an answer key.
+Information results are short structured findings, not case-specific prose paragraphs. History
+commonly appears as atomic `+` and `−` findings whose labels and order can vary. Every row also
+shows a plain-language outcome chip such as `Present` or `Absent`; positive and negative states use
+distinct grouped styling, so the result remains legible without relying only on color or treating a
+negative as an ordinary list item. A criteria-bearing patient definition declares the required and
+allowed number of positives; the MDD prototype deterministically selects five to seven depressive
+symptoms while preserving required core symptoms. This makes a patient family recombinable without
+letting a memorable anecdote become an answer key.
+
+Absence of a diagnosis does not require every related symptom to be negative. The finite Reviewer
+cohort pilots ordinary subthreshold variation by allowing zero or one background anxiety finding
+to be positive outside the primary GAD scenario. That bounded draw cannot compose a full syndrome,
+infer a new diagnosis, or change the focused rubric. New symptom families need reviewed bounds
+rather than one global probability.
+
+Symptom duration is also structured when it can matter clinically. Reviewer scenarios choose
+deterministically among stable numeric value/unit options, save the exact resolved measurement for
+replay and audit, and render it through short interchangeable sentences. Current ranges only vary
+within each authored episode state. PsychSim does not yet implement cyclothymia duration thresholds
+or a generic duration-based diagnostic engine; a future near-miss case must explicitly identify the
+reviewed criterion it is designed to miss after suitable source and clinical review.
 
 When a patient file does not own a test result, that test's individual definition file may generate it deterministically from declared patient context such as age, sex used for reference ranges, diagnoses, and clinical tags. Numeric results show the value, unit, reporting profile's reference interval, and `N`/`H`/`L` flag in an EMR-like table. Most values fall within that test's curated normal-generation range. A numeric panel has a test-specific chance of at most one slightly out-of-range flag drawn only from tightly bounded mild ranges. These incidental flags are objective findings, not hidden diagnoses: they do not alter the case rubric, and the player must decide whether they matter. Clinically meaningful abnormalities require an explicit reviewed patient variant.
 
@@ -36,7 +56,15 @@ Points are the single economy, clinical-award, and progression unit. The profile
 
 Disposition is part of clinical fit, not a free safety valve. A safe but disproportionate escalation receives a large signed point deduction; transferring a stable basic outpatient presentation to emergency care is materially worse than ordinary outpatient management. Safe referral remains preferable to unsafe internal treatment when higher care is actually needed.
 
-Voluntary purchases include service contracts, equipment, staff, formularies, programs, departments, facilities, and decor. The implemented early choices are an outpatient ECG machine, an additive outpatient formulary expansion, two facility moves, and three decor items. They spend only banked points and can increase margins, slots, available treatment options, or ambience; they never rewrite patient facts or clinical correctness. There are initially no salaries, maintenance, depreciation, loans, capacity queues, or insurance billing.
+Voluntary purchases include service contracts, equipment, staff, formularies, programs,
+departments, facilities, and decor. The implemented early choices are an outpatient ECG machine,
+an additive outpatient formulary expansion, a configurable Clinical intake assistant, two facility
+moves, and three decor items. The assistant can automatically administer up to three allowlisted
+routine checklist or medication-history actions at a discounted but nonzero per-patient cost; each
+delegated result and expense follows the same auditable purchase path as a manual action. Purchases
+spend only banked points and can increase margins, slots, available treatment options, or ambience;
+they never rewrite patient facts or clinical correctness. There are initially no salaries,
+maintenance, depreciation, loans, capacity queues, schedules, or insurance billing.
 
 ## Facilities, areas, and services
 

@@ -31,9 +31,16 @@ Every post-submit receipt renders a comparison bar and parallel plan cards. Ordi
 database-plan care points define the full bar and the player's care points define its fill. If the
 player exceeds that target, the scale expands to the player score and a labeled marker preserves
 the database score inside the filled bar. Negative care totals retain their signed label and use
-zero visual fill. The parallel cards preserve the exact investigations, fulfillment/costs,
-treatments, and disposition selected by the player beside the completed declared `database_plan`
-replay.
+zero visual fill. This is the only primary score graphic; a second circular score or written
+“points versus plan” headline would duplicate the same comparison, especially on a phone. The
+parallel cards preserve the exact investigations, fulfillment/costs, treatments, and disposition
+selected by the player beside the completed declared `database_plan` replay.
+
+Every rule trace snapshots its own provenance with the attempt. Collapsed rows identify formal
+references, mixed formal-source/Developer-opinion provenance, Expert opinion, or unavailable
+legacy provenance. Expanded rows show the saved citation/link and concise statement of what the
+source contributed. The receipt does not resolve a historical rule against the current evidence
+catalog, and a citation does not imply that the source endorsed the exact game-balance point value.
 
 The replay uses the completed attempt's exact patient, clinic, location, and available fulfillment
 methods. Deterministic ordering is payout first, then care points, then lower workup expense, then
@@ -121,6 +128,16 @@ else:
 ```
 
 The first ECG upgrade costs 1,200 points. The outside ECG method costs 500 per encounter and the in-house method costs 70, so estimated savings are 430 per use and the displayed break-even is `ceil(1,200 / 430) = 3` uses. Service resolution automatically chooses the in-house method after ownership. It does not add care points, change the ECG result, alter whether ordering it was indicated, or retroactively change lifetime progression.
+
+The Clinical intake assistant is a 900-point staff purchase gated at 600 lifetime points. After
+hiring, the player may configure up to three of four routine actions. Each delegated action uses an
+action-specific discounted but nonzero fulfillment method: medication reconciliation costs 18
+instead of 30 points, adherence review 9 instead of 15, and either standard symptom checklist 12
+instead of 20. The result, objective satisfaction, care-point rule, and immediate reveal are
+identical to a manual purchase. The receipt attributes the delegated fulfillment and savings; a
+reference run uses the same automatic intake and skips any configured nonrepeatable action instead
+of buying it twice. Hiring creates no salary, maintenance charge, free information, or clinical
+bonus.
 
 The first formulary expansion costs 800 points and adds bupropion, mirtazapine, and buspirone to the starter office's start-medication menu. It does not imply those drugs are appropriate for a particular patient; patient and medication rules still evaluate fit. A medication already taken by a patient remains available to stop or continue even if the location does not stock it for new starts.
 

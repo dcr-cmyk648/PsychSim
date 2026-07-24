@@ -3,6 +3,7 @@ import { instantiateCase, resolveClinicForProgressionMode } from '@psychsim/engi
 
 import { catalogs, startingClinic } from './content';
 import { runReferenceSolutionsForCase } from './reference-runs';
+import { REVIEWER_ASSIGNMENT_ID } from './reviewer-assignment';
 import { reviewerCaseBlueprints, reviewerDecisionPolicies } from './reviewer-content';
 import { validateCaseBlueprint } from './validation';
 
@@ -10,6 +11,7 @@ describe('portable reviewer cohort', () => {
   const reviewerClinic = resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs);
 
   it('compiles ten separate medically unreviewed patient scenarios', () => {
+    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07b');
     expect(reviewerCaseBlueprints.map((blueprint) => blueprint.id)).toEqual([
       'case.review-cohort.mdd-initial',
       'case.review-cohort.mdd-adherence',
@@ -22,6 +24,9 @@ describe('portable reviewer cohort', () => {
       'case.review-cohort.schizophrenia-relapse',
       'case.review-cohort.ptsd-initial',
     ]);
+    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.1.0')).toBe(
+      true,
+    );
     expect(reviewerDecisionPolicies.map((policy) => policy.id)).toHaveLength(8);
     for (const blueprint of reviewerCaseBlueprints) {
       expect(blueprint.metadata).toMatchObject({
@@ -64,6 +69,51 @@ describe('portable reviewer cohort', () => {
     }
   });
 
+  it('resolves diagnosis-scoped symptom duration as a deterministic structured measurement', () => {
+    for (const blueprint of reviewerCaseBlueprints) {
+      const resolvedOptions = new Set<string>();
+      for (let index = 0; index < 30; index += 1) {
+        const seed = `reviewer-duration-${index}`;
+        const first = instantiateCase(blueprint, seed, catalogs);
+        const repeated = instantiateCase(blueprint, seed, catalogs);
+        const duration = first.informationActions
+          .find((action) => action.actionId === 'info.history.presenting-problem')
+          ?.result.findings.find((finding) => finding.durationMeasurement)?.durationMeasurement;
+        const repeatedDuration = repeated.informationActions
+          .find((action) => action.actionId === 'info.history.presenting-problem')
+          ?.result.findings.find((finding) => finding.durationMeasurement)?.durationMeasurement;
+        expect(duration).toEqual(repeatedDuration);
+        expect(duration?.interpretation).toBe('supports_authored_state');
+        expect(
+          first.patientRecord.diagnoses.some(
+            (diagnosis) => diagnosis.id === duration?.relatedDiagnosisId,
+          ),
+        ).toBe(true);
+        if (duration) resolvedOptions.add(duration.optionId);
+      }
+      expect(resolvedOptions.size).toBeGreaterThan(1);
+    }
+  }, 15_000);
+
+  it('allows bounded background anxiety variation without generating a full syndrome', () => {
+    const blueprint = reviewerCaseBlueprints.find(
+      (candidate) => candidate.id === 'case.review-cohort.mdd-initial',
+    )!;
+    const positiveCounts = new Set<number>();
+    for (let index = 0; index < 80; index += 1) {
+      const instance = instantiateCase(blueprint, `background-anxiety-${index}`, catalogs);
+      const anxiety = instance.informationActions.find(
+        (action) => action.actionId === 'info.history.anxiety-symptoms',
+      )!;
+      const presentCount = anxiety.result.findings.filter(
+        (finding) => finding.outcome === 'present',
+      ).length;
+      expect(presentCount).toBeLessThanOrEqual(1);
+      positiveCounts.add(presentCount);
+    }
+    expect(positiveCounts).toEqual(new Set([0, 1]));
+  });
+
   it('orders each finite reference set and gives unsafe play no meaningful payout', () => {
     for (const blueprint of reviewerCaseBlueprints) {
       const runs = runReferenceSolutionsForCase(blueprint, reviewerClinic);
@@ -86,6 +136,11 @@ describe('portable reviewer cohort', () => {
         shotgun.settlement.netClinicPointsEarned,
       );
       expect(unsafe.settlement.netClinicPointsEarned).toBeLessThanOrEqual(20);
+      for (const receipt of byKind.values()) {
+        expect(
+          receipt.pointReport.ruleTrace.every((trace) => trace.evidenceAttributions.length > 0),
+        ).toBe(true);
+      }
     }
   });
 });

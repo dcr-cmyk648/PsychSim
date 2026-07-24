@@ -19,6 +19,63 @@ const expectWithinHorizontalViewport = async (locator: Locator): Promise<void> =
   ).toBe(true);
 };
 
+test('exposes the installable iPhone shell and exact distribution marker', async ({
+  page,
+  request,
+}) => {
+  const manifestResponse = await request.get('/manifest.webmanifest');
+  expect(manifestResponse.ok()).toBe(true);
+  const manifest = (await manifestResponse.json()) as {
+    id: string;
+    start_url: string;
+    scope: string;
+    display: string;
+    icons: Array<{ src: string }>;
+  };
+  expect(manifest).toMatchObject({
+    id: './',
+    start_url: './',
+    scope: './',
+    display: 'standalone',
+  });
+  expect(manifest.icons.map((icon) => icon.src)).toEqual(
+    expect.arrayContaining([
+      './icons/psychsim-192.png',
+      './icons/psychsim-512.png',
+      './icons/psychsim.svg',
+    ]),
+  );
+
+  const versionResponse = await request.get('/version.json');
+  expect(versionResponse.ok()).toBe(true);
+  const version = (await versionResponse.json()) as {
+    schemaVersion: number;
+    distributionId: string;
+    buildKind: string;
+    channel: string;
+  };
+  expect(version.schemaVersion).toBe(1);
+  expect(version.distributionId).toMatch(/^(?:development|[0-9a-f]{7,64})$/);
+  expect(version.buildKind).toBe('portable_reviewer');
+  expect(version.channel).toBe('local');
+  for (const icon of ['psychsim-180.png', 'psychsim-192.png', 'psychsim-512.png']) {
+    expect((await request.get(`/icons/${icon}`)).ok()).toBe(true);
+  }
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Install on iPhone' }).click();
+  const installDialog = page.getByRole('dialog', { name: 'Add PsychSim to the Home Screen' });
+  await expect(installDialog).toBeVisible();
+  await expect(installDialog).toContainText('Add to Home Screen');
+  await expect(installDialog).toContainText('Open as Web App');
+  await expect(installDialog).toContainText('may use separate device storage');
+  await expectWithinHorizontalViewport(installDialog);
+  await page.getByRole('button', { name: 'Done' }).click();
+  await page.getByRole('button', { name: 'Check for update' }).click();
+  await expect(page.getByRole('status')).toContainText('current distribution');
+  await expectDocumentFitsViewport(page);
+});
+
 test('reviews multiple patients on a phone and exports one exact feedback bundle', async ({
   page,
 }) => {
@@ -37,7 +94,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
 
   await page
     .getByRole('button', { name: /Open chart for/ })
-    .first()
+    .nth(2)
     .click();
   const workspaceTabs = page.getByRole('tablist', { name: 'Case workspace panes' });
   await expect(workspaceTabs.getByRole('tab', { name: 'Patient' })).toHaveAttribute(
@@ -67,9 +124,17 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(firstDialog).toBeHidden();
   await expect(workspaceTabs.getByRole('tab', { name: 'Investigate' })).toBeFocused();
 
-  await page.getByRole('button', { name: /Depressive symptoms, \d+ points, in house/ }).click();
+  await page
+    .getByRole('button', { name: /Manic and hypomanic symptoms, \d+ points, in house/ })
+    .click();
   const secondDialog = page.getByRole('dialog');
   await expect(secondDialog).toBeVisible();
+  await expect(
+    secondDialog
+      .locator('.finding-outcome-chip')
+      .filter({ hasText: /Absent|Negative/ })
+      .first(),
+  ).toBeVisible();
   await secondDialog.getByRole('button', { name: 'View revealed information' }).click();
   await expect(workspaceTabs.getByRole('tab', { name: 'Revealed' })).toHaveAttribute(
     'aria-selected',
@@ -80,11 +145,11 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
 
   const revealedResults = page.locator('.revealed-panel .result-list > li');
   await expect(revealedResults).toHaveCount(2);
-  await expect(revealedResults.nth(0)).toContainText('Depressive symptoms');
+  await expect(revealedResults.nth(0)).toContainText('Manic and hypomanic symptoms');
   await expect(revealedResults.nth(1)).toContainText('Presenting problem and timeline');
   await page.getByRole('button', { name: 'Show oldest purchased result first' }).click();
   await expect(revealedResults.nth(0)).toContainText('Presenting problem and timeline');
-  await expect(revealedResults.nth(1)).toContainText('Depressive symptoms');
+  await expect(revealedResults.nth(1)).toContainText('Manic and hypomanic symptoms');
 
   await workspaceTabs.getByRole('tab', { name: 'Treatment' }).click();
   await expectDocumentFitsViewport(page);
@@ -101,16 +166,30 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   );
   await expectDocumentFitsViewport(page);
   await expectWithinHorizontalViewport(page.locator('#mobile-panel-results'));
-  expect(
-    await page
-      .locator('#developer-review-title')
-      .evaluate((element) => element.getBoundingClientRect().top < window.innerHeight),
-  ).toBe(true);
-  await expect(page.locator('#developer-review-title')).toBeFocused();
+  await expect(page.locator('#score-comparison-title')).toBeFocused();
+  await expect(page.locator('.point-seal')).toHaveCount(0);
+  await expect(page.getByText(/points vs database plan/i)).toHaveCount(0);
+  const scoreMeter = page.getByRole('meter', {
+    name: 'Player care points compared with the database plan',
+  });
+  await expect(scoreMeter).toHaveCount(1);
+  await expectWithinHorizontalViewport(scoreMeter);
   await expect(page.getByRole('heading', { name: 'Case and app experience notes' })).toBeVisible();
   await expect(
     page.getByText(/subjective comments about pacing, clarity, usability/i),
   ).toBeVisible();
+  const sourcedTrace = page
+    .locator('.trace-list details')
+    .filter({ has: page.locator('.trace-provenance-badge', { hasText: /reference/ }) })
+    .first();
+  await expect(sourcedTrace).toBeVisible();
+  await expect(sourcedTrace.locator('.trace-provenance-badge')).toContainText('reference');
+  await sourcedTrace.locator('summary').click();
+  await expect(sourcedTrace.getByText('References & provenance')).toBeVisible();
+  const sourceLink = sourcedTrace.locator('.evidence-attributions a').first();
+  await expect(sourceLink).toBeVisible();
+  await expect(sourceLink).toHaveAttribute('href', /^https:\/\//);
+  await expect(sourcedTrace.getByText(/Contribution:/).first()).toBeVisible();
   await page
     .getByRole('textbox', { name: 'Your feedback' })
     .fill('Phone review one: the investigation flow was clear.');
@@ -185,7 +264,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   };
   expect(bundle.exportVersion).toBe(5);
   expect(bundle.buildKind).toBe('portable_reviewer');
-  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07');
+  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07b');
   expect(bundle.attemptReviews).toHaveLength(2);
   expect(bundle.completedAttempts).toHaveLength(2);
   expect(new Set(bundle.completedAttempts.map((attempt) => attempt.blueprintId)).size).toBe(2);

@@ -16,6 +16,7 @@ import { calculateSettlement } from './economy';
 import {
   purchaseInformationAction,
   startEncounter,
+  startEncounterWithAutomaticIntake,
   submitEncounter,
   updateTreatmentSelections,
 } from './encounter';
@@ -33,7 +34,7 @@ import { scoreEncounter } from './scoring';
 import { resolveServiceFulfillment } from './services';
 import { calculateSatisfactionState } from './satisfaction';
 import { getAvailableStartMedicationIds } from './formulary';
-import { getUpgradeOffer, purchaseUpgrade } from './upgrades';
+import { configureStaffAutomation, getUpgradeOffer, purchaseUpgrade } from './upgrades';
 
 const databasePlan = prototypeCaseBlueprint.referenceSolutions.find(
   (solution) => solution.kind === 'database_plan',
@@ -462,6 +463,156 @@ describe('clinic upgrades and formularies', () => {
       ok: false,
       error: { code: 'INSUFFICIENT_POINTS' },
     });
+  });
+
+  it('delegates only selected routine intake actions at a discounted nonzero cost', () => {
+    const funded = { ...startingClinic, clinicPoints: 2_000, lifetimePointsEarned: 1_000 };
+    const hired = requireCompleted(
+      purchaseUpgrade(funded, 'upgrade.staff.intake-assistant', catalogs),
+    );
+    expect(hired.staffConfigurations).toEqual([
+      {
+        staffUpgradeId: 'upgrade.staff.intake-assistant',
+        automaticInformationActionIds: [],
+      },
+    ]);
+    const configured = requireCompleted(
+      configureStaffAutomation(
+        hired,
+        'upgrade.staff.intake-assistant',
+        ['info.history.medication-reconciliation', 'info.history.depressive-symptoms'],
+        catalogs,
+      ),
+    );
+    expect(
+      requireCompleted(
+        resolveServiceFulfillment(
+          'service.history.standard',
+          configured,
+          configured.activeLocationId,
+          catalogs.services,
+          catalogs.locations,
+        ),
+      ).method.id,
+    ).toBe('fulfillment.office.standard-history');
+    expect(
+      requireCompleted(
+        resolveServiceFulfillment(
+          'service.history.standard',
+          configured,
+          configured.activeLocationId,
+          catalogs.services,
+          catalogs.locations,
+          { informationActionId: 'info.history.depressive-symptoms' },
+        ),
+      ).method.id,
+    ).toBe('fulfillment.staff.standard-checklist');
+    expect(
+      requireCompleted(
+        resolveServiceFulfillment(
+          'service.history.standard',
+          configured,
+          configured.activeLocationId,
+          catalogs.services,
+          catalogs.locations,
+          { informationActionId: 'info.history.sleep' },
+        ),
+      ).method.id,
+    ).toBe('fulfillment.office.standard-history');
+
+    const instance = instantiateCase(prototypeCaseBlueprint, 'staff-intake', catalogs);
+    const automatic = requireCompleted(
+      startEncounterWithAutomaticIntake(
+        instance,
+        configured,
+        configured.activeLocationId,
+        catalogs,
+      ),
+    );
+    expect(automatic.purchases.map((purchase) => purchase.actionId)).toEqual([
+      'info.history.medication-reconciliation',
+      'info.history.depressive-symptoms',
+    ]);
+    expect(automatic.purchases.map((purchase) => purchase.initiatedBy)).toEqual([
+      'automatic_intake',
+      'automatic_intake',
+    ]);
+    expect(automatic.purchases.map((purchase) => purchase.operatingCost)).toEqual([18, 12]);
+    expect(automatic.purchases.map((purchase) => purchase.upgradeSavings)).toEqual([12, 8]);
+    expect(automatic.expenseTotal).toBe(30);
+
+    const manualClinic = { ...configured, staffConfigurations: [] };
+    let manual = startEncounter(instance, manualClinic, manualClinic.activeLocationId);
+    manual = requireCompleted(
+      purchaseInformationAction(manual, 'info.history.medication-reconciliation', catalogs),
+    );
+    manual = requireCompleted(
+      purchaseInformationAction(manual, 'info.history.depressive-symptoms', catalogs),
+    );
+    const automaticComplete = requireCompleted(
+      completeEncounter(
+        requireCompleted(updateTreatmentSelections(automatic, databasePlan.selections, catalogs)),
+        catalogs,
+      ),
+    );
+    const manualComplete = requireCompleted(
+      completeEncounter(
+        requireCompleted(updateTreatmentSelections(manual, databasePlan.selections, catalogs)),
+        catalogs,
+      ),
+    );
+    expect(automaticComplete.receipt.pointReport.carePointsEarned).toBe(
+      manualComplete.receipt.pointReport.carePointsEarned,
+    );
+    expect(automaticComplete.receipt.pointReport.ruleTrace).toEqual(
+      manualComplete.receipt.pointReport.ruleTrace,
+    );
+    expect(automaticComplete.receipt.pointReport.treatmentGrade).toBe(
+      manualComplete.receipt.pointReport.treatmentGrade,
+    );
+    expect(automaticComplete.receipt.settlement.operatingExpenses).toBe(30);
+    expect(manualComplete.receipt.settlement.operatingExpenses).toBe(50);
+    expect(
+      automaticComplete.receipt.items
+        .filter((item) => item.kind === 'information')
+        .map((item) => item.upgradeSavings),
+    ).toEqual([12, 8]);
+
+    const replayed = requireCompleted(
+      replayEncounter(instance, configured, automaticComplete.state.events, catalogs),
+    );
+    expect(replayed.purchases).toEqual(automaticComplete.state.purchases);
+  });
+
+  it('rejects over-broad or unavailable staff automation choices', () => {
+    const hired = requireCompleted(
+      purchaseUpgrade(
+        { ...startingClinic, clinicPoints: 2_000, lifetimePointsEarned: 1_000 },
+        'upgrade.staff.intake-assistant',
+        catalogs,
+      ),
+    );
+    expect(
+      configureStaffAutomation(
+        hired,
+        'upgrade.staff.intake-assistant',
+        [
+          'info.history.medication-reconciliation',
+          'info.history.adherence',
+          'info.history.depressive-symptoms',
+          'info.history.anxiety-symptoms',
+        ],
+        catalogs,
+      ),
+    ).toMatchObject({ ok: false, error: { code: 'STAFF_CONFIGURATION_INVALID' } });
+    expect(
+      configureStaffAutomation(
+        startingClinic,
+        'upgrade.staff.intake-assistant',
+        ['info.history.adherence'],
+        catalogs,
+      ),
+    ).toMatchObject({ ok: false, error: { code: 'STAFF_NOT_OWNED' } });
   });
 
   it('adds only the purchased formulary options to medication starts', () => {

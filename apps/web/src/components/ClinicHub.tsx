@@ -8,6 +8,7 @@ import type {
   ProgressionMode,
   SaveData,
   SourceRequest,
+  UpgradeDefinition,
 } from '@psychsim/schemas';
 import type { CaseRuleAudit, DeveloperOpinionReferenceNeed } from '@psychsim/content-runtime';
 import { getPurchasableUpgradeDefinitions, getUpgradeOffer } from '@psychsim/engine';
@@ -44,6 +45,7 @@ interface ClinicHubProps {
   onExportTickets: () => void;
   ticketToolStatus: string | null;
   onPurchaseUpgrade: (upgradeId: string) => void;
+  onConfigureStaffAutomation?: (staffUpgradeId: string, actionIds: readonly string[]) => void;
   upgradeStatus: string | null;
 }
 
@@ -182,6 +184,79 @@ function TicketReviewCard({ ticket, caseRuleAudit, onSave }: TicketReviewCardPro
   );
 }
 
+function StaffAutomationEditor({
+  clinic,
+  catalogs,
+  upgrade,
+  onConfigure,
+}: {
+  clinic: ClinicState;
+  catalogs: CatalogBundle;
+  upgrade: UpgradeDefinition;
+  onConfigure: NonNullable<ClinicHubProps['onConfigureStaffAutomation']>;
+}) {
+  const automation = upgrade.staffAutomation;
+  if (!automation) return null;
+  const configuration = clinic.staffConfigurations.find(
+    (candidate) => candidate.staffUpgradeId === upgrade.id,
+  );
+  const selectedIds = configuration?.automaticInformationActionIds ?? [];
+  return (
+    <fieldset className="staff-automation-editor">
+      <legend>Automatic routine intake</legend>
+      <p>
+        Choose up to {automation.maximumAutomaticActions}. These results appear when a patient
+        opens. Each still costs points, at the delegated rate shown.
+      </p>
+      <div className="staff-automation-options">
+        {automation.eligibleInformationActionIds.map((actionId) => {
+          const action = catalogs.informationActions.find((candidate) => candidate.id === actionId);
+          const service = action
+            ? catalogs.services.find((candidate) => candidate.id === action.serviceId)
+            : undefined;
+          const ordinaryCost = service?.fulfillmentMethods
+            .filter((method) => method.requiredStaffUpgradeId === undefined)
+            .reduce<
+              number | null
+            >((lowest, method) => (lowest === null ? method.operatingCost : Math.min(lowest, method.operatingCost)), null);
+          const delegatedCost = service?.fulfillmentMethods.find(
+            (method) => method.requiredStaffUpgradeId === upgrade.id,
+          )?.operatingCost;
+          const selected = selectedIds.includes(actionId);
+          const atLimit = !selected && selectedIds.length >= automation.maximumAutomaticActions;
+          return (
+            <label key={actionId}>
+              <input
+                type="checkbox"
+                checked={selected}
+                disabled={atLimit}
+                onChange={() =>
+                  onConfigure(
+                    upgrade.id,
+                    selected
+                      ? selectedIds.filter((id) => id !== actionId)
+                      : [...selectedIds, actionId],
+                  )
+                }
+              />
+              <span>
+                <b>{action?.label ?? actionId}</b>
+                <small>
+                  {ordinaryCost ?? '—'} → {delegatedCost ?? '—'} pts per patient
+                </small>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+      <small>
+        {selectedIds.length} / {automation.maximumAutomaticActions} selected · changing this affects
+        future encounters only.
+      </small>
+    </fieldset>
+  );
+}
+
 export function ClinicHub({
   saveData,
   clinicState,
@@ -203,6 +278,7 @@ export function ClinicHub({
   onExportTickets,
   ticketToolStatus,
   onPurchaseUpgrade,
+  onConfigureStaffAutomation = () => undefined,
   upgradeStatus,
 }: ClinicHubProps) {
   const { clinic, progressionMode } = saveData.profile;
@@ -557,6 +633,14 @@ export function ClinicHub({
                       <li key={capability}>{capability}</li>
                     ))}
                   </ul>
+                  {offer.owned && offer.upgrade.kind === 'staff' ? (
+                    <StaffAutomationEditor
+                      clinic={clinic}
+                      catalogs={catalogs}
+                      upgrade={offer.upgrade}
+                      onConfigure={onConfigureStaffAutomation}
+                    />
+                  ) : null}
                   {offer.blockers.length > 0 && !offer.owned ? (
                     <p className="upgrade-blocker">{offer.blockers[0]!.message}</p>
                   ) : null}

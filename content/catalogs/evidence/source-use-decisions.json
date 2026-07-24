@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "source-use-decisions.psychsim",
   "decisions": [
     {
@@ -83,6 +83,41 @@
       "reviewedBy": "reviewer.codex-source-rights-audit",
       "reviewedAt": "2026-07-24T17:22:16.000Z",
       "notes": "The user selected DrugCentral as a formal authoring seed rather than cross-check-only. The initial permission intentionally stops at local authoring, indexing, and original derived claim candidates. It does not yet permit AI-assisted processing, runtime redistribution, or commercial distribution. A later implementation must establish an isolated attribution/ShareAlike package and validate upstream provenance before widening those permissions. DrugCentral never determines clinical authority, medical approval, rule activation, or point values."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.nlm.rxnorm-cpc.2026-07-06",
+      "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "territories": ["Global"],
+      "attributionStatement": "This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product.",
+      "requiredNotices": [
+        "Use only the named Current Prescribable Content subset unless a separate UMLS and source-vocabulary rights decision is recorded.",
+        "Retain the exact release date and disclose when a redistributed identity snapshot is not current.",
+        "Acknowledge NLM and do not imply NLM endorsement.",
+        "Treat normalized names, RxCUIs, attributes, and relationships as identity data, not indications, comparative efficacy, contraindications, interactions, monitoring, or medical approval.",
+        "Review any non-RXNORM or third-party material item by item before use."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-24T22:00:00.000Z",
+      "notes": "NLM identifies RxNorm normalized names and codes as U.S. government public-domain data and offers the Current Prescribable Content monthly subset without a license. PsychSim may use the dated subset to normalize a curated psychiatry-first identity allowlist. This decision does not authorize importing the full RxNorm release's proprietary source vocabularies and does not turn identity data into clinical or scoring rules."
     },
     {
       "schemaVersion": 1,

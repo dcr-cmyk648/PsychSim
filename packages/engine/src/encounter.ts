@@ -6,6 +6,7 @@ import {
   type EncounterEvent,
   type EncounterState,
   type InformationActionDefinition,
+  type InformationPurchase,
   type TreatmentSelection,
 } from '@psychsim/schemas';
 
@@ -82,13 +83,20 @@ export const getInformationActionQuote = (
     state.locationId,
     catalogs.services,
     catalogs.locations,
+    { informationActionId: actionId },
   );
 };
+
+interface InformationPurchaseOptions {
+  initiatedBy?: InformationPurchase['initiatedBy'];
+  initiatingStaffUpgradeId?: string | null;
+}
 
 export const purchaseInformationAction = (
   state: EncounterState,
   actionId: string,
   catalogs: CatalogBundle,
+  options: InformationPurchaseOptions = {},
 ): Result<EncounterState> => {
   if (state.status !== 'in_progress') {
     return err({ code: 'ENCOUNTER_LOCKED', message: 'This encounter has already been submitted.' });
@@ -110,13 +118,42 @@ export const purchaseInformationAction = (
   }
   const fulfillment = getInformationActionQuote(state, actionId, catalogs);
   if (!fulfillment.ok) return fulfillment;
-  const purchase = {
+  const initiatedBy = options.initiatedBy ?? 'player';
+  const initiatingStaffUpgradeId = options.initiatingStaffUpgradeId ?? null;
+  if (
+    initiatedBy === 'automatic_intake' &&
+    fulfillment.value.method.requiredStaffUpgradeId !== initiatingStaffUpgradeId
+  ) {
+    return err({
+      code: 'STAFF_AUTOMATION_INVALID',
+      message: `${definition.label} is not configured for that staff workflow.`,
+    });
+  }
+  const ordinaryFulfillment = fulfillment.value.method.requiredStaffUpgradeId
+    ? resolveServiceFulfillment(
+        definition.serviceId,
+        state.clinicState,
+        state.locationId,
+        catalogs.services,
+        catalogs.locations,
+      )
+    : null;
+  const purchase: InformationPurchase = {
     actionId,
     serviceId: definition.serviceId,
     fulfillmentMethodId: fulfillment.value.method.id,
     fulfillmentLabel: fulfillment.value.method.label,
     operatingCost: fulfillment.value.method.operatingCost,
     externalCostAvoided: fulfillment.value.externalCostAvoided,
+    upgradeSavings:
+      ordinaryFulfillment?.ok === true
+        ? Math.max(
+            0,
+            ordinaryFulfillment.value.method.operatingCost - fulfillment.value.method.operatingCost,
+          )
+        : 0,
+    initiatedBy,
+    initiatingStaffUpgradeId,
     result: caseAction.result,
   };
   const event: EncounterEvent = {
@@ -133,6 +170,55 @@ export const purchaseInformationAction = (
       events: [...state.events, event],
     }),
   );
+};
+
+/**
+ * Starts a live encounter and immediately records every configured routine
+ * intake action. The primitive startEncounter remains empty for historical
+ * replay; automatic purchases are ordinary persisted encounter events.
+ */
+export const startEncounterWithAutomaticIntake = (
+  caseInstance: EncounterState['caseInstance'],
+  clinicState: ClinicState,
+  locationId: string,
+  catalogs: CatalogBundle,
+): Result<EncounterState> => {
+  let state = startEncounter(caseInstance, clinicState, locationId);
+  for (const configuration of clinicState.staffConfigurations) {
+    const upgrade = catalogs.upgrades.find(
+      (candidate) => candidate.id === configuration.staffUpgradeId,
+    );
+    if (
+      !upgrade ||
+      upgrade.kind !== 'staff' ||
+      !upgrade.staffAutomation ||
+      !clinicState.ownedUpgradeIds.includes(upgrade.id)
+    ) {
+      return err({
+        code: 'STAFF_AUTOMATION_INVALID',
+        message: `Clinic staff configuration ${configuration.staffUpgradeId} is not available.`,
+      });
+    }
+    const configuredIds = new Set(configuration.automaticInformationActionIds);
+    const orderedIds = upgrade.staffAutomation.eligibleInformationActionIds.filter((id) =>
+      configuredIds.has(id),
+    );
+    for (const actionId of orderedIds) {
+      if (
+        !caseInstance.informationActions.some((action) => action.actionId === actionId) ||
+        state.purchases.some((purchase) => purchase.actionId === actionId)
+      ) {
+        continue;
+      }
+      const purchased = purchaseInformationAction(state, actionId, catalogs, {
+        initiatedBy: 'automatic_intake',
+        initiatingStaffUpgradeId: upgrade.id,
+      });
+      if (!purchased.ok) return purchased;
+      state = purchased.value;
+    }
+  }
+  return ok(state);
 };
 
 const hasDuplicates = (values: readonly string[]): boolean =>

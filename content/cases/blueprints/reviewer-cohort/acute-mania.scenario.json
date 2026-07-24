@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.acute-mania",
   "internalTitle": "Reviewer cohort: acute mania",
   "difficultyTier": 3,
@@ -41,7 +41,56 @@
     "Spending too much",
     "Everyone else is too slow"
   ],
-  "durationChoices": ["six days", "eight days", "ten days", "nearly two weeks"],
+  "durationProfile": {
+    "id": "duration-profile.review-acute-mania.current-episode",
+    "relatedDiagnosisId": "diagnosis.bipolar-spectrum-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-acute-mania.5-days",
+        "value": 5,
+        "unit": "day",
+        "displayValueVariants": ["five days", "about five days"]
+      },
+      {
+        "id": "duration.review-acute-mania.6-days",
+        "value": 6,
+        "unit": "day",
+        "displayValueVariants": ["six days", "about six days"]
+      },
+      {
+        "id": "duration.review-acute-mania.8-days",
+        "value": 8,
+        "unit": "day",
+        "displayValueVariants": ["eight days", "just over a week"]
+      },
+      {
+        "id": "duration.review-acute-mania.10-days",
+        "value": 10,
+        "unit": "day",
+        "displayValueVariants": ["ten days", "about ten days"]
+      },
+      {
+        "id": "duration.review-acute-mania.12-days",
+        "value": 12,
+        "unit": "day",
+        "displayValueVariants": ["twelve days", "nearly two weeks"]
+      },
+      {
+        "id": "duration.review-acute-mania.13-days",
+        "value": 13,
+        "unit": "day",
+        "displayValueVariants": ["thirteen days", "almost two weeks"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "not_at_all",
   "settingText": "Solo psychiatric office · urgent outpatient visit",
   "knownHistory": ["Family accompanied the patient because of an abrupt behavioral change."],

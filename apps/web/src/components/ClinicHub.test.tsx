@@ -126,6 +126,65 @@ describe('ClinicHub', () => {
     expect(onPurchaseUpgrade).toHaveBeenCalledWith('upgrade.equipment.ecg');
   });
 
+  it('lets an owned intake assistant configure a bounded automatic routine', () => {
+    const onConfigureStaffAutomation = vi.fn();
+    const clinic = {
+      ...startingProfile.clinic,
+      clinicPoints: 1_000,
+      lifetimePointsEarned: 1_000,
+      ownedUpgradeIds: ['upgrade.staff.intake-assistant'],
+      staffConfigurations: [
+        {
+          staffUpgradeId: 'upgrade.staff.intake-assistant',
+          automaticInformationActionIds: ['info.history.medication-reconciliation'],
+        },
+      ],
+    };
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 5,
+      profile: { ...startingProfile, clinic },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [],
+      attemptReviews: [],
+      legacyArchive: [],
+    });
+    render(
+      <ClinicHub
+        saveData={saveData}
+        clinicState={clinic}
+        catalogs={catalogs}
+        patientSlots={[]}
+        developerModeAvailable
+        caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
+        sourceRequests={[]}
+        onStart={vi.fn()}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSaveTicketReview={vi.fn()}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={vi.fn()}
+        onConfigureStaffAutomation={onConfigureStaffAutomation}
+        upgradeStatus={null}
+      />,
+    );
+
+    expect(screen.getByRole('group', { name: 'Automatic routine intake' })).toBeVisible();
+    expect(screen.getByText('30 → 18 pts per patient')).toBeVisible();
+    fireEvent.click(screen.getByRole('checkbox', { name: /Depressive symptoms/ }));
+    expect(onConfigureStaffAutomation).toHaveBeenCalledWith('upgrade.staff.intake-assistant', [
+      'info.history.medication-reconciliation',
+      'info.history.depressive-symptoms',
+    ]);
+  });
+
   it('shows threshold-gated facility moves and visible purchased decor', () => {
     const onPurchaseUpgrade = vi.fn();
     const clinic = {

@@ -108,8 +108,14 @@ executable. That shape is transitional and should not be multiplied into hundred
 
 The portable Reviewer cohort exercises a narrow intermediate split without claiming to be the
 final compiler. Each `ReviewCaseScenario` file owns patient state: internal diagnoses, typed
-critical facts, current regimen entries, prior-trial records, short complaint/duration variants,
-structured finding overrides, setting, and one referenced policy ID. Eight shared
+critical facts, current regimen entries, prior-trial records, short complaint variants, one
+structured duration profile, structured finding overrides, setting, and one referenced policy ID.
+A duration profile contains stable numeric value/unit options, short swappable display forms, an
+optional related diagnosis, an authored interpretation, and rule-level review metadata.
+Compilation resolves one option deterministically and saves the profile ID, option ID, numeric
+value, unit, interpretation, related diagnosis, and optional criterion ID in the frozen finding.
+The generated display sentence is presentation only; replay and audit use the saved measurement.
+Eight shared
 `ReviewDecisionPolicy` records own the provisional focused workup/treatment/disposition rubric and
 four executable reference selections. `buildReviewCaseCohort` schema-parses both sets, rejects
 duplicate or missing/orphan policy IDs, fills the universal 36-action menu with patient-specific
@@ -155,6 +161,16 @@ multi-diagnosis composition is separately bounded; its candidates and game weigh
 owned by the patient family rather than globally drawn from diagnosis relationships.
 [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) defines the current boundary.
 
+Clinically meaningful duration uses `ClinicalDurationProfile`, not a cosmetic variant. Every
+option has a stable ID, positive integer value, `day`/`week`/`month`/`year` unit, and short display
+variants. The current Reviewer profiles are labeled `supports_authored_state`: their choices vary
+only within the already-authored episode or decision state and do not change the rubric. A future
+deliberate near miss must instead declare `designed_below_threshold` and name the reviewed
+diagnosis-owned criterion it misses; schema validation rejects an unanchored below-threshold claim.
+This structure does not itself prove a diagnostic threshold or infer a diagnosis. In particular,
+no cyclothymia threshold logic is executable: its temporal discrimination remains pending a lawful
+source and rule-level clinical review.
+
 Instantiation hashes the seed with stable variant IDs. It never calls `Math.random`. Shared catalog pools supply long curated lists for fictional names, occupations, education, locations, and neutral social details; case-local variants supply only reviewed ranges or wording. The starter patient combines name, age within 27–39, occupation, and opening phrasing for well over 100 possible presentations. Variants cannot target protected critical structures or silently affect treatment logic. Tests sample many seeds and compare the full critical/scoring structures.
 
 Each test file declares the patient context it consumes (`age_years`, `sex_for_reference`, `diagnosis_ids`, and/or `clinical_tag_ids`) and either a `numeric_panel` generator or `patient_owned` policy. Numeric profiles have priorities, context predicates, a versionable reference-interval set ID/population label, UCUM units, low/high bounds, narrower normal-generation ranges, display precision, test-specific incidental probabilities, and curated mild low/high ranges. Resolved numeric observations preserve display precision and show result, unit, reference interval, and `N`/`H`/`L` interpretation. See [LAB_RESULTS.md](LAB_RESULTS.md). The current prototype numbers are explicitly unreviewed. When a patient does not own a result, instantiation selects the highest-priority matching profile, generates every component, and may flag at most one component in that panel. Generated observations carry `generated_normal` or `generated_incidental`, `clinicallyCritical: false`, and `notCaseDefining: true`. Validation requires a fallback profile, normal ranges inside reference limits, matching flags, and incidental ranges within 25% of the reference span outside the boundary. A patient-authored observation suppresses generic generation. Findings capable of changing workup, diagnosis, treatment safety, points, or disposition remain critical and require an explicit reviewed patient/variant.
@@ -162,6 +178,16 @@ Each test file declares the patient context it consumes (`age_years`, `sex_for_r
 ## Information and workup
 
 Every information option has two layers. The shared `InformationActionDefinition` catalog owns the stable ID, neutral label and description, History/Physical/Labs/Imaging category, SOAP section, report source, service, and repeatability policy; that same presentation is used in every compatible case. Each patient blueprint supplies only the immediate patient-specific structured result, revealed fact IDs, and default post-submit classification. A result is a list of short finding atoms with swappable labels and explicit outcomes. Variable finding sets declare minimum/maximum positives and required present/absent IDs; they cannot contain arbitrary code. The browser never displays classification or point rationale before submission.
+
+Resolved narrative findings expose their outcome directly. The interface renders a glyph and
+visible outcome chip such as `Present`, `Absent`, `Positive`, or `Negative`, with grouped row
+styling, so a negative result is not conveyed only by muted color or an undifferentiated list item.
+The finite Reviewer compiler also pilots bounded background anxiety variation outside the primary
+GAD scenario: all threshold-relevant atoms are variable and deterministic selection permits zero
+or one positive. The maximum is deliberately subthreshold, does not create an internal diagnosis,
+and does not alter the focused rubric. Additional symptom families require their own reviewed cap,
+required findings/absences, and consistency validation; there is no global unconstrained symptom
+randomizer.
 
 Some actions may reveal a compact summary derived from a larger shared fact family without
 revealing every component. General psychiatric history, for example, includes a routine

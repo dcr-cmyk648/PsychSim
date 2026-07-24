@@ -204,6 +204,15 @@ unrestricted replacement for a commercial drug handbook:
 4. Developer opinion supplies the remaining interpretive delta and remains separately labeled.
 5. Only independently reviewed rules compiled from those records can affect gameplay or points.
 
+The exact identity seed currently registered is the U.S. National Library of Medicine's July 6,
+2026 RxNorm Current Prescribable Content monthly release. NLM describes its normalized names and
+codes as U.S. government public-domain data and offers this subset without a UMLS license. The
+machine-validated source-use decision permits identity normalization, local indexing, and
+redistribution subject to NLM acknowledgement, release/currentness disclosure, and exclusion of
+the full RxNorm release's proprietary source vocabularies. It does not support indications,
+comparative efficacy, contraindications, interactions, monitoring, patient fit, or points. No
+release bytes or importer are included in this checkpoint.
+
 DrugCentral is accepted as a broad `structured_database` authoring seed under CC BY-SA 4.0. The
 source record pins the public 2023-11-01 dump version even though no bytes have yet been
 downloaded. Its initial source-use decision permits local deterministic extraction/indexing and

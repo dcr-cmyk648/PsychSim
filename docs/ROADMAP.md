@@ -58,6 +58,30 @@ post-submit Results selection, reload/reopen recovery, two distinct completed ca
 and one combined exact export. The cohort remains medically unreviewed, and remote bundle import,
 historical re-scoring, and rubric editing remain Milestone 5 work.
 
+Follow-up beta checkpoint: Reviewer symptom duration is now structured numeric/unit case state with
+short swappable displays and deterministic replay. Current ranges only support the already-authored
+episode state; cyclothymia threshold discrimination remains a source/clinical-review ticket rather
+than inferred behavior. Non-GAD Reviewer patients may show at most one deterministic background
+anxiety finding, exercising subthreshold variation without creating a diagnosis or changing the
+rubric. Finding rows display explicit outcome chips and grouped positive/negative states. Receipts
+use one responsive care-point meter and expose attempt-persisted rule provenance in every trace.
+The material cohort revision is namespaced as
+`reviewer-assignment.common-psychiatry.2026-07b`.
+
+Progression follow-up on `beta`: a 900-point Clinical intake assistant, gated at 600 lifetime
+points, can automatically administer up to three selected routine checklist/medication-history
+actions. Each uses the ordinary immutable purchase/event path at a discounted but nonzero
+action-specific cost and earns exactly the same clinical evaluation as manual fulfillment. This
+slice adds no department, salary, capacity queue, virtual time, or automatic treatment decision,
+so it does not begin Milestone 4. Stable `main`/Pages remains unchanged until explicit promotion.
+
+Distribution follow-up on `beta`: an explicitly authorized bounded pre-Milestone-8 slice adds a
+stable iPhone Home Screen manifest/icon set and in-app installation guide. Every promoted `main`
+build emits its exact commit SHA as `version.json`; installed copies check on launch, foreground,
+reconnection, interval, and demand, then offer a safe cache-busting reload without clearing
+IndexedDB. There is deliberately no offline service-worker cache, background sync, or automatic
+mid-case reload. Full PWA/offline/performance hardening remains Milestone 8.
+
 Medication/intervention authoring checkpoint: the target background database now separates
 normalized identity and regulatory facts, structured evidence claims, Developer opinions,
 executable clinical rules, and point balance. Public RxNorm/FDA/NLM sources form the preferred bulk
@@ -133,6 +157,6 @@ Gate: gameplay works without provider/key; browser has no SDK/key/call; all outp
 
 ## Milestone 8 — Scale and hospital progression
 
-Scope: larger catalogs and case families; remaining facility tiers; psychiatric hospital/integrated center; owned laboratory/imaging including late MRI; specialties and challenges; broader decor; PWA/performance hardening.
+Scope: larger catalogs and case families; remaining facility tiers; psychiatric hospital/integrated center; owned laboratory/imaging including late MRI; specialties and challenges; broader decor; offline/service-worker and broader PWA/performance hardening beyond the delivered install/update shell.
 
 Gate: batch validators and seed/property tests scale; every location/case is winnable; content review throughput is measured; challenge cases are clueable; offline/static performance budgets pass; migrations preserve saves and historical reviews.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.mdd-adherence",
   "internalTitle": "Reviewer cohort: MDD with inconsistent adherence",
   "difficultyTier": 2,
@@ -46,7 +46,56 @@
     "Continued anhedonia",
     "Depressive symptoms continue"
   ],
-  "durationChoices": ["two months", "ten weeks", "about three months", "several months"],
+  "durationProfile": {
+    "id": "duration-profile.review-mdd-adherence.current-episode",
+    "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-mdd-adherence.8-weeks",
+        "value": 8,
+        "unit": "week",
+        "displayValueVariants": ["eight weeks", "about two months"]
+      },
+      {
+        "id": "duration.review-mdd-adherence.10-weeks",
+        "value": 10,
+        "unit": "week",
+        "displayValueVariants": ["ten weeks", "about ten weeks"]
+      },
+      {
+        "id": "duration.review-mdd-adherence.12-weeks",
+        "value": 12,
+        "unit": "week",
+        "displayValueVariants": ["twelve weeks", "about three months"]
+      },
+      {
+        "id": "duration.review-mdd-adherence.14-weeks",
+        "value": 14,
+        "unit": "week",
+        "displayValueVariants": ["fourteen weeks", "a little over three months"]
+      },
+      {
+        "id": "duration.review-mdd-adherence.16-weeks",
+        "value": 16,
+        "unit": "week",
+        "displayValueVariants": ["sixteen weeks", "about four months"]
+      },
+      {
+        "id": "duration.review-mdd-adherence.20-weeks",
+        "value": 20,
+        "unit": "week",
+        "displayValueVariants": ["twenty weeks", "about five months"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "very",
   "settingText": "Solo psychiatric office · outpatient medication visit",
   "knownHistory": ["Sertraline appears on the active medication list."],

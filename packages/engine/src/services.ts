@@ -15,11 +15,21 @@ export interface ResolvedServiceFulfillment {
 
 const methodAvailable = (
   method: ServiceFulfillmentMethod,
+  clinicState: ClinicState,
   capabilities: ReadonlySet<string>,
   locationId: string,
+  informationActionId: string | undefined,
 ): boolean =>
   method.requiredCapabilities.every((capability) => capabilities.has(capability)) &&
-  (!method.allowedLocationIds || method.allowedLocationIds.includes(locationId));
+  (!method.allowedLocationIds || method.allowedLocationIds.includes(locationId)) &&
+  (!method.requiredStaffUpgradeId ||
+    (informationActionId !== undefined &&
+      clinicState.ownedUpgradeIds.includes(method.requiredStaffUpgradeId) &&
+      clinicState.staffConfigurations.some(
+        (configuration) =>
+          configuration.staffUpgradeId === method.requiredStaffUpgradeId &&
+          configuration.automaticInformationActionIds.includes(informationActionId),
+      )));
 
 export const resolveServiceFulfillment = (
   serviceId: string,
@@ -27,6 +37,7 @@ export const resolveServiceFulfillment = (
   locationId: string,
   services: readonly ServiceDefinition[],
   locations: readonly LocationDefinition[],
+  context: { informationActionId?: string } = {},
 ): Result<ResolvedServiceFulfillment> => {
   const service = services.find((candidate) => candidate.id === serviceId);
   if (!service) {
@@ -38,7 +49,9 @@ export const resolveServiceFulfillment = (
   }
   const capabilities = new Set([...clinicState.capabilities, ...location.capabilities]);
   const available = [...service.fulfillmentMethods]
-    .filter((method) => methodAvailable(method, capabilities, locationId))
+    .filter((method) =>
+      methodAvailable(method, clinicState, capabilities, locationId, context.informationActionId),
+    )
     .sort(
       (left, right) => left.operatingCost - right.operatingCost || left.id.localeCompare(right.id),
     );

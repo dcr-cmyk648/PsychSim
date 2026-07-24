@@ -28,6 +28,15 @@
         "operatingCost": 30,
         "requiredCapabilities": ["medication-review.basic"],
         "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.staff.medication-review",
+        "label": "Intake assistant medication review",
+        "kind": "in_house",
+        "operatingCost": 18,
+        "requiredCapabilities": ["medication-review.basic"],
+        "requiredStaffUpgradeId": "upgrade.staff.intake-assistant",
+        "qualityModifier": 1
       }
     ]
   },
@@ -75,6 +84,15 @@
         "kind": "in_house",
         "operatingCost": 15,
         "requiredCapabilities": ["medication-review.basic"],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.staff.adherence",
+        "label": "Intake assistant checklist",
+        "kind": "in_house",
+        "operatingCost": 9,
+        "requiredCapabilities": ["medication-review.basic"],
+        "requiredStaffUpgradeId": "upgrade.staff.intake-assistant",
         "qualityModifier": 1
       }
     ]
@@ -307,6 +325,15 @@
         "kind": "in_house",
         "operatingCost": 20,
         "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.staff.standard-checklist",
+        "label": "Intake assistant checklist",
+        "kind": "in_house",
+        "operatingCost": 12,
+        "requiredCapabilities": ["history.basic"],
+        "requiredStaffUpgradeId": "upgrade.staff.intake-assistant",
         "qualityModifier": 1
       }
     ]

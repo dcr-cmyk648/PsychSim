@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "case.review-cohort.schizophrenia-relapse",
   "internalTitle": "Reviewer cohort: schizophrenia relapse",
   "difficultyTier": 3,
@@ -12,7 +12,7 @@
     {
       "id": "diagnosis.schizophrenia-spectrum-disorder",
       "role": "primary",
-      "tagIds": ["diagnosis-tag.psychotic"]
+      "tagIds": ["diagnosis-tag.psychosis"]
     }
   ],
   "clinicalTagIds": [
@@ -42,7 +42,56 @@
     "The television is sending messages",
     "I cannot trust anyone"
   ],
-  "durationChoices": ["five days", "one week", "ten days", "about two weeks"],
+  "durationProfile": {
+    "id": "duration-profile.review-schizophrenia-relapse.current-change",
+    "relatedDiagnosisId": "diagnosis.schizophrenia-spectrum-disorder",
+    "interpretation": "supports_authored_state",
+    "criterionId": null,
+    "options": [
+      {
+        "id": "duration.review-schizophrenia-relapse.4-days",
+        "value": 4,
+        "unit": "day",
+        "displayValueVariants": ["four days", "about four days"]
+      },
+      {
+        "id": "duration.review-schizophrenia-relapse.5-days",
+        "value": 5,
+        "unit": "day",
+        "displayValueVariants": ["five days", "about five days"]
+      },
+      {
+        "id": "duration.review-schizophrenia-relapse.7-days",
+        "value": 7,
+        "unit": "day",
+        "displayValueVariants": ["one week", "about a week"]
+      },
+      {
+        "id": "duration.review-schizophrenia-relapse.10-days",
+        "value": 10,
+        "unit": "day",
+        "displayValueVariants": ["ten days", "about ten days"]
+      },
+      {
+        "id": "duration.review-schizophrenia-relapse.12-days",
+        "value": 12,
+        "unit": "day",
+        "displayValueVariants": ["twelve days", "nearly two weeks"]
+      },
+      {
+        "id": "duration.review-schizophrenia-relapse.14-days",
+        "value": 14,
+        "unit": "day",
+        "displayValueVariants": ["two weeks", "about two weeks"]
+      }
+    ],
+    "review": {
+      "status": "unreviewed",
+      "reviewerId": null,
+      "reviewedAt": null,
+      "sourceUseNoteIds": []
+    }
+  },
   "bothersomeness": "extremely",
   "settingText": "Solo psychiatric office · urgent outpatient visit",
   "knownHistory": ["A schizophrenia-spectrum diagnosis appears in outside records."],

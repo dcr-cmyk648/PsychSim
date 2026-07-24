@@ -87,6 +87,10 @@ describe('developer clinical audit queue', () => {
         expect.objectContaining({ id: 'source-request.mdd.tsh-workup' }),
         expect.objectContaining({ id: 'source-request.mdd.severity-thresholds' }),
         expect.objectContaining({
+          id: 'source-request.cyclothymia.duration-discrimination',
+          status: 'needs_source',
+        }),
+        expect.objectContaining({
           id: 'source-request.mdd.suicide-risk-disposition',
           status: 'source_received',
           receivedEvidenceSourceIds: ['evidence.va-dod.suicide-risk.2024'],
@@ -163,6 +167,27 @@ describe('developer clinical audit queue', () => {
       sourceKind: 'engine_audit',
       ticketType: 'source_gap',
       requiresClinicalAcumen: false,
+    });
+  });
+
+  it('queues source-safe medication, therapy, and diagnosis catalog expansion work', () => {
+    const byId = new Map(developerClinicalAuditTickets.map((ticket) => [ticket.id, ticket]));
+    expect(byId.get('ticket.catalog.medications.psychiatry-allowlist')).toMatchObject({
+      status: 'accepted_for_workflow',
+      requiresClinicalAcumen: true,
+      targetContentIds: expect.arrayContaining(['evidence.nlm.rxnorm-cpc.2026-07-06']),
+    });
+    expect(byId.get('ticket.catalog.medications.current-rule-provenance')).toMatchObject({
+      ticketType: 'source_gap',
+      status: 'proposed',
+    });
+    expect(byId.get('ticket.catalog.interventions.identity-and-fidelity')).toMatchObject({
+      status: 'accepted_for_workflow',
+      requiresClinicalAcumen: true,
+    });
+    expect(byId.get('ticket.catalog.diagnoses.common-outpatient-coverage')).toMatchObject({
+      status: 'proposed',
+      requiresClinicalAcumen: true,
     });
   });
 

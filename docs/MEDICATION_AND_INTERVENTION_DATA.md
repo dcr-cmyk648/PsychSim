@@ -556,8 +556,10 @@ The decisions should be presented and resolved in this order because each affect
 1. **DrugCentral boundary — resolved:** use its CC BY-SA database as a versioned authoring seed
    behind an authoring-only ShareAlike/provenance gate. Do not import bytes until the isolated
    importer boundary exists.
-2. **Initial medication scope:** begin with a curated board-relevant psychiatry list or import every
-   U.S. psychiatric-labeled ingredient before review.
+2. **Initial medication scope — resolved:** begin with a curated, board-relevant psychiatry
+   ingredient allowlist. Do not import every U.S. psychiatric-labeled product. The first proposed
+   identities live in `ticket.catalog.medications.psychiatry-allowlist`; inclusion there is an
+   authoring-review candidate, not a formulary choice or clinical recommendation.
 3. **Formulation depth:** define the minimum rules for when IR/SR/XL, LAI, transdermal, sublingual,
    intranasal, and combination products become separate game interventions.
 4. **Adverse-effect representation:** choose the smallest qualitative severity/frequency model
@@ -569,4 +571,5 @@ The decisions should be presented and resolved in this order because each affect
 7. **Update cadence:** decide which source changes require immediate tickets versus a scheduled
    authoring review.
 
-Only the next unresolved decision should be presented to the user at the next workshop step.
+Only the next unresolved decision—formulation depth—should be presented to the user at the next
+workshop step.

@@ -40,23 +40,37 @@ const neutralOutcome = (
 const neutralAction = (
   source: CaseInformationActionBlueprint,
   caseToken: string,
-): CaseInformationActionBlueprint => ({
-  actionId: source.actionId,
-  defaultClassification:
-    source.defaultClassification === 'wasteful' || source.defaultClassification === 'low_value'
-      ? source.defaultClassification
-      : 'defensible',
-  result: {
-    kind: 'finding_set',
-    findings: source.result.findings.map((finding, index) => ({
-      id: `finding.${caseToken}.${actionToken(source.actionId)}.${index + 1}`,
-      labelVariants: finding.labelVariants,
-      outcome: neutralOutcome(finding.outcome),
-    })),
-    shuffle: source.result.shuffle,
-    factsRevealed: [`fact.${caseToken}.${actionToken(source.actionId)}`],
-  },
-});
+): CaseInformationActionBlueprint => {
+  const allowsBackgroundAnxietyVariation = source.actionId === 'info.history.anxiety-symptoms';
+  const findings = source.result.findings.map((finding, index) => ({
+    id: `finding.${caseToken}.${actionToken(source.actionId)}.${index + 1}`,
+    labelVariants: finding.labelVariants,
+    outcome: allowsBackgroundAnxietyVariation
+      ? ('variable' as const)
+      : neutralOutcome(finding.outcome),
+  }));
+  return {
+    actionId: source.actionId,
+    defaultClassification:
+      source.defaultClassification === 'wasteful' || source.defaultClassification === 'low_value'
+        ? source.defaultClassification
+        : 'defensible',
+    result: {
+      kind: 'finding_set',
+      findings,
+      selection: allowsBackgroundAnxietyVariation
+        ? {
+            minimumPresent: 0,
+            maximumPresent: 1,
+            requiredPresentIds: [],
+            requiredAbsentIds: [],
+          }
+        : undefined,
+      shuffle: source.result.shuffle,
+      factsRevealed: [`fact.${caseToken}.${actionToken(source.actionId)}`],
+    },
+  };
+};
 
 const durationAction = (
   scenario: ReviewCaseScenario,
@@ -67,10 +81,12 @@ const durationAction = (
       id: `finding.${caseToken}.timeline.duration`,
       labelVariants: ['Symptom duration', 'Current episode duration', 'Time course'],
       outcome: 'present',
-      valueTextVariants: scenario.durationChoices.flatMap((duration) => [
-        `Symptoms have been occurring for ${duration}.`,
-        `Symptoms have been present for ${duration}.`,
-      ]),
+      valueTextVariants: [
+        'Symptoms have been present for {{duration}}.',
+        'Current symptoms began {{duration}} ago.',
+        'The current problem has lasted {{duration}}.',
+      ],
+      durationProfile: scenario.durationProfile,
     },
     {
       id: `finding.${caseToken}.timeline.impact`,
