@@ -6,6 +6,11 @@ Last updated: 2026-07-25
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current beta database-inspection checkpoint:
+  `0b714e65af4d4d128f85933d433141d64e16fe23`
+  (`Add safe cross-device database browser`). It adds the strict public catalog projection and the
+  shared desktop/mobile Database screen without exposing cases, point rules, private sources,
+  tickets, or the local classification cache. It is pushed to `origin/beta`.
 - Current beta feature checkpoint:
   `8d78c078ba60b7e67f7934c714773aa277b64769`
   (`Incorporate mobile regimen review feedback`). It contains assignment `2026-07f`, the bounded
@@ -30,9 +35,8 @@ Last updated: 2026-07-25
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
 - The deployed cache-busted `version.json` independently returned exact release
   `8d78c078ba60b7e67f7934c714773aa277b64769`, build kind `portable_reviewer`, and channel `main`.
-- The working copy is on `beta`. Feature content still matches `main`; the private-authoring
-  workflow is intentionally beta-only and is pushed to `origin/beta` with its durable-state
-  follow-up. It has not been promoted to `main`.
+- The working copy is on `beta`. The private-authoring workflow and the new Database screen are
+  beta-only and pushed to `origin/beta`; neither has been promoted to `main`.
 - Local Developer remains available at `http://127.0.0.1:4318/`. A dedicated current portable
   Reviewer server is verified at `http://127.0.0.1:4319/`.
 
@@ -54,6 +58,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
    first title/plaintext source revision is classified only into unreviewed candidates.
 6. Keep validated runtime content, scoring/provenance, and the finite Reviewer ticket assignment
    current on `main`; reserve beta-only quarantine for materially risky UI or app mechanisms.
+7. Let reviewers inspect the modeled runtime catalog through a minimized read-only projection;
+   never turn that surface into filesystem access, an answer-key browser, or a route to private
+   authoring data.
 
 ## Portable Reviewer and gameplay checkpoint
 
@@ -61,6 +68,18 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
+- Every hub now exposes a shared read-only Database screen. It contains 102 public-safe records:
+  8 modeled conditions, 13 medications, 13 nonmedication interventions, 3 dispositions, 40 shared
+  investigations, 14 test definitions, and 11 formal bibliography records.
+- The Database projection is a strict schema allowlist with deterministic ordering, exact category
+  and source-ID parity, unique IDs/logical paths, HTTPS-only source links, and minimized public
+  correction/update relationships. It omits patient/case records, point values, predicates,
+  modifier/rule counts, generation status, review queues, private provenance, and authoring-only
+  diagnosis terms. The logical locators it shows are not host filesystem paths.
+- The Database screen defaults to modeled conditions, searches within a selected category or all
+  categories, collapses records by default, and restores keyboard focus to its launcher on return.
+  At phone widths its category rail scrolls horizontally without obscuring update controls or
+  creating document-wide overflow.
 - Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07f`. A material cohort or policy
   change must bump this ID again.
 - The ten scenarios cover five MDD decision states plus initial GAD, bipolar depression, acute
@@ -255,6 +274,31 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Intake still cannot directly create evidence contributions, accepted Developer opinions, rules,
   points, citations, tickets, or medical approval. The 116 OCR outputs and all HTML, attachment,
   composite, and extracted-chunk content remain explicitly outside this semantic pilot.
+
+## Verification for database-inspection checkpoint `0b714e6`
+
+- `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` pass.
+- `pnpm test` passes 35 TypeScript test files / 245 tests plus all 10 handoff tests.
+- The strict public-projection tests prove exact parity for every exposed runtime category,
+  deterministic sorting under reordered inputs, unique categories/entries/paths/components, the
+  nested public relation allowlist, HTTPS-only source links, and rejection of scoring/private
+  fields.
+- `pnpm content:validate`, `pnpm content:sources:validate`,
+  `pnpm content:notes:validate`, `pnpm content:diagnoses:validate`, `pnpm content:compile`,
+  `pnpm content:evidence`, and `pnpm demo:reference-runs` pass.
+- `pnpm build` passes the Player bundle-safety scan (11 files); `pnpm build:reviewer` passes the
+  portable Reviewer bundle-safety scan (15 files). Both retain only the existing nonblocking Vite
+  large-chunk warning.
+- `pnpm test:e2e` passes all 5 desktop Player/Developer/Endgame tests. The Database journey checks
+  focus, search, collapsed metadata, answer-key exclusion, unchanged profile/queue state, and
+  focus restoration.
+- `pnpm test:e2e:reviewer` passes all 4 portable phone tests at 390 and 320 pixels. It traverses
+  modeled conditions, medications, the far-right formal-reference category, a long expanded
+  citation, no-result private-ticket searches, no page-wide overflow, return focus, multi-patient
+  feedback, persistence, and exact export.
+- The first sandboxed `tsx`/Playwright launches were unable to create a temporary IPC socket or
+  bind a loopback test port. The identical read-only commands passed outside that sandbox; this
+  was an execution-environment restriction, not a project failure.
 
 ## Verification for personal-knowledge checkpoint `f6e6ae0`
 
@@ -524,6 +568,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `packages/content-runtime/src/reviewer-policies.ts`
 - `apps/web/src/App.tsx`
 - `apps/web/src/components/ClinicHub.tsx`
+- `apps/web/src/components/DatabaseBrowser.tsx`
 - `apps/web/src/components/EncounterView.tsx`
 - `apps/web/src/components/ReceiptView.tsx`
 - `apps/web/src/styles.css`
@@ -537,6 +582,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `apps/web/src/components/PersonalKnowledgeWorkbench.tsx`
 - `apps/web/personal-knowledge-workbench-plugin.ts`
 - `packages/schemas/src/index.ts`
+- `packages/content-runtime/src/public-clinical-catalog.ts`
 - `tools/content-cli/src/refresh-ticket-literature.ts`
 - `content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json`
 - `content/catalogs/reactions/reaction-concepts.json`
@@ -544,6 +590,17 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `.github/workflows/pages.yml`
 
 ## Exact next action
+
+Open **Database** from the hub at `http://127.0.0.1:4318/` and review the modeled-condition,
+medication, intervention, investigation, test, and reference inventories. Confirm whether the
+minimized public view is the desired reviewer-facing depth. The larger 1,112-term local ICD index
+is intentionally absent; adding a full classification inspector remains a separate rights and
+local-versus-portable distribution decision.
+
+The Database feature is pushed on `beta` but not distributed on `main`. Do not silently
+cherry-pick it around the beta-only private-authoring checkpoint or promote that private workflow.
+If the user wants the phone Pages artifact updated next, first make the release boundary an
+explicit bounded decision and preserve the Player/Reviewer bundle-isolation gates.
 
 On the local Developer server, switch to **Developer** mode and expand **Personal knowledge
 workbench**. Review the seven initial-MDD-antidepressant Developer-opinion candidates one at a time.
