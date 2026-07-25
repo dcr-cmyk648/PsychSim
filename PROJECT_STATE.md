@@ -19,8 +19,9 @@ Last updated: 2026-07-25
 - Released feature checkpoint: `8d78c078ba60b7e67f7934c714773aa277b64769`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
-- Beta workflow `30168035942` passed every verification gate, including iPhone/WebKit; its Pages
-  jobs skipped as intended.
+- Beta workflow `30170704601` passed every verification gate for
+  `901aca33ec9353cf677d85d34db446f0223e7865`, including iPhone/WebKit and both bundle-safety
+  builds; its Pages jobs skipped as intended.
 - `origin/main` is `8d78c078ba60b7e67f7934c714773aa277b64769`. Main workflow `30168178421`
   repeated the full matrix, packaged the portable Reviewer, and deployed Pages.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
