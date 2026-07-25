@@ -12,6 +12,15 @@ chief complaint, and setting; hidden case labels, diagnoses, decision-policy nam
 organizations are never launcher copy. No external service, account, API key, backend, or AI call
 is required to play.
 
+The clinic hub also has a **Database** button on desktop and mobile. It opens a read-only,
+searchable view of the public-safe catalog compiled into that exact build: currently 8 modeled
+condition definitions, 13 medications, 13 therapies/interventions, 3 dispositions, 40 shared
+investigations, 14 test definitions, and 11 formal bibliography records. Records are collapsed by
+default and show stable IDs plus logical catalog locators. This is intentionally not direct
+filesystem access or a comprehensive diagnostic manual. Patient answer keys, points and scoring
+predicates, and review tickets stay outside this Database view. Private notes/source text and the
+local authoring-only ICD index also stay outside the portable bundle.
+
 ## Quick start
 
 Requirements: Node 22+ and pnpm 10.13.1.

@@ -85,6 +85,16 @@ the ordinary Player bundles only deliberately imported approved content; local D
 the exact finite Reviewer assignment are controlled, explicit exceptions rather than registry
 discovery or lifecycle promotion.
 
+`PublicClinicalCatalogProjection` is a nonpersistent presentation view derived from that approved
+runtime subset. It has a strict per-record field allowlist and exposes neutral identities,
+categories, stable IDs, versions, test component labels/units, and
+verified bibliography metadata. It deliberately omits patient/case records, executable rules,
+points, predicates, fit-modifier details, private provenance, review queues, and classification
+term caches. Its logical catalog locators are stable navigation hints, not host filesystem paths.
+The current eight condition records are the diagnosis families modeled for gameplay, not a
+comprehensive diagnostic manual; the larger local ICD authoring index remains separately
+rights-gated and runtime-excluded.
+
 Each medication has its own definition file. It owns human-readable class labels and stable
 runtime tags plus separate arrays for active fit modifiers and protected human author overrides.
 Every current medication has at least one class label, but executable rules must use stable tags;

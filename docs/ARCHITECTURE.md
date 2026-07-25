@@ -92,6 +92,17 @@ export bundles. The normal root index exports none of these reviewer modules. It
 inspector derives compact review rows from parsed blueprints and catalogs; it does not duplicate
 point evaluation or mutate content.
 
+The ordinary root also exports a derived `PublicClinicalCatalogProjection` for the cross-device
+Database screen. A strict Zod union and fixed category builder copy only neutral, explicitly
+allowlisted fields from modeled conditions, medications, nonmedication interventions,
+dispositions, shared investigations, test definitions, and formal bibliography records. The
+projection is deterministic, read-only, and generated at build time; it does not traverse
+`content/registry.json`, expose actual filesystem paths, or persist a second database. Patient
+records, case solutions, point values, scoring predicates, medication-fit details, tickets,
+private source material, and authoring-only classification terms never enter it. Logical catalog
+locators help a reviewer identify a record without claiming access to the Mac or phone filesystem.
+The same minimized projection is safe for Player, local Developer, and portable Reviewer builds.
+
 Formal source metadata is static content under `content/catalogs/evidence/formal`, distinct from
 private document/database bytes. It covers publications plus structured databases and includes
 version/scope fields, access/reuse/AI/local-extraction policy, and validated relationships for

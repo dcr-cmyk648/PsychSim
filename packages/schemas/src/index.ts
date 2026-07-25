@@ -782,6 +782,277 @@ export const CatalogBundleSchema = z
   .strict();
 export type CatalogBundle = z.infer<typeof CatalogBundleSchema>;
 
+export const PublicClinicalCatalogCategoryIdSchema = z.enum([
+  'conditions',
+  'medications',
+  'interventions',
+  'dispositions',
+  'investigations',
+  'tests',
+  'references',
+]);
+export type PublicClinicalCatalogCategoryId = z.infer<typeof PublicClinicalCatalogCategoryIdSchema>;
+
+const PublicClinicalCatalogEntryBaseSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(600),
+    logicalPath: z.string().min(1).max(800),
+    contentVersion: ContentVersionSchema.nullable(),
+    medicalReviewStatus: MedicalReviewStatusSchema.nullable(),
+  })
+  .strict();
+
+export const PublicClinicalCatalogConditionEntrySchema =
+  PublicClinicalCatalogEntryBaseSchema.extend({
+    kind: z.literal('condition'),
+    categoryId: z.literal('conditions'),
+    description: z.string().min(1).max(600),
+    severityLevels: z.array(
+      z
+        .object({
+          id: StableIdSchema,
+          label: z.string().min(1).max(180),
+        })
+        .strict(),
+    ),
+    specifierLabels: z.array(z.string().min(1).max(180)),
+  }).strict();
+
+export const PublicClinicalCatalogMedicationEntrySchema =
+  PublicClinicalCatalogEntryBaseSchema.extend({
+    kind: z.literal('medication'),
+    categoryId: z.literal('medications'),
+    classes: z.array(z.string().min(1).max(180)).min(1),
+  }).strict();
+
+export const PublicClinicalCatalogTreatmentEntrySchema =
+  PublicClinicalCatalogEntryBaseSchema.extend({
+    kind: z.enum(['intervention', 'disposition']),
+    categoryId: z.enum(['interventions', 'dispositions']),
+    treatmentCategory: z.enum([
+      'psychotherapy',
+      'behavioral',
+      'education',
+      'coping',
+      'sleep',
+      'disposition',
+    ]),
+    requiredCapabilityCount: z.number().int().nonnegative(),
+  })
+    .strict()
+    .superRefine((entry, context) => {
+      if (
+        (entry.kind === 'intervention' && entry.categoryId !== 'interventions') ||
+        (entry.kind === 'disposition' && entry.categoryId !== 'dispositions')
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categoryId'],
+          message: 'Treatment entry kind and public category must agree.',
+        });
+      }
+    });
+
+export const PublicClinicalCatalogInvestigationEntrySchema =
+  PublicClinicalCatalogEntryBaseSchema.extend({
+    kind: z.literal('investigation'),
+    categoryId: z.literal('investigations'),
+    description: z.string().min(1).max(600),
+    investigationCategory: z.enum(['history', 'physical', 'labs', 'imaging']),
+    soapSection: z.enum(['subjective', 'objective']),
+    resultSource: z.enum([
+      'patient_report',
+      'collateral_report',
+      'record_review',
+      'clinician_observation',
+      'measurement',
+      'laboratory',
+      'diagnostic_study',
+    ]),
+    repeatable: z.boolean(),
+  }).strict();
+
+export const PublicClinicalCatalogTestEntrySchema = PublicClinicalCatalogEntryBaseSchema.extend({
+  kind: z.literal('test'),
+  categoryId: z.literal('tests'),
+  testCategory: z.enum(['laboratory', 'diagnostic_study']),
+  generatorKind: z.enum(['numeric_panel', 'patient_owned']),
+  relatedActionId: StableIdSchema,
+  componentCount: z.number().int().nonnegative(),
+  components: z.array(
+    z
+      .object({
+        id: StableIdSchema,
+        label: z.string().min(1).max(180),
+        unit: z.string().min(1).max(80),
+      })
+      .strict(),
+  ),
+})
+  .strict()
+  .superRefine((entry, context) => {
+    if (entry.componentCount !== entry.components.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['componentCount'],
+        message: 'Public test component count must equal its component summaries.',
+      });
+    }
+  });
+
+export const PublicClinicalCatalogReferenceEntrySchema =
+  PublicClinicalCatalogEntryBaseSchema.extend({
+    kind: z.literal('reference'),
+    categoryId: z.literal('references'),
+    sourceType: FormalEvidenceSourceTypeSchema,
+    authors: z.array(z.string().min(1).max(160)),
+    organization: z.string().min(1).max(240).nullable(),
+    publicationDate: PartialPublicationDateSchema,
+    versionLabel: z.string().min(1).max(240).nullable(),
+    containerTitle: z.string().min(1).max(300).nullable(),
+    doi: z
+      .string()
+      .regex(/^10\.\d{4,9}\/\S+$/i)
+      .nullable(),
+    pmid: z.string().regex(/^\d+$/).nullable(),
+    citation: z.string().min(1).max(1200),
+    url: z
+      .string()
+      .url()
+      .refine((value) => /^https:\/\//i.test(value), 'Public source URLs must use HTTPS.'),
+    bibliographicStatus: z.enum(['unreviewed', 'verified']),
+    jurisdictions: z.array(z.string().min(1).max(160)),
+    populations: z.array(z.string().min(1).max(240)),
+    settings: z.array(z.string().min(1).max(240)),
+    sourceRelations: z.array(
+      z
+        .object({
+          sourceId: StableIdSchema,
+          relationType: EvidenceSourceRelationTypeSchema,
+        })
+        .strict(),
+    ),
+  }).strict();
+
+export const PublicClinicalCatalogEntrySchema = z.union([
+  PublicClinicalCatalogConditionEntrySchema,
+  PublicClinicalCatalogMedicationEntrySchema,
+  PublicClinicalCatalogTreatmentEntrySchema,
+  PublicClinicalCatalogInvestigationEntrySchema,
+  PublicClinicalCatalogTestEntrySchema,
+  PublicClinicalCatalogReferenceEntrySchema,
+]);
+export type PublicClinicalCatalogEntry = z.infer<typeof PublicClinicalCatalogEntrySchema>;
+
+export const PublicClinicalCatalogProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    projectionVersion: z.literal(1),
+    catalogContentVersion: ContentVersionSchema,
+    totalEntryCount: z.number().int().nonnegative(),
+    categories: z.array(
+      z
+        .object({
+          id: PublicClinicalCatalogCategoryIdSchema,
+          label: z.string().min(1).max(120),
+          description: z.string().min(1).max(600),
+          entryCount: z.number().int().nonnegative(),
+        })
+        .strict(),
+    ),
+    entries: z.array(PublicClinicalCatalogEntrySchema),
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    const expectedCategoryIds = PublicClinicalCatalogCategoryIdSchema.options;
+    const seenCategoryIds = new Set<PublicClinicalCatalogCategoryId>();
+    projection.categories.forEach((category, index) => {
+      if (seenCategoryIds.has(category.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categories', index, 'id'],
+          message: `Public catalog category ${category.id} is duplicated.`,
+        });
+      }
+      seenCategoryIds.add(category.id);
+    });
+    for (const expectedCategoryId of expectedCategoryIds) {
+      if (!seenCategoryIds.has(expectedCategoryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categories'],
+          message: `Public catalog category ${expectedCategoryId} is missing.`,
+        });
+      }
+    }
+
+    if (projection.totalEntryCount !== projection.entries.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['totalEntryCount'],
+        message: 'Public catalog total must equal its projected entry count.',
+      });
+    }
+    projection.categories.forEach((category, index) => {
+      const actualCount = projection.entries.filter(
+        (entry) => entry.categoryId === category.id,
+      ).length;
+      if (category.entryCount !== actualCount) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categories', index, 'entryCount'],
+          message: `Public catalog category ${category.id} has an incorrect count.`,
+        });
+      }
+    });
+
+    const seenEntryIds = new Set<string>();
+    const seenLogicalPaths = new Set<string>();
+    projection.entries.forEach((entry, index) => {
+      if (seenEntryIds.has(entry.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['entries', index, 'id'],
+          message: `Public catalog entry ${entry.id} is duplicated.`,
+        });
+      }
+      seenEntryIds.add(entry.id);
+
+      const expectedLogicalPath = `catalogs.${entry.categoryId}.${entry.id}`;
+      if (entry.logicalPath !== expectedLogicalPath) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['entries', index, 'logicalPath'],
+          message: `Public catalog entry ${entry.id} has an invalid logical path.`,
+        });
+      }
+      if (seenLogicalPaths.has(entry.logicalPath)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['entries', index, 'logicalPath'],
+          message: `Public catalog logical path ${entry.logicalPath} is duplicated.`,
+        });
+      }
+      seenLogicalPaths.add(entry.logicalPath);
+
+      if (entry.kind === 'test') {
+        const componentIds = new Set<string>();
+        entry.components.forEach((component, componentIndex) => {
+          if (componentIds.has(component.id)) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['entries', index, 'components', componentIndex, 'id'],
+              message: `Public test component ${component.id} is duplicated.`,
+            });
+          }
+          componentIds.add(component.id);
+        });
+      }
+    });
+  });
+export type PublicClinicalCatalogProjection = z.infer<typeof PublicClinicalCatalogProjectionSchema>;
+
 export const DiagnosisClassificationCodeSchema = z
   .string()
   .regex(

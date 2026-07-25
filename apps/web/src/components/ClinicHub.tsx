@@ -43,6 +43,7 @@ interface ClinicHubProps {
   ticketLiteratureScoutCatalog?: TicketLiteratureScoutCatalog | null;
   developerKnowledgeWorkbench?: ReactNode;
   onStart: (slotId: string) => void;
+  onOpenDatabase?: () => void;
   onOpenSavedAttempt?: (attemptId: string) => void;
   onSetMode: (mode: ProgressionMode) => void;
   onRefresh: () => void;
@@ -443,6 +444,7 @@ export function ClinicHub({
   ticketLiteratureScoutCatalog = null,
   developerKnowledgeWorkbench = null,
   onStart,
+  onOpenDatabase = () => undefined,
   onOpenSavedAttempt = () => undefined,
   onSetMode,
   onRefresh,
@@ -562,6 +564,14 @@ export function ClinicHub({
               )
             )}
           </div>
+          <button
+            id="database-launch-button"
+            className="secondary-button database-launch-button"
+            type="button"
+            onClick={onOpenDatabase}
+          >
+            Database
+          </button>
         </div>
       </section>
 

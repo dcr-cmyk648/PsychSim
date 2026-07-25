@@ -32,7 +32,9 @@ The handoff command never stages, commits, pushes, resets, restores, or merges f
 - `packages/content-runtime/`: its ordinary root/Player entry imports approved runtime content,
   parses it, validates references, and exposes fixtures/reference runs. The explicit
   development-only `./developer` and finite static `./reviewer` subpaths are quarantined
-  exceptions and must never leak through the root entry.
+  exceptions and must never leak through the root entry. Its cross-device Database projection is
+  a strict, schema-parsed allowlist of neutral runtime-catalog fields; it is not the raw catalog,
+  registry, filesystem, or an authoring-data endpoint.
 - `content/registry.json`: persistent stable-ID-to-file relationship map; keep it synchronized with explicit runtime imports.
 - `content/catalogs/`: stable-ID catalogs. Investigation menus are shared; each test and medication has its own definition file; curated demographic pools live here.
 - `content/cases/{blueprints,drafts,review,approved,deprecated}/`: explicit content lifecycle. The
@@ -42,6 +44,13 @@ The handoff command never stages, commits, pushes, resets, restores, or merges f
 - `tools/content-cli/`: developer-side deterministic validation and reference runners. Later ingestion/AI tools remain here, never in the web bundle.
 - `tests/`: cross-package and Playwright acceptance tests.
 - `docs/`: product, architecture, scoring, content, review, ingestion, roadmap, and decision contracts.
+
+The Player and portable Reviewer Database screen may consume only the minimized public catalog
+projection from the ordinary `@psychsim/content-runtime` entry. It must not dynamically traverse
+the registry or filesystem, import Developer/Reviewer content, expose patient records or answer
+keys, reveal point rules or predicates, or serialize private notes, source chunks, tickets, and
+authoring-only classification caches. Add new visible categories and fields through the strict
+projection schema and boundary tests first.
 
 ## Branch and release workflow
 

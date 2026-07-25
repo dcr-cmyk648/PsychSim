@@ -1,5 +1,40 @@
 import { expect, test } from '@playwright/test';
 
+test('browses the safe runtime database without changing the clinic', async ({ page }) => {
+  await page.goto('/');
+  const waitingPatient = await page.locator('.case-card h3').first().textContent();
+
+  await page.getByRole('button', { name: 'Database' }).click();
+  await expect(page.getByRole('heading', { name: 'Database', level: 1 })).toBeFocused();
+  await expect(page.getByRole('button', { name: /Modeled conditions 8/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.getByText('Major depressive disorder')).toBeVisible();
+  await expect(page.getByText(/not a comprehensive diagnostic manual/i)).toBeVisible();
+
+  await page.getByRole('button', { name: /Medications 13/ }).click();
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('sertraline');
+  await expect(page.getByRole('status')).toContainText('1 matches');
+  const sertraline = page
+    .locator('.database-record')
+    .filter({ has: page.getByText('Sertraline', { exact: true }) });
+  await sertraline.locator('summary').click();
+  await expect(sertraline).toContainText('SSRI antidepressant');
+  await expect(sertraline).not.toContainText('pointDelta');
+
+  await page.getByRole('button', { name: /All 102/ }).click();
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('ticket.');
+  await expect(page.getByRole('status')).toContainText('0 matches');
+  await expect(page.getByText(/No catalog records match/)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Back to clinic' }).click();
+  await expect(page.getByRole('heading', { name: 'Lakeshore Psychiatric Office' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Database' })).toBeFocused();
+  await expect(page.locator('.profile-stats').getByText('250', { exact: true })).toBeVisible();
+  await expect(page.locator('.case-card h3').first()).toHaveText(waitingPatient ?? '');
+});
+
 test('completes a patient, stores review guidance, and preserves the profile and queue', async ({
   page,
 }) => {

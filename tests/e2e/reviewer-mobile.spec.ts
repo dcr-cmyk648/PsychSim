@@ -81,6 +81,43 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
 }) => {
   await page.goto('/');
 
+  await page.getByRole('button', { name: 'Database' }).click();
+  await expect(page.getByRole('heading', { name: 'Database', level: 1 })).toBeFocused();
+  await expectDocumentFitsViewport(page);
+  const conditionCategory = page.getByRole('button', { name: /Modeled conditions 8/ });
+  await expect(conditionCategory).toHaveAttribute('aria-pressed', 'true');
+  await expectWithinHorizontalViewport(conditionCategory);
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('major depressive');
+  await expect(page.getByText('Major depressive disorder')).toBeVisible();
+  await expectDocumentFitsViewport(page);
+
+  const medicationCategory = page.getByRole('button', { name: /Medications 13/ });
+  await medicationCategory.click();
+  await expectWithinHorizontalViewport(medicationCategory);
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('sertraline');
+  await expect(page.getByText('Sertraline', { exact: true })).toBeVisible();
+  await expectDocumentFitsViewport(page);
+
+  const referencesCategory = page.getByRole('button', { name: /Formal references 11/ });
+  await referencesCategory.click();
+  await expectWithinHorizontalViewport(referencesCategory);
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('CANMAT');
+  const canmatReference = page
+    .locator('.database-record')
+    .filter({ has: page.getByText('evidence.canmat.mdd-adults.2023-update', { exact: true }) });
+  await canmatReference.locator('summary').click();
+  await expect(canmatReference.getByRole('link', { name: 'Open source page' })).toBeVisible();
+  await expectDocumentFitsViewport(page);
+
+  await page.getByRole('button', { name: /All 102/ }).click();
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('ticket.reviewer-cohort');
+  await expect(page.getByRole('status')).toContainText('0 matches');
+  await expect(page.getByText(/No catalog records match/)).toBeVisible();
+  await expect(page.getByText('Personal knowledge workbench')).toHaveCount(0);
+  await expectDocumentFitsViewport(page);
+  await page.getByRole('button', { name: 'Back to clinic' }).click();
+  await expect(page.getByRole('button', { name: 'Database' })).toBeFocused();
+
   await expect(page.getByRole('button', { name: 'Reviewer' })).toHaveAttribute(
     'aria-pressed',
     'true',

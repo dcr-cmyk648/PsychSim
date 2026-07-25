@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ComponentType } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import {
   ClinicalReviewTicketSchema,
   CompletedAttemptSchema,
@@ -19,6 +19,7 @@ import {
 import {
   approvedCaseBlueprints,
   catalogs,
+  publicClinicalCatalog,
   startingProfile,
   type CaseRuleAudit,
   type DeveloperOpinionReferenceNeed,
@@ -42,6 +43,7 @@ import {
 } from '@psychsim/engine';
 
 import { ClinicHub, type PatientSlotPreview } from './components/ClinicHub';
+import { DatabaseBrowser } from './components/DatabaseBrowser';
 import { DistributionControls } from './components/DistributionControls';
 import { EncounterView } from './components/EncounterView';
 import { MobileWorkflowTabs, type MobileWorkflowPane } from './components/MobileWorkflowTabs';
@@ -51,7 +53,7 @@ import { mergeDeveloperAuditTickets } from './developer-review-state';
 import { IndexedDbSaveRepository } from './persistence';
 import { buildReferenceSolutionAudit } from './reference-audit';
 
-type Screen = 'hub' | 'encounter' | 'receipt';
+type Screen = 'hub' | 'database' | 'encounter' | 'receipt';
 
 const REVIEWER_BUILD = import.meta.env.VITE_PSYCHSIM_REVIEW_BUILD === '1';
 const REVIEW_TOOLS_ENABLED = import.meta.env.DEV || REVIEWER_BUILD;
@@ -112,6 +114,7 @@ const withFilledQueues = (
 };
 
 export default function App() {
+  const returnFocusId = useRef<string | null>(null);
   const repository = useMemo(
     () =>
       new IndexedDbSaveRepository(
@@ -248,9 +251,14 @@ export default function App() {
           ? 'patient-chart-title'
           : screen === 'receipt'
             ? 'receipt-title'
-            : null;
+            : screen === 'database'
+              ? 'database-title'
+              : screen === 'hub'
+                ? returnFocusId.current
+                : null;
       if (destinationHeadingId) {
         document.getElementById(destinationHeadingId)?.focus({ preventScroll: true });
+        if (screen === 'hub') returnFocusId.current = null;
       }
     });
     return () => window.cancelAnimationFrame(frame);
@@ -802,7 +810,10 @@ export default function App() {
       <div className="prototype-notice" role="note">
         Fictional · Synthetic · Medically unreviewed prototype · Not treatment guidance
       </div>
-      <DistributionControls safeToReload={screen === 'hub'} showInstallControl={screen === 'hub'} />
+      <DistributionControls
+        safeToReload={screen === 'hub' || screen === 'database'}
+        showInstallControl={screen === 'hub'}
+      />
       {error ? (
         <div className="global-error" role="alert">
           {error}
@@ -827,6 +838,10 @@ export default function App() {
             ) : null
           }
           onStart={startPatientSlot}
+          onOpenDatabase={() => {
+            returnFocusId.current = 'database-launch-button';
+            setScreen('database');
+          }}
           onOpenSavedAttempt={openSavedAttemptForReview}
           onSetMode={(mode) => void setProgressionMode(mode)}
           onRefresh={() => void refreshSlots()}
@@ -842,6 +857,9 @@ export default function App() {
           }
           upgradeStatus={upgradeStatus}
         />
+      ) : null}
+      {screen === 'database' ? (
+        <DatabaseBrowser projection={publicClinicalCatalog} onBack={() => setScreen('hub')} />
       ) : null}
       {(screen === 'encounter' || screen === 'receipt') && encounter ? (
         <div

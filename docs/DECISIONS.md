@@ -1401,3 +1401,26 @@ the local Vite Developer server over loopback; ordinary Player and portable Revi
 exclude it. Runtime content changes only through the existing separate evidence, contribution,
 rule-review, balance, versioning, validation, and release gates. This is a pilot, not a claim that
 all personal notes have been processed.
+
+## D-135 — Cross-device database browsing uses a minimized public projection
+
+Status: accepted and implemented. Desktop Player, local Developer, and portable phone/desktop
+Reviewer hubs expose one shared read-only Database screen. Browser sandboxing and the static Pages
+architecture make literal Mac/phone filesystem exposure both unavailable and undesirable.
+Instead, the ordinary runtime entry builds a strict, schema-parsed projection from fixed public
+catalog categories. It exposes neutral identity and catalog metadata for modeled conditions,
+medications, interventions, dispositions, investigations, tests, and formal bibliography, plus
+logical catalog locators that do not imply filesystem access.
+
+The projection is a security and product boundary, not a convenience serializer. It excludes
+patient/case records, answer keys, point values, predicates, medication-fit details, tickets,
+source requests/chunks, private Apple Notes work, and authoring-only classification terms.
+Production and portable Reviewer builds receive the same minimized view; neither may inspect the
+registry, glob lifecycle directories, or call a local authoring endpoint. New visible fields or
+categories require a schema allowlist and boundary tests.
+
+The current eight condition entries mean “diagnosis families modeled for gameplay,” not “complete
+diagnostic list.” The 1,112-term local ICD-10-CM authoring cache remains gitignored,
+runtime-excluded, and governed by D-102/D-103. A future full classification inspector would be a
+separate local-Developer feature unless an explicit source-rights and distribution decision
+authorizes a minimized portable index.

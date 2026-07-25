@@ -27,6 +27,7 @@ afterEach(cleanup);
 describe('ClinicHub', () => {
   it('renders the persisted profile and a neutral accessible patient launch control', () => {
     const onStart = vi.fn();
+    const onOpenDatabase = vi.fn();
     const saveData = SaveDataSchema.parse({
       schemaVersion: 1,
       saveDataVersion: 5,
@@ -57,6 +58,7 @@ describe('ClinicHub', () => {
         opinionReferenceNeeds={[]}
         sourceRequests={[]}
         onStart={onStart}
+        onOpenDatabase={onOpenDatabase}
         onSetMode={vi.fn()}
         onRefresh={vi.fn()}
         onRerollDeveloper={vi.fn()}
@@ -75,6 +77,8 @@ describe('ClinicHub', () => {
     expect(screen.queryByText(/depression case|straightforward/i)).not.toBeInTheDocument();
     expect(screen.getByText('Solo Office · Outpatient Room')).toBeVisible();
     expect(screen.queryByText(/seed/i)).not.toBeInTheDocument();
+    screen.getByRole('button', { name: 'Database' }).click();
+    expect(onOpenDatabase).toHaveBeenCalledOnce();
     screen.getByRole('button', { name: `Open chart for ${casePreview.opening.title}` }).click();
     expect(onStart).toHaveBeenCalledWith('patient-slot-1');
   });

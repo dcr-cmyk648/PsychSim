@@ -66,6 +66,15 @@ below the compact hub, reports how many assigned questions need input, and opens
 the existing full-screen phone dialog. This avoids replacing one long patient page with ten
 simultaneously expanded rule audits.
 
+Database-browser checkpoint: desktop and mobile hubs open one shared read-only, searchable
+Database screen. It presents a schema-minimized public projection of modeled conditions,
+medications, interventions, dispositions, investigations, tests, and formal bibliography, with
+collapsed records and logical catalog locators. It explicitly excludes patient answer keys,
+points/rules, review tickets, private sources, and the authoring-only ICD cache. Component,
+runtime-boundary, desktop Player, and phone Reviewer tests keep those exclusions executable. This
+is catalog inspection, not a filesystem API, comprehensive diagnostic manual, or Milestone-5
+rubric editor.
+
 Follow-up beta checkpoint: Reviewer symptom duration is now structured numeric/unit case state with
 short swappable displays and deterministic replay. Current ranges only support the already-authored
 episode state; cyclothymia threshold discrimination remains a source/clinical-review ticket rather

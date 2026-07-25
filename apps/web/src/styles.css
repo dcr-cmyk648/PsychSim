@@ -273,11 +273,309 @@ code {
 }
 
 .hub-shell,
+.database-shell,
 .encounter-shell,
 .receipt-shell {
   width: min(1500px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 2rem 0 4rem;
+}
+
+.database-shell {
+  max-width: 1320px;
+}
+
+.database-header,
+.database-scope-note,
+.database-results-heading,
+.database-search-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.database-header {
+  align-items: flex-end;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid #2e7054;
+  border-radius: 0.35rem;
+  background:
+    linear-gradient(105deg, rgba(3, 16, 11, 0.98), rgba(8, 39, 27, 0.94)),
+    repeating-linear-gradient(90deg, transparent 0 31px, rgba(70, 227, 158, 0.035) 31px 32px);
+  box-shadow: var(--shadow);
+}
+
+.database-header > div {
+  max-width: 800px;
+}
+
+.database-header h1 {
+  margin-bottom: 0.65rem;
+}
+
+.database-header p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.database-back-button {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+
+.database-scope-note {
+  align-items: flex-start;
+  margin-top: 1rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--gold);
+  border-radius: 0.3rem;
+  background: rgba(35, 27, 7, 0.72);
+}
+
+.database-scope-note h2 {
+  margin-bottom: 0.35rem;
+  color: #ffe3a2;
+  font-size: 0.9rem;
+}
+
+.database-scope-note p {
+  max-width: 940px;
+  margin-bottom: 0;
+  color: #d9cda9;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.database-category-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.database-category-button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  color: var(--muted);
+  background: var(--paper);
+  cursor: pointer;
+}
+
+.database-category-button small {
+  color: var(--gold);
+}
+
+.database-category-button[aria-pressed='true'] {
+  color: #031009;
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.database-category-button[aria-pressed='true'] small {
+  color: #163428;
+}
+
+.database-browser-panel {
+  margin-top: 0.75rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid var(--line);
+  border-radius: 0.3rem;
+  background: rgba(7, 17, 13, 0.97);
+  box-shadow: var(--shadow);
+}
+
+.database-search-row {
+  align-items: flex-end;
+  margin-bottom: 1.2rem;
+}
+
+.database-search-row label {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 0.4rem;
+  color: var(--teal-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.database-search-row input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  color: var(--ink);
+  background: #020806;
+  text-transform: none;
+}
+
+.database-results-heading {
+  align-items: flex-end;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.database-results-heading h2,
+.database-results-heading p {
+  margin-bottom: 0;
+}
+
+.database-results-heading > p {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.database-category-description {
+  max-width: 900px;
+  margin: 0.85rem 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.database-record-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.database-record {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  background: #050d09;
+}
+
+.database-record > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 62px;
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.database-record > summary::-webkit-details-marker {
+  display: none;
+}
+
+.database-record > summary > span:first-child {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.database-record > summary strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.database-record > summary code,
+.database-record-body code {
+  overflow-wrap: anywhere;
+  color: var(--teal);
+  font-size: 0.7rem;
+}
+
+.database-record-summary-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.database-record-summary-meta small {
+  max-width: 310px;
+  font-size: 0.68rem;
+}
+
+.database-record-summary-meta > span {
+  color: var(--teal);
+  font-size: 1rem;
+}
+
+.database-record[open] .database-record-summary-meta > span {
+  transform: rotate(45deg);
+}
+
+.database-record-body {
+  padding: 0.9rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.database-record-body > p {
+  max-width: 1000px;
+}
+
+.database-record-body > a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--teal-dark);
+}
+
+.database-record-identity,
+.database-record-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 0.5rem;
+  margin: 0 0 0.8rem;
+}
+
+.database-record-identity div,
+.database-record-fields div {
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid rgba(33, 71, 56, 0.72);
+  background: rgba(10, 23, 17, 0.72);
+}
+
+.database-record-identity dt,
+.database-record-fields dt {
+  margin-bottom: 0.3rem;
+  color: var(--gold);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.database-record-identity dd,
+.database-record-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.database-citation {
+  color: var(--ink);
+}
+
+.database-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  padding: 3rem 1rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.database-empty-state p {
+  margin-bottom: 0;
 }
 
 .eyebrow,
@@ -4121,10 +4419,66 @@ tbody th small {
   }
 
   .hub-shell,
+  .database-shell,
   .encounter-shell,
   .receipt-shell {
     width: min(100% - 1rem, 1500px);
     padding-top: 0.75rem;
+  }
+
+  .database-header,
+  .database-scope-note,
+  .database-search-row,
+  .database-results-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .database-header {
+    padding: 1.25rem;
+  }
+
+  .database-back-button,
+  .database-search-row .small-button {
+    width: 100%;
+  }
+
+  .database-category-strip {
+    position: static;
+    flex-wrap: nowrap;
+    width: 100%;
+    padding: 0.5rem 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    background: rgba(3, 8, 6, 0.97);
+    scrollbar-width: thin;
+  }
+
+  .database-category-button {
+    flex: 0 0 min(58vw, 13rem);
+  }
+
+  .database-category-button:first-child {
+    flex-basis: auto;
+  }
+
+  .database-browser-panel {
+    padding: 0.75rem;
+  }
+
+  .database-record > summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .database-record-summary-meta {
+    width: 100%;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .database-record-summary-meta small {
+    max-width: none;
   }
 
   .clinic-banner {

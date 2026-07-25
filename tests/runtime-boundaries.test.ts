@@ -3,6 +3,8 @@ import { join, resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { publicClinicalCatalog } from '../packages/content-runtime/src/public-clinical-catalog';
+
 const filesBelow = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
   const values = await Promise.all(
@@ -117,6 +119,45 @@ describe('runtime boundaries', () => {
     expect(app).toContain("import('./components/PersonalKnowledgeWorkbench')");
     expect(runtimeRoot).not.toContain('personal-knowledge');
     expect(reviewer).not.toContain('personal-knowledge');
+  });
+
+  it('exposes only the minimized public catalog through the cross-device database browser', async () => {
+    const [browser, app, projectionSource, runtimeIndex, registryText] = await Promise.all([
+      readFile(resolve('apps/web/src/components/DatabaseBrowser.tsx'), 'utf8'),
+      readFile(resolve('apps/web/src/App.tsx'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/public-clinical-catalog.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('content/registry.json'), 'utf8'),
+    ]);
+    expect(app).toContain('publicClinicalCatalog');
+    expect(app).toContain('<DatabaseBrowser');
+    expect(runtimeIndex).toContain("export * from './public-clinical-catalog'");
+    expect(projectionSource).not.toContain("from './registry'");
+    expect(projectionSource).not.toContain('@psychsim/content-runtime/developer');
+    expect(projectionSource).not.toContain('@psychsim/content-runtime/reviewer');
+    for (const marker of ['import.meta.glob', 'content/source-docs', '/__psychsim/']) {
+      expect(`${browser}\n${projectionSource}`).not.toContain(marker);
+    }
+
+    const registry = JSON.parse(registryText) as {
+      entries: Array<{ id: string; path: string; runtimeIncluded: boolean }>;
+    };
+    const serializedProjection = JSON.stringify(publicClinicalCatalog);
+    for (const entry of registry.entries.filter((candidate) => !candidate.runtimeIncluded)) {
+      expect(serializedProjection).not.toContain(entry.id);
+      expect(serializedProjection).not.toContain(entry.path);
+    }
+    for (const marker of [
+      'case.',
+      'ticket.',
+      'source-request.',
+      'source-document.',
+      'source-chunk.',
+      'classification-term.icd10cm.',
+      'Personal knowledge workbench',
+    ]) {
+      expect(serializedProjection).not.toContain(marker);
+    }
   });
 
   it('gitignores every private source-document material directory', async () => {
