@@ -11,6 +11,11 @@ Last updated: 2026-07-25
   (`Incorporate mobile regimen review feedback`). It contains assignment `2026-07f`, the bounded
   initial-outpatient duplicate-antidepressant rule, exact Developer-opinion provenance, and the
   queued normalized-regimen/evidence follow-up.
+- Current beta authoring checkpoint:
+  `2f64b014fe6944e31222248ce1802e36915b0d15`
+  (`Add ticket literature scout workflow`). It adds the local Developer-only, relevance-first
+  meta-analysis scout and leaves all clinical rules, points, ticket/source statuses, and portable
+  Reviewer content unchanged.
 - Released feature checkpoint: `8d78c078ba60b7e67f7934c714773aa277b64769`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
@@ -183,6 +188,27 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   contributions remain separate in the trace. Sertraline and escitalopram share the broad
   first-line baseline; medication-specific fit remains a separate modifier layer. All embedded
   rules remain medically unreviewed.
+
+## Ticket literature-scout checkpoint
+
+- Every one of the 32 unresolved checked-in Developer tickets has exactly one tracked attachment:
+  17 tickets link through 13 reusable bounded questions and 15 have explicit exemptions because a
+  meta-analysis cannot resolve their legal/access, identity, architecture, balance, or umbrella
+  decision.
+- Seven profiles select a recent meta-analysis and store a concise original abstract-only summary;
+  six record that no directly suitable recent meta-analysis was found rather than substituting an
+  unrelated paper.
+- The initial Europe PMC searches use the exact 2016-07-25 through 2026-07-25 window. Refreshes roll
+  that window forward as ten calendar years, preserve exact queries/result hashes, and record the
+  provider-specific cited-by count and as-of time. Relevance is screened before citation rank.
+- `pnpm content:literature:refresh -- --ticket <ticket-id> --dry-run` and `--next` operate on one
+  attached ticket at a time. Raw API responses remain under ignored
+  `content/generated/literature-scout/`; a refresh cannot silently replace a selected paper.
+- Local Developer tickets render the selected citation, abstract-only summary, relevance,
+  limitations, and search method—or the explicit exemption. The sidecar is dynamically loaded only
+  in local Developer mode. Player and portable Reviewer bundle-safety gates exclude it.
+- The scout is medically unreviewed discovery context. It is not formal evidence, does not choose
+  point magnitude, and made no rule, source-request, ticket-status, assignment, or approval change.
 
 ## Apple Notes private-intake state
 
@@ -426,7 +452,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-132)
+- `docs/DECISIONS.md` (through D-133)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -437,9 +463,11 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `docs/INSTALL_AND_UPDATES.md`
 - `content/source-docs/README.md`
 - `content/cases/review/literature-synthesis.proposals.json`
+- `content/cases/review/ticket-literature-scout.catalog.json`
 - `content/cases/review/catalog-expansion-audit.tickets.json`
 - `content/cases/review/source-needed.requests.json`
 - `packages/content-runtime/src/literature-synthesis.ts`
+- `packages/content-runtime/src/ticket-literature-scout.ts`
 - `packages/content-runtime/src/reviewer-assignment.ts`
 - `packages/content-runtime/src/reviewer-content.ts`
 - `packages/content-runtime/src/review-cohort.ts`
@@ -454,12 +482,19 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `packages/engine/src/services.ts`
 - `tools/content-cli/src/apple-notes-provider.ts`
 - `tools/content-cli/src/apple-notes-codex-review.ts`
+- `tools/content-cli/src/refresh-ticket-literature.ts`
 - `content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json`
 - `content/catalogs/reactions/reaction-concepts.json`
 - `tests/e2e/reviewer-mobile.spec.ts`
 - `.github/workflows/pages.yml`
 
 ## Exact next action
+
+On the local Developer server, open **Clinical and content tickets**, then inspect one selected
+packet such as `ticket.source.canmat-mdd.antidepressant-baseline` and one no-suitable packet such as
+`ticket.source.bupropion.seizure-history-nuance`. Confirm that the short abstract-only context and
+limitations make the clinical decision easier without looking like an approved answer. Continue
+adjudicating one ticket at a time; scouting alone never resolves it.
 
 On the physical phone, foreground the installed/Safari copy, use the update banner or **Check for
 update**, and confirm it reaches distribution
