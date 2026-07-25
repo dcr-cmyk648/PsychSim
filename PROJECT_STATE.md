@@ -9,14 +9,16 @@ Last updated: 2026-07-25
 - Released feature checkpoint: `0536c287cb547e311298913a2509f98f4b5d28f1`
   (`Defer macOS OCR discovery`), containing the feature commit
   `20833712f8e7aae4af1352fee259231075049b9e`.
-- Beta workflow `30138035083` passed every verification gate. Its Pages jobs skipped as intended.
+- Current beta source-intake checkpoint:
+  `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
+- Beta workflow `30140412087` passed every verification gate. Its Pages jobs skipped as intended.
 - `origin/main` is `0536c287cb547e311298913a2509f98f4b5d28f1`. Main workflow `30138175892`
   passed verification, Pages packaging, and deployment.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
-- This `PROJECT_STATE.md` update is a documentation-only successor retained on `beta`; it does not
-  need a second phone release. Runtime source on `beta` and `main` is identical at the released
-  feature checkpoint.
+- Beta is intentionally ahead with local-only authoring resilience and documentation; it does not
+  need a phone release. Browser runtime source on `beta` and `main` remains identical at the
+  released feature checkpoint.
 
 ## Current phase and bounded checkpoint
 
@@ -251,6 +253,8 @@ Current private-intake verification on 2026-07-25:
 - `pnpm test:e2e:reviewer`: 4 phone Reviewer tests.
 - `pnpm build`: Player bundle safety passed, 11 files.
 - Pages-equivalent `pnpm build:reviewer`: Reviewer bundle safety passed, 15 files.
+- GitHub Actions workflow `30140412087` repeated the complete beta verification matrix and passed;
+  Pages packaging/deployment skipped on beta as intended.
 
 GitHub Actions workflow `30138035083` passed the complete beta matrix. Workflow `30138175892`
 repeated the complete matrix on `main`, packaged the finite Reviewer build, and deployed Pages.
