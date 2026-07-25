@@ -10,6 +10,7 @@ import {
 } from '@psychsim/schemas';
 import { validateAppleNotesCodexReviewAudit } from './apple-notes-codex-review';
 import { validateAppleNotesManifest } from './apple-notes-provider';
+import { validatePersonalKnowledgePrivateState } from './personal-knowledge-workspace';
 
 const manifestPath = resolve('content/source-docs/manifests/google-drive-discovery.json');
 
@@ -103,6 +104,14 @@ try {
     );
   } else {
     console.log('PASS no private Apple Notes Codex review packets');
+  }
+  const personalKnowledge = await validatePersonalKnowledgePrivateState();
+  if (personalKnowledge) {
+    console.log(
+      `PASS private personal-knowledge state (${personalKnowledge.queueEntries} queued-topic records; ${personalKnowledge.semanticRuns} semantic runs; ${personalKnowledge.opinionCandidates} opinion candidates)`,
+    );
+  } else {
+    console.log('PASS no private personal-knowledge workflow state');
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Source discovery validation failed.');

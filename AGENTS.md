@@ -87,6 +87,10 @@ pnpm content:notes:audit -- --folder "Psych research"
 pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Reviewer name"
 pnpm content:notes:validate
 pnpm content:notes:codex-review -- --next --provider openai-codex --model "<exact model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Reviewer name"
+pnpm content:knowledge:index -- --refresh --next
+pnpm content:knowledge:prepare -- --provider openai-codex --model "<exact model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Reviewer name"
+pnpm content:knowledge:import -- /private/path/to/classification.json
+pnpm content:knowledge:status
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -169,6 +173,15 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   boundaries, asserted authorship versus verified rights, currentness, exact local provenance, and
   unverified citation candidates. Never flatten it into one formal source, redistribute article
   prose, or promote embedded references without independent verification.
+- Personal-knowledge processing is a rich private authoring layer with a narrow runtime boundary.
+  Each tracked pilot profile covers one bounded topic. Normalized literal title/plaintext matches
+  may only queue a source revision; they are not claims, evidence, or relevance judgments. Review
+  one complete source revision at a time, track every deterministic segment, and do not call it
+  classified until all expected segments are imported. HTML, OCR, attachments, composites, and
+  extracted chunks remain outside the currently authorized semantic scope. Authored-unit,
+  Developer-opinion, and bibliographic candidates stay unreviewed, non-executable, point-free, and
+  approval-free. The ignored workbench projection is read-only, loopback-only, local-Developer
+  content and must not enter Player or portable Reviewer bundles.
 - Keep the authoring-only diagnosis classification catalog separate from playable diagnosis
   definitions. Exact codes, titles, billable/category state, and hierarchy may support search and
   reviewed mappings; they never supply criteria, severity, treatment, or medical approval and must

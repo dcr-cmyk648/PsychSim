@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "authoring-pilot.initial-mdd-antidepressant-selection",
+  "label": "Initial MDD antidepressant selection",
+  "description": "Private authoring pilot for locating personal notes that may inform the first outpatient MDD medication-choice dossier. Lexical matching creates review candidates only; it does not create clinical claims, evidence, rules, or points.",
+  "contentScope": "apple_notes_title_plaintext_only",
+  "requiredTermGroups": [
+    {
+      "id": "authoring-term-group.mdd",
+      "label": "Depression context",
+      "terms": ["major depressive disorder", "major depression", "mdd", "depression", "depressive"]
+    },
+    {
+      "id": "authoring-term-group.antidepressant-selection",
+      "label": "Antidepressant selection context",
+      "terms": [
+        "antidepressant",
+        "ssri",
+        "selective serotonin reuptake inhibitor",
+        "sertraline",
+        "zoloft",
+        "escitalopram",
+        "lexapro",
+        "fluoxetine",
+        "prozac",
+        "citalopram",
+        "celexa",
+        "bupropion",
+        "wellbutrin",
+        "mirtazapine",
+        "remeron"
+      ]
+    }
+  ],
+  "targetMatchers": [
+    {
+      "id": "authoring-target.mdd",
+      "target": {
+        "resolution": "resolved",
+        "targetKind": "diagnosis",
+        "targetContentId": "diagnosis.major-depressive-disorder",
+        "role": "context",
+        "rationale": "The source text contains an MDD or depression term."
+      },
+      "terms": ["major depressive disorder", "major depression", "mdd", "depression", "depressive"]
+    },
+    {
+      "id": "authoring-target.sertraline",
+      "target": {
+        "resolution": "resolved",
+        "targetKind": "medication",
+        "targetContentId": "medication.sertraline",
+        "role": "subject",
+        "rationale": "The source text contains a sertraline name or alias."
+      },
+      "terms": ["sertraline", "zoloft"]
+    },
+    {
+      "id": "authoring-target.escitalopram",
+      "target": {
+        "resolution": "resolved",
+        "targetKind": "medication",
+        "targetContentId": "medication.escitalopram",
+        "role": "subject",
+        "rationale": "The source text contains an escitalopram name or alias."
+      },
+      "terms": ["escitalopram", "lexapro"]
+    },
+    {
+      "id": "authoring-target.fluoxetine",
+      "target": {
+        "resolution": "resolved",
+        "targetKind": "medication",
+        "targetContentId": "medication.fluoxetine",
+        "role": "subject",
+        "rationale": "The source text contains a fluoxetine name or alias."
+      },
+      "terms": ["fluoxetine", "prozac"]
+    },
+    {
+      "id": "authoring-target.citalopram",
+      "target": {
+        "resolution": "resolved",
+        "targetKind": "medication",
+        "targetContentId": "medication.citalopram",
+        "role": "subject",
+        "rationale": "The source text contains a citalopram name or alias."
+      },
+      "terms": ["citalopram", "celexa"]
+    },
+    {
+      "id": "authoring-target.bupropion",
+      "target": {
+        "resolution": "resolved",
+        "targetKind": "medication",
+        "targetContentId": "medication.bupropion",
+        "role": "subject",
+        "rationale": "The source text contains a bupropion name or alias."
+      },
+      "terms": ["bupropion", "wellbutrin"]
+    },
+    {
+      "id": "authoring-target.mirtazapine",
+      "target": {
+        "resolution": "resolved",
+        "targetKind": "medication",
+        "targetContentId": "medication.mirtazapine",
+        "role": "subject",
+        "rationale": "The source text contains a mirtazapine name or alias."
+      },
+      "terms": ["mirtazapine", "remeron"]
+    }
+  ]
+}

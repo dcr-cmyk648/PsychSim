@@ -1374,3 +1374,30 @@ the selected paper; a changed candidate requires review.
 Only local Developer tooling imports this sidecar. D-128 remains controlling: portable Reviewer
 continues to exclude source requests, opinion queues, literature-synthesis queues, and this
 literature-scout catalog, so this work does not change the assignment ID.
+
+## D-134 — Personal knowledge is processed one bounded topic and one complete source at a time
+
+Status: accepted and implemented as an authoring-only pilot. The first tracked profile covers
+initial MDD antidepressant selection and allowlists its diagnosis and medication targets.
+NFKC-normalized literal term groups may queue an Apple Notes source revision using the separately
+authorized title/plaintext fields only. Matching is deliberately recall-oriented: it is not
+semantic evidence that the source is relevant and cannot create a claim, citation, contribution,
+rule, point value, ticket, or approval. HTML, OCR, attachments, composites, and extracted chunks
+remain outside this semantic scope.
+
+The unit of completeness is the exact source revision, not the first useful segment. The queue
+records the expected deterministic segment count, every released packet and ordinal, and every
+classified ordinal. Only one packet may await import at a time; partially classified revisions
+take priority over new sources; a revision is “classified” only after all expected segments are
+imported. Stale provider revisions remain stale and are not silently resurrected. Import is strict,
+source-locator-bound, target-allowlisted, and idempotent.
+
+The private workspace may preserve rich authored-unit candidates, concise atomic
+Developer-opinion candidates, unverified bibliographic candidates, currentness, target mapping,
+model/prompt provenance, and later human adjudication. All remain medically unreviewed and
+non-executable. They cannot carry point magnitudes, executable predicates, clinical approval, or
+inferred formal authority. A minimized workbench projection is read-only and available only from
+the local Vite Developer server over loopback; ordinary Player and portable Reviewer bundles
+exclude it. Runtime content changes only through the existing separate evidence, contribution,
+rule-review, balance, versioning, validation, and release gates. This is a pilot, not a claim that
+all personal notes have been processed.

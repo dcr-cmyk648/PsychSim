@@ -193,6 +193,46 @@ paths. It contains no provider SDK, network request, API-key lookup, or model in
 preparation is not proof that Codex consumed or classified the packet. Do not run it against the
 real corpus until the current Codex surface exposes an exact model identifier for the audit.
 
+## Bounded personal-knowledge semantic workflow
+
+The first semantic pilot covers one tracked topic—initial MDD antidepressant selection—without
+claiming that every likely note or the whole Notes corpus has been processed:
+
+```sh
+pnpm content:knowledge:index -- --refresh --next
+pnpm content:knowledge:prepare -- \
+  --provider openai-codex \
+  --model "<exact model identifier>" \
+  --ack-no-phi \
+  --ack-authorized-external-ai-processing \
+  --ack-title-plaintext-rights \
+  --ack-shared-material-rights \
+  --ack-appropriate-to-transmit \
+  --acknowledged-by "Your name"
+pnpm content:knowledge:import -- /private/path/to/classification.json
+pnpm content:knowledge:status
+```
+
+Indexing uses only normalized literal matches against the authorized Apple Notes title/plaintext
+revision. A match is a recall-oriented queue signal, not a claim, citation, evidence relationship,
+or clinical relevance decision. The profile allowlists target IDs and the semantic importer
+rejects unknown targets.
+
+Preparation selects one source revision and its next unclassified deterministic segment. Only one
+packet may remain released at a time. If a revision spans multiple segments, the queue records its
+expected segment count and every released/classified ordinal; the revision stays partially
+classified until all expected segments have valid imports. The semantic boundary remains
+title/plaintext only. HTML, attachment bytes, OCR, deterministic composites, and extracted chunks
+are not included by these commands.
+
+Import accepts one strict private classification result tied to the audited packet, source
+revision, segment hash, exact model, prompt version, and tracked pilot profile. It creates only
+unreviewed authored-unit, Developer-opinion, and bibliographic candidates in the ignored private
+workspace. It is idempotent and cannot create formal evidence, executable rules, point values,
+tickets, citations, or approval. Status validates the queue/workspace and writes a minimized
+read-only Developer projection. The local Vite bridge is loopback-only; Player and portable
+Reviewer bundles exclude the projection and endpoint.
+
 ## Private user-authored residency archive
 
 The user's aggregate of previously authored residency-site articles can seed a large
@@ -242,6 +282,10 @@ affecting gameplay.
 | `pnpm content:notes:sync -- --folder "Psych research" …` | After all required acknowledgments, export changed unlocked notes privately, hash attachments, run local image/PDF OCR by default, checkpoint each note, queue deterministic Markdown composites, then scan and extract them. |
 | `pnpm content:notes:validate`                            | Validate the ignored Apple Notes manifest, unique records, protected paths, and attachment byte hashes without printing source text.                                                                                          |
 | `pnpm content:notes:codex-review -- --next …`            | After separate external-processing acknowledgments, prepare one bounded private title/plaintext packet plus a hash-only audit record; make no provider or API call.                                                           |
+| `pnpm content:knowledge:index -- --refresh --next`       | Refresh one bounded topic's private lexical queue and report only aggregate counts plus an opaque next record; matching does not establish a claim.                                                                           |
+| `pnpm content:knowledge:prepare -- …`                    | Release the next missing segment from the prioritized source revision under explicit acknowledgments; make no provider or API call.                                                                                           |
+| `pnpm content:knowledge:import -- <private-result>`      | Strictly validate and idempotently import one private candidate classification; create no evidence, rules, points, tickets, citations, or approval.                                                                           |
+| `pnpm content:knowledge:status`                          | Validate queue/workspace state and refresh the ignored, read-only local Developer projection without printing private content.                                                                                                |
 | `pnpm content:review`                                    | List extracted source IDs/chunk counts and current Developer review patients without printing source text.                                                                                                                    |
 | `pnpm content:evidence`                                  | List every formal evidence record, linked contributions or unused status, and expert-opinion coverage.                                                                                                                        |
 | `pnpm content:draft <request.json>`                      | Create a medically unreviewed patient scaffold, local provenance, and blocking clinical-audit tickets.                                                                                                                        |
@@ -299,14 +343,16 @@ AI service.
 
 ## External AI opt-in
 
-Local-only and deterministic mock drafting work without a provider. No external provider client is
-implemented. The Apple Notes Codex bridge may prepare one explicitly acknowledged title/plaintext
-packet for a later Codex read, but it does not send it. Any future provider may receive source text
-only with a command flag, an interactive acknowledgment that the operator has rights and the
-material is appropriate to transmit, an explicit provider/model, and an audit record of referenced
-document/chunk IDs. No implicit environment-based send is allowed. API keys stay in local
-environment/secret storage, never source control, output files, browser code, or prompts saved for
-review.
+Local-only and deterministic mock drafting work without a provider. No external provider SDK or
+network client is implemented. The Apple Notes Codex bridge may prepare one explicitly
+acknowledged title/plaintext packet for a separately authorized Codex read, and the private
+personal-knowledge importer may validate the resulting candidate classification; neither command
+sends material itself. Every release records the exact audited packet, provider/model, scope, and
+acknowledgments. Any future provider may receive source text only with a command flag, an
+interactive acknowledgment that the operator has rights and the material is appropriate to
+transmit, an explicit provider/model, and an audit record of referenced document/chunk IDs. No
+implicit environment-based send is allowed. API keys stay in local environment/secret storage,
+never source control, output files, browser code, or prompts saved for review.
 
 ## Provenance and human control
 

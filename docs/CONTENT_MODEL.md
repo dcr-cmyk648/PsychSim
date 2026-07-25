@@ -263,6 +263,26 @@ the audit records preparation for a separately authorized Codex read, not succes
 Neither record is `GenerationProvenance`, formal evidence, a Developer-opinion approval, an
 evidence contribution, an executable rule, a point value, a citation, or medical review.
 
+`PersonalKnowledgePilotProfile` is a tracked, authoring-only definition for one bounded topic. It
+names allowed stable targets and deterministic literal term groups. A lexical match can place a
+current Apple Notes title/plaintext revision in `PersonalKnowledgePilotQueue`; it cannot create or
+support a clinical assertion. Queue entries preserve the exact source revision, expected segment
+count, released packet IDs, and released/classified segment ordinals. A revision is only fully
+classified when every expected segment has a matching imported semantic run.
+
+`PersonalKnowledgeWorkspace` is the ignored private semantic-authoring record. It preserves exact
+packet/source locators, model and prompt identity, authored-source-unit candidates, atomic
+Developer-opinion candidates, unverified bibliographic candidates, target mappings, currentness,
+and human-review state. These candidate records are deliberately different from
+`EvidenceSourceDefinition`, `EvidenceContribution`, `ClinicalRuleReview`, executable predicates,
+and game-balance values. Import is idempotent and cannot assign points, alter rules, create
+citations, or grant medical approval.
+
+`PersonalKnowledgeWorkbenchProjection` is a minimized read-only projection for local Developer
+mode. The Vite development server may serve it only over loopback; Player and portable Reviewer
+builds forbid it. This preserves a rich private authoring surface while keeping runtime knowledge
+narrow and explicitly promoted.
+
 `LiteratureSynthesisProposal` is a Developer-only decision-packet record linked to exact ticket,
 source-request, and blueprint IDs. It separates source-cleared support from opposing, qualifying,
 metadata-only, abstract-only, or inaccessible context. Validation requires at least one

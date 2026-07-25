@@ -871,6 +871,7 @@ export const ContentRegistryEntrySchema = z
       'decor_catalog',
       'diagnosis_catalog',
       'diagnosis_classification_catalog',
+      'personal_knowledge_pilot_profile',
       'source_use_decision_catalog',
       'source_request_catalog',
       'ticket_literature_scout_catalog',
@@ -3657,6 +3658,707 @@ export const AppleNotesCodexReviewAuditManifestSchema = z
   .strict();
 export type AppleNotesCodexReviewAuditManifest = z.infer<
   typeof AppleNotesCodexReviewAuditManifestSchema
+>;
+
+export const PersonalKnowledgeTargetKindSchema = z.enum([
+  'medication',
+  'diagnosis',
+  'intervention',
+  'test',
+  'clinical_tag',
+  'clinical_rule',
+  'patient_template',
+]);
+export type PersonalKnowledgeTargetKind = z.infer<typeof PersonalKnowledgeTargetKindSchema>;
+
+export const PersonalKnowledgeTargetRoleSchema = z.enum([
+  'subject',
+  'context',
+  'comparator',
+  'affected_rule',
+]);
+
+export const PersonalKnowledgeResolvedTargetSchema = z
+  .object({
+    resolution: z.literal('resolved'),
+    targetKind: PersonalKnowledgeTargetKindSchema,
+    targetContentId: StableIdSchema,
+    role: PersonalKnowledgeTargetRoleSchema,
+    rationale: z.string().min(1).max(500),
+  })
+  .strict();
+export type PersonalKnowledgeResolvedTarget = z.infer<typeof PersonalKnowledgeResolvedTargetSchema>;
+
+export const PersonalKnowledgeUnresolvedTargetSchema = z
+  .object({
+    resolution: z.literal('unresolved'),
+    targetKindHint: PersonalKnowledgeTargetKindSchema.nullable(),
+    searchLabel: z.string().min(1).max(200),
+    role: PersonalKnowledgeTargetRoleSchema,
+    reason: z.string().min(1).max(500),
+  })
+  .strict();
+
+export const PersonalKnowledgeTargetReferenceSchema = z.discriminatedUnion('resolution', [
+  PersonalKnowledgeResolvedTargetSchema,
+  PersonalKnowledgeUnresolvedTargetSchema,
+]);
+export type PersonalKnowledgeTargetReference = z.infer<
+  typeof PersonalKnowledgeTargetReferenceSchema
+>;
+
+export const PersonalKnowledgePilotProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    description: z.string().min(1).max(800),
+    contentScope: z.literal('apple_notes_title_plaintext_only'),
+    requiredTermGroups: z
+      .array(
+        z
+          .object({
+            id: StableIdSchema,
+            label: z.string().min(1).max(120),
+            terms: z.array(z.string().min(2).max(120)).min(1),
+          })
+          .strict(),
+      )
+      .min(1),
+    targetMatchers: z
+      .array(
+        z
+          .object({
+            id: StableIdSchema,
+            target: PersonalKnowledgeResolvedTargetSchema,
+            terms: z.array(z.string().min(2).max(120)).min(1),
+          })
+          .strict(),
+      )
+      .min(1),
+  })
+  .strict();
+export type PersonalKnowledgePilotProfile = z.infer<typeof PersonalKnowledgePilotProfileSchema>;
+
+export const PersonalKnowledgePilotQueueEntrySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    profileId: StableIdSchema,
+    noteRecordId: StableIdSchema,
+    sourceDocumentId: StableIdSchema,
+    titleHash: Sha256DigestSchema,
+    plaintextHash: Sha256DigestSchema,
+    sourceModifiedAtProvider: z.string().min(1).max(200),
+    matchedRequiredGroupIds: z.array(StableIdSchema),
+    matchedTargetMatcherIds: z.array(StableIdSchema),
+    matchedTargetContentIds: z.array(StableIdSchema),
+    distinctSignalCount: z.number().int().nonnegative(),
+    totalMatchCount: z.number().int().nonnegative(),
+    state: z.enum([
+      'queued',
+      'released',
+      'partially_classified',
+      'classified',
+      'adjudicated',
+      'stale',
+    ]),
+    expectedSegmentCount: z.number().int().positive().max(2048).nullable().default(null),
+    releasedPacketIds: z.array(StableIdSchema),
+    releasedSegmentOrdinals: z.array(z.number().int().nonnegative().max(2047)).default([]),
+    classifiedSegmentOrdinals: z.array(z.number().int().nonnegative().max(2047)).default([]),
+  })
+  .strict()
+  .superRefine((entry, context) => {
+    const released = new Set(entry.releasedSegmentOrdinals);
+    const classified = new Set(entry.classifiedSegmentOrdinals);
+    if (
+      released.size !== entry.releasedSegmentOrdinals.length ||
+      classified.size !== entry.classifiedSegmentOrdinals.length ||
+      new Set(entry.releasedPacketIds).size !== entry.releasedPacketIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['releasedSegmentOrdinals'],
+        message: 'Packet IDs and segment progress must not contain duplicates.',
+      });
+    }
+    if (entry.expectedSegmentCount === null) {
+      if (
+        entry.releasedPacketIds.length > 0 ||
+        released.size > 0 ||
+        classified.size > 0 ||
+        !['queued', 'stale'].includes(entry.state)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['expectedSegmentCount'],
+          message: 'Unsegmented entries cannot claim packet or classification progress.',
+        });
+      }
+      return;
+    }
+    if ([...released, ...classified].some((ordinal) => ordinal >= entry.expectedSegmentCount!)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['releasedSegmentOrdinals'],
+        message: 'Segment progress exceeds the recorded segment count.',
+      });
+    }
+    if ([...classified].some((ordinal) => !released.has(ordinal))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['classifiedSegmentOrdinals'],
+        message: 'A segment must be released before it can be classified.',
+      });
+    }
+    if (entry.releasedPacketIds.length !== released.size) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['releasedPacketIds'],
+        message: 'Every released segment requires one audited packet ID.',
+      });
+    }
+    if (entry.state === 'stale') return;
+    const fullyClassified = classified.size === entry.expectedSegmentCount;
+    const hasUnclassifiedRelease = [...released].some((ordinal) => !classified.has(ordinal));
+    const validState =
+      (entry.state === 'queued' && released.size === 0 && classified.size === 0) ||
+      (entry.state === 'released' && hasUnclassifiedRelease) ||
+      (entry.state === 'partially_classified' &&
+        classified.size > 0 &&
+        !fullyClassified &&
+        !hasUnclassifiedRelease) ||
+      (['classified', 'adjudicated'].includes(entry.state) && fullyClassified);
+    if (!validState) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['state'],
+        message: 'Queue state does not match its released and classified segment progress.',
+      });
+    }
+  });
+export type PersonalKnowledgePilotQueueEntry = z.infer<
+  typeof PersonalKnowledgePilotQueueEntrySchema
+>;
+
+export const PersonalKnowledgePilotQueueSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    queueVersion: z.literal(1),
+    profileId: StableIdSchema,
+    contentScope: z.literal('apple_notes_title_plaintext_only'),
+    generatedAt: z.string().datetime(),
+    entries: z.array(PersonalKnowledgePilotQueueEntrySchema),
+  })
+  .strict();
+export type PersonalKnowledgePilotQueue = z.infer<typeof PersonalKnowledgePilotQueueSchema>;
+
+export const PersonalKnowledgeSourceLocatorSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('apple_notes_packet'),
+      sourceDocumentId: StableIdSchema,
+      packetId: StableIdSchema,
+      segmentOrdinal: z.number().int().nonnegative(),
+      segmentHash: Sha256DigestSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('source_chunk'),
+      sourceDocumentId: StableIdSchema,
+      sourceChunkId: StableIdSchema,
+      textHash: Sha256DigestSchema,
+    })
+    .strict(),
+]);
+export type PersonalKnowledgeSourceLocator = z.infer<typeof PersonalKnowledgeSourceLocatorSchema>;
+
+export const PersonalKnowledgeCurrentnessSchema = z.enum([
+  'needs_currentness_review',
+  'current',
+  'superseded',
+  'retired',
+]);
+
+export const PersonalKnowledgeCandidateReviewStatusSchema = z.enum([
+  'proposed',
+  'in_review',
+  'accepted',
+  'rejected',
+  'deferred',
+  'duplicate',
+]);
+
+const AuthoredSourceUnitMetadataShape = {
+  sourceLocators: z.array(PersonalKnowledgeSourceLocatorSchema).min(1),
+  unitKind: z.enum([
+    'personal_takeaway',
+    'self_authored_article',
+    'third_party_article',
+    'presentation',
+    'bibliography',
+    'mixed',
+    'unknown',
+  ]),
+  boundaryState: z.enum(['complete', 'partial', 'continuation', 'uncertain']),
+  title: z.string().max(500).nullable(),
+  byline: z.string().max(500).nullable(),
+  venue: z.string().max(500).nullable(),
+  url: z.string().url().nullable(),
+  originalDate: PartialPublicationDateSchema.nullable(),
+  revisedDate: PartialPublicationDateSchema.nullable(),
+  assertedAuthorship: z.enum(['user_authored', 'coauthored', 'third_party', 'unknown']),
+  rightsState: z.enum([
+    'not_assessed',
+    'private_processing_only',
+    'permission_required',
+    'excluded',
+  ]),
+  currentness: PersonalKnowledgeCurrentnessSchema,
+  excludedMaterialKinds: z.array(
+    z.enum([
+      'third_party_quote',
+      'table',
+      'figure',
+      'instrument',
+      'screenshot',
+      'patient_information',
+      'other',
+    ]),
+  ),
+  targets: z.array(PersonalKnowledgeTargetReferenceSchema),
+} as const;
+
+export const AuthoredSourceUnitCandidateSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    candidateVersion: z.literal(1),
+    id: StableIdSchema,
+    ...AuthoredSourceUnitMetadataShape,
+    semanticRunId: StableIdSchema,
+    reviewStatus: PersonalKnowledgeCandidateReviewStatusSchema,
+  })
+  .strict();
+export type AuthoredSourceUnitCandidate = z.infer<typeof AuthoredSourceUnitCandidateSchema>;
+
+export const AuthoredSourceUnitSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    ...AuthoredSourceUnitMetadataShape,
+    targets: z.array(PersonalKnowledgeResolvedTargetSchema),
+    originCandidateIds: z.array(StableIdSchema).min(1),
+    reviewedBy: z.string().min(1).max(160),
+    reviewedAt: z.string().datetime(),
+    reviewNote: z.string().max(1200),
+    supersedesUnitIds: z.array(StableIdSchema),
+  })
+  .strict();
+export type AuthoredSourceUnit = z.infer<typeof AuthoredSourceUnitSchema>;
+
+export const BibliographicCandidateSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    candidateVersion: z.literal(1),
+    id: StableIdSchema,
+    sourceUnitCandidateIds: z.array(StableIdSchema),
+    sourceUnitIds: z.array(StableIdSchema),
+    sourceLocators: z.array(PersonalKnowledgeSourceLocatorSchema).min(1),
+    citationRole: z.enum(['primary_subject', 'embedded_reference', 'mentioned_source', 'unclear']),
+    title: z.string().max(500).nullable(),
+    authors: z.array(z.string().min(1).max(200)),
+    organization: z.string().max(300).nullable(),
+    year: z.number().int().min(1800).max(2200).nullable(),
+    doi: z.string().max(200).nullable(),
+    pmid: z.string().regex(/^\d+$/).nullable(),
+    url: z.string().url().nullable(),
+    citationText: z.string().max(1200).nullable(),
+    targets: z.array(PersonalKnowledgeTargetReferenceSchema),
+    verificationStatus: z.enum([
+      'unverified',
+      'verified_match',
+      'ambiguous',
+      'not_found',
+      'rejected',
+    ]),
+    matchedEvidenceSourceId: StableIdSchema.nullable(),
+    semanticRunId: StableIdSchema,
+    reviewStatus: PersonalKnowledgeCandidateReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((candidate, context) => {
+    if (candidate.sourceUnitCandidateIds.length + candidate.sourceUnitIds.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceUnitCandidateIds'],
+        message: 'A bibliographic candidate requires at least one source-unit relationship.',
+      });
+    }
+    if (
+      (candidate.verificationStatus === 'verified_match') !==
+      (candidate.matchedEvidenceSourceId !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['matchedEvidenceSourceId'],
+        message: 'Only a verified bibliographic match may identify a formal evidence source.',
+      });
+    }
+  });
+export type BibliographicCandidate = z.infer<typeof BibliographicCandidateSchema>;
+
+export const DeveloperOpinionCandidateSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    candidateVersion: z.literal(1),
+    id: StableIdSchema,
+    sourceUnitCandidateIds: z.array(StableIdSchema),
+    sourceUnitIds: z.array(StableIdSchema),
+    sourceLocators: z.array(PersonalKnowledgeSourceLocatorSchema).min(1),
+    summary: z.string().min(1).max(800),
+    contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
+    asOfDate: PartialPublicationDateSchema.nullable(),
+    asOfDateBasis: z.enum(['source_date', 'revision_date', 'note_date', 'unknown']),
+    currentness: PersonalKnowledgeCurrentnessSchema,
+    targets: z.array(PersonalKnowledgeTargetReferenceSchema).min(1),
+    nearbyBibliographicCandidateIds: z.array(StableIdSchema),
+    semanticRunId: StableIdSchema,
+    reviewStatus: PersonalKnowledgeCandidateReviewStatusSchema,
+    medicalReviewStatus: z.literal('unreviewed'),
+    needsHumanReview: z.literal(true),
+  })
+  .strict()
+  .superRefine((candidate, context) => {
+    if (candidate.sourceUnitCandidateIds.length + candidate.sourceUnitIds.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceUnitCandidateIds'],
+        message: 'A Developer-opinion candidate requires at least one source-unit relationship.',
+      });
+    }
+  });
+export type DeveloperOpinionCandidate = z.infer<typeof DeveloperOpinionCandidateSchema>;
+
+export const DeveloperOpinionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    summary: z.string().min(1).max(800),
+    developerId: z.string().min(1).max(160),
+    originKind: z.enum(['private_source', 'direct_reviewer_statement']),
+    originSourceUnitIds: z.array(StableIdSchema),
+    originCandidateIds: z.array(StableIdSchema),
+    contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
+    asOfDate: PartialPublicationDateSchema.nullable(),
+    currentness: PersonalKnowledgeCurrentnessSchema,
+    targets: z.array(PersonalKnowledgeResolvedTargetSchema).min(1),
+    developerReview: z
+      .object({
+        status: z.enum(['accepted', 'superseded', 'retired']),
+        reviewerId: z.string().min(1).max(160),
+        reviewedAt: z.string().datetime(),
+        note: z.string().max(1200),
+      })
+      .strict(),
+    supersedesOpinionIds: z.array(StableIdSchema),
+    evidenceRelationshipIds: z.array(StableIdSchema),
+    ruleEligibility: z.literal('opinion_only'),
+  })
+  .strict()
+  .superRefine((opinion, context) => {
+    if (opinion.originSourceUnitIds.length + opinion.originCandidateIds.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['originCandidateIds'],
+        message: 'A Developer opinion requires at least one reviewed origin.',
+      });
+    }
+  });
+export type DeveloperOpinion = z.infer<typeof DeveloperOpinionSchema>;
+
+export const OpinionEvidenceRelationshipSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    opinionId: StableIdSchema,
+    evidenceSourceId: StableIdSchema,
+    sourceUseDecisionId: StableIdSchema,
+    relationType: z.enum([
+      'supports',
+      'partially_supports',
+      'contextualizes',
+      'challenges',
+      'limits',
+    ]),
+    relationshipSummary: z.string().min(1).max(800),
+    sourceLocation: z.string().min(1).max(500),
+    applicabilityLimitations: z.array(z.string().min(1).max(500)),
+    stillExpertBridge: z.boolean(),
+    review: z
+      .object({
+        status: z.enum(['unreviewed', 'accepted', 'rejected', 'superseded']),
+        reviewerId: z.string().max(160).nullable(),
+        reviewedAt: z.string().datetime().nullable(),
+        note: z.string().max(1200),
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((relationship, context) => {
+    const reviewed = relationship.review.status !== 'unreviewed';
+    const hasReviewer = relationship.review.reviewerId !== null;
+    const hasTimestamp = relationship.review.reviewedAt !== null;
+    if (
+      (reviewed && (!hasReviewer || !hasTimestamp)) ||
+      (!reviewed && (hasReviewer || hasTimestamp))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review'],
+        message: 'Evidence-relationship review identity and timestamp must match its status.',
+      });
+    }
+  });
+export type OpinionEvidenceRelationship = z.infer<typeof OpinionEvidenceRelationshipSchema>;
+
+export const PersonalKnowledgeSemanticRunSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    profileId: StableIdSchema,
+    packetId: StableIdSchema,
+    packetSha256: Sha256DigestSchema,
+    modelIdentifier: z.string().min(1).max(200),
+    promptVersion: z.string().min(1).max(120),
+    classifiedAt: z.string().datetime(),
+    outputSha256: Sha256DigestSchema,
+  })
+  .strict();
+export type PersonalKnowledgeSemanticRun = z.infer<typeof PersonalKnowledgeSemanticRunSchema>;
+
+export const PersonalKnowledgeClassificationResultSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    classificationVersion: z.literal(1),
+    id: StableIdSchema,
+    profileId: StableIdSchema,
+    packetId: StableIdSchema,
+    packetSha256: Sha256DigestSchema,
+    modelIdentifier: z.string().min(1).max(200),
+    promptVersion: z.string().min(1).max(120),
+    classifiedAt: z.string().datetime(),
+    disposition: z.enum([
+      'candidate_material',
+      'secondary_context',
+      'irrelevant',
+      'duplicate',
+      'needs_more_context',
+    ]),
+    dispositionSummary: z.string().min(1).max(800),
+    sourceUnitCandidates: z.array(AuthoredSourceUnitCandidateSchema),
+    bibliographicCandidates: z.array(BibliographicCandidateSchema),
+    opinionCandidates: z.array(DeveloperOpinionCandidateSchema),
+  })
+  .strict()
+  .superRefine((result, context) => {
+    result.sourceUnitCandidates.forEach((candidate, index) => {
+      if (
+        candidate.reviewStatus !== 'proposed' ||
+        candidate.currentness !== 'needs_currentness_review'
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['sourceUnitCandidates', index],
+          message:
+            'Imported source-unit candidates must begin proposed and currentness-unreviewed.',
+        });
+      }
+    });
+    result.bibliographicCandidates.forEach((candidate, index) => {
+      if (
+        candidate.reviewStatus !== 'proposed' ||
+        candidate.verificationStatus !== 'unverified' ||
+        candidate.matchedEvidenceSourceId !== null
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['bibliographicCandidates', index],
+          message: 'Imported bibliographic candidates cannot verify or approve themselves.',
+        });
+      }
+    });
+    result.opinionCandidates.forEach((candidate, index) => {
+      if (
+        candidate.reviewStatus !== 'proposed' ||
+        candidate.currentness !== 'needs_currentness_review'
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['opinionCandidates', index],
+          message: 'Imported opinion candidates must begin proposed and currentness-unreviewed.',
+        });
+      }
+    });
+  });
+export type PersonalKnowledgeClassificationResult = z.infer<
+  typeof PersonalKnowledgeClassificationResultSchema
+>;
+
+export const PersonalKnowledgeWorkspaceSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    workspaceVersion: z.literal(1),
+    updatedAt: z.string().datetime(),
+    contentScope: z.literal('apple_notes_title_plaintext_only'),
+    semanticRuns: z.array(PersonalKnowledgeSemanticRunSchema),
+    sourceUnitCandidates: z.array(AuthoredSourceUnitCandidateSchema),
+    sourceUnits: z.array(AuthoredSourceUnitSchema),
+    bibliographicCandidates: z.array(BibliographicCandidateSchema),
+    opinionCandidates: z.array(DeveloperOpinionCandidateSchema),
+    opinions: z.array(DeveloperOpinionSchema),
+    opinionEvidenceRelationships: z.array(OpinionEvidenceRelationshipSchema),
+  })
+  .strict();
+export type PersonalKnowledgeWorkspace = z.infer<typeof PersonalKnowledgeWorkspaceSchema>;
+
+export const PersonalKnowledgeWorkbenchCandidateSchema = z
+  .object({
+    id: StableIdSchema,
+    summary: z.string().min(1).max(800),
+    sourceUnitId: StableIdSchema,
+    sourceDate: PartialPublicationDateSchema.nullable(),
+    currentness: PersonalKnowledgeCurrentnessSchema,
+    reviewStatus: PersonalKnowledgeCandidateReviewStatusSchema,
+    unresolvedTargets: z.array(
+      z
+        .object({
+          targetKindHint: PersonalKnowledgeTargetKindSchema.nullable(),
+          searchLabel: z.string().min(1).max(200),
+          role: PersonalKnowledgeTargetRoleSchema,
+          reason: z.string().min(1).max(500),
+        })
+        .strict(),
+    ),
+    evidenceRelations: z.array(
+      z
+        .object({
+          evidenceSourceId: StableIdSchema,
+          relationship: z.enum([
+            'supports',
+            'partially_supports',
+            'contextualizes',
+            'challenges',
+            'limits',
+          ]),
+          stillExpertBridge: z.boolean(),
+          reviewStatus: z.enum(['unreviewed', 'accepted', 'rejected', 'superseded']),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+
+export const PersonalKnowledgeWorkbenchBibliographicCandidateSchema = z
+  .object({
+    id: StableIdSchema,
+    displayCitation: z.string().min(1).max(1200),
+    verificationStatus: z.enum([
+      'unverified',
+      'verified_match',
+      'ambiguous',
+      'not_found',
+      'rejected',
+    ]),
+    matchedEvidenceSourceId: StableIdSchema.nullable(),
+  })
+  .strict();
+
+export const PersonalKnowledgeWorkbenchSourceUnitCandidateSchema = z
+  .object({
+    id: StableIdSchema,
+    unitKind: z.enum([
+      'personal_takeaway',
+      'self_authored_article',
+      'third_party_article',
+      'presentation',
+      'bibliography',
+      'mixed',
+      'unknown',
+    ]),
+    boundaryState: z.enum(['complete', 'partial', 'continuation', 'uncertain']),
+    currentness: PersonalKnowledgeCurrentnessSchema,
+    reviewStatus: PersonalKnowledgeCandidateReviewStatusSchema,
+    resolvedTargetIds: z.array(StableIdSchema),
+    unresolvedTargetLabels: z.array(z.string().min(1).max(200)),
+  })
+  .strict();
+
+export const PersonalKnowledgeWorkbenchProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    projectionVersion: z.literal(1),
+    generatedAt: z.string().datetime(),
+    pilotTopicId: StableIdSchema,
+    summary: z
+      .object({
+        intakeEligibleSources: z.number().int().nonnegative(),
+        queuedSources: z.number().int().nonnegative(),
+        releasedSources: z.number().int().nonnegative(),
+        partiallyClassifiedSources: z.number().int().nonnegative(),
+        classifiedSources: z.number().int().nonnegative(),
+        sourceUnits: z.number().int().nonnegative(),
+        opinionCandidates: z.number().int().nonnegative(),
+        mappedCandidates: z.number().int().nonnegative(),
+        unmappedCandidates: z.number().int().nonnegative(),
+        needsCurrentnessReview: z.number().int().nonnegative(),
+        bibliographicCandidates: z.number().int().nonnegative(),
+        verifiedBibliography: z.number().int().nonnegative(),
+        acceptedOpinions: z.number().int().nonnegative(),
+        evidenceLinkedOpinions: z.number().int().nonnegative(),
+        ocrAttachmentsOutsideSemanticScope: z.number().int().nonnegative(),
+      })
+      .strict(),
+    dossiers: z.array(
+      z
+        .object({
+          targetId: StableIdSchema,
+          targetKind: z.enum(['medication', 'diagnosis', 'intervention', 'test']),
+          label: z.string().min(1).max(200),
+          queuedSourceCount: z.number().int().nonnegative(),
+          sourceUnitCount: z.number().int().nonnegative(),
+          formalEvidenceSourceIds: z.array(StableIdSchema),
+          currentRuleIds: z.array(StableIdSchema),
+          balanceEntries: z.array(
+            z
+              .object({
+                id: StableIdSchema,
+                summary: z.string().min(1).max(500),
+                pointDelta: z.number().int(),
+                reviewStatus: MedicalReviewStatusSchema,
+              })
+              .strict(),
+          ),
+          bibliographicCandidates: z.array(PersonalKnowledgeWorkbenchBibliographicCandidateSchema),
+          candidates: z.array(PersonalKnowledgeWorkbenchCandidateSchema),
+        })
+        .strict(),
+    ),
+    sourceUnitCandidates: z.array(PersonalKnowledgeWorkbenchSourceUnitCandidateSchema),
+    unmappedCandidates: z.array(PersonalKnowledgeWorkbenchCandidateSchema),
+    unmappedBibliographicCandidates: z.array(
+      PersonalKnowledgeWorkbenchBibliographicCandidateSchema,
+    ),
+    warnings: z.array(z.string().min(1).max(500)),
+  })
+  .strict();
+export type PersonalKnowledgeWorkbenchProjection = z.infer<
+  typeof PersonalKnowledgeWorkbenchProjectionSchema
 >;
 
 export const SourceManifestEntrySchema = z

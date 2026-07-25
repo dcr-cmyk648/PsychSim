@@ -259,6 +259,15 @@ expression. Article prose is not redistributed. Accepted concise judgments retai
 “as of” date and Developer-opinion authority. Embedded references become formal evidence only
 after independent bibliographic, source-use, and claim-support verification.
 
+The implemented first pilot operationalizes only a narrow slice of this design: initial MDD
+antidepressant selection and its allowlisted diagnosis/medication targets. Deterministic
+title/plaintext matching queues source revisions; it does not infer a medication claim. Complete
+segment review can produce private authored-unit, atomic opinion, and bibliographic candidates.
+The local dossier shows candidates beside existing runtime fit modifiers so differences are
+auditable, but it cannot edit those modifiers or assign points. No pilot candidate enters a
+medication file, evidence catalog, rule, or runtime bundle until separately verified, adjudicated,
+versioned, and validated.
+
 When new evidence touches the same targets, the impact system resurfaces the opinion for one of:
 `supported`, `partially_supported`, `contextualized`, `challenged`, `limited`, or
 `still_expert_bridge`. A source relationship never erases the opinion's interpretive delta.

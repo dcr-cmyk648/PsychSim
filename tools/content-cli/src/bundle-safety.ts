@@ -116,6 +116,10 @@ export const verifyProductionBundle = async (
     'literature-synthesis.mdd.initial-modality.2026-07-24',
     '/__psychsim/local-review-tickets',
     'content/generated/local-review-tickets',
+    '/__psychsim/personal-knowledge-workbench',
+    'content/generated/personal-knowledge',
+    'Personal knowledge workbench',
+    'Candidate material only — no gameplay effect',
     ...authoringOnlyRegistryMarkers,
   ];
 

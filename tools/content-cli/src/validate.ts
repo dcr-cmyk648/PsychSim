@@ -7,6 +7,7 @@ import {
   DiagnosisClassificationReleaseSchema,
   EvidenceContributionSchema,
   EvidenceSourceDefinitionSchema,
+  PersonalKnowledgePilotProfileSchema,
   SourceUseDecisionCatalogSchema,
 } from '@psychsim/schemas';
 import {
@@ -39,6 +40,7 @@ import {
   validateDiagnosisClassification,
   validateDiagnosisClassificationBindings,
 } from './diagnosis-classification';
+import { validatePersonalKnowledgePilotProfile } from './personal-knowledge-workspace';
 
 const reviewCaseDirectory = resolve('content/cases/review');
 const checkedInReviewTicketFiles = (await readdir(reviewCaseDirectory))
@@ -440,6 +442,39 @@ if (
   });
 }
 
+const personalKnowledgeProfileIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+const personalKnowledgeProfileEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'personal_knowledge_pilot_profile',
+);
+if (personalKnowledgeProfileEntries.length !== 1) {
+  personalKnowledgeProfileIssues.push({
+    severity: 'error',
+    code: 'PERSONAL_KNOWLEDGE_PROFILE_COUNT',
+    message: `Expected one bounded pilot profile; found ${personalKnowledgeProfileEntries.length}.`,
+  });
+} else {
+  const entry = personalKnowledgeProfileEntries[0]!;
+  try {
+    const profile = PersonalKnowledgePilotProfileSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    if (profile.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${profile.id}.`);
+    }
+    validatePersonalKnowledgePilotProfile(profile);
+  } catch (error) {
+    personalKnowledgeProfileIssues.push({
+      severity: 'error',
+      code: 'INVALID_PERSONAL_KNOWLEDGE_PROFILE',
+      message: error instanceof Error ? error.message : 'Pilot profile validation failed.',
+    });
+  }
+}
+
 const reports = [
   ['catalogs', validateCatalogs(catalogs)],
   [
@@ -470,6 +505,13 @@ const reports = [
     {
       valid: diagnosisClassificationIssues.length === 0,
       issues: diagnosisClassificationIssues,
+    },
+  ],
+  [
+    'personal-knowledge-pilot-profile',
+    {
+      valid: personalKnowledgeProfileIssues.length === 0,
+      issues: personalKnowledgeProfileIssues,
     },
   ],
   [

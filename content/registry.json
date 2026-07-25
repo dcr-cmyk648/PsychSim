@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.11.0",
+  "contentVersion": "3.12.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -48,6 +48,21 @@
         "evidence.va-dod.suicide-risk.2024",
         "evidence.who.icd11-cddr.2024",
         "evidence.who.mhgap-mns.2023"
+      ]
+    },
+    {
+      "id": "authoring-pilot.initial-mdd-antidepressant-selection",
+      "kind": "personal_knowledge_pilot_profile",
+      "path": "content/catalogs/authoring/personal-knowledge/initial-mdd-antidepressant-selection.profile.json",
+      "runtimeIncluded": false,
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.citalopram",
+        "medication.bupropion",
+        "medication.mirtazapine"
       ]
     },
     {

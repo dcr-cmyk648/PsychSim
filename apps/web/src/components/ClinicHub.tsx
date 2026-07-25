@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import type {
   CaseInstance,
@@ -41,6 +41,7 @@ interface ClinicHubProps {
   sourceRequests: readonly SourceRequest[];
   literatureSynthesisProposals?: readonly LiteratureSynthesisProposal[];
   ticketLiteratureScoutCatalog?: TicketLiteratureScoutCatalog | null;
+  developerKnowledgeWorkbench?: ReactNode;
   onStart: (slotId: string) => void;
   onOpenSavedAttempt?: (attemptId: string) => void;
   onSetMode: (mode: ProgressionMode) => void;
@@ -440,6 +441,7 @@ export function ClinicHub({
   sourceRequests,
   literatureSynthesisProposals = [],
   ticketLiteratureScoutCatalog = null,
+  developerKnowledgeWorkbench = null,
   onStart,
   onOpenSavedAttempt = () => undefined,
   onSetMode,
@@ -955,6 +957,8 @@ export function ClinicHub({
           ) : null}
         </section>
       ) : null}
+
+      {progressionMode === 'developer' && !reviewerBuild ? developerKnowledgeWorkbench : null}
 
       {progressionMode === 'developer' && !reviewerBuild ? (
         <DeveloperOpinionQueue entries={opinionReferenceNeeds} />

@@ -151,6 +151,9 @@ approval. A separate literature-scout precursor now gives every active checked-i
 a bounded ten-year meta-analysis search profile or an explicit exemption. Its one-ticket refresh
 records relevance-first citation ranking and abstract-only discovery context without creating
 formal evidence, changing ticket status, or entering Player/portable Reviewer bundles.
+A further local-only precursor adds a collapsed read-only personal-knowledge dossier projection.
+It separates candidate opinions/bibliography from current runtime balance and offers no apply or
+approval control.
 
 Scope: build on the Milestone 1 proposed-ticket queue with exact attempt replay; review inspector; dependency/conflict and supersession workflows; rubric editing; historical comparison/re-score; JSON bundles; reference-policy simulations and QA reports; generated content indexes.
 
@@ -176,6 +179,11 @@ Milestone 6 gate remain open. The first acknowledged private sync now preserves 
 204 note title/plaintext records, locally OCRs 116 accessible attachments, records one unsupported
 attachment, and quarantines seven attachment-save failures without discarding their note text.
 None of this creates evidence claims or executable content.
+A bounded title/plaintext-only semantic queue now supports one tracked topic and one complete
+source revision at a time, with segment-complete coverage, strict private import, and aggregate
+status reporting. Lexical matching only queues candidates; HTML, OCR, attachments, composites, and
+bulk-corpus semantic processing remain outside this slice. Candidate output cannot affect evidence,
+rules, points, or approval.
 
 Scope: SHA-256 scan/manifest/duplicates; PDF, DOCX, TXT, Markdown strategy; extraction/chunks; watch; processed/quarantine; provenance; privacy controls; source review.
 

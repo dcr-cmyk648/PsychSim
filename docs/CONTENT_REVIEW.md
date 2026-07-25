@@ -236,3 +236,19 @@ citation candidates and their verification status, and newer evidence that may s
 challenge the opinion. The user can preserve historical context, update the concise judgment,
 retain it as an expert bridge, or reject it. The exact private article prose never becomes the
 review ticket or runtime content.
+
+## Private personal-knowledge workbench
+
+Local Developer mode has a collapsed, searchable, read-only dossier projection for the bounded
+personal-knowledge pilot. It shows queue/segment coverage, mapped and unresolved targets,
+authored-unit candidates, atomic Developer-opinion candidates, bibliographic candidates,
+currentness, and the currently executable balance entries separately. The projection contains
+candidate context only: it has no accept/apply controls, cannot mutate source, medication,
+diagnosis, rule, point, ticket, evidence, or approval records, and is unavailable in Player and
+portable Reviewer.
+
+Review is source-revision complete rather than “first useful segment wins.” A multi-segment
+revision remains partially classified until every expected segment is imported. Human adjudication
+may later accept, narrow, reject, split, or remap a candidate; formal citation and runtime promotion
+remain independent workflows. Process one bounded topic and one complete source at a time so a
+personal archive never becomes an opaque bulk authority.

@@ -41,6 +41,10 @@ pnpm content:notes:audit -- --folder "Psych research"
 pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Your name"
 pnpm content:notes:validate
 pnpm content:notes:codex-review -- --next --provider openai-codex --model "<exact exposed model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Your name"
+pnpm content:knowledge:index -- --refresh --next
+pnpm content:knowledge:prepare -- --provider openai-codex --model "<exact exposed model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Your name"
+pnpm content:knowledge:import -- /private/path/to/classification.json
+pnpm content:knowledge:status
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -141,9 +145,17 @@ with error provenance while usable title/plaintext from that note is retained. N
 image is printed or transmitted.
 
 The separately acknowledged `content:notes:codex-review` boundary prepares exactly one bounded,
-gitignored title/plaintext packet and a hash-only audit record. It does not read HTML,
-attachments, OCR, or composites and contains no model/provider call. It must not be run with a
-guessed model identifier; the current checkpoint prepared no real Notes packet.
+gitignored title/plaintext packet and a hash-only audit record. It does not read HTML, attachments,
+OCR, composites, or extracted chunks and contains no model/provider call. A tracked
+personal-knowledge pilot then narrows review to one bounded topic and one complete source revision
+at a time: `content:knowledge:index -- --refresh` creates a private lexical candidate queue,
+`content:knowledge:prepare` releases the next missing deterministic segment under the same explicit
+acknowledgments, `content:knowledge:import` validates one private classification result, and
+`content:knowledge:status` validates state and refreshes the local Developer workbench projection.
+Lexical matches only queue candidates; they do not establish relevance, a clinical claim, or
+evidence. All source-unit, opinion, and bibliographic candidates remain medically unreviewed,
+non-executable, point-free, and unable to approve or change gameplay. This is not a bulk claim that
+the Notes corpus has been semantically processed.
 
 A controlled scaffold request can turn an existing reviewed-as-a-template case into a new
 medically unreviewed Developer patient with source provenance, proposed shared impact IDs, and

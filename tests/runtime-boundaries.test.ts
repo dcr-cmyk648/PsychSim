@@ -104,6 +104,21 @@ describe('runtime boundaries', () => {
     });
   });
 
+  it('keeps the personal-knowledge workbench behind a local serve-only boundary', async () => {
+    const [plugin, app, runtimeRoot, reviewer] = await Promise.all([
+      readFile(resolve('apps/web/personal-knowledge-workbench-plugin.ts'), 'utf8'),
+      readFile(resolve('apps/web/src/App.tsx'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
+    ]);
+    expect(plugin).toContain("apply: 'serve'");
+    expect(plugin).toContain("address === '127.0.0.1'");
+    expect(app).toContain('import.meta.env.DEV && !REVIEWER_BUILD');
+    expect(app).toContain("import('./components/PersonalKnowledgeWorkbench')");
+    expect(runtimeRoot).not.toContain('personal-knowledge');
+    expect(reviewer).not.toContain('personal-knowledge');
+  });
+
   it('gitignores every private source-document material directory', async () => {
     const ignore = await readFile(resolve('.gitignore'), 'utf8');
     for (const folder of [

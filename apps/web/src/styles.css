@@ -1275,10 +1275,143 @@ code {
   font-size: 0.76rem;
 }
 
+.personal-knowledge-workbench {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #365846;
+  background:
+    linear-gradient(rgba(7, 20, 14, 0.97), rgba(4, 12, 8, 0.99)),
+    repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(119, 255, 184, 0.015) 6px);
+  box-shadow: var(--shadow);
+}
+
+.personal-knowledge-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+
+.personal-knowledge-summary span {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  background: #030a07;
+}
+
+.personal-knowledge-summary small,
+.personal-knowledge-dossier > summary small,
+.personal-knowledge-candidates small {
+  color: var(--muted);
+}
+
+.personal-knowledge-summary strong {
+  font-size: 1.05rem;
+}
+
+.personal-knowledge-dossiers,
+.personal-knowledge-candidates {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.personal-knowledge-dossier {
+  border: 1px solid var(--line);
+  background: #050d09;
+}
+
+.personal-knowledge-dossier > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem;
+  cursor: pointer;
+}
+
+.personal-knowledge-dossier > summary span:first-child {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.personal-knowledge-dossier > summary small,
+.personal-knowledge-dossier-body dd,
+.personal-knowledge-candidates small {
+  overflow-wrap: anywhere;
+}
+
+.personal-knowledge-dossier-body {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0 0.8rem 0.8rem;
+}
+
+.personal-knowledge-dossier-body dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.personal-knowledge-dossier-body dl div {
+  padding: 0.55rem;
+  border: 1px solid var(--line);
+}
+
+.personal-knowledge-dossier-body dt {
+  color: var(--muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.personal-knowledge-dossier-body dd {
+  margin: 0.2rem 0 0;
+}
+
+.personal-knowledge-candidates article {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.7rem;
+  border-left: 3px solid var(--teal);
+  background: var(--paper);
+}
+
+.personal-knowledge-candidates article > div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.personal-knowledge-candidates p,
+.personal-knowledge-candidates ul {
+  margin: 0;
+}
+
+.personal-knowledge-unmapped {
+  margin-top: 1rem;
+}
+
+.personal-knowledge-unmapped li {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .opinion-card > details {
   margin-top: 0.5rem;
   padding-top: 0.45rem;
   border-top: 1px dotted #315d4a;
+}
+
+@media (max-width: 760px) {
+  .personal-knowledge-dossier > summary,
+  .personal-knowledge-candidates article > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 
 .opinion-card > details > summary {

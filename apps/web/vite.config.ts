@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
+import { personalKnowledgeWorkbenchBridge } from './personal-knowledge-workbench-plugin';
+
+const REVIEWER_BUILD = process.env.VITE_PSYCHSIM_REVIEW_BUILD === '1';
 const LOCAL_TICKET_FILE_NAME =
   process.env.PSYCHSIM_E2E === '1' ? 'tickets.e2e.json' : 'tickets.json';
 const LOCAL_TICKET_PATH = fileURLToPath(
@@ -35,10 +38,7 @@ const resolveDistributionId = (): string => {
 const distribution = {
   schemaVersion: 1 as const,
   distributionId: resolveDistributionId(),
-  buildKind:
-    process.env.VITE_PSYCHSIM_REVIEW_BUILD === '1'
-      ? ('portable_reviewer' as const)
-      : ('player' as const),
+  buildKind: REVIEWER_BUILD ? ('portable_reviewer' as const) : ('player' as const),
   channel: process.env.VITE_PSYCHSIM_DISTRIBUTION_CHANNEL ?? 'local',
 };
 
@@ -161,7 +161,12 @@ export default defineConfig({
   define: {
     __PSYCHSIM_DISTRIBUTION__: JSON.stringify(distribution),
   },
-  plugins: [react(), distributionManifest(), localTicketWriter()],
+  plugins: [
+    react(),
+    distributionManifest(),
+    localTicketWriter(),
+    ...(REVIEWER_BUILD ? [] : [personalKnowledgeWorkbenchBridge()]),
+  ],
   build: {
     sourcemap: true,
   },

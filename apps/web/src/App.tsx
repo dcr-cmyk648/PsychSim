@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
 import {
   ClinicalReviewTicketSchema,
   CompletedAttemptSchema,
@@ -10,6 +10,7 @@ import {
   type ContentFlag,
   type EncounterState,
   type LiteratureSynthesisProposal,
+  type PersonalKnowledgeWorkbenchProjection,
   type ProgressionMode,
   type SaveData,
   type SourceRequest,
@@ -57,6 +58,8 @@ const REVIEW_TOOLS_ENABLED = import.meta.env.DEV || REVIEWER_BUILD;
 const reviewExportTools = REVIEW_TOOLS_ENABLED ? import('./review-export') : null;
 const localTicketWriterTools =
   import.meta.env.DEV && !REVIEWER_BUILD ? import('./ticket-tools') : null;
+const personalKnowledgeWorkbenchTools =
+  import.meta.env.DEV && !REVIEWER_BUILD ? import('./components/PersonalKnowledgeWorkbench') : null;
 
 const createInitialSave = (): SaveData =>
   SaveDataSchema.parse({
@@ -141,6 +144,27 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [ticketToolStatus, setTicketToolStatus] = useState<string | null>(null);
   const [upgradeStatus, setUpgradeStatus] = useState<string | null>(null);
+  const [personalKnowledgeWorkbench, setPersonalKnowledgeWorkbench] = useState<{
+    Component: ComponentType<{ projection: PersonalKnowledgeWorkbenchProjection | null }>;
+    projection: PersonalKnowledgeWorkbenchProjection | null;
+  } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!personalKnowledgeWorkbenchTools) return;
+    void personalKnowledgeWorkbenchTools.then(async (module) => {
+      const projection = await module.loadPersonalKnowledgeWorkbench();
+      if (active) {
+        setPersonalKnowledgeWorkbench({
+          Component: module.PersonalKnowledgeWorkbench,
+          projection,
+        });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -767,6 +791,9 @@ export default function App() {
     );
   }
 
+  const PersonalKnowledgeWorkbenchComponent = personalKnowledgeWorkbench?.Component ?? null;
+  const personalKnowledgeProjection = personalKnowledgeWorkbench?.projection ?? null;
+
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -794,6 +821,11 @@ export default function App() {
           sourceRequests={developerSourceRequests}
           literatureSynthesisProposals={developerLiteratureSynthesisProposals}
           ticketLiteratureScoutCatalog={developerTicketLiteratureScoutCatalog}
+          developerKnowledgeWorkbench={
+            PersonalKnowledgeWorkbenchComponent ? (
+              <PersonalKnowledgeWorkbenchComponent projection={personalKnowledgeProjection} />
+            ) : null
+          }
           onStart={startPatientSlot}
           onOpenSavedAttempt={openSavedAttemptForReview}
           onSetMode={(mode) => void setProgressionMode(mode)}

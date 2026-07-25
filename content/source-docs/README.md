@@ -67,6 +67,30 @@ audit; it performs no provider or network call. It reads only verified `title.tx
 `plaintext.txt`, one bounded segment at a time, and rejects symlink/path escapes. Do not guess the
 model identifier or treat the packet as a citation, clinical rule, or medical approval.
 
+For the bounded personal-knowledge pilot, continue with:
+
+```sh
+pnpm content:knowledge:index -- --refresh --next
+pnpm content:knowledge:prepare -- \
+  --provider openai-codex \
+  --model "<exact model identifier>" \
+  --ack-no-phi \
+  --ack-authorized-external-ai-processing \
+  --ack-title-plaintext-rights \
+  --ack-shared-material-rights \
+  --ack-appropriate-to-transmit \
+  --acknowledged-by "Your name"
+pnpm content:knowledge:import -- /private/path/to/classification.json
+pnpm content:knowledge:status
+```
+
+These commands operate on one tracked topic and one complete source revision at a time. Index
+matches title/plaintext literally and only queues candidates. Prepare releases the next missing
+segment; import validates an independently produced private classification; status validates state
+and refreshes the ignored read-only local Developer projection. Multi-segment sources remain
+partial until every segment is imported. No command widens scope to HTML/OCR/attachments or changes
+evidence, rules, points, tickets, citations, approval, Player, or portable Reviewer content.
+
 Only `.gitkeep` markers are tracked. The root `.gitignore` excludes source material, Apple Notes
 exports, extracted text, OCR text, and manifests by default. Never silently delete an input or a
 provider record. Implemented commands are documented in
