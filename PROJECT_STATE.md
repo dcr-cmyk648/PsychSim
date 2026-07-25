@@ -7,22 +7,21 @@ Last updated: 2026-07-25
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
 - Current beta feature checkpoint:
-  `2f8c2dbcc634b87b64b328637c3cf392fb54cba3` (`Improve mobile reviewer release flow`).
-  It contains the assignment-`2026-07e` ticket/safety checkpoint, makes the phone patient queue a
-  contained horizontal carousel, and records the risk-based main/beta release policy.
-- Released feature checkpoint: `26a41b561cc1dd1262153680c74d34ad512916ad`
-  (`Record mobile reviewer release checkpoint`), containing feature commit `2f8c2db`.
+  `8d78c078ba60b7e67f7934c714773aa277b64769`
+  (`Incorporate mobile regimen review feedback`). It contains assignment `2026-07f`, the bounded
+  initial-outpatient duplicate-antidepressant rule, exact Developer-opinion provenance, and the
+  queued normalized-regimen/evidence follow-up.
+- Released feature checkpoint: `8d78c078ba60b7e67f7934c714773aa277b64769`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
-- Beta workflow `30165228944` passed every verification gate, including iPhone/WebKit; its Pages
+- Beta workflow `30168035942` passed every verification gate, including iPhone/WebKit; its Pages
   jobs skipped as intended.
-- `origin/main` is `26a41b561cc1dd1262153680c74d34ad512916ad`. Main workflow `30165371953`
+- `origin/main` is `8d78c078ba60b7e67f7934c714773aa277b64769`. Main workflow `30168178421`
   repeated the full matrix, packaged the portable Reviewer, and deployed Pages.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
-- A fresh 390-pixel browser smoke against Pages found 12 cards in a contained 3,788-pixel
-  horizontal queue, no page overflow, the visible `10 need input` badge, and all ten ticket
-  launchers after opening the lazy disclosure.
+- The deployed cache-busted `version.json` independently returned exact release
+  `8d78c078ba60b7e67f7934c714773aa277b64769`, build kind `portable_reviewer`, and channel `main`.
 - The working copy is back on `beta`. Feature content matches `main`; the durable-state follow-up
   commit may leave beta one documentation-only commit ahead.
 - Local Developer remains available at `http://127.0.0.1:4318/`. A dedicated current portable
@@ -52,7 +51,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
-- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07e`. A material cohort or policy
+- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07f`. A material cohort or policy
   change must bump this ID again.
 - The ten scenarios cover five MDD decision states plus initial GAD, bipolar depression, acute
   mania, schizophrenia relapse, and PTSD. Every case and executable clinical rule is fictional,
@@ -73,11 +72,14 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   stack legibly on phones.
 - Rule traces lead with point-relevant entries and now expose reference/provenance labels. Expanded
   details retain source contribution, derivation, rule review state, and citation location where
-  present. Unreferenced judgments remain labeled `Expert opinion`.
+  present. Reviewer-supplied contributions beginning `Developer opinion:` display as Developer
+  opinion; generic unreferenced judgments remain labeled `Expert opinion`.
 - Treatment remains one searchable catalog menu spanning medication name/class, psychotherapy and
   other nonmedication labels/categories, and disposition. A regression test protects that search
   behavior.
-- Reviewer scenarios are content version `1.4.0`. They preserve explicit medication-list status,
+- Initial MDD, prior-good-response MDD, and prior-intolerance MDD scenarios are content version
+  `1.5.0`; the other seven Reviewer scenarios remain `1.4.0`. The shared initial-MDD decision
+  policy is `1.1.0`. They preserve explicit medication-list status,
   structured medication/psychotherapy/provider/level-of-care history, reviewed weight/BMI
   measurements, and separate body-habitus observations. Service-backed treatment choices freeze
   fulfillment and displayed cost in review snapshots.
@@ -93,7 +95,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Each patient carries a `budget_only` optional-feature profile. It records coarse room for future
   richness but does not affect score, payout, eligibility, pool, facility, or difficulty.
   Nonempty optional-module selection remains rejected until a catalog/compiler exists.
-- Assignment `2026-07e` includes exactly ten patient-linked, medically unreviewed review tickets.
+- Assignment `2026-07f` includes exactly ten patient-linked, medically unreviewed review tickets.
   Desktop Developer mode retains dense inline details plus a focused dialog. Portable/mobile
   Reviewer opens each ticket in a full-screen view with its own response field; responses persist
   in the assignment database and export with case feedback.
@@ -104,7 +106,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   long phone page. Its visible launcher reports the outstanding count, and its full-screen ticket
   workflow is now an explicit 390-pixel/320-pixel regression assertion.
 - The assignment bump intentionally creates a fresh Reviewer IndexedDB namespace. Unexported
-  `2026-07d` feedback remains in the old browser database and is not mixed into revised cases.
+  `2026-07e` feedback remains in the old browser database and is not mixed into revised cases.
 - A pre-change waiting slot with legacy `unassessed` safety-planning state is re-instantiated from
   the current blueprint with its original seed during queue hydration. The patient identity stays
   deterministic, the stale written-plan result cannot appear under the new label, and completed
@@ -177,7 +179,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   authoring/search data and never enters the browser bundle.
 - The private residency-article aggregate remains pending user export and no-PHI acknowledgment. No
   SharePoint bytes or developer opinions were imported.
-- The MDD prototype is content version `4.2.0`. CANMAT and Developer-opinion/game-balance
+- The MDD prototype is content version `4.3.0`. CANMAT and Developer-opinion/game-balance
   contributions remain separate in the trace. Sertraline and escitalopram share the broad
   first-line baseline; medication-specific fit remains a separate modifier layer. All embedded
   rules remain medically unreviewed.
@@ -213,7 +215,9 @@ Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, o
 ## Google Drive source-inbox state
 
 - The apparent missing connector was deferred-tool discovery, not an authentication failure. The
-  authenticated connector resolved the exact cached folder ID and listed eight direct children.
+  authenticated connector resolved the exact cached folder ID. The folder now has a ninth direct
+  child: the mobile review bundle described below. Source discovery intentionally retains eight
+  candidates because a feedback export is not clinical source material.
 - The three new candidates are native Docs: `Aggregate sharepoint notes`, `Additional notes`, and
   `Brief Therapy Vignettes`. Account-specific IDs/timestamps remain only in the ignored discovery
   manifest; none is publicly shared.
@@ -234,13 +238,34 @@ Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, o
 
 ## Review and provenance state
 
+- The mobile Drive export
+  `psychsim-reviewer-feedback-2026-07-25T16-44-44-100Z.review-bundle.json` was downloaded as
+  untrusted review input and parsed exactly against export schema v5. It is 17,774 bytes with
+  SHA-256 `194b7bb855ebf8daec734f712f269449a9f4c7e298ff0e8c40f9e217abae2dad`.
+  Static ticket integrity matched assignment `2026-07e`. The bundle contains all ten tickets,
+  exactly one nonempty response on `ticket.reviewer-cohort.mdd-initial`, and no attempt review,
+  completed attempt, selections, receipt, flag, or rule trace. It is feedback—not a clinical source
+  document—and therefore did not enter source scanning, extraction, or the evidence catalog.
+- That response identified two separable needs. The bounded current fix scores any simultaneous
+  start of two or more available antidepressants as harmful in the initial outpatient MDD
+  snapshot, retains the existing care-point cap, and attributes both trace rows solely to explicit
+  Developer opinion. A medication plus psychotherapy remains outside that duplicate rule. The rule
+  does not claim to govern established augmentation, separate indications, or cross-titration.
+- All 13 current medication definitions have at least one class label; citalopram, escitalopram,
+  fluoxetine, and sertraline retain the SSRI display class and the stable executable
+  `antidepressant` tag. Free-text class labels remain non-executable.
+- The broader indication/class-aware risk-benefit model is queued as
+  `ticket.catalog.medications.normalized-regimen-risk-benefit`, linked to
+  `source-request.medications.regimen-combination-boundaries`. It must keep benefits, additive
+  risks, interactions, duplicate warnings, and later explicit exceptions independently auditable.
+  No normalized regimen engine, cross-titration state, or new point magnitudes were implemented.
 - Local Developer ticket instructions and attempt reviews save to IndexedDB and mirror to
   `content/generated/local-review-tickets/tickets.json`. The existing human handoff file remains a
   legacy artifact until the next intentional browser save; do not overwrite it merely to modernize
   it. Playwright uses the separate `tickets.e2e.json`.
 - Portable Reviewer never exposes local source/opinion queues, arbitrary local tickets, or the
   writer endpoint. Its only preassigned tickets are the exact ten patient-linked questions in the
-  assignment-`2026-07e` allowlist. Reviewer-created guidance, flags, and tickets may also be
+  assignment-`2026-07f` allowlist. Reviewer-created guidance, flags, and tickets may also be
   included in the manual export.
 - Saving feedback is not clinical approval and is not authorization to edit a rule.
 - Source-linked trace rows now make the evidence trail visible, but bibliographic verification
@@ -253,14 +278,14 @@ Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, o
   proposal. Source-cleared CANMAT can support its proposed direction; ACP/IPT metadata or abstracts
   remain qualifying context only. The proposal changes no rule, point value, or approval state.
 
-## Verification for mobile release checkpoint `2f8c2db`
+## Verification for mobile-feedback checkpoint `8d78c07`
 
 Passed locally on 2026-07-25:
 
 - `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck`
-- `pnpm test`: 27 TypeScript files, 202 tests; 10 handoff tests
+- `pnpm test`: 27 TypeScript files, 207 tests; 10 handoff tests
 - `pnpm content:validate`: catalogs plus 15 executable patients
 - `pnpm content:sources:validate`: 8 Drive candidates, 209 extracted artifacts, 204 private Apple
   Notes records, and no private Codex-review packets
@@ -274,16 +299,18 @@ Passed locally on 2026-07-25:
 - `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests
 - `pnpm test:e2e:reviewer`: 4 portable/mobile Reviewer tests at 390 px and 320 px
 - `pnpm build`: Player bundle safety passed, 11 files
-- `pnpm build:reviewer`: portable Reviewer bundle safety passed, 15 files
+- Pages-equivalent `pnpm build:reviewer`: portable Reviewer bundle safety passed, 15 files
 - `git diff --check`
 
-The phone test proves contained sideways patient scrolling, a visible next-card affordance,
-focus-driven scrolling to the final card, no document overflow, a visible ten-ticket launcher, one
-saved ticket response, two completed-case reviews, persistence, and one exact assignment export.
-An explicit local iPhone/WebKit run could not start because Playwright's pinned WebKit binary was
-absent; its attempted installation stalled after the download. GitHub Actions installs that binary
-afresh; beta workflow `30165228944` and main workflow `30165371953` both passed the required
-iPhone/WebKit project.
+Focused tests additionally enumerate all ten unordered pairs among the five current initial-MDD
+antidepressants, reject single-medication and medication-plus-therapy false positives, exercise
+the all-options upper bound, preserve formal attribution on unaffected rules, render Developer
+opinion distinctly, and verify the new ticket/source-request link.
+
+Beta workflow `30168035942` repeated the complete matrix and passed; Pages jobs skipped on beta as
+intended. Main workflow `30168178421` repeated the complete matrix, packaged the portable Reviewer,
+and deployed Pages. The public `version.json` returned exact distribution
+`8d78c078ba60b7e67f7934c714773aa277b64769`, `portable_reviewer`, and `main`.
 
 ## Verification for beta feature checkpoint `8e08f7c`
 
@@ -399,7 +426,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-130)
+- `docs/DECISIONS.md` (through D-132)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -410,10 +437,13 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `docs/INSTALL_AND_UPDATES.md`
 - `content/source-docs/README.md`
 - `content/cases/review/literature-synthesis.proposals.json`
+- `content/cases/review/catalog-expansion-audit.tickets.json`
+- `content/cases/review/source-needed.requests.json`
 - `packages/content-runtime/src/literature-synthesis.ts`
 - `packages/content-runtime/src/reviewer-assignment.ts`
 - `packages/content-runtime/src/reviewer-content.ts`
 - `packages/content-runtime/src/review-cohort.ts`
+- `packages/content-runtime/src/reviewer-policies.ts`
 - `apps/web/src/App.tsx`
 - `apps/web/src/components/ClinicHub.tsx`
 - `apps/web/src/components/EncounterView.tsx`
@@ -433,15 +463,20 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 On the physical phone, foreground the installed/Safari copy, use the update banner or **Check for
 update**, and confirm it reaches distribution
-`26a41b561cc1dd1262153680c74d34ad512916ad`. Confirm sideways patient scrolling and the visible
+`8d78c078ba60b7e67f7934c714773aa277b64769`. Confirm sideways patient scrolling and the visible
 `Review tickets · 10 need input` launcher. Export any older assignment feedback before relying on
-the fresh `2026-07e` namespace.
+the fresh `2026-07f` namespace.
 
-Then run assignment `2026-07e` in mobile review and export at least one patient-linked ticket
-response. Review whether reaction history and reported safety-planning ability should earn or lose
-points in each focused decision; do not invent a universal clinical reward merely because the
-actions now exist. In particular, reported ability may contribute to disposition appropriateness
-but must not independently determine disposition.
+Then run the `Recheck the initial MDD patient and database plan` ticket in assignment `2026-07f`.
+Verify that any simultaneous two-antidepressant start among the five current options receives the
+harmful grade and safety cap, that one antidepressant plus psychotherapy does not, and that those
+two rows say `Developer opinion` rather than WHO/CANMAT. Export the completed attempt plus response
+so the next review includes exact selections, receipt, and trace.
+
+After that bounded recheck, review
+`ticket.catalog.medications.normalized-regimen-risk-benefit` and its linked source request as one
+clinical decision at a time. Do not build a general duplicate/augmentation/cross-titration engine
+until normalized regimen relationships and evidence boundaries have been reviewed.
 
 Separately, obtain the exact model identifier from a Codex surface before using
 `content:notes:codex-review`. Then review one bounded Notes title/plaintext segment and classify it
@@ -449,7 +484,8 @@ as a Developer-opinion candidate, bibliographic candidate, secondary context, or
 irrelevant/duplicate material. Do not infer the identifier and do not turn intake directly into
 rules, points, citations, or approval.
 
-After that, the next queued product decision remains medication formulation granularity:
+The next queued product decision after the regimen review remains medication formulation
+granularity:
 ingredient only versus clinically meaningful IR/SR/XL, long-acting injectable, route, and
 combination-product distinctions.
 
