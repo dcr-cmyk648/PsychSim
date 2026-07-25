@@ -10,22 +10,23 @@ Last updated: 2026-07-25
   `2f8c2dbcc634b87b64b328637c3cf392fb54cba3` (`Improve mobile reviewer release flow`).
   It contains the assignment-`2026-07e` ticket/safety checkpoint, makes the phone patient queue a
   contained horizontal carousel, and records the risk-based main/beta release policy.
-- Released feature checkpoint: `0536c287cb547e311298913a2509f98f4b5d28f1`
-  (`Defer macOS OCR discovery`), containing the feature commit
-  `20833712f8e7aae4af1352fee259231075049b9e`.
+- Released feature checkpoint: `26a41b561cc1dd1262153680c74d34ad512916ad`
+  (`Record mobile reviewer release checkpoint`), containing feature commit `2f8c2db`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
-- Beta workflow `30163825898` passed every verification gate. Its Pages jobs skipped as intended.
-- The new mobile checkpoint has passed every local gate except an optional local WebKit rerun; the
-  pinned WebKit download stalled during installation. The required GitHub iPhone/WebKit gate must
-  pass before promotion.
-- `origin/main` is `0536c287cb547e311298913a2509f98f4b5d28f1`. Main workflow `30138175892`
-  passed verification, Pages packaging, and deployment.
+- Beta workflow `30165228944` passed every verification gate, including iPhone/WebKit; its Pages
+  jobs skipped as intended.
+- `origin/main` is `26a41b561cc1dd1262153680c74d34ad512916ad`. Main workflow `30165371953`
+  repeated the full matrix, packaged the portable Reviewer, and deployed Pages.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
-- Beta is intentionally ahead with the assignment-`2026-07e` portable-review checkpoint. It has
-  not yet been promoted to `main` or the public phone release. The user has now authorized this
-  whole-beta promotion after CI passes.
+- A fresh 390-pixel browser smoke against Pages found 12 cards in a contained 3,788-pixel
+  horizontal queue, no page overflow, the visible `10 need input` badge, and all ten ticket
+  launchers after opening the lazy disclosure.
+- The working copy is back on `beta`. Feature content matches `main`; the durable-state follow-up
+  commit may leave beta one documentation-only commit ahead.
+- Local Developer remains available at `http://127.0.0.1:4318/`. A dedicated current portable
+  Reviewer server is verified at `http://127.0.0.1:4319/`.
 
 ## Current phase and bounded checkpoint
 
@@ -281,7 +282,8 @@ focus-driven scrolling to the final card, no document overflow, a visible ten-ti
 saved ticket response, two completed-case reviews, persistence, and one exact assignment export.
 An explicit local iPhone/WebKit run could not start because Playwright's pinned WebKit binary was
 absent; its attempted installation stalled after the download. GitHub Actions installs that binary
-afresh, and its required iPhone/WebKit project remains the release gate.
+afresh; beta workflow `30165228944` and main workflow `30165371953` both passed the required
+iPhone/WebKit project.
 
 ## Verification for beta feature checkpoint `8e08f7c`
 
@@ -429,11 +431,11 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Push checkpoint `2f8c2db` plus this durable-state update to `origin/beta`, require the complete beta
-workflow including iPhone/WebKit to pass, fast-forward the whole verified beta checkpoint to
-`main`, and verify the deployed cache-busted `version.json` plus portable Reviewer page. Return the
-working copy to `beta`. A physical-phone smoke should confirm sideways patient scrolling, the
-visible ten-ticket launcher, update discovery, and preservation of existing saved feedback.
+On the physical phone, foreground the installed/Safari copy, use the update banner or **Check for
+update**, and confirm it reaches distribution
+`26a41b561cc1dd1262153680c74d34ad512916ad`. Confirm sideways patient scrolling and the visible
+`Review tickets · 10 need input` launcher. Export any older assignment feedback before relying on
+the fresh `2026-07e` namespace.
 
 Then run assignment `2026-07e` in mobile review and export at least one patient-linked ticket
 response. Review whether reaction history and reported safety-planning ability should earn or lose
