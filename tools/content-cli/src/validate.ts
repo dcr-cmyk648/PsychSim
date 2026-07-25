@@ -30,6 +30,10 @@ import {
   validateSourceRequests,
 } from '../../../packages/content-runtime/src/source-requests';
 import {
+  developerTicketLiteratureScoutCatalog,
+  validateTicketLiteratureScoutCatalog,
+} from '../../../packages/content-runtime/src/ticket-literature-scout';
+import {
   getSingleDiagnosisClassificationRegistryEntry,
   readDiagnosisClassification,
   validateDiagnosisClassification,
@@ -484,6 +488,14 @@ const reports = [
       [...catalogs.evidenceSources, ...authoringEvidenceSources],
       sourceUseDecisionCatalog.decisions,
       [...approvedCaseBlueprints, ...allReviewBlueprints],
+      checkedInReviewTickets,
+      developerSourceRequests,
+    ),
+  ],
+  [
+    'ticket-literature-scout',
+    validateTicketLiteratureScoutCatalog(
+      developerTicketLiteratureScoutCatalog,
       checkedInReviewTickets,
       developerSourceRequests,
     ),

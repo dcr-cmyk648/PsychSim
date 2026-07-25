@@ -164,6 +164,15 @@ requires source-cleared support and keeps metadata/abstract-only context non-sup
 render the packet only after the local Developer entry is dynamically loaded. The proposal cannot
 change a rule, choose point magnitudes, or enter Player/Reviewer production bundles.
 
+The separate `TicketLiteratureScoutCatalog` is an earlier discovery layer. A developer-side CLI
+queries Europe PMC for one bounded ticket question, records the exact ten-year query, provider
+citation snapshot, rank, and hashes, and keeps raw API responses under ignored
+`content/generated/literature-scout/`. Tracked references contain only concise original
+abstract-only paraphrases. Validation requires every active checked-in Developer ticket to have
+profiles or an explicit exemption. Only the dynamically loaded local Developer module imports the
+catalog; Player and portable Reviewer builds do not. No browser network call, runtime AI, rule
+mutation, or evidence approval results from scouting.
+
 ## Source-rights and diagnosis-classification boundary
 
 Bibliographic metadata, lawful processing, medical review, and runtime inclusion are independent

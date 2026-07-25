@@ -61,6 +61,23 @@ counted as support for the proposed direction. The psychiatrist's plain-language
 the decision. A proposal never sets point magnitudes, edits a rule, attaches a citation to runtime
 content, or grants medical approval.
 
+Every unresolved checked-in Developer ticket also has a `TicketLiteratureScoutCatalog`
+attachment. Related tickets may share a clinically bounded profile. The Developer-side refresh
+tool automatically repeats the recorded Europe PMC search, ranks clinically relevant
+meta-analyses by that provider's cited-by count, stores the dated metadata/hashes, and refuses to
+silently replace a selected paper. The tracked abstract summary is a short independently worded
+paraphrase prepared from the abstract; raw responses and abstract text remain local and ignored.
+Valid outcomes are a selected recent meta-analysis, an explicit no-suitable result, or a
+different-evidence requirement. Nonclinical and umbrella tickets carry an explicit exemption
+instead of an irrelevant paper.
+
+The citation count is only a mutable retrieval tie-breaker after relevance screening, not an
+evidence-quality score. A scout never changes a ticket or source-request status, claims that an
+absence of a direct meta-analysis means no evidence exists, supplies point magnitude, edits a
+rule, attaches a runtime citation, or grants approval. Formal application still follows the
+source-use, contribution, impact, and clinical-review workflow. The scout remains local
+Developer-only; D-128 keeps it out of the portable Reviewer assignment.
+
 Local Developer mode saves either ticket instructions or an attempt review to IndexedDB first and
 then atomically mirrors the complete versioned bundle to the fixed gitignored path
 `content/generated/local-review-tickets/tickets.json`. A failed mirror never discards the browser

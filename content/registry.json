@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.10.0",
+  "contentVersion": "3.11.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -110,6 +110,13 @@
       "kind": "source_request_catalog",
       "path": "content/cases/review/source-needed.requests.json",
       "runtimeIncluded": false
+    },
+    {
+      "id": "registry.review.ticket-literature-scout",
+      "kind": "ticket_literature_scout_catalog",
+      "path": "content/cases/review/ticket-literature-scout.catalog.json",
+      "runtimeIncluded": false,
+      "dependsOnIds": ["registry.review.source-requests"]
     },
     {
       "id": "registry.reviewer-assignment.common-psychiatry.2026-07f.tickets",

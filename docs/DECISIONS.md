@@ -1351,3 +1351,26 @@ of forcing every compact policy contribution to look formally sourced. The broad
 therefore remains attached to the rules it actually seeded, while the new duplicate-start judgment
 does not borrow WHO authority. Explicit Developer-opinion traces are labeled as such; genuinely
 unattributed prototype rules still display `Expert opinion`.
+
+## D-133 — Developer tickets receive a bounded literature-scout attachment
+
+Status: accepted and implemented as authoring-only discovery. Every unresolved checked-in
+Developer ticket has exactly one attachment: one or more clinically relevant search profiles, or
+an explicit exemption for legal/access, identity/taxonomy, architecture, balance, or umbrella
+questions that a meta-analysis cannot resolve. Scout v1 records exact inclusive window dates and
+refreshes them as a rolling ten-calendar-year interval. The initial run spans 2016-07-25 through
+2026-07-25. Within a bounded query, relevance is screened first and Europe PMC
+`cited_by_count` selects the highest-cited suitable meta-analysis. Provider, scope, count, as-of
+time, exact query, selected rank, and hashes remain visible because citation counts are mutable
+and provider-specific; they are not evidence-quality scores.
+
+A selected record carries a concise independently worded abstract-only summary and remains
+medically unreviewed discovery context. “No suitable recent meta-analysis” is a valid explicit
+outcome; the workflow does not substitute an unrelated paper. Discovery never changes a ticket
+or source-request status, creates a formal contribution, attaches a runtime citation, selects
+point magnitude, modifies a clinical rule, or grants approval. A refresh cannot silently replace
+the selected paper; a changed candidate requires review.
+
+Only local Developer tooling imports this sidecar. D-128 remains controlling: portable Reviewer
+continues to exclude source requests, opinion queues, literature-synthesis queues, and this
+literature-scout catalog, so this work does not change the assignment ID.

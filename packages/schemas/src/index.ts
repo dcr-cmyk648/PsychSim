@@ -873,6 +873,7 @@ export const ContentRegistryEntrySchema = z
       'diagnosis_classification_catalog',
       'source_use_decision_catalog',
       'source_request_catalog',
+      'ticket_literature_scout_catalog',
       'reviewer_assignment_ticket_catalog',
       'evidence_source',
       'medication',
@@ -3150,6 +3151,191 @@ export const LiteratureSynthesisProposalSchema = z
   })
   .strict();
 export type LiteratureSynthesisProposal = z.infer<typeof LiteratureSynthesisProposalSchema>;
+
+export const TicketLiteratureScoutReferenceSchema = z
+  .object({
+    id: StableIdSchema,
+    title: z.string().min(1).max(500),
+    authorLabel: z.string().min(1).max(300),
+    publicationDate: z.string().date(),
+    publicationYear: z.number().int().min(1900).max(2200),
+    doi: z.string().min(1).nullable(),
+    pmid: z.string().regex(/^\d+$/),
+    url: z.string().url(),
+    synthesisKind: z.enum([
+      'meta_analysis',
+      'network_meta_analysis',
+      'individual_participant_data_meta_analysis',
+    ]),
+    publicationTypes: z.array(z.string().min(1).max(120)).min(1),
+    citationMetric: z
+      .object({
+        provider: z.literal('europe_pmc'),
+        metric: z.literal('cited_by_count'),
+        count: z.number().int().nonnegative(),
+        asOf: z.string().datetime(),
+        scope: z.literal('Europe PMC open-citation graph'),
+      })
+      .strict(),
+    abstractSummary: z.string().min(1).max(1000),
+    summaryBasis: z.literal('abstract_only'),
+    summaryCreatedAt: z.string().datetime(),
+    accessStatus: z.literal('metadata_or_abstract_only'),
+    medicalReviewStatus: z.literal('unreviewed'),
+  })
+  .strict()
+  .superRefine((reference, context) => {
+    if (/<\/?[a-z][^>]*>/i.test(reference.abstractSummary)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['abstractSummary'],
+        message: 'Tracked literature summaries must not contain copied abstract markup.',
+      });
+    }
+  });
+export type TicketLiteratureScoutReference = z.infer<typeof TicketLiteratureScoutReferenceSchema>;
+
+export const TicketLiteratureScoutProfileSchema = z
+  .object({
+    id: StableIdSchema,
+    clinicalQuestion: z.string().min(1).max(800),
+    metaAnalysisFit: z.enum(['strong', 'partial', 'weak', 'not_applicable']),
+    outcome: z.enum(['selected', 'no_suitable_recent_meta_analysis', 'requires_other_evidence']),
+    linkedSourceRequestIds: z.array(StableIdSchema),
+    searchPlan: z
+      .object({
+        provider: z.literal('europe_pmc'),
+        topicQuery: z.string().min(1).max(1600),
+        windowStart: z.string().date(),
+        windowEnd: z.string().date(),
+        lookbackYears: z.literal(10),
+        selectionPolicy: z.literal('highest_cited_relevant_meta_analysis'),
+        selectionPolicyVersion: z.literal('psychsim-literature-scout-v1'),
+      })
+      .strict()
+      .nullable(),
+    searchRun: z
+      .object({
+        searchedAt: z.string().datetime(),
+        resultCount: z.number().int().nonnegative(),
+        screenedResultCount: z.number().int().nonnegative(),
+        selectedRank: z.number().int().positive().nullable(),
+        responseSha256: z.string().regex(/^[a-f0-9]{64}$/),
+        candidateSetSha256: z.string().regex(/^[a-f0-9]{64}$/),
+        selectionNote: z.string().min(1).max(1000),
+      })
+      .strict()
+      .nullable(),
+    selectedReferenceId: StableIdSchema.nullable(),
+    relevanceNote: z.string().min(1).max(1200),
+    limitations: z.array(z.string().min(1).max(500)).min(1),
+    pointMagnitudeExcluded: z.literal(true),
+    supportsExecutableRule: z.literal(false),
+    medicalReviewStatus: z.literal('unreviewed'),
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    if (profile.searchPlan) {
+      const end = new Date(`${profile.searchPlan.windowEnd}T00:00:00.000Z`);
+      const expectedStartYear = end.getUTCFullYear() - profile.searchPlan.lookbackYears;
+      const expectedStartDay = Math.min(
+        end.getUTCDate(),
+        new Date(Date.UTC(expectedStartYear, end.getUTCMonth() + 1, 0)).getUTCDate(),
+      );
+      const expectedStart = new Date(
+        Date.UTC(expectedStartYear, end.getUTCMonth(), expectedStartDay),
+      )
+        .toISOString()
+        .slice(0, 10);
+      if (profile.searchPlan.windowStart !== expectedStart) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['searchPlan', 'windowStart'],
+          message: `The literature search window must be exactly ${profile.searchPlan.lookbackYears} calendar years.`,
+        });
+      }
+    }
+    if (profile.outcome === 'selected') {
+      if (!profile.searchPlan || !profile.searchRun || !profile.selectedReferenceId) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['outcome'],
+          message: 'A selected literature profile requires a search plan, run, and reference.',
+        });
+      }
+      if (profile.searchRun?.selectedRank === null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['searchRun', 'selectedRank'],
+          message: 'A selected literature profile requires a selected rank.',
+        });
+      }
+    }
+    if (profile.outcome === 'no_suitable_recent_meta_analysis') {
+      if (!profile.searchPlan || !profile.searchRun || profile.selectedReferenceId) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['outcome'],
+          message:
+            'A no-suitable-result profile requires a completed search and no selected reference.',
+        });
+      }
+      if (profile.searchRun?.selectedRank !== null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['searchRun', 'selectedRank'],
+          message: 'A no-suitable-result profile cannot have a selected rank.',
+        });
+      }
+    }
+    if (profile.outcome === 'requires_other_evidence') {
+      if (
+        profile.metaAnalysisFit !== 'not_applicable' ||
+        profile.searchPlan ||
+        profile.searchRun ||
+        profile.selectedReferenceId
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['outcome'],
+          message:
+            'A requires-other-evidence profile must be marked not applicable and have no meta-analysis search result.',
+        });
+      }
+    }
+  });
+export type TicketLiteratureScoutProfile = z.infer<typeof TicketLiteratureScoutProfileSchema>;
+
+export const TicketLiteratureScoutAttachmentSchema = z
+  .object({
+    ticketId: StableIdSchema,
+    profileIds: z.array(StableIdSchema),
+    exemptionReason: z.string().min(1).max(1000).nullable(),
+  })
+  .strict()
+  .superRefine((attachment, context) => {
+    if ((attachment.profileIds.length === 0) === (attachment.exemptionReason === null)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profileIds'],
+        message:
+          'A ticket literature attachment must have profiles or one explicit exemption reason, but not both.',
+      });
+    }
+  });
+export type TicketLiteratureScoutAttachment = z.infer<typeof TicketLiteratureScoutAttachmentSchema>;
+
+export const TicketLiteratureScoutCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: z.literal('ticket-literature-scout.psychsim'),
+    references: z.array(TicketLiteratureScoutReferenceSchema),
+    profiles: z.array(TicketLiteratureScoutProfileSchema),
+    attachments: z.array(TicketLiteratureScoutAttachmentSchema).min(1),
+  })
+  .strict();
+export type TicketLiteratureScoutCatalog = z.infer<typeof TicketLiteratureScoutCatalogSchema>;
 
 export const ClinicalTicketExportBundleSchema = z
   .object({

@@ -90,6 +90,7 @@ pnpm content:notes:codex-review -- --next --provider openai-codex --model "<exac
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
+pnpm content:literature:refresh -- --next
 pnpm content:compile
 pnpm content:impact medication.bupropion
 pnpm content:diagnoses:validate
@@ -214,6 +215,16 @@ guideline/source` creates a `source_gap` ticket; check existing evidence before 
   content edit. Developer mode may export the same versioned bundle as JSON. Triage technical
   blockers before clinical changes where dependencies require it; implemented work creates
   versioned file changes and reruns affected validation/reference policies.
+- Every unresolved checked-in Developer ticket must have exactly one literature-scout attachment:
+  one or more bounded clinical search profiles, or an explicit exemption when a meta-analysis
+  cannot answer the question. Use a recorded ten-year publication window; screen relevance before
+  using one provider's citation count to select the highest-cited relevant synthesis. Preserve the
+  provider, metric scope, count/as-of time, exact query, selected rank, and result hashes. Citation
+  count is mutable discovery metadata, not evidence quality. Track only a concise, independently
+  worded abstract-only summary; raw API responses and abstract text remain ignored local
+  artifacts. Scouting never changes ticket/source-request status, rules, points, citations,
+  contributions, or approval. Formal use still requires bibliographic/source-use/exact-claim and
+  clinician review. This catalog is local Developer-only and remains outside portable Reviewer.
 - A completed Developer-mode patient can also create one editable `DeveloperAttemptReview`.
   Preserve its immutable completed-attempt snapshot and the normalized snapshot of every available
   information/treatment/disposition option, including choice state and displayed fulfillment cost.

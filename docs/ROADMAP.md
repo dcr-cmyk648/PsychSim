@@ -147,7 +147,10 @@ complete. Developer queues now mount as collapsed decision packets with explicit
 links. One packet may show a validated, unreviewed literature-synthesis proposal that separates
 source-cleared support from metadata/abstract-only context and leaves the psychiatrist's
 plain-language response authoritative. No proposal edits a rule, assigns points, or grants
-approval.
+approval. A separate literature-scout precursor now gives every active checked-in Developer ticket
+a bounded ten-year meta-analysis search profile or an explicit exemption. Its one-ticket refresh
+records relevance-first citation ranking and abstract-only discovery context without creating
+formal evidence, changing ticket status, or entering Player/portable Reviewer bundles.
 
 Scope: build on the Milestone 1 proposed-ticket queue with exact attempt replay; review inspector; dependency/conflict and supersession workflows; rubric editing; historical comparison/re-score; JSON bundles; reference-policy simulations and QA reports; generated content indexes.
 

@@ -1127,6 +1127,40 @@ code {
   margin: 0.12rem 0 0;
 }
 
+.ticket-literature-scout-profile {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.ticket-literature-scout-profile:first-of-type {
+  border-top: 0;
+}
+
+.ticket-literature-scout-result {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.7rem;
+  border: 1px solid #315d4a;
+  background: #030a07;
+}
+
+.ticket-literature-scout-result > a {
+  color: var(--teal-dark);
+  font-weight: 800;
+}
+
+.ticket-literature-scout-result > small {
+  color: var(--muted);
+}
+
+.ticket-literature-scout code {
+  color: var(--ink);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .opinion-source-queue {
   margin-top: 1.25rem;
   padding: 1rem;

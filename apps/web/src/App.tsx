@@ -13,6 +13,7 @@ import {
   type ProgressionMode,
   type SaveData,
   type SourceRequest,
+  type TicketLiteratureScoutCatalog,
 } from '@psychsim/schemas';
 import {
   approvedCaseBlueprints,
@@ -128,6 +129,8 @@ export default function App() {
   );
   const [developerLiteratureSynthesisProposals, setDeveloperLiteratureSynthesisProposals] =
     useState<readonly LiteratureSynthesisProposal[]>([]);
+  const [developerTicketLiteratureScoutCatalog, setDeveloperTicketLiteratureScoutCatalog] =
+    useState<TicketLiteratureScoutCatalog | null>(null);
   const [saveData, setSaveData] = useState<SaveData | null>(null);
   const [screen, setScreen] = useState<Screen>('hub');
   const [mobileWorkflowPane, setMobileWorkflowPane] = useState<MobileWorkflowPane>('patient');
@@ -152,6 +155,7 @@ export default function App() {
           opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
           sourceRequests: [] as readonly SourceRequest[],
           literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
+          ticketLiteratureScoutCatalog: null as TicketLiteratureScoutCatalog | null,
         }))
       : import.meta.env.DEV
         ? import('@psychsim/content-runtime/developer').then((module) => ({
@@ -161,6 +165,7 @@ export default function App() {
             opinionReferenceNeeds: module.developerOpinionReferenceNeeds,
             sourceRequests: module.developerSourceRequests,
             literatureSynthesisProposals: module.developerLiteratureSynthesisProposals,
+            ticketLiteratureScoutCatalog: module.developerTicketLiteratureScoutCatalog,
           }))
         : Promise.resolve({
             blueprints: approvedCaseBlueprints as readonly CaseBlueprint[],
@@ -169,6 +174,7 @@ export default function App() {
             opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
             sourceRequests: [] as readonly SourceRequest[],
             literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
+            ticketLiteratureScoutCatalog: null as TicketLiteratureScoutCatalog | null,
           });
     void Promise.all([repository.load(), developerContent])
       .then(async ([saved, developerData]) => {
@@ -185,6 +191,7 @@ export default function App() {
         setDeveloperOpinionReferenceNeeds(developerData.opinionReferenceNeeds);
         setDeveloperSourceRequests(developerData.sourceRequests);
         setDeveloperLiteratureSynthesisProposals(developerData.literatureSynthesisProposals);
+        setDeveloperTicketLiteratureScoutCatalog(developerData.ticketLiteratureScoutCatalog);
         setSaveData(hydrated);
       })
       .catch((caught: unknown) => {
@@ -786,6 +793,7 @@ export default function App() {
           opinionReferenceNeeds={developerOpinionReferenceNeeds}
           sourceRequests={developerSourceRequests}
           literatureSynthesisProposals={developerLiteratureSynthesisProposals}
+          ticketLiteratureScoutCatalog={developerTicketLiteratureScoutCatalog}
           onStart={startPatientSlot}
           onOpenSavedAttempt={openSavedAttemptForReview}
           onSetMode={(mode) => void setProgressionMode(mode)}

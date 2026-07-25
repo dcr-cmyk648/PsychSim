@@ -12,8 +12,10 @@ import {
 } from '@psychsim/content-runtime';
 import {
   developerCaseBlueprints,
+  developerClinicalAuditTickets,
   developerOpinionReferenceNeeds,
   developerSourceRequests,
+  developerTicketLiteratureScoutCatalog,
 } from '@psychsim/content-runtime/developer';
 import { emptyPatientQueueState, instantiateCase } from '@psychsim/engine';
 import { ClinicalReviewTicketSchema, SaveDataSchema } from '@psychsim/schemas';
@@ -351,6 +353,102 @@ describe('ClinicHub', () => {
       ticket.id,
       'Allow any first-line SSRI, then apply medication-fit modifiers.',
     );
+  });
+
+  it('shows the exact literature-scout attachment only in local Developer mode', async () => {
+    const ticket = developerClinicalAuditTickets.find(
+      (candidate) => candidate.id === 'ticket.source.canmat-mdd.antidepressant-baseline',
+    )!;
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 5,
+      profile: { ...startingProfile, progressionMode: 'developer' },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [ticket],
+      attemptReviews: [],
+      legacyArchive: [],
+    });
+    render(
+      <ClinicHub
+        saveData={saveData}
+        clinicState={saveData.profile.clinic}
+        catalogs={catalogs}
+        patientSlots={[]}
+        developerModeAvailable
+        caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
+        sourceRequests={[]}
+        ticketLiteratureScoutCatalog={developerTicketLiteratureScoutCatalog}
+        onStart={vi.fn()}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSaveTicketReview={vi.fn()}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={vi.fn()}
+        upgradeStatus={null}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('Clinical and content tickets'));
+    fireEvent.click(
+      await screen.findByText(ticket.title, {
+        selector: '.review-ticket-inline strong',
+      }),
+    );
+    expect(await screen.findByText('Recent meta-analysis context')).toBeVisible();
+    expect(screen.getByText('Abstract-only summary')).toBeVisible();
+  });
+
+  it('keeps the Developer literature scout out of portable Reviewer even if supplied', async () => {
+    const ticket = developerClinicalAuditTickets.find(
+      (candidate) => candidate.id === 'ticket.source.canmat-mdd.antidepressant-baseline',
+    )!;
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 5,
+      profile: { ...startingProfile, progressionMode: 'developer' },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [ticket],
+      attemptReviews: [],
+      legacyArchive: [],
+    });
+    render(
+      <ClinicHub
+        saveData={saveData}
+        clinicState={saveData.profile.clinic}
+        catalogs={catalogs}
+        patientSlots={[]}
+        developerModeAvailable={false}
+        reviewerBuild
+        caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
+        sourceRequests={[]}
+        ticketLiteratureScoutCatalog={developerTicketLiteratureScoutCatalog}
+        onStart={vi.fn()}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSaveTicketReview={vi.fn()}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={vi.fn()}
+        upgradeStatus={null}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('Review tickets', { selector: 'strong' }));
+    fireEvent.click(await screen.findByRole('button', { name: new RegExp(ticket.title) }));
+    expect(screen.queryByText('Recent meta-analysis context')).not.toBeInTheDocument();
   });
 
   it('opens portable Reviewer tickets in a focused dialog and saves the response', async () => {

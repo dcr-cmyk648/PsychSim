@@ -9,6 +9,7 @@ import type {
   ProgressionMode,
   SaveData,
   SourceRequest,
+  TicketLiteratureScoutCatalog,
   UpgradeDefinition,
 } from '@psychsim/schemas';
 import type { CaseRuleAudit, DeveloperOpinionReferenceNeed } from '@psychsim/content-runtime';
@@ -19,6 +20,7 @@ import { DeveloperOpinionQueue } from './DeveloperOpinionQueue';
 import { LazyDisclosure } from './LazyDisclosure';
 import { LiteratureSynthesisProposalView } from './LiteratureSynthesisProposalView';
 import { SourceRequestQueue } from './SourceRequestQueue';
+import { TicketLiteratureScoutView } from './TicketLiteratureScoutView';
 
 export interface PatientSlotPreview {
   id: string;
@@ -38,6 +40,7 @@ interface ClinicHubProps {
   opinionReferenceNeeds: readonly DeveloperOpinionReferenceNeed[];
   sourceRequests: readonly SourceRequest[];
   literatureSynthesisProposals?: readonly LiteratureSynthesisProposal[];
+  ticketLiteratureScoutCatalog?: TicketLiteratureScoutCatalog | null;
   onStart: (slotId: string) => void;
   onOpenSavedAttempt?: (attemptId: string) => void;
   onSetMode: (mode: ProgressionMode) => void;
@@ -88,6 +91,7 @@ interface TicketReviewCardProps {
   ticket: ClinicalReviewTicket;
   caseRuleAudit: CaseRuleAudit | null;
   literatureSynthesisProposal: LiteratureSynthesisProposal | null;
+  ticketLiteratureScoutCatalog: TicketLiteratureScoutCatalog | null;
   onSave: ClinicHubProps['onSaveTicketReview'];
   compact?: boolean;
 }
@@ -96,6 +100,7 @@ function TicketReviewCard({
   ticket,
   caseRuleAudit,
   literatureSynthesisProposal,
+  ticketLiteratureScoutCatalog,
   onSave,
   compact = false,
 }: TicketReviewCardProps) {
@@ -176,6 +181,9 @@ function TicketReviewCard({
         ) : null}
         {literatureSynthesisProposal ? (
           <LiteratureSynthesisProposalView proposal={literatureSynthesisProposal} />
+        ) : null}
+        {ticketLiteratureScoutCatalog ? (
+          <TicketLiteratureScoutView catalog={ticketLiteratureScoutCatalog} ticketId={ticket.id} />
         ) : null}
         <details className="ticket-context">
           <summary>Targets and review routing</summary>
@@ -431,6 +439,7 @@ export function ClinicHub({
   opinionReferenceNeeds,
   sourceRequests,
   literatureSynthesisProposals = [],
+  ticketLiteratureScoutCatalog = null,
   onStart,
   onOpenSavedAttempt = () => undefined,
   onSetMode,
@@ -466,6 +475,8 @@ export function ClinicHub({
       proposal.linkedTicketIds.map((ticketId) => [ticketId, proposal] as const),
     ),
   );
+  const localTicketLiteratureScoutCatalog =
+    progressionMode === 'developer' && !reviewerBuild ? ticketLiteratureScoutCatalog : null;
   const currentFacility = catalogs.facilities.find((facility) => facility.id === clinic.facilityId);
   const upgradeOffers = getPurchasableUpgradeDefinitions(catalogs)
     .filter(
@@ -1036,6 +1047,7 @@ export function ClinicHub({
                             : null
                         }
                         literatureSynthesisProposal={null}
+                        ticketLiteratureScoutCatalog={null}
                         onSave={onSaveTicketReview}
                         compact
                       />
@@ -1061,6 +1073,7 @@ export function ClinicHub({
                               : null
                           }
                           literatureSynthesisProposal={synthesisByTicketId.get(ticket.id) ?? null}
+                          ticketLiteratureScoutCatalog={localTicketLiteratureScoutCatalog}
                           onSave={onSaveTicketReview}
                         />
                       ))}
@@ -1085,6 +1098,7 @@ export function ClinicHub({
                               literatureSynthesisProposal={
                                 synthesisByTicketId.get(ticket.id) ?? null
                               }
+                              ticketLiteratureScoutCatalog={localTicketLiteratureScoutCatalog}
                               onSave={onSaveTicketReview}
                             />
                           ))}

@@ -1,0 +1,792 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "ticket-literature-scout.psychsim",
+  "references": [
+    {
+      "id": "literature-reference.cipriani-antidepressants.2018",
+      "title": "Comparative efficacy and acceptability of 21 antidepressant drugs for the acute treatment of adults with major depressive disorder: a systematic review and network meta-analysis.",
+      "authorLabel": "Cipriani A et al.",
+      "publicationDate": "2018-02-21",
+      "publicationYear": 2018,
+      "doi": "10.1016/S0140-6736(17)32802-7",
+      "pmid": "29477251",
+      "url": "https://europepmc.org/article/MED/29477251",
+      "synthesisKind": "network_meta_analysis",
+      "publicationTypes": [
+        "Comparative Study",
+        "Systematic Review",
+        "Network Meta-Analysis",
+        "Journal Article"
+      ],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 2220,
+        "asOf": "2026-07-25T18:48:52.487Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Across 522 trials and 116,477 adults with acute major depressive disorder, every studied antidepressant outperformed placebo, while differences among active drugs were generally smaller and acceptability varied. The trials largely excluded treatment-resistant, psychotic, bipolar, and serious-medical-comorbidity populations, and certainty ranged from moderate to very low.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-25T18:30:00.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.cuijpers-depression-modalities.2020",
+      "title": "A network meta-analysis of the effects of psychotherapies, pharmacotherapies and their combination in the treatment of adult depression.",
+      "authorLabel": "Cuijpers P et al.",
+      "publicationDate": "2020-02-01",
+      "publicationYear": 2020,
+      "doi": "10.1002/wps.20701",
+      "pmid": "31922679",
+      "url": "https://europepmc.org/article/MED/31922679",
+      "synthesisKind": "network_meta_analysis",
+      "publicationTypes": [
+        "Journal Article",
+        "Network meta-analysis verified from title and abstract"
+      ],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 330,
+        "asOf": "2026-07-25T18:48:50.579Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Across 101 studies with 11,910 adults, combined psychotherapy and pharmacotherapy produced more response and remission than either alone; psychotherapy and pharmacotherapy alone did not differ materially. Most participants had moderate-to-severe depression, and evidence about long-term outcomes, particular treatments, and specific populations remained limited.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-25T18:30:00.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.cuijpers-depression-psychotherapies.2021",
+      "title": "Psychotherapies for depression: a network meta-analysis covering efficacy, acceptability and long-term outcomes of all main treatment types.",
+      "authorLabel": "Cuijpers P et al.",
+      "publicationDate": "2021-06-01",
+      "publicationYear": 2021,
+      "doi": "10.1002/wps.20860",
+      "pmid": "34002502",
+      "url": "https://europepmc.org/article/MED/34002502",
+      "synthesisKind": "network_meta_analysis",
+      "publicationTypes": [
+        "Journal Article",
+        "Network meta-analysis verified from title and abstract"
+      ],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 248,
+        "asOf": "2026-07-25T18:48:54.293Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "A network of 331 randomized trials with 34,285 patients found that the major psychotherapy families were effective and acceptable for acute adult depression, with few consistent differences among them. The analysis cannot establish patient-specific matching, and the authors emphasized preference and availability when choosing among broadly effective options.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-25T18:30:00.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.franklin-suicide-risk.2017",
+      "title": "Risk factors for suicidal thoughts and behaviors: A meta-analysis of 50 years of research.",
+      "authorLabel": "Franklin JC et al.",
+      "publicationDate": "2016-11-14",
+      "publicationYear": 2017,
+      "doi": "10.1037/bul0000084",
+      "pmid": "27841450",
+      "url": "https://europepmc.org/article/MED/27841450",
+      "synthesisKind": "meta_analysis",
+      "publicationTypes": ["Meta-Analysis", "Review", "Journal Article"],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 2410,
+        "asOf": "2026-07-25T18:48:56.377Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Across 365 longitudinal studies, isolated risk factors predicted suicidal outcomes only slightly better than chance, and performance did not improve over five decades. This supports caution about single-factor prediction but does not determine an individual patient's disposition or substitute for a structured safety assessment.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-25T18:30:00.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.henssler-antidepressant-combinations.2022",
+      "title": "Combining Antidepressants vs Antidepressant Monotherapy for Treatment of Patients With Acute Depression: A Systematic Review and Meta-analysis.",
+      "authorLabel": "Henssler J et al.",
+      "publicationDate": "2022-04-01",
+      "publicationYear": 2022,
+      "doi": "10.1001/jamapsychiatry.2021.4313",
+      "pmid": "35171215",
+      "url": "https://europepmc.org/article/MED/35171215",
+      "synthesisKind": "meta_analysis",
+      "publicationTypes": ["Meta-Analysis", "Systematic Review", "Journal Article"],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 70,
+        "asOf": "2026-07-25T18:49:00.149Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Thirty-nine randomized trials with 6,751 patients found a modest average advantage for antidepressant combinations, particularly a reuptake inhibitor paired with a presynaptic alpha-2 antagonist; bupropion combinations were not superior to monotherapy. Heterogeneity and publication bias limit translation into a blanket rule for starting any two agents together.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-25T18:30:00.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.leroy-catatonia-ect.2018",
+      "title": "Is electroconvulsive therapy an evidence-based treatment for catatonia? A systematic review and meta-analysis.",
+      "authorLabel": "Leroy A et al.",
+      "publicationDate": "2017-06-21",
+      "publicationYear": 2018,
+      "doi": "10.1007/s00406-017-0819-5",
+      "pmid": "28639007",
+      "url": "https://europepmc.org/article/MED/28639007",
+      "synthesisKind": "meta_analysis",
+      "publicationTypes": ["Meta-Analysis", "Systematic Review", "Journal Article"],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 39,
+        "asOf": "2026-07-25T18:49:01.958Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Twenty-eight studies with 564 patients generally described catatonia improvement after ECT, but the randomized evidence could not be pooled and protocols varied. The authors concluded that the literature did not robustly establish efficacy or effectiveness, so this is context rather than a stand-alone gameplay rule.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-25T18:30:00.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.kato-mdd-continuation.2021",
+      "title": "Discontinuation of antidepressants after remission with antidepressant medication in major depressive disorder: a systematic review and meta-analysis.",
+      "authorLabel": "Kato M et al.",
+      "publicationDate": "2020-07-23",
+      "publicationYear": 2021,
+      "doi": "10.1038/s41380-020-0843-0",
+      "pmid": "32704061",
+      "url": "https://europepmc.org/article/MED/32704061",
+      "synthesisKind": "meta_analysis",
+      "publicationTypes": ["Meta-Analysis", "Systematic Review", "Journal Article"],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 101,
+        "asOf": "2026-07-25T18:49:05.485Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Across 40 enrichment-design studies with 8,890 participants who had remitted on medication, continuing the same antidepressant was associated with substantially less relapse than switching to placebo. Patient-level relapse modifiers were sparsely studied, and the design does not answer every discontinuation or long-term maintenance question.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-25T18:30:00.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "literature-profile.ecg.citalopram-palpitations-monitoring",
+      "clinicalQuestion": "Does a stable outpatient taking citalopram who reports intermittent palpitations require ECG evaluation in this snapshot?",
+      "metaAnalysisFit": "weak",
+      "outcome": "no_suitable_recent_meta_analysis",
+      "linkedSourceRequestIds": ["source-request.ecg.monitoring-necessity"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "(TITLE_ABS:citalopram OR TITLE_ABS:escitalopram) AND (TITLE_ABS:ECG OR TITLE_ABS:electrocardiogram OR TITLE_ABS:QT OR TITLE_ABS:palpitations)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:42.820Z",
+        "resultCount": 0,
+        "screenedResultCount": 0,
+        "selectedRank": null,
+        "responseSha256": "89d26bea8439b9889371d8d7f92829c11d81aecf257125119f3e50ea69620b5e",
+        "candidateSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "selectionNote": "No returned record directly answered the tracked clinical question; the explicit no-suitable outcome remains queued for other evidence."
+      },
+      "selectedReferenceId": null,
+      "relevanceNote": "A pooled general QT-risk estimate would still not determine the threshold for this exact palpitations presentation.",
+      "limitations": [
+        "Regulatory labeling and a focused guideline or consensus statement are likely more direct than a meta-analysis.",
+        "The +560 and -350 point magnitudes remain game-balance decisions."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.ecg.normal-result-continue-switch",
+      "clinicalQuestion": "After a normal ECG in this citalopram/palpitations snapshot, should continuing, switching, or stopping receive different clinical treatment grades?",
+      "metaAnalysisFit": "weak",
+      "outcome": "no_suitable_recent_meta_analysis",
+      "linkedSourceRequestIds": ["source-request.ecg.continue-or-switch"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "(TITLE_ABS:citalopram OR TITLE_ABS:escitalopram) AND (TITLE_ABS:ECG OR TITLE_ABS:electrocardiogram OR TITLE_ABS:QT OR TITLE_ABS:palpitations)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:44.873Z",
+        "resultCount": 0,
+        "screenedResultCount": 0,
+        "selectedRank": null,
+        "responseSha256": "89d26bea8439b9889371d8d7f92829c11d81aecf257125119f3e50ea69620b5e",
+        "candidateSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "selectionNote": "No returned record directly answered the tracked clinical question; the explicit no-suitable outcome remains queued for other evidence."
+      },
+      "selectedReferenceId": null,
+      "relevanceNote": "This question needs patient-context guidance rather than a pooled class-level risk estimate.",
+      "limitations": [
+        "Current CANMAT and FDA material do not close the exact continue-versus-switch gap.",
+        "The 100-versus-95 point distinction remains balance review."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.ecg.normal-result-disposition",
+      "clinicalQuestion": "Does this stable palpitations presentation with a normal ECG warrant routine outpatient care or escalation?",
+      "metaAnalysisFit": "weak",
+      "outcome": "no_suitable_recent_meta_analysis",
+      "linkedSourceRequestIds": [],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "(TITLE_ABS:citalopram OR TITLE_ABS:escitalopram) AND (TITLE_ABS:ECG OR TITLE_ABS:electrocardiogram OR TITLE_ABS:QT OR TITLE_ABS:palpitations)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:46.584Z",
+        "resultCount": 0,
+        "screenedResultCount": 0,
+        "selectedRank": null,
+        "responseSha256": "89d26bea8439b9889371d8d7f92829c11d81aecf257125119f3e50ea69620b5e",
+        "candidateSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "selectionNote": "No returned record directly answered the tracked clinical question; the explicit no-suitable outcome remains queued for other evidence."
+      },
+      "selectedReferenceId": null,
+      "relevanceNote": "Disposition depends on immediate findings and care setting; a direct guideline or reviewed consensus is a better source design.",
+      "limitations": [
+        "A general cardiac-event meta-analysis would not establish an ED threshold.",
+        "Penalty size remains a game-balance judgment."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.initial-assessment-targeted-labs",
+      "clinicalQuestion": "Which targeted history, examination, and laboratory actions are justified in a basic first-presentation MDD snapshot?",
+      "metaAnalysisFit": "partial",
+      "outcome": "no_suitable_recent_meta_analysis",
+      "linkedSourceRequestIds": ["source-request.mdd.tsh-workup"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "(TITLE_ABS:depression OR TITLE_ABS:\"major depressive disorder\") AND (TITLE_ABS:thyroid OR TITLE_ABS:TSH OR TITLE_ABS:hypothyroidism)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:48.354Z",
+        "resultCount": 35,
+        "screenedResultCount": 33,
+        "selectedRank": null,
+        "responseSha256": "c85db29717bfba5a62bbd7f5bd205c78b80d696f76d01c6c42b4c347fc29f654",
+        "candidateSetSha256": "8fcd920ca77d17edbbab5e997b3556d3357b6c2c8bf4fc92ef1f5a98ca7d7fb1",
+        "selectionNote": "No returned record directly answered the tracked clinical question; the explicit no-suitable outcome remains queued for other evidence."
+      },
+      "selectedReferenceId": null,
+      "relevanceNote": "Diagnostic-yield literature may contextualize the question, but it does not itself define a fair required-workup action.",
+      "limitations": [
+        "The existing source request remains open.",
+        "Workup point values remain game-balance decisions."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.initial-modality",
+      "clinicalQuestion": "For adult depression, how do psychotherapy, pharmacotherapy, and their combination compare as initial treatment modalities?",
+      "metaAnalysisFit": "strong",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.mdd.severity-thresholds"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:depression AND (TITLE:psychotherapies OR TITLE:psychotherapy) AND (TITLE:pharmacotherapies OR TITLE:pharmacotherapy)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:50.579Z",
+        "resultCount": 9,
+        "screenedResultCount": 8,
+        "selectedRank": 1,
+        "responseSha256": "4b8479d95fd1e9d9f02eba077959ed3e57ccc0ad8aaf2779e35c1b5eb21335d5",
+        "candidateSetSha256": "b493e3f5d86fe1d9fbbb912fa612e7a113c1e43098c6aafebdf61a280d21de6a",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.cuijpers-depression-modalities.2020",
+      "relevanceNote": "Directly informs broad modality ordering, but it does not establish PsychSim's point values or operational severity cutoffs.",
+      "limitations": [
+        "Most included patients had moderate-to-severe depression.",
+        "The abstract reports limited evidence for long-term outcomes and specific populations."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.antidepressant-baseline-fit",
+      "clinicalQuestion": "What broad acute efficacy and acceptability baseline should frame antidepressant options for adult unipolar MDD?",
+      "metaAnalysisFit": "strong",
+      "outcome": "selected",
+      "linkedSourceRequestIds": [],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:\"major depressive disorder\" AND TITLE:antidepressant AND TITLE:\"comparative efficacy\"",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:52.487Z",
+        "resultCount": 2,
+        "screenedResultCount": 2,
+        "selectedRank": 1,
+        "responseSha256": "3635b08462463648e452ad726028b2b76340c14dd6774c0335256b34174cc995",
+        "candidateSetSha256": "a035a5deb9cc5c64a5335e0db344e1083453efe8e89af636edeeda2b1f1cab2a",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.cipriani-antidepressants.2018",
+      "relevanceNote": "Supports a broad class of defensible acute choices, not automatic patient-specific rankings or fit modifiers.",
+      "limitations": [
+        "Complex and treatment-resistant populations were excluded.",
+        "The abstract reports moderate-to-very-low certainty across comparisons."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.psychotherapy-modalities",
+      "clinicalQuestion": "Which named psychotherapy families have comparative efficacy evidence for acute adult depression?",
+      "metaAnalysisFit": "strong",
+      "outcome": "selected",
+      "linkedSourceRequestIds": [],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:psychotherapies AND TITLE:depression",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:54.293Z",
+        "resultCount": 17,
+        "screenedResultCount": 14,
+        "selectedRank": 2,
+        "responseSha256": "928333e34379c6f41d36cf9aa5480981762c3739a3e04573c1ad2805cef3dda4",
+        "candidateSetSha256": "f84a27fafbeed3f4b5800a77dbb8d2ede846a7937e181251aa3d1890ec1c006d",
+        "selectionNote": "Selected rank 2 after excluding higher-cited records that did not directly answer the tracked clinical question; see the profile relevance note."
+      },
+      "selectedReferenceId": "literature-reference.cuijpers-depression-psychotherapies.2021",
+      "relevanceNote": "Directly supports keeping several recognizable psychotherapy families available, with limited evidence for large differences among them.",
+      "limitations": [
+        "Network-level averages do not establish patient-specific matching.",
+        "Therapy identity, delivery fidelity, and gameplay availability remain separate catalog questions."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.suicide-risk.disposition-factors",
+      "clinicalQuestion": "How much predictive weight should isolated suicide-risk factors carry when judging disposition?",
+      "metaAnalysisFit": "partial",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.mdd.suicide-risk-disposition"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:\"suicidal thoughts and behaviors\" AND TITLE:\"risk factors\"",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:56.377Z",
+        "resultCount": 2,
+        "screenedResultCount": 2,
+        "selectedRank": 1,
+        "responseSha256": "737b84ef6f506799851594970a78e58afdedb6703619dfc79807118e2b77b2ff",
+        "candidateSetSha256": "a587d4789dea46f93535a5a0de357160c7f62b2ed447f6c3240c99a517ec7e82",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.franklin-suicide-risk.2017",
+      "relevanceNote": "Qualifies overreliance on isolated predictors; it does not specify the correct disposition for an individual patient.",
+      "limitations": [
+        "The source is predictive rather than a disposition guideline.",
+        "The received VA/DoD source remains separately gated and the source request is unresolved."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.bupropion.seizure-history-risk",
+      "clinicalQuestion": "How should bupropion be weighted when a patient has a remote or controlled seizure history?",
+      "metaAnalysisFit": "partial",
+      "outcome": "no_suitable_recent_meta_analysis",
+      "linkedSourceRequestIds": [],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE_ABS:bupropion AND (TITLE_ABS:seizure OR TITLE_ABS:epilepsy OR TITLE_ABS:convulsion)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:48:58.129Z",
+        "resultCount": 0,
+        "screenedResultCount": 0,
+        "selectedRank": null,
+        "responseSha256": "64548bd5f164b58f950d51603a22c06d430e4fc3ea88866a08e6c95115b05a65",
+        "candidateSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "selectionNote": "No returned record directly answered the tracked clinical question; the explicit no-suitable outcome remains queued for other evidence."
+      },
+      "selectedReferenceId": null,
+      "relevanceNote": "A rare-harm question is more likely to require current regulatory, pharmacovigilance, and applicable observational evidence.",
+      "limitations": [
+        "Absence of a meta-analysis is not evidence of safety.",
+        "The current statement remains Developer opinion pending source review."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.medications.regimen-combination-boundaries",
+      "clinicalQuestion": "What does comparative evidence say about initiating antidepressant combination therapy rather than monotherapy in acute depression?",
+      "metaAnalysisFit": "strong",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.medications.regimen-combination-boundaries"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:antidepressants AND TITLE:monotherapy AND (TITLE:combining OR TITLE:combination)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:49:00.149Z",
+        "resultCount": 1,
+        "screenedResultCount": 1,
+        "selectedRank": 1,
+        "responseSha256": "221661663e43acc33d3831320a3fa817779e0026d0a0724646001bdf7c54481f",
+        "candidateSetSha256": "4b497960dc706e1fb1b9763b8e6200498f478006b563919a4fbc99f414724d46",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.henssler-antidepressant-combinations.2022",
+      "relevanceNote": "Directly challenges a simplistic rule that every antidepressant combination is intrinsically harmful, while not supporting indiscriminate simultaneous starts.",
+      "limitations": [
+        "The pooled categories do not identify every safe or useful individual pair.",
+        "Cross-titration, duplicate regimen entries, and initial low-complexity case design remain separate questions."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.catatonia.snapshot-recognition-management",
+      "clinicalQuestion": "What pooled treatment evidence is available for catatonia when it becomes relevant to a focused snapshot case?",
+      "metaAnalysisFit": "partial",
+      "outcome": "selected",
+      "linkedSourceRequestIds": [],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:catatonia AND TITLE:\"electroconvulsive therapy\"",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:49:01.958Z",
+        "resultCount": 1,
+        "screenedResultCount": 1,
+        "selectedRank": 1,
+        "responseSha256": "d63cc2b54d123614195987c0a5dc8d03841255ec263f57ecdf926e9e380baec6",
+        "candidateSetSha256": "a5a0838c8740646ee1cd487de9ba92996ca4e88183ccd7c815285cf41d5e6756",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.leroy-catatonia-ect.2018",
+      "relevanceNote": "Provides treatment-evidence context but does not determine when an outpatient snapshot should trigger a BFCRS exam or escalation.",
+      "limitations": [
+        "Randomized evidence was low quality and could not be pooled.",
+        "The BAP guideline remains the more direct source for recognition and management sequencing."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.cyclothymia.duration-criteria",
+      "clinicalQuestion": "Which duration and near-threshold constraints distinguish cyclothymia from deliberately subthreshold generated symptoms?",
+      "metaAnalysisFit": "not_applicable",
+      "outcome": "no_suitable_recent_meta_analysis",
+      "linkedSourceRequestIds": ["source-request.cyclothymia.duration-discrimination"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE_ABS:cyclothymia AND (TITLE_ABS:duration OR TITLE_ABS:diagnosis OR TITLE_ABS:criteria)",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:49:03.657Z",
+        "resultCount": 0,
+        "screenedResultCount": 0,
+        "selectedRank": null,
+        "responseSha256": "78e936e3b34bd7328c80843d54fc369745aa5b01757808928ad5cbbf2d79ec0a",
+        "candidateSetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "selectionNote": "No returned record directly answered the tracked clinical question; the explicit no-suitable outcome remains queued for other evidence."
+      },
+      "selectedReferenceId": null,
+      "relevanceNote": "A reusable authoritative classification or diagnostic source is required; a pooled treatment or prevalence estimate cannot define the criterion.",
+      "limitations": [
+        "The source request remains open.",
+        "Random generation constraints must not manufacture a full incompatible syndrome."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.continuation-relapse-prevention",
+      "clinicalQuestion": "After remission on an antidepressant, what does pooled evidence say about continuation versus discontinuation?",
+      "metaAnalysisFit": "strong",
+      "outcome": "selected",
+      "linkedSourceRequestIds": [],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:antidepressants AND (TITLE:discontinuation OR TITLE:maintenance) AND TITLE:\"major depressive disorder\"",
+        "windowStart": "2016-07-25",
+        "windowEnd": "2026-07-25",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-25T18:49:05.485Z",
+        "resultCount": 2,
+        "screenedResultCount": 2,
+        "selectedRank": 1,
+        "responseSha256": "4e9d9d8867854d4bcad16668e0671f2a2ccd27f8f5ad40cf29b3aefd893f830e",
+        "candidateSetSha256": "ab67249b12980030e00927e53f68749075ee515d6134945fbb95a5a9560303b2",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.kato-mdd-continuation.2021",
+      "relevanceNote": "Directly informs a later continuation snapshot after response or remission, not the initial untreated MDD case.",
+      "limitations": [
+        "Enrichment trials do not answer every individualized discontinuation question.",
+        "PsychSim remains a one-moment decision game and will not simulate longitudinal monitoring."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    }
+  ],
+  "attachments": [
+    {
+      "ticketId": "ticket.audit.m2-ecg-workup-weight",
+      "profileIds": ["literature-profile.ecg.citalopram-palpitations-monitoring"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.audit.m2-ecg-treatment-path",
+      "profileIds": ["literature-profile.ecg.normal-result-continue-switch"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.audit.m2-ecg-disposition",
+      "profileIds": ["literature-profile.ecg.normal-result-disposition"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.assessment-workup",
+      "profileIds": ["literature-profile.mdd.initial-assessment-targeted-labs"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.initial-modality",
+      "profileIds": ["literature-profile.mdd.initial-modality"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.antidepressant-baseline",
+      "profileIds": ["literature-profile.mdd.antidepressant-baseline-fit"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.psychotherapy-catalog",
+      "profileIds": ["literature-profile.mdd.psychotherapy-modalities"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.disposition-severity",
+      "profileIds": ["literature-profile.suicide-risk.disposition-factors"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.bupropion.seizure-history-nuance",
+      "profileIds": ["literature-profile.bupropion.seizure-history-risk"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.catalog.medications.psychiatry-allowlist",
+      "profileIds": [],
+      "exemptionReason": "This is an identity and product-scope curation decision. RxNorm or another nomenclature source can normalize names, but a meta-analysis cannot decide the allowlist."
+    },
+    {
+      "ticketId": "ticket.catalog.medications.current-rule-provenance",
+      "profileIds": [],
+      "exemptionReason": "This umbrella inventory contains many different claims and must be split into claim-specific clinical questions before a literature search can be relevant."
+    },
+    {
+      "ticketId": "ticket.catalog.interventions.identity-and-fidelity",
+      "profileIds": [],
+      "exemptionReason": "This ticket concerns schema, terminology, delivery fidelity, and manual rights. Disorder-specific efficacy belongs in separate bounded profiles."
+    },
+    {
+      "ticketId": "ticket.catalog.diagnoses.common-outpatient-coverage",
+      "profileIds": [],
+      "exemptionReason": "This is a game-content prioritization and diagnosis-family granularity decision, not a treatment-effect question."
+    },
+    {
+      "ticketId": "ticket.catalog.medications.normalized-regimen-risk-benefit",
+      "profileIds": ["literature-profile.medications.regimen-combination-boundaries"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.va-dod-suicide-risk.2024-intake",
+      "profileIds": ["literature-profile.suicide-risk.disposition-factors"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.nice-self-harm.ng225-access",
+      "profileIds": [],
+      "exemptionReason": "The current decision is permission and AI-use access. A clinical meta-analysis cannot resolve the publisher's reuse terms."
+    },
+    {
+      "ticketId": "ticket.source.apa-bpd.2024-access-and-scope",
+      "profileIds": [],
+      "exemptionReason": "The current decision is permission plus treatment-versus-diagnosis scope. A later bounded BPD-treatment question should receive its own literature profile."
+    },
+    {
+      "ticketId": "ticket.source.apa-delirium.2025-access-and-scope",
+      "profileIds": [],
+      "exemptionReason": "The current decision is permission and whether delirium belongs in a future focused game snapshot. A meta-analysis cannot resolve either product-scope or reuse terms."
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.2025-corrigendum",
+      "profileIds": [],
+      "exemptionReason": "This is a bibliographic correction-impact check against the parent guideline, not a clinical synthesis question."
+    },
+    {
+      "ticketId": "ticket.source.bap-catatonia.2023-intake",
+      "profileIds": ["literature-profile.catatonia.snapshot-recognition-management"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.bfcrs.1996-reuse",
+      "profileIds": [],
+      "exemptionReason": "This requires an instrument copyright, version, and reuse determination. Efficacy evidence cannot grant permission to reproduce the scale."
+    },
+    {
+      "ticketId": "ticket.source.ace-gad.2025-access-and-scope",
+      "profileIds": [],
+      "exemptionReason": "The current decision is ACE reuse and jurisdiction scope. A treatment meta-analysis may inform a separate GAD question but cannot resolve source permission."
+    },
+    {
+      "ticketId": "ticket.source.asam-benzodiazepine.2025-access-and-scope",
+      "profileIds": [],
+      "exemptionReason": "The current decision is ASAM reuse and game scope. A discontinuation meta-analysis cannot resolve those rights."
+    },
+    {
+      "ticketId": "ticket.source.cyclothymia.duration-discrimination",
+      "profileIds": ["literature-profile.cyclothymia.duration-criteria"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.audit.review-basic-mdd-scaffold.template-inheritance",
+      "profileIds": [],
+      "exemptionReason": "This is an inherited-content and engine wiring audit, not a bounded clinical claim."
+    },
+    {
+      "ticketId": "ticket.audit.review-basic-mdd-scaffold.source-application",
+      "profileIds": [],
+      "exemptionReason": "This asks whether a review scaffold should remain a fixture or become clinical content. It must first be decomposed into a bounded claim."
+    },
+    {
+      "ticketId": "ticket.audit.review-who-mhgap-mdd-initial.template-inheritance",
+      "profileIds": [],
+      "exemptionReason": "This is an inherited-content and engine wiring audit, not a bounded clinical claim."
+    },
+    {
+      "ticketId": "ticket.audit.review-who-mhgap-mdd-initial.source-application",
+      "profileIds": [],
+      "exemptionReason": "This umbrella source-application audit is already decomposed into the DEP1, DEP3, and DEP4 clinical questions."
+    },
+    {
+      "ticketId": "ticket.source.who-mhgap.dep1-antidepressant-baseline",
+      "profileIds": ["literature-profile.mdd.antidepressant-baseline-fit"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.who-mhgap.dep2-continuation-patient",
+      "profileIds": ["literature-profile.mdd.continuation-relapse-prevention"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.who-mhgap.dep3-psychotherapy-catalog",
+      "profileIds": ["literature-profile.mdd.psychotherapy-modalities"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.who-mhgap.dep4-treatment-modality",
+      "profileIds": ["literature-profile.mdd.initial-modality"],
+      "exemptionReason": null
+    }
+  ]
+}

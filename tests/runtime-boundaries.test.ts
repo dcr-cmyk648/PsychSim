@@ -82,6 +82,28 @@ describe('runtime boundaries', () => {
     expect(authoringEntries.every((entry) => entry.runtimeIncluded === false)).toBe(true);
   });
 
+  it('keeps ticket literature scouting out of the Player runtime entry', async () => {
+    const [runtimeEntry, runtimeIndex, registryText] = await Promise.all([
+      readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('content/registry.json'), 'utf8'),
+    ]);
+    expect(`${runtimeEntry}\n${runtimeIndex}`).not.toContain('ticket-literature-scout');
+
+    const registry = JSON.parse(registryText) as {
+      entries: Array<{ id: string; path: string; runtimeIncluded: boolean }>;
+    };
+    expect(
+      registry.entries.find((entry) => entry.id === 'registry.review.ticket-literature-scout'),
+    ).toEqual({
+      id: 'registry.review.ticket-literature-scout',
+      kind: 'ticket_literature_scout_catalog',
+      path: 'content/cases/review/ticket-literature-scout.catalog.json',
+      runtimeIncluded: false,
+      dependsOnIds: ['registry.review.source-requests'],
+    });
+  });
+
   it('gitignores every private source-document material directory', async () => {
     const ignore = await readFile(resolve('.gitignore'), 'utf8');
     for (const folder of [

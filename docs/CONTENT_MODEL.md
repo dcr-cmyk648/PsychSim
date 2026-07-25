@@ -270,6 +270,21 @@ catalog-matching supporting source with a `SourceUseDecision` permitting synthes
 sources cannot support the proposed direction. Proposals remain medically unreviewed, exclude
 point magnitude, and never mutate or approve content.
 
+`TicketLiteratureScoutCatalog` is a distinct Developer-only discovery sidecar:
+
+- `references` preserve PMID/DOI identity, publication date and synthesis type, a provider-specific
+  Europe PMC cited-by snapshot, and a concise original abstract-only summary;
+- `profiles` preserve one bounded clinical question, exact ten-year search plan/run, selected or
+  no-suitable outcome, relevance, limitations, and linked source requests; and
+- `attachments` link an exact ticket to one or more shared profiles, or to one explicit exemption
+  for a legal, identity, architecture, balance, or umbrella decision that meta-analysis cannot
+  answer.
+
+Validation rejects duplicate or unknown links, uncovered active Developer tickets, out-of-window
+selected records, invalid ranks, and unused profiles/references. A scout reference is not an
+`EvidenceSourceDefinition`, `SourceUseDecision`, `EvidenceContribution`, citation, clinical rule,
+point decision, or medical approval.
+
 ## Lifecycle and production inclusion
 
 Content directories are `blueprints`, `drafts`, `review`, `approved`, and `deprecated`. Normal

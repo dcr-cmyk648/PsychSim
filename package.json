@@ -31,6 +31,7 @@
     "content:draft": "tsx tools/content-cli/src/draft-patient.ts",
     "content:review": "tsx tools/content-cli/src/review-content.ts",
     "content:evidence": "tsx tools/content-cli/src/evidence-report.ts",
+    "content:literature:refresh": "tsx tools/content-cli/src/refresh-ticket-literature.ts",
     "content:compile": "tsx tools/content-cli/src/compile-review-content.ts",
     "content:impact": "tsx tools/content-cli/src/impact.ts",
     "content:diagnoses:import": "tsx tools/content-cli/src/import-icd10cm.ts",

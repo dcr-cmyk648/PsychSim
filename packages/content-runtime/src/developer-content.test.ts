@@ -8,6 +8,7 @@ import {
   developerLiteratureSynthesisProposals,
   developerOpinionReferenceNeeds,
   developerSourceRequests,
+  developerTicketLiteratureScoutCatalog,
 } from './developer-content';
 import { validateSourceRequests } from './source-requests';
 
@@ -118,6 +119,23 @@ describe('developer clinical audit queue', () => {
         pointMagnitudeExcluded: true,
       }),
     ]);
+  });
+
+  it('keeps ticket literature scouting in the Developer-only module', () => {
+    expect(developerTicketLiteratureScoutCatalog).toMatchObject({
+      id: 'ticket-literature-scout.psychsim',
+      references: expect.arrayContaining([
+        expect.objectContaining({
+          summaryBasis: 'abstract_only',
+          medicalReviewStatus: 'unreviewed',
+        }),
+      ]),
+    });
+    expect(developerTicketLiteratureScoutCatalog.attachments).toHaveLength(
+      developerClinicalAuditTickets.filter(
+        (ticket) => ticket.status !== 'resolved' && ticket.status !== 'rejected',
+      ).length,
+    );
   });
 
   it('deduplicates unsourced clinical opinions and links exact existing source requests', () => {

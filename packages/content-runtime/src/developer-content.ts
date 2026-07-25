@@ -15,10 +15,16 @@ import { buildDeveloperOpinionReferenceNeeds } from './opinion-audit';
 import { buildCaseRuleAudit } from './review-inspector';
 import { reviewerCaseBlueprints } from './reviewer-content';
 import { developerSourceRequests } from './source-requests';
+import {
+  developerTicketLiteratureScoutCatalog,
+  validateTicketLiteratureScoutCatalog,
+} from './ticket-literature-scout';
 export {
   developerLiteratureSynthesisProposals,
   developerSourceRequests,
+  developerTicketLiteratureScoutCatalog,
   validateLiteratureSynthesisProposals,
+  validateTicketLiteratureScoutCatalog,
 };
 
 const reviewCaseModules = import.meta.glob('../../../content/cases/review/*.case.json', {

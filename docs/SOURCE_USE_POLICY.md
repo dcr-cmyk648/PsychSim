@@ -40,6 +40,19 @@ NonCommercial/ShareAlike obligations, third-party handling, reviewer role, and r
 content:validate` rejects missing or duplicate decisions, contradictory permissions, and formal
 contributions whose extraction, AI, derivative, or runtime use exceeds the recorded decision.
 
+### Bibliographic discovery and abstract context
+
+Ticket literature scouting uses Europe PMC as a no-key bibliographic and citation-discovery
+provider. Its cited-by count is provider-specific, mutable metadata recorded with an as-of date;
+it is neither evidence certainty nor clinical authority. Clinical relevance is screened before
+the count is used to choose among responsive meta-analyses.
+
+The tracked catalog stores no copied abstract. It stores a short independently worded summary
+whose scope is explicitly abstract-only; raw API responses and abstract text remain local and
+ignored. Abstract availability does not grant full-text reuse rights and does not make a record
+formal support. Any later clinical use still needs an `EvidenceSourceDefinition`, a source-use
+decision, exact-claim contribution, applicability review, and clinician approval.
+
 ## Reuse lanes
 
 ### 1. U.S. public-domain government text and data

@@ -44,6 +44,8 @@ pnpm content:notes:codex-review -- --next --provider openai-codex --model "<exac
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
+pnpm content:literature:refresh -- --ticket <ticket-id> --dry-run
+pnpm content:literature:refresh -- --next
 pnpm content:diagnoses:validate
 pnpm content:diagnoses:search -- "major depressive"
 pnpm content:diagnoses:import -- /path/to/icd10cm-order-2026.txt
@@ -76,7 +78,11 @@ automatic treatment decisions.
 The hub includes reversible Endgame and local-only Developer practice modes. Endgame derives a
 highest-tier clinic with every currently modeled capability and multiple approved patient slots.
 Local Developer mode also exposes review content that has not yet been run, supports reroll/reset,
-and shows the clinical-ticket, source-request, and uncited-opinion queues. Every ticket has one
+and shows the clinical-ticket, source-request, and uncited-opinion queues. Each checked-in
+Developer ticket also shows either a bounded recent-meta-analysis scout or an explicit reason that
+meta-analysis is the wrong source type. These records are unreviewed discovery context, not formal
+evidence or clinical answers. `content:literature:refresh -- --next` refreshes the
+least-recently-searched attached ticket one at a time; it is not bulk synthesis. Every ticket has one
 plain-language “What should Codex do?” field; internal lifecycle statuses are not user-facing.
 Ticket instructions and “Case and app experience notes” persist in IndexedDB and automatically
 refresh the fixed gitignored Codex handoff file at
