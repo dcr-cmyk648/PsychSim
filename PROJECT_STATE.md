@@ -7,7 +7,7 @@ Last updated: 2026-07-25
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
 - Current beta feature checkpoint:
-  `ec5bd847130e1834cc76f8192ad9a5f59573b99d` (`Add reaction history and portable review tickets`).
+  `77562685ef420d423b9d8f5261c3356ded2a8e87` (`Refine safety planning history semantics`).
   The durable-state follow-up commit records this handoff; `main` is unchanged.
 - Released feature checkpoint: `0536c287cb547e311298913a2509f98f4b5d28f1`
   (`Defer macOS OCR discovery`), containing the feature commit
@@ -235,14 +235,14 @@ Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, o
   proposal. Source-cleared CANMAT can support its proposed direction; ACP/IPT metadata or abstracts
   remain qualifying context only. The proposal changes no rule, point value, or approval state.
 
-## Verification for beta feature checkpoint `ec5bd84`
+## Verification for beta feature checkpoint `7756268`
 
 Passed locally on 2026-07-25:
 
 - `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck`
-- `pnpm test`: 27 TypeScript files, 200 tests; 10 handoff tests
+- `pnpm test`: 27 TypeScript files, 201 tests; 10 handoff tests
 - `pnpm test:handoff`: 10 tests
 - `pnpm content:validate`: catalogs plus 15 executable patients
 - `pnpm content:sources:validate`: 8 Drive candidates, 209 extracted artifacts, 204 private Apple
@@ -260,9 +260,11 @@ Passed locally on 2026-07-25:
 - Pages-equivalent `pnpm build:reviewer`: portable Reviewer bundle safety passed, 15 files
 - `git diff --check`
 
-The first full desktop E2E attempt exposed only a strict-selector ambiguity caused by the new
-hidden responsive ticket launcher. The assertion was scoped to the visible dense ticket card; the
-previously failing scenario and then the complete desktop/mobile suites passed.
+The corrected safety-planning option remains Subjective history, uses typed patient-owned state,
+and exposes a reusable state-specific fact without adding an unsourced score or disposition rule.
+Validation rejects unassessed current content and a mismatch between the authored state, displayed
+finding, and revealed fact. Both responsive Reviewer sizes completed and exported assignment
+`2026-07e`.
 
 ## Verification for checkpoint `0536c28`
 
