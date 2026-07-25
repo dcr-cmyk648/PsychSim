@@ -567,7 +567,7 @@ export const buildReviewCaseScenario = (
 
   const sourceUseNotes = policy.sourceUses.map((sourceUse) => ({
     id: sourceUse.id,
-    authority: 'formal_publication' as const,
+    authority: sourceUse.authority,
     evidenceSourceIds: sourceUse.evidenceSourceIds,
     sourceDocumentId: null,
     sourceChunkIds: [],

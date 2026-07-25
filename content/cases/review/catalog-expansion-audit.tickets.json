@@ -130,5 +130,43 @@
     "resolution": null,
     "createdAt": "2026-07-24T22:00:00.000Z",
     "updatedAt": "2026-07-24T22:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.catalog.medications.normalized-regimen-risk-benefit",
+    "title": "Model medication regimen benefit, risk, and duplication",
+    "sourceKind": "engine_audit",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "treatment_pathway",
+    "priority": "high",
+    "status": "accepted_for_workflow",
+    "requiresClinicalAcumen": true,
+    "attemptId": null,
+    "blueprintId": null,
+    "caseContentVersion": null,
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "grade.mdd-harmful-antidepressant-combination",
+      "rule.mdd-combination-safety",
+      "grade.ecg-mdd-harmful-antidepressant-combination",
+      "rule.ecg-mdd-combination-safety",
+      "grade.review-mdd.multiple-antidepressant-starts",
+      "rule.review-mdd.multiple-antidepressant-starts.safety-cap",
+      "case.restless-after-augmentation"
+    ],
+    "dependencyTicketIds": [
+      "ticket.catalog.medications.current-rule-provenance",
+      "ticket.catalog.medications.psychiatry-allowlist"
+    ],
+    "conflictContentIds": [],
+    "proposedRouting": "Add normalized medication class, indication or role, and regimen-contributor records before a reusable combination evaluator. Compile each benefit, additive risk, interaction, duplication warning, and future exception into a separate trace item; never derive class membership by parsing the current free-text class labels.",
+    "guidance": "Multiple new medications for the same indication should generally subtract from plan quality; same or overlapping class should create a strong duplicate warning. Benefits for distinct indications or evidence-supported augmentation may outweigh additive regimen risk, so the evaluator must not collapse all multi-medication plans into one penalty. Cross-titration is a future explicit exception and should remain disabled until its medication and timing state is modeled. Preserve clinical direction separately from provisional video-game point balance.",
+    "reviewerNotes": "Developer opinion: Multiple new medications for one indication are generally a subtractor, and same- or overlapping-class starts warrant a strong duplicate warning. Distinct-indication or augmentation benefits can outweigh additive risk. Cross-titration should later be an explicit exception. Keep every contributor separately traceable; point weights remain provisional game balance.",
+    "reviewerNotesUpdatedAt": "2026-07-25T16:44:31.463Z",
+    "resurfacingTrigger": "Before implementing reusable medication-combination scoring, normalized class or indication relationships, or cross-titration.",
+    "resolution": null,
+    "createdAt": "2026-07-25T16:44:31.463Z",
+    "updatedAt": "2026-07-25T16:44:31.463Z"
   }
 ]

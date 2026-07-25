@@ -90,6 +90,14 @@ antidepressants or several simultaneous primary psychotherapies require explicit
 points. Investigation shotgun behavior is ordinarily penalized through cumulative point costs
 without duplicate clinical deductions.
 
+The current initial-outpatient MDD snapshots implement one deliberately bounded rule: starting two
+or more options carrying the stable `antidepressant` tag in the same submitted plan triggers the
+existing harmful duplicate-start consequence. One medication plus psychotherapy does not. This is
+an explicitly unreviewed Developer-opinion game rule for those snapshots—not a universal
+polypharmacy claim. A future normalized regimen evaluator must represent indication or role,
+augmentation benefit, additive risk, interactions, and cross-titration as separate auditable
+contributors before applying reusable combination logic.
+
 ## Safety and disposition
 
 Safety rules can deduct large point values, record named safety errors, and cap the care subtotal. They are not hidden duplicate financial penalties: the same signed care subtotal enters settlement once.

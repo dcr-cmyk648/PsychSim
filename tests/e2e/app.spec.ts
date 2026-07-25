@@ -154,9 +154,14 @@ test('completes a patient, stores review guidance, and preserves the profile and
     }),
   ).toBeVisible();
   await page.getByText('Sources needed', { exact: true }).click();
-  await expect(page.locator('.source-request-card')).toHaveCount(6);
+  await expect(page.locator('.source-request-card')).toHaveCount(7);
   await expect(
     page.getByText('Cyclothymia and duration-based near-miss generation', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Psychiatric medication combination and cross-titration boundaries', {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(page.getByText('TSH use in an initial depressive presentation')).toBeVisible();
   await page.getByText('Clinical and content tickets', { exact: true }).click();

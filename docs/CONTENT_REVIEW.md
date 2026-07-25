@@ -80,7 +80,7 @@ must never contain real patient information or other identifiable clinical mater
 cohort or policy revision receives a new assignment ID rather than silently sharing old run history
 and exports.
 
-Assignment `reviewer-assignment.common-psychiatry.2026-07e` adds one narrow exception to the rule
+Assignment `reviewer-assignment.common-psychiatry.2026-07f` adds one narrow exception to the rule
 that portable Reviewer has no authoring queue: it statically imports one exact ticket packet with
 one patient-linked question for each of its ten allowlisted scenarios. This is an assignment
 artifact, not local Developer ticket discovery. Every ticket must name one of those exact

@@ -245,5 +245,49 @@
     "resolutionNote": null,
     "createdAt": "2026-07-24T00:00:00.000Z",
     "updatedAt": "2026-07-24T00:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.medications.regimen-combination-boundaries",
+    "title": "Psychiatric medication combination and cross-titration boundaries",
+    "question": "Which current evidence and guidance distinguish unsafe or low-value duplicate medication starts from justified combination or augmentation treatment and explicit cross-titration in psychiatric pharmacotherapy, including same- or overlapping-class regimens and medications serving distinct indications?",
+    "whyNeeded": "The reviewer-supplied Developer opinion provides authoring direction, not a general clinical rule or medical approval. A normalized regimen evaluator needs claim-level evidence for duplication warnings, potential augmentation benefit, additive risks, and cross-titration boundaries while leaving video-game point magnitudes for separate balance review.",
+    "targetContentIds": [
+      "grade.mdd-harmful-antidepressant-combination",
+      "rule.mdd-combination-safety",
+      "grade.ecg-mdd-harmful-antidepressant-combination",
+      "rule.ecg-mdd-combination-safety",
+      "grade.review-mdd.multiple-antidepressant-starts",
+      "rule.review-mdd.multiple-antidepressant-starts.safety-cap",
+      "case.restless-after-augmentation"
+    ],
+    "linkedTicketIds": ["ticket.catalog.medications.normalized-regimen-risk-benefit"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "regulatory_document",
+      "professional_guidance",
+      "journal_article"
+    ],
+    "acceptanceCriteria": [
+      "Distinguishes redundant treatment for one indication from medications serving separate indications.",
+      "Addresses evidence-supported augmentation separately from unsupported simultaneous starts.",
+      "Defines when cross-titration or another explicit transition state changes the duplicate-therapy interpretation.",
+      "Supports separate qualitative benefit, additive-risk, interaction, and duplication trace items without assigning game points."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-25T16:44:31.463Z",
+    "updatedAt": "2026-07-25T16:44:31.463Z"
   }
 ]

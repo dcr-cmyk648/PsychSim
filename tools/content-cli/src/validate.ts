@@ -29,11 +29,6 @@ import {
   developerSourceRequests,
   validateSourceRequests,
 } from '../../../packages/content-runtime/src/source-requests';
-import canmatReviewTicketsJson from '../../../content/cases/review/canmat-2023-mdd-source-review.tickets.json';
-import recommendedGuidelineReviewTicketsJson from '../../../content/cases/review/recommended-guidelines-source-intake.tickets.json';
-import scaffoldReviewTicketsJson from '../../../content/cases/review/review-basic-mdd-scaffold.tickets.json';
-import whoScaffoldReviewTicketsJson from '../../../content/cases/review/review-who-mhgap-mdd-initial.tickets.json';
-import whoDepressionReviewTicketsJson from '../../../content/cases/review/who-mhgap-2023-depression-source-review.tickets.json';
 import {
   getSingleDiagnosisClassificationRegistryEntry,
   readDiagnosisClassification,
@@ -41,16 +36,23 @@ import {
   validateDiagnosisClassificationBindings,
 } from './diagnosis-classification';
 
+const reviewCaseDirectory = resolve('content/cases/review');
+const checkedInReviewTicketFiles = (await readdir(reviewCaseDirectory))
+  .filter((fileName) => fileName.endsWith('.tickets.json'))
+  .sort();
 const checkedInReviewTickets = [
   ...milestoneTwoClinicalAuditTickets,
-  ...ClinicalReviewTicketSchema.array().parse(canmatReviewTicketsJson),
-  ...ClinicalReviewTicketSchema.array().parse(recommendedGuidelineReviewTicketsJson),
-  ...ClinicalReviewTicketSchema.array().parse(scaffoldReviewTicketsJson),
-  ...ClinicalReviewTicketSchema.array().parse(whoScaffoldReviewTicketsJson),
-  ...ClinicalReviewTicketSchema.array().parse(whoDepressionReviewTicketsJson),
+  ...(
+    await Promise.all(
+      checkedInReviewTicketFiles.map(async (fileName) =>
+        ClinicalReviewTicketSchema.array().parse(
+          JSON.parse(await readFile(resolve(reviewCaseDirectory, fileName), 'utf8')) as unknown,
+        ),
+      ),
+    )
+  ).flat(),
 ];
 
-const reviewCaseDirectory = resolve('content/cases/review');
 const reviewCaseBlueprints = await Promise.all(
   (await readdir(reviewCaseDirectory))
     .filter((fileName) => fileName.endsWith('.case.json'))

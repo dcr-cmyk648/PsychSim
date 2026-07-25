@@ -2356,12 +2356,29 @@ export type CaseBlueprint = z.infer<typeof CaseBlueprintSchema>;
 export const ReviewCaseSourceUseSchema = z
   .object({
     id: StableIdSchema,
-    evidenceSourceIds: z.array(StableIdSchema).min(1),
+    authority: EvidenceAuthoritySchema,
+    evidenceSourceIds: z.array(StableIdSchema),
     contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
     contribution: z.string().min(1).max(800),
     targetRuleIds: z.array(StableIdSchema).min(1),
   })
-  .strict();
+  .strict()
+  .superRefine((sourceUse, context) => {
+    if (sourceUse.authority === 'formal_publication' && sourceUse.evidenceSourceIds.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidenceSourceIds'],
+        message: 'A formal Reviewer-policy contribution requires a cataloged evidence source.',
+      });
+    }
+    if (sourceUse.authority === 'expert_opinion' && sourceUse.evidenceSourceIds.length > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidenceSourceIds'],
+        message: 'A Reviewer-policy expert opinion cannot cite a formal evidence source.',
+      });
+    }
+  });
 export type ReviewCaseSourceUse = z.infer<typeof ReviewCaseSourceUseSchema>;
 
 export const ReviewDecisionPolicySchema = z

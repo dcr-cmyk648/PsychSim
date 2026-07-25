@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.4.0",
+  "contentVersion": "1.5.0",
   "id": "case.review-cohort.mdd-prior-good-response",
   "internalTitle": "Reviewer cohort: recurrent MDD with prior good response",
   "difficultyTier": 2,

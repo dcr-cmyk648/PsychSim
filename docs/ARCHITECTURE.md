@@ -135,7 +135,7 @@ middleware mirrors the same schema-validated bundle to
 `content/generated/local-review-tickets/tickets.json`; Playwright uses the separate
 `tickets.e2e.json` target. The portable Reviewer contains no middleware endpoint, local
 ticket discovery, source/opinion queues, or arbitrary file writer. Its only preassigned questions
-are the exact finite ticket packet registered for assignment `2026-07e`; responses remain
+are the exact finite ticket packet registered for assignment `2026-07f`; responses remain
 browser-local until manual export.
 
 The assignment ID is a persistence migration boundary, not merely a label. A material change to

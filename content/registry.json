@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.9.0",
+  "contentVersion": "3.10.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -112,7 +112,7 @@
       "runtimeIncluded": false
     },
     {
-      "id": "registry.reviewer-assignment.common-psychiatry.2026-07e.tickets",
+      "id": "registry.reviewer-assignment.common-psychiatry.2026-07f.tickets",
       "kind": "reviewer_assignment_ticket_catalog",
       "path": "content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json",
       "runtimeIncluded": false

@@ -92,6 +92,15 @@ describe('developer clinical audit queue', () => {
           status: 'needs_source',
         }),
         expect.objectContaining({
+          id: 'source-request.medications.regimen-combination-boundaries',
+          status: 'needs_source',
+          linkedTicketIds: ['ticket.catalog.medications.normalized-regimen-risk-benefit'],
+          targetContentIds: expect.arrayContaining([
+            'grade.review-mdd.multiple-antidepressant-starts',
+            'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
+          ]),
+        }),
+        expect.objectContaining({
           id: 'source-request.mdd.suicide-risk-disposition',
           status: 'source_received',
           receivedEvidenceSourceIds: ['evidence.va-dod.suicide-risk.2024'],
@@ -187,6 +196,18 @@ describe('developer clinical audit queue', () => {
     expect(byId.get('ticket.catalog.medications.current-rule-provenance')).toMatchObject({
       ticketType: 'source_gap',
       status: 'proposed',
+    });
+    expect(byId.get('ticket.catalog.medications.normalized-regimen-risk-benefit')).toMatchObject({
+      status: 'accepted_for_workflow',
+      requiresClinicalAcumen: true,
+      dependencyTicketIds: [
+        'ticket.catalog.medications.current-rule-provenance',
+        'ticket.catalog.medications.psychiatry-allowlist',
+      ],
+      targetContentIds: expect.arrayContaining([
+        'grade.review-mdd.multiple-antidepressant-starts',
+        'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
+      ]),
     });
     expect(byId.get('ticket.catalog.interventions.identity-and-fidelity')).toMatchObject({
       status: 'accepted_for_workflow',

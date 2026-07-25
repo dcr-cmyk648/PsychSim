@@ -36,6 +36,41 @@ describe('prototype content', () => {
     }
   });
 
+  it('keeps a class label on every medication and stable treatment tags on current SSRIs', () => {
+    expect(catalogs.medications).toHaveLength(13);
+    expect(catalogs.medications.every((medication) => medication.classes.length > 0)).toBe(true);
+    const ssriIds = catalogs.medications
+      .filter((medication) => medication.classes.includes('SSRI antidepressant'))
+      .map((medication) => medication.id)
+      .sort();
+    expect(ssriIds).toEqual([
+      'medication.citalopram',
+      'medication.escitalopram',
+      'medication.fluoxetine',
+      'medication.sertraline',
+    ]);
+    expect(
+      catalogs.medications
+        .filter((medication) => ssriIds.includes(medication.id))
+        .every((medication) => medication.tags.includes('antidepressant')),
+    ).toBe(true);
+    const availableAntidepressants =
+      prototypeCaseBlueprint.availableTreatments.startMedicationIds.filter((medicationId) =>
+        catalogs.medications
+          .find((medication) => medication.id === medicationId)
+          ?.tags.includes('antidepressant'),
+      );
+    expect(
+      prototypeCaseBlueprint.treatmentGrades.find(
+        (grade) => grade.id === 'grade.mdd-harmful-antidepressant-combination',
+      )?.predicate,
+    ).toMatchObject({
+      type: 'treatmentStartedWithTag',
+      minimumCount: 2,
+      maximumCount: availableAntidepressants.length,
+    });
+  });
+
   it('rejects authoring-only records from the strict runtime catalog while diagnoses parse', () => {
     const runtimeCatalog = CatalogBundleSchema.parse(structuredClone(catalogs));
     const parsedDiagnoses = DiagnosisDefinitionSchema.array().parse(runtimeCatalog.diagnoses);

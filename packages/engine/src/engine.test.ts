@@ -271,6 +271,42 @@ describe('encounter engine', () => {
     ]);
   });
 
+  it('applies the initial-outpatient multi-antidepressant rule beyond one hard-coded SSRI pair', () => {
+    const endgameClinic = resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs);
+    const run = playStarter(
+      databasePlan.actionIds,
+      {
+        startMedicationIds: ['medication.bupropion', 'medication.mirtazapine'],
+        stopMedicationIds: [],
+        continueMedicationIds: [],
+        interventionIds: [],
+        dispositionId: 'disposition.outpatient-followup',
+      },
+      endgameClinic,
+    );
+
+    expect(run.receipt.pointReport.treatmentGrade).toBe('harmful');
+    expect(
+      run.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'grade.mdd-harmful-antidepressant-combination',
+      ),
+    ).toMatchObject({
+      matched: true,
+      evidenceAttributions: [
+        expect.objectContaining({
+          authority: 'expert_opinion',
+          evidenceSourceId: null,
+          contribution: expect.stringMatching(/^Developer opinion:/),
+        }),
+      ],
+    });
+    expect(
+      run.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'rule.mdd-combination-safety',
+      ),
+    ).toMatchObject({ matched: true, points: -1100 });
+  });
+
   it('marks a required workup omission as critical and loses care points', () => {
     const complete = playStarter(databasePlan.actionIds);
     const omitted = playStarter(

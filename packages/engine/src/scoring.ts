@@ -116,13 +116,16 @@ const evidenceAttributionsFor = (
       continue;
     }
     if (note.authority === 'expert_opinion') {
+      const contribution = /^Developer opinion\b/.test(note.contribution)
+        ? note.contribution
+        : `Expert opinion: ${note.contribution}`;
       attributions.push({
         sourceUseNoteId,
         authority: 'expert_opinion',
         evidenceSourceId: null,
         citation: null,
         url: null,
-        contribution: `Expert opinion: ${note.contribution}`,
+        contribution,
       });
       continue;
     }

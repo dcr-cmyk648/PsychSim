@@ -2,7 +2,7 @@
   {
     "schemaVersion": 1,
     "id": "ticket.reviewer-cohort.mdd-initial",
-    "title": "Review the initial MDD patient and database plan",
+    "title": "Recheck the initial MDD patient and database plan",
     "sourceKind": "engine_audit",
     "sourceAuthority": "developer_observation",
     "ticketType": "clinical_conflict",
@@ -11,18 +11,18 @@
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": "case.review-cohort.mdd-initial",
-    "caseContentVersion": "1.4.0",
+    "caseContentVersion": "1.5.0",
     "receiptItemId": null,
     "receiptItemSnapshot": null,
     "targetContentIds": ["case.review-cohort.mdd-initial"],
     "dependencyTicketIds": [],
     "conflictContentIds": [],
     "proposedRouting": "Play the linked patient, inspect the complete rule trace and database-plan comparison, then describe the smallest rule or content change you want.",
-    "guidance": "Does this initial-depression snapshot ask for the right focused history and workup, rank medication and psychotherapy options sensibly, and score outpatient versus escalated disposition fairly? Note any clinically important omission, overreach, treatment-fit issue, or point effect that felt wrong. The patient and all rules remain medically unreviewed.",
+    "guidance": "The prior review broadened the duplicate-start rule. Confirm that any two simultaneous antidepressant starts in this initial outpatient snapshot receive the existing harmful, nonparsimonious consequence; one medication plus psychotherapy must not. Confirm the trace labels this as Developer opinion rather than WHO guidance, then note any remaining workup, treatment-fit, disposition, or point effect that feels wrong. The patient and all rules remain medically unreviewed.",
     "resurfacingTrigger": "When the linked scenario, MDD policy, investigation catalog, or treatment catalog changes.",
     "resolution": null,
     "createdAt": "2026-07-25T12:00:00.000Z",
-    "updatedAt": "2026-07-25T12:00:00.000Z"
+    "updatedAt": "2026-07-25T17:14:30.000Z"
   },
   {
     "schemaVersion": 1,
@@ -86,7 +86,7 @@
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": "case.review-cohort.mdd-prior-good-response",
-    "caseContentVersion": "1.4.0",
+    "caseContentVersion": "1.5.0",
     "receiptItemId": null,
     "receiptItemSnapshot": null,
     "targetContentIds": ["case.review-cohort.mdd-prior-good-response"],
@@ -97,7 +97,7 @@
     "resurfacingTrigger": "When the linked scenario, prior-trial model, MDD policy, or medication-fit rules change.",
     "resolution": null,
     "createdAt": "2026-07-25T12:00:00.000Z",
-    "updatedAt": "2026-07-25T12:00:00.000Z"
+    "updatedAt": "2026-07-25T17:14:30.000Z"
   },
   {
     "schemaVersion": 1,
@@ -111,7 +111,7 @@
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": "case.review-cohort.mdd-prior-intolerance",
-    "caseContentVersion": "1.4.0",
+    "caseContentVersion": "1.5.0",
     "receiptItemId": null,
     "receiptItemSnapshot": null,
     "targetContentIds": ["case.review-cohort.mdd-prior-intolerance"],
@@ -122,7 +122,7 @@
     "resurfacingTrigger": "When the linked scenario, reaction-history model, prior-trial model, or medication-fit rules change.",
     "resolution": null,
     "createdAt": "2026-07-25T12:00:00.000Z",
-    "updatedAt": "2026-07-25T12:00:00.000Z"
+    "updatedAt": "2026-07-25T17:14:30.000Z"
   },
   {
     "schemaVersion": 1,

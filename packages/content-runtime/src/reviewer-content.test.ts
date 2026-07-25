@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { instantiateCase, resolveClinicForProgressionMode } from '@psychsim/engine';
 
 import { catalogs, startingClinic } from './content';
-import { runReferenceSolutionsForCase } from './reference-runs';
+import { runReferenceSolution, runReferenceSolutionsForCase } from './reference-runs';
 import { REVIEWER_ASSIGNMENT_ID } from './reviewer-assignment';
 import {
   reviewerCaseBlueprints,
@@ -15,7 +15,7 @@ describe('portable reviewer cohort', () => {
   const reviewerClinic = resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs);
 
   it('compiles ten separate medically unreviewed patient scenarios', () => {
-    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07e');
+    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07f');
     expect(reviewerCaseBlueprints.map((blueprint) => blueprint.id)).toEqual([
       'case.review-cohort.mdd-initial',
       'case.review-cohort.mdd-adherence',
@@ -28,10 +28,26 @@ describe('portable reviewer cohort', () => {
       'case.review-cohort.schizophrenia-relapse',
       'case.review-cohort.ptsd-initial',
     ]);
-    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.4.0')).toBe(
-      true,
-    );
+    expect(
+      Object.fromEntries(
+        reviewerCaseBlueprints.map((blueprint) => [blueprint.id, blueprint.contentVersion]),
+      ),
+    ).toEqual({
+      'case.review-cohort.mdd-initial': '1.5.0',
+      'case.review-cohort.mdd-adherence': '1.4.0',
+      'case.review-cohort.mdd-adequate-nonresponse': '1.4.0',
+      'case.review-cohort.mdd-prior-good-response': '1.5.0',
+      'case.review-cohort.mdd-prior-intolerance': '1.5.0',
+      'case.review-cohort.gad-initial': '1.4.0',
+      'case.review-cohort.bipolar-depression': '1.4.0',
+      'case.review-cohort.acute-mania': '1.4.0',
+      'case.review-cohort.schizophrenia-relapse': '1.4.0',
+      'case.review-cohort.ptsd-initial': '1.4.0',
+    });
     expect(reviewerDecisionPolicies.map((policy) => policy.id)).toHaveLength(8);
+    expect(
+      reviewerDecisionPolicies.find((policy) => policy.id === 'policy.review.mdd.initial'),
+    ).toMatchObject({ contentVersion: '1.1.0' });
     for (const blueprint of reviewerCaseBlueprints) {
       expect(blueprint.metadata).toMatchObject({
         fictional: true,
@@ -61,6 +77,179 @@ describe('portable reviewer cohort', () => {
           ticket.requiresClinicalAcumen,
       ),
     ).toBe(true);
+  });
+
+  it('scores every multi-antidepressant start in the initial outpatient MDD snapshot', () => {
+    const blueprint = reviewerCaseBlueprints.find(
+      (candidate) => candidate.id === 'case.review-cohort.mdd-initial',
+    )!;
+    const databasePlan = blueprint.referenceSolutions.find(
+      (solution) => solution.kind === 'database_plan',
+    )!;
+    const antidepressants = blueprint.availableTreatments.startMedicationIds.filter(
+      (medicationId) =>
+        catalogs.medications
+          .find((medication) => medication.id === medicationId)
+          ?.tags.includes('antidepressant'),
+    );
+    expect(antidepressants).toEqual([
+      'medication.sertraline',
+      'medication.escitalopram',
+      'medication.fluoxetine',
+      'medication.bupropion',
+      'medication.mirtazapine',
+    ]);
+    expect(
+      blueprint.treatmentGrades.find(
+        (grade) => grade.id === 'grade.review-mdd.multiple-antidepressant-starts',
+      )?.predicate,
+    ).toMatchObject({
+      type: 'treatmentStartedWithTag',
+      minimumCount: 2,
+      maximumCount: antidepressants.length,
+    });
+
+    for (let left = 0; left < antidepressants.length; left += 1) {
+      for (let right = left + 1; right < antidepressants.length; right += 1) {
+        const first = antidepressants[left]!;
+        const second = antidepressants[right]!;
+        const receipt = runReferenceSolution(
+          {
+            id: `reference.test.review-mdd.multiple.${left}-${right}`,
+            label: 'Multiple antidepressant start test',
+            kind: 'unsafe',
+            actionIds: databasePlan.actionIds,
+            selections: {
+              startMedicationIds: [first, second],
+              stopMedicationIds: [],
+              continueMedicationIds: [],
+              interventionIds: [],
+              dispositionId: 'disposition.outpatient-followup',
+            },
+            explanation: 'Exercises the bounded initial-outpatient duplicate-start rule.',
+          },
+          `review-mdd-multiple-${left}-${right}`,
+          blueprint,
+          reviewerClinic,
+        ).receipt;
+
+        expect(receipt.pointReport).toMatchObject({
+          treatmentGrade: 'harmful',
+          carePointCapApplied: 0,
+        });
+        expect(
+          receipt.pointReport.ruleTrace.find(
+            (trace) => trace.ruleId === 'grade.review-mdd.multiple-antidepressant-starts',
+          ),
+        ).toMatchObject({
+          matched: true,
+          points: -500,
+          evidenceAttributions: [
+            {
+              sourceUseNoteId:
+                'source-use.review-mdd.multiple-antidepressant-starts.developer-opinion',
+              authority: 'expert_opinion',
+              evidenceSourceId: null,
+              citation: null,
+              url: null,
+              contribution: expect.stringMatching(/^Developer opinion:/),
+            },
+          ],
+        });
+        expect(
+          receipt.pointReport.ruleTrace.find(
+            (trace) => trace.ruleId === 'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
+          ),
+        ).toMatchObject({
+          matched: true,
+          points: -500,
+          evidenceAttributions: [
+            {
+              sourceUseNoteId:
+                'source-use.review-mdd.multiple-antidepressant-starts.developer-opinion',
+              authority: 'expert_opinion',
+              evidenceSourceId: null,
+              citation: null,
+              url: null,
+              contribution: expect.stringMatching(/^Developer opinion:/),
+            },
+          ],
+        });
+        expect(receipt.pointReport.safetyErrors).toEqual([
+          expect.stringContaining('Multiple antidepressants started together'),
+        ]);
+      }
+    }
+
+    for (const [index, medicationId] of antidepressants.entries()) {
+      const receipt = runReferenceSolution(
+        {
+          id: `reference.test.review-mdd.single.${index}`,
+          label: 'Single antidepressant start test',
+          kind: 'strong_alternative',
+          actionIds: databasePlan.actionIds,
+          selections: {
+            startMedicationIds: [medicationId],
+            stopMedicationIds: [],
+            continueMedicationIds: [],
+            interventionIds:
+              medicationId === 'medication.sertraline' ? ['intervention.psychotherapy.cbt'] : [],
+            dispositionId: 'disposition.outpatient-followup',
+          },
+          explanation:
+            'Confirms one medication, including medication plus therapy, is not duplicate treatment.',
+        },
+        `review-mdd-single-${index}`,
+        blueprint,
+        reviewerClinic,
+      ).receipt;
+
+      expect(receipt.pointReport.treatmentGrade).not.toBe('harmful');
+      expect(
+        receipt.pointReport.ruleTrace.find(
+          (trace) => trace.ruleId === 'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
+        ),
+      ).toMatchObject({ matched: false });
+    }
+
+    const allAntidepressantsReceipt = runReferenceSolution(
+      {
+        id: 'reference.test.review-mdd.all-antidepressants',
+        label: 'All antidepressant starts test',
+        kind: 'unsafe',
+        actionIds: databasePlan.actionIds,
+        selections: {
+          startMedicationIds: antidepressants,
+          stopMedicationIds: [],
+          continueMedicationIds: [],
+          interventionIds: [],
+          dispositionId: 'disposition.outpatient-followup',
+        },
+        explanation: 'Guards the upper count bound as the treatment catalog changes.',
+      },
+      'review-mdd-all-antidepressants',
+      blueprint,
+      reviewerClinic,
+    ).receipt;
+    expect(allAntidepressantsReceipt.pointReport).toMatchObject({
+      treatmentGrade: 'harmful',
+      carePointCapApplied: 0,
+    });
+
+    const formalTrace = runReferenceSolution(
+      databasePlan,
+      'review-mdd-formal-provenance',
+      blueprint,
+      reviewerClinic,
+    ).receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'objective.review-mdd.timeline',
+    );
+    expect(formalTrace?.evidenceAttributions).toEqual([
+      expect.objectContaining({
+        authority: 'formal_publication',
+        evidenceSourceId: 'evidence.who.mhgap-mns.2023',
+      }),
+    ]);
   });
 
   it('keeps patient critical facts and executable policy invariant across many seeds', () => {

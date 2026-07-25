@@ -214,6 +214,33 @@ function PlanCard({
 type RuleTrace = CompletedAttempt['receipt']['pointReport']['ruleTrace'][number];
 type TraceComponent = RuleTrace['component'];
 
+export const formatTraceProvenanceLabel = (
+  evidenceAttributions: RuleTrace['evidenceAttributions'],
+): string => {
+  const formalCount = evidenceAttributions.filter(
+    (attribution) => attribution.authority === 'formal_publication',
+  ).length;
+  const hasExpertOpinion = evidenceAttributions.some(
+    (attribution) => attribution.authority === 'expert_opinion',
+  );
+  const hasDeveloperOpinion = evidenceAttributions.some(
+    (attribution) =>
+      attribution.authority === 'expert_opinion' &&
+      /^Developer opinion\b/.test(attribution.contribution),
+  );
+  return evidenceAttributions.length === 0
+    ? 'Provenance unavailable'
+    : formalCount > 0 && hasDeveloperOpinion
+      ? `${formalCount} ${formalCount === 1 ? 'source' : 'sources'} + Developer opinion`
+      : formalCount > 0 && hasExpertOpinion
+        ? `${formalCount} ${formalCount === 1 ? 'source' : 'sources'} + opinion`
+        : formalCount > 0
+          ? `${formalCount} ${formalCount === 1 ? 'reference' : 'references'}`
+          : hasDeveloperOpinion
+            ? 'Developer opinion'
+            : 'Expert opinion';
+};
+
 const TRACE_COMPONENT_ORDER: readonly TraceComponent[] = [
   'workup',
   'medication_selection',
@@ -241,20 +268,7 @@ function TraceRuleDetails({
   trace: RuleTrace;
   onFlag: (ruleId: string) => void;
 }) {
-  const formalCount = trace.evidenceAttributions.filter(
-    (attribution) => attribution.authority === 'formal_publication',
-  ).length;
-  const hasExpertOpinion = trace.evidenceAttributions.some(
-    (attribution) => attribution.authority === 'expert_opinion',
-  );
-  const provenanceLabel =
-    trace.evidenceAttributions.length === 0
-      ? 'Provenance unavailable'
-      : formalCount > 0 && hasExpertOpinion
-        ? `${formalCount} ${formalCount === 1 ? 'source' : 'sources'} + opinion`
-        : formalCount > 0
-          ? `${formalCount} ${formalCount === 1 ? 'reference' : 'references'}`
-          : 'Expert opinion';
+  const provenanceLabel = formatTraceProvenanceLabel(trace.evidenceAttributions);
   const traceClasses = [
     trace.points < 0 ? 'negative-trace' : null,
     trace.classification === 'critical_omission' ? 'critical-trace' : null,

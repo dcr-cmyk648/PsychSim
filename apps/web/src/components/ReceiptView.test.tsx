@@ -4,7 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { ScoreComparisonBar } from './ReceiptView';
+import { formatTraceProvenanceLabel, ScoreComparisonBar } from './ReceiptView';
 
 afterEach(cleanup);
 
@@ -62,5 +62,57 @@ describe('ScoreComparisonBar', () => {
     expect(meter).toHaveAttribute('aria-valuenow', '0');
     expect(meter.querySelector<HTMLElement>('.score-player-fill')).toHaveStyle({ width: '0%' });
     expect(screen.getByText(/Signed score: −80 points/)).toBeVisible();
+  });
+});
+
+describe('formatTraceProvenanceLabel', () => {
+  it('distinguishes a reviewer-supplied Developer opinion from generic expert opinion', () => {
+    expect(
+      formatTraceProvenanceLabel([
+        {
+          sourceUseNoteId: 'source-use.developer',
+          authority: 'expert_opinion',
+          evidenceSourceId: null,
+          citation: null,
+          url: null,
+          contribution: 'Developer opinion: provisional outpatient combination rule.',
+        },
+      ]),
+    ).toBe('Developer opinion');
+    expect(
+      formatTraceProvenanceLabel([
+        {
+          sourceUseNoteId: 'source-use.expert',
+          authority: 'expert_opinion',
+          evidenceSourceId: null,
+          citation: null,
+          url: null,
+          contribution: 'Unlinked clinical judgment.',
+        },
+      ]),
+    ).toBe('Expert opinion');
+  });
+
+  it('keeps formal and Developer contributions visibly separate when both apply', () => {
+    expect(
+      formatTraceProvenanceLabel([
+        {
+          sourceUseNoteId: 'source-use.formal',
+          authority: 'formal_publication',
+          evidenceSourceId: 'evidence.example',
+          citation: 'Example citation.',
+          url: 'https://example.test/',
+          contribution: 'Formal treatment baseline.',
+        },
+        {
+          sourceUseNoteId: 'source-use.developer',
+          authority: 'expert_opinion',
+          evidenceSourceId: null,
+          citation: null,
+          url: null,
+          contribution: 'Developer opinion: provisional fit adjustment.',
+        },
+      ]),
+    ).toBe('1 source + Developer opinion');
   });
 });

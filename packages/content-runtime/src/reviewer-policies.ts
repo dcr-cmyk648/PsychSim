@@ -2,6 +2,7 @@ import {
   ReviewDecisionPolicySchema,
   type CatalogBundle,
   type ReviewDecisionPolicy,
+  type ReviewCaseSourceUse,
   type ScorePredicate,
   type TreatmentGrade,
   type TreatmentSelection,
@@ -70,6 +71,7 @@ interface ExtraRuleSeed {
 
 interface PolicySeed {
   id: string;
+  contentVersion?: string;
   label: string;
   evidenceSourceId: string;
   evidenceContribution: string;
@@ -95,6 +97,7 @@ interface PolicySeed {
   databasePlanCarePoints: number;
   baseReimbursement: number;
   complexityBonus: number;
+  additionalSourceUses?: readonly ReviewCaseSourceUse[];
 }
 
 const actionPurchased = (actionId: string): ScorePredicate => ({
@@ -104,6 +107,16 @@ const actionPurchased = (actionId: string): ScorePredicate => ({
 const started = (medicationId: string): ScorePredicate => ({
   type: 'treatmentStarted',
   medicationId,
+});
+const startedWithTag = (
+  medicationTagId: string,
+  minimumCount: number,
+  maximumCount: number,
+): ScorePredicate => ({
+  type: 'treatmentStartedWithTag',
+  medicationTagId,
+  minimumCount,
+  maximumCount,
 });
 const intervention = (interventionId: string): ScorePredicate => ({
   type: 'interventionSelected',
@@ -214,12 +227,21 @@ const buildPolicy = (seed: PolicySeed, allActionIds: readonly string[]): ReviewD
     ...harmfulSafetyRules.map((rule) => rule.id),
     ...(seed.extraRules ?? []).map((rule) => rule.id),
   ];
+  const additionalSourceUses = seed.additionalSourceUses ?? [];
+  const expertAttributedRuleIds = new Set(
+    additionalSourceUses
+      .filter((sourceUse) => sourceUse.authority === 'expert_opinion')
+      .flatMap((sourceUse) => sourceUse.targetRuleIds),
+  );
+  const formalSourceTargetRuleIds = targetRuleIds.filter(
+    (ruleId) => !expertAttributedRuleIds.has(ruleId),
+  );
   const databaseActionIds = seed.workup.map((objective) => objective.actionId);
   const unsafeActionIds = databaseActionIds.slice(0, Math.min(2, databaseActionIds.length));
 
   return ReviewDecisionPolicySchema.parse({
     schemaVersion: 1,
-    contentVersion: '1.0.0',
+    contentVersion: seed.contentVersion ?? '1.0.0',
     id: seed.id,
     label: seed.label,
     workupObjectives,
@@ -391,11 +413,13 @@ const buildPolicy = (seed: PolicySeed, allActionIds: readonly string[]): ReviewD
     sourceUses: [
       {
         id: sourceUseId,
+        authority: 'formal_publication',
         evidenceSourceIds: [seed.evidenceSourceId],
         contributionTypes: ['workup', 'treatment', 'safety'],
         contribution: seed.evidenceContribution,
-        targetRuleIds,
+        targetRuleIds: formalSourceTargetRuleIds,
       },
+      ...additionalSourceUses,
     ],
   });
 };
@@ -417,13 +441,14 @@ export const buildReviewerDecisionPolicies = (
   ];
   const mddGrades: TreatmentGradeSeed[] = [
     {
-      id: 'grade.review-mdd.duplicate-ssri',
-      label: 'Duplicate SSRI start',
+      id: 'grade.review-mdd.multiple-antidepressant-starts',
+      label: 'Multiple antidepressants started together',
       grade: 'harmful',
       priority: 300,
-      predicate: all(started('medication.sertraline'), started('medication.fluoxetine')),
+      predicate: startedWithTag('antidepressant', 2, MDD_MEDICATIONS.length),
       points: -500,
-      explanation: 'Starting duplicate same-class antidepressants is the unsafe comparison route.',
+      explanation:
+        'For this initial outpatient snapshot, simultaneously starting two or more antidepressants is scored as a harmful, nonparsimonious shotgun regimen. This case rule does not generalize to cross-titration or established combination treatment.',
     },
     {
       id: 'grade.review-mdd.sertraline',
@@ -453,6 +478,7 @@ export const buildReviewerDecisionPolicies = (
   const policies: PolicySeed[] = [
     {
       id: 'policy.review.mdd.initial',
+      contentVersion: '1.1.0',
       label: 'Initial outpatient depressive presentation',
       evidenceSourceId: 'evidence.who.mhgap-mns.2023',
       evidenceContribution:
@@ -490,6 +516,20 @@ export const buildReviewerDecisionPolicies = (
       databasePlanCarePoints: 460,
       baseReimbursement: 720,
       complexityBonus: 60,
+      additionalSourceUses: [
+        {
+          id: 'source-use.review-mdd.multiple-antidepressant-starts.developer-opinion',
+          authority: 'expert_opinion',
+          evidenceSourceIds: [],
+          contributionTypes: ['treatment', 'safety', 'scoring'],
+          contribution:
+            'Developer opinion: starting multiple antidepressants for one focal indication at a routine initial outpatient visit is materially less parsimonious than selecting one. This provisional game rule does not establish a universal combination-treatment or cross-titration rule.',
+          targetRuleIds: [
+            'grade.review-mdd.multiple-antidepressant-starts',
+            'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
+          ],
+        },
+      ],
     },
     {
       id: 'policy.review.mdd.adherence',

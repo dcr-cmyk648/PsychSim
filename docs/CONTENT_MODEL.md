@@ -41,6 +41,11 @@ source count, or a hidden numeric evidence score never selects a clinical winner
 
 An `EvidenceContribution` records how knowledge entered content. It declares `formal_publication` or `expert_opinion`, every formal evidence ID used, optional private document/chunk provenance, exact target content IDs, contribution types, and a concise original contribution statement. Formal contributions require catalog IDs; expert opinion forbids them. A publication can be cataloged but unused. A rule can cite multiple relevant publications through separate or multi-source contributions. Unlinked prototype rules are rendered as Expert opinion, while approved rules require an explicit contribution.
 
+The compact Reviewer-policy model preserves that authority distinction per exact target rule.
+Broad guideline context cannot automatically absorb a separately authored safety or balance
+judgment. An explicit psychiatrist/developer contribution is compiled as Developer opinion with no
+formal evidence ID; unaffected source-linked rules keep their own publication contribution.
+
 DrugCentral is cataloged as an authoring-only `structured_database` source. Its initial rights
 decision allows local deterministic indexing and unreviewed claim candidates but blocks runtime
 redistribution. Every candidate retains the database release, record origin, available upstream
@@ -80,7 +85,14 @@ the ordinary Player bundles only deliberately imported approved content; local D
 the exact finite Reviewer assignment are controlled, explicit exceptions rather than registry
 discovery or lifecycle promotion.
 
-Each medication has its own definition file. It owns class/tags plus separate arrays for active fit modifiers and protected human author overrides. Bupropion preserves supplied concepts as inactive, explicitly unreviewed overrides. Mirtazapine also contains active prototype modifiers (+35 for a matching insomnia tag and −50 for a matching high-BMI tag) to exercise the fit architecture requested for playtesting. The trace labels their unreviewed status. A modifier is not clinical authority merely because it is executable; later sourcing/review must version or reject it.
+Each medication has its own definition file. It owns human-readable class labels and stable
+runtime tags plus separate arrays for active fit modifiers and protected human author overrides.
+Every current medication has at least one class label, but executable rules must use stable tags;
+they may not parse display strings. Bupropion preserves supplied concepts as inactive, explicitly
+unreviewed overrides. Mirtazapine also contains active prototype modifiers (+35 for a matching
+insomnia tag and −50 for a matching high-BMI tag) to exercise the fit architecture requested for
+playtesting. The trace labels their unreviewed status. A modifier is not clinical authority merely
+because it is executable; later sourcing/review must version or reject it.
 
 Patient medication state preserves epistemic certainty. `medicationListStatus` distinguishes a
 known list from an unreconciled list, so an empty array cannot silently mean “takes no

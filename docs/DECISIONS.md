@@ -1318,3 +1318,36 @@ promotion remains the normal release path. Promote a safe checkpoint before star
 risk-quarantined work; never use the new cadence as a reason to cherry-pick convenient pieces,
 rewrite history, force-push, or ignore unexpected divergence. The working copy still returns to
 `beta` after a release.
+
+## D-132 — Duplicate-start scoring is bounded now; normalized regimen reasoning stays queued
+
+Status: accepted and implemented for the current initial-outpatient MDD snapshots. A validated
+version-5 mobile Reviewer export recorded the psychiatrist/developer direction that multiple new
+medications for one indication are ordinarily less parsimonious, while distinct indications,
+supported augmentation, and an explicit future cross-titration state may justify a multi-drug
+plan. The feedback bundle is review evidence, not a clinical source document, and did not enter
+the source-ingestion pipeline.
+
+The current first-visit MDD case and the Reviewer policy used by the initial, prior-good-response,
+and prior-intolerance MDD snapshots now match any two or more simultaneously started medications
+carrying the stable `antidepressant` treatment tag. They no longer enumerate only one or several
+SSRI pairs. The change preserves the existing provisional harmful grade, penalty, and safety cap;
+it does not claim those point magnitudes are a treatment guideline. One medication plus one
+psychotherapy remains outside the duplicate-start predicate. Historical attempts retain their old
+snapshots; affected content moves to new versions and portable review moves to assignment
+`reviewer-assignment.common-psychiatry.2026-07f`.
+
+This bounded rule does not create a universal polypharmacy engine. Every current medication file
+already stores at least one human-readable class, but those strings are display metadata and must
+not be parsed as executable relationships. A tracked Developer ticket and source request now own
+the future normalized medication-class, indication or role, additive-risk, interaction,
+augmentation-benefit, and cross-titration model. Each eventual contributor must remain separately
+visible in the receipt trace, and clinical direction must remain separate from video-game point
+balance.
+
+The duplicate-start rule carries an explicit Developer-opinion contribution. The Reviewer-policy
+compiler now preserves formal-publication versus expert-opinion authority per exact rule instead
+of forcing every compact policy contribution to look formally sourced. The broad WHO contribution
+therefore remains attached to the rules it actually seeded, while the new duplicate-start judgment
+does not borrow WHO authority. Explicit Developer-opinion traces are labeled as such; genuinely
+unattributed prototype rules still display `Expert opinion`.

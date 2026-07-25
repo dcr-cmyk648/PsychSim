@@ -128,10 +128,10 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(page.getByLabel('10 need input')).toBeVisible();
   await page.locator('#ticket-queue-title').click();
   await page
-    .getByRole('button', { name: /Review the initial MDD patient and database plan/ })
+    .getByRole('button', { name: /Recheck the initial MDD patient and database plan/ })
     .click();
   const ticketDialog = page.getByRole('dialog', {
-    name: 'Review the initial MDD patient and database plan',
+    name: 'Recheck the initial MDD patient and database plan',
   });
   await expect(ticketDialog).toBeVisible();
   await expectWithinHorizontalViewport(ticketDialog);
@@ -321,7 +321,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   };
   expect(bundle.exportVersion).toBe(5);
   expect(bundle.buildKind).toBe('portable_reviewer');
-  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07e');
+  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07f');
   expect(bundle.attemptReviews).toHaveLength(2);
   expect(bundle.completedAttempts).toHaveLength(2);
   expect(new Set(bundle.completedAttempts.map((attempt) => attempt.blueprintId)).size).toBe(2);
