@@ -15,7 +15,7 @@ describe('portable reviewer cohort', () => {
   const reviewerClinic = resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs);
 
   it('compiles ten separate medically unreviewed patient scenarios', () => {
-    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07d');
+    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07e');
     expect(reviewerCaseBlueprints.map((blueprint) => blueprint.id)).toEqual([
       'case.review-cohort.mdd-initial',
       'case.review-cohort.mdd-adherence',
@@ -28,7 +28,7 @@ describe('portable reviewer cohort', () => {
       'case.review-cohort.schizophrenia-relapse',
       'case.review-cohort.ptsd-initial',
     ]);
-    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.3.0')).toBe(
+    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.4.0')).toBe(
       true,
     );
     expect(reviewerDecisionPolicies.map((policy) => policy.id)).toHaveLength(8);
@@ -87,6 +87,7 @@ describe('portable reviewer cohort', () => {
         blueprint.informationActions.every((action) => action.result.findings.length > 0),
       ).toBe(true);
       expect(blueprint.patientRecord.reactionHistory.status).not.toBe('unassessed');
+      expect(blueprint.patientRecord.reportedSafetyPlanningAbility).not.toBe('unassessed');
       expect(blueprint.informationActions.map((action) => action.actionId)).toEqual(
         expect.arrayContaining([
           'info.history.allergies-adverse-reactions',
@@ -94,6 +95,49 @@ describe('portable reviewer cohort', () => {
         ]),
       );
     }
+  });
+
+  it('keeps the reported safety-planning response separate from disposition judgment', () => {
+    for (const blueprint of reviewerCaseBlueprints) {
+      const instance = instantiateCase(blueprint, 'reviewer-safety-planning', catalogs);
+      const action = instance.informationActions.find(
+        (candidate) => candidate.actionId === 'info.history.existing-safety-plan',
+      )!;
+      const finding = action.result.findings.find(
+        (candidate) => candidate.label === 'Feels able to participate in safety planning',
+      )!;
+      const authoredState = blueprint.patientRecord.reportedSafetyPlanningAbility;
+      expect(finding.outcome).toBe(
+        authoredState === 'reports_able'
+          ? 'present'
+          : authoredState === 'reports_unable'
+            ? 'absent'
+            : 'not_applicable',
+      );
+      expect(action.result.factsRevealed.some((factId) => factId.includes('outpatient'))).toBe(
+        false,
+      );
+      expect(action.result.factsRevealed).toEqual([
+        `fact.safety-planning-ability.${
+          authoredState === 'reports_able'
+            ? 'reports-able'
+            : authoredState === 'reports_unable'
+              ? 'reports-unable'
+              : 'uncertain'
+        }`,
+      ]);
+    }
+    expect(
+      reviewerCaseBlueprints
+        .filter((blueprint) =>
+          ['case.review-cohort.acute-mania', 'case.review-cohort.schizophrenia-relapse'].includes(
+            blueprint.id,
+          ),
+        )
+        .every(
+          (blueprint) => blueprint.patientRecord.reportedSafetyPlanningAbility === 'uncertain',
+        ),
+    ).toBe(true);
   });
 
   it('preserves reviewed BMI measurements and body-habitus detail in compiled patients', () => {

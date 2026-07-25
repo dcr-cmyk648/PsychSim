@@ -1267,3 +1267,27 @@ surface. Because this thread does not expose that identifier with sufficient pre
 Notes packet was prepared or read in this checkpoint. Test fixtures use an explicit fake model
 identifier. A future authorized read remains one packet at a time and cannot directly create
 evidence, Developer opinion, rules, points, citations, or medical approval.
+
+## D-130 — Safety-planning ability is a Subjective report, not a plan inventory or disposition
+
+Status: accepted and implemented; this supersedes D-127's description of the current history
+action while preserving D-127's separation between history and intervention. The player-facing
+action asks whether the patient feels able to participate in safety planning. It does not ask
+whether a written plan already exists, create or revise a plan, formulate risk, or declare a
+patient appropriate for outpatient care.
+
+Patient content owns a typed `reportedSafetyPlanningAbility` state: `reports_able`,
+`reports_unable`, or `uncertain`. Historical saved patients receive the truthful `unassessed`
+default. The purchased result reveals one short structured finding and a state-specific fact ID,
+so a later reviewed disposition rule can use the factual response without treating purchase of
+the question as a positive answer. No current point or disposition rule changed in this
+correction; the response may inform case-specific disposition appropriateness but can never be the
+sole determinant.
+
+The internal action and service IDs retain the words `existing-safety-plan` and
+`safety-plan-review` solely for compatibility with in-progress local saves. Their visible labels
+and authored semantics are now safety-planning ability. Material changes to the Reviewer snapshots
+move the ten scenarios to content version `1.4.0` and the portable assignment to
+`reviewer-assignment.common-psychiatry.2026-07e`. The new assignment intentionally uses a fresh
+IndexedDB namespace; any unexported `2026-07d` feedback remains in its old browser database rather
+than being silently mixed with revised cases.

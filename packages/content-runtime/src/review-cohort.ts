@@ -261,6 +261,44 @@ const reactionHistoryAction = (
   };
 };
 
+const safetyPlanningAbilityAction = (
+  scenario: ReviewCaseScenario,
+  caseToken: string,
+): CaseInformationActionBlueprint => {
+  const status = scenario.reportedSafetyPlanningAbility;
+  const outcome =
+    status === 'reports_able'
+      ? ('present' as const)
+      : status === 'reports_unable'
+        ? ('absent' as const)
+        : ('not_applicable' as const);
+  const factSuffix =
+    status === 'reports_able'
+      ? 'reports-able'
+      : status === 'reports_unable'
+        ? 'reports-unable'
+        : 'uncertain';
+  return {
+    // This legacy stable ID is retained so an in-progress local encounter can
+    // still resolve the option after the visible semantics were corrected.
+    actionId: 'info.history.existing-safety-plan',
+    defaultClassification: 'defensible',
+    result: {
+      kind: 'finding_set',
+      findings: [
+        {
+          id: `finding.${caseToken}.safety-planning-ability`,
+          labelVariants: ['Feels able to participate in safety planning'],
+          outcome,
+          ...(status === 'uncertain' ? { valueTextVariants: ['Patient is unsure.'] } : {}),
+        },
+      ],
+      shuffle: false,
+      factsRevealed: [`fact.safety-planning-ability.${factSuffix}`],
+    },
+  };
+};
+
 const adherenceAction = (
   scenario: ReviewCaseScenario,
   caseToken: string,
@@ -507,6 +545,9 @@ export const buildReviewCaseScenario = (
     if (action.actionId === 'info.history.allergies-adverse-reactions') {
       return reactionHistoryAction(scenario, caseToken, catalogs);
     }
+    if (action.actionId === 'info.history.existing-safety-plan') {
+      return safetyPlanningAbilityAction(scenario, caseToken);
+    }
     if (action.actionId === 'info.history.adherence') {
       return adherenceAction(scenario, caseToken, catalogs);
     }
@@ -627,6 +668,7 @@ export const buildReviewCaseScenario = (
         medicationTrials,
       },
       reactionHistory: scenario.reactionHistory,
+      reportedSafetyPlanningAbility: scenario.reportedSafetyPlanningAbility,
       complexityProfile: scenario.complexityProfile,
       diagnosisComposition: null,
       clinicalContextDimensions: [],

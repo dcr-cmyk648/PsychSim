@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.3.0",
+  "contentVersion": "1.4.0",
   "id": "case.review-cohort.bipolar-depression",
   "internalTitle": "Reviewer cohort: bipolar depression",
   "difficultyTier": 3,
@@ -133,6 +133,7 @@
       }
     ]
   },
+  "reportedSafetyPlanningAbility": "reports_able",
   "complexityProfile": {
     "modelVersion": "additional-feature-budget.v1",
     "measurementStatus": "budget_only",

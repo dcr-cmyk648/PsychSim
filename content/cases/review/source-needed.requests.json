@@ -165,17 +165,18 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "1.1.0",
     "id": "source-request.mdd.suicide-risk-disposition",
     "title": "Structured suicide-risk facts and level-of-care scoring",
-    "question": "How should current ideation, intent, planning, preparatory behavior, attempt history, access to means, acute modifiers, and protective factors contribute to outpatient, urgent, or emergency disposition rules in a game rubric?",
-    "whyNeeded": "The current patient uses concise structured findings and provisionally rewards outpatient follow-up while penalizing disproportionate escalation. The user wants the risk-assessment mapping sourced before those facts are treated as an approved level-of-care rule.",
+    "question": "How should current ideation, intent, planning, preparatory behavior, attempt history, access to means, acute modifiers, protective factors, and the patient's reported ability to participate in safety planning contribute to outpatient, urgent, or emergency disposition rules in a game rubric?",
+    "whyNeeded": "The current patient uses concise structured findings and provisionally rewards outpatient follow-up while penalizing disproportionate escalation. The user wants the risk-assessment mapping sourced before those facts are treated as an approved level-of-care rule, including how a subjective safety-planning response contributes without becoming a sole disposition determinant.",
     "targetContentIds": [
       "objective.mdd-safety",
       "rule.mdd-outpatient-disposition",
       "rule.mdd-urgent-escalation",
       "rule.mdd-emergency-escalation",
-      "info.history.suicide-safety"
+      "info.history.suicide-safety",
+      "info.history.existing-safety-plan"
     ],
     "linkedTicketIds": [
       "ticket.source.canmat-mdd.disposition-severity",
@@ -191,7 +192,8 @@
     "acceptanceCriteria": [
       "Supports structured decision factors without reducing risk assessment to one unsupported numeric score.",
       "Distinguishes absent acute indicators, elevated concern, and emergency indicators.",
-      "Can support penalties for both unsafe under-escalation and disproportionate over-escalation."
+      "Can support penalties for both unsafe under-escalation and disproportionate over-escalation.",
+      "Clarifies how reported safety-planning ability may contribute without serving as a sole disposition rule."
     ],
     "destination": {
       "provider": "google_drive",
@@ -208,7 +210,7 @@
     "status": "source_received",
     "resolutionNote": null,
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-23T16:45:00.000Z"
+    "updatedAt": "2026-07-25T15:15:06Z"
   },
   {
     "schemaVersion": 1,

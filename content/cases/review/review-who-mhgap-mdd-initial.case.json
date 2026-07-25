@@ -166,6 +166,7 @@
         }
       ]
     },
+    "reportedSafetyPlanningAbility": "reports_able",
     "complexityProfile": {
       "modelVersion": "additional-feature-budget.v1",
       "measurementStatus": "budget_only",
@@ -987,7 +988,7 @@
     }
   ],
   "schemaVersion": 1,
-  "contentVersion": "1.1.0",
+  "contentVersion": "1.2.0",
   "id": "case.review.who-mhgap-mdd-initial",
   "opening": {
     "titleTemplate": "{{patient.name}}",
@@ -1226,23 +1227,13 @@
         "kind": "finding_set",
         "findings": [
           {
-            "id": "finding.review-who-mdd-safety-plan.existing-plan",
-            "labelVariants": ["Existing written safety plan", "Current safety-plan document"],
-            "outcome": "absent"
-          },
-          {
-            "id": "finding.review-who-mdd-safety-plan.support-contact",
-            "labelVariants": ["Identified support contact", "Named support person"],
+            "id": "finding.review-who-mdd-safety-planning-ability",
+            "labelVariants": ["Feels able to participate in safety planning"],
             "outcome": "present"
-          },
-          {
-            "id": "finding.review-who-mdd-safety-plan.crisis-contacts",
-            "labelVariants": ["Saved crisis contacts", "Crisis contact information"],
-            "outcome": "absent"
           }
         ],
         "shuffle": false,
-        "factsRevealed": ["fact.review-who-mdd-existing-safety-plan-status"]
+        "factsRevealed": ["fact.safety-planning-ability.reports-able"]
       }
     },
     {

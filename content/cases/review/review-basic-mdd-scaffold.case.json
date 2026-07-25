@@ -127,6 +127,7 @@
         }
       ]
     },
+    "reportedSafetyPlanningAbility": "reports_able",
     "complexityProfile": {
       "modelVersion": "additional-feature-budget.v1",
       "measurementStatus": "budget_only",
@@ -946,7 +947,7 @@
     }
   ],
   "schemaVersion": 1,
-  "contentVersion": "1.2.0",
+  "contentVersion": "1.3.0",
   "id": "case.review.basic-mdd-scaffold",
   "opening": {
     "titleTemplate": "{{patient.name}}",
@@ -1185,23 +1186,13 @@
         "kind": "finding_set",
         "findings": [
           {
-            "id": "finding.review-basic-mdd-safety-plan.existing-plan",
-            "labelVariants": ["Existing written safety plan", "Current safety-plan document"],
-            "outcome": "absent"
-          },
-          {
-            "id": "finding.review-basic-mdd-safety-plan.support-contact",
-            "labelVariants": ["Identified support contact", "Named support person"],
+            "id": "finding.review-basic-mdd-safety-planning-ability",
+            "labelVariants": ["Feels able to participate in safety planning"],
             "outcome": "present"
-          },
-          {
-            "id": "finding.review-basic-mdd-safety-plan.crisis-contacts",
-            "labelVariants": ["Saved crisis contacts", "Crisis contact information"],
-            "outcome": "absent"
           }
         ],
         "shuffle": false,
-        "factsRevealed": ["fact.review-basic-mdd-existing-safety-plan-status"]
+        "factsRevealed": ["fact.safety-planning-ability.reports-able"]
       }
     },
     {

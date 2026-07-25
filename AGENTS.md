@@ -134,9 +134,11 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   care points, reimbursement, or `economy.complexityBonus`. A feature that reframes the focused
   question belongs in required template/policy content, not an optional module. Current authored
   patients are `budget_only`; reject selected modules until a stable module catalog/compiler exists.
-- Reviewing an existing safety plan or crisis supports is a history action. Creating or revising a
-  safety plan is a distinct future intervention and must not be implied by medication adverse-effect
-  education.
+- Safety-planning history asks whether the patient reports feeling able to participate in safety
+  planning. Store that subjective response separately from the clinician's safety formulation and
+  disposition decision; it may inform a reviewed case-specific disposition rule but never decides
+  disposition by itself. Creating or revising a safety plan is a distinct future intervention and
+  must not be implied by medication adverse-effect education.
 - Compile only positive rules relevant to the encounter's focused decision horizon, while retaining
   global safety and interaction rules. Do not grade a complex patient against an exhaustive plan for
   every background problem.

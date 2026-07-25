@@ -2273,6 +2273,21 @@ export const PatientTreatmentHistorySchema = z
   .strict();
 export type PatientTreatmentHistory = z.infer<typeof PatientTreatmentHistorySchema>;
 
+/**
+ * The patient's subjective answer when asked whether they feel able to
+ * participate in safety planning. This is not a clinician-authored safety
+ * assessment and does not determine disposition by itself.
+ */
+export const PatientReportedSafetyPlanningAbilitySchema = z.enum([
+  'unassessed',
+  'reports_able',
+  'reports_unable',
+  'uncertain',
+]);
+export type PatientReportedSafetyPlanningAbility = z.infer<
+  typeof PatientReportedSafetyPlanningAbilitySchema
+>;
+
 export const PatientRecordSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -2298,6 +2313,7 @@ export const PatientRecordSchema = z
       medicationAssessmentStatus: 'unassessed',
       records: [],
     }),
+    reportedSafetyPlanningAbility: PatientReportedSafetyPlanningAbilitySchema.default('unassessed'),
     complexityProfile: PatientComplexityProfileSchema.default({
       modelVersion: 'additional-feature-budget.v1',
       measurementStatus: 'legacy_unmeasured',
@@ -2415,6 +2431,9 @@ export const ReviewCaseScenarioSchema = z
       priorLevelsOfCare: [],
     }),
     reactionHistory: PatientReactionHistorySchema,
+    reportedSafetyPlanningAbility: PatientReportedSafetyPlanningAbilitySchema.exclude([
+      'unassessed',
+    ]),
     complexityProfile: PatientComplexityProfileSchema,
     informationOverrides: z.array(CaseInformationActionBlueprintSchema),
     decisionPolicyId: StableIdSchema,

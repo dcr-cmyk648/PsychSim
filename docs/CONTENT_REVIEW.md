@@ -80,7 +80,7 @@ must never contain real patient information or other identifiable clinical mater
 cohort or policy revision receives a new assignment ID rather than silently sharing old run history
 and exports.
 
-Assignment `reviewer-assignment.common-psychiatry.2026-07d` adds one narrow exception to the rule
+Assignment `reviewer-assignment.common-psychiatry.2026-07e` adds one narrow exception to the rule
 that portable Reviewer has no authoring queue: it statically imports one exact ticket packet with
 one patient-linked question for each of its ten allowlisted scenarios. This is an assignment
 artifact, not local Developer ticket discovery. Every ticket must name one of those exact
@@ -95,8 +95,9 @@ exported bundle to Codex.
 
 Reaction-history review must distinguish the chart/patient label from any reviewed interpretation.
 A statement recorded as an “allergy” is not automatically an immune allergy, and prior-trial
-tolerability remains a separate record. Likewise, reviewing an existing safety plan is factual
-history; creating or revising a plan would be a separate intervention and rule-review target.
+tolerability remains a separate record. Safety-planning history is the patient's Subjective report
+of whether they feel able to participate. It is not a safety formulation or disposition decision;
+creating or revising a plan would be a separate intervention and rule-review target.
 
 The local handoff is deliberately simple: describe the desired outcome on tickets and/or record
 playthrough observations on receipts, save, then tell Codex that the local review is ready. Codex

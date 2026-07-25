@@ -179,9 +179,9 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "2.0.0",
     "id": "service.history.safety-plan-review",
-    "label": "Existing safety-plan review",
+    "label": "Safety-planning history",
     "fulfillmentMethods": [
       {
         "id": "fulfillment.office.safety-plan-review",

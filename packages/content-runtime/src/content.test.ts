@@ -130,6 +130,17 @@ describe('prototype content', () => {
         (issue) => issue.code === 'REACTION_HISTORY_DISPLAY_MISMATCH',
       ),
     ).toBe(true);
+    const mismatchedSafetyPlanningDisplay = structuredClone(prototypeCaseBlueprint);
+    const safetyPlanningAction = mismatchedSafetyPlanningDisplay.informationActions.find(
+      (action) => action.actionId === 'info.history.existing-safety-plan',
+    );
+    if (!safetyPlanningAction) throw new Error('Prototype safety-planning action missing.');
+    safetyPlanningAction.result.findings[0]!.outcome = 'absent';
+    expect(
+      validateCaseBlueprint(mismatchedSafetyPlanningDisplay, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'SAFETY_PLANNING_ABILITY_DISPLAY_MISMATCH',
+      ),
+    ).toBe(true);
 
     const module = {
       id: 'optional-feature.test.reaction',
@@ -188,9 +199,14 @@ describe('prototype content', () => {
     const legacy = structuredClone(
       instantiateCase(prototypeCaseBlueprint, 'legacy-reaction-default', catalogs),
     ) as unknown as {
-      patientRecord: { reactionHistory?: unknown; complexityProfile?: unknown };
+      patientRecord: {
+        reactionHistory?: unknown;
+        reportedSafetyPlanningAbility?: unknown;
+        complexityProfile?: unknown;
+      };
     };
     delete legacy.patientRecord.reactionHistory;
+    delete legacy.patientRecord.reportedSafetyPlanningAbility;
     delete legacy.patientRecord.complexityProfile;
     const parsed = CaseInstanceSchema.parse(legacy);
     expect(parsed.patientRecord.reactionHistory).toEqual({
@@ -198,6 +214,7 @@ describe('prototype content', () => {
       medicationAssessmentStatus: 'unassessed',
       records: [],
     });
+    expect(parsed.patientRecord.reportedSafetyPlanningAbility).toBe('unassessed');
     expect(parsed.patientRecord.complexityProfile.measurementStatus).toBe('legacy_unmeasured');
   });
 
@@ -771,6 +788,16 @@ describe('prototype content', () => {
         expect(action.soapSection).toBe('objective');
       }
     }
+    expect(
+      catalogs.informationActions.find(
+        (action) => action.id === 'info.history.existing-safety-plan',
+      ),
+    ).toMatchObject({
+      label: 'Safety-planning ability',
+      category: 'history',
+      soapSection: 'subjective',
+      resultSource: 'patient_report',
+    });
   });
 
   it('rejects an unknown shared variant pool', () => {

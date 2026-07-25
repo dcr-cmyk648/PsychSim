@@ -61,9 +61,9 @@
   },
   {
     "id": "info.history.existing-safety-plan",
-    "label": "Existing safety plan and crisis supports",
+    "label": "Safety-planning ability",
     "category": "history",
-    "description": "Review any existing safety plan, crisis contacts, support people, and access to the plan.",
+    "description": "Ask whether the patient feels able to participate in safety planning.",
     "serviceId": "service.history.safety-plan-review",
     "repeatable": false,
     "soapSection": "subjective",

@@ -135,7 +135,7 @@ middleware mirrors the same schema-validated bundle to
 `content/generated/local-review-tickets/tickets.json`; Playwright uses the separate
 `tickets.e2e.json` target. The portable Reviewer contains no middleware endpoint, local
 ticket discovery, source/opinion queues, or arbitrary file writer. Its only preassigned questions
-are the exact finite ticket packet registered for assignment `2026-07d`; responses remain
+are the exact finite ticket packet registered for assignment `2026-07e`; responses remain
 browser-local until manual export.
 
 The assignment ID is a persistence migration boundary, not merely a label. A material change to
@@ -236,8 +236,12 @@ metadata, not a measured complexity score. Reviewer scenarios own these fields d
 than receiving clinical facts from schema defaults. Medication-reaction completeness is a
 separate state from the presence of environmental or food reactions, and validation checks the
 typed history against the structured result shown after purchase.
-`info.history.existing-safety-plan` similarly reveals factual existing-plan/support state; a future
-create-or-revise safety-plan treatment would use a separate intervention boundary.
+`info.history.existing-safety-plan` retains its legacy stable ID for local replay compatibility but
+now reveals the typed, Subjective `reportedSafetyPlanningAbility` state. Its structured result says
+only whether the patient reports feeling able to participate; it never emits an
+`outpatient-capable` conclusion. A future create-or-revise safety-plan treatment would use a
+separate intervention boundary. Current disposition policies are unchanged until a reviewed rule
+specifies when and how this response contributes.
 
 The launcher renders from that resolved CaseInstance—not internal case metadata—so it can show only patient name and chief complaint. Hidden diagnosis/category fields remain content and validation inputs and are never used as player-facing case labels.
 

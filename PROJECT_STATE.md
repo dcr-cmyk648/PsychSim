@@ -19,7 +19,7 @@ Last updated: 2026-07-25
   passed verification, Pages packaging, and deployment.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
-- Beta is intentionally ahead with the assignment-`2026-07d` portable-review checkpoint. It has
+- Beta is intentionally ahead with the assignment-`2026-07e` portable-review checkpoint. It has
   not been promoted to `main` or the public phone release.
 
 ## Current phase and bounded checkpoint
@@ -44,7 +44,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
-- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07d`. A material cohort or policy
+- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07e`. A material cohort or policy
   change must bump this ID again.
 - The ten scenarios cover five MDD decision states plus initial GAD, bipolar depression, acute
   mania, schizophrenia relapse, and PTSD. Every case and executable clinical rule is fictional,
@@ -69,14 +69,15 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Treatment remains one searchable catalog menu spanning medication name/class, psychotherapy and
   other nonmedication labels/categories, and disposition. A regression test protects that search
   behavior.
-- Reviewer scenarios are content version `1.3.0`. They preserve explicit medication-list status,
+- Reviewer scenarios are content version `1.4.0`. They preserve explicit medication-list status,
   structured medication/psychotherapy/provider/level-of-care history, reviewed weight/BMI
   measurements, and separate body-habitus observations. Service-backed treatment choices freeze
   fulfillment and displayed cost in review snapshots.
 - The shared investigation catalog now has 40 neutral actions. `Allergies and adverse reactions`
-  and `Existing safety plan and crisis supports` are searchable History actions with immediate
-  results. Reviewing an existing plan is not the same as selecting a future create/revise safety
-  plan intervention.
+  and `Safety-planning ability` are searchable History actions with immediate results.
+  Safety-planning history records only whether the patient reports feeling able to participate; it
+  is neither a clinician safety formulation nor an outpatient-disposition conclusion. Creating or
+  revising a plan remains a separate future intervention.
 - Every authored Reviewer scenario owns explicit reaction state. Current entries use bounded
   seasonal/environmental or food examples and separately author medication-reaction assessment;
   a nonmedication entry can no longer imply “no medication reactions.” Chart labels remain
@@ -84,10 +85,12 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Each patient carries a `budget_only` optional-feature profile. It records coarse room for future
   richness but does not affect score, payout, eligibility, pool, facility, or difficulty.
   Nonempty optional-module selection remains rejected until a catalog/compiler exists.
-- Assignment `2026-07d` includes exactly ten patient-linked, medically unreviewed review tickets.
+- Assignment `2026-07e` includes exactly ten patient-linked, medically unreviewed review tickets.
   Desktop Developer mode retains dense inline details plus a focused dialog. Portable/mobile
   Reviewer opens each ticket in a full-screen view with its own response field; responses persist
   in the assignment database and export with case feedback.
+- The assignment bump intentionally creates a fresh Reviewer IndexedDB namespace. Unexported
+  `2026-07d` feedback remains in the old browser database and is not mixed into revised cases.
 - Debrief headings are diagnosis/decision-state labels authored for post-submit use. They never
   appear on patient cards or pre-submit charts.
 - Portable Reviewer feedback still captures both case-specific and subjective app-experience
@@ -156,7 +159,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   authoring/search data and never enters the browser bundle.
 - The private residency-article aggregate remains pending user export and no-PHI acknowledgment. No
   SharePoint bytes or developer opinions were imported.
-- The MDD prototype is content version `4.0.0`. CANMAT and Developer-opinion/game-balance
+- The MDD prototype is content version `4.2.0`. CANMAT and Developer-opinion/game-balance
   contributions remain separate in the trace. Sertraline and escitalopram share the broad
   first-line baseline; medication-specific fit remains a separate modifier layer. All embedded
   rules remain medically unreviewed.
@@ -219,7 +222,7 @@ Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, o
   it. Playwright uses the separate `tickets.e2e.json`.
 - Portable Reviewer never exposes local source/opinion queues, arbitrary local tickets, or the
   writer endpoint. Its only preassigned tickets are the exact ten patient-linked questions in the
-  assignment-`2026-07d` allowlist. Reviewer-created guidance, flags, and tickets may also be
+  assignment-`2026-07e` allowlist. Reviewer-created guidance, flags, and tickets may also be
   included in the manual export.
 - Saving feedback is not clinical approval and is not authorization to edit a rule.
 - Source-linked trace rows now make the evidence trail visible, but bibliographic verification
@@ -344,7 +347,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-129)
+- `docs/DECISIONS.md` (through D-130)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -375,10 +378,11 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Run assignment `2026-07d` in local/mobile review and export at least one patient-linked ticket
-response. Review whether reaction history and existing-safety-plan history should earn or lose
+Run assignment `2026-07e` in local/mobile review and export at least one patient-linked ticket
+response. Review whether reaction history and reported safety-planning ability should earn or lose
 points in each focused decision; do not invent a universal clinical reward merely because the
-actions now exist.
+actions now exist. In particular, reported ability may contribute to disposition appropriateness
+but must not independently determine disposition.
 
 Separately, obtain the exact model identifier from a Codex surface before using
 `content:notes:codex-review`. Then review one bounded Notes title/plaintext segment and classify it

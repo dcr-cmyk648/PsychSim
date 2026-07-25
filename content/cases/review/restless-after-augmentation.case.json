@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.2.0",
+  "contentVersion": "2.3.0",
   "id": "case.restless-after-augmentation",
   "metadata": {
     "title": "Restless After Augmentation",
@@ -125,6 +125,7 @@
         }
       ]
     },
+    "reportedSafetyPlanningAbility": "reports_able",
     "complexityProfile": {
       "modelVersion": "additional-feature-budget.v1",
       "measurementStatus": "budget_only",
@@ -572,7 +573,10 @@
           }
         ],
         "shuffle": false,
-        "factsRevealed": ["fact.no-acute-safety-risk", "fact.outpatient-capable"]
+        "factsRevealed": [
+          "fact.restlessness-denies-current-suicidal-ideation",
+          "fact.restlessness-denies-suicidal-intent-or-plan"
+        ]
       }
     },
     {
@@ -582,23 +586,13 @@
         "kind": "finding_set",
         "findings": [
           {
-            "id": "finding.restlessness-safety-plan.existing-plan",
-            "labelVariants": ["Existing written safety plan", "Current safety-plan document"],
-            "outcome": "absent"
-          },
-          {
-            "id": "finding.restlessness-safety-plan.support-contact",
-            "labelVariants": ["Identified support contact", "Named support person"],
+            "id": "finding.restlessness-safety-planning-ability",
+            "labelVariants": ["Feels able to participate in safety planning"],
             "outcome": "present"
-          },
-          {
-            "id": "finding.restlessness-safety-plan.crisis-contacts",
-            "labelVariants": ["Saved crisis contacts", "Crisis contact information"],
-            "outcome": "absent"
           }
         ],
         "shuffle": false,
-        "factsRevealed": ["fact.restlessness-existing-safety-plan-status"]
+        "factsRevealed": ["fact.safety-planning-ability.reports-able"]
       }
     },
     {

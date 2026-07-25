@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.3.0",
+  "contentVersion": "1.4.0",
   "id": "case.review-cohort.mdd-adherence",
   "internalTitle": "Reviewer cohort: MDD with inconsistent adherence",
   "difficultyTier": 2,
@@ -132,6 +132,7 @@
       }
     ]
   },
+  "reportedSafetyPlanningAbility": "reports_able",
   "complexityProfile": {
     "modelVersion": "additional-feature-budget.v1",
     "measurementStatus": "budget_only",

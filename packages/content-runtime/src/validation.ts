@@ -582,6 +582,51 @@ export const validateCaseBlueprint = (
       });
     }
   }
+  const safetyPlanningAction = blueprint.informationActions.find(
+    (action) => action.actionId === 'info.history.existing-safety-plan',
+  );
+  if (patientRecord.reportedSafetyPlanningAbility === 'unassessed') {
+    issues.push({
+      severity: 'error',
+      code: 'UNASSESSED_SAFETY_PLANNING_ABILITY',
+      message: `${patientRecord.id} must explicitly author the patient's reported safety-planning ability.`,
+    });
+  }
+  if (!safetyPlanningAction) {
+    issues.push({
+      severity: 'error',
+      code: 'MISSING_SAFETY_PLANNING_ABILITY_ACTION',
+      message: `${patientRecord.id} has no safety-planning ability history action.`,
+    });
+  } else if (patientRecord.reportedSafetyPlanningAbility !== 'unassessed') {
+    const expectedOutcome =
+      patientRecord.reportedSafetyPlanningAbility === 'reports_able'
+        ? 'present'
+        : patientRecord.reportedSafetyPlanningAbility === 'reports_unable'
+          ? 'absent'
+          : 'not_applicable';
+    const expectedFactSuffix =
+      patientRecord.reportedSafetyPlanningAbility === 'reports_able'
+        ? 'reports-able'
+        : patientRecord.reportedSafetyPlanningAbility === 'reports_unable'
+          ? 'reports-unable'
+          : 'uncertain';
+    const abilityFinding = safetyPlanningAction.result.findings.find((finding) =>
+      finding.labelVariants.includes('Feels able to participate in safety planning'),
+    );
+    if (
+      abilityFinding?.outcome !== expectedOutcome ||
+      !safetyPlanningAction.result.factsRevealed.some((factId) =>
+        factId.endsWith(`safety-planning-ability.${expectedFactSuffix}`),
+      )
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'SAFETY_PLANNING_ABILITY_DISPLAY_MISMATCH',
+        message: `${patientRecord.id} does not reveal its authored safety-planning response as a matching structured fact.`,
+      });
+    }
+  }
   if (patientRecord.complexityProfile.selectedModules.length > 0) {
     issues.push({
       severity: 'error',

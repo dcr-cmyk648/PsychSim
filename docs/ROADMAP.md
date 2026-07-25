@@ -49,7 +49,7 @@ near-top general feedback, reopenable completed receipts, an assignment-versione
 one version-5 export containing multiple completed attempts/reviews/flags/tickets. GitHub Pages
 deploys this finite Reviewer artifact from `main`; it does not include the local Developer glob,
 source/opinion queues, ticket discovery, writer endpoint, source bytes, or AI tooling. Assignment
-`2026-07d` additionally includes one exact finite packet of ten patient-linked review questions.
+`2026-07e` additionally includes one exact finite packet of ten patient-linked review questions.
 
 Portable review gate: every scenario passes schema, registry, reference, semantic eligibility, and
 four-policy ordering checks in the all-capabilities Reviewer clinic; ordinary Player and Reviewer
@@ -67,7 +67,7 @@ anxiety finding, exercising subthreshold variation without creating a diagnosis 
 rubric. Finding rows display explicit outcome chips and grouped positive/negative states. Receipts
 use one responsive care-point meter and expose attempt-persisted rule provenance in every trace.
 The material cohort revision is namespaced as
-`reviewer-assignment.common-psychiatry.2026-07d`.
+`reviewer-assignment.common-psychiatry.2026-07e`.
 
 Progression follow-up on `beta`: a 900-point Clinical intake assistant, gated at 600 lifetime
 points, can automatically administer up to three selected routine checklist/medication-history

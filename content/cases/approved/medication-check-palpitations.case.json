@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.2.0",
+  "contentVersion": "3.3.0",
   "id": "case.medication-check-palpitations",
   "metadata": {
     "title": "Outpatient Medication Check 002",
@@ -135,6 +135,7 @@
         }
       ]
     },
+    "reportedSafetyPlanningAbility": "reports_able",
     "complexityProfile": {
       "modelVersion": "additional-feature-budget.v1",
       "measurementStatus": "budget_only",
@@ -468,23 +469,13 @@
         "kind": "finding_set",
         "findings": [
           {
-            "id": "finding.ecg-mdd-safety-plan.existing-plan",
-            "labelVariants": ["Existing written safety plan", "Current safety-plan document"],
-            "outcome": "absent"
-          },
-          {
-            "id": "finding.ecg-mdd-safety-plan.support-contact",
-            "labelVariants": ["Identified support contact", "Named support person"],
+            "id": "finding.ecg-mdd-safety-planning-ability",
+            "labelVariants": ["Feels able to participate in safety planning"],
             "outcome": "present"
-          },
-          {
-            "id": "finding.ecg-mdd-safety-plan.crisis-contacts",
-            "labelVariants": ["Saved crisis contacts", "Crisis contact information"],
-            "outcome": "absent"
           }
         ],
         "shuffle": false,
-        "factsRevealed": ["fact.ecg-mdd-existing-safety-plan-status"]
+        "factsRevealed": ["fact.safety-planning-ability.reports-able"]
       }
     },
     {

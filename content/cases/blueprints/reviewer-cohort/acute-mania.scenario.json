@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.3.0",
+  "contentVersion": "1.4.0",
   "id": "case.review-cohort.acute-mania",
   "internalTitle": "Reviewer cohort: acute mania",
   "difficultyTier": 3,
@@ -116,6 +116,7 @@
       }
     ]
   },
+  "reportedSafetyPlanningAbility": "uncertain",
   "complexityProfile": {
     "modelVersion": "additional-feature-budget.v1",
     "measurementStatus": "budget_only",

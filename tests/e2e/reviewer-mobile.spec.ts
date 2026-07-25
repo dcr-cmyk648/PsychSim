@@ -285,7 +285,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   };
   expect(bundle.exportVersion).toBe(5);
   expect(bundle.buildKind).toBe('portable_reviewer');
-  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07d');
+  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07e');
   expect(bundle.attemptReviews).toHaveLength(2);
   expect(bundle.completedAttempts).toHaveLength(2);
   expect(new Set(bundle.completedAttempts.map((attempt) => attempt.blueprintId)).size).toBe(2);
