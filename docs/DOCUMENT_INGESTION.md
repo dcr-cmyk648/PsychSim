@@ -103,6 +103,16 @@ pnpm content:notes:sync -- --folder "Psych research" \
   --ack-shared-material-rights \
   --acknowledged-by "Your name"
 pnpm content:notes:validate
+pnpm content:notes:codex-review -- \
+  --next \
+  --provider openai-codex \
+  --model "<exact exposed model identifier>" \
+  --ack-no-phi \
+  --ack-authorized-external-ai-processing \
+  --ack-title-plaintext-rights \
+  --ack-shared-material-rights \
+  --ack-appropriate-to-transmit \
+  --acknowledged-by "Your name"
 ```
 
 The audit reads only the account/folder/note/attachment identifiers exposed by Notes, provider
@@ -116,6 +126,15 @@ acknowledgment records that the folder contains no identifiable patient informat
 processing is authorized, that shared-material rights have been considered, who acknowledged the
 conditions, and when. These assertions permit the bounded private workflow; they do not verify
 copyright ownership or convert third-party article screenshots into reusable publications.
+
+The Codex-review command has a second, independent acknowledgment because local Notes access does
+not authorize external AI processing. It prepares one title/plaintext segment only. Segmentation
+is deterministic from source text and does not change with the requested model identifier or
+provider revision metadata. The complete canonical packet determines its ID; a reused release
+returns the SHA-256 of the already audited bytes. Input, segment, packet, and segment-count limits
+bound local work. Protected directory chains reject symlinks/path escapes, private directories
+use exact mode `0700`, and packet/audit files use exact mode `0600`. Invalid private JSON is
+reported without including a source-text fragment.
 
 For each unlocked new or provider-modified note, Notes writes a private revision containing title,
 plaintext, HTML, and accessible attachments under
@@ -156,6 +175,23 @@ private source material. Personal takeaways begin as Developer opinion; article 
 citations are bibliographic candidates only. Formal evidence still requires independent
 bibliographic verification, an applicable `SourceUseDecision`, exact claim review, and a tracked
 contribution. No note, OCR passage, or citation changes a case, rule, score, or review status.
+
+The Codex-review command is a second, separately acknowledged release boundary. One invocation
+prepares at most one note/segment under
+`content/source-docs/extracted/apple-notes-private/codex-review/packets/`. It reads only the exact
+private `title.txt` and `plaintext.txt` fields and verifies both against the intake manifest; it
+never reads the note's HTML, attachment bytes, attachment OCR, deterministic composite, or
+extracted chunks. A title is limited to 2,048 UTF-8 bytes, a plaintext segment to 8,192 bytes, and
+the complete JSON packet to 12,288 bytes. Long plaintext is split deterministically without
+dropping or overlapping characters, and `--next` advances one segment at a time.
+
+Every packet is mode `0600`, remains gitignored, and has one hash-only audit entry under
+`content/source-docs/manifests/`. The command requires the exact provider/model plus explicit
+no-PHI, external-processing, title/plaintext-rights, shared-material-rights, appropriate-to-send,
+and named-reviewer acknowledgments. It prints only stable IDs, segment counts, hashes, and private
+paths. It contains no provider SDK, network request, API-key lookup, or model invocation:
+preparation is not proof that Codex consumed or classified the packet. Do not run it against the
+real corpus until the current Codex surface exposes an exact model identifier for the audit.
 
 ## Private user-authored residency archive
 
@@ -205,6 +241,7 @@ affecting gameplay.
 | `pnpm content:notes:audit -- --folder "Psych research"`  | Record Apple Notes IDs, dates, locked/shared flags, and counts without reading note titles, bodies, or attachment bytes.                                                                                                      |
 | `pnpm content:notes:sync -- --folder "Psych research" …` | After all required acknowledgments, export changed unlocked notes privately, hash attachments, run local image/PDF OCR by default, checkpoint each note, queue deterministic Markdown composites, then scan and extract them. |
 | `pnpm content:notes:validate`                            | Validate the ignored Apple Notes manifest, unique records, protected paths, and attachment byte hashes without printing source text.                                                                                          |
+| `pnpm content:notes:codex-review -- --next …`            | After separate external-processing acknowledgments, prepare one bounded private title/plaintext packet plus a hash-only audit record; make no provider or API call.                                                           |
 | `pnpm content:review`                                    | List extracted source IDs/chunk counts and current Developer review patients without printing source text.                                                                                                                    |
 | `pnpm content:evidence`                                  | List every formal evidence record, linked contributions or unused status, and expert-opinion coverage.                                                                                                                        |
 | `pnpm content:draft <request.json>`                      | Create a medically unreviewed patient scaffold, local provenance, and blocking clinical-audit tickets.                                                                                                                        |
@@ -262,7 +299,14 @@ AI service.
 
 ## External AI opt-in
 
-Local-only and deterministic mock drafting work without a provider. No external provider is implemented. A future provider may send source text only with a command flag, an interactive acknowledgment that the operator has rights and the material is appropriate to transmit, an explicit provider/model, and an audit record of referenced document/chunk IDs. No implicit environment-based send is allowed. API keys stay in local environment/secret storage, never source control, output files, browser code, or prompts saved for review.
+Local-only and deterministic mock drafting work without a provider. No external provider client is
+implemented. The Apple Notes Codex bridge may prepare one explicitly acknowledged title/plaintext
+packet for a later Codex read, but it does not send it. Any future provider may receive source text
+only with a command flag, an interactive acknowledgment that the operator has rights and the
+material is appropriate to transmit, an explicit provider/model, and an audit record of referenced
+document/chunk IDs. No implicit environment-based send is allowed. API keys stay in local
+environment/secret storage, never source control, output files, browser code, or prompts saved for
+review.
 
 ## Provenance and human control
 

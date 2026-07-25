@@ -161,12 +161,30 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await expect(page.getByText('TSH use in an initial depressive presentation')).toBeVisible();
   await page.getByText('Clinical and content tickets', { exact: true }).click();
   await expect(
-    page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
+    page
+      .locator('.review-ticket-inline')
+      .getByText('Set the broad first-line antidepressant baseline and fit modifiers')
+      .first(),
   ).toBeVisible();
-  await expect(page.getByText(/Receipt guidance:/)).toBeVisible();
-  await expect(page.getByText('Review flagged needs additional source')).toBeVisible();
-  await expect(page.getByText('Resolve WHO DEP4 treatment-modality implications')).toBeVisible();
-  const dispositionTicket = page.locator('.ticket-card').filter({
+  await expect(
+    page
+      .locator('.review-ticket-inline')
+      .getByText(/Receipt guidance:/)
+      .first(),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('.review-ticket-inline')
+      .getByText('Review flagged needs additional source')
+      .first(),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('.review-ticket-inline')
+      .getByText('Resolve WHO DEP4 treatment-modality implications')
+      .first(),
+  ).toBeVisible();
+  const dispositionTicket = page.locator('.review-ticket-inline').filter({
     has: page.getByText('Audit escalation and disposition penalties'),
   });
   await dispositionTicket.locator('summary').first().click();
@@ -174,7 +192,7 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await expect(dispositionTicket.getByText(/-80 pts/)).toBeVisible();
   await expect(dispositionTicket.getByText(/-450 pts/)).toBeVisible();
   await expect(dispositionTicket.getByText('200 when true').last()).toBeVisible();
-  const baselineTicket = page.locator('.ticket-card').filter({
+  const baselineTicket = page.locator('.review-ticket-inline').filter({
     has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   });
   await baselineTicket.locator('summary').first().click();
@@ -189,7 +207,7 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await page.reload();
   await page.getByText('Clinical and content tickets', { exact: true }).click();
   await page.getByText(/Reviewed locally · [1-9][0-9]*/).click();
-  const persistedBaselineTicket = page.locator('.ticket-card').filter({
+  const persistedBaselineTicket = page.locator('.review-ticket-inline').filter({
     has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   });
   await persistedBaselineTicket.locator('summary').first().click();

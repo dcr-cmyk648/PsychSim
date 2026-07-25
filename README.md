@@ -40,6 +40,7 @@ pnpm content:watch
 pnpm content:notes:audit -- --folder "Psych research"
 pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Your name"
 pnpm content:notes:validate
+pnpm content:notes:codex-review -- --next --provider openai-codex --model "<exact exposed model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Your name"
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -132,6 +133,11 @@ after every note, and queues one deterministic Markdown composite per note throu
 source scanner and extractor. If Notes cannot export one attachment, the attachment is quarantined
 with error provenance while usable title/plaintext from that note is retained. No note text or
 image is printed or transmitted.
+
+The separately acknowledged `content:notes:codex-review` boundary prepares exactly one bounded,
+gitignored title/plaintext packet and a hash-only audit record. It does not read HTML,
+attachments, OCR, or composites and contains no model/provider call. It must not be run with a
+guessed model identifier; the current checkpoint prepared no real Notes packet.
 
 A controlled scaffold request can turn an existing reviewed-as-a-template case into a new
 medically unreviewed Developer patient with source provenance, proposed shared impact IDs, and

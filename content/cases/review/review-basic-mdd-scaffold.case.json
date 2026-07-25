@@ -106,6 +106,34 @@
     "testGenerationContext": {
       "ageYearsVariantTarget": "patient.age",
       "sexForReference": "unspecified"
+    },
+    "reactionHistory": {
+      "status": "entries_present",
+      "medicationAssessmentStatus": "documented_none",
+      "records": [
+        {
+          "schemaVersion": 1,
+          "id": "reaction.review-basic-mdd-scaffold.seasonal",
+          "trigger": {
+            "kind": "nonmedication",
+            "triggerId": "reaction-trigger.seasonal-environmental"
+          },
+          "recordedAs": "allergy",
+          "manifestationIds": ["reaction-manifestation.nasal-eye-symptoms"],
+          "reportedSeverity": "mild",
+          "interpretedAs": null,
+          "source": "patient_report",
+          "status": "active"
+        }
+      ]
+    },
+    "complexityProfile": {
+      "modelVersion": "additional-feature-budget.v1",
+      "measurementStatus": "budget_only",
+      "additionalFeatureBudget": 1,
+      "maximumSelectedModules": 1,
+      "selectedModules": [],
+      "targetEnvelope": null
     }
   },
   "criticalFacts": {
@@ -918,7 +946,7 @@
     }
   ],
   "schemaVersion": 1,
-  "contentVersion": "1.1.0",
+  "contentVersion": "1.2.0",
   "id": "case.review.basic-mdd-scaffold",
   "opening": {
     "titleTemplate": "{{patient.name}}",
@@ -1151,6 +1179,32 @@
       }
     },
     {
+      "actionId": "info.history.existing-safety-plan",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-basic-mdd-safety-plan.existing-plan",
+            "labelVariants": ["Existing written safety plan", "Current safety-plan document"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.review-basic-mdd-safety-plan.support-contact",
+            "labelVariants": ["Identified support contact", "Named support person"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.review-basic-mdd-safety-plan.crisis-contacts",
+            "labelVariants": ["Saved crisis contacts", "Crisis contact information"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.review-basic-mdd-existing-safety-plan-status"]
+      }
+    },
+    {
       "actionId": "info.history.violence-risk",
       "defaultClassification": "defensible",
       "result": {
@@ -1205,6 +1259,30 @@
         ],
         "shuffle": true,
         "factsRevealed": ["fact.mdd-no-current-psychiatric-medication"]
+      }
+    },
+    {
+      "actionId": "info.history.allergies-adverse-reactions",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-basic-mdd-reaction-history.seasonal",
+            "groupLabel": "Reported allergies and reactions",
+            "labelVariants": ["Seasonal/environmental allergens"],
+            "outcome": "present",
+            "valueTextVariants": ["Recorded as allergy · Nasal and eye symptoms · mild severity"]
+          },
+          {
+            "id": "finding.review-basic-mdd-reaction-history.medication-none",
+            "groupLabel": "Reported allergies and reactions",
+            "labelVariants": ["Medication allergies or adverse reactions"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.review-basic-mdd-reaction-history"]
       }
     },
     {

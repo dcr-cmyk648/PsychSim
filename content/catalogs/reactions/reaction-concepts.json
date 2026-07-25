@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "nonMedicationTriggers": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-trigger.seasonal-environmental",
+      "label": "Seasonal/environmental allergens",
+      "category": "environmental"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-trigger.peanut",
+      "label": "Peanut",
+      "category": "food"
+    }
+  ],
+  "manifestations": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-manifestation.nasal-eye-symptoms",
+      "label": "Nasal and eye symptoms"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-manifestation.hives",
+      "label": "Hives"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-manifestation.sedation",
+      "label": "Sleepiness"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-manifestation.oculogyric-crisis",
+      "label": "Oculogyric crisis"
+    }
+  ]
+}

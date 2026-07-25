@@ -180,6 +180,38 @@
   {
     "schemaVersion": 1,
     "contentVersion": "1.0.0",
+    "id": "service.history.safety-plan-review",
+    "label": "Existing safety-plan review",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.safety-plan-review",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 15,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.history.allergies-adverse-reactions",
+    "label": "Allergy and adverse-reaction history",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.allergies-adverse-reactions",
+        "label": "Office interview",
+        "kind": "in_house",
+        "operatingCost": 10,
+        "requiredCapabilities": ["history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "service.history.substance-use",
     "label": "Substance-use history",
     "fulfillmentMethods": [

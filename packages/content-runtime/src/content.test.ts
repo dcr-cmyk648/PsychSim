@@ -7,7 +7,9 @@ import {
   ClinicalDurationProfileSchema,
   DiagnosisDefinitionSchema,
   EvidenceSourceDefinitionSchema,
+  PatientComplexityProfileSchema,
   PatientObservationSchema,
+  PatientReactionHistorySchema,
   SourceUseNoteSchema,
   WorkupObjectiveSchema,
 } from '@psychsim/schemas';
@@ -57,6 +59,146 @@ describe('prototype content', () => {
     ) as unknown as { metadata: { patientPool?: string } };
     delete legacyInstance.metadata.patientPool;
     expect(CaseInstanceSchema.parse(legacyInstance).metadata.patientPool).toBe('starter');
+  });
+
+  it('keeps charted reaction category separate from any reviewed interpretation', () => {
+    for (const blueprint of approvedCaseBlueprints) {
+      expect(blueprint.patientRecord.reactionHistory.status).toBe('entries_present');
+      expect(blueprint.patientRecord.reactionHistory.records.length).toBeGreaterThan(0);
+      expect(
+        blueprint.informationActions.some(
+          (action) => action.actionId === 'info.history.allergies-adverse-reactions',
+        ),
+      ).toBe(true);
+      for (const record of blueprint.patientRecord.reactionHistory.records) {
+        expect(record.recordedAs).toBeTruthy();
+        expect(record.interpretedAs).toBeNull();
+      }
+    }
+  });
+
+  it('rejects ambiguous reaction history, unknown reaction concepts, and over-budget extras', () => {
+    expect(
+      PatientReactionHistorySchema.safeParse({
+        status: 'unassessed',
+        medicationAssessmentStatus: 'unassessed',
+        records: [],
+      }).success,
+    ).toBe(true);
+    expect(
+      PatientReactionHistorySchema.safeParse({
+        status: 'documented_none',
+        medicationAssessmentStatus: 'documented_none',
+        records: prototypeCaseBlueprint.patientRecord.reactionHistory.records,
+      }).success,
+    ).toBe(false);
+    expect(
+      PatientReactionHistorySchema.safeParse({
+        ...prototypeCaseBlueprint.patientRecord.reactionHistory,
+        medicationAssessmentStatus: 'entries_present',
+      }).success,
+    ).toBe(false);
+    expect(
+      PatientReactionHistorySchema.safeParse({
+        ...prototypeCaseBlueprint.patientRecord.reactionHistory,
+        records: prototypeCaseBlueprint.patientRecord.reactionHistory.records.map((record) => ({
+          ...record,
+          interpretedAs: 'immune_allergy',
+        })),
+      }).success,
+    ).toBe(false);
+
+    const invalidReaction = structuredClone(prototypeCaseBlueprint);
+    invalidReaction.patientRecord.reactionHistory.records[0]!.manifestationIds = [
+      'reaction-manifestation.missing',
+    ];
+    expect(
+      validateCaseBlueprint(invalidReaction, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'INVALID_REACTION_MANIFESTATION_REF',
+      ),
+    ).toBe(true);
+    const mismatchedReactionDisplay = structuredClone(prototypeCaseBlueprint);
+    const reactionAction = mismatchedReactionDisplay.informationActions.find(
+      (action) => action.actionId === 'info.history.allergies-adverse-reactions',
+    );
+    if (!reactionAction) throw new Error('Prototype reaction action missing.');
+    reactionAction.result.findings = reactionAction.result.findings.filter(
+      (finding) => !finding.labelVariants.includes('Seasonal/environmental allergens'),
+    );
+    expect(
+      validateCaseBlueprint(mismatchedReactionDisplay, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'REACTION_HISTORY_DISPLAY_MISMATCH',
+      ),
+    ).toBe(true);
+
+    const module = {
+      id: 'optional-feature.test.reaction',
+      moduleKind: 'allergy_reaction' as const,
+      moduleId: 'reaction.test',
+      cost: 3,
+      impact: 'fit_modifier' as const,
+      complexityContributions: [
+        {
+          id: 'complexity.test.reaction',
+          label: 'Synthetic test reaction',
+          dimension: 'pharmacologic' as const,
+          weight: 1,
+          review: {
+            status: 'unreviewed' as const,
+            reviewerId: null,
+            reviewedAt: null,
+            sourceUseNoteIds: [],
+          },
+        },
+      ],
+    };
+    expect(
+      PatientComplexityProfileSchema.safeParse({
+        modelVersion: 'additional-feature-budget.v1',
+        measurementStatus: 'authored_envelope',
+        additionalFeatureBudget: 2,
+        maximumSelectedModules: 1,
+        selectedModules: [module],
+        targetEnvelope: {
+          diagnostic: { min: 0, max: 5 },
+          pharmacologic: { min: 0, max: 5 },
+          workup: { min: 0, max: 5 },
+          safety_disposition: { min: 0, max: 5 },
+          information: { min: 0, max: 5 },
+        },
+      }).success,
+    ).toBe(false);
+    const unsupportedModule = structuredClone(prototypeCaseBlueprint);
+    unsupportedModule.patientRecord.complexityProfile = {
+      modelVersion: 'additional-feature-budget.v1',
+      measurementStatus: 'budget_only',
+      additionalFeatureBudget: 3,
+      maximumSelectedModules: 1,
+      selectedModules: [module],
+      targetEnvelope: null,
+    };
+    expect(
+      validateCaseBlueprint(unsupportedModule, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'OPTIONAL_FEATURE_MODULE_COMPILER_NOT_IMPLEMENTED',
+      ),
+    ).toBe(true);
+  });
+
+  it('migrates historical instances to truthful unknown reaction and complexity states', () => {
+    const legacy = structuredClone(
+      instantiateCase(prototypeCaseBlueprint, 'legacy-reaction-default', catalogs),
+    ) as unknown as {
+      patientRecord: { reactionHistory?: unknown; complexityProfile?: unknown };
+    };
+    delete legacy.patientRecord.reactionHistory;
+    delete legacy.patientRecord.complexityProfile;
+    const parsed = CaseInstanceSchema.parse(legacy);
+    expect(parsed.patientRecord.reactionHistory).toEqual({
+      status: 'unassessed',
+      medicationAssessmentStatus: 'unassessed',
+      records: [],
+    });
+    expect(parsed.patientRecord.complexityProfile.measurementStatus).toBe('legacy_unmeasured');
   });
 
   it('catalogs formal publications independently from their rule contributions', () => {

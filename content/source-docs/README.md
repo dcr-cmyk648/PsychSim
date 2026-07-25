@@ -46,6 +46,27 @@ that enters the ordinary `content:scan` and `content:extract` path. Validate pro
 attachment hashes with `pnpm content:notes:validate` or the combined
 `pnpm content:sources:validate` command.
 
+A second, separately acknowledged boundary may prepare one private title/plaintext segment for a
+future Codex-assisted semantic review:
+
+```sh
+pnpm content:notes:codex-review -- \
+  --next \
+  --provider openai-codex \
+  --model "<exact exposed model identifier>" \
+  --ack-no-phi \
+  --ack-authorized-external-ai-processing \
+  --ack-title-plaintext-rights \
+  --ack-shared-material-rights \
+  --ack-appropriate-to-transmit \
+  --acknowledged-by "Your name"
+```
+
+This command creates a mode-`0600` packet under the ignored private Notes tree and a hash-only
+audit; it performs no provider or network call. It reads only verified `title.txt` and
+`plaintext.txt`, one bounded segment at a time, and rejects symlink/path escapes. Do not guess the
+model identifier or treat the packet as a citation, clinical rule, or medical approval.
+
 Only `.gitkeep` markers are tracked. The root `.gitignore` excludes source material, Apple Notes
 exports, extracted text, OCR text, and manifests by default. Never silently delete an input or a
 provider record. Implemented commands are documented in

@@ -64,6 +64,12 @@ SOAP/source metadata, and service references; patient templates own structured r
 overrides, internal progression-pool classification, and generation constraints. Types are inferred
 from schemas except the recursive predicate unions.
 
+The schema package also owns the small reaction-concept catalog, explicit
+`PatientReactionHistory`, and versioned `PatientComplexityProfile`. Reaction records keep the
+patient/chart `recordedAs` label separate from a nullable reviewed interpretation. The complexity
+profile validates only optional-feature richness and a five-axis envelope; it is not a score, tier,
+progression gate, or economy configuration.
+
 `@psychsim/engine` owns top-down diagnosis and decision-policy composition, typed-fact derivation,
 conflict reports, constrained patient generation, focused encounter compilation, deterministic
 clinical-context/demographic/finding/test variation, service resolution, effective-formulary
@@ -78,11 +84,13 @@ approved JSON only, parses it at module load, supplies the starting clinic, cros
 dependency edges against `content/registry.json`, performs semantic reference validation, and
 executes reference policies. The local `./developer` entry discovers review patients/tickets and
 the tracked source-request queue. The portable `./reviewer` entry imports one finite assignment of
-ten named scenario files and their eight schema-parsed provisional decision policies; it never
-globs a lifecycle directory. A tiny `./reviewer-assignment` entry owns the assignment identity used
-to namespace its save database and export bundles. The normal root index exports none of these
-reviewer modules. Its pure rule inspector derives compact review rows from parsed blueprints and
-catalogs; it does not duplicate point evaluation or mutate content.
+ten named scenario files, their eight schema-parsed provisional decision policies, and one exact
+stable-path packet containing one patient-linked ticket per scenario; it never globs a lifecycle
+or ticket directory. Validation rejects tickets outside that ten-patient allowlist. A tiny
+`./reviewer-assignment` entry owns the assignment identity used to namespace its save database and
+export bundles. The normal root index exports none of these reviewer modules. Its pure rule
+inspector derives compact review rows from parsed blueprints and catalogs; it does not duplicate
+point evaluation or mutate content.
 
 Formal source metadata is static content under `content/catalogs/evidence/formal`, distinct from
 private document/database bytes. It covers publications plus structured databases and includes
@@ -126,7 +134,9 @@ durability mechanism; there is no sync or import. In local development only, the
 middleware mirrors the same schema-validated bundle to
 `content/generated/local-review-tickets/tickets.json`; Playwright uses the separate
 `tickets.e2e.json` target. The portable Reviewer contains no middleware endpoint, local
-source/opinion/ticket queues, or arbitrary file writer.
+ticket discovery, source/opinion queues, or arbitrary file writer. Its only preassigned questions
+are the exact finite ticket packet registered for assignment `2026-07d`; responses remain
+browser-local until manual export.
 
 The assignment ID is a persistence migration boundary, not merely a label. A material change to
 cohort membership, scenario semantics, policy semantics, or intended reviewer content requires a
@@ -192,11 +202,11 @@ Content moves through `blueprints → drafts → review → approved → depreca
 artifact imports only `content/cases/approved`. The local Developer entry may discover schema-valid
 review files. The separately flagged portable Reviewer artifact is a distribution exception for
 review, not a lifecycle promotion: it imports only the ten exact scenario IDs and paths in its
-assignment allowlist, and every compiled rule remains medically unreviewed. The registry records
-where content lives but never overrides an entry allowlist. Validators cover schemas, references,
-eligibility, provenance, reference policies, and all compiled Reviewer scenarios. Bundle scanning
-rejects every other authoring-only registry marker; Reviewer mode relaxes the scanner only for the
-ten exact ID/path pairs.
+assignment allowlist plus the one exact assignment-ticket path, and every compiled rule remains
+medically unreviewed. The registry records where content lives but never overrides an entry
+allowlist. Validators cover schemas, references, eligibility, provenance, reference policies, and
+all compiled Reviewer scenarios. Bundle scanning rejects every other authoring-only registry
+marker; Reviewer mode relaxes the scanner only for those exact registered paths.
 
 The initial prototype has a temporary distinction: its lifecycle placement is approved for bundling and playtesting, while `medicalReviewStatus` remains `unreviewed`. The UI always shows that status. A future clinical approval workflow must add reviewer metadata before content can claim medical approval.
 
@@ -217,6 +227,17 @@ and limits positive guidance to the focused decision horizon while retaining glo
 safety/interaction rules. See
 [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) and
 [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).
+
+Reaction history and complexity profile are frozen patient-record data on this compatibility path.
+Instantiation does not infer `interpretedAs` from `recordedAs`, and it does not select optional
+modules or convert their budget into a scalar difficulty, care points, payout, or progression.
+Current authored profiles are explicitly `budget_only`; their unused capacity is authoring
+metadata, not a measured complexity score. Reviewer scenarios own these fields directly rather
+than receiving clinical facts from schema defaults. Medication-reaction completeness is a
+separate state from the presence of environmental or food reactions, and validation checks the
+typed history against the structured result shown after purchase.
+`info.history.existing-safety-plan` similarly reveals factual existing-plan/support state; a future
+create-or-revise safety-plan treatment would use a separate intervention boundary.
 
 The launcher renders from that resolved CaseInstance—not internal case metadata—so it can show only patient name and chief complaint. Hidden diagnosis/category fields remain content and validation inputs and are never used as player-facing case labels.
 

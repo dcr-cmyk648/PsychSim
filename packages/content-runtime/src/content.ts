@@ -59,6 +59,7 @@ import pregnancyTestJson from '../../../content/catalogs/tests/definitions/pregn
 import tshTestJson from '../../../content/catalogs/tests/definitions/tsh.test.json';
 import urineToxicologyTestJson from '../../../content/catalogs/tests/definitions/urine-toxicology.test.json';
 import referenceIntervalSetsJson from '../../../content/catalogs/tests/reference-interval-sets.json';
+import reactionConceptsJson from '../../../content/catalogs/reactions/reaction-concepts.json';
 import upgradesJson from '../../../content/catalogs/upgrades/upgrades.json';
 import decorJson from '../../../content/catalogs/decor/decor.json';
 import prototypeCaseJson from '../../../content/cases/approved/first-visit-depression.case.json';
@@ -66,7 +67,7 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.4.0',
+  contentVersion: '3.5.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,
@@ -129,6 +130,7 @@ export const catalogs = CatalogBundleSchema.parse({
     urineToxicologyTestJson,
   ],
   referenceIntervalSets: referenceIntervalSetsJson,
+  reactionConcepts: reactionConceptsJson,
   upgrades: upgradesJson,
   decor: decorJson,
 });

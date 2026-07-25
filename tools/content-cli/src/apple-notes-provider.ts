@@ -1236,3 +1236,58 @@ export const validateAppleNotesManifest = async (
   }
   return manifest;
 };
+
+export const loadAppleNotesIntakeManifestMetadata = async (
+  sourceRoot = DEFAULT_SOURCE_ROOT,
+): Promise<AppleNotesIntakeManifest | null> => {
+  const paths = pathsFor(sourceRoot);
+  return loadManifest(paths.manifest);
+};
+
+export interface AppleNotesTitlePlaintextSnapshot {
+  note: AppleNotesNoteRecord;
+  title: string;
+  plaintext: string;
+}
+
+/**
+ * Reads the two fields that may enter the separately acknowledged Codex review bridge.
+ * Deliberately does not validate or read HTML, attachments, OCR, composites, or extracted chunks.
+ */
+export const readAppleNotesTitlePlaintextSnapshot = async (
+  noteId: string,
+  sourceRoot = DEFAULT_SOURCE_ROOT,
+): Promise<AppleNotesTitlePlaintextSnapshot> => {
+  const paths = pathsFor(sourceRoot);
+  const manifest = await loadManifest(paths.manifest);
+  if (!manifest) throw new Error('No local Apple Notes intake manifest is available.');
+  const matches = manifest.notes.filter((note) => note.id === noteId);
+  if (matches.length !== 1) {
+    throw new Error(`Expected exactly one Apple Notes record for ${noteId}.`);
+  }
+  const note = matches[0]!;
+  if (
+    note.locked ||
+    !['exported', 'unchanged'].includes(note.exportStatus) ||
+    !note.titleHash ||
+    !note.plaintextHash ||
+    !note.sourceDocumentId
+  ) {
+    throw new Error(`${note.id} is not eligible for title/plaintext review.`);
+  }
+  const noteDirectory = noteDirectoryFor(paths, note);
+  const titlePath = join(noteDirectory, 'title.txt');
+  const plaintextPath = join(noteDirectory, 'plaintext.txt');
+  await Promise.all([
+    assertPrivateRegularFile(paths.privateRoot, titlePath),
+    assertPrivateRegularFile(paths.privateRoot, plaintextPath),
+  ]);
+  const [title, plaintext] = await Promise.all([
+    readFile(titlePath, 'utf8'),
+    readFile(plaintextPath, 'utf8'),
+  ]);
+  if (sha256(title) !== note.titleHash || sha256(plaintext) !== note.plaintextHash) {
+    throw new Error(`${note.id} title/plaintext no longer matches its recorded hashes.`);
+  }
+  return { note, title, plaintext };
+};

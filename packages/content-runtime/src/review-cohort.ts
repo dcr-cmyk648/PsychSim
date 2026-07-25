@@ -168,6 +168,99 @@ const medicationReconciliationAction = (
   },
 });
 
+const reactionTriggerLabel = (
+  record: ReviewCaseScenario['reactionHistory']['records'][number],
+  catalogs: CatalogBundle,
+): string => {
+  const trigger = record.trigger;
+  if (trigger.kind === 'medication') {
+    return (
+      catalogs.medications.find((medication) => medication.id === trigger.medicationId)?.label ??
+      trigger.medicationId
+    );
+  }
+  return (
+    catalogs.reactionConcepts.nonMedicationTriggers.find(
+      (definition) => definition.id === trigger.triggerId,
+    )?.label ?? trigger.triggerId
+  );
+};
+
+const reactionHistoryAction = (
+  scenario: ReviewCaseScenario,
+  caseToken: string,
+  catalogs: CatalogBundle,
+): CaseInformationActionBlueprint => {
+  const records = scenario.reactionHistory.records;
+  const findings: FindingBlueprint[] =
+    scenario.reactionHistory.status === 'documented_none'
+      ? [
+          {
+            id: `finding.${caseToken}.reactions.none`,
+            labelVariants: ['Reported allergies or adverse reactions'],
+            outcome: 'absent',
+          },
+        ]
+      : scenario.reactionHistory.status === 'unassessed'
+        ? [
+            {
+              id: `finding.${caseToken}.reactions.unassessed`,
+              labelVariants: ['Reported allergies or adverse reactions'],
+              outcome: 'not_applicable',
+              valueTextVariants: ['Not assessed'],
+            },
+          ]
+        : records.map((record) => {
+            const manifestations = record.manifestationIds.map(
+              (id) =>
+                catalogs.reactionConcepts.manifestations.find(
+                  (manifestation) => manifestation.id === id,
+                )?.label ?? id,
+            );
+            return {
+              id: `finding.${caseToken}.reaction.${record.id.replaceAll('.', '-')}`,
+              groupLabel: 'Reported allergies and reactions',
+              labelVariants: [reactionTriggerLabel(record, catalogs)],
+              outcome: 'present' as const,
+              valueTextVariants: [
+                `Recorded as ${record.recordedAs.replaceAll('_', ' ')} · ${manifestations.join(', ')} · ${record.reportedSeverity} severity`,
+              ],
+            };
+          });
+  if (
+    scenario.reactionHistory.status === 'entries_present' &&
+    scenario.reactionHistory.medicationAssessmentStatus === 'documented_none'
+  ) {
+    findings.push({
+      id: `finding.${caseToken}.reactions.medication-none`,
+      groupLabel: 'Reported allergies and reactions',
+      labelVariants: ['Medication allergies or adverse reactions'],
+      outcome: 'absent',
+    });
+  } else if (
+    scenario.reactionHistory.status === 'entries_present' &&
+    scenario.reactionHistory.medicationAssessmentStatus === 'unassessed'
+  ) {
+    findings.push({
+      id: `finding.${caseToken}.reactions.medication-unassessed`,
+      groupLabel: 'Reported allergies and reactions',
+      labelVariants: ['Medication allergies or adverse reactions'],
+      outcome: 'not_applicable',
+      valueTextVariants: ['Not assessed'],
+    });
+  }
+  return {
+    actionId: 'info.history.allergies-adverse-reactions',
+    defaultClassification: 'defensible',
+    result: {
+      kind: 'finding_set',
+      findings,
+      shuffle: false,
+      factsRevealed: [`fact.${caseToken}.reaction-history`],
+    },
+  };
+};
+
 const adherenceAction = (
   scenario: ReviewCaseScenario,
   caseToken: string,
@@ -411,6 +504,9 @@ export const buildReviewCaseScenario = (
     if (action.actionId === 'info.history.medication-reconciliation') {
       return medicationReconciliationAction(scenario, caseToken, catalogs);
     }
+    if (action.actionId === 'info.history.allergies-adverse-reactions') {
+      return reactionHistoryAction(scenario, caseToken, catalogs);
+    }
     if (action.actionId === 'info.history.adherence') {
       return adherenceAction(scenario, caseToken, catalogs);
     }
@@ -530,6 +626,8 @@ export const buildReviewCaseScenario = (
         ...scenario.treatmentHistory,
         medicationTrials,
       },
+      reactionHistory: scenario.reactionHistory,
+      complexityProfile: scenario.complexityProfile,
       diagnosisComposition: null,
       clinicalContextDimensions: [],
     },

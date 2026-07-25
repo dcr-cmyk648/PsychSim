@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.7.0",
+  "contentVersion": "3.8.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -100,9 +100,21 @@
       "runtimeIncluded": true
     },
     {
+      "id": "registry.catalog.reaction-concepts",
+      "kind": "reaction_concept_catalog",
+      "path": "content/catalogs/reactions/reaction-concepts.json",
+      "runtimeIncluded": true
+    },
+    {
       "id": "registry.review.source-requests",
       "kind": "source_request_catalog",
       "path": "content/cases/review/source-needed.requests.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "registry.reviewer-assignment.common-psychiatry.2026-07d.tickets",
+      "kind": "reviewer_assignment_ticket_catalog",
+      "path": "content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json",
       "runtimeIncluded": false
     },
     {

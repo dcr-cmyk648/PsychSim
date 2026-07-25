@@ -8,6 +8,7 @@ import {
   SourceDocumentSchema,
   SourceManifestSchema,
 } from '@psychsim/schemas';
+import { validateAppleNotesCodexReviewAudit } from './apple-notes-codex-review';
 import { validateAppleNotesManifest } from './apple-notes-provider';
 
 const manifestPath = resolve('content/source-docs/manifests/google-drive-discovery.json');
@@ -94,6 +95,14 @@ try {
     );
   } else {
     console.log('PASS no local Apple Notes manifest (clean checkout)');
+  }
+  const appleNotesCodexReviewAudit = await validateAppleNotesCodexReviewAudit();
+  if (appleNotesCodexReviewAudit) {
+    console.log(
+      `PASS Apple Notes Codex review audit (${appleNotesCodexReviewAudit.entries.length} bounded packet records)`,
+    );
+  } else {
+    console.log('PASS no private Apple Notes Codex review packets');
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Source discovery validation failed.');

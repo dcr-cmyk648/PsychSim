@@ -90,6 +90,27 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   ).toBeVisible();
   await expect(page.getByText('Review provenance')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Open chart for/ }).first()).toBeVisible();
+  await page.locator('#ticket-queue-title').click();
+  await page
+    .getByRole('button', { name: /Review the initial MDD patient and database plan/ })
+    .click();
+  const ticketDialog = page.getByRole('dialog', {
+    name: 'Review the initial MDD patient and database plan',
+  });
+  await expect(ticketDialog).toBeVisible();
+  await expectWithinHorizontalViewport(ticketDialog);
+  expect(
+    await ticketDialog.evaluate((element) => {
+      const rectangle = element.getBoundingClientRect();
+      return rectangle.width >= window.innerWidth - 1 && rectangle.height >= window.innerHeight - 1;
+    }),
+  ).toBe(true);
+  await ticketDialog
+    .getByRole('textbox', { name: 'Your response, judgment, or alternative references' })
+    .fill('Phone ticket review: keep the broad plan and show reaction-history effects clearly.');
+  await ticketDialog.getByRole('button', { name: 'Save response' }).click();
+  await ticketDialog.getByRole('button', { name: 'Close' }).click();
+  await expect(ticketDialog).toBeHidden();
   await expectDocumentFitsViewport(page);
 
   await page
@@ -254,7 +275,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       attemptSnapshot: { events: unknown[]; receipt: unknown };
     }>;
     flags: unknown[];
-    tickets: unknown[];
+    tickets: Array<{ id: string; reviewerNotes: string; reviewerNotesUpdatedAt: string | null }>;
     completedAttempts: Array<{
       id: string;
       blueprintId: string;
@@ -264,7 +285,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   };
   expect(bundle.exportVersion).toBe(5);
   expect(bundle.buildKind).toBe('portable_reviewer');
-  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07c');
+  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07d');
   expect(bundle.attemptReviews).toHaveLength(2);
   expect(bundle.completedAttempts).toHaveLength(2);
   expect(new Set(bundle.completedAttempts.map((attempt) => attempt.blueprintId)).size).toBe(2);
@@ -276,4 +297,12 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   expect(bundle.attemptReviews.every((review) => review.attemptSnapshot.events.length > 0)).toBe(
     true,
   );
+  expect(bundle.tickets).toHaveLength(10);
+  expect(
+    bundle.tickets.find((ticket) => ticket.id === 'ticket.reviewer-cohort.mdd-initial'),
+  ).toMatchObject({
+    reviewerNotes:
+      'Phone ticket review: keep the broad plan and show reaction-history effects clearly.',
+    reviewerNotesUpdatedAt: expect.any(String),
+  });
 });

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "4.0.0",
+  "contentVersion": "4.1.0",
   "id": "case.first-visit-depression",
   "metadata": {
     "title": "Outpatient Intake 001",
@@ -183,6 +183,34 @@
       "psychotherapyTrials": [],
       "currentProviders": [],
       "priorLevelsOfCare": []
+    },
+    "reactionHistory": {
+      "status": "entries_present",
+      "medicationAssessmentStatus": "documented_none",
+      "records": [
+        {
+          "schemaVersion": 1,
+          "id": "reaction.outpatient-intake-001.seasonal",
+          "trigger": {
+            "kind": "nonmedication",
+            "triggerId": "reaction-trigger.seasonal-environmental"
+          },
+          "recordedAs": "allergy",
+          "manifestationIds": ["reaction-manifestation.nasal-eye-symptoms"],
+          "reportedSeverity": "mild",
+          "interpretedAs": null,
+          "source": "patient_report",
+          "status": "active"
+        }
+      ]
+    },
+    "complexityProfile": {
+      "modelVersion": "additional-feature-budget.v1",
+      "measurementStatus": "budget_only",
+      "additionalFeatureBudget": 1,
+      "maximumSelectedModules": 1,
+      "selectedModules": [],
+      "targetEnvelope": null
     }
   },
   "criticalFacts": {
@@ -494,6 +522,32 @@
       }
     },
     {
+      "actionId": "info.history.existing-safety-plan",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mdd-safety-plan.existing-plan",
+            "labelVariants": ["Existing written safety plan", "Current safety-plan document"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.mdd-safety-plan.support-contact",
+            "labelVariants": ["Identified support contact", "Named support person"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.mdd-safety-plan.crisis-contacts",
+            "labelVariants": ["Saved crisis contacts", "Crisis contact information"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.mdd-existing-safety-plan-status"]
+      }
+    },
+    {
       "actionId": "info.history.violence-risk",
       "defaultClassification": "defensible",
       "result": {
@@ -548,6 +602,30 @@
         ],
         "shuffle": true,
         "factsRevealed": ["fact.mdd-no-current-psychiatric-medication"]
+      }
+    },
+    {
+      "actionId": "info.history.allergies-adverse-reactions",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.mdd-reaction-history.seasonal",
+            "groupLabel": "Reported allergies and reactions",
+            "labelVariants": ["Seasonal/environmental allergens"],
+            "outcome": "present",
+            "valueTextVariants": ["Recorded as allergy · Nasal and eye symptoms · mild severity"]
+          },
+          {
+            "id": "finding.mdd-reaction-history.medication-none",
+            "groupLabel": "Reported allergies and reactions",
+            "labelVariants": ["Medication allergies or adverse reactions"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.mdd-reaction-history"]
       }
     },
     {

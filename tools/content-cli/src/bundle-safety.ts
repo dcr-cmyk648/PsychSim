@@ -14,6 +14,10 @@ interface BundleSafetyOptions {
 
 const PORTABLE_REVIEWER_ALLOWLIST = new Map<string, string>([
   [
+    'registry.reviewer-assignment.common-psychiatry.2026-07d.tickets',
+    'content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json',
+  ],
+  [
     'case.review-cohort.mdd-initial',
     'content/cases/blueprints/reviewer-cohort/mdd-initial.scenario.json',
   ],

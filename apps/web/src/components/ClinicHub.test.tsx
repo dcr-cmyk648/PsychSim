@@ -315,7 +315,11 @@ describe('ClinicHub', () => {
     expect(screen.queryByText(/linked review question/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Your response, judgment/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('Clinical and content tickets'));
-    fireEvent.click(await screen.findByText(ticket.title));
+    fireEvent.click(
+      await screen.findByText(ticket.title, {
+        selector: '.review-ticket-inline strong',
+      }),
+    );
     const notes = await screen.findByLabelText(
       'Your response, judgment, or alternative references',
     );
@@ -347,5 +351,97 @@ describe('ClinicHub', () => {
       ticket.id,
       'Allow any first-line SSRI, then apply medication-fit modifiers.',
     );
+  });
+
+  it('opens portable Reviewer tickets in a focused dialog and saves the response', async () => {
+    const onSaveTicketReview = vi.fn().mockResolvedValue(undefined);
+    const ticket = ClinicalReviewTicketSchema.parse({
+      schemaVersion: 1,
+      id: 'ticket.reviewer-cohort.mdd-initial',
+      title: 'Review the initial MDD patient and database plan',
+      sourceKind: 'engine_audit',
+      sourceAuthority: 'developer_observation',
+      ticketType: 'clinical_conflict',
+      priority: 'high',
+      status: 'proposed',
+      requiresClinicalAcumen: true,
+      attemptId: null,
+      blueprintId: 'case.first-visit-depression',
+      caseContentVersion: '4.1.0',
+      receiptItemId: null,
+      receiptItemSnapshot: null,
+      targetContentIds: ['case.first-visit-depression'],
+      dependencyTicketIds: [],
+      conflictContentIds: [],
+      proposedRouting: 'Play the patient and describe the smallest desired change.',
+      guidance: 'Review the history, workup, treatment ranking, and disposition.',
+      resurfacingTrigger: null,
+      resolution: null,
+      createdAt: '2026-07-25T12:00:00.000Z',
+      updatedAt: '2026-07-25T12:00:00.000Z',
+    });
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 5,
+      profile: { ...startingProfile, progressionMode: 'developer' },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [ticket],
+      attemptReviews: [],
+      legacyArchive: [],
+    });
+    render(
+      <ClinicHub
+        saveData={saveData}
+        clinicState={saveData.profile.clinic}
+        catalogs={catalogs}
+        patientSlots={[]}
+        developerModeAvailable={false}
+        reviewerBuild
+        caseRuleAudits={[
+          buildCaseRuleAudit(prototypeCaseBlueprint, catalogs, startingProfile.clinic),
+        ]}
+        opinionReferenceNeeds={[]}
+        sourceRequests={[]}
+        onStart={vi.fn()}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSaveTicketReview={onSaveTicketReview}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={vi.fn()}
+        upgradeStatus={null}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('Review tickets', { selector: 'strong' }));
+    expect(
+      screen.queryByRole('button', { name: 'Update Codex handoff file' }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: /Review the initial MDD patient and database plan/,
+      }),
+    );
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Review the initial MDD patient and database plan',
+    });
+    const response = await screen.findByLabelText(
+      'Your response, judgment, or alternative references',
+    );
+    fireEvent.change(response, {
+      target: { value: 'Keep the pathway, but make the allergy-history omission visible.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save response' }));
+    expect(onSaveTicketReview).toHaveBeenCalledWith(
+      ticket.id,
+      'Keep the pathway, but make the allergy-history omission visible.',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(dialog).not.toHaveAttribute('open');
   });
 });

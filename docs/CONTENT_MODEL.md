@@ -2,7 +2,7 @@
 
 ## Catalogs and stable IDs
 
-Catalogs contain reusable, versioned definitions for diagnoses, investigations, services and fulfillment, individual tests, reference-interval sets, medications, formularies, treatments/dispositions, demographic variant pools, locations, facilities, upgrades, and decor. Each diagnosis family has one file under `content/catalogs/diagnoses/definitions/`; shared rules, its severity axis, specifiers, comorbidity relationships, complexity contributions, and source-use notes remain nested in that family. Each laboratory or diagnostic study has one file under `content/catalogs/tests/definitions/`; panel components remain nested only inside their owning test. `content/catalogs/tests/reference-interval-sets.json` owns reporting/unit conventions, jurisdiction, numeric-range authority, policy sources, and review state referenced by profiles. `content/catalogs/upgrades/upgrades.json` owns point cost, prerequisites, allowed facility tiers, optional department, granted capability/formulary IDs, affected services, in-house cost metadata, target facility where relevant, and unlock labels. `content/catalogs/decor/decor.json` separately owns decor items plus the versioned satisfaction curve/cap. IDs are lowercase, namespaced strings and are never inferred from labels. Case content and future authoring tools may select only existing permitted IDs.
+Catalogs contain reusable, versioned definitions for diagnoses, investigations, services and fulfillment, individual tests, reference-interval sets, medications, reaction triggers/manifestations, formularies, treatments/dispositions, demographic variant pools, locations, facilities, upgrades, and decor. Each diagnosis family has one file under `content/catalogs/diagnoses/definitions/`; shared rules, its severity axis, specifiers, comorbidity relationships, complexity contributions, and source-use notes remain nested in that family. Each laboratory or diagnostic study has one file under `content/catalogs/tests/definitions/`; panel components remain nested only inside their owning test. `content/catalogs/tests/reference-interval-sets.json` owns reporting/unit conventions, jurisdiction, numeric-range authority, policy sources, and review state referenced by profiles. `content/catalogs/upgrades/upgrades.json` owns point cost, prerequisites, allowed facility tiers, optional department, granted capability/formulary IDs, affected services, in-house cost metadata, target facility where relevant, and unlock labels. `content/catalogs/decor/decor.json` separately owns decor items plus the versioned satisfaction curve/cap. IDs are lowercase, namespaced strings and are never inferred from labels. Case content and future authoring tools may select only existing permitted IDs.
 
 Classification catalogs are a separate authoring layer, not reusable runtime knowledge.
 `content/catalogs/diagnoses/classifications/icd-10-cm/2026/` tracks an immutable release manifest
@@ -118,7 +118,11 @@ The portable Reviewer cohort exercises a narrow intermediate split without claim
 final compiler. Each `ReviewCaseScenario` file owns patient state: internal diagnoses, typed
 critical facts, explicit medication-list status, current regimen entries, focused
 prior-medication-trial records, full structured treatment history, short complaint variants, one
-structured duration profile, structured finding overrides, setting, and one referenced policy ID.
+structured duration profile, explicit reaction/medication-reaction assessment state, a
+budget-only optional-feature profile, structured finding overrides, setting, and one referenced
+policy ID. These authored patient facts are required in the scenario file and never supplied by a
+clinical schema default. The compiler derives the visible reaction finding from that typed state;
+validation rejects a mismatch.
 A duration profile contains stable numeric value/unit options, short swappable display forms, an
 optional related diagnosis, an authored interpretation, and rule-level review metadata.
 Compilation resolves one option deterministically and saves the profile ID, option ID, numeric
@@ -127,7 +131,7 @@ The generated display sentence is presentation only; replay and audit use the sa
 Eight shared
 `ReviewDecisionPolicy` records own the provisional focused workup/treatment/disposition rubric and
 four executable reference selections. `buildReviewCaseCohort` schema-parses both sets, rejects
-duplicate or missing/orphan policy IDs, fills the universal 38-action menu with patient-specific
+duplicate or missing/orphan policy IDs, fills the universal 40-action menu with patient-specific
 immediate results, and emits ten ordinary `CaseBlueprint` snapshots for existing engine/replay
 compatibility. The policies and all compiled rules remain medically unreviewed reviewer targets;
 they are not promoted shared clinical guidance.
@@ -238,6 +242,14 @@ locked/shared states, and counts without reading content. After all required ack
 additionally records protected revision hashes, attachment duplicate/OCR status, composite hashes,
 and expected `SourceDocument` IDs. A note, screenshot, OCR result, embedded citation, or personal
 takeaway never becomes formal evidence or executable content merely through intake.
+
+`AppleNotesCodexReviewPacket` is a separate private, ignored release artifact containing exactly one
+bounded title plus one plaintext segment. `AppleNotesCodexReviewAuditManifest` contains only stable
+IDs, hashes, byte-safe packet paths, provider/model identity, and the explicit external-processing
+acknowledgment; it never contains the title or plaintext. The packet is untrusted source data and
+the audit records preparation for a separately authorized Codex read, not successful consumption.
+Neither record is `GenerationProvenance`, formal evidence, a Developer-opinion approval, an
+evidence contribution, an executable rule, a point value, a citation, or medical review.
 
 `LiteratureSynthesisProposal` is a Developer-only decision-packet record linked to exact ticket,
 source-request, and blueprint IDs. It separates source-cleared support from opposing, qualifying,

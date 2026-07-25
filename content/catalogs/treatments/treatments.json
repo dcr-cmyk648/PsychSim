@@ -3,7 +3,7 @@
     "schemaVersion": 1,
     "contentVersion": "1.0.0",
     "id": "intervention.medication-safety-counseling",
-    "label": "Medication adverse-effect education and safety plan",
+    "label": "Medication adverse-effect education",
     "kind": "nonmedication",
     "category": "education",
     "safeReferral": false,

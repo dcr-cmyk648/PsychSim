@@ -78,6 +78,7 @@ pnpm content:watch
 pnpm content:notes:audit -- --folder "Psych research"
 pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Reviewer name"
 pnpm content:notes:validate
+pnpm content:notes:codex-review -- --next --provider openai-codex --model "<exact model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Reviewer name"
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -122,6 +123,20 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Represent future current medications as regimen-entry instances rather than a medication-ID set,
   so duplicates can be targeted independently. Represent prior trials as structured records with
   categorical adequacy, adherence, response, tolerability, and source fields.
+- Reaction history is explicit patient state: `unassessed`, documented none, and entries present
+  are distinct, and medication-reaction assessment has its own completeness state. Preserve the
+  chart/patient `recordedAs` label separately from any reviewed interpretation; never infer immune
+  allergy, contraindication, or scoring from the label or manifestation alone. Non-null
+  interpretations remain disabled until rule-level review/provenance exists. New scenarios must
+  own reaction state explicitly, and validation must keep it consistent with the revealed result.
+- `PatientComplexityProfile` limits optional richness only. Its budget, selected modules, and
+  eventual five-axis envelope never derive a scalar patient tier, `difficultyTier`, pool, facility gate,
+  care points, reimbursement, or `economy.complexityBonus`. A feature that reframes the focused
+  question belongs in required template/policy content, not an optional module. Current authored
+  patients are `budget_only`; reject selected modules until a stable module catalog/compiler exists.
+- Reviewing an existing safety plan or crisis supports is a history action. Creating or revising a
+  safety plan is a distinct future intervention and must not be implied by medication adverse-effect
+  education.
 - Compile only positive rules relevant to the encounter's focused decision horizon, while retaining
   global safety and interaction rules. Do not grade a complex patient against an exhaustive plan for
   every background problem.
@@ -173,7 +188,7 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Facility thresholds grant purchase eligibility only. Facility moves and decor use the same pure atomic purchase path, preserve prior ownership and lifetime points, and cannot create debt.
 - Decor lives in `content/catalogs/decor/`; it may change hub visuals and the capped positive-reward multiplier only. It must never alter care rules, safety errors, treatment grades, or disposition correctness.
 - Patient pool metadata (`starter`, `transitional`, `advanced`) is internal selection data. Never expose it as a diagnosis or answer hint on a waiting-room card.
-- Normal queues use approved patients and persist each resolved patient in its slot until completed. Endgame is a reversible derived clinic overlay with approved patients, all defined capabilities, and manual slot refresh. Developer mode exists only on the local development server, loads approved plus review content, shows each not-yet-run patient definition once, supports reroll/reset, and banks no practice rewards. Normal production must tree-shake developer content. The separately flagged portable Reviewer build may statically import only its explicit finite, medically unreviewed assignment; it must exclude local ticket/source/opinion queues and the writable workspace endpoint.
+- Normal queues use approved patients and persist each resolved patient in its slot until completed. Endgame is a reversible derived clinic overlay with approved patients, all defined capabilities, and manual slot refresh. Developer mode exists only on the local development server, loads approved plus review content, shows each not-yet-run patient definition once, supports reroll/reset, and banks no practice rewards. Normal production must tree-shake developer content. The separately flagged portable Reviewer build may statically import only its explicit finite, medically unreviewed patient assignment and the single exact assignment-ticket packet; it must exclude local ticket/source/opinion discovery and the writable workspace endpoint.
 - The distributed iPhone install uses one stable relative manifest/scope and IndexedDB namespace. Every `main` Pages build emits its exact commit SHA in `version.json` and the compiled app. Installed copies check that marker on launch, foreground, reconnection, and a bounded interval, then offer a cache-busting reload only when the user is at the clinic hub. Never hand-maintain a cache version, reload during a patient/receipt, clear IndexedDB during an update, or add an offline service-worker cache without a separately reviewed migration and data-loss plan.
 - Receipt guidance and clinically disputed items create local proposed tickets. A ticket never
   mutates patient, medication, test, pathway, or scoring content directly. `Needs another

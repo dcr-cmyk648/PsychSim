@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.1.0",
+  "contentVersion": "2.2.0",
   "id": "case.restless-after-augmentation",
   "metadata": {
     "title": "Restless After Augmentation",
@@ -104,6 +104,34 @@
     "testGenerationContext": {
       "ageYearsVariantTarget": "patient.age",
       "sexForReference": "unspecified"
+    },
+    "reactionHistory": {
+      "status": "entries_present",
+      "medicationAssessmentStatus": "documented_none",
+      "records": [
+        {
+          "schemaVersion": 1,
+          "id": "reaction.medication-restlessness-001.seasonal",
+          "trigger": {
+            "kind": "nonmedication",
+            "triggerId": "reaction-trigger.seasonal-environmental"
+          },
+          "recordedAs": "allergy",
+          "manifestationIds": ["reaction-manifestation.nasal-eye-symptoms"],
+          "reportedSeverity": "mild",
+          "interpretedAs": null,
+          "source": "patient_report",
+          "status": "active"
+        }
+      ]
+    },
+    "complexityProfile": {
+      "modelVersion": "additional-feature-budget.v1",
+      "measurementStatus": "budget_only",
+      "additionalFeatureBudget": 4,
+      "maximumSelectedModules": 2,
+      "selectedModules": [],
+      "targetEnvelope": null
     }
   },
   "criticalFacts": {
@@ -260,6 +288,30 @@
           "fact.aripiprazole-increased",
           "fact.cyp2d6-interaction-clue"
         ]
+      }
+    },
+    {
+      "actionId": "info.history.allergies-adverse-reactions",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.restlessness-reaction-history.seasonal",
+            "groupLabel": "Reported allergies and reactions",
+            "labelVariants": ["Seasonal/environmental allergens"],
+            "outcome": "present",
+            "valueTextVariants": ["Recorded as allergy · Nasal and eye symptoms · mild severity"]
+          },
+          {
+            "id": "finding.restlessness-reaction-history.medication-none",
+            "groupLabel": "Reported allergies and reactions",
+            "labelVariants": ["Medication allergies or adverse reactions"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.restlessness-reaction-history"]
       }
     },
     {
@@ -521,6 +573,32 @@
         ],
         "shuffle": false,
         "factsRevealed": ["fact.no-acute-safety-risk", "fact.outpatient-capable"]
+      }
+    },
+    {
+      "actionId": "info.history.existing-safety-plan",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.restlessness-safety-plan.existing-plan",
+            "labelVariants": ["Existing written safety plan", "Current safety-plan document"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.restlessness-safety-plan.support-contact",
+            "labelVariants": ["Identified support contact", "Named support person"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restlessness-safety-plan.crisis-contacts",
+            "labelVariants": ["Saved crisis contacts", "Crisis contact information"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.restlessness-existing-safety-plan-status"]
       }
     },
     {
@@ -1765,7 +1843,7 @@
       "pointsIfFalse": 0,
       "classificationIfTrue": "nonmedication",
       "classificationIfFalse": "nonmedication",
-      "explanationIfTrue": "A focused medication adverse-effect explanation and safety plan were selected.",
+      "explanationIfTrue": "A focused medication adverse-effect explanation was selected.",
       "explanationIfFalse": "Medication adverse-effect counseling was omitted."
     },
     {

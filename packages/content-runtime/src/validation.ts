@@ -420,6 +420,12 @@ export const validateCaseBlueprint = (
   const medicationById = new Map(
     catalogs.medications.map((medication) => [medication.id, medication]),
   );
+  const nonMedicationReactionTriggerById = new Map(
+    catalogs.reactionConcepts.nonMedicationTriggers.map((trigger) => [trigger.id, trigger]),
+  );
+  const reactionManifestationIds = new Set(
+    catalogs.reactionConcepts.manifestations.map((manifestation) => manifestation.id),
+  );
   for (const duplicate of duplicateIds(patientRecord.diagnoses.map((diagnosis) => diagnosis.id))) {
     issues.push({
       severity: 'error',
@@ -484,6 +490,127 @@ export const validateCaseBlueprint = (
       code: `PATIENT_${conflict.code}`,
       message: `${patientRecord.id}: ${conflict.message}`,
     });
+  }
+  if (patientRecord.reactionHistory.status === 'unassessed') {
+    issues.push({
+      severity: 'error',
+      code: 'UNASSESSED_PATIENT_REACTION_HISTORY',
+      message: `${patientRecord.id} must explicitly author known-none or reported allergy/adverse-reaction history.`,
+    });
+  }
+  if (patientRecord.reactionHistory.medicationAssessmentStatus === 'unassessed') {
+    issues.push({
+      severity: 'error',
+      code: 'UNASSESSED_PATIENT_MEDICATION_REACTION_HISTORY',
+      message: `${patientRecord.id} must explicitly author known-none or reported medication reactions.`,
+    });
+  }
+  for (const record of patientRecord.reactionHistory.records) {
+    if (record.trigger.kind === 'medication' && !medicationById.has(record.trigger.medicationId)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_REACTION_MEDICATION_REF',
+        message: `${record.id} references ${record.trigger.medicationId}.`,
+      });
+    }
+    if (
+      record.trigger.kind === 'nonmedication' &&
+      !nonMedicationReactionTriggerById.has(record.trigger.triggerId)
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_REACTION_TRIGGER_REF',
+        message: `${record.id} references ${record.trigger.triggerId}.`,
+      });
+    }
+    for (const manifestationId of record.manifestationIds) {
+      if (!reactionManifestationIds.has(manifestationId)) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_REACTION_MANIFESTATION_REF',
+          message: `${record.id} references ${manifestationId}.`,
+        });
+      }
+    }
+  }
+  const reactionAction = blueprint.informationActions.find(
+    (action) => action.actionId === 'info.history.allergies-adverse-reactions',
+  );
+  if (!reactionAction) {
+    issues.push({
+      severity: 'error',
+      code: 'MISSING_REACTION_HISTORY_ACTION',
+      message: `${patientRecord.id} has no allergies/adverse-reactions history action.`,
+    });
+  } else {
+    const findingMatches = (label: string, outcome: string): boolean =>
+      reactionAction.result.findings.some(
+        (finding) => finding.outcome === outcome && finding.labelVariants.includes(label),
+      );
+    for (const record of patientRecord.reactionHistory.records) {
+      const label =
+        record.trigger.kind === 'medication'
+          ? medicationById.get(record.trigger.medicationId)?.label
+          : nonMedicationReactionTriggerById.get(record.trigger.triggerId)?.label;
+      if (label && !findingMatches(label, 'present')) {
+        issues.push({
+          severity: 'error',
+          code: 'REACTION_HISTORY_DISPLAY_MISMATCH',
+          message: `${patientRecord.id} does not reveal reaction record ${record.id} as a present finding.`,
+        });
+      }
+    }
+    if (
+      patientRecord.reactionHistory.status === 'documented_none' &&
+      !findingMatches('Reported allergies or adverse reactions', 'absent')
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'REACTION_HISTORY_DISPLAY_MISMATCH',
+        message: `${patientRecord.id} does not reveal its documented-none reaction history.`,
+      });
+    }
+    if (
+      patientRecord.reactionHistory.medicationAssessmentStatus === 'documented_none' &&
+      patientRecord.reactionHistory.status !== 'documented_none' &&
+      !findingMatches('Medication allergies or adverse reactions', 'absent')
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'REACTION_HISTORY_DISPLAY_MISMATCH',
+        message: `${patientRecord.id} does not reveal its documented-none medication reaction history.`,
+      });
+    }
+  }
+  if (patientRecord.complexityProfile.selectedModules.length > 0) {
+    issues.push({
+      severity: 'error',
+      code: 'OPTIONAL_FEATURE_MODULE_COMPILER_NOT_IMPLEMENTED',
+      message: `${patientRecord.id} selects optional complexity modules before the module catalog/compiler exists.`,
+    });
+  }
+  if (
+    patientRecord.complexityProfile.measurementStatus === 'authored_envelope' &&
+    patientRecord.complexityProfile.targetEnvelope
+  ) {
+    const measured = { ...fixedDiagnosisComposition.complexityByDimension };
+    for (const module of patientRecord.complexityProfile.selectedModules) {
+      for (const contribution of module.complexityContributions) {
+        measured[contribution.dimension] += contribution.weight;
+      }
+    }
+    for (const [dimension, range] of Object.entries(
+      patientRecord.complexityProfile.targetEnvelope,
+    )) {
+      const value = measured[dimension as keyof typeof measured];
+      if (value < range.min || value > range.max) {
+        issues.push({
+          severity: 'error',
+          code: 'PATIENT_COMPLEXITY_OUTSIDE_TARGET_ENVELOPE',
+          message: `${patientRecord.id} ${dimension} complexity ${value} is outside ${range.min}–${range.max}.`,
+        });
+      }
+    }
   }
   for (const duplicate of duplicateIds(patientRecord.medicationRegimen.map((entry) => entry.id))) {
     issues.push({
@@ -1263,6 +1390,11 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     ['tests', catalogs.tests.map((item) => item.id)],
     ['testActions', catalogs.tests.map((item) => item.actionId)],
     ['referenceIntervalSets', catalogs.referenceIntervalSets.map((item) => item.id)],
+    [
+      'nonMedicationReactionTriggers',
+      catalogs.reactionConcepts.nonMedicationTriggers.map((item) => item.id),
+    ],
+    ['reactionManifestations', catalogs.reactionConcepts.manifestations.map((item) => item.id)],
     ['upgrades', catalogs.upgrades.map((item) => item.id)],
     ['decor', catalogs.decor.items.map((item) => item.id)],
   ] as const) {

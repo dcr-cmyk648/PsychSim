@@ -4,14 +4,18 @@ import { instantiateCase, resolveClinicForProgressionMode } from '@psychsim/engi
 import { catalogs, startingClinic } from './content';
 import { runReferenceSolutionsForCase } from './reference-runs';
 import { REVIEWER_ASSIGNMENT_ID } from './reviewer-assignment';
-import { reviewerCaseBlueprints, reviewerDecisionPolicies } from './reviewer-content';
+import {
+  reviewerCaseBlueprints,
+  reviewerClinicalAuditTickets,
+  reviewerDecisionPolicies,
+} from './reviewer-content';
 import { validateCaseBlueprint } from './validation';
 
 describe('portable reviewer cohort', () => {
   const reviewerClinic = resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs);
 
   it('compiles ten separate medically unreviewed patient scenarios', () => {
-    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07c');
+    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07d');
     expect(reviewerCaseBlueprints.map((blueprint) => blueprint.id)).toEqual([
       'case.review-cohort.mdd-initial',
       'case.review-cohort.mdd-adherence',
@@ -24,7 +28,7 @@ describe('portable reviewer cohort', () => {
       'case.review-cohort.schizophrenia-relapse',
       'case.review-cohort.ptsd-initial',
     ]);
-    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.2.0')).toBe(
+    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.3.0')).toBe(
       true,
     );
     expect(reviewerDecisionPolicies.map((policy) => policy.id)).toHaveLength(8);
@@ -41,6 +45,22 @@ describe('portable reviewer cohort', () => {
         issues: [],
       });
     }
+  });
+
+  it('ships one exact preassigned ticket for each portable Reviewer patient', () => {
+    expect(reviewerClinicalAuditTickets).toHaveLength(reviewerCaseBlueprints.length);
+    expect(reviewerClinicalAuditTickets.map((ticket) => ticket.blueprintId).sort()).toEqual(
+      reviewerCaseBlueprints.map((blueprint) => blueprint.id).sort(),
+    );
+    expect(
+      reviewerClinicalAuditTickets.every(
+        (ticket) =>
+          ticket.attemptId === null &&
+          ticket.status === 'proposed' &&
+          ticket.reviewerNotes === '' &&
+          ticket.requiresClinicalAcumen,
+      ),
+    ).toBe(true);
   });
 
   it('keeps patient critical facts and executable policy invariant across many seeds', () => {
@@ -66,6 +86,13 @@ describe('portable reviewer cohort', () => {
       expect(
         blueprint.informationActions.every((action) => action.result.findings.length > 0),
       ).toBe(true);
+      expect(blueprint.patientRecord.reactionHistory.status).not.toBe('unassessed');
+      expect(blueprint.informationActions.map((action) => action.actionId)).toEqual(
+        expect.arrayContaining([
+          'info.history.allergies-adverse-reactions',
+          'info.history.existing-safety-plan',
+        ]),
+      );
     }
   });
 

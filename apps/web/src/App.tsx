@@ -54,7 +54,8 @@ type Screen = 'hub' | 'encounter' | 'receipt';
 const REVIEWER_BUILD = import.meta.env.VITE_PSYCHSIM_REVIEW_BUILD === '1';
 const REVIEW_TOOLS_ENABLED = import.meta.env.DEV || REVIEWER_BUILD;
 const reviewExportTools = REVIEW_TOOLS_ENABLED ? import('./review-export') : null;
-const localTicketWriterTools = import.meta.env.DEV ? import('./ticket-tools') : null;
+const localTicketWriterTools =
+  import.meta.env.DEV && !REVIEWER_BUILD ? import('./ticket-tools') : null;
 
 const createInitialSave = (): SaveData =>
   SaveDataSchema.parse({
@@ -140,26 +141,26 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
-    const developerContent = import.meta.env.DEV
-      ? import('@psychsim/content-runtime/developer').then((module) => ({
-          blueprints: module.developerCaseBlueprints,
-          auditTickets: module.developerClinicalAuditTickets,
-          caseRuleAudits: module.developerCaseRuleAudits,
-          opinionReferenceNeeds: module.developerOpinionReferenceNeeds,
-          sourceRequests: module.developerSourceRequests,
-          literatureSynthesisProposals: module.developerLiteratureSynthesisProposals,
+    const developerContent = REVIEWER_BUILD
+      ? import('@psychsim/content-runtime/reviewer').then((module) => ({
+          blueprints: [
+            ...approvedCaseBlueprints,
+            ...module.reviewerCaseBlueprints,
+          ] as readonly CaseBlueprint[],
+          auditTickets: module.reviewerClinicalAuditTickets,
+          caseRuleAudits: module.reviewerCaseRuleAudits,
+          opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
+          sourceRequests: [] as readonly SourceRequest[],
+          literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
         }))
-      : REVIEWER_BUILD
-        ? import('@psychsim/content-runtime/reviewer').then((module) => ({
-            blueprints: [
-              ...approvedCaseBlueprints,
-              ...module.reviewerCaseBlueprints,
-            ] as readonly CaseBlueprint[],
-            auditTickets: [] as readonly ClinicalReviewTicket[],
-            caseRuleAudits: [] as readonly CaseRuleAudit[],
-            opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
-            sourceRequests: [] as readonly SourceRequest[],
-            literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
+      : import.meta.env.DEV
+        ? import('@psychsim/content-runtime/developer').then((module) => ({
+            blueprints: module.developerCaseBlueprints,
+            auditTickets: module.developerClinicalAuditTickets,
+            caseRuleAudits: module.developerCaseRuleAudits,
+            opinionReferenceNeeds: module.developerOpinionReferenceNeeds,
+            sourceRequests: module.developerSourceRequests,
+            literatureSynthesisProposals: module.developerLiteratureSynthesisProposals,
           }))
         : Promise.resolve({
             blueprints: approvedCaseBlueprints as readonly CaseBlueprint[],
@@ -642,7 +643,7 @@ export default function App() {
     sourceSave: SaveData | null = saveData,
     successMessage?: string,
   ): Promise<boolean> => {
-    if (!import.meta.env.DEV || !sourceSave) return false;
+    if (REVIEWER_BUILD || !import.meta.env.DEV || !sourceSave) return false;
     const bundle = await ticketBundleFor(sourceSave);
     if (!bundle) return false;
     try {
@@ -702,6 +703,10 @@ export default function App() {
           ? `The review could not be saved in browser storage: ${caught.message}`
           : 'The review could not be saved in browser storage.',
       );
+      throw caught;
+    }
+    if (REVIEWER_BUILD) {
+      setTicketToolStatus(`Saved your response for “${ticket.title}” in this browser.`);
       return;
     }
     await writeTicketsToWorkspace(

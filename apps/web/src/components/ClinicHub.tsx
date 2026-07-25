@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type {
   CaseInstance,
@@ -89,6 +89,7 @@ interface TicketReviewCardProps {
   caseRuleAudit: CaseRuleAudit | null;
   literatureSynthesisProposal: LiteratureSynthesisProposal | null;
   onSave: ClinicHubProps['onSaveTicketReview'];
+  compact?: boolean;
 }
 
 function TicketReviewCard({
@@ -96,29 +97,210 @@ function TicketReviewCard({
   caseRuleAudit,
   literatureSynthesisProposal,
   onSave,
+  compact = false,
 }: TicketReviewCardProps) {
   const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
   const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [focusedOpen, setFocusedOpen] = useState(false);
+  const focusedDialog = useRef<HTMLDialogElement>(null);
+  const focusedReturn = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setReviewerNotes(ticket.reviewerNotes);
   }, [ticket.id, ticket.reviewerNotes]);
 
+  useEffect(() => {
+    const dialog = focusedDialog.current;
+    if (!dialog) return;
+    if (focusedOpen && !dialog.open) {
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+    }
+  }, [focusedOpen]);
+
   const dirty = reviewerNotes !== ticket.reviewerNotes;
   const saveReview = async (): Promise<void> => {
     setSaving(true);
+    setSaveMessage(null);
     try {
       await onSave(ticket.id, reviewerNotes);
+      setSaveMessage('Saved in this browser.');
+    } catch (caught) {
+      setSaveMessage(
+        caught instanceof Error ? `Could not save: ${caught.message}` : 'Could not save response.',
+      );
     } finally {
       setSaving(false);
     }
   };
+  const closeFocusedView = (): void => {
+    const dialog = focusedDialog.current;
+    if (dialog?.open && typeof dialog.close === 'function') {
+      dialog.close();
+      return;
+    }
+    dialog?.removeAttribute('open');
+    setFocusedOpen(false);
+    focusedReturn.current?.focus();
+  };
+
+  const detailBody = (idPrefix: 'inline' | 'focused') => (
+    <div className="developer-question-body ticket-card-body">
+      <div>
+        <h4>Decision needed</h4>
+        <p>{ticket.guidance}</p>
+        {caseRuleAudit ? (
+          <dl className="developer-question-context">
+            <div>
+              <dt>Linked patient</dt>
+              <dd>
+                {caseRuleAudit.caseLabel} · case version {caseRuleAudit.contentVersion}
+              </dd>
+            </div>
+            <div>
+              <dt>Current database plan</dt>
+              <dd>
+                {caseRuleAudit.databasePlan.carePoints} care points ·{' '}
+                {caseRuleAudit.databasePlan.workupCostPar} investigation points
+              </dd>
+            </div>
+          </dl>
+        ) : (
+          <p className="audit-disclaimer">
+            Cross-cutting question: no focused patient is linked yet.
+          </p>
+        )}
+        {caseRuleAudit ? (
+          <CaseRuleAuditView audit={caseRuleAudit} targetContentIds={ticket.targetContentIds} />
+        ) : null}
+        {literatureSynthesisProposal ? (
+          <LiteratureSynthesisProposalView proposal={literatureSynthesisProposal} />
+        ) : null}
+        <details className="ticket-context">
+          <summary>Targets and review routing</summary>
+          <dl>
+            <div>
+              <dt>Source</dt>
+              <dd>
+                {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
+                {ticket.sourceAuthority.replaceAll('_', ' ')}
+              </dd>
+            </div>
+            <div>
+              <dt>Proposed routing</dt>
+              <dd>{ticket.proposedRouting}</dd>
+            </div>
+            <div>
+              <dt>Target IDs</dt>
+              <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
+            </div>
+            <div>
+              <dt>Dependencies</dt>
+              <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
+            </div>
+            <div>
+              <dt>Conflicts</dt>
+              <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
+            </div>
+            {ticket.resurfacingTrigger ? (
+              <div>
+                <dt>Resurface when</dt>
+                <dd>{ticket.resurfacingTrigger}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </details>
+      </div>
+      <div className="ticket-review-fields">
+        <label htmlFor={`${idPrefix}-ticket-reviewer-notes-${ticket.id}`}>
+          Your response, judgment, or alternative references
+        </label>
+        <textarea
+          id={`${idPrefix}-ticket-reviewer-notes-${ticket.id}`}
+          value={reviewerNotes}
+          rows={6}
+          maxLength={8000}
+          placeholder="Agree, disagree, qualify the proposed direction, describe the desired change, or paste better references."
+          onChange={(event) => {
+            setReviewerNotes(event.target.value);
+            setSaveMessage(null);
+          }}
+        />
+        <small>
+          Codex will infer the intended action from your instructions and ask only if an important
+          choice remains ambiguous. Saving does not alter a clinical rule.
+        </small>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={!dirty || saving}
+          onClick={() => void saveReview()}
+        >
+          {saving
+            ? 'Saving…'
+            : dirty
+              ? reviewerNotes.trim()
+                ? 'Save response'
+                : 'Clear saved response'
+              : 'Response saved'}
+        </button>
+        {saveMessage ? (
+          <p className="ticket-tool-status" role="status">
+            {saveMessage}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
 
   return (
-    <LazyDisclosure
-      className="ticket-card developer-question-card"
-      summary={
-        <>
+    <>
+      {!compact ? (
+        <LazyDisclosure
+          className="ticket-card developer-question-card review-ticket-inline"
+          summary={
+            <>
+              <span>
+                <strong>{ticket.title}</strong>
+                <small>
+                  {caseRuleAudit ? `${caseRuleAudit.caseLabel} · ` : ''}
+                  {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
+                  {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
+                </small>
+              </span>
+              <span className="source-status">
+                {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
+              </span>
+            </>
+          }
+        >
+          {() => (
+            <>
+              <button
+                className="small-button focused-ticket-button"
+                type="button"
+                onClick={(event) => {
+                  focusedReturn.current = event.currentTarget;
+                  setFocusedOpen(true);
+                }}
+              >
+                Open focused view
+              </button>
+              {detailBody('inline')}
+            </>
+          )}
+        </LazyDisclosure>
+      ) : null}
+      <button
+        className={`ticket-card review-ticket-launch${compact ? ' review-ticket-launch-always' : ''}`}
+        type="button"
+        onClick={(event) => {
+          focusedReturn.current = event.currentTarget;
+          setFocusedOpen(true);
+        }}
+      >
+        <span>
           <span>
             <strong>{ticket.title}</strong>
             <small>
@@ -130,110 +312,38 @@ function TicketReviewCard({
           <span className="source-status">
             {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
           </span>
-        </>
-      }
-    >
-      {() => (
-        <div className="developer-question-body ticket-card-body">
-          <div>
-            <h4>Decision needed</h4>
-            <p>{ticket.guidance}</p>
-            {caseRuleAudit ? (
-              <dl className="developer-question-context">
-                <div>
-                  <dt>Linked patient</dt>
-                  <dd>
-                    {caseRuleAudit.caseLabel} · case version {caseRuleAudit.contentVersion}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Current database plan</dt>
-                  <dd>
-                    {caseRuleAudit.databasePlan.carePoints} care points ·{' '}
-                    {caseRuleAudit.databasePlan.workupCostPar} investigation points
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="audit-disclaimer">
-                Cross-cutting question: no focused patient is linked yet.
-              </p>
-            )}
-            {caseRuleAudit ? (
-              <CaseRuleAuditView audit={caseRuleAudit} targetContentIds={ticket.targetContentIds} />
-            ) : null}
-            {literatureSynthesisProposal ? (
-              <LiteratureSynthesisProposalView proposal={literatureSynthesisProposal} />
-            ) : null}
-            <details className="ticket-context">
-              <summary>Targets and review routing</summary>
-              <dl>
-                <div>
-                  <dt>Source</dt>
-                  <dd>
-                    {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
-                    {ticket.sourceAuthority.replaceAll('_', ' ')}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Proposed routing</dt>
-                  <dd>{ticket.proposedRouting}</dd>
-                </div>
-                <div>
-                  <dt>Target IDs</dt>
-                  <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
-                </div>
-                <div>
-                  <dt>Dependencies</dt>
-                  <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
-                </div>
-                <div>
-                  <dt>Conflicts</dt>
-                  <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
-                </div>
-                {ticket.resurfacingTrigger ? (
-                  <div>
-                    <dt>Resurface when</dt>
-                    <dd>{ticket.resurfacingTrigger}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            </details>
+        </span>
+        <span aria-hidden="true">Open</span>
+      </button>
+      <dialog
+        ref={focusedDialog}
+        className="review-ticket-dialog"
+        aria-labelledby={`focused-ticket-title-${ticket.id}`}
+        onCancel={(event) => {
+          event.preventDefault();
+          closeFocusedView();
+        }}
+        onClose={() => {
+          setFocusedOpen(false);
+          focusedReturn.current?.focus();
+        }}
+      >
+        {focusedOpen ? (
+          <div className="review-ticket-dialog-shell">
+            <header>
+              <div>
+                <p className="eyebrow">Review ticket</p>
+                <h2 id={`focused-ticket-title-${ticket.id}`}>{ticket.title}</h2>
+              </div>
+              <button className="secondary-button" type="button" onClick={closeFocusedView}>
+                Close
+              </button>
+            </header>
+            <div className="review-ticket-dialog-scroll">{detailBody('focused')}</div>
           </div>
-          <div className="ticket-review-fields">
-            <label htmlFor={`ticket-reviewer-notes-${ticket.id}`}>
-              Your response, judgment, or alternative references
-            </label>
-            <textarea
-              id={`ticket-reviewer-notes-${ticket.id}`}
-              value={reviewerNotes}
-              rows={6}
-              maxLength={8000}
-              placeholder="Agree, disagree, qualify the proposed direction, describe the desired change, or paste better references."
-              onChange={(event) => setReviewerNotes(event.target.value)}
-            />
-            <small>
-              Codex will infer the intended action from your instructions and ask only if an
-              important choice remains ambiguous. Saving does not alter a clinical rule.
-            </small>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={!dirty || saving}
-              onClick={() => void saveReview()}
-            >
-              {saving
-                ? 'Saving…'
-                : dirty
-                  ? reviewerNotes.trim()
-                    ? 'Save response'
-                    : 'Clear saved response'
-                  : 'Response saved'}
-            </button>
-          </div>
-        </div>
-      )}
-    </LazyDisclosure>
+        ) : null}
+      </dialog>
+    </>
   );
 }
 
@@ -762,7 +872,7 @@ export function ClinicHub({
               disabled={
                 saveData.attemptReviews.length === 0 &&
                 saveData.flags.length === 0 &&
-                saveData.clinicalTickets.length === 0
+                saveData.clinicalTickets.every((ticket) => !ticket.reviewerNotes.trim())
               }
               onClick={onExportTickets}
             >
@@ -789,8 +899,11 @@ export function ClinicHub({
               <dd>{saveData.flags.length}</dd>
             </div>
             <div>
-              <dt>Review tickets</dt>
-              <dd>{saveData.clinicalTickets.length}</dd>
+              <dt>Ticket responses</dt>
+              <dd>
+                {saveData.clinicalTickets.filter((ticket) => ticket.reviewerNotes.trim()).length} /{' '}
+                {saveData.clinicalTickets.length}
+              </dd>
             </div>
           </dl>
           {saveData.attempts.length > 0 ? (
@@ -844,14 +957,18 @@ export function ClinicHub({
         />
       ) : null}
 
-      {progressionMode === 'developer' && !reviewerBuild ? (
+      {progressionMode === 'developer' ? (
         <LazyDisclosure
           className="ticket-queue developer-major-disclosure"
           summary={
             <>
               <span>
-                <small>Proposed changes only</small>
-                <strong id="ticket-queue-title">Clinical and content tickets</strong>
+                <small>
+                  {reviewerBuild ? 'Assigned review questions' : 'Proposed changes only'}
+                </small>
+                <strong id="ticket-queue-title">
+                  {reviewerBuild ? 'Review tickets' : 'Clinical and content tickets'}
+                </strong>
               </span>
               <span className="count-badge" aria-label={`${ticketsNeedingInput.length} need input`}>
                 {ticketsNeedingInput.length} need input
@@ -863,18 +980,21 @@ export function ClinicHub({
             <div className="developer-disclosure-body">
               <div className="queue-heading developer-queue-tools">
                 <p>
-                  Open one decision packet at a time. Patient-linked questions include the current
-                  executable values and can be reviewed against a playthrough.
+                  {reviewerBuild
+                    ? 'Open one assigned question at a time. Each ticket is linked to a playable patient and includes the current database plan.'
+                    : 'Open one decision packet at a time. Patient-linked questions include the current executable values and can be reviewed against a playthrough.'}
                 </p>
                 <div className="queue-tools">
-                  <button
-                    className="small-button"
-                    type="button"
-                    disabled={saveData.clinicalTickets.length === 0}
-                    onClick={onWriteTickets}
-                  >
-                    Update Codex handoff file
-                  </button>
+                  {!reviewerBuild ? (
+                    <button
+                      className="small-button"
+                      type="button"
+                      disabled={saveData.clinicalTickets.length === 0}
+                      onClick={onWriteTickets}
+                    >
+                      Update Codex handoff file
+                    </button>
+                  ) : null}
                   <button
                     className="small-button"
                     type="button"
@@ -886,11 +1006,9 @@ export function ClinicHub({
                 </div>
               </div>
               <p className="ticket-handoff-explanation">
-                Describe the outcome you want; there is no separate status decision. Saving updates
-                this browser’s local database and the fixed, gitignored Codex handoff file. Codex
-                will interpret your instructions, ask if necessary, and make no clinical rule
-                changes until processing the reviewed ticket. Use “Update Codex handoff file” to
-                refresh or retry the copy, then tell Codex your review is ready.
+                {reviewerBuild
+                  ? 'Describe the outcome you want; there is no separate status decision. Responses remain in this browser until you export the review bundle. Saving never changes a clinical rule.'
+                  : 'Describe the outcome you want; there is no separate status decision. Saving updates this browser’s local database and the fixed, gitignored Codex handoff file. Codex will interpret your instructions, ask if necessary, and make no clinical rule changes until processing the reviewed ticket. Use “Update Codex handoff file” to refresh or retry the copy, then tell Codex your review is ready.'}
               </p>
               {ticketToolStatus ? (
                 <p className="ticket-tool-status" role="status">
@@ -899,6 +1017,31 @@ export function ClinicHub({
               ) : null}
               {reviewTickets.length === 0 ? (
                 <p className="no-results">No open local review tickets.</p>
+              ) : reviewerBuild ? (
+                <>
+                  {ticketsNeedingInput.length === 0 ? (
+                    <p className="review-complete-message">
+                      Every assigned ticket has a saved response. Export the review bundle when you
+                      are ready to send it.
+                    </p>
+                  ) : null}
+                  <div className="ticket-list">
+                    {reviewTickets.map((ticket) => (
+                      <TicketReviewCard
+                        key={ticket.id}
+                        ticket={ticket}
+                        caseRuleAudit={
+                          ticket.blueprintId
+                            ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
+                            : null
+                        }
+                        literatureSynthesisProposal={null}
+                        onSave={onSaveTicketReview}
+                        compact
+                      />
+                    ))}
+                  </div>
+                </>
               ) : (
                 <>
                   {ticketsNeedingInput.length === 0 ? (

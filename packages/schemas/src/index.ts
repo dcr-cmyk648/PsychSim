@@ -726,6 +726,39 @@ export const ReferenceIntervalSetDefinitionSchema = z
   .strict();
 export type ReferenceIntervalSetDefinition = z.infer<typeof ReferenceIntervalSetDefinitionSchema>;
 
+export const NonMedicationReactionTriggerDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    category: z.enum(['environmental', 'food', 'latex', 'other']),
+  })
+  .strict();
+export type NonMedicationReactionTriggerDefinition = z.infer<
+  typeof NonMedicationReactionTriggerDefinitionSchema
+>;
+
+export const ReactionManifestationDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+  })
+  .strict();
+export type ReactionManifestationDefinition = z.infer<typeof ReactionManifestationDefinitionSchema>;
+
+export const ReactionConceptCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    nonMedicationTriggers: z.array(NonMedicationReactionTriggerDefinitionSchema),
+    manifestations: z.array(ReactionManifestationDefinitionSchema),
+  })
+  .strict();
+export type ReactionConceptCatalog = z.infer<typeof ReactionConceptCatalogSchema>;
+
 export const CatalogBundleSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -742,6 +775,7 @@ export const CatalogBundleSchema = z
     variantPools: z.array(VariantPoolDefinitionSchema),
     tests: z.array(TestDefinitionSchema),
     referenceIntervalSets: z.array(ReferenceIntervalSetDefinitionSchema),
+    reactionConcepts: ReactionConceptCatalogSchema,
     upgrades: z.array(z.lazy(() => UpgradeDefinitionSchema)),
     decor: z.lazy(() => DecorCatalogSchema),
   })
@@ -832,12 +866,14 @@ export const ContentRegistryEntrySchema = z
       'variant_pool_catalog',
       'test_catalog',
       'reference_interval_catalog',
+      'reaction_concept_catalog',
       'upgrade_catalog',
       'decor_catalog',
       'diagnosis_catalog',
       'diagnosis_classification_catalog',
       'source_use_decision_catalog',
       'source_request_catalog',
+      'reviewer_assignment_ticket_catalog',
       'evidence_source',
       'medication',
       'patient',
@@ -1929,6 +1965,221 @@ export const PatientTestGenerationContextSchema = z
   })
   .strict();
 
+export const PatientReactionTriggerSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('medication'),
+      medicationId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('nonmedication'),
+      triggerId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type PatientReactionTrigger = z.infer<typeof PatientReactionTriggerSchema>;
+
+export const PatientReactionRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    trigger: PatientReactionTriggerSchema,
+    recordedAs: z.enum(['allergy', 'intolerance', 'adverse_reaction', 'unspecified']),
+    manifestationIds: z.array(StableIdSchema).min(1).max(8),
+    reportedSeverity: z.enum(['mild', 'moderate', 'severe', 'unknown']),
+    interpretedAs: z
+      .enum(['immune_allergy', 'adverse_effect', 'intolerance', 'unclear'])
+      .nullable(),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    status: z.enum(['active', 'historical']),
+  })
+  .strict()
+  .superRefine((record, context) => {
+    if (record.interpretedAs !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['interpretedAs'],
+        message:
+          'Reaction interpretation is disabled until rule-level review and provenance are represented.',
+      });
+    }
+  });
+export type PatientReactionRecord = z.infer<typeof PatientReactionRecordSchema>;
+
+export const PatientReactionHistorySchema = z
+  .object({
+    status: z.enum(['unassessed', 'documented_none', 'entries_present']),
+    medicationAssessmentStatus: z.enum(['unassessed', 'documented_none', 'entries_present']),
+    records: z.array(PatientReactionRecordSchema).max(24),
+  })
+  .strict()
+  .superRefine((history, context) => {
+    if (history.status === 'entries_present' && history.records.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['records'],
+        message: 'Reaction history marked entries_present requires at least one record.',
+      });
+    }
+    if (history.status !== 'entries_present' && history.records.length > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['records'],
+        message: 'Only entries_present reaction history may contain records.',
+      });
+    }
+    const medicationRecordCount = history.records.filter(
+      (record) => record.trigger.kind === 'medication',
+    ).length;
+    if (history.medicationAssessmentStatus === 'entries_present' && medicationRecordCount === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['medicationAssessmentStatus'],
+        message: 'Medication reaction history marked entries_present requires a medication record.',
+      });
+    }
+    if (history.medicationAssessmentStatus === 'documented_none' && medicationRecordCount > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['medicationAssessmentStatus'],
+        message:
+          'Medication reaction history marked documented_none cannot contain a medication record.',
+      });
+    }
+    if (
+      history.status === 'documented_none' &&
+      history.medicationAssessmentStatus !== 'documented_none'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['medicationAssessmentStatus'],
+        message:
+          'A documented-none overall reaction history must also document no medication reactions.',
+      });
+    }
+    if (new Set(history.records.map((record) => record.id)).size !== history.records.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['records'],
+        message: 'Reaction record IDs must be unique within a patient.',
+      });
+    }
+  });
+export type PatientReactionHistory = z.infer<typeof PatientReactionHistorySchema>;
+
+export const PatientOptionalFeatureModuleSchema = z
+  .object({
+    id: StableIdSchema,
+    moduleKind: z.enum([
+      'allergy_reaction',
+      'prior_treatment',
+      'comorbidity',
+      'substance_use',
+      'other',
+    ]),
+    moduleId: StableIdSchema,
+    cost: z.number().int().min(1).max(3),
+    impact: z.enum(['background', 'fit_modifier', 'companion_safety']),
+    complexityContributions: z.array(ComplexityContributionSchema).min(1).max(5),
+  })
+  .strict();
+export type PatientOptionalFeatureModule = z.infer<typeof PatientOptionalFeatureModuleSchema>;
+
+const ComplexityRangeSchema = z
+  .object({
+    min: z.number().int().nonnegative(),
+    max: z.number().int().nonnegative(),
+  })
+  .strict()
+  .refine((range) => range.min <= range.max, {
+    message: 'Complexity range minimum must not exceed its maximum.',
+  });
+
+export const PatientComplexityProfileSchema = z
+  .object({
+    modelVersion: z.literal('additional-feature-budget.v1'),
+    measurementStatus: z.enum(['legacy_unmeasured', 'budget_only', 'authored_envelope']),
+    additionalFeatureBudget: z.number().int().min(0).max(6),
+    maximumSelectedModules: z.number().int().min(0).max(3),
+    selectedModules: z.array(PatientOptionalFeatureModuleSchema).max(3),
+    targetEnvelope: z.record(ComplexityDimensionSchema, ComplexityRangeSchema).nullable(),
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    const selectedIds = profile.selectedModules.map((module) => module.id);
+    if (new Set(selectedIds).size !== selectedIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['selectedModules'],
+        message: 'Selected optional-feature IDs must be unique.',
+      });
+    }
+    const selectedModuleIds = profile.selectedModules.map((module) => module.moduleId);
+    if (new Set(selectedModuleIds).size !== selectedModuleIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['selectedModules'],
+        message: 'Selected optional-feature module references must be unique.',
+      });
+    }
+    for (const [index, module] of profile.selectedModules.entries()) {
+      const dimensions = module.complexityContributions.map(
+        (contribution) => contribution.dimension,
+      );
+      if (new Set(dimensions).size !== dimensions.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['selectedModules', index, 'complexityContributions'],
+          message: 'An optional feature may contribute to each complexity dimension at most once.',
+        });
+      }
+    }
+    if (profile.selectedModules.length > profile.maximumSelectedModules) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['selectedModules'],
+        message: 'Selected optional features exceed the configured module limit.',
+      });
+    }
+    const spent = profile.selectedModules.reduce((total, module) => total + module.cost, 0);
+    if (spent > profile.additionalFeatureBudget) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['selectedModules'],
+        message: 'Selected optional features exceed the additional-feature budget.',
+      });
+    }
+    if (
+      profile.measurementStatus === 'legacy_unmeasured' &&
+      (profile.additionalFeatureBudget !== 0 ||
+        profile.maximumSelectedModules !== 0 ||
+        profile.selectedModules.length > 0 ||
+        profile.targetEnvelope !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Legacy-unmeasured complexity cannot imply a zero or measured complexity plan.',
+      });
+    }
+    if (profile.measurementStatus === 'budget_only' && profile.targetEnvelope !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['targetEnvelope'],
+        message: 'A budget-only complexity profile cannot claim a measured target envelope.',
+      });
+    }
+    if (profile.measurementStatus === 'authored_envelope' && profile.targetEnvelope === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['targetEnvelope'],
+        message: 'Authored complexity requires a five-axis target envelope.',
+      });
+    }
+  });
+export type PatientComplexityProfile = z.infer<typeof PatientComplexityProfileSchema>;
+
 export const MedicationRegimenEntrySchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -2042,6 +2293,19 @@ export const PatientRecordSchema = z
       currentProviders: [],
       priorLevelsOfCare: [],
     }),
+    reactionHistory: PatientReactionHistorySchema.default({
+      status: 'unassessed',
+      medicationAssessmentStatus: 'unassessed',
+      records: [],
+    }),
+    complexityProfile: PatientComplexityProfileSchema.default({
+      modelVersion: 'additional-feature-budget.v1',
+      measurementStatus: 'legacy_unmeasured',
+      additionalFeatureBudget: 0,
+      maximumSelectedModules: 0,
+      selectedModules: [],
+      targetEnvelope: null,
+    }),
     diagnosisComposition: PatientDiagnosisCompositionSchema.nullable().default(null),
     clinicalContextDimensions: z.array(PatientClinicalContextDimensionSchema).max(20).default([]),
   })
@@ -2150,6 +2414,8 @@ export const ReviewCaseScenarioSchema = z
       currentProviders: [],
       priorLevelsOfCare: [],
     }),
+    reactionHistory: PatientReactionHistorySchema,
+    complexityProfile: PatientComplexityProfileSchema,
     informationOverrides: z.array(CaseInformationActionBlueprintSchema),
     decisionPolicyId: StableIdSchema,
   })
@@ -3078,6 +3344,98 @@ export const AppleNotesIntakeManifestSchema = z
   })
   .strict();
 export type AppleNotesIntakeManifest = z.infer<typeof AppleNotesIntakeManifestSchema>;
+
+export const Sha256DigestSchema = z.string().regex(/^[a-f0-9]{64}$/);
+
+export const AppleNotesCodexReviewAcknowledgementSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentScope: z.literal('apple_notes_title_plaintext_only'),
+    noIdentifiablePatientInformation: z.literal(true),
+    authorizedForExternalAiProcessing: z.literal(true),
+    titlePlaintextTransmissionRightsAcknowledged: z.literal(true),
+    sharedMaterialRightsAcknowledged: z.literal(true),
+    appropriateToTransmitToOpenAiCodex: z.literal(true),
+    provider: z.literal('openai_codex'),
+    modelIdentifier: z.string().min(1).max(200),
+    acknowledgedAt: z.string().datetime(),
+    acknowledgedBy: z.string().min(1).max(120),
+  })
+  .strict();
+export type AppleNotesCodexReviewAcknowledgement = z.infer<
+  typeof AppleNotesCodexReviewAcknowledgementSchema
+>;
+
+export const AppleNotesCodexReviewPacketSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    packetVersion: z.literal(1),
+    id: StableIdSchema,
+    packetBuilderVersion: z.literal('psychsim-apple-notes-codex-review-1'),
+    segmenterVersion: z.literal('psychsim-utf8-segmenter-1'),
+    sourceProvider: z.literal('apple_notes'),
+    contentScope: z.literal('title_plaintext_only'),
+    reviewPurpose: z.literal('private_semantic_source_classification'),
+    noteRecordId: StableIdSchema,
+    relatedSourceDocumentId: StableIdSchema,
+    sourceModifiedAtProvider: z.string().min(1).max(200),
+    titleHash: Sha256DigestSchema,
+    plaintextHash: Sha256DigestSchema,
+    segmentOrdinal: z.number().int().nonnegative(),
+    segmentCount: z.number().int().positive().max(2048),
+    segmentHash: Sha256DigestSchema,
+    preparedForProvider: z.literal('openai_codex'),
+    modelIdentifier: z.string().min(1).max(200),
+    untrustedSourceData: z.literal(true),
+    title: z.string(),
+    plaintextSegment: z.string(),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (value.segmentOrdinal >= value.segmentCount) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['segmentOrdinal'],
+        message: 'Segment ordinal must be less than segment count.',
+      });
+    }
+  });
+export type AppleNotesCodexReviewPacket = z.infer<typeof AppleNotesCodexReviewPacketSchema>;
+
+export const AppleNotesCodexReviewAuditEntrySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    packetId: StableIdSchema,
+    packetRelativePath: z.string().min(1),
+    packetSha256: Sha256DigestSchema,
+    noteRecordId: StableIdSchema,
+    relatedSourceDocumentId: StableIdSchema,
+    titleHash: Sha256DigestSchema,
+    plaintextHash: Sha256DigestSchema,
+    segmentOrdinal: z.number().int().nonnegative(),
+    segmentCount: z.number().int().positive().max(2048),
+    segmentHash: Sha256DigestSchema,
+    segmenterVersion: z.literal('psychsim-utf8-segmenter-1'),
+    acknowledgement: AppleNotesCodexReviewAcknowledgementSchema,
+    releasedForReviewAt: z.string().datetime(),
+  })
+  .strict();
+export type AppleNotesCodexReviewAuditEntry = z.infer<typeof AppleNotesCodexReviewAuditEntrySchema>;
+
+export const AppleNotesCodexReviewAuditManifestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    manifestVersion: z.literal(1),
+    provider: z.literal('apple_notes'),
+    reviewBridgeVersion: z.literal('psychsim-apple-notes-codex-review-1'),
+    updatedAt: z.string().datetime(),
+    entries: z.array(AppleNotesCodexReviewAuditEntrySchema),
+  })
+  .strict();
+export type AppleNotesCodexReviewAuditManifest = z.infer<
+  typeof AppleNotesCodexReviewAuditManifestSchema
+>;
 
 export const SourceManifestEntrySchema = z
   .object({

@@ -60,6 +60,16 @@
     "resultSource": "patient_report"
   },
   {
+    "id": "info.history.existing-safety-plan",
+    "label": "Existing safety plan and crisis supports",
+    "category": "history",
+    "description": "Review any existing safety plan, crisis contacts, support people, and access to the plan.",
+    "serviceId": "service.history.safety-plan-review",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
     "id": "info.history.violence-risk",
     "label": "Violence risk assessment",
     "category": "history",
@@ -75,6 +85,16 @@
     "category": "history",
     "description": "Verify current prescriptions, nonprescription products, timing, prescribers, and changes.",
     "serviceId": "service.history.medication-reconciliation",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
+    "id": "info.history.allergies-adverse-reactions",
+    "label": "Allergies and adverse reactions",
+    "category": "history",
+    "description": "Review reported allergies, intolerances, and prior adverse reactions.",
+    "serviceId": "service.history.allergies-adverse-reactions",
     "repeatable": false,
     "soapSection": "subjective",
     "resultSource": "patient_report"

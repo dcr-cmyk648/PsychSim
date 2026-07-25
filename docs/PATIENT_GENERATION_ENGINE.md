@@ -100,6 +100,32 @@ Initially, adequacy can use reviewed categorical fields instead of real-world do
 This is sufficient to distinguish nonresponse from an inadequate trial, intolerance, or
 nonadherence without turning PsychSim into a dosing or EHR simulator.
 
+## Allergy and adverse-reaction history
+
+A resolved patient carries an explicit reaction-history status rather than relying on an empty
+list. `unassessed`, `documented_none`, and `entries_present` are different clinical states; the
+player's knowledge of that state remains separate until the universal allergy/adverse-reaction
+history action is purchased.
+
+Medication-reaction assessment has its own status. An environmental or food reaction does not
+prove that medication reactions were asked about, and only an explicit `documented_none` may
+render the medication-reaction row as absent. New patient files own both states; schema defaults
+exist only to preserve historical snapshots as unknown.
+
+A reaction record references either a cataloged medication or a stable nonmedication trigger and
+one or more stable manifestations. `recordedAs` preserves whether the patient or chart called it
+an allergy, intolerance, adverse reaction, or left it unspecified. The nullable `interpretedAs`
+field is a separate reviewed conclusion. The generator and UI must never convert a chart label,
+sleepiness, hives, an oculogyric crisis, or another manifestation into an immune allergy or
+treatment rule by themselves. Non-null `interpretedAs` values remain disabled until the
+interpretation can carry rule-level review and provenance.
+
+Reaction history is patient state, not medication knowledge. Medication definitions and reviewed
+safety/fit rules determine whether a resolved record affects the focused treatment decision. A
+mild background environmental entry may add texture without changing the rubric, while a
+decision-relevant medication reaction must remain visible through its own rule trace and
+provenance.
+
 ## Focused decision horizon
 
 An encounter should declare what is being judged: initial questioning, focused workup, medication
@@ -121,14 +147,15 @@ use a deterministic constrained pipeline:
 2. Resolve internal condition states and patient-family-owned optional comorbidities.
 3. Resolve chart diagnosis entries separately.
 4. Resolve current regimen entries and structured prior trials.
-5. Resolve typed clinical facts and derive stable tags from them.
-6. Generate presentation wording, findings, and noncritical observations.
-7. Compile only applicable clinical rules for the decision horizon.
-8. Validate consistency, action accessibility, at least one safe route, target complexity envelope,
-   and absence of impossible combinations.
-9. Retry from deterministic sub-seeds within a fixed limit, or quarantine with a reproducible
-   reason.
-10. Save every resolved value in the `PatientInstance` and `EncounterInstance`.
+5. Resolve reaction history and any explicitly authored optional-feature modules.
+6. Resolve typed clinical facts and derive stable tags from them.
+7. Generate presentation wording, findings, and noncritical observations.
+8. Compile only applicable clinical rules for the decision horizon.
+9. Validate consistency, action accessibility, at least one safe route, the target complexity
+   envelope, and absence of impossible combinations.
+10. Retry from deterministic sub-seeds within a fixed limit, or quarantine with a reproducible
+    reason.
+11. Save every resolved value in the `PatientInstance` and `EncounterInstance`.
 
 Incidental test abnormalities remain bounded, non-case-defining observations. A genuine additional
 condition is introduced only through an explicit reviewed condition/comorbidity module, never by a
@@ -251,6 +278,29 @@ The present checkpoint is adequate for two simple patients but is intentionally 
 No existing save shape should be silently reinterpreted. A schema migration should preserve old
 case snapshots while new templates compile to the new records.
 
+## Optional-feature budget
+
+`PatientComplexityProfile` provides a deliberately small authoring boundary for optional richness.
+An authored profile may spend at most six cost units across no more than three selected modules.
+Each selected module has a stable ID, a kind, a cost from one through three, an impact class, and
+traced contributions to the existing diagnostic, pharmacologic, workup, safety/disposition, and
+information dimensions. Current patient files use the explicit `budget_only` state: they record
+capacity but do not claim a calibrated complexity measurement. Historical content uses
+`legacy_unmeasured`; a later calibrated compiler may use `authored_envelope`.
+
+The budget is not total patient complexity. Required diagnoses, acute safety states, current
+medications, and the focused decision may be complex even when the additional-feature budget is
+zero. Conversely, optional background details do not automatically increase case difficulty or
+reimbursement. `difficultyTier`, patient pool, facility eligibility, care points, and
+`economy.complexityBonus` remain independent authored systems.
+
+The current compatibility compiler only validates and carries an already-authored profile.
+Nonempty module selection is rejected until a stable module catalog and payload compiler exist. It
+does not choose modules, fill a budget, derive a scalar tier, or change scoring. A future deterministic
+selector must keep candidate pools patient-family-owned, preserve the focused question and a safe
+route, and retry or quarantine conflicts. Optional modules may enrich background, fit, or a
+companion safety consideration; they may not silently replace the main decision state.
+
 ## Conflict classes for complex generation
 
 The next compiler should distinguish:
@@ -280,12 +330,16 @@ rules in the trace. Structural invalidity and the absence of a safe route still 
 disagreement remains disabled behind a ticket; balance disagreement does not change clinical
 direction.
 
-Patient templates declare target envelopes over the five-axis complexity trace. The compiler
+Future calibrated patient templates may declare target envelopes over the five-axis complexity trace. The compiler
 measures the resolved patient after composition and deterministic variation, then accepts,
 deterministically retries, or quarantines it against that envelope. This is provisional and will be
 calibrated with reference patients before any single displayed patient level or progression formula
 is adopted.
 
-These are accepted design constraints, not claims about the current runtime. The current
-`CaseBlueprint` path has neither typed conflict classes nor template complexity envelopes; the
-versioned compiler migration must add them without reinterpreting historical attempts.
+These are accepted design constraints, not claims that the complete target compiler exists. The
+current `CaseBlueprint` compatibility path can carry typed reaction history and a validated
+budget-only `PatientComplexityProfile`, but it has neither the new conflict taxonomy nor
+deterministic optional-module selection. It does not claim that the current budget is a measured
+complexity envelope.
+The versioned compiler migration must add those behaviors without reinterpreting historical
+attempts.

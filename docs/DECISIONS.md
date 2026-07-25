@@ -1152,3 +1152,118 @@ silently mix earlier run history with the revised cohort.
 
 The assignment bump is a review-distribution boundary, not clinical approval. The ten scenarios,
 their compiled rules, and every new option remain fictional, synthetic, and medically unreviewed.
+
+## D-125 — Reaction history preserves the chart label and reviewed interpretation separately
+
+Status: accepted and implemented as a typed patient-history slice. Every new patient definition
+may carry an explicit `PatientReactionHistory` state: `unassessed`, `documented_none`, or
+`entries_present`. An empty record array never silently means that the patient has no allergies or
+adverse reactions. Medication triggers reference the medication catalog; nonmedication triggers
+and manifestations use the small stable reaction-concept catalog.
+
+Each reaction record preserves what the patient or chart called the entry in `recordedAs`
+separately from the nullable `interpretedAs` field. A charted “allergy,” “intolerance,” or “adverse
+reaction” does not prove an immune mechanism, and the engine must not infer a reviewed
+interpretation from the label or manifestation alone. A later reviewed interpretation,
+medication-fit rule, contraindication, or point effect remains a separate provenance-bearing
+clinical decision.
+
+`info.history.allergies-adverse-reactions` is now a neutral universal history option. Current
+Reviewer scenarios explicitly own either a mild seasonal/environmental or food-allergy entry and
+separately record whether medication reactions were assessed. The engine may display “no reported
+medication reaction” only from `medicationAssessmentStatus: "documented_none"`; a nonmedication
+entry alone never implies that negative finding. Legacy patient records default both overall and
+medication-specific assessment to `unassessed` rather than fabricated none. Authored patient state
+is validated against the visible structured result, and non-null `interpretedAs` values are
+rejected until rule-level interpretation provenance exists. This data addition does not itself
+award care points, change treatment fit, or claim medical review.
+
+## D-126 — Additional-feature budget limits optional richness, not patient difficulty
+
+Status: accepted and implemented as a schema and validation boundary; deterministic
+optional-module selection remains future compiler work. `PatientComplexityProfile` records the
+versioned `additional-feature-budget.v1` model, an additional-feature budget from zero through
+six, no more than three selected modules, module costs from one through three, and eventual traced
+five-axis contributions. Supported module kinds are allergy/reaction, prior treatment,
+comorbidity, substance use, and a narrow other category; impact is restricted to background,
+fit-modifier, or companion-safety context.
+
+This budget controls only how much optional patient richness a template may carry. It is not a
+scalar patient level, player-facing difficulty, `starter`/`transitional`/`advanced` pool
+assignment, facility gate, clinical score, care-point value, reimbursement, or
+`economy.complexityBonus`. The diagnostic, pharmacologic, workup, safety/disposition, and
+information vector remains the measured complexity representation. A condition that reframes the
+main question—such as mania, withdrawal, delirium, or an adequate-treatment nonresponse
+state—belongs in required template/decision-policy content rather than a randomly selected
+optional module.
+
+Historical records receive the explicit `legacy_unmeasured` default, which cannot contain a
+budget, selected modules, or target envelope. Current authored patients use `budget_only`: they
+own a coarse optional-feature capacity but make no claim that their full clinical complexity has
+been measured. `authored_envelope` remains available for a later calibrated compiler. The current
+Reviewer cohort intentionally selects no optional modules; validation rejects nonempty module
+selection until a stable module catalog and payload compiler exist. No automatic tier mapping,
+patient generator, scoring, eligibility, or economy mapping has been added.
+
+## D-127 — Existing safety-plan history is an investigation, not creation of a safety plan
+
+Status: accepted and implemented as an information-boundary clarification.
+`info.history.existing-safety-plan` asks whether the patient already has a written plan, crisis
+contacts, support people, and access to those resources. It is a purchasable Subjective/history
+result and does not itself create, revise, recommend, or clinically judge a safety plan. The
+result also does not choose disposition for the player.
+
+If creating or revising a safety plan is later offered, it must be a separate nonmedication
+intervention with its own catalog ID, applicability, cost, scoring, provenance, and review.
+Factual plan history and a newly selected intervention must remain distinguishable in saved events
+and receipts. The existing medication counseling option is therefore labeled “Medication
+adverse-effect education”; it no longer implies that selecting education also created a safety
+plan.
+
+## D-128 — Assignment 2026-07d includes one exact finite Reviewer ticket packet
+
+Status: accepted and implemented as a bounded portable-review exception. The current portable
+assignment is `reviewer-assignment.common-psychiatry.2026-07d`. It compiles the same ten medically
+unreviewed scenario files at content version `1.3.0` and statically imports one exact stable-path
+packet containing one patient-linked clinical-review ticket for each scenario. Validation rejects
+a ticket whose blueprint is outside that ten-patient allowlist, and bundle safety permits only the
+registered assignment ticket file in addition to the existing finite scenario paths.
+
+This narrowly supersedes D-110 only where that decision excluded every preassigned ticket
+definition from portable Reviewer, and it supersedes D-124 only as the current assignment
+namespace. The portable artifact still excludes local Developer ticket discovery, source
+requests, opinion queues, literature-synthesis queues, private source material, and the workspace
+writer. It does not become public Developer mode.
+
+Desktop keeps the detailed inline ticket interface and also offers a focused dialog. Mobile
+presents each ticket as a compact launcher into a full-screen dialog with the same details and
+response field. Responses persist only in the assignment-namespaced IndexedDB and enter the
+existing version-5 manual export; saving never mutates a rule or grants clinical approval. The
+namespace changed because the universal reaction/safety-plan options and preassigned review
+questions materially changed the intended review package.
+
+## D-129 — Apple Notes semantic review uses one separately acknowledged bounded packet
+
+Status: accepted and implemented as an authoring-only privacy boundary. On 2026-07-25 Dustin
+Rowland reconfirmed that he reviewed the `Psych research` Notes folder, found the material
+appropriate for this workflow, and supplied the requested named “I confirm” acknowledgment. This
+supplements the earlier no-identifiable-patient-information and local-processing authorization; it
+does not waive third-party source licenses or make any note a redistributable source.
+
+`content:notes:codex-review` requires the human to repeat explicit command-line acknowledgments for
+no PHI, external AI processing, title/plaintext transmission rights, shared-material rights, and
+appropriateness for OpenAI Codex. It reads one eligible note's verified `title.txt` and
+`plaintext.txt` only, releases at most one deterministic segment, and excludes HTML, attachments,
+OCR, composites, and extracted chunks. Titles, segments, whole packets, whole plaintext inputs,
+and segment counts are bounded; segmentation depends only on title/plaintext bytes rather than the
+selected model or provider revision. Packet identity hashes the complete canonical packet.
+Protected directory chains reject symlinks and path escapes, private directories use mode `0700`,
+and packet/audit files use exact mode `0600`. Packet JSON failures are reported without echoing
+private source fragments. All private artifacts remain gitignored and outside web bundles.
+
+The tool prepares a packet but contains no provider SDK, network call, API-key lookup, or automatic
+classification. A real packet must name the exact model identifier exposed by the active Codex
+surface. Because this thread does not expose that identifier with sufficient precision, no real
+Notes packet was prepared or read in this checkpoint. Test fixtures use an explicit fake model
+identifier. A future authorized read remains one packet at a time and cannot directly create
+evidence, Developer opinion, rules, points, citations, or medical approval.
