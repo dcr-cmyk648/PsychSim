@@ -7,7 +7,9 @@ Last updated: 2026-07-25
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
 - Current beta feature checkpoint:
-  `77562685ef420d423b9d8f5261c3356ded2a8e87` (`Refine safety planning history semantics`).
+  `8e08f7ce2ce496fdfc9ee19e8bc3cd02d2c88151` (`Refresh legacy queued safety snapshots`),
+  containing the semantic correction commit
+  `77562685ef420d423b9d8f5261c3356ded2a8e87`.
   The durable-state follow-up commit records this handoff; `main` is unchanged.
 - Released feature checkpoint: `0536c287cb547e311298913a2509f98f4b5d28f1`
   (`Defer macOS OCR discovery`), containing the feature commit
@@ -91,6 +93,10 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   in the assignment database and export with case feedback.
 - The assignment bump intentionally creates a fresh Reviewer IndexedDB namespace. Unexported
   `2026-07d` feedback remains in the old browser database and is not mixed into revised cases.
+- A pre-change waiting slot with legacy `unassessed` safety-planning state is re-instantiated from
+  the current blueprint with its original seed during queue hydration. The patient identity stays
+  deterministic, the stale written-plan result cannot appear under the new label, and completed
+  historical attempts remain untouched.
 - Debrief headings are diagnosis/decision-state labels authored for post-submit use. They never
   appear on patient cards or pre-submit charts.
 - Portable Reviewer feedback still captures both case-specific and subjective app-experience
@@ -235,14 +241,14 @@ Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, o
   proposal. Source-cleared CANMAT can support its proposed direction; ACP/IPT metadata or abstracts
   remain qualifying context only. The proposal changes no rule, point value, or approval state.
 
-## Verification for beta feature checkpoint `7756268`
+## Verification for beta feature checkpoint `8e08f7c`
 
 Passed locally on 2026-07-25:
 
 - `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck`
-- `pnpm test`: 27 TypeScript files, 201 tests; 10 handoff tests
+- `pnpm test`: 27 TypeScript files, 202 tests; 10 handoff tests
 - `pnpm test:handoff`: 10 tests
 - `pnpm content:validate`: catalogs plus 15 executable patients
 - `pnpm content:sources:validate`: 8 Drive candidates, 209 extracted artifacts, 204 private Apple
