@@ -12,10 +12,12 @@ Last updated: 2026-07-25
   initial-outpatient duplicate-antidepressant rule, exact Developer-opinion provenance, and the
   queued normalized-regimen/evidence follow-up.
 - Current beta authoring checkpoint:
-  `2f64b014fe6944e31222248ce1802e36915b0d15`
-  (`Add ticket literature scout workflow`). It adds the local Developer-only, relevance-first
-  meta-analysis scout and leaves all clinical rules, points, ticket/source statuses, and portable
-  Reviewer content unchanged.
+  `f6e6ae0` (`Add bounded personal knowledge workflow`). It adds a local Developer-only,
+  one-topic/one-source-revision Apple Notes classification queue, strict private candidate import,
+  and a read-only personal-knowledge workbench. The first pilot source has been classified into
+  unreviewed candidates; no evidence, rule, point, ticket, approval, Player, or portable Reviewer
+  content changed. The prior literature-scout checkpoint remains
+  `2f64b014fe6944e31222248ce1802e36915b0d15`.
 - Released feature checkpoint: `8d78c078ba60b7e67f7934c714773aa277b64769`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
@@ -28,8 +30,9 @@ Last updated: 2026-07-25
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
 - The deployed cache-busted `version.json` independently returned exact release
   `8d78c078ba60b7e67f7934c714773aa277b64769`, build kind `portable_reviewer`, and channel `main`.
-- The working copy is back on `beta`. Feature content matches `main`; the durable-state follow-up
-  commit may leave beta one documentation-only commit ahead.
+- The working copy is on `beta`. Feature content still matches `main`; the private-authoring
+  workflow is intentionally beta-only and is pushed to `origin/beta` with its durable-state
+  follow-up. It has not been promoted to `main`.
 - Local Developer remains available at `http://127.0.0.1:4318/`. A dedicated current portable
   Reviewer server is verified at `http://127.0.0.1:4319/`.
 
@@ -46,8 +49,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
    adding broad clinical content.
 4. Keep install/update behavior deterministic and observable without clearing local feedback or
    IndexedDB.
-5. Keep private Apple Notes intake separate from executable content; physical intake is complete,
-   while semantic opinion/citation review remains separately gated and one item at a time.
+5. Keep private Apple Notes intake separate from executable content. Physical intake is complete,
+   and semantic review has begun one bounded topic and one complete source revision at a time. The
+   first title/plaintext source revision is classified only into unreviewed candidates.
 6. Keep validated runtime content, scoring/provenance, and the finite Reviewer ticket assignment
    current on `main`; reserve beta-only quarantine for materially risky UI or app mechanisms.
 
@@ -233,11 +237,56 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   authoring boundary. It reads only verified title/plaintext, uses model-independent deterministic
   segmentation, hashes complete canonical packets, stores exact-mode private files plus a
   hash-only audit, rejects symlink/path escapes, and contains no provider/network/API-key call.
-- Intake still cannot directly create evidence contributions, Developer opinions, rules, points,
-  citations, or medical approval. No real packet was prepared because the active Codex surface did
-  not expose an exact model identifier with enough precision. Validation reports `PASS no private
-Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, or OCR was printed
-  or transmitted in this checkpoint.
+- The initial-MDD-antidepressant-selection pilot matched 13 current title/plaintext source
+  revisions. One exact source revision is fully classified and 12 remain queued; none is released
+  or partial. The classified packet was
+  `apple-notes-codex-review.53bc9ebee7a28762aad43f7b`, segment 1/1, with SHA-256
+  `8da75481ea30741c22614875bfe444f97fcf0ee2a871a9491547eb96a8176026`, model
+  `gpt-5.6-sol`, and prompt `personal-knowledge-classifier-1`.
+- That source produced one authored-source-unit candidate, seven unreviewed Developer-opinion
+  candidates, and three unverified bibliography leads. All seven opinions have at least one
+  allowlisted target; deliberately unresolved class-level mappings remain visible instead of being
+  guessed. Zero opinions are accepted or evidence-linked.
+- The candidate themes concern antidepressant efficacy-versus-tolerability fit, comparative SSRI
+  tolerability and adverse effects, bupropion tolerability/anxiety uncertainty, small comparative
+  efficacy observations, and overdose safety. These are descriptions of private, unreviewed
+  candidates—not medical findings or current recommendations. The bibliography strings mentioning
+  Cipriani, CANMAT, and STAR\*D remain unverified leads.
+- Intake still cannot directly create evidence contributions, accepted Developer opinions, rules,
+  points, citations, tickets, or medical approval. The 116 OCR outputs and all HTML, attachment,
+  composite, and extracted-chunk content remain explicitly outside this semantic pilot.
+
+## Verification for personal-knowledge checkpoint `f6e6ae0`
+
+Passed locally on 2026-07-25:
+
+- `pnpm format:check`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`: 33 TypeScript files, 237 tests; 10 handoff tests
+- `pnpm test:handoff`: 10 tests
+- Focused personal-knowledge/plugin/UI/runtime suites: 22 tests
+- `pnpm content:knowledge:status`: 204 eligible Notes, 12 queued source revisions, one fully
+  classified source revision, seven mapped opinion candidates, zero accepted/evidence-linked
+- `pnpm content:validate`: catalogs plus 15 executable patients
+- `pnpm content:notes:validate`: 204 Notes, 124 attachments, one packet, 13 queue records, one
+  semantic run, and seven opinion candidates
+- `pnpm content:sources:validate`: 8 Drive candidates, 209 extracted artifacts, and the same
+  validated private-authoring state
+- `pnpm content:compile`
+- `pnpm content:evidence`
+- `pnpm content:diagnoses:validate`: 1,112 local ICD-10-CM terms
+- `pnpm demo:reference-runs`: all existing care, expense, and payout baselines unchanged
+- `pnpm build`: Player bundle safety passed
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed
+- `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests
+- `pnpm test:e2e:reviewer`: 4 mobile portable-Reviewer tests
+- `git diff --check`
+
+The first import was rerun and returned `UNCHANGED`, proving idempotence. Private queue, workspace,
+projection, packet, and classifier input files are mode `0600`; directories are mode `0700`. A
+regression test now rejects an import file with broader permissions. No private title, source text,
+candidate wording, citation, summary, or path was printed by aggregate status/validation commands.
 
 ## Google Drive source-inbox state
 
@@ -453,7 +502,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-133)
+- `docs/DECISIONS.md` (through D-134)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -483,6 +532,11 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `packages/engine/src/services.ts`
 - `tools/content-cli/src/apple-notes-provider.ts`
 - `tools/content-cli/src/apple-notes-codex-review.ts`
+- `tools/content-cli/src/personal-knowledge-workspace.ts`
+- `content/catalogs/authoring/personal-knowledge/initial-mdd-antidepressant-selection.profile.json`
+- `apps/web/src/components/PersonalKnowledgeWorkbench.tsx`
+- `apps/web/personal-knowledge-workbench-plugin.ts`
+- `packages/schemas/src/index.ts`
 - `tools/content-cli/src/refresh-ticket-literature.ts`
 - `content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json`
 - `content/catalogs/reactions/reaction-concepts.json`
@@ -491,39 +545,28 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-On the local Developer server, open **Clinical and content tickets**, then inspect one selected
-packet such as `ticket.source.canmat-mdd.antidepressant-baseline` and one no-suitable packet such as
-`ticket.source.bupropion.seizure-history-nuance`. Confirm that the short abstract-only context and
-limitations make the clinical decision easier without looking like an approved answer. Continue
-adjudicating one ticket at a time; scouting alone never resolves it.
+On the local Developer server, switch to **Developer** mode and expand **Personal knowledge
+workbench**. Review the seven initial-MDD-antidepressant Developer-opinion candidates one at a time.
+For each, accept, narrow, reject, split, or remap the concise candidate judgment; preserve
+unresolved class-level targets rather than guessing. This adjudication must not directly change a
+clinical rule or point value.
 
-On the physical phone, foreground the installed/Safari copy, use the update banner or **Check for
-update**, and confirm it reaches distribution
-`8d78c078ba60b7e67f7934c714773aa277b64769`. Confirm sideways patient scrolling and the visible
-`Review tickets · 10 need input` launcher. Export any older assignment feedback before relying on
-the fresh `2026-07f` namespace.
+Independently verify the three bibliography leads and their currentness, identity, source-use
+permissions, and exact contribution. Attach a formal source only after the existing source-use,
+evidence-contribution, and rule-review gates pass. A verified citation may coexist with the
+Developer-opinion bridge and does not automatically convert the opinion into source-derived fact.
 
-Then run the `Recheck the initial MDD patient and database plan` ticket in assignment `2026-07f`.
-Verify that any simultaneous two-antidepressant start among the five current options receives the
-harmful grade and safety cap, that one antidepressant plus psychotherapy does not, and that those
-two rows say `Developer opinion` rather than WHO/CANMAT. Export the completed attempt plus response
-so the next review includes exact selections, receipt, and trace.
+Only after the first source revision is adjudicated should the next queued title/plaintext source
+revision be prepared. Continue one complete revision at a time. Do not bulk-process all 204 Notes
+or widen this pilot to the 116 OCR outputs, HTML, attachments, composites, or extracted chunks
+without a separate explicit scope decision.
 
-After that bounded recheck, review
-`ticket.catalog.medications.normalized-regimen-risk-benefit` and its linked source request as one
-clinical decision at a time. Do not build a general duplicate/augmentation/cross-titration engine
-until normalized regimen relationships and evidence boundaries have been reviewed.
-
-Separately, obtain the exact model identifier from a Codex surface before using
-`content:notes:codex-review`. Then review one bounded Notes title/plaintext segment and classify it
-as a Developer-opinion candidate, bibliographic candidate, secondary context, or
-irrelevant/duplicate material. Do not infer the identifier and do not turn intake directly into
-rules, points, citations, or approval.
-
-The next queued product decision after the regimen review remains medication formulation
-granularity:
-ingredient only versus clinically meaningful IR/SR/XL, long-acting injectable, route, and
-combination-product distinctions.
+The prior Reviewer follow-ups remain queued: inspect one literature-scout packet, re-run the
+assignment-`2026-07f` initial MDD duplicate-antidepressant ticket with an exact completed attempt,
+then review `ticket.catalog.medications.normalized-regimen-risk-benefit`. The next queued product
+decision remains medication formulation granularity: ingredient only versus clinically meaningful
+IR/SR/XL, long-acting injectable, route, and combination-product distinctions.
 
 Do not implement a bulk medication importer, invent missing therapy/diagnosis guidance, begin
-Milestone 4, add a service worker, or bulk-transmit private source material.
+Milestone 4, add a service worker, promote this private-authoring mechanism to `main`, or
+bulk-transmit private source material.
