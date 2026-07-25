@@ -6,15 +6,17 @@ Last updated: 2026-07-24
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
-- Verified feature checkpoint: `dd924f4ea0d48210249f707eed5ec736194066a9`
-  (`Add reviewer variability and phone distribution support`).
-- GitHub workflow `30130820877` passed every beta verification gate. Its Pages package and deploy
-  jobs were correctly skipped.
-- Released `origin/main`: `bccf717bc62edb5772886586a698eae28c7b207b`.
-- `main` and the public Pages application remain unchanged. Promote the whole tested `beta` branch
-  only after an explicit user request such as “push to main.”
-- The currently distributed Reviewer remains at `https://dcr-cmyk648.github.io/PsychSim/` and
-  predates this beta checkpoint.
+- Released feature checkpoint: `0536c287cb547e311298913a2509f98f4b5d28f1`
+  (`Defer macOS OCR discovery`), containing the feature commit
+  `20833712f8e7aae4af1352fee259231075049b9e`.
+- Beta workflow `30138035083` passed every verification gate. Its Pages jobs skipped as intended.
+- `origin/main` is `0536c287cb547e311298913a2509f98f4b5d28f1`. Main workflow `30138175892`
+  passed verification, Pages packaging, and deployment.
+- The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
+  cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
+- This `PROJECT_STATE.md` update is a documentation-only successor retained on `beta`; it does not
+  need a second phone release. Runtime source on `beta` and `main` is identical at the released
+  feature checkpoint.
 
 ## Current phase and bounded checkpoint
 
@@ -29,6 +31,8 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
    adding broad clinical content.
 4. Keep install/update behavior deterministic and observable without clearing local feedback or
    IndexedDB.
+5. Keep private Apple Notes intake separate from executable content and blocked until the required
+   acknowledgments are supplied.
 
 ## Portable Reviewer and gameplay checkpoint
 
@@ -36,7 +40,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
-- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07b`. A material cohort or policy
+- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07c`. A material cohort or policy
   change must bump this ID again.
 - The ten scenarios cover five MDD decision states plus initial GAD, bipolar depression, acute
   mania, schizophrenia relapse, and PTSD. Every case and executable clinical rule is fictional,
@@ -47,9 +51,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Eligible Reviewer cases may receive zero or one deterministic, bounded background-anxiety
   finding. It is explicitly subthreshold, saved in the resolved case, and cannot create a new
   syndrome or alter the rubric.
-- Structured findings now make absent/negative observations visually distinct. Positive symptoms
-  use a red plus; abnormal numeric results use red direction glyphs while retaining value, unit,
-  reference interval, and interpretation.
+- Structured findings now make present and absent observations visually distinct. Present findings
+  use a red `Present` chip; abnormal numeric results use red direction glyphs while retaining
+  value, unit, reference interval, and interpretation.
 - The receipt has one responsive care-points meter. The player's score fills toward the declared
   database-plan benchmark; if the player exceeds it, the player score becomes the scale maximum and
   the database benchmark is marked on the same meter.
@@ -61,6 +65,12 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Treatment remains one searchable catalog menu spanning medication name/class, psychotherapy and
   other nonmedication labels/categories, and disposition. A regression test protects that search
   behavior.
+- Reviewer scenarios are content version `1.2.0`. They preserve explicit medication-list status,
+  structured medication/psychotherapy/provider/level-of-care history, reviewed weight/BMI
+  measurements, and separate body-habitus observations. Service-backed treatment choices freeze
+  fulfillment and displayed cost in review snapshots.
+- Debrief headings are diagnosis/decision-state labels authored for post-submit use. They never
+  appear on patient cards or pre-submit charts.
 - Portable Reviewer feedback still captures both case-specific and subjective app-experience
   comments, exact completed-attempt state, all displayed options/costs/choices, generated tickets,
   flags, and multiple cases in one versioned export.
@@ -106,7 +116,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 
 ## Content, evidence, and source state
 
-- The ordinary investigation menu remains a shared 36-action catalog; cases own structured
+- The ordinary investigation menu remains a shared 38-action catalog; cases own structured
   immediate results and post-submit rules, never answer-hint descriptions.
 - Fictional first and last names resolve independently from large curated pools, with a
   deterministic 25% middle-initial chance and more than 10,000 base combinations.
@@ -127,14 +137,34 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   authoring/search data and never enters the browser bundle.
 - The private residency-article aggregate remains pending user export and no-PHI acknowledgment. No
   SharePoint bytes or developer opinions were imported.
+- The MDD prototype is content version `4.0.0`. CANMAT and Developer-opinion/game-balance
+  contributions remain separate in the trace. Sertraline and escitalopram share the broad
+  first-line baseline; medication-specific fit remains a separate modifier layer. All embedded
+  rules remain medically unreviewed.
+
+## Apple Notes private-intake state
+
+- A metadata-only audit of the exact `Psych research` folder succeeded: 204 notes, 124 attachment
+  records, 0 locked notes, and all 204 notes reported shared status.
+- The gitignored mode-`0600` manifest preserves provider IDs, dates, counts, and flags. It contains
+  no note title, note body, attachment bytes, content hashes, or OCR text.
+- No substantive sync has run. `lastSynchronizedAt` and acknowledgment remain null; the private
+  export directory does not exist.
+- Sync is blocked until the user explicitly confirms no identifiable patient information,
+  authorized local processing, rights to process the shared material, and the acknowledging name.
+  The command after acknowledgment is:
+  `pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Dustin Rowland"`.
+- Intake is local-only, checkpoints every note, retains exact attachment/OCR failure provenance,
+  and cannot directly create evidence contributions, Developer opinions, rules, points, or medical
+  approval.
 
 ## Google Drive source-inbox state
 
-- The connected Drive folder `PsychSim documents` was requested for this checkpoint, but this
-  canonical session has no callable Google Drive connector and no locally synchronized Drive root.
-  The remote folder was therefore not refreshed and no unseen document was ingested.
-- The local-only discovery state still records five candidates from the prior scan; four have
-  locally available extracted artifacts. Inbox, quarantine, and archive are currently empty.
+- `PsychSim documents` was not remotely refreshed during this checkpoint because no callable Drive
+  connector was exposed in this session. Do not infer that the remote folder is unchanged.
+- The local-only discovery state still records five candidates from the prior scan. The separate
+  source manifest has four locally extracted artifacts; two correspond to pulled Drive candidates.
+  Inbox, quarantine, and archive are currently empty.
 - Do not claim that the fifth remote candidate is locally available merely because provider
   metadata says it was once pulled; its bytes/hash cannot be verified from the observable local
   source manifest.
@@ -159,22 +189,30 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Saving feedback is not clinical approval and is not authorization to edit a rule.
 - Source-linked trace rows now make the evidence trail visible, but bibliographic verification
   still does not confer medical or rule-level approval.
+- Developer queues, source requests, opinions, individual tickets, and rule audits begin collapsed
+  and mount only when opened. Patient association requires an explicit blueprint ID; shared target
+  IDs do not imply a link. Receipt guidance binds an exact immutable attempt, and export validation
+  rejects a mismatched patient.
+- The starter-MDD initial-modality packet includes one validated, medically unreviewed literature
+  proposal. Source-cleared CANMAT can support its proposed direction; ACP/IPT metadata or abstracts
+  remain qualifying context only. The proposal changes no rule, point value, or approval state.
 
-## Verification for checkpoint `dd924f4`
+## Verification for checkpoint `0536c28`
 
 Passed locally on 2026-07-24:
 
-- `pnpm assets:icons`
 - `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck`
-- `pnpm test`: 22 TypeScript files, 161 tests; 10 handoff tests
+- `pnpm test`: 26 TypeScript files, 183 tests; 10 handoff tests
 - `pnpm content:validate`
-- `pnpm content:sources:validate`: 5 discovery candidates, 4 local extracted artifacts
+- `pnpm content:sources:validate`: 5 Drive discovery candidates, 4 local extracted artifacts, and
+  204 private Apple Notes metadata records
+- `pnpm content:notes:validate`: 204 note records and 124 attachment records
 - `pnpm content:compile`: 3 local review patients plus 10 portable Reviewer scenarios
 - `pnpm content:evidence`
 - `pnpm content:diagnoses:validate`: 1,112 local ICD-10-CM terms, hash
-  `f13efd1dd80c96397e94276e2600ef0e9883454391b3351b2a66ef43ace35d7c`
+  `f13efd1ce8e5a1134129cd3b511f56913c5a41d10577e22ae3e1fb286ffb3e97`
 - `pnpm demo:reference-runs`
 - `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests
 - `pnpm test:e2e:reviewer`: 4 phone Reviewer tests, including install guidance and a complete
@@ -183,30 +221,32 @@ Passed locally on 2026-07-24:
 - Pages-equivalent `pnpm build:reviewer` with a full injected main SHA: Reviewer bundle and
   source-boundary scanner, 15 files
 - `git diff --check`
+- Metadata-only `pnpm content:notes:audit -- --folder "Psych research"`: 204 notes, 124
+  attachments, no content access
 
-GitHub Actions workflow `30130820877` also passed formatting, lint, typecheck, unit/content tests,
-approved/source validation, Developer compilation, standard browser tests, mobile Reviewer browser
-tests, and both Player and portable Reviewer builds. Pages packaging/deployment skipped on `beta`
-as intended. GitHub emitted only its nonblocking Node-action deprecation annotation.
+GitHub Actions workflow `30138035083` passed the complete beta matrix. Workflow `30138175892`
+repeated the complete matrix on `main`, packaged the finite Reviewer build, and deployed Pages.
+GitHub emitted only its nonblocking Node-action deprecation annotation.
 
-Development-only failed attempts were resolved before the checkpoint: icon generation initially
-lacked a locally usable browser, and two Reviewer assertions were too dependent on a particular
-randomized case/finding. The final generator used the installed Chrome binary, and the tests now
-select stable source-linked and mania-screen observations.
+Development-only failed attempts were resolved before release: one local Player/Reviewer build was
+incorrectly parallelized against their shared `dist` directory; beta CI `30137938213` caught one
+unformatted test file; and beta CI `30137963714` caught eager `sw_vers` discovery on Linux for
+non-OCR paths. Sequential builds, formatted test code, and demand-driven OCR engine discovery are
+now covered and passing. The substantive Apple Notes sync was intentionally not run.
 
 ## Reference-policy checkpoints
 
 Fictional, synthetic, medically unreviewed prototypes:
 
 - Initial MDD:
-  - database plan: 450 care, 80 investigation, 1,070 payout points;
-  - strong alternative: 445 care, 80 investigation, 1,065 payout;
-  - shotgun: 430 care, 7,670 investigation, 0 payout;
-  - unsafe: -935 care, 80 investigation, 0 payout.
+  - database plan: 515 care, 135 investigation, 1,080 payout points;
+  - strong alternative: 515 care, 135 investigation, 1,080 payout;
+  - shotgun: 495 care, 7,745 investigation, 0 payout;
+  - unsafe: -905 care, 135 investigation, 0 payout.
 - Medication/palpitations:
   - database plan: 1,140 care, 630 investigation, 1,310 payout;
   - strong alternative: 1,135 care, 630 investigation, 1,305 payout;
-  - shotgun: 1,120 care, 7,670 investigation, 0 payout;
+  - shotgun: 1,120 care, 7,745 investigation, 0 payout (calculated pre-floor payout -5,825);
   - unsafe: -1,155 care, 130 investigation, 0 payout.
 - Medication/palpitations with owned ECG:
   - database plan remains 1,140 care;
@@ -217,14 +257,18 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-119)
+- `docs/DECISIONS.md` (through D-124)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
+- `docs/DOCUMENT_INGESTION.md`
 - `docs/MEDICATION_AND_INTERVENTION_DATA.md`
 - `docs/SOURCE_USE_POLICY.md`
 - `docs/INSTALL_AND_UPDATES.md`
+- `content/source-docs/README.md`
+- `content/cases/review/literature-synthesis.proposals.json`
+- `packages/content-runtime/src/literature-synthesis.ts`
 - `packages/content-runtime/src/reviewer-assignment.ts`
 - `packages/content-runtime/src/reviewer-content.ts`
 - `packages/content-runtime/src/review-cohort.ts`
@@ -232,17 +276,24 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `apps/web/src/components/ClinicHub.tsx`
 - `apps/web/src/components/EncounterView.tsx`
 - `apps/web/src/components/ReceiptView.tsx`
-- `apps/web/src/distribution-version.ts`
+- `apps/web/src/distribution.ts`
 - `apps/web/src/review-export.ts`
+- `packages/engine/src/services.ts`
+- `tools/content-cli/src/apple-notes-provider.ts`
 - `tests/e2e/reviewer-mobile.spec.ts`
 - `.github/workflows/pages.yml`
 
 ## Exact next action
 
-When the user is ready to continue, present one bounded decision: how much formulation granularity
-the medication catalog should model initially (for example, ingredient only versus clinically
-meaningful IR/SR/XL, long-acting injectable, route, and combination-product distinctions).
+Obtain the required Apple Notes acknowledgments. Then run the private sync, validate its
+manifest/source graph, and review resulting sources one at a time. Until acknowledgment, do not
+read note titles, bodies, or attachment bytes. Intake must not automatically create evidence
+contributions, Developer opinions, gameplay rules, points, or approval.
+
+After that intake decision, the next queued product decision is how much formulation granularity
+the medication catalog should initially model: ingredient only versus clinically meaningful
+IR/SR/XL, long-acting injectable, route, and combination-product distinctions.
 
 Do not implement a bulk medication importer, invent missing therapy/diagnosis guidance, begin
-Milestone 4, add a service worker, or modify `main` until the relevant decision or promotion is
-explicitly authorized.
+Milestone 4, add a service worker, or run substantive Apple Notes sync without the required
+acknowledgments.
