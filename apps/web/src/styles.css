@@ -3990,6 +3990,31 @@ tbody th small {
     grid-template-columns: 1fr;
   }
 
+  .patient-slot-grid {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 0.7rem;
+    padding: 0.15rem 0.9rem 0.75rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 0.15rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .patient-slot-grid > .case-card {
+    flex: 0 0 min(78vw, 22rem);
+    scroll-snap-align: start;
+  }
+
+  .patient-slot-grid > .case-card:only-child {
+    flex-basis: 100%;
+  }
+
   .review-ticket-inline {
     display: none;
   }

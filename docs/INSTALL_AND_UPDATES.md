@@ -4,8 +4,10 @@
 
 PsychSim exposes a bounded iPhone installation path without beginning the broad offline/PWA
 hardening planned for Milestone 8. The public GitHub Pages artifact is still a static portable
-Reviewer build. Ordinary development remains on `beta`; only an explicitly promoted `main` commit
-becomes a phone distribution.
+Reviewer build. Ordinary development remains on `beta`; only a fully gated `main` commit becomes a
+phone distribution. Validated runtime content, scoring/provenance, and finite Reviewer-ticket
+updates normally move to `main`, while materially risky UI/app mechanisms remain beta-only until
+their additional risk is resolved.
 
 There is no service-worker app-shell cache in this checkpoint. Current iPhone Safari can add the
 site as a Home Screen web app, while Vite's content-hashed JavaScript and CSS plus an explicit
@@ -93,9 +95,10 @@ until their existing save actions run.
   dialog at 390 and 320 pixels, and continue to prove IndexedDB reload/export behavior.
 - Both Player and Reviewer bundle-isolation scans still reject private source material, Developer
   queues, the local writer, AI SDK markers, and nonallowlisted review content.
-- Before promoting `beta` to `main`, run the ordinary definition-of-done gates. After Pages
-  deploys, smoke the installed app on one physical iPhone and confirm that an older installed
-  release discovers the new SHA without losing saved reviews.
+- Before promoting `beta` to `main`, run the ordinary definition-of-done gates. Reviewer-surface
+  changes also require the 390-pixel, 320-pixel, and CI iPhone/WebKit gates. After Pages deploys,
+  smoke the installed app on one physical iPhone and confirm that an older installed release
+  discovers the new SHA without losing saved reviews.
 
 ## Explicitly deferred
 

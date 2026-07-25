@@ -90,6 +90,42 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   ).toBeVisible();
   await expect(page.getByText('Review provenance')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Open chart for/ }).first()).toBeVisible();
+  const patientQueue = page.locator('.patient-slot-grid');
+  const patientCards = patientQueue.locator(':scope > .case-card');
+  expect(await patientCards.count()).toBeGreaterThan(1);
+  expect(
+    await patientQueue.evaluate((queue) => {
+      const cards = [...queue.querySelectorAll<HTMLElement>(':scope > .case-card')];
+      const queueRect = queue.getBoundingClientRect();
+      const firstRect = cards[0]!.getBoundingClientRect();
+      const secondRect = cards[1]!.getBoundingClientRect();
+      return (
+        queue.scrollWidth > queue.clientWidth &&
+        Math.abs(firstRect.top - secondRect.top) <= 1 &&
+        secondRect.left < queueRect.right &&
+        secondRect.right > queueRect.right
+      );
+    }),
+  ).toBe(true);
+  await patientCards
+    .last()
+    .getByRole('button', { name: /Open chart for/ })
+    .focus();
+  await expect.poll(() => patientQueue.evaluate((queue) => queue.scrollLeft)).toBeGreaterThan(0);
+  expect(
+    await patientQueue.evaluate((queue) => {
+      const lastButton = queue.querySelector<HTMLElement>(
+        ':scope > .case-card:last-child button[aria-label^="Open chart for"]',
+      );
+      if (!lastButton) return false;
+      const queueRect = queue.getBoundingClientRect();
+      const buttonRect = lastButton.getBoundingClientRect();
+      return buttonRect.left >= queueRect.left - 1 && buttonRect.right <= queueRect.right + 1;
+    }),
+  ).toBe(true);
+  await expectDocumentFitsViewport(page);
+  await expect(page.locator('#ticket-queue-title')).toBeVisible();
+  await expect(page.getByLabel('10 need input')).toBeVisible();
   await page.locator('#ticket-queue-title').click();
   await page
     .getByRole('button', { name: /Review the initial MDD patient and database plan/ })

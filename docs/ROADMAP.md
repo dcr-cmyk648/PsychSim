@@ -59,6 +59,13 @@ post-submit Results selection, reload/reopen recovery, two distinct completed ca
 and one combined exact export. The cohort remains medically unreviewed, and remote bundle import,
 historical re-scoring, and rubric editing remain Milestone 5 work.
 
+Phone hub follow-up: at the mobile breakpoint, the finite patient queue is one contained
+horizontally scrollable row with a visible next-card edge and focus-driven keyboard scrolling. The
+page itself retains no horizontal overflow. The collapsed `Review tickets` launcher remains visible
+below the compact hub, reports how many assigned questions need input, and opens each question in
+the existing full-screen phone dialog. This avoids replacing one long patient page with ten
+simultaneously expanded rule audits.
+
 Follow-up beta checkpoint: Reviewer symptom duration is now structured numeric/unit case state with
 short swappable displays and deterministic replay. Current ranges only support the already-authored
 episode state; cyclothymia threshold discrimination remains a source/clinical-review ticket rather
@@ -69,19 +76,19 @@ use one responsive care-point meter and expose attempt-persisted rule provenance
 The material cohort revision is namespaced as
 `reviewer-assignment.common-psychiatry.2026-07e`.
 
-Progression follow-up on `beta`: a 900-point Clinical intake assistant, gated at 600 lifetime
-points, can automatically administer up to three selected routine checklist/medication-history
-actions. Each uses the ordinary immutable purchase/event path at a discounted but nonzero
-action-specific cost and earns exactly the same clinical evaluation as manual fulfillment. This
-slice adds no department, salary, capacity queue, virtual time, or automatic treatment decision,
-so it does not begin Milestone 4. Stable `main`/Pages remains unchanged until explicit promotion.
+Progression follow-up: a 900-point Clinical intake assistant, gated at 600 lifetime points, can
+automatically administer up to three selected routine checklist/medication-history actions. Each
+uses the ordinary immutable purchase/event path at a discounted but nonzero action-specific cost
+and earns exactly the same clinical evaluation as manual fulfillment. This slice adds no
+department, salary, capacity queue, virtual time, or automatic treatment decision, so it does not
+begin Milestone 4.
 
-Distribution follow-up on `beta`: an explicitly authorized bounded pre-Milestone-8 slice adds a
-stable iPhone Home Screen manifest/icon set and in-app installation guide. Every promoted `main`
-build emits its exact commit SHA as `version.json`; installed copies check on launch, foreground,
-reconnection, interval, and demand, then offer a safe cache-busting reload without clearing
-IndexedDB. There is deliberately no offline service-worker cache, background sync, or automatic
-mid-case reload. Full PWA/offline/performance hardening remains Milestone 8.
+Distribution follow-up: an explicitly authorized bounded pre-Milestone-8 slice adds a stable iPhone
+Home Screen manifest/icon set and in-app installation guide. Every promoted `main` build emits its
+exact commit SHA as `version.json`; installed copies check on launch, foreground, reconnection,
+interval, and demand, then offer a safe cache-busting reload without clearing IndexedDB. There is
+deliberately no offline service-worker cache, background sync, or automatic mid-case reload. Full
+PWA/offline/performance hardening remains Milestone 8.
 
 Medication/intervention authoring checkpoint: the target background database now separates
 normalized identity and regulatory facts, structured evidence claims, Developer opinions,
@@ -99,13 +106,12 @@ rather than one pyramid score. The user's private residency-article aggregate is
 physical source containing many dated logical article units and atomic Developer opinions; no
 SharePoint bytes have been imported.
 
-Clinical-record and encounter-economy follow-up on `beta`: medication-list certainty now
-distinguishes unreconciled, verified-none, and provided states; focused medication reconciliation
-remains distinct from full structured treatment history; weight/BMI remains distinct from body
-habitus; and selected service-backed interventions can incur separately itemized treatment
-operating costs without changing clinical correctness. The starter MDD reference policies now
-intentionally tie the database and strong-alternative medication baselines, with patient fit
-evaluated separately.
+Clinical-record and encounter-economy follow-up: medication-list certainty now distinguishes
+unreconciled, verified-none, and provided states; focused medication reconciliation remains
+distinct from full structured treatment history; weight/BMI remains distinct from body habitus;
+and selected service-backed interventions can incur separately itemized treatment operating costs
+without changing clinical correctness. The starter MDD reference policies now intentionally tie
+the database and strong-alternative medication baselines, with patient fit evaluated separately.
 
 Remaining scope before complex generation: source-controlled patient templates that compile the
 existing typed facts, internal condition/chart, regimen, prior-trial, and treatment-history records

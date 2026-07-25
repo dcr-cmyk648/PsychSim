@@ -1296,3 +1296,25 @@ At local queue hydration, a waiting patient with the truthful legacy `unassessed
 re-instantiated from the current matching blueprint and its original seed. This preserves the
 patient's deterministic identity while preventing the new menu label from revealing an old
 written-plan result. Completed attempts and their historical snapshots are never rewritten.
+
+## D-131 — Main tracks validated gameplay data; beta quarantine is risk-based
+
+Status: accepted; supersedes D-113 only on release cadence and standing authorization. Validated
+runtime case content, declarative scoring and rules, catalogs and provenance, and the finite
+portable Reviewer ticket packet should normally be promoted to `main` after the complete
+Player/Reviewer gates rather than waiting indefinitely on `beta`. The user's standing instruction
+authorizes promotion for that class of change.
+
+`main` remains the stable portable Reviewer artifact. Keeping content current does not authorize
+the Pages build to import arbitrary local Developer queues, draft discovery, private sources,
+authoring-only indexes, or the workspace writer. Lifecycle, exact-assignment allowlists, assignment
+namespace changes, and bundle-isolation gates remain unchanged.
+
+UI or application-mechanism work stays beta-only only when it poses a material failure risk to app
+boot, navigation, persistence or migration, mobile review/export, install/update behavior, or
+bundle isolation. Routine responsive and presentation changes may ship once the required desktop,
+390-pixel, 320-pixel, iPhone/WebKit, Player, Reviewer, and bundle gates pass. Whole verified-beta
+promotion remains the normal release path. Promote a safe checkpoint before starting
+risk-quarantined work; never use the new cadence as a reason to cherry-pick convenient pieces,
+rewrite history, force-push, or ignore unexpected divergence. The working copy still returns to
+`beta` after a release.

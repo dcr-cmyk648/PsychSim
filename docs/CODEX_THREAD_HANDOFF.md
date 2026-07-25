@@ -81,9 +81,11 @@ There is no timed lease expiry. A stale thread must not attempt repository recon
 - Conversation history is not durable project state.
 - Update `PROJECT_STATE.md` before ending substantial work or handing off surfaces.
 - After the portable Reviewer checkpoint, commit and push validated development checkpoints to
-  `origin/beta` so work survives different clones or computers. `main` remains the stable
-  distributed/Pages branch and changes only after the user explicitly authorizes a whole-beta
-  promotion. Return the working copy to `beta` afterward.
+  `origin/beta` so work survives different clones or computers. Validated runtime content,
+  declarative scoring/provenance, and finite portable-ticket updates normally proceed through the
+  complete gates to stable `main`; beta-only quarantine is reserved for materially risky UI or app
+  mechanisms. Promote a safe whole-beta checkpoint before beginning quarantined work and return
+  the working copy to `beta` after release.
 - Never force-push. Stop if the remote diverges.
 - Never use the lease as a reason to stage, commit, push, merge, or resolve a clinical ticket.
 - Files on disk are authoritative; reload them before editing and preserve manual changes.

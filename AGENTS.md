@@ -49,9 +49,17 @@ The handoff command never stages, commits, pushes, resets, restores, or merges f
   feature work there and push its validated checkpoints to `origin/beta`.
 - `main` is the stable distributed/GitHub Pages branch. Do not develop directly on it after the
   `beta` branch exists.
-- The user saying `push to main` (or an equally explicit instruction) authorizes promoting the
-  validated `beta` branch as a whole to `main`. It does not authorize selecting only convenient
-  commits, force-pushing, dropping local work, or bypassing quality gates.
+- Validated runtime content, declarative scoring/rules, catalog/provenance, and finite portable
+  Reviewer-ticket updates should normally be promoted promptly to `main` after the complete
+  Player/Reviewer gates. The user's standing instruction authorizes that release class; it does not
+  admit arbitrary Developer queues, private sources, drafts, or workspace writers to Pages.
+- Keep work beta-only only when it poses a material failure risk to app boot, navigation,
+  persistence/migration, mobile review/export, install/update, or bundle isolation. A routine
+  responsive or presentation change that passes all required phone gates need not remain
+  quarantined merely because it touches the UI.
+- Promote the verified `beta` branch as a whole whenever possible. Promote the current safe
+  checkpoint before beginning risk-quarantined work so later content is not trapped behind it. Do
+  not cherry-pick convenient pieces, force-push, drop work, or bypass quality gates.
 - Stop if `main`, `beta`, or their remotes have diverged unexpectedly. Inspect and report the
   relation before any merge. Return the working copy to `beta` after a successful promotion.
 

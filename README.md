@@ -229,10 +229,13 @@ contains the source inbox, extracted text, authoring classifications, local sour
 queues, writable workspace endpoint, or an AI SDK. Saves and review bundles remain local to the
 browser until manual export.
 
-After this checkpoint, ordinary feature work is committed and pushed on `beta`. `main` is the
-stable distributed/Pages branch and receives the verified `beta` branch only after the user
-explicitly requests a whole-branch promotion such as “push to main.” The local working copy
-returns to `beta` after promotion.
+Ordinary feature work is committed and verified on `beta`. Validated runtime content, declarative
+scoring/provenance, and the finite portable Reviewer ticket packet normally move promptly to
+`main`; beta-only quarantine is reserved for changes that materially risk app boot, navigation,
+persistence, mobile review/export, installation/update, or bundle isolation. Pages still includes
+only the exact static Reviewer assignment—not arbitrary Developer queues, drafts, private sources,
+or the workspace writer. Whole verified-beta promotion remains the normal release path, and the
+local working copy returns to `beta` afterward.
 
 ### Install on an iPhone
 
