@@ -7,22 +7,25 @@ Last updated: 2026-07-25
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
 - Current beta feature checkpoint:
-  `8e08f7ce2ce496fdfc9ee19e8bc3cd02d2c88151` (`Refresh legacy queued safety snapshots`),
-  containing the semantic correction commit
-  `77562685ef420d423b9d8f5261c3356ded2a8e87`.
-  The durable-state follow-up commit records this handoff; `main` is unchanged.
+  `2f8c2dbcc634b87b64b328637c3cf392fb54cba3` (`Improve mobile reviewer release flow`).
+  It contains the assignment-`2026-07e` ticket/safety checkpoint, makes the phone patient queue a
+  contained horizontal carousel, and records the risk-based main/beta release policy.
 - Released feature checkpoint: `0536c287cb547e311298913a2509f98f4b5d28f1`
   (`Defer macOS OCR discovery`), containing the feature commit
   `20833712f8e7aae4af1352fee259231075049b9e`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
 - Beta workflow `30163825898` passed every verification gate. Its Pages jobs skipped as intended.
+- The new mobile checkpoint has passed every local gate except an optional local WebKit rerun; the
+  pinned WebKit download stalled during installation. The required GitHub iPhone/WebKit gate must
+  pass before promotion.
 - `origin/main` is `0536c287cb547e311298913a2509f98f4b5d28f1`. Main workflow `30138175892`
   passed verification, Pages packaging, and deployment.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
 - Beta is intentionally ahead with the assignment-`2026-07e` portable-review checkpoint. It has
-  not been promoted to `main` or the public phone release.
+  not yet been promoted to `main` or the public phone release. The user has now authorized this
+  whole-beta promotion after CI passes.
 
 ## Current phase and bounded checkpoint
 
@@ -39,6 +42,8 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
    IndexedDB.
 5. Keep private Apple Notes intake separate from executable content; physical intake is complete,
    while semantic opinion/citation review remains separately gated and one item at a time.
+6. Keep validated runtime content, scoring/provenance, and the finite Reviewer ticket assignment
+   current on `main`; reserve beta-only quarantine for materially risky UI or app mechanisms.
 
 ## Portable Reviewer and gameplay checkpoint
 
@@ -91,6 +96,12 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   Desktop Developer mode retains dense inline details plus a focused dialog. Portable/mobile
   Reviewer opens each ticket in a full-screen view with its own response field; responses persist
   in the assignment database and export with case feedback.
+- At widths of 760 pixels or less, all waiting-patient cards occupy one contained horizontal row.
+  The next card remains partially visible, touch/trackpad scrolling stays inside the queue, and
+  focusing a later chart control scrolls it into view without introducing page-wide overflow.
+- The compact `Review tickets` disclosure remains collapsed so ten rule audits do not recreate a
+  long phone page. Its visible launcher reports the outstanding count, and its full-screen ticket
+  workflow is now an explicit 390-pixel/320-pixel regression assertion.
 - The assignment bump intentionally creates a fresh Reviewer IndexedDB namespace. Unexported
   `2026-07d` feedback remains in the old browser database and is not mixed into revised cases.
 - A pre-change waiting slot with legacy `unassessed` safety-planning state is re-instantiated from
@@ -241,6 +252,37 @@ Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, o
   proposal. Source-cleared CANMAT can support its proposed direction; ACP/IPT metadata or abstracts
   remain qualifying context only. The proposal changes no rule, point value, or approval state.
 
+## Verification for mobile release checkpoint `2f8c2db`
+
+Passed locally on 2026-07-25:
+
+- `pnpm format:check`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`: 27 TypeScript files, 202 tests; 10 handoff tests
+- `pnpm content:validate`: catalogs plus 15 executable patients
+- `pnpm content:sources:validate`: 8 Drive candidates, 209 extracted artifacts, 204 private Apple
+  Notes records, and no private Codex-review packets
+- `pnpm content:notes:validate`: 204 note records, 124 attachment records, and no private
+  Codex-review packets
+- `pnpm content:compile`: 3 local review patients plus 10 portable Reviewer scenarios
+- `pnpm content:evidence`
+- `pnpm content:diagnoses:validate`: 1,112 local ICD-10-CM terms, hash
+  `f13efd1ce8e5a1134129cd3b511f56913c5a41d10577e22ae3e1fb286ffb3e97`
+- `pnpm demo:reference-runs`
+- `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests
+- `pnpm test:e2e:reviewer`: 4 portable/mobile Reviewer tests at 390 px and 320 px
+- `pnpm build`: Player bundle safety passed, 11 files
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed, 15 files
+- `git diff --check`
+
+The phone test proves contained sideways patient scrolling, a visible next-card affordance,
+focus-driven scrolling to the final card, no document overflow, a visible ten-ticket launcher, one
+saved ticket response, two completed-case reviews, persistence, and one exact assignment export.
+An explicit local iPhone/WebKit run could not start because Playwright's pinned WebKit binary was
+absent; its attempted installation stalled after the download. GitHub Actions installs that binary
+afresh, and its required iPhone/WebKit project remains the release gate.
+
 ## Verification for beta feature checkpoint `8e08f7c`
 
 Passed locally on 2026-07-25:
@@ -374,6 +416,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `apps/web/src/components/ClinicHub.tsx`
 - `apps/web/src/components/EncounterView.tsx`
 - `apps/web/src/components/ReceiptView.tsx`
+- `apps/web/src/styles.css`
 - `apps/web/src/distribution.ts`
 - `apps/web/src/review-export.ts`
 - `packages/engine/src/services.ts`
@@ -386,7 +429,13 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Run assignment `2026-07e` in local/mobile review and export at least one patient-linked ticket
+Push checkpoint `2f8c2db` plus this durable-state update to `origin/beta`, require the complete beta
+workflow including iPhone/WebKit to pass, fast-forward the whole verified beta checkpoint to
+`main`, and verify the deployed cache-busted `version.json` plus portable Reviewer page. Return the
+working copy to `beta`. A physical-phone smoke should confirm sideways patient scrolling, the
+visible ten-ticket launcher, update discovery, and preservation of existing saved feedback.
+
+Then run assignment `2026-07e` in mobile review and export at least one patient-linked ticket
 response. Review whether reaction history and reported safety-planning ability should earn or lose
 points in each focused decision; do not invent a universal clinical reward merely because the
 actions now exist. In particular, reported ability may contribute to disposition appropriateness
