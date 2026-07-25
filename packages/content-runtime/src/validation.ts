@@ -941,6 +941,76 @@ export const validateCaseBlueprint = (
       });
     }
   }
+  if (
+    blueprint.opening.medicationListStatus === 'provided' &&
+    blueprint.opening.knownMedicationIds.length === 0
+  ) {
+    issues.push({
+      severity: 'error',
+      code: 'INVALID_OPENING_MEDICATION_STATUS',
+      message: `${blueprint.id} marks an empty medication list as provided.`,
+    });
+  }
+  if (
+    blueprint.opening.medicationListStatus !== 'provided' &&
+    blueprint.opening.knownMedicationIds.length > 0
+  ) {
+    issues.push({
+      severity: 'error',
+      code: 'INVALID_OPENING_MEDICATION_STATUS',
+      message: `${blueprint.id} exposes medications without a provided-list status.`,
+    });
+  }
+  const treatmentHistory = blueprint.patientRecord.treatmentHistory;
+  const legacyTrialIds = new Set(
+    blueprint.patientRecord.priorMedicationTrials.map((trial) => trial.id),
+  );
+  for (const trial of treatmentHistory.medicationTrials) {
+    if (legacyTrialIds.has(trial.id)) {
+      const legacy = blueprint.patientRecord.priorMedicationTrials.find(
+        (candidate) => candidate.id === trial.id,
+      );
+      if (JSON.stringify(legacy) !== JSON.stringify(trial)) {
+        issues.push({
+          severity: 'error',
+          code: 'CONFLICTING_TREATMENT_HISTORY',
+          message: `${blueprint.id} defines conflicting medication trial ${trial.id}.`,
+        });
+      }
+    }
+    if (!catalogMedicationIds.has(trial.medicationId)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_TREATMENT_HISTORY_MEDICATION_REF',
+        message: `${trial.id} references ${trial.medicationId}.`,
+      });
+    }
+  }
+  for (const trial of treatmentHistory.psychotherapyTrials) {
+    if (
+      !catalogs.treatments.some(
+        (treatment) => treatment.id === trial.interventionId && treatment.kind === 'nonmedication',
+      )
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_TREATMENT_HISTORY_INTERVENTION_REF',
+        message: `${trial.id} references ${trial.interventionId}.`,
+      });
+    }
+  }
+  for (const duplicate of duplicateIds([
+    ...treatmentHistory.medicationTrials.map((entry) => entry.id),
+    ...treatmentHistory.psychotherapyTrials.map((entry) => entry.id),
+    ...treatmentHistory.currentProviders.map((entry) => entry.id),
+    ...treatmentHistory.priorLevelsOfCare.map((entry) => entry.id),
+  ])) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_TREATMENT_HISTORY_ID',
+      message: `${blueprint.id}: ${duplicate}`,
+    });
+  }
 
   for (const solution of blueprint.referenceSolutions) {
     if (
@@ -1257,6 +1327,27 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
   const treatmentById = new Map(catalogs.treatments.map((treatment) => [treatment.id, treatment]));
   const serviceIds = new Set(catalogs.services.map((service) => service.id));
   const formularyIds = new Set(catalogs.formularies.map((formulary) => formulary.id));
+
+  for (const treatment of catalogs.treatments) {
+    if (treatment.fulfillmentServiceId && !serviceIds.has(treatment.fulfillmentServiceId)) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_TREATMENT_SERVICE_REF',
+        message: `${treatment.id} references ${treatment.fulfillmentServiceId}`,
+      });
+    }
+  }
+  for (const action of catalogs.informationActions) {
+    if (
+      /\b(?:when appropriate|when clinically relevant|if indicated)\b/i.test(action.description)
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'PRE_SUBMISSION_ACTION_HINT',
+        message: `${action.id} contains answer-hint wording.`,
+      });
+    }
+  }
 
   const diagnosisNestedIds = catalogs.diagnoses.flatMap((diagnosis) => [
     diagnosis.id,

@@ -125,7 +125,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(workspaceTabs.getByRole('tab', { name: 'Investigate' })).toBeFocused();
 
   await page
-    .getByRole('button', { name: /Manic and hypomanic symptoms, \d+ points, in house/ })
+    .getByRole('button', { name: /Current and past mania or hypomania, \d+ points, in house/ })
     .click();
   const secondDialog = page.getByRole('dialog');
   await expect(secondDialog).toBeVisible();
@@ -145,11 +145,11 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
 
   const revealedResults = page.locator('.revealed-panel .result-list > li');
   await expect(revealedResults).toHaveCount(2);
-  await expect(revealedResults.nth(0)).toContainText('Manic and hypomanic symptoms');
+  await expect(revealedResults.nth(0)).toContainText('Current and past mania or hypomania');
   await expect(revealedResults.nth(1)).toContainText('Presenting problem and timeline');
   await page.getByRole('button', { name: 'Show oldest purchased result first' }).click();
   await expect(revealedResults.nth(0)).toContainText('Presenting problem and timeline');
-  await expect(revealedResults.nth(1)).toContainText('Manic and hypomanic symptoms');
+  await expect(revealedResults.nth(1)).toContainText('Current and past mania or hypomania');
 
   await workspaceTabs.getByRole('tab', { name: 'Treatment' }).click();
   await expectDocumentFitsViewport(page);
@@ -264,7 +264,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   };
   expect(bundle.exportVersion).toBe(5);
   expect(bundle.buildKind).toBe('portable_reviewer');
-  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07b');
+  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07c');
   expect(bundle.attemptReviews).toHaveLength(2);
   expect(bundle.completedAttempts).toHaveLength(2);
   expect(new Set(bundle.completedAttempts.map((attempt) => attempt.blueprintId)).size).toBe(2);

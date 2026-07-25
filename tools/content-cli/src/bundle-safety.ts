@@ -109,6 +109,7 @@ export const verifyProductionBundle = async (
     'source-document.90f1220536d6323b8d84',
     'source-chunk.90f1220536d6323b8d84',
     'source-request.mdd.tsh-workup',
+    'literature-synthesis.mdd.initial-modality.2026-07-24',
     '/__psychsim/local-review-tickets',
     'content/generated/local-review-tickets',
     ...authoringOnlyRegistryMarkers,

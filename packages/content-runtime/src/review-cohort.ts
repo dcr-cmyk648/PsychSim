@@ -42,13 +42,23 @@ const neutralAction = (
   caseToken: string,
 ): CaseInformationActionBlueprint => {
   const allowsBackgroundAnxietyVariation = source.actionId === 'info.history.anxiety-symptoms';
-  const findings = source.result.findings.map((finding, index) => ({
-    id: `finding.${caseToken}.${actionToken(source.actionId)}.${index + 1}`,
-    labelVariants: finding.labelVariants,
-    outcome: allowsBackgroundAnxietyVariation
-      ? ('variable' as const)
-      : neutralOutcome(finding.outcome),
-  }));
+  const preservesReviewedMeasurement = source.actionId === 'info.physical.weight-bmi';
+  const findings = source.result.findings.map((finding, index) => {
+    const outcome = preservesReviewedMeasurement
+      ? finding.outcome
+      : allowsBackgroundAnxietyVariation
+        ? ('variable' as const)
+        : neutralOutcome(finding.outcome);
+    return {
+      id: `finding.${caseToken}.${actionToken(source.actionId)}.${index + 1}`,
+      groupLabel: finding.groupLabel,
+      labelVariants: finding.labelVariants,
+      outcome,
+      ...(outcome === finding.outcome && finding.valueTextVariants
+        ? { valueTextVariants: finding.valueTextVariants }
+        : {}),
+    };
+  });
   return {
     actionId: source.actionId,
     defaultClassification:
@@ -195,18 +205,33 @@ const adherenceAction = (
   },
 });
 
+const medicationTrialsForScenario = (
+  scenario: ReviewCaseScenario,
+): ReviewCaseScenario['priorMedicationTrials'] => {
+  const merged = new Map(scenario.priorMedicationTrials.map((trial) => [trial.id, trial] as const));
+  for (const trial of scenario.treatmentHistory.medicationTrials) {
+    const legacy = merged.get(trial.id);
+    if (legacy && JSON.stringify(legacy) !== JSON.stringify(trial)) {
+      throw new Error(`${scenario.id} defines conflicting medication trial ${trial.id}.`);
+    }
+    merged.set(trial.id, trial);
+  }
+  return [...merged.values()];
+};
+
 const priorTrialsAction = (
   scenario: ReviewCaseScenario,
   caseToken: string,
   catalogs: CatalogBundle,
 ): CaseInformationActionBlueprint => ({
   actionId: 'info.history.prior-trials',
-  defaultClassification: scenario.priorMedicationTrials.length > 0 ? 'high_yield' : 'defensible',
+  defaultClassification:
+    medicationTrialsForScenario(scenario).length > 0 ? 'high_yield' : 'defensible',
   result: {
     kind: 'finding_set',
     findings:
-      scenario.priorMedicationTrials.length > 0
-        ? scenario.priorMedicationTrials.map((trial) => ({
+      medicationTrialsForScenario(scenario).length > 0
+        ? medicationTrialsForScenario(scenario).map((trial) => ({
             id: `finding.${caseToken}.trial.${trial.id.replaceAll('.', '-')}`,
             labelVariants: [
               catalogs.medications.find((medication) => medication.id === trial.medicationId)
@@ -226,6 +251,129 @@ const priorTrialsAction = (
     factsRevealed: [`fact.${caseToken}.prior-trials`],
   },
 });
+
+const providerTypeLabel = (
+  providerType: ReviewCaseScenario['treatmentHistory']['currentProviders'][number]['providerType'],
+): string =>
+  ({
+    psychiatrist: 'Psychiatrist',
+    therapist: 'Therapist',
+    primary_care: 'Primary-care clinician',
+    case_manager: 'Case manager',
+    substance_use_clinician: 'Substance-use clinician',
+    other: 'Other treatment provider',
+  })[providerType];
+
+const levelOfCareLabel = (
+  level: ReviewCaseScenario['treatmentHistory']['priorLevelsOfCare'][number]['level'],
+): string =>
+  ({
+    inpatient_psychiatry: 'Psychiatric hospitalization',
+    partial_hospitalization: 'Partial hospitalization program',
+    intensive_outpatient: 'Intensive outpatient program',
+    residential: 'Residential treatment',
+    emergency_evaluation: 'Emergency psychiatric evaluation',
+    detoxification: 'Detoxification admission',
+    substance_use_rehabilitation: 'Substance-use rehabilitation',
+    other: 'Other higher level of care',
+  })[level];
+
+const treatmentHistoryAction = (
+  scenario: ReviewCaseScenario,
+  caseToken: string,
+  catalogs: CatalogBundle,
+): CaseInformationActionBlueprint => {
+  const history = scenario.treatmentHistory;
+  const medicationTrials = medicationTrialsForScenario(scenario);
+  const findings: FindingBlueprint[] = [
+    ...(medicationTrials.length > 0
+      ? medicationTrials.map((trial) => ({
+          id: `finding.${caseToken}.treatment-history.medication.${trial.id.replaceAll('.', '-')}`,
+          groupLabel: 'Medication trials',
+          labelVariants: [
+            catalogs.medications.find((medication) => medication.id === trial.medicationId)
+              ?.label ?? trial.medicationId,
+          ],
+          outcome: 'present' as const,
+          valueTextVariants: [trial.summary],
+        }))
+      : [
+          {
+            id: `finding.${caseToken}.treatment-history.medication.none`,
+            groupLabel: 'Medication trials',
+            labelVariants: ['Prior psychiatric medication trials'],
+            outcome: 'absent' as const,
+          },
+        ]),
+    ...(history.psychotherapyTrials.length > 0
+      ? history.psychotherapyTrials.map((trial) => ({
+          id: `finding.${caseToken}.treatment-history.psychotherapy.${trial.id.replaceAll('.', '-')}`,
+          groupLabel: 'Psychotherapy',
+          labelVariants: [
+            catalogs.treatments.find((treatment) => treatment.id === trial.interventionId)?.label ??
+              trial.interventionId,
+          ],
+          outcome: 'present' as const,
+          valueTextVariants: [trial.summary],
+        }))
+      : [
+          {
+            id: `finding.${caseToken}.treatment-history.psychotherapy.none`,
+            groupLabel: 'Psychotherapy',
+            labelVariants: ['Prior structured psychotherapy'],
+            outcome: 'absent' as const,
+          },
+        ]),
+    ...(history.currentProviders.length > 0
+      ? history.currentProviders.map((provider) => ({
+          id: `finding.${caseToken}.treatment-history.provider.${provider.id.replaceAll('.', '-')}`,
+          groupLabel: 'Current treatment providers',
+          labelVariants: [providerTypeLabel(provider.providerType)],
+          outcome: provider.active ? ('present' as const) : ('absent' as const),
+          valueTextVariants: [provider.summary],
+        }))
+      : [
+          {
+            id: `finding.${caseToken}.treatment-history.provider.none`,
+            groupLabel: 'Current treatment providers',
+            labelVariants: ['Current psychiatric or psychotherapy provider'],
+            outcome: 'absent' as const,
+          },
+        ]),
+    ...(history.priorLevelsOfCare.length > 0
+      ? history.priorLevelsOfCare.map((episode) => ({
+          id: `finding.${caseToken}.treatment-history.level.${episode.id.replaceAll('.', '-')}`,
+          groupLabel: 'Prior levels of care',
+          labelVariants: [levelOfCareLabel(episode.level)],
+          outcome: 'present' as const,
+          valueTextVariants: [
+            `${episode.summary} · ${episode.occurrenceCount} ${
+              episode.occurrenceCount === 1 ? 'episode' : 'episodes'
+            }`,
+          ],
+        }))
+      : [
+          {
+            id: `finding.${caseToken}.treatment-history.level.none`,
+            groupLabel: 'Prior levels of care',
+            labelVariants: ['Prior hospitalization, PHP, IOP, or residential care'],
+            outcome: 'absent' as const,
+          },
+        ]),
+  ];
+  return {
+    actionId: 'info.history.treatment-history',
+    defaultClassification: findings.some((finding) => finding.outcome === 'present')
+      ? 'high_yield'
+      : 'defensible',
+    result: {
+      kind: 'finding_set',
+      findings,
+      shuffle: false,
+      factsRevealed: [`fact.${caseToken}.treatment-history`],
+    },
+  };
+};
 
 const withEvidence = (
   review: ClinicalRuleReview,
@@ -268,6 +416,9 @@ export const buildReviewCaseScenario = (
     }
     if (action.actionId === 'info.history.prior-trials') {
       return priorTrialsAction(scenario, caseToken, catalogs);
+    }
+    if (action.actionId === 'info.history.treatment-history') {
+      return treatmentHistoryAction(scenario, caseToken, catalogs);
     }
     return neutralAction(action, caseToken);
   });
@@ -323,6 +474,7 @@ export const buildReviewCaseScenario = (
         .map((entry) => entry.medicationId),
     ),
   ];
+  const medicationTrials = medicationTrialsForScenario(scenario);
 
   return CaseBlueprintSchema.parse({
     schemaVersion: 1,
@@ -330,6 +482,7 @@ export const buildReviewCaseScenario = (
     id: scenario.id,
     metadata: {
       title: scenario.internalTitle,
+      debriefTitle: scenario.internalTitle,
       fictional: true,
       synthetic: true,
       medicalReviewStatus: 'unreviewed',
@@ -372,7 +525,11 @@ export const buildReviewCaseScenario = (
         sexForReference: 'unspecified',
       },
       medicationRegimen: scenario.medicationRegimen,
-      priorMedicationTrials: scenario.priorMedicationTrials,
+      priorMedicationTrials: medicationTrials,
+      treatmentHistory: {
+        ...scenario.treatmentHistory,
+        medicationTrials,
+      },
       diagnosisComposition: null,
       clinicalContextDimensions: [],
     },
@@ -384,6 +541,8 @@ export const buildReviewCaseScenario = (
         '{{patient.name}} is a {{patient.age}}-year-old {{patient.occupation}} who presents with “{{patient.chiefComplaint}}.”',
       contextTemplate: scenario.settingText,
       knownMedicationIds,
+      medicationListStatus:
+        knownMedicationIds.length > 0 ? 'provided' : scenario.medicationListStatus,
       knownHistory: scenario.knownHistory,
       basicVitals: template.opening.basicVitals,
     },

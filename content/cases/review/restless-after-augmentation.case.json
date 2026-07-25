@@ -4,6 +4,7 @@
   "id": "case.restless-after-augmentation",
   "metadata": {
     "title": "Restless After Augmentation",
+    "debriefTitle": "Medication-induced akathisia · Initial response",
     "fictional": true,
     "synthetic": true,
     "medicalReviewStatus": "unreviewed",
@@ -120,6 +121,7 @@
     "summaryTemplate": "{{patient.name}} is a {{patient.age}}-year-old {{patient.occupation}} who presents with “{{patient.chiefComplaint}}.”",
     "contextTemplate": "Same-day outpatient visit",
     "knownMedicationIds": ["medication.fluoxetine", "medication.aripiprazole"],
+    "medicationListStatus": "provided",
     "knownHistory": [],
     "basicVitals": [
       "Blood pressure 118/74",
@@ -359,15 +361,45 @@
             "id": "finding.trials.psychotropic",
             "labelVariants": ["Prior psychiatric medication", "Previous psychotropic trial"],
             "outcome": "absent"
-          },
-          {
-            "id": "finding.trials.structured-therapy",
-            "labelVariants": ["Prior structured psychotherapy", "Previous course of therapy"],
-            "outcome": "absent"
           }
         ],
         "shuffle": true,
         "factsRevealed": ["fact.no-prior-akathisia", "fact.prior-antidepressant-trials"]
+      }
+    },
+    {
+      "actionId": "info.history.treatment-history",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.restless-treatment-history.medications",
+            "groupLabel": "Medication trials",
+            "labelVariants": ["Prior psychiatric medication trials"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.restless-treatment-history.psychotherapy",
+            "groupLabel": "Psychotherapy",
+            "labelVariants": ["Prior structured psychotherapy"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.restless-treatment-history.providers",
+            "groupLabel": "Current treatment providers",
+            "labelVariants": ["Current psychiatric prescriber"],
+            "outcome": "present"
+          },
+          {
+            "id": "finding.restless-treatment-history.levels",
+            "groupLabel": "Prior levels of care",
+            "labelVariants": ["Prior hospitalization, PHP, IOP, or residential care"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.restless-full-treatment-history"]
       }
     },
     {
@@ -965,10 +997,45 @@
             "id": "finding.exam.abdominal",
             "labelVariants": ["Abdominal examination", "Abdominal findings"],
             "outcome": "normal"
+          },
+          {
+            "id": "finding.exam.body-habitus",
+            "labelVariants": ["Body habitus"],
+            "outcome": "normal",
+            "valueTextVariants": ["Average adipose and muscular habitus"]
           }
         ],
         "shuffle": true,
         "factsRevealed": ["fact.general-exam-noncontributory"]
+      }
+    },
+    {
+      "actionId": "info.physical.weight-bmi",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.restless-weight-bmi.weight",
+            "labelVariants": ["Measured weight"],
+            "outcome": "present",
+            "valueTextVariants": ["70.8 kg (156 lb)"]
+          },
+          {
+            "id": "finding.restless-weight-bmi.bmi",
+            "labelVariants": ["Body mass index"],
+            "outcome": "normal",
+            "valueTextVariants": ["23.8 kg/m²"]
+          },
+          {
+            "id": "finding.restless-weight-bmi.habitus",
+            "labelVariants": ["Body habitus"],
+            "outcome": "normal",
+            "valueTextVariants": ["Average adipose and muscular habitus"]
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.restless-weight-bmi-normal"]
       }
     },
     {
@@ -1339,7 +1406,9 @@
     "continueMedicationIds": ["medication.fluoxetine", "medication.aripiprazole"],
     "interventionIds": [
       "intervention.medication-safety-counseling",
-      "intervention.grounding-strategies"
+      "intervention.grounding-strategies",
+      "intervention.substance-use.brief-counseling",
+      "intervention.substance-use.motivational-interviewing"
     ],
     "dispositionIds": [
       "disposition.outpatient-followup",
@@ -1933,6 +2002,7 @@
         "info.history.medication-reconciliation",
         "info.history.adherence",
         "info.history.prior-trials",
+        "info.history.treatment-history",
         "info.history.medication-effects",
         "info.history.substance-use",
         "info.history.sleep",
@@ -1942,6 +2012,7 @@
         "info.history.outside-records",
         "info.physical.mental-status",
         "info.physical.general",
+        "info.physical.weight-bmi",
         "info.physical.neurologic",
         "info.physical.movement",
         "info.physical.orthostatic-vitals",

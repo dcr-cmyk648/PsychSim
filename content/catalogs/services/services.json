@@ -116,6 +116,22 @@
   {
     "schemaVersion": 1,
     "contentVersion": "1.0.0",
+    "id": "service.history.treatment-history",
+    "label": "Full psychiatric treatment history",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.treatment-history",
+        "label": "Extended office interview and record review",
+        "kind": "in_house",
+        "operatingCost": 65,
+        "requiredCapabilities": ["medication-review.basic", "history.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "service.history.mania-screen",
     "label": "Mania screen",
     "fulfillmentMethods": [
@@ -397,6 +413,31 @@
   {
     "schemaVersion": 1,
     "contentVersion": "1.0.0",
+    "id": "service.exam.weight-bmi",
+    "label": "Weight and BMI measurement",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.weight-bmi",
+        "label": "Office measurement",
+        "kind": "in_house",
+        "operatingCost": 10,
+        "requiredCapabilities": ["vitals.basic"],
+        "qualityModifier": 1
+      },
+      {
+        "id": "fulfillment.staff.weight-bmi",
+        "label": "Intake assistant measurement",
+        "kind": "in_house",
+        "operatingCost": 6,
+        "requiredCapabilities": ["vitals.basic"],
+        "requiredStaffUpgradeId": "upgrade.staff.intake-assistant",
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "service.lab.routine",
     "label": "Routine laboratory testing",
     "fulfillmentMethods": [
@@ -526,6 +567,38 @@
         "kind": "in_house",
         "operatingCost": 120,
         "requiredCapabilities": ["equipment.eeg"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.intervention.substance-use-counseling",
+    "label": "Brief substance-use counseling",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.substance-use-counseling",
+        "label": "In-office counseling",
+        "kind": "in_house",
+        "operatingCost": 25,
+        "requiredCapabilities": ["counseling.basic"],
+        "qualityModifier": 1
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "service.intervention.substance-use-motivational-interviewing",
+    "label": "Substance-use motivational interviewing",
+    "fulfillmentMethods": [
+      {
+        "id": "fulfillment.office.substance-use-motivational-interviewing",
+        "label": "In-office motivational interviewing",
+        "kind": "in_house",
+        "operatingCost": 30,
+        "requiredCapabilities": ["counseling.basic"],
         "qualityModifier": 1
       }
     ]

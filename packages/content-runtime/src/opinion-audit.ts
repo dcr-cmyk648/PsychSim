@@ -24,9 +24,85 @@ export interface DeveloperOpinionReferenceNeed {
   evidenceQuestion: string;
   details: readonly string[];
   ownerIds: readonly string[];
+  ownerContexts: ReadonlyArray<{
+    ownerId: string;
+    label: string;
+    details: readonly string[];
+  }>;
   linkedSourceRequestIds: readonly string[];
   reviewStatuses: readonly ClinicalRuleReview['status'][];
 }
+
+const ownerContextFor = (
+  ownerId: string,
+  blueprints: readonly CaseBlueprint[],
+  catalogs: CatalogBundle,
+): DeveloperOpinionReferenceNeed['ownerContexts'][number] => {
+  const blueprint = blueprints.find((candidate) => candidate.id === ownerId);
+  if (blueprint) {
+    const diagnoses = blueprint.patientRecord.diagnoses.map((diagnosis) => {
+      const label =
+        catalogs.diagnoses.find((candidate) => candidate.id === diagnosis.id)?.label ??
+        diagnosis.id;
+      return `${label} (${diagnosis.role.replaceAll('_', ' ')})`;
+    });
+    const medicationLabels = blueprint.opening.knownMedicationIds.map(
+      (id) => catalogs.medications.find((candidate) => candidate.id === id)?.label ?? id,
+    );
+    const priorTrialCount = new Set([
+      ...blueprint.patientRecord.priorMedicationTrials.map((trial) => trial.id),
+      ...blueprint.patientRecord.treatmentHistory.medicationTrials.map((trial) => trial.id),
+    ]).size;
+    return {
+      ownerId,
+      label: blueprint.metadata.debriefTitle,
+      details: [
+        `Setting: ${blueprint.opening.contextTemplate}`,
+        `Internal conditions: ${diagnoses.join(' · ') || 'none recorded'}`,
+        `Opening medications: ${
+          blueprint.opening.medicationListStatus === 'provided'
+            ? medicationLabels.join(', ')
+            : blueprint.opening.medicationListStatus.replaceAll('_', ' ')
+        }`,
+        `Prior medication trials: ${priorTrialCount}`,
+        `Relevant patient tags: ${blueprint.patientRecord.clinicalTagIds.join(', ') || 'none'}`,
+      ],
+    };
+  }
+  const medication = catalogs.medications.find((candidate) => candidate.id === ownerId);
+  if (medication) {
+    return {
+      ownerId,
+      label: medication.label,
+      details: [
+        `Medication classes: ${medication.classes.join(' · ')}`,
+        `Catalog tags: ${medication.tags.join(', ')}`,
+      ],
+    };
+  }
+  const diagnosis = catalogs.diagnoses.find((candidate) => candidate.id === ownerId);
+  if (diagnosis) {
+    return {
+      ownerId,
+      label: diagnosis.label,
+      details: [
+        diagnosis.description,
+        `Medical review: ${diagnosis.medicalReviewStatus.replaceAll('_', ' ')}`,
+      ],
+    };
+  }
+  const test = catalogs.tests.find(
+    (candidate) => candidate.id === ownerId || candidate.actionId === ownerId,
+  );
+  if (test) {
+    return {
+      ownerId,
+      label: test.label,
+      details: [`Test action: ${test.actionId}`, `Generator: ${test.generator.type}`],
+    };
+  }
+  return { ownerId, label: ownerId, details: ['No patient-specific owner context is available.'] };
+};
 
 interface OpinionCandidate {
   ruleId: string;
@@ -335,7 +411,7 @@ export const buildDeveloperOpinionReferenceNeeds = (
     string,
     Omit<
       DeveloperOpinionReferenceNeed,
-      'details' | 'ownerIds' | 'linkedSourceRequestIds' | 'reviewStatuses'
+      'details' | 'ownerIds' | 'ownerContexts' | 'linkedSourceRequestIds' | 'reviewStatuses'
     > & {
       details: Set<string>;
       ownerIds: Set<string>;
@@ -376,6 +452,9 @@ export const buildDeveloperOpinionReferenceNeeds = (
       ...entry,
       details: uniqueSorted([...entry.details]),
       ownerIds: uniqueSorted([...entry.ownerIds]),
+      ownerContexts: uniqueSorted([...entry.ownerIds]).map((ownerId) =>
+        ownerContextFor(ownerId, blueprints, catalogs),
+      ),
       linkedSourceRequestIds: uniqueSorted([...entry.linkedSourceRequestIds]),
       reviewStatuses: uniqueSorted([...entry.reviewStatuses]) as ClinicalRuleReview['status'][],
     }))

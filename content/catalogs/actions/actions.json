@@ -31,9 +31,9 @@
   },
   {
     "id": "info.history.mania",
-    "label": "Manic and hypomanic symptoms",
+    "label": "Current and past mania or hypomania",
     "category": "history",
-    "description": "Review mood elevation, irritability, sleep need, speech, activity, and impulsivity.",
+    "description": "Review current and prior periods of elevated or irritable mood, reduced sleep need, speech or activity change, and impulsivity.",
     "serviceId": "service.history.mania-screen",
     "repeatable": false,
     "soapSection": "subjective",
@@ -100,6 +100,16 @@
     "resultSource": "patient_report"
   },
   {
+    "id": "info.history.treatment-history",
+    "label": "Full psychiatric treatment history",
+    "category": "history",
+    "description": "Review medication trials, psychotherapy, current treatment providers, and prior levels of care.",
+    "serviceId": "service.history.treatment-history",
+    "repeatable": false,
+    "soapSection": "subjective",
+    "resultSource": "patient_report"
+  },
+  {
     "id": "info.history.medication-effects",
     "label": "Medication effects and adverse effects",
     "category": "history",
@@ -143,7 +153,7 @@
     "id": "info.history.trauma",
     "label": "Trauma history",
     "category": "history",
-    "description": "Review potentially traumatic experiences and current trauma-related symptoms when appropriate.",
+    "description": "Review potentially traumatic experiences and current trauma-related symptoms.",
     "serviceId": "service.history.standard",
     "repeatable": false,
     "soapSection": "subjective",
@@ -188,6 +198,16 @@
     "repeatable": false,
     "soapSection": "objective",
     "resultSource": "clinician_observation"
+  },
+  {
+    "id": "info.physical.weight-bmi",
+    "label": "Weight, BMI, and body habitus",
+    "category": "physical",
+    "description": "Measure weight and BMI and document observed body habitus.",
+    "serviceId": "service.exam.weight-bmi",
+    "repeatable": false,
+    "soapSection": "objective",
+    "resultSource": "measurement"
   },
   {
     "id": "info.physical.neurologic",
@@ -283,7 +303,7 @@
     "id": "info.labs.pregnancy",
     "label": "Pregnancy test",
     "category": "labs",
-    "description": "Obtain pregnancy testing when clinically relevant to evaluation or treatment selection.",
+    "description": "Obtain urine or serum pregnancy testing.",
     "serviceId": "service.lab.routine",
     "repeatable": false,
     "soapSection": "objective",

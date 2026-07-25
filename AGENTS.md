@@ -75,6 +75,9 @@ pnpm content:sources:validate
 pnpm content:scan
 pnpm content:extract
 pnpm content:watch
+pnpm content:notes:audit -- --folder "Psych research"
+pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Reviewer name"
+pnpm content:notes:validate
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -234,6 +237,16 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
 - Never reproduce long source passages in game content. Create original fictional cases and concise teaching points.
 - Do not send source text externally without an explicit CLI opt-in plus an acknowledgment that the material is appropriate to transmit. Never commit API keys or expose them to the browser.
 - Processing must eventually be SHA-256 based, idempotent, provenance-preserving, and non-destructive; failures go to quarantine with an error.
+- The macOS Apple Notes folder named exactly `Psych research` is a private local source inbox.
+  `content:notes:audit` may record IDs, dates, locked/shared flags, and counts but must never read or
+  print titles, bodies, or attachment bytes. `content:notes:sync` may run only with all required
+  no-PHI, authorized-local-processing, shared-material-rights, and named-reviewer acknowledgments.
+  Preserve exact provider IDs/dates and missing records in the ignored manifest; keep note exports,
+  attachment bytes, OCR, and composites under the protected gitignored boundary with restrictive
+  permissions; use only local macOS Vision OCR; quarantine locked or failed items without deleting
+  the Notes originals; and never transmit this material externally. A note, screenshot, OCR result,
+  embedded citation, or personal takeaway is not automatically a formal source, evidence
+  contribution, clinical rule, point value, or medical approval.
 - The connected Google Drive folder named `PsychSim documents` is a remote source inbox. On an explicit check request, discover new/changed files, persist local-only provider metadata, pull and hash content, deduplicate by SHA-256, and queue sources one at a time. Never propagate a source directly into scoring; create reviewable claim/change proposals first.
 
 ## Definition of done for future changes

@@ -137,14 +137,22 @@ release-commit identity remains a future export enhancement.
 `@psychsim/content-cli` is developer-side. It implements validation, reference runs, reverse-impact
 reporting, SHA-256 source scanning, bounded PDF/DOCX/TXT/Markdown extraction, source review
 listings, controlled patient scaffolding, production-bundle checks, and a before/after ECG
-ownership economy report. It is not imported by the web app. Extracted records and generation
-provenance are local and ignored; an intentionally generated patient scaffold and its blocking
-audit tickets can be committed under `content/cases/review`. A source request can name proposed
-shared impact IDs for ticket routing, but the compiler keeps those separate from owner-local
-evidence contributions and never applies them as rules. The CLI also validates and searches the
-pinned authoring-only ICD-10-CM catalog and deterministically reimports it only after verifying the
-official release-member hash. Those commands never add the classification payload to
-`CatalogBundle` or the web app.
+ownership economy report. Its macOS Apple Notes provider is an additional protected intake edge:
+metadata audit and explicitly acknowledged sync use the public Notes scripting boundary, local
+Vision/PDFKit OCR, per-note checkpoints, and private ignored manifests. It is not imported by the
+web app. Extracted records and generation provenance are local and ignored; an intentionally
+generated patient scaffold and its blocking audit tickets can be committed under
+`content/cases/review`. A source request can name proposed shared impact IDs for ticket routing,
+but the compiler keeps those separate from owner-local evidence contributions and never applies
+them as rules. The CLI also validates and searches the pinned authoring-only ICD-10-CM catalog and
+deterministically reimports it only after verifying the official release-member hash. Those
+commands never add the classification payload to `CatalogBundle` or the web app.
+
+Developer-only literature-synthesis proposals are static decision packets, not a second evidence
+engine. They link exact ticket, source-request, blueprint, evidence, and source-use IDs; validation
+requires source-cleared support and keeps metadata/abstract-only context non-supporting. React may
+render the packet only after the local Developer entry is dynamically loaded. The proposal cannot
+change a rule, choose point magnitudes, or enter Player/Reviewer production bundles.
 
 ## Source-rights and diagnosis-classification boundary
 

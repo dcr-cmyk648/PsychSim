@@ -37,6 +37,9 @@ pnpm content:sources:validate
 pnpm content:scan
 pnpm content:extract
 pnpm content:watch
+pnpm content:notes:audit -- --folder "Psych research"
+pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Your name"
+pnpm content:notes:validate
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -117,11 +120,21 @@ points.
 
 Numeric laboratory results use an EMR-style `Test · Result · Reference interval · Flag` table with familiar display units, UCUM codes in the data model, and explicit normal/high/low interpretation. Reference intervals belong to versioned test profiles rather than being treated as universal; see [LAB_RESULTS.md](docs/LAB_RESULTS.md).
 
-The local authoring slice now hashes and extracts PDF, DOCX, TXT, and Markdown sources into
-gitignored document/chunk records. A controlled scaffold request can turn an existing
-reviewed-as-a-template case into a new medically unreviewed Developer patient with source
-provenance, proposed shared impact IDs, and blocking clinical-audit tickets. It does not infer
-clinical rules or call an AI provider. See
+The local authoring slice hashes and extracts PDF, DOCX, TXT, and Markdown sources into gitignored
+document/chunk records. On macOS, a separate Apple Notes adapter can audit the exact
+`Psych research` folder without reading titles, bodies, or attachment bytes. A content sync is a
+separate explicit action: it requires acknowledgments that the folder contains no identifiable
+patient information, is authorized for local processing, and may lawfully be processed despite
+its shared-folder status. The sync preserves provider IDs and dates in a private manifest, exports
+note text and accessible attachments into the protected local boundary, hashes exact bytes,
+performs local-only Vision OCR for images and PDFs unless `--skip-ocr` is supplied, checkpoints
+after every note, and queues one deterministic Markdown composite per note through the ordinary
+source scanner and extractor. No note text or image is printed or transmitted.
+
+A controlled scaffold request can turn an existing reviewed-as-a-template case into a new
+medically unreviewed Developer patient with source provenance, proposed shared impact IDs, and
+blocking clinical-audit tickets. Neither Apple Notes intake nor scaffolding infers a clinical rule,
+creates a formal citation, or calls an AI provider. See
 [DOCUMENT_INGESTION.md](docs/DOCUMENT_INGESTION.md) and
 [the scaffold example](content/cases/blueprints/basic-mdd-scaffold.example.json).
 

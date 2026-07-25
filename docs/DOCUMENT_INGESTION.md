@@ -1,15 +1,24 @@
 # Source-document ingestion and patient scaffolding
 
-The protected authoring boundary now has a bounded local vertical slice: SHA-256 scanning, duplicate detection, PDF/DOCX/TXT/Markdown extraction, ordered text chunks, watch mode, manifest validation, a controlled patient scaffolder, and automatic Developer-mode discovery. It is not the full Milestone 6–7 workflow: there is no OCR, automatic Google Drive OAuth downloader, claim-review UI, external AI provider, critic model, or automatic clinical-rule authoring.
+The protected authoring boundary now has a bounded local vertical slice: SHA-256 scanning,
+duplicate detection, PDF/DOCX/TXT/Markdown extraction, ordered text chunks, watch mode, manifest
+validation, a controlled patient scaffolder, automatic Developer-mode discovery, and a macOS-only
+Apple Notes adapter with metadata-only audit, acknowledged private export, per-note crash-recovery
+checkpoints, and explicit local OCR for image/PDF attachments. It is not the full Milestone 6–7
+workflow: there is no automatic Google Drive OAuth downloader, claim-review UI, external AI
+provider, critic model, or automatic clinical-rule authoring. General source extraction does not
+silently OCR arbitrary PDFs; OCR exists only in the explicit Apple Notes sync path.
 
 Three records remain deliberately separate: private `SourceDocument`/`SourceChunk` text, tracked formal `EvidenceSourceDefinition` bibliography, and `EvidenceContribution` application notes. A PDF does not become formal evidence merely because it looks academic. Formal use requires a catalog entry; anything else is Expert opinion until a human classifies and catalogs it.
 
-Before downloading or processing bytes, the authoring workflow requires an applicable
-`SourceUseDecision`. Public readability and bibliographic verification are not permission. Storage,
-local extraction, local structured indexing, AI-assisted processing, derived clinical content,
-runtime redistribution, and commercial distribution are separate permissions; a blocked or absent decision leaves the
-source metadata-only. The complete contract is
-[SOURCE_USE_POLICY.md](SOURCE_USE_POLICY.md).
+Before downloading or processing third-party publication bytes for claim extraction, the authoring
+workflow requires an applicable `SourceUseDecision`. D-120 is a narrower exception for acknowledged
+private preservation of the user's Apple Notes corpus: it permits local export, hashing, and OCR
+only, not formal-source status or clinical use. Public readability and bibliographic verification
+are not permission. Storage, local extraction, local structured indexing, AI-assisted processing,
+derived clinical content, runtime redistribution, and commercial distribution are separate
+permissions; a blocked or absent source-specific decision leaves a candidate metadata-only for
+formal use. The complete contract is [SOURCE_USE_POLICY.md](SOURCE_USE_POLICY.md).
 
 Source-specific terms override generic landing-page metadata. The 2024 WHO CDDR PDF is CC
 BY-NC-ND 3.0 IGO and expressly prohibits adaptations without permission, so its text must not enter
@@ -31,11 +40,15 @@ content/source-docs/
   processed/   successfully processed originals
   archive/     byte-identical duplicates and intentionally retained inputs
   quarantine/  failures retained with an explicit error
-  extracted/   local-only normalized document/chunk packages
-  manifests/   local-only SHA-256/status/provenance records
+  extracted/   local-only normalized document/chunk packages and Apple Notes private exports
+  manifests/   local-only SHA-256/status/provider-provenance records
 ```
 
-Only `.gitkeep` files and the warning README are tracked. Root ignore rules protect every other file in these folders, including the account-specific Drive discovery manifest. Vite imports neither this directory nor content tooling; a bundle-safety test scans production output.
+Only `.gitkeep` files and the warning README are tracked. Root ignore rules protect every other file
+in these folders, including the account-specific Drive discovery manifest, the Apple Notes intake
+manifest, private note revisions, attachment bytes, OCR text, and deterministic composites. Vite
+imports neither this directory nor content tooling; a bundle-safety test scans production output.
+Private manifests and Apple Notes derivatives use restrictive local permissions.
 
 ## Classification import is a separate authoring path
 
@@ -72,6 +85,71 @@ The recommended-guideline intake also processed the public VA/DoD suicide-risk P
 catatonia article. NICE, APA, ACE Singapore, and ASAM records remain metadata-only because their
 current terms require permission or prohibit AI ingestion. See
 [the intake map](RECOMMENDED_GUIDELINE_SOURCE_MAP.md) for exact IDs and tickets.
+
+## Apple Notes private research intake
+
+On macOS, the folder named exactly `Psych research` is a local private source inbox. The adapter
+uses Notes' public AppleScript dictionary rather than copying the Notes database or resolving
+private attachment paths. It searches nested folders across every Notes account and refuses to
+continue unless exactly one folder matches.
+
+Audit and content access are separate operations:
+
+```sh
+pnpm content:notes:audit -- --folder "Psych research"
+pnpm content:notes:sync -- --folder "Psych research" \
+  --ack-no-phi \
+  --ack-authorized-local-processing \
+  --ack-shared-material-rights \
+  --acknowledged-by "Your name"
+pnpm content:notes:validate
+```
+
+The audit reads only the account/folder/note/attachment identifiers exposed by Notes, provider
+creation and modification dates, attachment ordinals/content identifiers, locked/shared flags, and
+counts. It does not request note titles, plaintext, HTML, or attachment bytes. It writes
+`content/source-docs/manifests/apple-notes-intake.json` with mode `0600` and prints only aggregate
+counts and the private manifest path.
+
+The sync refuses body or attachment access unless all four acknowledgment inputs are present. The
+acknowledgment records that the folder contains no identifiable patient information, that local
+processing is authorized, that shared-material rights have been considered, who acknowledged the
+conditions, and when. These assertions permit the bounded private workflow; they do not verify
+copyright ownership or convert third-party article screenshots into reusable publications.
+
+For each unlocked new or provider-modified note, Notes writes a private revision containing title,
+plaintext, HTML, and accessible attachments under
+`content/source-docs/extracted/apple-notes-private/`. Provider IDs are hashed for path-safe local
+IDs, while exact provider account, folder, note, and attachment IDs and dates remain in the ignored
+manifest. Attachment bytes receive SHA-256 hashes, MIME detection, size checks, and exact-duplicate
+links. Changed notes create a new revision; unchanged notes are not re-exported; notes no longer in
+the folder remain as `missing` provenance; locked notes and export failures remain recorded as
+quarantined metadata. The workflow never edits or deletes the Notes originals. It atomically
+checkpoints the private manifest after every note, so a process interruption resumes from the
+first unfinished record.
+
+Unless `--skip-ocr` is supplied, image attachments and PDFs are processed locally with macOS Vision
+`VNRecognizeTextRequest` at accurate recognition level; PDFKit renders a bounded number of scanned
+pages and ImageIO bounds image dimensions. The helper is compiled into a private temporary
+directory with the installed macOS SDK, records its source/OS/SDK identity, uses bounded subprocess
+and output limits, and sends nothing to a provider. OCR status is explicitly `completed`, `empty`,
+`unsupported`, or `failed`; OCR failure never masquerades as an empty source. Attachments over
+100 MiB are retained and hashed with an error rather than sent through OCR.
+
+The adapter builds one deterministic Markdown composite per reviewable note from its title,
+plaintext, and attachment OCR boundaries. The composite enters the ordinary inbox scanner and
+extractor immediately, so the existing SHA-256 manifest, duplicate handling, chunk hashing, and
+private `SourceDocument` IDs remain authoritative. Raw HTML, attachment bytes, and OCR text remain
+private. The Apple Notes manifest links provider records to hashes, paths, OCR state, composite
+hash, and expected source-document ID. `content:notes:validate` validates manifest identity,
+private-path containment, unique local records, and attachment hashes; `content:sources:validate`
+runs that validation alongside the Drive and ordinary source manifests.
+
+The output is an intake corpus, not a clinical database update. Note text and OCR are untrusted
+private source material. Personal takeaways begin as Developer opinion; article titles and embedded
+citations are bibliographic candidates only. Formal evidence still requires independent
+bibliographic verification, an applicable `SourceUseDecision`, exact claim review, and a tracked
+contribution. No note, OCR passage, or citation changes a case, rule, score, or review status.
 
 ## Private user-authored residency archive
 
@@ -113,16 +191,19 @@ affecting gameplay.
 
 ## Implemented commands
 
-| Command                             | Behavior                                                                                                                                              |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm content:scan`                 | Hash direct inbox files, detect byte-identical duplicates, write the local manifest, and retain unsupported inputs in quarantine.                     |
-| `pnpm content:extract`              | Parse discovered inputs, verify the pre-extraction hash, write document/chunk records atomically, and retain originals under processed or quarantine. |
-| `pnpm content:watch`                | Watch the inbox and serialize the same scan/extract functions; it adds no alternate behavior.                                                         |
-| `pnpm content:review`               | List extracted source IDs/chunk counts and current Developer review patients without printing source text.                                            |
-| `pnpm content:evidence`             | List every formal evidence record, linked contributions or unused status, and expert-opinion coverage.                                                |
-| `pnpm content:draft <request.json>` | Create a medically unreviewed patient scaffold, local provenance, and blocking clinical-audit tickets.                                                |
-| `pnpm content:compile`              | Schema- and semantically validate every review patient; it never promotes one.                                                                        |
-| `pnpm content:sources:validate`     | Validate Drive/local manifests, duplicate references, document/chunk relationships, and text hashes.                                                  |
+| Command                                                  | Behavior                                                                                                                                                                                                                      |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm content:scan`                                      | Hash direct inbox files, detect byte-identical duplicates, write the local manifest, and retain unsupported inputs in quarantine.                                                                                             |
+| `pnpm content:extract`                                   | Parse discovered inputs, verify the pre-extraction hash, write document/chunk records atomically, and retain originals under processed or quarantine.                                                                         |
+| `pnpm content:watch`                                     | Watch the inbox and serialize the same scan/extract functions; it adds no alternate behavior.                                                                                                                                 |
+| `pnpm content:notes:audit -- --folder "Psych research"`  | Record Apple Notes IDs, dates, locked/shared flags, and counts without reading note titles, bodies, or attachment bytes.                                                                                                      |
+| `pnpm content:notes:sync -- --folder "Psych research" …` | After all required acknowledgments, export changed unlocked notes privately, hash attachments, run local image/PDF OCR by default, checkpoint each note, queue deterministic Markdown composites, then scan and extract them. |
+| `pnpm content:notes:validate`                            | Validate the ignored Apple Notes manifest, unique records, protected paths, and attachment byte hashes without printing source text.                                                                                          |
+| `pnpm content:review`                                    | List extracted source IDs/chunk counts and current Developer review patients without printing source text.                                                                                                                    |
+| `pnpm content:evidence`                                  | List every formal evidence record, linked contributions or unused status, and expert-opinion coverage.                                                                                                                        |
+| `pnpm content:draft <request.json>`                      | Create a medically unreviewed patient scaffold, local provenance, and blocking clinical-audit tickets.                                                                                                                        |
+| `pnpm content:compile`                                   | Schema- and semantically validate every review patient; it never promotes one.                                                                                                                                                |
+| `pnpm content:sources:validate`                          | Validate Drive/local manifests, duplicate references, document/chunk relationships, and text hashes.                                                                                                                          |
 
 The scanner has a 50 MiB per-file safety bound and ignores dotfiles. It uses a content hash plus filename-derived stable entry ID, so re-running the same inbox converges while a differently named byte-identical file receives a duplicate record linked to its primary. Successful originals are renamed into `processed/` with their manifest ID; duplicates go to `archive/`; failures go to `quarantine/`. None is deleted.
 
@@ -130,7 +211,7 @@ Success writes extracted artifacts before moving the original and marks the mani
 
 ## File and extraction strategy
 
-PDF parsing uses a developer-only PDF.js dependency and preserves page numbers. DOCX parsing uses a developer-only Mammoth dependency. TXT is normalized and paragraph-chunked; Markdown additionally preserves heading context. The common parser splits oversized text into bounded chunks, removes NULs, normalizes line endings, and never evaluates macros, scripts, links, or embedded instructions. Each parser run records `psychsim-source-parser-1`, a document text hash, ordered chunks, page/section context where available, and a hash for the exact local chunk text. OCR is a later explicit capability, never a silent fallback.
+PDF parsing uses a developer-only PDF.js dependency and preserves page numbers. DOCX parsing uses a developer-only Mammoth dependency. TXT is normalized and paragraph-chunked; Markdown additionally preserves heading context. The common parser splits oversized text into bounded chunks, removes NULs, normalizes line endings, and never evaluates macros, scripts, links, or embedded instructions. Each parser run records `psychsim-source-parser-1`, a document text hash, ordered chunks, page/section context where available, and a hash for the exact local chunk text. The general file pipeline still has no silent OCR fallback. OCR is an explicit, provider-scoped capability of `content:notes:sync`: macOS Vision processes only exported Apple Notes image/PDF attachments, records its engine and outcome, and can be disabled with `--skip-ocr`.
 
 ## Patient scaffolding and testing
 
@@ -166,10 +247,24 @@ Never place identifiable patient information in this folder. Assume sources may 
 
 Document text is untrusted data, not instructions. Parsers treat it as bytes/text only. Prompt injection, shell snippets, macros, links, and embedded instructions are not followed or executed. Parsers run with bounded file size/type handling, normalize output, and surface failures. No source file is served from `public/` or imported by application code.
 
+Apple Notes audit is intentionally metadata-only. A sync requires explicit no-PHI,
+authorized-local-processing, shared-material-rights, and named-reviewer acknowledgments before it
+requests any title, body, or attachment bytes. The folder's shared flag and every note's shared flag
+are retained because user possession and asserted authorship do not prove exclusive rights. All
+Notes-derived material remains local and private; it is never logged as text or sent to an external
+AI service.
+
 ## External AI opt-in
 
 Local-only and deterministic mock drafting work without a provider. No external provider is implemented. A future provider may send source text only with a command flag, an interactive acknowledgment that the operator has rights and the material is appropriate to transmit, an explicit provider/model, and an audit record of referenced document/chunk IDs. No implicit environment-based send is allowed. API keys stay in local environment/secret storage, never source control, output files, browser code, or prompts saved for review.
 
 ## Provenance and human control
 
-Drafts retain document/chunk IDs, hashes, parser/model/prompt/generator versions, validation/critic results, and repairs. Imported personal notes begin as protected author overrides, not evidence-backed global modifiers. A future AI provider may see only allowed catalog IDs and cannot invent predicate types or approve content. A clinician must review and explicitly approve any eventual production medical content. Source deletion/archival and content deprecation remain separate actions so provenance is never silently broken.
+Drafts retain document/chunk IDs, hashes, parser/model/prompt/generator versions,
+validation/critic results, and repairs. Apple Notes sync itself creates only private intake
+records. A personally authored takeaway may later become an inactive Developer-opinion or
+author-override candidate after human classification; article OCR and embedded citations remain
+unverified source candidates. A future AI provider may see only allowed catalog IDs and cannot
+invent predicate types or approve content. A clinician must review and explicitly approve any
+eventual production medical content. Source deletion/archival and content deprecation remain
+separate actions so provenance is never silently broken.

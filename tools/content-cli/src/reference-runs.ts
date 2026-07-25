@@ -17,7 +17,7 @@ const printRun = (result: ReferenceRunResult): void => {
     `  Gross: ${settlement.baseReimbursement} base ${settlement.carePoints >= 0 ? '+' : '-'} ${Math.abs(settlement.carePoints)} care + ${settlement.complexityBonus} complexity + ${settlement.challengeBonus} challenge, × ${settlement.satisfactionMultiplier.toFixed(2)} = ${settlement.grossPayout}`,
   );
   console.log(
-    `  Net: ${settlement.grossPayout} - ${settlement.operatingExpenses} investigation cost = ${settlement.calculatedPayout}; zero floor → ${settlement.netClinicPointsEarned} points`,
+    `  Net: ${settlement.grossPayout} - ${settlement.informationExpenses} investigation - ${settlement.treatmentExpenses} treatment service = ${settlement.calculatedPayout}; zero floor → ${settlement.netClinicPointsEarned} points`,
   );
   console.log(`  Banked/lifetime progression: +${settlement.bankedClinicPointsEarned} points`);
 };

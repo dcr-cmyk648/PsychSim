@@ -116,6 +116,89 @@ describe('encounter engine', () => {
     }
   });
 
+  it('charges a selected treatment service exactly once and itemizes it separately', () => {
+    const selections = {
+      ...databasePlan.selections,
+      interventionIds: [
+        ...databasePlan.selections.interventionIds,
+        'intervention.substance-use.brief-counseling',
+      ],
+    };
+    const completed = playStarter(databasePlan.actionIds, selections);
+    expect(completed.receipt.settlement).toMatchObject({
+      informationExpenses: 135,
+      treatmentExpenses: 25,
+      operatingExpenses: 160,
+    });
+    expect(
+      completed.receipt.items.find(
+        (item) => item.itemName === 'Add: Brief substance-use counseling',
+      ),
+    ).toMatchObject({
+      operatingCost: 25,
+      fulfillmentMethod: 'In-office counseling',
+    });
+  });
+
+  it('selects the cheapest treatment fulfillment and rejects unavailable treatment services', () => {
+    const cheaperCatalogs = structuredClone(catalogs);
+    cheaperCatalogs.services
+      .find((service) => service.id === 'service.intervention.substance-use-counseling')!
+      .fulfillmentMethods.push({
+        id: 'fulfillment.partner.substance-use-counseling',
+        label: 'Partner counseling',
+        kind: 'contracted_partner',
+        operatingCost: 10,
+        requiredCapabilities: [],
+        qualityModifier: 1,
+      });
+    const selections = {
+      ...databasePlan.selections,
+      interventionIds: ['intervention.substance-use.brief-counseling'],
+    };
+    const cheaperInstance = instantiateCase(
+      prototypeCaseBlueprint,
+      'treatment-fulfillment',
+      cheaperCatalogs,
+    );
+    const cheaperState = startEncounter(
+      cheaperInstance,
+      startingClinic,
+      startingClinic.activeLocationId,
+    );
+    const selected = requireCompleted(
+      updateTreatmentSelections(cheaperState, selections, cheaperCatalogs),
+    );
+    const completed = requireCompleted(completeEncounter(selected, cheaperCatalogs));
+    expect(completed.receipt.settlement.treatmentExpenses).toBe(10);
+
+    const withoutCounseling = {
+      ...startingClinic,
+      capabilities: startingClinic.capabilities.filter(
+        (capability) => capability !== 'counseling.basic',
+      ),
+    };
+    const withoutCounselingCatalogs = structuredClone(catalogs);
+    const activeLocation = withoutCounselingCatalogs.locations.find(
+      (location) => location.id === withoutCounseling.activeLocationId,
+    )!;
+    activeLocation.capabilities = activeLocation.capabilities.filter(
+      (capability) => capability !== 'counseling.basic',
+    );
+    const originalInstance = instantiateCase(
+      prototypeCaseBlueprint,
+      'treatment-unavailable',
+      withoutCounselingCatalogs,
+    );
+    const unavailable = updateTreatmentSelections(
+      startEncounter(originalInstance, withoutCounseling, withoutCounseling.activeLocationId),
+      selections,
+      withoutCounselingCatalogs,
+    );
+    expect(unavailable.ok).toBe(false);
+    if (!unavailable.ok) expect(unavailable.error.code).toBe('SERVICE_UNAVAILABLE');
+  });
+
   it('keeps history and physical work in house while every lab and diagnostic study is a sendout', () => {
     for (const action of catalogs.informationActions) {
       const result = resolveServiceFulfillment(
@@ -226,12 +309,12 @@ describe('encounter engine', () => {
       )!,
     );
     expect(database.receipt.pointReport).toMatchObject({
-      carePointsEarned: 450,
-      databasePlanCarePoints: 450,
+      carePointsEarned: 515,
+      databasePlanCarePoints: 515,
       treatmentGrade: 'optimal',
     });
-    expect(alternative.receipt.pointReport.treatmentGrade).toBe('strong_alternative');
-    expect(alternative.receipt.pointReport.carePointsEarned).toBeGreaterThanOrEqual(400);
+    expect(alternative.receipt.pointReport.treatmentGrade).toBe('optimal');
+    expect(alternative.receipt.pointReport.carePointsEarned).toBe(515);
   });
 
   it('grades stopping a contributing medication correctly', () => {

@@ -32,16 +32,22 @@ const treatmentOption = (
   label: string,
   category: string | null,
   selectedIds: ReadonlySet<string>,
+  fulfillment: {
+    serviceId: string;
+    fulfillmentMethodId: string;
+    fulfillmentLabel: string;
+    pointCost: number;
+  } | null = null,
 ): DeveloperAttemptReviewOption => ({
   kind,
   optionId,
   label,
   category,
   description: null,
-  serviceId: null,
-  fulfillmentMethodId: null,
-  fulfillmentLabel: null,
-  pointCost: null,
+  serviceId: fulfillment?.serviceId ?? null,
+  fulfillmentMethodId: fulfillment?.fulfillmentMethodId ?? null,
+  fulfillmentLabel: fulfillment?.fulfillmentLabel ?? null,
+  pointCost: fulfillment?.pointCost ?? null,
   selected: selectedIds.has(optionId),
 });
 
@@ -77,6 +83,28 @@ export const buildDeveloperAttemptReview = ({
   const dispositionIds = new Set(selected.dispositionId ? [selected.dispositionId] : []);
   const purchasedActionIds = new Set(attempt.purchases.map((purchase) => purchase.actionId));
   const options: DeveloperAttemptReviewOption[] = [];
+  const treatmentFulfillment = (treatmentId: string) => {
+    const treatment = requiredCatalogEntry(catalogs.treatments, treatmentId, 'treatment');
+    if (!treatment.fulfillmentServiceId) return null;
+    const fulfillment = resolveServiceFulfillment(
+      treatment.fulfillmentServiceId,
+      attempt.clinicStateAtStart,
+      encounterStarted.locationId,
+      catalogs.services,
+      catalogs.locations,
+    );
+    if (!fulfillment.ok) {
+      throw new Error(
+        `Cannot snapshot fulfillment for ${treatment.label}: ${fulfillment.error.message}`,
+      );
+    }
+    return {
+      serviceId: treatment.fulfillmentServiceId,
+      fulfillmentMethodId: fulfillment.value.method.id,
+      fulfillmentLabel: fulfillment.value.method.label,
+      pointCost: fulfillment.value.method.operatingCost,
+    };
+  };
 
   for (const action of attempt.caseInstance.informationActions) {
     const definition = requiredCatalogEntry(
@@ -161,6 +189,7 @@ export const buildDeveloperAttemptReview = ({
         intervention.label,
         intervention.category,
         interventionIds,
+        treatmentFulfillment(interventionId),
       ),
     );
   }
@@ -173,6 +202,7 @@ export const buildDeveloperAttemptReview = ({
         disposition.label,
         disposition.category,
         dispositionIds,
+        treatmentFulfillment(dispositionId),
       ),
     );
   }

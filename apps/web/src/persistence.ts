@@ -44,15 +44,49 @@ const migrateLegacyNode = (value: unknown): unknown => {
   return migrated;
 };
 
+/**
+ * Additive fields can arrive while the pre-release save envelope remains v5.
+ * Populate them from the exact historical meaning rather than relying on
+ * schema defaults that could mislabel an old receipt.
+ */
+const migrateAdditiveV5Node = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(migrateAdditiveV5Node);
+  if (!isRecord(value)) return value;
+  const migrated = Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, migrateAdditiveV5Node(child)]),
+  );
+  if (Array.isArray(migrated.knownMedicationIds) && !('medicationListStatus' in migrated)) {
+    migrated.medicationListStatus =
+      migrated.knownMedicationIds.length > 0 ? 'provided' : 'unreconciled';
+  }
+  if (
+    typeof migrated.title === 'string' &&
+    'medicalReviewStatus' in migrated &&
+    !('debriefTitle' in migrated)
+  ) {
+    migrated.debriefTitle = migrated.title;
+  }
+  if (typeof migrated.operatingExpenses === 'number') {
+    if (!('informationExpenses' in migrated)) {
+      migrated.informationExpenses = migrated.operatingExpenses;
+    }
+    if (!('treatmentExpenses' in migrated)) {
+      migrated.treatmentExpenses = 0;
+    }
+  }
+  return migrated;
+};
+
 /** Migrate the only pre-release save shape without mutating the stored value. */
 export const migrateSaveData = (value: unknown): unknown => {
-  if (!isRecord(value) || value.saveDataVersion === 5) return value;
+  if (!isRecord(value)) return value;
+  if (value.saveDataVersion === 5) return migrateAdditiveV5Node(value);
   if (value.saveDataVersion === 4) {
-    return {
+    return migrateAdditiveV5Node({
       ...value,
       saveDataVersion: 5,
       attemptReviews: Array.isArray(value.attemptReviews) ? value.attemptReviews : [],
-    };
+    });
   }
   const sourceSaveDataVersion =
     typeof value.saveDataVersion === 'number' ? value.saveDataVersion : 0;
@@ -89,7 +123,7 @@ export const migrateSaveData = (value: unknown): unknown => {
   }
   const profile = PlayerProfileSchema.safeParse(migrated.profile);
   if (!profile.success) return migrated;
-  return {
+  return migrateAdditiveV5Node({
     schemaVersion: 1,
     saveDataVersion: 5,
     profile: profile.data,
@@ -117,7 +151,7 @@ export const migrateSaveData = (value: unknown): unknown => {
         payload: migrated,
       },
     ],
-  };
+  });
 };
 
 const requestResult = <T>(request: IDBRequest<T>): Promise<T> =>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ClinicalReviewTicket, CompletedAttempt, ContentFlag } from '@psychsim/schemas';
 
 import type {
@@ -7,6 +7,7 @@ import type {
   CompletedAuditedReferenceRun,
   ReferenceSolutionAudit,
 } from '../reference-audit';
+import { LazyDisclosure } from './LazyDisclosure';
 
 interface FlagDraft {
   disputedItemId: string | null;
@@ -31,12 +32,14 @@ interface ReceiptViewProps {
   initialDeveloperReviewNote: string;
   portableReviewerBuild?: boolean;
   reviewExportAvailable?: boolean;
+  linkedReviewTickets?: readonly ClinicalReviewTicket[];
   onBackToClinic: () => void;
   onReplay: () => void;
   onExportReviews?: () => void;
   onFlag: (draft: FlagDraft) => Promise<void>;
   onSaveGuidance: (draft: GuidanceDraft) => Promise<void>;
   onSaveDeveloperReview: (reviewerNote: string) => Promise<boolean>;
+  onSaveLinkedTicketReview?: (ticketId: string, reviewerNotes: string) => Promise<void>;
 }
 
 const displayLabel = (value: string): string => value.replaceAll('_', ' ');
@@ -45,7 +48,13 @@ const signed = (value: number): string =>
 
 type ComparablePlan = Pick<
   AuditedPlayerPlan | CompletedAuditedReferenceRun,
-  'informationActions' | 'selections' | 'carePoints' | 'workupExpense' | 'netPayout'
+  | 'informationActions'
+  | 'selections'
+  | 'carePoints'
+  | 'workupExpense'
+  | 'treatmentExpense'
+  | 'operatingExpense'
+  | 'netPayout'
 >;
 
 const TREATMENT_GROUPS: ReadonlyArray<{
@@ -146,8 +155,16 @@ function PlanCard({
       </header>
       <dl className="plan-comparison-metrics">
         <div>
-          <dt>Workup</dt>
+          <dt>Investigations</dt>
           <dd>{plan.workupExpense.toLocaleString()} pts</dd>
+        </div>
+        <div>
+          <dt>Treatment services</dt>
+          <dd>{plan.treatmentExpense.toLocaleString()} pts</dd>
+        </div>
+        <div>
+          <dt>Total operating cost</dt>
+          <dd>{plan.operatingExpense.toLocaleString()} pts</dd>
         </div>
         <div>
           <dt>Payout</dt>
@@ -238,10 +255,14 @@ function TraceRuleDetails({
         : formalCount > 0
           ? `${formalCount} ${formalCount === 1 ? 'reference' : 'references'}`
           : 'Expert opinion';
+  const traceClasses = [
+    trace.points < 0 ? 'negative-trace' : null,
+    trace.classification === 'critical_omission' ? 'critical-trace' : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
-    <details
-      className={trace.classification === 'critical_omission' ? 'critical-trace' : undefined}
-    >
+    <details className={traceClasses || undefined}>
       <summary>
         <span>{trace.label}</span>
         <small
@@ -294,6 +315,74 @@ function TraceRuleDetails({
   );
 }
 
+function LinkedTicketReviewCard({
+  ticket,
+  onSave,
+}: {
+  ticket: ClinicalReviewTicket;
+  onSave: (ticketId: string, reviewerNotes: string) => Promise<void>;
+}) {
+  const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setReviewerNotes(ticket.reviewerNotes);
+  }, [ticket.id, ticket.reviewerNotes]);
+
+  const dirty = reviewerNotes.trim() !== ticket.reviewerNotes;
+  return (
+    <LazyDisclosure
+      className="ticket-card developer-question-card"
+      summary={
+        <>
+          <span>
+            <strong>{ticket.title}</strong>
+            <small>{ticket.guidance}</small>
+          </span>
+          <span className="source-status">
+            {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
+          </span>
+        </>
+      }
+    >
+      {() => (
+        <div className="developer-question-body">
+          <p>
+            Answer this question after reviewing the exact patient, your submitted choices, the
+            database-plan comparison, and the rule trace on this receipt.
+          </p>
+          <label htmlFor={`receipt-ticket-response-${ticket.id}`}>
+            Your response, judgment, or alternative references
+          </label>
+          <textarea
+            id={`receipt-ticket-response-${ticket.id}`}
+            rows={6}
+            maxLength={8000}
+            value={reviewerNotes}
+            placeholder="Describe what the rule should do, qualify the proposed direction, or paste a better source."
+            onChange={(event) => setReviewerNotes(event.target.value)}
+          />
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={!dirty || saving}
+            onClick={() => {
+              setSaving(true);
+              void onSave(ticket.id, reviewerNotes.trim()).finally(() => setSaving(false));
+            }}
+          >
+            {saving ? 'Saving…' : dirty ? 'Save response with this attempt' : 'Response saved'}
+          </button>
+          <small>
+            This links the question to this immutable completed attempt. It does not change a
+            clinical rule.
+          </small>
+        </div>
+      )}
+    </LazyDisclosure>
+  );
+}
+
 export function ReceiptView({
   attempt,
   developerToolsEnabled,
@@ -302,12 +391,14 @@ export function ReceiptView({
   initialDeveloperReviewNote,
   portableReviewerBuild = false,
   reviewExportAvailable = false,
+  linkedReviewTickets = [],
   onBackToClinic,
   onReplay,
   onExportReviews,
   onFlag,
   onSaveGuidance,
   onSaveDeveloperReview,
+  onSaveLinkedTicketReview = async () => undefined,
 }: ReceiptViewProps) {
   const { pointReport, settlement, items } = attempt.receipt;
   const [disputedItemId, setDisputedItemId] = useState<string | null>(null);
@@ -458,9 +549,9 @@ export function ReceiptView({
     <main className="receipt-shell">
       <section className="receipt-hero" aria-labelledby="receipt-title">
         <div className="receipt-title-block">
-          <p className="eyebrow">Case settled · {displayLabel(pointReport.treatmentGrade)}</p>
+          <p className="eyebrow">Case receipt · {displayLabel(pointReport.treatmentGrade)}</p>
           <h1 id="receipt-title" tabIndex={-1}>
-            Case receipt
+            {attempt.caseInstance.metadata.debriefTitle}
           </h1>
           <p>{pointReport.selectedPathwayLabel ?? 'No accepted complete pathway matched'}</p>
         </div>
@@ -497,6 +588,33 @@ export function ReceiptView({
       />
 
       {portableReviewerBuild ? developerReviewPanel : null}
+
+      {developerCaseReviewEnabled && linkedReviewTickets.length > 0 ? (
+        <LazyDisclosure
+          className="ticket-queue developer-major-disclosure receipt-linked-questions"
+          summary={
+            <>
+              <span>
+                <small>Questions attached to this patient</small>
+                <strong>Review this case against queued decisions</strong>
+              </span>
+              <span className="count-badge">{linkedReviewTickets.length}</span>
+            </>
+          }
+        >
+          {() => (
+            <div className="developer-disclosure-body ticket-list">
+              {linkedReviewTickets.map((ticket) => (
+                <LinkedTicketReviewCard
+                  key={ticket.id}
+                  ticket={ticket}
+                  onSave={onSaveLinkedTicketReview}
+                />
+              ))}
+            </div>
+          )}
+        </LazyDisclosure>
+      ) : null}
 
       <div className="receipt-grid">
         <section className="receipt-panel" aria-labelledby="points-title">
@@ -554,6 +672,14 @@ export function ReceiptView({
             </div>
             <div className="negative-row">
               <dt>Information and test costs</dt>
+              <dd>−{settlement.informationExpenses.toLocaleString()} pts</dd>
+            </div>
+            <div className="negative-row">
+              <dt>Treatment-service costs</dt>
+              <dd>−{settlement.treatmentExpenses.toLocaleString()} pts</dd>
+            </div>
+            <div className="negative-row">
+              <dt>Total operating costs</dt>
               <dd>−{settlement.operatingExpenses.toLocaleString()} pts</dd>
             </div>
             <div className="total-row">

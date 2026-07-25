@@ -102,6 +102,18 @@ describe('Developer attempt review snapshots', () => {
         }),
       ]),
     );
+    expect(
+      review.availableOptions.find(
+        (option) =>
+          option.kind === 'nonmedication' &&
+          option.optionId === 'intervention.substance-use.brief-counseling',
+      ),
+    ).toMatchObject({
+      serviceId: 'service.intervention.substance-use-counseling',
+      fulfillmentMethodId: 'fulfillment.office.substance-use-counseling',
+      pointCost: 25,
+      selected: false,
+    });
     expect(review.attemptSnapshot).toEqual(attempt);
     expect(review.attemptSnapshot.purchases).toEqual(attempt.purchases);
     expect(review.attemptSnapshot.submittedTreatment).toEqual(attempt.submittedTreatment);

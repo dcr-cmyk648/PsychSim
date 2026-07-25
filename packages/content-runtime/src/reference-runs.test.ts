@@ -9,9 +9,9 @@ import {
 } from './reference-runs';
 
 describe('reference policies', () => {
-  it('orders database plan, alternative, shotgun, and unsafe care points sensibly', () => {
+  it('allows equally valid broad first-line routes while preserving shotgun and unsafe ordering', () => {
     const [database, alternative, shotgun, unsafe] = runAllReferenceSolutions();
-    expect(database!.receipt.pointReport.carePointsEarned).toBeGreaterThan(
+    expect(database!.receipt.pointReport.carePointsEarned).toBe(
       alternative!.receipt.pointReport.carePointsEarned,
     );
     expect(alternative!.receipt.pointReport.carePointsEarned).toBeGreaterThan(

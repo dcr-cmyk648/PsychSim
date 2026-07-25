@@ -9,6 +9,7 @@ import {
   type CompletedAttempt,
   type ContentFlag,
   type EncounterState,
+  type LiteratureSynthesisProposal,
   type ProgressionMode,
   type SaveData,
   type SourceRequest,
@@ -124,6 +125,8 @@ export default function App() {
   const [developerSourceRequests, setDeveloperSourceRequests] = useState<readonly SourceRequest[]>(
     [],
   );
+  const [developerLiteratureSynthesisProposals, setDeveloperLiteratureSynthesisProposals] =
+    useState<readonly LiteratureSynthesisProposal[]>([]);
   const [saveData, setSaveData] = useState<SaveData | null>(null);
   const [screen, setScreen] = useState<Screen>('hub');
   const [mobileWorkflowPane, setMobileWorkflowPane] = useState<MobileWorkflowPane>('patient');
@@ -144,6 +147,7 @@ export default function App() {
           caseRuleAudits: module.developerCaseRuleAudits,
           opinionReferenceNeeds: module.developerOpinionReferenceNeeds,
           sourceRequests: module.developerSourceRequests,
+          literatureSynthesisProposals: module.developerLiteratureSynthesisProposals,
         }))
       : REVIEWER_BUILD
         ? import('@psychsim/content-runtime/reviewer').then((module) => ({
@@ -155,6 +159,7 @@ export default function App() {
             caseRuleAudits: [] as readonly CaseRuleAudit[],
             opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
             sourceRequests: [] as readonly SourceRequest[],
+            literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
           }))
         : Promise.resolve({
             blueprints: approvedCaseBlueprints as readonly CaseBlueprint[],
@@ -162,6 +167,7 @@ export default function App() {
             caseRuleAudits: [] as readonly CaseRuleAudit[],
             opinionReferenceNeeds: [] as readonly DeveloperOpinionReferenceNeed[],
             sourceRequests: [] as readonly SourceRequest[],
+            literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
           });
     void Promise.all([repository.load(), developerContent])
       .then(async ([saved, developerData]) => {
@@ -177,6 +183,7 @@ export default function App() {
         setDeveloperCaseRuleAudits(developerData.caseRuleAudits);
         setDeveloperOpinionReferenceNeeds(developerData.opinionReferenceNeeds);
         setDeveloperSourceRequests(developerData.sourceRequests);
+        setDeveloperLiteratureSynthesisProposals(developerData.literatureSynthesisProposals);
         setSaveData(hydrated);
       })
       .catch((caught: unknown) => {
@@ -658,7 +665,11 @@ export default function App() {
     }
   };
 
-  const saveTicketReview = async (ticketId: string, reviewerNotes: string): Promise<void> => {
+  const saveTicketReview = async (
+    ticketId: string,
+    reviewerNotes: string,
+    linkedAttemptId?: string,
+  ): Promise<void> => {
     if (!saveData) return;
     const ticket = saveData.clinicalTickets.find((candidate) => candidate.id === ticketId);
     if (!ticket) return;
@@ -668,6 +679,7 @@ export default function App() {
     const notesChanged = normalizedNotes !== ticket.reviewerNotes;
     const updatedTicket = ClinicalReviewTicketSchema.parse({
       ...ticket,
+      attemptId: linkedAttemptId ?? ticket.attemptId,
       status: normalizedNotes ? 'in_review' : 'proposed',
       reviewerNotes: normalizedNotes,
       reviewerNotesUpdatedAt: notesChanged
@@ -768,6 +780,7 @@ export default function App() {
           caseRuleAudits={developerCaseRuleAudits}
           opinionReferenceNeeds={developerOpinionReferenceNeeds}
           sourceRequests={developerSourceRequests}
+          literatureSynthesisProposals={developerLiteratureSynthesisProposals}
           onStart={startPatientSlot}
           onOpenSavedAttempt={openSavedAttemptForReview}
           onSetMode={(mode) => void setProgressionMode(mode)}
@@ -837,6 +850,11 @@ export default function App() {
                     saveData.attemptReviews.find((review) => review.attemptId === attempt.id)
                       ?.reviewerNote ?? ''
                   }
+                  linkedReviewTickets={saveData.clinicalTickets.filter(
+                    (ticket) =>
+                      ticket.status !== 'resolved' &&
+                      ticket.blueprintId === attempt.caseInstance.blueprintId,
+                  )}
                   onBackToClinic={() => setScreen('hub')}
                   onReplay={replayAttempt}
                   onExportReviews={() => void exportTickets()}
@@ -848,6 +866,9 @@ export default function App() {
                   onFlag={saveFlag}
                   onSaveGuidance={saveGuidance}
                   onSaveDeveloperReview={saveDeveloperAttemptReview}
+                  onSaveLinkedTicketReview={(ticketId, reviewerNotes) =>
+                    saveTicketReview(ticketId, reviewerNotes, attempt.id)
+                  }
                 />
               </div>
             </>

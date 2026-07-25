@@ -53,7 +53,8 @@
     "serviceIds": [
       "service.history.medication-reconciliation",
       "service.history.adherence",
-      "service.history.standard"
+      "service.history.standard",
+      "service.exam.weight-bmi"
     ],
     "patientCategoryIdsUnlocked": [],
     "clinicalCapabilityLabels": [
@@ -67,7 +68,8 @@
         "info.history.medication-reconciliation",
         "info.history.adherence",
         "info.history.depressive-symptoms",
-        "info.history.anxiety-symptoms"
+        "info.history.anxiety-symptoms",
+        "info.physical.weight-bmi"
       ],
       "maximumAutomaticActions": 3
     }

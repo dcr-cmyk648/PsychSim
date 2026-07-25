@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.0.0",
+  "contentVersion": "4.0.0",
   "id": "case.first-visit-depression",
   "metadata": {
     "title": "Outpatient Intake 001",
+    "debriefTitle": "Major depressive disorder · Initial treatment",
     "fictional": true,
     "synthetic": true,
     "medicalReviewStatus": "unreviewed",
@@ -20,7 +21,8 @@
       "location.multidisciplinary-center.outpatient",
       "location.endgame.outpatient"
     ],
-    "sourceDocumentIds": []
+    "sourceDocumentIds": ["source-document.412aade56104fd394503"],
+    "evidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"]
   },
   "patientRecord": {
     "schemaVersion": 1,
@@ -69,7 +71,90 @@
         "label": "Urine toxicology panel"
       }
     ],
-    "sourceUseNotes": [],
+    "sourceUseNotes": [
+      {
+        "id": "source-use.mdd.canmat-assessment",
+        "authority": "formal_publication",
+        "evidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+        "sourceDocumentId": "source-document.412aade56104fd394503",
+        "sourceChunkIds": [
+          "source-chunk.412aade56104fd394503.8",
+          "source-chunk.412aade56104fd394503.9"
+        ],
+        "targetContentIds": [
+          "objective.mdd-episode-course",
+          "objective.mdd-depressive-syndrome",
+          "objective.mdd-bipolar-screen",
+          "objective.mdd-medication-reconciliation",
+          "objective.mdd-substance-contribution",
+          "path.mdd-single-antidepressant-outpatient"
+        ],
+        "contributionTypes": ["workup", "diagnosis_logic", "treatment"],
+        "contribution": "CANMAT Q.1.d supports a comprehensive, individualized assessment and a psychiatric and medical differential before MDD treatment. This informs the direction of these workup rules; it does not prescribe PsychSim's exact point values.",
+        "generatedBy": "human",
+        "medicalReviewStatus": "unreviewed"
+      },
+      {
+        "id": "source-use.mdd.developer-assessment-balance",
+        "authority": "expert_opinion",
+        "evidenceSourceIds": [],
+        "sourceDocumentId": null,
+        "sourceChunkIds": [],
+        "targetContentIds": [
+          "objective.mdd-episode-course",
+          "objective.mdd-depressive-syndrome",
+          "objective.mdd-bipolar-screen",
+          "objective.mdd-medication-reconciliation",
+          "objective.mdd-substance-contribution",
+          "path.mdd-single-antidepressant-outpatient"
+        ],
+        "contributionTypes": ["workup", "scoring"],
+        "contribution": "Developer opinion and game balance set the relative rewards, costs, and conditional penalty: substance history and medication reconciliation are useful, while missing mania history is penalized specifically when an antidepressant is started.",
+        "generatedBy": "human",
+        "medicalReviewStatus": "unreviewed"
+      },
+      {
+        "id": "source-use.mdd.canmat-initial-treatment",
+        "authority": "formal_publication",
+        "evidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+        "sourceDocumentId": "source-document.412aade56104fd394503",
+        "sourceChunkIds": [
+          "source-chunk.412aade56104fd394503.17",
+          "source-chunk.412aade56104fd394503.18",
+          "source-chunk.412aade56104fd394503.19",
+          "source-chunk.412aade56104fd394503.20"
+        ],
+        "targetContentIds": [
+          "grade.mdd-optimal-sertraline",
+          "grade.mdd-strong-escitalopram",
+          "grade.mdd-acceptable-other-antidepressant",
+          "rule.mdd-psychotherapy",
+          "rule.mdd-behavioral-activation"
+        ],
+        "contributionTypes": ["treatment"],
+        "contribution": "CANMAT's initial-treatment sections support multiple first-line antidepressant and psychological-treatment options selected through shared decision making. They do not establish PsychSim's exact game-point magnitudes or medication-fit modifiers.",
+        "generatedBy": "human",
+        "medicalReviewStatus": "unreviewed"
+      },
+      {
+        "id": "source-use.mdd.developer-treatment-balance",
+        "authority": "expert_opinion",
+        "evidenceSourceIds": [],
+        "sourceDocumentId": null,
+        "sourceChunkIds": [],
+        "targetContentIds": [
+          "grade.mdd-optimal-sertraline",
+          "grade.mdd-strong-escitalopram",
+          "grade.mdd-acceptable-other-antidepressant",
+          "rule.mdd-psychotherapy",
+          "rule.mdd-behavioral-activation"
+        ],
+        "contributionTypes": ["scoring", "treatment"],
+        "contribution": "Developer opinion and game balance translate broad first-line options into a dominant treatment baseline, with smaller patient-fit modifiers evaluated separately.",
+        "generatedBy": "human",
+        "medicalReviewStatus": "unreviewed"
+      }
+    ],
     "treatmentReference": {
       "id": "treatment-reference.outpatient-intake-001",
       "primaryAuthoredPathwayId": "path.mdd-single-antidepressant-outpatient",
@@ -92,6 +177,12 @@
     "testGenerationContext": {
       "ageYearsVariantTarget": "patient.age",
       "sexForReference": "unspecified"
+    },
+    "treatmentHistory": {
+      "medicationTrials": [],
+      "psychotherapyTrials": [],
+      "currentProviders": [],
+      "priorLevelsOfCare": []
     }
   },
   "criticalFacts": {
@@ -109,6 +200,7 @@
     "summaryTemplate": "{{patient.name}} is a {{patient.age}}-year-old {{patient.occupation}} who presents with “{{patient.chiefComplaint}}.”",
     "contextTemplate": "Scheduled outpatient visit",
     "knownMedicationIds": [],
+    "medicationListStatus": "unreconciled",
     "knownHistory": [],
     "basicVitals": [
       "Blood pressure 116/72",
@@ -494,15 +586,45 @@
             "id": "finding.trials.psychotropic",
             "labelVariants": ["Prior psychiatric medication", "Previous psychotropic trial"],
             "outcome": "absent"
-          },
-          {
-            "id": "finding.trials.structured-therapy",
-            "labelVariants": ["Prior structured psychotherapy", "Previous course of therapy"],
-            "outcome": "absent"
           }
         ],
         "shuffle": true,
         "factsRevealed": ["fact.mdd-treatment-naive"]
+      }
+    },
+    {
+      "actionId": "info.history.treatment-history",
+      "defaultClassification": "high_yield",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.treatment-history.medications",
+            "groupLabel": "Medication trials",
+            "labelVariants": ["Prior psychiatric medication trials"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.treatment-history.psychotherapy",
+            "groupLabel": "Psychotherapy",
+            "labelVariants": ["Prior structured psychotherapy"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.treatment-history.providers",
+            "groupLabel": "Current treatment providers",
+            "labelVariants": ["Current psychiatrist or therapist"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.treatment-history.levels",
+            "groupLabel": "Prior levels of care",
+            "labelVariants": ["Prior hospitalization, PHP, IOP, or residential care"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.mdd-full-treatment-history"]
       }
     },
     {
@@ -779,10 +901,45 @@
             "id": "finding.exam.abdominal",
             "labelVariants": ["Abdominal examination", "Abdominal findings"],
             "outcome": "normal"
+          },
+          {
+            "id": "finding.exam.body-habitus",
+            "labelVariants": ["Body habitus"],
+            "outcome": "normal",
+            "valueTextVariants": ["Average adipose and muscular habitus"]
           }
         ],
         "shuffle": true,
         "factsRevealed": ["fact.mdd-general-exam-normal"]
+      }
+    },
+    {
+      "actionId": "info.physical.weight-bmi",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.weight-bmi.weight",
+            "labelVariants": ["Measured weight"],
+            "outcome": "present",
+            "valueTextVariants": ["70.8 kg (156 lb)"]
+          },
+          {
+            "id": "finding.weight-bmi.bmi",
+            "labelVariants": ["Body mass index"],
+            "outcome": "normal",
+            "valueTextVariants": ["23.8 kg/m²"]
+          },
+          {
+            "id": "finding.weight-bmi.habitus",
+            "labelVariants": ["Body habitus"],
+            "outcome": "normal",
+            "valueTextVariants": ["Average adipose and muscular habitus"]
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.mdd-weight-bmi-normal"]
       }
     },
     {
@@ -1192,7 +1349,16 @@
       "points": 35,
       "omissionPenalty": -35,
       "explanationObtained": "Essential and obtained: episode duration and functional impairment were established.",
-      "explanationOmitted": "Critical item omitted: episode duration and functional impairment were not established."
+      "explanationOmitted": "Critical item omitted: episode duration and functional impairment were not established.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-assessment-balance"
+        ]
+      }
     },
     {
       "id": "objective.mdd-depressive-syndrome",
@@ -1206,7 +1372,16 @@
       "points": 50,
       "omissionPenalty": -50,
       "explanationObtained": "Essential and obtained: depressive symptoms and impairment were characterized.",
-      "explanationOmitted": "Critical item omitted: the depressive syndrome was not characterized."
+      "explanationOmitted": "Critical item omitted: the depressive syndrome was not characterized.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-assessment-balance"
+        ]
+      }
     },
     {
       "id": "objective.mdd-bipolar-screen",
@@ -1220,7 +1395,16 @@
       "points": 0,
       "omissionPenalty": 0,
       "explanationObtained": "Essential and obtained: an appropriate negative bipolar-spectrum screen earns full credit.",
-      "explanationOmitted": "Critical item omitted: prior mania or hypomania was not assessed before antidepressant selection."
+      "explanationOmitted": "Critical item omitted: prior mania or hypomania was not assessed before antidepressant selection.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-assessment-balance"
+        ]
+      }
     },
     {
       "id": "objective.mdd-safety",
@@ -1235,6 +1419,52 @@
       "omissionPenalty": -80,
       "explanationObtained": "Essential and obtained: suicide risk and outpatient suitability were assessed.",
       "explanationOmitted": "Critical item omitted: suicide risk and level of care were not assessed."
+    },
+    {
+      "id": "objective.mdd-medication-reconciliation",
+      "label": "Reconcile medications before prescribing",
+      "importance": "high_yield",
+      "requiredByDefault": false,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.medication-reconciliation"
+      },
+      "points": 0,
+      "omissionPenalty": 0,
+      "explanationObtained": "High-yield and obtained: the previously unreconciled medication list was verified.",
+      "explanationOmitted": "Medication reconciliation was not obtained.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-assessment-balance"
+        ]
+      }
+    },
+    {
+      "id": "objective.mdd-substance-contribution",
+      "label": "Assess substance contribution",
+      "importance": "high_yield",
+      "requiredByDefault": false,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.substance-use"
+      },
+      "points": 30,
+      "omissionPenalty": 0,
+      "explanationObtained": "High-yield and obtained: substance use and withdrawal were assessed as possible contributors.",
+      "explanationOmitted": "Substance contribution was not assessed; no omission penalty applies in this prototype case.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-assessment-balance"
+        ]
+      }
     }
   ],
   "availableTreatments": {
@@ -1256,7 +1486,9 @@
       "intervention.psychotherapy.supportive",
       "intervention.behavioral-activation",
       "intervention.sleep-routine",
-      "intervention.grounding-strategies"
+      "intervention.grounding-strategies",
+      "intervention.substance-use.brief-counseling",
+      "intervention.substance-use.motivational-interviewing"
     ],
     "dispositionIds": [
       "disposition.outpatient-followup",
@@ -1401,12 +1633,21 @@
         ]
       },
       "explanation": "Optimal prototype path: one starter-formulary SSRI is a coherent first medication choice for this uncomplicated outpatient presentation.",
-      "baseCarePoints": 100
+      "baseCarePoints": 100,
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-initial-treatment",
+          "source-use.mdd.developer-treatment-balance"
+        ]
+      }
     },
     {
       "id": "grade.mdd-strong-escitalopram",
-      "label": "Alternative starter-formulary SSRI",
-      "grade": "strong_alternative",
+      "label": "Single starter-formulary SSRI",
+      "grade": "optimal",
       "priority": 180,
       "predicate": {
         "type": "all",
@@ -1453,13 +1694,22 @@
           }
         ]
       },
-      "explanation": "Strong alternative: escitalopram is a coherent starter-formulary antidepressant choice for this case.",
-      "baseCarePoints": 95
+      "explanation": "First-line baseline: a single starter-formulary antidepressant is a coherent initial choice; patient-fit modifiers are evaluated separately.",
+      "baseCarePoints": 100,
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-initial-treatment",
+          "source-use.mdd.developer-treatment-balance"
+        ]
+      }
     },
     {
       "id": "grade.mdd-acceptable-other-antidepressant",
-      "label": "Other single starter antidepressant",
-      "grade": "acceptable",
+      "label": "Single starter-formulary antidepressant",
+      "grade": "optimal",
       "priority": 170,
       "predicate": {
         "type": "any",
@@ -1478,8 +1728,17 @@
           }
         ]
       },
-      "explanation": "Acceptable: a single starter-formulary antidepressant is defensible, though it is not the highest-valued reference path for this synthetic case.",
-      "baseCarePoints": 85
+      "explanation": "First-line baseline: a single starter-formulary antidepressant is a coherent initial choice; patient-fit modifiers are evaluated separately.",
+      "baseCarePoints": 100,
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-initial-treatment",
+          "source-use.mdd.developer-treatment-balance"
+        ]
+      }
     }
   ],
   "treatmentPathways": [
@@ -1508,7 +1767,9 @@
         "objective.mdd-episode-course",
         "objective.mdd-depressive-syndrome",
         "objective.mdd-bipolar-screen",
-        "objective.mdd-safety"
+        "objective.mdd-safety",
+        "objective.mdd-medication-reconciliation",
+        "objective.mdd-substance-contribution"
       ],
       "conditionalRequirements": [
         {
@@ -1517,11 +1778,46 @@
           "pointsIfMissing": -70,
           "safetyCritical": true,
           "explanationMet": "Prior mania or hypomania was screened before antidepressant treatment.",
-          "explanationMissing": "Prior mania or hypomania was not screened before antidepressant treatment."
+          "explanationMissing": "Prior mania or hypomania was not screened before antidepressant treatment.",
+          "review": {
+            "status": "unreviewed",
+            "reviewerId": null,
+            "reviewedAt": null,
+            "sourceUseNoteIds": [
+              "source-use.mdd.canmat-assessment",
+              "source-use.mdd.developer-assessment-balance"
+            ]
+          }
+        },
+        {
+          "objectiveId": "objective.mdd-medication-reconciliation",
+          "pointsIfMet": 35,
+          "pointsIfMissing": 0,
+          "safetyCritical": false,
+          "explanationMet": "The medication list was reconciled before a new antidepressant was selected.",
+          "explanationMissing": "The previously unreconciled medication list was not verified before prescribing; no omission penalty applies in this prototype case.",
+          "review": {
+            "status": "unreviewed",
+            "reviewerId": null,
+            "reviewedAt": null,
+            "sourceUseNoteIds": [
+              "source-use.mdd.canmat-assessment",
+              "source-use.mdd.developer-assessment-balance"
+            ]
+          }
         }
       ],
       "explanation": "Focused history supports a single starter antidepressant with psychotherapy and outpatient care.",
-      "workupCostPar": 80
+      "workupCostPar": 135,
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-assessment-balance"
+        ]
+      }
     },
     {
       "id": "path.mdd-safe-referral",
@@ -1566,7 +1862,16 @@
       "classificationIfTrue": "nonmedication",
       "classificationIfFalse": "ineffective",
       "explanationIfTrue": "Evidence-based psychotherapy was included in the combined plan.",
-      "explanationIfFalse": "A psychotherapy option was omitted from the combined plan."
+      "explanationIfFalse": "A psychotherapy option was omitted from the combined plan.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-initial-treatment",
+          "source-use.mdd.developer-treatment-balance"
+        ]
+      }
     },
     {
       "id": "rule.mdd-behavioral-activation",
@@ -1581,7 +1886,16 @@
       "classificationIfTrue": "nonmedication",
       "classificationIfFalse": "ineffective",
       "explanationIfTrue": "A concrete behavioral activation plan supports recovery while treatment begins.",
-      "explanationIfFalse": "No behavioral activation plan was selected."
+      "explanationIfFalse": "No behavioral activation plan was selected.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-initial-treatment",
+          "source-use.mdd.developer-treatment-balance"
+        ]
+      }
     },
     {
       "id": "rule.mdd-outpatient-disposition",
@@ -1728,16 +2042,16 @@
   ],
   "scoring": {
     "componentPointCaps": {
-      "workup": 135,
-      "medication_selection": 165,
+      "workup": 165,
+      "medication_selection": 220,
       "medication_discontinuation": 0,
       "safety": 30,
       "nonmedication": 70,
       "disposition": 70,
       "efficiency": 0
     },
-    "databasePlanWorkupCost": 80,
-    "databasePlanCarePoints": 450
+    "databasePlanWorkupCost": 135,
+    "databasePlanCarePoints": 515
   },
   "economy": {
     "baseReimbursement": 650,
@@ -1754,7 +2068,9 @@
         "info.history.presenting-problem",
         "info.history.depressive-symptoms",
         "info.history.mania",
-        "info.history.suicide-safety"
+        "info.history.suicide-safety",
+        "info.history.medication-reconciliation",
+        "info.history.substance-use"
       ],
       "selections": {
         "startMedicationIds": ["medication.sertraline"],
@@ -1773,7 +2089,9 @@
         "info.history.presenting-problem",
         "info.history.depressive-symptoms",
         "info.history.mania",
-        "info.history.suicide-safety"
+        "info.history.suicide-safety",
+        "info.history.medication-reconciliation",
+        "info.history.substance-use"
       ],
       "selections": {
         "startMedicationIds": ["medication.escitalopram"],
@@ -1799,6 +2117,7 @@
         "info.history.medication-reconciliation",
         "info.history.adherence",
         "info.history.prior-trials",
+        "info.history.treatment-history",
         "info.history.medication-effects",
         "info.history.substance-use",
         "info.history.sleep",
@@ -1808,6 +2127,7 @@
         "info.history.outside-records",
         "info.physical.mental-status",
         "info.physical.general",
+        "info.physical.weight-bmi",
         "info.physical.neurologic",
         "info.physical.movement",
         "info.physical.orthostatic-vitals",
@@ -1843,7 +2163,9 @@
         "info.history.presenting-problem",
         "info.history.depressive-symptoms",
         "info.history.mania",
-        "info.history.suicide-safety"
+        "info.history.suicide-safety",
+        "info.history.medication-reconciliation",
+        "info.history.substance-use"
       ],
       "selections": {
         "startMedicationIds": ["medication.sertraline", "medication.fluoxetine"],

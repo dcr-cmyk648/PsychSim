@@ -11,7 +11,7 @@ describe('portable reviewer cohort', () => {
   const reviewerClinic = resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs);
 
   it('compiles ten separate medically unreviewed patient scenarios', () => {
-    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07b');
+    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07c');
     expect(reviewerCaseBlueprints.map((blueprint) => blueprint.id)).toEqual([
       'case.review-cohort.mdd-initial',
       'case.review-cohort.mdd-adherence',
@@ -24,7 +24,7 @@ describe('portable reviewer cohort', () => {
       'case.review-cohort.schizophrenia-relapse',
       'case.review-cohort.ptsd-initial',
     ]);
-    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.1.0')).toBe(
+    expect(reviewerCaseBlueprints.every((blueprint) => blueprint.contentVersion === '1.2.0')).toBe(
       true,
     );
     expect(reviewerDecisionPolicies.map((policy) => policy.id)).toHaveLength(8);
@@ -66,6 +66,27 @@ describe('portable reviewer cohort', () => {
       expect(
         blueprint.informationActions.every((action) => action.result.findings.length > 0),
       ).toBe(true);
+    }
+  });
+
+  it('preserves reviewed BMI measurements and body-habitus detail in compiled patients', () => {
+    for (const blueprint of reviewerCaseBlueprints) {
+      const instance = instantiateCase(blueprint, 'reviewer-physical-detail', catalogs);
+      const weight = instance.informationActions.find(
+        (action) => action.actionId === 'info.physical.weight-bmi',
+      )!;
+      expect(
+        weight.result.findings.find((finding) => finding.label === 'Body mass index'),
+      ).toMatchObject({
+        outcome: 'normal',
+        valueText: expect.stringContaining('kg/m²'),
+      });
+      const general = instance.informationActions.find(
+        (action) => action.actionId === 'info.physical.general',
+      )!;
+      expect(
+        general.result.findings.find((finding) => finding.label === 'Body habitus')?.valueText,
+      ).toBeTruthy();
     }
   });
 

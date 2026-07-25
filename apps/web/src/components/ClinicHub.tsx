@@ -5,6 +5,7 @@ import type {
   CatalogBundle,
   ClinicalReviewTicket,
   ClinicState,
+  LiteratureSynthesisProposal,
   ProgressionMode,
   SaveData,
   SourceRequest,
@@ -15,6 +16,8 @@ import { getPurchasableUpgradeDefinitions, getUpgradeOffer } from '@psychsim/eng
 
 import { CaseRuleAuditView } from './CaseRuleAuditView';
 import { DeveloperOpinionQueue } from './DeveloperOpinionQueue';
+import { LazyDisclosure } from './LazyDisclosure';
+import { LiteratureSynthesisProposalView } from './LiteratureSynthesisProposalView';
 import { SourceRequestQueue } from './SourceRequestQueue';
 
 export interface PatientSlotPreview {
@@ -34,6 +37,7 @@ interface ClinicHubProps {
   caseRuleAudits: readonly CaseRuleAudit[];
   opinionReferenceNeeds: readonly DeveloperOpinionReferenceNeed[];
   sourceRequests: readonly SourceRequest[];
+  literatureSynthesisProposals?: readonly LiteratureSynthesisProposal[];
   onStart: (slotId: string) => void;
   onOpenSavedAttempt?: (attemptId: string) => void;
   onSetMode: (mode: ProgressionMode) => void;
@@ -83,10 +87,16 @@ const ticketPriority = { blocking: 0, high: 1, medium: 2, low: 3 } as const;
 interface TicketReviewCardProps {
   ticket: ClinicalReviewTicket;
   caseRuleAudit: CaseRuleAudit | null;
+  literatureSynthesisProposal: LiteratureSynthesisProposal | null;
   onSave: ClinicHubProps['onSaveTicketReview'];
 }
 
-function TicketReviewCard({ ticket, caseRuleAudit, onSave }: TicketReviewCardProps) {
+function TicketReviewCard({
+  ticket,
+  caseRuleAudit,
+  literatureSynthesisProposal,
+  onSave,
+}: TicketReviewCardProps) {
   const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
   const [saving, setSaving] = useState(false);
 
@@ -105,82 +115,125 @@ function TicketReviewCard({ ticket, caseRuleAudit, onSave }: TicketReviewCardPro
   };
 
   return (
-    <article className="ticket-card">
-      <div>
-        <strong>{ticket.title}</strong>
-        <small>
-          {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
-          {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
-        </small>
-        <p>{ticket.guidance}</p>
-        {caseRuleAudit ? (
-          <CaseRuleAuditView audit={caseRuleAudit} targetContentIds={ticket.targetContentIds} />
-        ) : null}
-        <details className="ticket-context">
-          <summary>Targets and review routing</summary>
-          <dl>
-            <div>
-              <dt>Source</dt>
-              <dd>
-                {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
-                {ticket.sourceAuthority.replaceAll('_', ' ')}
-              </dd>
-            </div>
-            <div>
-              <dt>Proposed routing</dt>
-              <dd>{ticket.proposedRouting}</dd>
-            </div>
-            <div>
-              <dt>Target IDs</dt>
-              <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
-            </div>
-            <div>
-              <dt>Dependencies</dt>
-              <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
-            </div>
-            <div>
-              <dt>Conflicts</dt>
-              <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
-            </div>
-            {ticket.resurfacingTrigger ? (
-              <div>
-                <dt>Resurface when</dt>
-                <dd>{ticket.resurfacingTrigger}</dd>
-              </div>
+    <LazyDisclosure
+      className="ticket-card developer-question-card"
+      summary={
+        <>
+          <span>
+            <strong>{ticket.title}</strong>
+            <small>
+              {caseRuleAudit ? `${caseRuleAudit.caseLabel} · ` : ''}
+              {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
+              {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
+            </small>
+          </span>
+          <span className="source-status">
+            {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
+          </span>
+        </>
+      }
+    >
+      {() => (
+        <div className="developer-question-body ticket-card-body">
+          <div>
+            <h4>Decision needed</h4>
+            <p>{ticket.guidance}</p>
+            {caseRuleAudit ? (
+              <dl className="developer-question-context">
+                <div>
+                  <dt>Linked patient</dt>
+                  <dd>
+                    {caseRuleAudit.caseLabel} · case version {caseRuleAudit.contentVersion}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Current database plan</dt>
+                  <dd>
+                    {caseRuleAudit.databasePlan.carePoints} care points ·{' '}
+                    {caseRuleAudit.databasePlan.workupCostPar} investigation points
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="audit-disclaimer">
+                Cross-cutting question: no focused patient is linked yet.
+              </p>
+            )}
+            {caseRuleAudit ? (
+              <CaseRuleAuditView audit={caseRuleAudit} targetContentIds={ticket.targetContentIds} />
             ) : null}
-          </dl>
-        </details>
-      </div>
-      <div className="ticket-review-fields">
-        <label htmlFor={`ticket-reviewer-notes-${ticket.id}`}>What should Codex do?</label>
-        <textarea
-          id={`ticket-reviewer-notes-${ticket.id}`}
-          value={reviewerNotes}
-          rows={6}
-          maxLength={8000}
-          placeholder="Describe what should change, what should stay, and any reasoning Codex should preserve."
-          onChange={(event) => setReviewerNotes(event.target.value)}
-        />
-        <small>
-          Codex will infer the intended action from your instructions and ask only if an important
-          choice remains ambiguous.
-        </small>
-        <button
-          className="secondary-button"
-          type="button"
-          disabled={!dirty || saving}
-          onClick={() => void saveReview()}
-        >
-          {saving
-            ? 'Saving…'
-            : dirty
-              ? reviewerNotes.trim()
-                ? 'Save instructions'
-                : 'Clear saved instructions'
-              : 'Instructions saved'}
-        </button>
-      </div>
-    </article>
+            {literatureSynthesisProposal ? (
+              <LiteratureSynthesisProposalView proposal={literatureSynthesisProposal} />
+            ) : null}
+            <details className="ticket-context">
+              <summary>Targets and review routing</summary>
+              <dl>
+                <div>
+                  <dt>Source</dt>
+                  <dd>
+                    {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
+                    {ticket.sourceAuthority.replaceAll('_', ' ')}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Proposed routing</dt>
+                  <dd>{ticket.proposedRouting}</dd>
+                </div>
+                <div>
+                  <dt>Target IDs</dt>
+                  <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
+                </div>
+                <div>
+                  <dt>Dependencies</dt>
+                  <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
+                </div>
+                <div>
+                  <dt>Conflicts</dt>
+                  <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
+                </div>
+                {ticket.resurfacingTrigger ? (
+                  <div>
+                    <dt>Resurface when</dt>
+                    <dd>{ticket.resurfacingTrigger}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </details>
+          </div>
+          <div className="ticket-review-fields">
+            <label htmlFor={`ticket-reviewer-notes-${ticket.id}`}>
+              Your response, judgment, or alternative references
+            </label>
+            <textarea
+              id={`ticket-reviewer-notes-${ticket.id}`}
+              value={reviewerNotes}
+              rows={6}
+              maxLength={8000}
+              placeholder="Agree, disagree, qualify the proposed direction, describe the desired change, or paste better references."
+              onChange={(event) => setReviewerNotes(event.target.value)}
+            />
+            <small>
+              Codex will infer the intended action from your instructions and ask only if an
+              important choice remains ambiguous. Saving does not alter a clinical rule.
+            </small>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={!dirty || saving}
+              onClick={() => void saveReview()}
+            >
+              {saving
+                ? 'Saving…'
+                : dirty
+                  ? reviewerNotes.trim()
+                    ? 'Save response'
+                    : 'Clear saved response'
+                  : 'Response saved'}
+            </button>
+          </div>
+        </div>
+      )}
+    </LazyDisclosure>
   );
 }
 
@@ -267,6 +320,7 @@ export function ClinicHub({
   caseRuleAudits,
   opinionReferenceNeeds,
   sourceRequests,
+  literatureSynthesisProposals = [],
   onStart,
   onOpenSavedAttempt = () => undefined,
   onSetMode,
@@ -296,6 +350,11 @@ export function ClinicHub({
   const reviewedTickets = reviewTickets.filter((ticket) => ticket.reviewerNotes.trim());
   const caseRuleAuditByBlueprintId = new Map(
     caseRuleAudits.map((audit) => [audit.blueprintId, audit]),
+  );
+  const synthesisByTicketId = new Map(
+    literatureSynthesisProposals.flatMap((proposal) =>
+      proposal.linkedTicketIds.map((ticketId) => [ticketId, proposal] as const),
+    ),
   );
   const currentFacility = catalogs.facilities.find((facility) => facility.id === clinic.facilityId);
   const upgradeOffers = getPurchasableUpgradeDefinitions(catalogs)
@@ -401,47 +460,73 @@ export function ClinicHub({
           </div>
           {patientSlots.length > 0 ? (
             <div className="patient-slot-grid">
-              {patientSlots.map((slot) => (
-                <article className="case-card" key={slot.id}>
-                  <div className="case-card-topline">
-                    <span className="case-level">Patient</span>
-                    <span className="status-chip">Waiting</span>
-                  </div>
-                  <p className="setting-label">
-                    <span>Setting</span>
-                    {slot.settingLabel}
-                  </p>
-                  {progressionMode === 'developer' && !reviewerBuild ? (
+              {patientSlots.map((slot) => {
+                const linkedTickets = reviewTickets.filter(
+                  (ticket) => ticket.blueprintId === slot.casePreview.blueprintId,
+                );
+                return (
+                  <article className="case-card" key={slot.id}>
+                    <div className="case-card-topline">
+                      <span className="case-level">Patient</span>
+                      <span className="status-chip">Waiting</span>
+                    </div>
                     <p className="setting-label">
-                      <span>Review provenance</span>
-                      {reviewProvenanceLabel(slot.casePreview, catalogs)}
+                      <span>Setting</span>
+                      {slot.settingLabel}
                     </p>
-                  ) : null}
-                  <h3>{slot.casePreview.opening.title}</h3>
-                  <p className="chief-complaint">
-                    <span>Chief complaint</span>“{slot.casePreview.opening.chiefComplaint}”
-                  </p>
-                  <div className="case-card-actions">
-                    <button
-                      className="primary-button large-button"
-                      type="button"
-                      aria-label={`Open chart for ${slot.casePreview.opening.title}`}
-                      onClick={() => onStart(slot.id)}
-                    >
-                      Open chart
-                    </button>
-                    {progressionMode === 'developer' ? (
-                      <button
-                        className="small-button"
-                        type="button"
-                        onClick={() => onRerollDeveloper(slot.id)}
-                      >
-                        Reroll patient
-                      </button>
+                    {progressionMode === 'developer' && !reviewerBuild ? (
+                      <p className="setting-label">
+                        <span>Review provenance</span>
+                        {reviewProvenanceLabel(slot.casePreview, catalogs)}
+                      </p>
                     ) : null}
-                  </div>
-                </article>
-              ))}
+                    <h3>{slot.casePreview.opening.title}</h3>
+                    <p className="chief-complaint">
+                      <span>Chief complaint</span>“{slot.casePreview.opening.chiefComplaint}”
+                    </p>
+                    {progressionMode === 'developer' &&
+                    !reviewerBuild &&
+                    linkedTickets.length > 0 ? (
+                      <LazyDisclosure
+                        className="patient-review-questions"
+                        summary={`${linkedTickets.length} linked review question${
+                          linkedTickets.length === 1 ? '' : 's'
+                        }`}
+                      >
+                        {() => (
+                          <ul>
+                            {linkedTickets.map((ticket) => (
+                              <li key={`${slot.id}.${ticket.id}`}>
+                                <strong>{ticket.title}</strong>
+                                <span>{ticket.guidance}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </LazyDisclosure>
+                    ) : null}
+                    <div className="case-card-actions">
+                      <button
+                        className="primary-button large-button"
+                        type="button"
+                        aria-label={`Open chart for ${slot.casePreview.opening.title}`}
+                        onClick={() => onStart(slot.id)}
+                      >
+                        Open chart
+                      </button>
+                      {progressionMode === 'developer' ? (
+                        <button
+                          className="small-button"
+                          type="button"
+                          onClick={() => onRerollDeveloper(slot.id)}
+                        >
+                          Reroll patient
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           ) : (
             <div className="empty-queue">
@@ -752,96 +837,123 @@ export function ClinicHub({
       ) : null}
 
       {progressionMode === 'developer' && !reviewerBuild ? (
-        <SourceRequestQueue requests={sourceRequests} />
+        <SourceRequestQueue
+          requests={sourceRequests}
+          tickets={saveData.clinicalTickets}
+          caseRuleAudits={caseRuleAudits}
+        />
       ) : null}
 
       {progressionMode === 'developer' && !reviewerBuild ? (
-        <section className="ticket-queue" aria-labelledby="ticket-queue-title">
-          <div className="queue-heading">
-            <div>
-              <p className="eyebrow">Proposed changes only</p>
-              <h2 id="ticket-queue-title">Clinical and content tickets</h2>
-            </div>
-            <div className="queue-tools">
+        <LazyDisclosure
+          className="ticket-queue developer-major-disclosure"
+          summary={
+            <>
+              <span>
+                <small>Proposed changes only</small>
+                <strong id="ticket-queue-title">Clinical and content tickets</strong>
+              </span>
               <span className="count-badge" aria-label={`${ticketsNeedingInput.length} need input`}>
                 {ticketsNeedingInput.length} need input
               </span>
-              <button
-                className="small-button"
-                type="button"
-                disabled={saveData.clinicalTickets.length === 0}
-                onClick={onWriteTickets}
-              >
-                Update Codex handoff file
-              </button>
-              <button
-                className="small-button"
-                type="button"
-                disabled={saveData.clinicalTickets.length === 0}
-                onClick={onExportTickets}
-              >
-                Export JSON
-              </button>
-            </div>
-          </div>
-          <p className="ticket-handoff-explanation">
-            Describe the outcome you want; there is no separate status decision. Saving updates this
-            browser’s local database and the fixed, gitignored Codex handoff file. Codex will
-            interpret your instructions, ask if necessary, and make no clinical rule changes until
-            processing the reviewed ticket. Use “Update Codex handoff file” to refresh or retry the
-            copy, then tell Codex your review is ready.
-          </p>
-          {ticketToolStatus ? (
-            <p className="ticket-tool-status" role="status">
-              {ticketToolStatus}
-            </p>
-          ) : null}
-          {reviewTickets.length === 0 ? (
-            <p className="no-results">No open local review tickets.</p>
-          ) : (
-            <>
-              {ticketsNeedingInput.length === 0 ? (
-                <p className="review-complete-message">
-                  Every open ticket has saved instructions. Tell Codex the local review is ready.
-                </p>
-              ) : (
-                <div className="ticket-list">
-                  {ticketsNeedingInput.map((ticket) => (
-                    <TicketReviewCard
-                      key={ticket.id}
-                      ticket={ticket}
-                      caseRuleAudit={
-                        ticket.blueprintId
-                          ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
-                          : null
-                      }
-                      onSave={onSaveTicketReview}
-                    />
-                  ))}
-                </div>
-              )}
-              {reviewedTickets.length > 0 ? (
-                <details className="reviewed-ticket-group">
-                  <summary>Reviewed locally · {reviewedTickets.length}</summary>
-                  <div className="ticket-list">
-                    {reviewedTickets.map((ticket) => (
-                      <TicketReviewCard
-                        key={ticket.id}
-                        ticket={ticket}
-                        caseRuleAudit={
-                          ticket.blueprintId
-                            ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
-                            : null
-                        }
-                        onSave={onSaveTicketReview}
-                      />
-                    ))}
-                  </div>
-                </details>
-              ) : null}
             </>
+          }
+        >
+          {() => (
+            <div className="developer-disclosure-body">
+              <div className="queue-heading developer-queue-tools">
+                <p>
+                  Open one decision packet at a time. Patient-linked questions include the current
+                  executable values and can be reviewed against a playthrough.
+                </p>
+                <div className="queue-tools">
+                  <button
+                    className="small-button"
+                    type="button"
+                    disabled={saveData.clinicalTickets.length === 0}
+                    onClick={onWriteTickets}
+                  >
+                    Update Codex handoff file
+                  </button>
+                  <button
+                    className="small-button"
+                    type="button"
+                    disabled={saveData.clinicalTickets.length === 0}
+                    onClick={onExportTickets}
+                  >
+                    Export JSON
+                  </button>
+                </div>
+              </div>
+              <p className="ticket-handoff-explanation">
+                Describe the outcome you want; there is no separate status decision. Saving updates
+                this browser’s local database and the fixed, gitignored Codex handoff file. Codex
+                will interpret your instructions, ask if necessary, and make no clinical rule
+                changes until processing the reviewed ticket. Use “Update Codex handoff file” to
+                refresh or retry the copy, then tell Codex your review is ready.
+              </p>
+              {ticketToolStatus ? (
+                <p className="ticket-tool-status" role="status">
+                  {ticketToolStatus}
+                </p>
+              ) : null}
+              {reviewTickets.length === 0 ? (
+                <p className="no-results">No open local review tickets.</p>
+              ) : (
+                <>
+                  {ticketsNeedingInput.length === 0 ? (
+                    <p className="review-complete-message">
+                      Every open ticket has saved instructions. Tell Codex the local review is
+                      ready.
+                    </p>
+                  ) : (
+                    <div className="ticket-list">
+                      {ticketsNeedingInput.map((ticket) => (
+                        <TicketReviewCard
+                          key={ticket.id}
+                          ticket={ticket}
+                          caseRuleAudit={
+                            ticket.blueprintId
+                              ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
+                              : null
+                          }
+                          literatureSynthesisProposal={synthesisByTicketId.get(ticket.id) ?? null}
+                          onSave={onSaveTicketReview}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {reviewedTickets.length > 0 ? (
+                    <LazyDisclosure
+                      className="reviewed-ticket-group"
+                      summary={`Reviewed locally · ${reviewedTickets.length}`}
+                    >
+                      {() => (
+                        <div className="ticket-list">
+                          {reviewedTickets.map((ticket) => (
+                            <TicketReviewCard
+                              key={ticket.id}
+                              ticket={ticket}
+                              caseRuleAudit={
+                                ticket.blueprintId
+                                  ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
+                                  : null
+                              }
+                              literatureSynthesisProposal={
+                                synthesisByTicketId.get(ticket.id) ?? null
+                              }
+                              onSave={onSaveTicketReview}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </LazyDisclosure>
+                  ) : null}
+                </>
+              )}
+            </div>
           )}
-        </section>
+        </LazyDisclosure>
       ) : null}
 
       {latestAttempt ? (

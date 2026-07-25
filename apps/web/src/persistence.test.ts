@@ -6,6 +6,50 @@ import { SaveDataSchema } from '@psychsim/schemas';
 import { migrateSaveData } from './persistence';
 
 describe('save migrations', () => {
+  it('adds semantically correct fields to an existing v5 save without changing the envelope', () => {
+    const versionFiveSave = {
+      schemaVersion: 1,
+      saveDataVersion: 5,
+      nestedAttempt: {
+        caseInstance: {
+          metadata: {
+            title: 'Historical MDD decision',
+            medicalReviewStatus: 'unreviewed',
+          },
+          opening: {
+            knownMedicationIds: ['medication.sertraline'],
+          },
+        },
+        receipt: {
+          settlement: {
+            operatingExpenses: 75,
+          },
+        },
+      },
+    };
+
+    const migrated = migrateSaveData(versionFiveSave) as {
+      nestedAttempt: {
+        caseInstance: {
+          metadata: { debriefTitle: string };
+          opening: { medicationListStatus: string };
+        };
+        receipt: {
+          settlement: { informationExpenses: number; treatmentExpenses: number };
+        };
+      };
+    };
+    expect(migrated.nestedAttempt.caseInstance.metadata.debriefTitle).toBe(
+      'Historical MDD decision',
+    );
+    expect(migrated.nestedAttempt.caseInstance.opening.medicationListStatus).toBe('provided');
+    expect(migrated.nestedAttempt.receipt.settlement).toMatchObject({
+      informationExpenses: 75,
+      treatmentExpenses: 0,
+    });
+    expect(versionFiveSave.nestedAttempt.caseInstance.metadata).not.toHaveProperty('debriefTitle');
+  });
+
   it('migrates a legacy profile to v5 without retaining Reputation fields', () => {
     const legacyClinic = {
       ...startingProfile.clinic,

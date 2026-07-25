@@ -20,6 +20,10 @@ import {
 import { reviewerCaseBlueprints } from '@psychsim/content-runtime/reviewer';
 import { resolveClinicForProgressionMode } from '@psychsim/engine';
 import { contentRegistry } from '../../../packages/content-runtime/src/registry';
+import {
+  developerLiteratureSynthesisProposals,
+  validateLiteratureSynthesisProposals,
+} from '../../../packages/content-runtime/src/literature-synthesis';
 import { milestoneTwoClinicalAuditTickets } from '../../../packages/content-runtime/src/milestone-two-review-tickets';
 import {
   developerSourceRequests,
@@ -469,6 +473,17 @@ const reports = [
       catalogs,
       [...approvedCaseBlueprints, ...allReviewBlueprints],
       checkedInReviewTickets,
+    ),
+  ],
+  [
+    'literature-synthesis-proposals',
+    validateLiteratureSynthesisProposals(
+      developerLiteratureSynthesisProposals,
+      [...catalogs.evidenceSources, ...authoringEvidenceSources],
+      sourceUseDecisionCatalog.decisions,
+      [...approvedCaseBlueprints, ...allReviewBlueprints],
+      checkedInReviewTickets,
+      developerSourceRequests,
     ),
   ],
   ...approvedCaseBlueprints.map(

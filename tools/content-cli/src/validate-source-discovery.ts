@@ -8,6 +8,7 @@ import {
   SourceDocumentSchema,
   SourceManifestSchema,
 } from '@psychsim/schemas';
+import { validateAppleNotesManifest } from './apple-notes-provider';
 
 const manifestPath = resolve('content/source-docs/manifests/google-drive-discovery.json');
 
@@ -86,6 +87,14 @@ const validateLocalManifest = async (): Promise<void> => {
 try {
   await validateDriveManifest();
   await validateLocalManifest();
+  const appleNotesManifest = await validateAppleNotesManifest();
+  if (appleNotesManifest) {
+    console.log(
+      `PASS Apple Notes manifest (${appleNotesManifest.notes.length} private note records)`,
+    );
+  } else {
+    console.log('PASS no local Apple Notes manifest (clean checkout)');
+  }
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Source discovery validation failed.');
   process.exitCode = 1;

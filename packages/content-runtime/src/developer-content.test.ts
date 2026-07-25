@@ -5,6 +5,7 @@ import { catalogs } from './content';
 import {
   developerCaseBlueprints,
   developerClinicalAuditTickets,
+  developerLiteratureSynthesisProposals,
   developerOpinionReferenceNeeds,
   developerSourceRequests,
 } from './developer-content';
@@ -100,6 +101,16 @@ describe('developer clinical audit queue', () => {
     );
   });
 
+  it('keeps evidence-synthesis proposals in the Developer-only module', () => {
+    expect(developerLiteratureSynthesisProposals).toEqual([
+      expect.objectContaining({
+        id: 'literature-synthesis.mdd.initial-modality.2026-07-24',
+        medicalReviewStatus: 'unreviewed',
+        pointMagnitudeExcluded: true,
+      }),
+    ]);
+  });
+
   it('deduplicates unsourced clinical opinions and links exact existing source requests', () => {
     expect(developerOpinionReferenceNeeds.length).toBeGreaterThan(40);
     expect(
@@ -122,11 +133,7 @@ describe('developer clinical audit queue', () => {
       developerOpinionReferenceNeeds.find(
         (entry) => entry.ruleId === 'objective.mdd-episode-course',
       )?.ownerIds,
-    ).toEqual([
-      'case.first-visit-depression',
-      'case.review.basic-mdd-scaffold',
-      'case.review.who-mhgap-mdd-initial',
-    ]);
+    ).toEqual(['case.review.basic-mdd-scaffold', 'case.review.who-mhgap-mdd-initial']);
     expect(
       developerOpinionReferenceNeeds.some(
         (entry) => entry.ruleId === 'objective.ecg-mdd-cardiac-monitoring',

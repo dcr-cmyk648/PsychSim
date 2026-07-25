@@ -283,3 +283,30 @@ support review.
 
 The full proposed data model, source map, and staged implementation are in
 `docs/MEDICATION_AND_INTERVENTION_DATA.md`.
+
+### Apple Notes research folder
+
+The macOS folder named exactly `Psych research` is a private intake container for the user's brief
+research takeaways and article images. A metadata-only audit may retain provider account, folder,
+note, and attachment IDs; creation/modification dates; locked/shared state; and counts without
+accessing titles, bodies, or bytes. That audit is not substantive source use.
+
+Content export requires a local manifest acknowledgment that the entire folder contains no
+identifiable patient information, is authorized for private local processing, and may be processed
+despite shared-folder/shared-note status. The acknowledgment records the person and timestamp. It
+is an intake authorization, not a finding that the user owns every photographed article, figure,
+table, scale, quotation, or collaborator contribution.
+
+Unlocked note text and accessible attachment bytes may then be stored, hashed, and locally OCRed
+inside the gitignored source boundary. Exact prose, screenshots, attachment bytes, HTML, and OCR
+remain private; no external AI transmission is permitted by this workflow. Missing, locked,
+unsupported, or failed items retain provenance/error state and are not silently deleted. Byte-hash
+deduplication does not erase the separate note or attachment relationship.
+
+A note takeaway begins as dated Developer opinion. OCR of an article image does not create a formal
+source, grant reuse rights, establish bibliographic accuracy, or support every nearby statement.
+Embedded citations remain unverified candidates until independently checked. Any formal article
+use still requires its own evidence record, applicable `SourceUseDecision`, exact-claim review,
+and rule-level contribution; any executable change additionally requires clinical review,
+validation, impact analysis, and balance review. Nothing in bulk intake automatically enters the
+browser bundle or gameplay database.

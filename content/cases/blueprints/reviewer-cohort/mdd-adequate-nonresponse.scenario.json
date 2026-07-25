@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.1.0",
+  "contentVersion": "1.2.0",
   "id": "case.review-cohort.mdd-adequate-nonresponse",
   "internalTitle": "Reviewer cohort: MDD after adequate nonresponse",
   "difficultyTier": 2,

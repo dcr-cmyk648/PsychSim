@@ -12,7 +12,7 @@ import {
 
 import { hashToHex } from './rng';
 import { err, ok, type Result } from './result';
-import { resolveServiceFulfillment } from './services';
+import { quoteTreatmentService, resolveServiceFulfillment } from './services';
 import { getAvailableStartMedicationIds } from './formulary';
 
 export const EMPTY_TREATMENT_SELECTIONS: TreatmentSelection = {
@@ -263,6 +263,13 @@ export const updateTreatmentSelections = (
       code: 'INVALID_TREATMENT_SELECTION',
       message: 'A treatment selection is unavailable or duplicated for this case.',
     });
+  }
+  for (const treatmentId of [
+    ...selections.interventionIds,
+    ...(selections.dispositionId ? [selections.dispositionId] : []),
+  ]) {
+    const quote = quoteTreatmentService(treatmentId, state, catalogs);
+    if (!quote.ok) return quote;
   }
   const event: EncounterEvent = {
     id: nextEventId(state.id, state.events.length),

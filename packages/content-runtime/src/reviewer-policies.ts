@@ -227,7 +227,13 @@ const buildPolicy = (seed: PolicySeed, allActionIds: readonly string[]): ReviewD
       startMedicationIds: [...seed.available.startMedicationIds],
       stopMedicationIds: [...(seed.available.stopMedicationIds ?? [])],
       continueMedicationIds: [...(seed.available.continueMedicationIds ?? [])],
-      interventionIds: [...seed.available.interventionIds],
+      interventionIds: [
+        ...new Set([
+          ...seed.available.interventionIds,
+          'intervention.substance-use.brief-counseling',
+          'intervention.substance-use.motivational-interviewing',
+        ]),
+      ],
       dispositionIds: [...(seed.available.dispositionIds ?? OUTPATIENT_DISPOSITIONS)],
     },
     treatmentGrades: seed.grades.map((grade) => ({

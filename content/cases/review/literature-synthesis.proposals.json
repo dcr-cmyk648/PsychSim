@@ -1,0 +1,87 @@
+[
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.initial-modality.2026-07-24",
+    "linkedTicketIds": ["ticket.source.canmat-mdd.initial-modality"],
+    "linkedSourceRequestIds": ["source-request.mdd.severity-thresholds"],
+    "blueprintIds": ["case.first-visit-depression"],
+    "clinicalQuestion": "For a safe adult outpatient with an acute MDD episode, should one appropriate psychotherapy or one appropriate antidepressant each count as a complete initial treatment, and when should combined treatment receive additional credit?",
+    "focusedDecision": "Whether the starter MDD database pathway should require combined medication and psychotherapy or accept either appropriate modality alone.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-25T00:15:02.000Z",
+      "rollingWindowStartYear": 2021,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "PubMed",
+        "American College of Physicians guideline registry"
+      ],
+      "queries": [
+        "adult major depressive disorder initial treatment psychotherapy antidepressant guideline",
+        "interpersonal psychotherapy antidepressant adult depression systematic review meta-analysis"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "The search prioritized recent guidelines and meta-analyses directly comparing initial modalities. Only the source-cleared CANMAT record is eligible to support the proposed direction. The ACP update alert and IPT meta-analysis are currentness and qualifying context only until they receive independent full-text and source-use review."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.initial-modality",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The source-cleared guideline makes initial modality severity-dependent: medication or psychotherapy can each be an initial option for moderate illness, while combined care receives greater emphasis in severe illness.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.acp-mdd-update-alert-4.2026",
+        "evidenceSourceId": null,
+        "title": "Nonpharmacologic and Pharmacologic Treatments of Adults in the Acute Phase of Major Depressive Disorder: A Living Clinical Guideline From the American College of Physicians (Version 1, Update Alert 4)",
+        "publicationYear": 2026,
+        "doi": "10.7326/ANNALS-26-00548",
+        "pmid": "41802255",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41802255/",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "context",
+        "conciseFinding": "This is the current March 2026 living-guideline alert. The indexed record provides no recommendation abstract, so PsychSim infers no recommendation change until the full text and source-use terms are reviewed.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.cohen-ipt-antidepressant-ipd-meta-analysis.2024",
+        "evidenceSourceId": null,
+        "title": "Comparative efficacy of interpersonal psychotherapy and antidepressant medication for adult depression: a systematic review and individual participant data meta-analysis",
+        "publicationYear": 2024,
+        "doi": "10.1017/S0033291724001788",
+        "pmid": "39494789",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39494789/",
+        "sourceKind": "meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The indexed abstract reports no significant primary post-treatment depression difference between interpersonal psychotherapy and antidepressant medication, while noting sensitivity-analysis and applicability qualifications.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "The source-cleared CANMAT guideline supports a severity-dependent initial pathway rather than universally mandatory combination treatment.",
+    "opposingOrQualifyingSummary": "The current ACP alert is a currentness flag only until reviewed. The IPT comparison is consistent with modality parity at the abstract level, but cannot support an executable rule under the source policy and includes sensitivity and applicability limits.",
+    "proposedDirection": "Conditional on the unresolved severity work explicitly establishing this patient as moderate and safe for outpatient treatment, accept either one appropriate antidepressant or one evidence-based psychotherapy as a complete route. Do not require combination treatment. Leave a compatible medication-plus-therapy combination acceptable, but award no extra combination bonus until that benefit is separately reviewed. This proposal authorizes no rule or point change.",
+    "limitations": [
+      "The linked structured-severity source request remains unresolved.",
+      "The ACP update alert and IPT meta-analysis have not passed PsychSim full-text and source-use review.",
+      "The exact psychotherapy entries that should satisfy the broad route remain a separate catalog decision.",
+      "No evidence search can determine game point magnitudes."
+    ],
+    "unresolvedQuestions": [
+      "Which structured facts establish the starter patient's severity?",
+      "Which psychotherapy entries satisfy the complete initial-treatment route?",
+      "Should a reviewed combination route later receive an additional bonus?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  }
+]

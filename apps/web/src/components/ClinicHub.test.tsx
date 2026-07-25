@@ -312,24 +312,36 @@ describe('ClinicHub', () => {
       />,
     );
 
-    const notes = screen.getByLabelText('What should Codex do?');
-    const saveButton = screen.getByRole('button', { name: 'Instructions saved' });
+    expect(screen.queryByText(/linked review question/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Your response, judgment/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Clinical and content tickets'));
+    fireEvent.click(await screen.findByText(ticket.title));
+    const notes = await screen.findByLabelText(
+      'Your response, judgment, or alternative references',
+    );
+    const saveButton = screen.getByRole('button', { name: 'Response saved' });
     expect(saveButton).toBeDisabled();
     expect(screen.queryByRole('combobox', { name: 'Status' })).not.toBeInTheDocument();
-    expect(screen.getAllByText('Emergency-department escalation').length).toBeGreaterThan(0);
-    expect(screen.getByText(/-450 pts/)).toBeVisible();
-    expect(screen.getByText('200 when true')).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Sources needed' })).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Opinions needing references' })).toBeVisible();
-    expect(screen.getByLabelText(/Search opinions/)).toBeVisible();
-    expect(screen.getByText(/Mirtazapine: bonus fit/)).toBeInTheDocument();
-    expect(screen.getAllByText('PsychSim documents').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByText(/Current executable values/));
+    expect((await screen.findAllByText('Emergency-department escalation')).length).toBeGreaterThan(
+      0,
+    );
+    expect(await screen.findByText(/-450 pts/)).toBeVisible();
+    expect(await screen.findByText('200 when true')).toBeVisible();
+    expect(screen.getByText('Sources needed')).toBeVisible();
+    expect(screen.getByText('Opinions needing references')).toBeVisible();
+    fireEvent.click(screen.getByText('Opinions needing references'));
+    expect(await screen.findByLabelText(/Search opinions/)).toBeVisible();
+    fireEvent.click(screen.getByText('Medication fit'));
+    expect(await screen.findByText(/Mirtazapine: bonus fit/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Sources needed'));
+    expect((await screen.findAllByText('PsychSim documents')).length).toBeGreaterThan(0);
     expect(screen.getByText('World Health Organization')).toBeVisible();
 
     fireEvent.change(notes, {
       target: { value: 'Allow any first-line SSRI, then apply medication-fit modifiers.' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save instructions' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save response' }));
 
     expect(onSaveTicketReview).toHaveBeenCalledWith(
       ticket.id,

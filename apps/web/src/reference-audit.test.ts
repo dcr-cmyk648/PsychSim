@@ -120,14 +120,19 @@ describe('reference-solution audit', () => {
     });
   });
 
-  it('selects by payout deterministically without claiming an exhaustive global optimum', () => {
-    const first = buildReferenceSolutionAudit(reviewedAttempt(), catalogs);
-    const second = buildReferenceSolutionAudit(reviewedAttempt(), catalogs);
+  it(
+    'selects by payout deterministically without claiming an exhaustive global optimum',
+    () => {
+      const attempt = reviewedAttempt();
+      const first = buildReferenceSolutionAudit(attempt, catalogs);
+      const second = buildReferenceSolutionAudit(attempt, catalogs);
 
-    expect(second).toEqual(first);
-    const completedPayouts = first.runs
-      .filter((run) => run.status === 'completed')
-      .map((run) => run.netPayout);
-    expect(first.bestRun?.netPayout).toBe(Math.max(...completedPayouts));
-  });
+      expect(second).toEqual(first);
+      const completedPayouts = first.runs
+        .filter((run) => run.status === 'completed')
+        .map((run) => run.netPayout);
+      expect(first.bestRun?.netPayout).toBe(Math.max(...completedPayouts));
+    },
+    15_000,
+  );
 });

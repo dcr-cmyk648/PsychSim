@@ -16,6 +16,7 @@ export const mergeDeveloperAuditTickets = (
       ? ClinicalReviewTicketSchema.parse({
           ...ticket,
           ...seeded,
+          attemptId: ticket.attemptId,
           status: ticket.status,
           reviewerNotes: ticket.reviewerNotes,
           reviewerNotesUpdatedAt: ticket.reviewerNotesUpdatedAt,

@@ -580,6 +580,7 @@ export const TreatmentOptionSchema = z
     ]),
     safeReferral: z.boolean().default(false),
     requiredCapabilities: z.array(CapabilitySchema),
+    fulfillmentServiceId: StableIdSchema.nullable().default(null),
   })
   .strict();
 export type TreatmentOption = z.infer<typeof TreatmentOptionSchema>;
@@ -1330,6 +1331,9 @@ export const PatientOpeningSchema = z
     summaryTemplate: z.string().min(1),
     contextTemplate: z.string().min(1),
     knownMedicationIds: z.array(StableIdSchema),
+    medicationListStatus: z
+      .enum(['unreconciled', 'verified_none', 'provided'])
+      .default('unreconciled'),
     knownHistory: z.array(z.string().min(1)),
     basicVitals: z.array(z.string().min(1)),
   })
@@ -1343,6 +1347,9 @@ export const ResolvedPatientOpeningSchema = z
     summary: z.string().min(1),
     context: z.string().min(1),
     knownMedicationIds: z.array(StableIdSchema),
+    medicationListStatus: z
+      .enum(['unreconciled', 'verified_none', 'provided'])
+      .default('unreconciled'),
     knownHistory: z.array(z.string().min(1)),
     basicVitals: z.array(z.string().min(1)),
   })
@@ -1409,6 +1416,7 @@ export type ClinicalDurationProfile = z.infer<typeof ClinicalDurationProfileSche
 export const FindingBlueprintSchema = z
   .object({
     id: StableIdSchema,
+    groupLabel: z.string().min(1).max(80).optional(),
     labelVariants: z.array(z.string().min(1).max(80)).min(1).max(12),
     outcome: z.union([FindingOutcomeSchema, z.literal('variable')]),
     valueTextVariants: z.array(z.string().min(1).max(120)).max(12).optional(),
@@ -1541,6 +1549,7 @@ export type ResolvedNumericMeasurement = z.infer<typeof ResolvedNumericMeasureme
 export const ResolvedFindingSchema = z
   .object({
     id: StableIdSchema,
+    groupLabel: z.string().min(1).max(80).optional(),
     label: z.string().min(1).max(120),
     outcome: FindingOutcomeSchema,
     valueText: z.string().min(1).max(240).optional(),
@@ -1792,6 +1801,7 @@ export type ReferenceSolution = z.infer<typeof ReferenceSolutionSchema>;
 export const CaseMetadataSchema = z
   .object({
     title: z.string().min(1),
+    debriefTitle: z.string().min(1).max(180).default('Case review'),
     fictional: z.literal(true),
     synthetic: z.literal(true),
     medicalReviewStatus: MedicalReviewStatusSchema,
@@ -1948,6 +1958,70 @@ export const MedicationTrialRecordSchema = z
   .strict();
 export type MedicationTrialRecord = z.infer<typeof MedicationTrialRecordSchema>;
 
+export const PsychotherapyTrialRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    interventionId: StableIdSchema,
+    status: z.enum(['ongoing', 'completed', 'discontinued']),
+    engagement: z.enum(['adequate', 'limited', 'unknown']),
+    response: z.enum(['strong', 'partial', 'none', 'worsened', 'unknown']),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    summary: z.string().min(1).max(240),
+  })
+  .strict();
+export type PsychotherapyTrialRecord = z.infer<typeof PsychotherapyTrialRecordSchema>;
+
+export const TreatmentProviderRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    providerType: z.enum([
+      'psychiatrist',
+      'therapist',
+      'primary_care',
+      'case_manager',
+      'substance_use_clinician',
+      'other',
+    ]),
+    active: z.boolean(),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    summary: z.string().min(1).max(240),
+  })
+  .strict();
+export type TreatmentProviderRecord = z.infer<typeof TreatmentProviderRecordSchema>;
+
+export const PriorLevelOfCareRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    level: z.enum([
+      'inpatient_psychiatry',
+      'partial_hospitalization',
+      'intensive_outpatient',
+      'residential',
+      'emergency_evaluation',
+      'detoxification',
+      'substance_use_rehabilitation',
+      'other',
+    ]),
+    occurrenceCount: z.number().int().positive(),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    summary: z.string().min(1).max(240),
+  })
+  .strict();
+export type PriorLevelOfCareRecord = z.infer<typeof PriorLevelOfCareRecordSchema>;
+
+export const PatientTreatmentHistorySchema = z
+  .object({
+    medicationTrials: z.array(MedicationTrialRecordSchema).default([]),
+    psychotherapyTrials: z.array(PsychotherapyTrialRecordSchema).default([]),
+    currentProviders: z.array(TreatmentProviderRecordSchema).default([]),
+    priorLevelsOfCare: z.array(PriorLevelOfCareRecordSchema).default([]),
+  })
+  .strict();
+export type PatientTreatmentHistory = z.infer<typeof PatientTreatmentHistorySchema>;
+
 export const PatientRecordSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -1962,6 +2036,12 @@ export const PatientRecordSchema = z
     testGenerationContext: PatientTestGenerationContextSchema,
     medicationRegimen: z.array(MedicationRegimenEntrySchema).default([]),
     priorMedicationTrials: z.array(MedicationTrialRecordSchema).default([]),
+    treatmentHistory: PatientTreatmentHistorySchema.default({
+      medicationTrials: [],
+      psychotherapyTrials: [],
+      currentProviders: [],
+      priorLevelsOfCare: [],
+    }),
     diagnosisComposition: PatientDiagnosisCompositionSchema.nullable().default(null),
     clinicalContextDimensions: z.array(PatientClinicalContextDimensionSchema).max(20).default([]),
   })
@@ -2059,8 +2139,17 @@ export const ReviewCaseScenarioSchema = z
     bothersomeness: z.enum(['not_at_all', 'somewhat', 'very', 'extremely']).nullable(),
     settingText: z.string().min(1).max(180),
     knownHistory: z.array(z.string().min(1).max(180)),
+    medicationListStatus: z
+      .enum(['unreconciled', 'verified_none', 'provided'])
+      .default('unreconciled'),
     medicationRegimen: z.array(MedicationRegimenEntrySchema),
     priorMedicationTrials: z.array(MedicationTrialRecordSchema),
+    treatmentHistory: PatientTreatmentHistorySchema.default({
+      medicationTrials: [],
+      psychotherapyTrials: [],
+      currentProviders: [],
+      priorLevelsOfCare: [],
+    }),
     informationOverrides: z.array(CaseInformationActionBlueprintSchema),
     decisionPolicyId: StableIdSchema,
   })
@@ -2283,6 +2372,8 @@ export const EconomySettlementSchema = z
     challengeBonus: z.number().int().nonnegative(),
     satisfactionMultiplier: z.number().min(1),
     grossPayout: z.number().int().nonnegative(),
+    informationExpenses: z.number().int().nonnegative().default(0),
+    treatmentExpenses: z.number().int().nonnegative().default(0),
     operatingExpenses: z.number().int().nonnegative(),
     calculatedPayout: z.number().int(),
     netClinicPointsEarned: z.number().int().nonnegative(),
@@ -2360,10 +2451,24 @@ export const DeveloperAttemptReviewOptionSchema = z
           'An information-option snapshot requires its service, fulfillment, and point cost.',
       });
     }
-    if (option.kind !== 'information' && fulfillmentFields.some((value) => value !== null)) {
+    if (
+      ['start_medication', 'stop_medication', 'continue_medication'].includes(option.kind) &&
+      fulfillmentFields.some((value) => value !== null)
+    ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Treatment-option snapshots cannot contain information-service fulfillment data.',
+        message: 'Medication-option snapshots cannot contain service-fulfillment data.',
+      });
+    }
+    if (
+      ['nonmedication', 'disposition'].includes(option.kind) &&
+      fulfillmentFields.some((value) => value === null) &&
+      fulfillmentFields.some((value) => value !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A priced treatment-option snapshot requires the complete service, fulfillment, and point-cost tuple.',
       });
     }
   });
@@ -2674,6 +2779,76 @@ export const SourceRequestSchema = z
   });
 export type SourceRequest = z.infer<typeof SourceRequestSchema>;
 
+export const LiteratureSynthesisSourceSchema = z
+  .object({
+    id: StableIdSchema,
+    evidenceSourceId: StableIdSchema.nullable(),
+    title: z.string().min(1).max(500),
+    publicationYear: z.number().int().min(1900).max(2200),
+    doi: z.string().min(1).nullable(),
+    pmid: z.string().regex(/^\d+$/).nullable(),
+    url: z.string().url(),
+    sourceKind: z.enum([
+      'systematic_review',
+      'meta_analysis',
+      'network_meta_analysis',
+      'clinical_guideline',
+      'regulatory_source',
+      'primary_study',
+    ]),
+    accessStatus: z.enum(['cataloged_and_cleared', 'metadata_or_abstract_only', 'inaccessible']),
+    findingRole: z.enum(['supports', 'opposes', 'qualifies', 'context']),
+    conciseFinding: z.string().min(1).max(800),
+    supportsProposedDirection: z.boolean(),
+  })
+  .strict()
+  .superRefine((source, context) => {
+    if (
+      source.supportsProposedDirection &&
+      (source.accessStatus !== 'cataloged_and_cleared' || source.evidenceSourceId === null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['supportsProposedDirection'],
+        message:
+          'A literature proposal may rely on a source only when its catalog and source-use review are cleared.',
+      });
+    }
+  });
+export type LiteratureSynthesisSource = z.infer<typeof LiteratureSynthesisSourceSchema>;
+
+export const LiteratureSynthesisProposalSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    linkedTicketIds: z.array(StableIdSchema).min(1),
+    linkedSourceRequestIds: z.array(StableIdSchema),
+    blueprintIds: z.array(StableIdSchema),
+    clinicalQuestion: z.string().min(1).max(800),
+    focusedDecision: z.string().min(1).max(500),
+    searchStrategy: z
+      .object({
+        searchedAt: z.string().datetime(),
+        rollingWindowStartYear: z.number().int().min(1900).max(2200),
+        databases: z.array(z.string().min(1)).min(1),
+        queries: z.array(z.string().min(1)).min(1),
+        resultCountReviewed: z.number().int().nonnegative(),
+        selectionNote: z.string().min(1).max(800),
+      })
+      .strict(),
+    sources: z.array(LiteratureSynthesisSourceSchema).min(1),
+    supportingSummary: z.string().min(1).max(1200),
+    opposingOrQualifyingSummary: z.string().min(1).max(1200),
+    proposedDirection: z.string().min(1).max(1200),
+    limitations: z.array(z.string().min(1).max(500)).min(1),
+    unresolvedQuestions: z.array(z.string().min(1).max(500)),
+    pointMagnitudeExcluded: z.literal(true),
+    medicalReviewStatus: z.literal('unreviewed'),
+  })
+  .strict();
+export type LiteratureSynthesisProposal = z.infer<typeof LiteratureSynthesisProposalSchema>;
+
 export const ClinicalTicketExportBundleSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -2698,9 +2873,11 @@ export const ClinicalTicketExportBundleSchema = z
         message: 'A portable Reviewer export must identify its finite assignment.',
       });
     }
-    const completedAttemptIds = new Set(bundle.completedAttempts.map((attempt) => attempt.id));
+    const completedAttemptsById = new Map(
+      bundle.completedAttempts.map((attempt) => [attempt.id, attempt]),
+    );
     for (const [index, review] of bundle.attemptReviews.entries()) {
-      if (!completedAttemptIds.has(review.attemptId)) {
+      if (!completedAttemptsById.has(review.attemptId)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['attemptReviews', index, 'attemptId'],
@@ -2709,7 +2886,7 @@ export const ClinicalTicketExportBundleSchema = z
       }
     }
     for (const [index, flag] of bundle.flags.entries()) {
-      if (!completedAttemptIds.has(flag.attemptId)) {
+      if (!completedAttemptsById.has(flag.attemptId)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['flags', index, 'attemptId'],
@@ -2718,12 +2895,21 @@ export const ClinicalTicketExportBundleSchema = z
       }
     }
     for (const [index, ticket] of bundle.tickets.entries()) {
-      if (ticket.attemptId !== null && !completedAttemptIds.has(ticket.attemptId)) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['tickets', index, 'attemptId'],
-          message: 'Every attempt-linked ticket must have its completed attempt in the export.',
-        });
+      if (ticket.attemptId !== null) {
+        const attempt = completedAttemptsById.get(ticket.attemptId);
+        if (!attempt) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['tickets', index, 'attemptId'],
+            message: 'Every attempt-linked ticket must have its completed attempt in the export.',
+          });
+        } else if (ticket.blueprintId !== null && attempt.blueprintId !== ticket.blueprintId) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['tickets', index, 'attemptId'],
+            message: 'An attempt-linked ticket must match the attempt patient blueprint.',
+          });
+        }
       }
     }
   });
@@ -2800,6 +2986,98 @@ export const RemoteSourceDiscoveryManifestSchema = z
   })
   .strict();
 export type RemoteSourceDiscoveryManifest = z.infer<typeof RemoteSourceDiscoveryManifestSchema>;
+
+export const AppleNotesLocalAcknowledgementSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    noIdentifiablePatientInformation: z.literal(true),
+    authorizedForLocalProcessing: z.literal(true),
+    sharedMaterialRightsAcknowledged: z.literal(true),
+    acknowledgedAt: z.string().datetime(),
+    acknowledgedBy: z.string().min(1).max(120),
+  })
+  .strict();
+export type AppleNotesLocalAcknowledgement = z.infer<typeof AppleNotesLocalAcknowledgementSchema>;
+
+export const AppleNotesAttachmentRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    providerAttachmentId: z.string().min(1),
+    providerContentIdentifier: z.string().nullable(),
+    ordinal: z.number().int().positive(),
+    createdAtProvider: z.string().min(1),
+    modifiedAtProvider: z.string().min(1),
+    exportStatus: z.enum(['pending', 'exported', 'unchanged', 'quarantined', 'missing']),
+    relativePath: z.string().min(1).nullable(),
+    mediaType: z.string().min(1).nullable(),
+    sizeBytes: z.number().int().nonnegative().nullable(),
+    sha256: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+    duplicateOfId: StableIdSchema.nullable(),
+    ocrStatus: z.enum(['not_requested', 'pending', 'completed', 'empty', 'unsupported', 'failed']),
+    ocrEngine: z.string().min(1).nullable(),
+    ocrTextHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+    error: z.string().max(1000).nullable(),
+  })
+  .strict();
+export type AppleNotesAttachmentRecord = z.infer<typeof AppleNotesAttachmentRecordSchema>;
+
+export const AppleNotesNoteRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    providerNoteId: z.string().min(1),
+    createdAtProvider: z.string().min(1),
+    modifiedAtProvider: z.string().min(1),
+    locked: z.boolean(),
+    shared: z.boolean(),
+    exportStatus: z.enum(['metadata_only', 'exported', 'unchanged', 'quarantined', 'missing']),
+    titleHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+    plaintextHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+    htmlHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+    compositeHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+    compositeInboxFilename: z.string().min(1).nullable(),
+    sourceDocumentId: StableIdSchema.nullable(),
+    attachmentRecords: z.array(AppleNotesAttachmentRecordSchema),
+    error: z.string().max(1000).nullable(),
+  })
+  .strict();
+export type AppleNotesNoteRecord = z.infer<typeof AppleNotesNoteRecordSchema>;
+
+export const AppleNotesIntakeManifestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    manifestVersion: z.literal(1),
+    provider: z.literal('apple_notes'),
+    folderName: z.string().min(1),
+    providerAccountId: z.string().min(1),
+    providerFolderId: z.string().min(1),
+    folderShared: z.boolean(),
+    lastAuditedAt: z.string().datetime(),
+    lastSynchronizedAt: z.string().datetime().nullable(),
+    acknowledgement: AppleNotesLocalAcknowledgementSchema.nullable(),
+    notes: z.array(AppleNotesNoteRecordSchema),
+  })
+  .strict();
+export type AppleNotesIntakeManifest = z.infer<typeof AppleNotesIntakeManifestSchema>;
 
 export const SourceManifestEntrySchema = z
   .object({

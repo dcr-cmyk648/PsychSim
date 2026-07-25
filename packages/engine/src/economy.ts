@@ -10,6 +10,7 @@ export const calculateSettlement = (
   pointReport: ClinicalPointReport,
   clinicState: ClinicState,
   caseInstance: CaseInstance,
+  treatmentExpenses = 0,
 ): EconomySettlement => {
   const configuration = caseInstance.economy;
   const satisfactionMultiplier = clinicState.satisfactionMultiplier;
@@ -26,7 +27,9 @@ export const calculateSettlement = (
         carePointPenalty,
     ),
   );
-  const calculatedPayout = grossPayout - pointReport.actualWorkupExpense;
+  const informationExpenses = pointReport.actualWorkupExpense;
+  const operatingExpenses = informationExpenses + treatmentExpenses;
+  const calculatedPayout = grossPayout - operatingExpenses;
   const netClinicPointsEarned = Math.max(0, calculatedPayout);
   const practiceMode = clinicState.debugUnlocksAllProgression;
   const bankedClinicPointsEarned = practiceMode ? 0 : netClinicPointsEarned;
@@ -39,7 +42,9 @@ export const calculateSettlement = (
     challengeBonus: configuration.challengeBonus,
     satisfactionMultiplier,
     grossPayout,
-    operatingExpenses: pointReport.actualWorkupExpense,
+    informationExpenses,
+    treatmentExpenses,
+    operatingExpenses,
     calculatedPayout,
     netClinicPointsEarned,
     bankedClinicPointsEarned,

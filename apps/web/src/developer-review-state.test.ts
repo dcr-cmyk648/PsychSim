@@ -55,4 +55,27 @@ describe('developer review state', () => {
       }),
     ]);
   });
+
+  it('preserves the exact linked attempt when checked-in ticket fields refresh', () => {
+    const saved = ClinicalReviewTicketSchema.parse({
+      ...baseTicket,
+      attemptId: 'attempt.case.first-visit-depression.7',
+      status: 'in_review',
+      reviewerNotes: 'Keep this linked to the patient I reviewed.',
+      reviewerNotesUpdatedAt: '2026-07-24T20:00:00.000Z',
+    });
+    const seeded = ClinicalReviewTicketSchema.parse({
+      ...baseTicket,
+      guidance: 'Updated checked-in question.',
+      targetContentIds: ['case.first-visit-depression', 'rule.mdd-outpatient-disposition'],
+    });
+
+    expect(mergeDeveloperAuditTickets([saved], [seeded])).toEqual([
+      expect.objectContaining({
+        attemptId: 'attempt.case.first-visit-depression.7',
+        guidance: 'Updated checked-in question.',
+        reviewerNotes: 'Keep this linked to the patient I reviewed.',
+      }),
+    ]);
+  });
 });

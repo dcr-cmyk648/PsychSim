@@ -93,7 +93,7 @@ describe('EncounterView laboratory results', () => {
     }
   });
 
-  it('marks present symptoms with a plus and the positive-outcome class', () => {
+  it('marks present symptoms with one explicit outcome chip', () => {
     const instance = instantiateCase(prototypeCaseBlueprint, 'symptom-marker-display', catalogs);
     const started = startEncounter(instance, startingClinic, 'location.solo-office.outpatient');
     const purchased = requireCompleted(
@@ -116,10 +116,10 @@ describe('EncounterView laboratory results', () => {
 
     const findingRow = screen.getByText(presentFinding.label).closest('li');
     if (!findingRow) throw new Error('Expected a rendered symptom row.');
-    const marker = within(findingRow).getByLabelText(
+    const marker = within(findingRow).getByText(
       presentFinding.outcome === 'positive' ? 'Positive' : 'Present',
+      { selector: '.finding-outcome-chip' },
     );
-    expect(marker).toHaveTextContent('+');
     expect(marker).toHaveClass(`outcome-${presentFinding.outcome}`);
   });
 
@@ -152,11 +152,7 @@ describe('EncounterView laboratory results', () => {
         selector: '.finding-outcome-chip',
       }),
     ).toBeVisible();
-    expect(
-      within(findingRow).getByLabelText(
-        absentFinding.outcome === 'negative' ? 'Negative' : 'Absent',
-      ),
-    ).toHaveTextContent('−');
+    expect(within(findingRow).queryByText('−')).not.toBeInTheDocument();
   });
 
   it('searches the combined medication, therapy, and disposition menu', () => {

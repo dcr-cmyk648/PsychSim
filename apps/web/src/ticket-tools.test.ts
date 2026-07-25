@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ClinicalReviewTicketSchema } from '@psychsim/schemas';
+import { catalogs, prototypeCaseBlueprint, startingClinic } from '@psychsim/content-runtime';
+import {
+  completeEncounter,
+  instantiateCase,
+  requireCompleted,
+  startEncounter,
+  updateTreatmentSelections,
+} from '@psychsim/engine';
+import { ClinicalReviewTicketSchema, CompletedAttemptSchema } from '@psychsim/schemas';
 
 import {
   LOCAL_TICKET_WRITER_ENDPOINT,
@@ -33,6 +41,40 @@ const ticket = ClinicalReviewTicketSchema.parse({
   createdAt: '2026-07-22T12:00:00.000Z',
   updatedAt: '2026-07-22T12:00:00.000Z',
 });
+
+const completedAttempt = () => {
+  const instance = instantiateCase(prototypeCaseBlueprint, 'ticket-export-test', catalogs);
+  let state = startEncounter(instance, startingClinic, startingClinic.activeLocationId);
+  state = requireCompleted(
+    updateTreatmentSelections(
+      state,
+      {
+        startMedicationIds: ['medication.sertraline'],
+        stopMedicationIds: [],
+        continueMedicationIds: [],
+        interventionIds: ['intervention.psychotherapy.cbt'],
+        dispositionId: 'disposition.outpatient-followup',
+      },
+      catalogs,
+    ),
+  );
+  const completed = requireCompleted(completeEncounter(state, catalogs));
+  return CompletedAttemptSchema.parse({
+    schemaVersion: 1,
+    id: 'attempt.ticket-export-test.1',
+    caseId: instance.blueprintId,
+    blueprintId: instance.blueprintId,
+    caseContentVersion: instance.contentVersion,
+    seed: instance.seed,
+    caseInstance: instance,
+    clinicStateAtStart: startingClinic,
+    events: completed.state.events,
+    purchases: completed.state.purchases,
+    submittedTreatment: completed.state.selections,
+    receipt: completed.receipt,
+    completedAt: '2026-07-24T20:00:00.000Z',
+  });
+};
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -90,5 +132,28 @@ describe('developer ticket tools', () => {
       LOCAL_TICKET_WRITER_ENDPOINT,
       expect.objectContaining({ method: 'PUT', body: JSON.stringify(bundle) }),
     );
+  });
+
+  it('rejects an attempt-linked ticket for a different patient blueprint', () => {
+    const attempt = completedAttempt();
+    const mismatchedTicket = ClinicalReviewTicketSchema.parse({
+      ...ticket,
+      attemptId: attempt.id,
+      blueprintId: 'case.some-other-patient',
+    });
+
+    expect(() =>
+      buildClinicalTicketExportBundle({
+        exportedAt: '2026-07-24T20:00:00.000Z',
+        engineVersion: '0.5.0',
+        profileId: 'profile.local',
+        buildKind: 'local_developer',
+        assignmentId: null,
+        tickets: [mismatchedTicket],
+        attemptReviews: [],
+        flags: [],
+        completedAttempts: [attempt],
+      }),
+    ).toThrow(/must match the attempt patient blueprint/);
   });
 });

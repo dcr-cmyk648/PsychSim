@@ -1,5 +1,7 @@
 import type {
+  CatalogBundle,
   ClinicState,
+  EncounterState,
   LocationDefinition,
   ServiceDefinition,
   ServiceFulfillmentMethod,
@@ -11,6 +13,21 @@ export interface ResolvedServiceFulfillment {
   service: ServiceDefinition;
   method: ServiceFulfillmentMethod;
   externalCostAvoided: number;
+}
+
+export interface TreatmentServiceQuote {
+  treatmentId: string;
+  kind: 'nonmedication' | 'disposition';
+  serviceId: string;
+  fulfillmentMethodId: string;
+  fulfillmentLabel: string;
+  operatingCost: number;
+  externalCostAvoided: number;
+}
+
+export interface TreatmentOperatingCostQuote {
+  items: TreatmentServiceQuote[];
+  totalOperatingCost: number;
 }
 
 const methodAvailable = (
@@ -74,5 +91,57 @@ export const resolveServiceFulfillment = (
       0,
       (cheapestExternalCost ?? method.operatingCost) - method.operatingCost,
     ),
+  });
+};
+
+export const quoteTreatmentService = (
+  treatmentId: string,
+  state: EncounterState,
+  catalogs: CatalogBundle,
+): Result<TreatmentServiceQuote | null> => {
+  const treatment = catalogs.treatments.find((candidate) => candidate.id === treatmentId);
+  if (!treatment) {
+    return err({
+      code: 'INVALID_TREATMENT_SELECTION',
+      message: `Unknown nonmedication treatment or disposition: ${treatmentId}`,
+    });
+  }
+  if (!treatment.fulfillmentServiceId) return ok(null);
+  const fulfillment = resolveServiceFulfillment(
+    treatment.fulfillmentServiceId,
+    state.clinicState,
+    state.locationId,
+    catalogs.services,
+    catalogs.locations,
+  );
+  if (!fulfillment.ok) return fulfillment;
+  return ok({
+    treatmentId,
+    kind: treatment.kind,
+    serviceId: fulfillment.value.service.id,
+    fulfillmentMethodId: fulfillment.value.method.id,
+    fulfillmentLabel: fulfillment.value.method.label,
+    operatingCost: fulfillment.value.method.operatingCost,
+    externalCostAvoided: fulfillment.value.externalCostAvoided,
+  });
+};
+
+export const quoteTreatmentOperatingCosts = (
+  state: EncounterState,
+  catalogs: CatalogBundle,
+): Result<TreatmentOperatingCostQuote> => {
+  const selectedTreatmentIds = [
+    ...state.selections.interventionIds,
+    ...(state.selections.dispositionId ? [state.selections.dispositionId] : []),
+  ];
+  const items: TreatmentServiceQuote[] = [];
+  for (const treatmentId of selectedTreatmentIds) {
+    const quote = quoteTreatmentService(treatmentId, state, catalogs);
+    if (!quote.ok) return quote;
+    if (quote.value) items.push(quote.value);
+  }
+  return ok({
+    items,
+    totalOperatingCost: items.reduce((sum, item) => sum + item.operatingCost, 0),
   });
 };

@@ -18,11 +18,12 @@ box accepts clinical/scoring observations as well as subjective pacing, clarity,
 screen-density, and overall-app comments. Saving upserts one `DeveloperAttemptReview` for that
 exact attempt. It embeds the resolved patient, seed, clinic and case versions, purchases, submitted
 treatment/disposition, ordered events, point report, receipt, and rule trace. It also freezes every
-option that was visible, its catalog label and section, whether the reviewer chose it, and—for
-information actions—the fulfillment method and displayed cost. Thus “I missed suicide risk
-assessment and was not penalized” can be checked against proof that the action was available,
-unpurchased, and absent or present in the trace. The review does not require the user to manually
-enumerate selections or reproduce a seed.
+option that was visible, its catalog label and section, whether the reviewer chose it, and the
+displayed fulfillment tuple where applicable. Information actions preserve service, fulfillment
+method, and cost; service-backed nonmedication and disposition options preserve the same fields.
+Thus “I missed suicide risk assessment and was not penalized” can be checked against proof that the
+action was available, unpurchased, and absent or present in the trace. The review does not require
+the user to manually enumerate selections or reproduce a seed.
 
 The receipt organizes the explanatory trace into stable domains and places point-changing rules
 before zero-point supporting rules. No trace row is discarded; zero-point rows remain available in
@@ -43,6 +44,22 @@ It links existing `SourceRequest` records where targets overlap and distinguishe
 direction requiring evidence from exact point magnitudes that remain game-balance judgment. This
 inventory is a read-only audit surface, not the still-pending dedicated Developer-opinion
 provenance schema and not 1:1 automatic ticket creation.
+
+Large Developer queues use lazy decision packets. The queue and each ticket begin collapsed, and
+expensive patient/rule audits are not mounted until opened. Closing a packet preserves unsaved
+reviewer text. A ticket appears on a patient only when it explicitly names that patient's
+blueprint ID; sharing a medication, action, or other target ID does not imply a patient link.
+Guidance created from a receipt binds to that exact immutable attempt, and export validation
+rejects an attempt whose blueprint differs from the ticket.
+
+A packet may include an unreviewed `LiteratureSynthesisProposal`: a concise proposed answer,
+search scope, eligible supporting sources, opposing or qualifying context, limitations, and
+unresolved questions. Supporting sources must match the formal evidence catalog and a
+`SourceUseDecision` that permits this authoring synthesis. Metadata-only, abstract-only,
+inaccessible, or otherwise uncleared sources may provide clearly labeled context but cannot be
+counted as support for the proposed direction. The psychiatrist's plain-language response remains
+the decision. A proposal never sets point magnitudes, edits a rule, attaches a citation to runtime
+content, or grants medical approval.
 
 Local Developer mode saves either ticket instructions or an attempt review to IndexedDB first and
 then atomically mirrors the complete versioned bundle to the fixed gitignored path
@@ -162,8 +179,11 @@ Before a formal publication can be cited, its bibliographic record must exist in
 
 Changes to shared medication knowledge create impact tickets for every dependent patient; they do
 not propagate automatically. Patient-specific exceptions stay in that patient's file instead of
-weakening a global rule. Personal notebook/iOS material starts as an inactive author override until
-separately sourced and reviewed.
+weakening a global rule. Apple Notes material enters only through the acknowledged private intake
+workflow. Personal takeaways remain Developer-opinion candidates; article screenshots, OCR text,
+and embedded citations remain rights-unverified or bibliographically unverified candidates until
+independently cataloged and reviewed. None propagates automatically into rules, patients, points,
+or citations.
 
 Evidence comparison first partitions by question, population, intervention, comparator, outcome,
 time horizon, and setting. It may prefer a contribution only when corrections/supersession and

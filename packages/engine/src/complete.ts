@@ -11,6 +11,7 @@ import { buildCaseReceipt } from './receipt';
 import { ok, type Result } from './result';
 import { hashToHex } from './rng';
 import { scoreEncounter } from './scoring';
+import { quoteTreatmentOperatingCosts } from './services';
 
 export interface CompletedEncounterResult {
   state: EncounterState;
@@ -25,12 +26,21 @@ export const completeEncounter = (
   if (!submitted.ok) return submitted;
   const scored = scoreEncounter(submitted.value, catalogs);
   if (!scored.ok) return scored;
+  const treatmentQuote = quoteTreatmentOperatingCosts(submitted.value, catalogs);
+  if (!treatmentQuote.ok) return treatmentQuote;
   const settlement = calculateSettlement(
     scored.value,
     submitted.value.clinicState,
     submitted.value.caseInstance,
+    treatmentQuote.value.totalOperatingCost,
   );
-  const receipt = buildCaseReceipt(submitted.value, scored.value, settlement, catalogs);
+  const receipt = buildCaseReceipt(
+    submitted.value,
+    scored.value,
+    settlement,
+    catalogs,
+    treatmentQuote.value,
+  );
   const suffix = hashToHex(submitted.value.id);
   const events = [
     ...submitted.value.events,

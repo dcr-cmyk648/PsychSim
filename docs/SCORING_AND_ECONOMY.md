@@ -8,14 +8,18 @@ The receipt still separates point sources so the calculation is legible:
 
 - `carePointsEarned`: signed points from workup, treatment, safety, nonmedication care, disposition, and efficiency.
 - `baseReimbursement`: the encounter's fixed point allowance.
-- `operatingExpenses`: the points spent revealing information and tests.
+- `informationExpenses`: the points spent revealing information and tests.
+- `treatmentExpenses`: the points spent delivering selected nonmedication or disposition services.
+- `operatingExpenses`: the sum of information and treatment-service expenses.
 - `netClinicPointsEarned`: the nonnegative payout added to both the spendable balance and lifetime progression in Normal mode.
 
 All are the same unit. “Care points” names a subtotal; it is not a second currency.
 
 ## Database-plan comparison
 
-Each patient owns a reviewed-as-a-unit database plan and one or more accepted alternatives. The receipt reports:
+Each patient declares an executable database plan and one or more accepted alternatives. These are
+finite comparison policies, not claims of exhaustive optimality or medical approval. The receipt
+reports:
 
 - database-plan care points;
 - the player's care points and signed difference from the database plan;
@@ -54,7 +58,12 @@ Each objective has a stable ID, importance, JSON-safe satisfaction predicate, po
 
 Necessary or treatment-required investigation points must exceed the cheapest available point cost at every compatible location. Validation rejects a case that violates this rule. Optional or unnecessary actions may cost points without earning care points. Unsupported expensive workups therefore reduce the payout even when the care subtotal changes little.
 
-The starter MDD patient uses four focused histories costing 80 points total. The episode/timeline, depressive-symptom, and suicide-safety objectives award 35, 50, and 50 points. The mania screen is a treatment prerequisite: its 45-point conditional award exceeds its 25-point cost. Omitting a necessary item creates a `critical_omission` trace shown in red.
+The starter MDD database plan uses six focused histories costing 135 points total. The
+episode/timeline, depressive-symptom, suicide-safety, and substance-contribution objectives award
+35, 50, 50, and 30 points. Medication reconciliation establishes the previously unknown current
+list; its 35-point treatment-conditional award exceeds its 30-point cost. The mania screen is a
+treatment prerequisite: its 45-point conditional award exceeds its 25-point cost. Omitting a
+necessary item creates a `critical_omission` trace shown in red.
 
 ## Treatment and modifier layers
 
@@ -104,7 +113,10 @@ gross reimbursement = round(max(0,
     positive reward subtotal × satisfaction multiplier
   + care-point penalty))
 
-calculated payout = gross reimbursement - investigation operating expenses
+calculated payout =
+    gross reimbursement
+  - information operating expenses
+  - selected treatment-service operating expenses
 
 points earned = max(0, calculated payout)
 
@@ -112,7 +124,12 @@ spendable points after = spendable points before + points earned
 lifetime points after = lifetime points before + points earned
 ```
 
-The base reimbursement is intentionally large enough to cover a focused indicated workup and tolerate a small amount of inefficiency, while extensive unnecessary testing still matters. Encounter expenses never directly debit previously banked points. Debt is impossible. Endgame and Developer are practice modes: they calculate the same projected payout but bank zero.
+The base reimbursement is intentionally large enough to cover a focused indicated workup and
+tolerate a small amount of inefficiency, while extensive unnecessary testing or service use still
+matters. Treatment-service availability and cost are resolved when the final selection is made;
+they do not decide whether that selection is clinically correct. Encounter expenses never directly
+debit previously banked points. Debt is impossible. Endgame and Developer are practice modes: they
+calculate the same projected payout but bank zero.
 
 ## Upgrade spending and service savings
 
@@ -152,20 +169,30 @@ multiplier = min(1.15, 1 + (1.15 - 1) × diminishing value)
 
 The multiplier is rounded to three decimals for persisted/displayed state. The six-point plant produces 1.035×; plant plus ten-point artwork produces 1.067×, so the second item's per-point effect is smaller. The cap and half-saturation value live in the decor catalog rather than React. Only the positive reward subtotal is multiplied. A negative care subtotal remains a full unmultiplied penalty, and care-point traces, safety errors, treatment grades, and score caps are unchanged.
 
-For the 450-care-point starter database plan, the undecorated gross is 1,150 and the 80-point focused workup yields 1,070 banked points. With the plant, gross is `round(1,150 × 1.035) = 1,190`, yielding 1,110 points. With plant plus artwork, gross is `round(1,150 × 1.067) = 1,227`, yielding 1,147 points. The same decor leaves the unsafe reference run at a zero payout.
+For the 515-care-point starter database plan, the undecorated gross is 1,215 and the 135-point
+focused workup yields 1,080 banked points. With the plant, gross is
+`round(1,215 × 1.035) = 1,258`, yielding 1,123 points. With plant plus artwork, gross is
+`round(1,215 × 1.067) = 1,296`, yielding 1,161 points. The same decor leaves the unsafe reference
+run at a zero payout.
 
 ## Executable starter reference runs
 
-These are generated by `pnpm demo:reference-runs`, not hand-entered expectations.
+These are generated by `pnpm demo:reference-runs`, not hand-entered expectations. “Workup cost” in
+these tables is `informationExpenses`. Every listed reference policy currently has zero
+`treatmentExpenses`; a selected service-backed intervention or disposition would be shown and
+deducted separately.
 
 | Policy             | Care points | Database plan | Workup cost | Base | Complexity | Gross | Calculated | Banked |
 | ------------------ | ----------: | ------------: | ----------: | ---: | ---------: | ----: | ---------: | -----: |
-| Database plan      |         450 |           450 |          80 |  650 |         50 | 1,150 |      1,070 |  1,070 |
-| Strong alternative |         445 |           450 |          80 |  650 |         50 | 1,145 |      1,065 |  1,065 |
-| Shotgun testing    |         430 |           450 |       7,670 |  650 |         50 | 1,130 |     −6,540 |      0 |
-| Unsafe treatment   |        −935 |           450 |          80 |  650 |         50 |     0 |        −80 |      0 |
+| Database plan      |         515 |           515 |         135 |  650 |         50 | 1,215 |      1,080 |  1,080 |
+| Strong alternative |         515 |           515 |         135 |  650 |         50 | 1,215 |      1,080 |  1,080 |
+| Shotgun testing    |         495 |           515 |       7,745 |  650 |         50 | 1,195 |     −6,550 |      0 |
+| Unsafe treatment   |        −905 |           515 |         135 |  650 |         50 |     0 |       −135 |      0 |
 
-Expected care-point ordering is database plan > strong alternative > shotgun > unsafe. Financially, the focused plans dominate shotgun testing. Unsafe starter treatment earns no payout.
+Expected care-point ordering is database plan = strong alternative > shotgun > unsafe. The equal
+focused results intentionally reflect one broad first-line medication family rather than an
+arbitrary medication preference. Financially, either focused plan dominates shotgun testing.
+Unsafe starter treatment earns no payout.
 
 The second medically unreviewed ECG prototype uses the same four policy kinds before ownership:
 
@@ -173,7 +200,7 @@ The second medically unreviewed ECG prototype uses the same four policy kinds be
 | ------------------ | ----------: | ------------: | ----------: | ---: | ---------: | ----: | ---------: | -----: |
 | Database plan      |       1,140 |         1,140 |         630 |  700 |        100 | 1,940 |      1,310 |  1,310 |
 | Strong alternative |       1,135 |         1,140 |         630 |  700 |        100 | 1,935 |      1,305 |  1,305 |
-| Shotgun testing    |       1,120 |         1,140 |       7,670 |  700 |        100 | 1,920 |     −5,750 |      0 |
+| Shotgun testing    |       1,120 |         1,140 |       7,745 |  700 |        100 | 1,920 |     −5,825 |      0 |
 | Unsafe treatment   |      −1,155 |         1,140 |         130 |  700 |        100 |     0 |       −130 |      0 |
 
 For an identical database-plan run, ownership changes only fulfillment economics:

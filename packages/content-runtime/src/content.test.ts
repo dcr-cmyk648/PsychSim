@@ -110,7 +110,7 @@ describe('prototype content', () => {
       approvedCaseBlueprints.flatMap((caseDefinition) =>
         caseDefinition.patientRecord.sourceUseNotes.flatMap((note) => note.evidenceSourceIds),
       ),
-    ).not.toContain('evidence.canmat.mdd-adults.2023-update');
+    ).toContain('evidence.canmat.mdd-adults.2023-update');
     expect(
       approvedCaseBlueprints.flatMap((caseDefinition) =>
         caseDefinition.patientRecord.sourceUseNotes.flatMap((note) => note.evidenceSourceIds),

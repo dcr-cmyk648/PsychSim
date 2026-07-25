@@ -10,6 +10,8 @@ import {
   getInformationActionQuote,
   getAvailableStartMedicationIds,
   purchaseInformationAction,
+  quoteTreatmentOperatingCosts,
+  quoteTreatmentService,
   updateTreatmentSelections,
 } from '@psychsim/engine';
 import type { MobileWorkflowPane } from './MobileWorkflowTabs';
@@ -46,17 +48,6 @@ const MEDICATION_MODES: ReadonlyArray<{ id: MedicationMode; label: string }> = [
 const includesSearch = (search: string, ...values: Array<string | undefined>): boolean =>
   values.join(' ').toLowerCase().includes(search.trim().toLowerCase());
 
-const findingMarker = (
-  outcome: EncounterState['purchases'][number]['result']['findings'][number]['outcome'],
-): string => {
-  if (outcome === 'present' || outcome === 'positive') return '+';
-  if (outcome === 'absent' || outcome === 'negative') return '−';
-  if (outcome === 'high') return '↑';
-  if (outcome === 'low') return '↓';
-  if (outcome === 'not_applicable') return 'N/A';
-  return '=';
-};
-
 const findingOutcomeLabel = (
   outcome: EncounterState['purchases'][number]['result']['findings'][number]['outcome'],
 ): string => {
@@ -83,6 +74,15 @@ function ResultCard({
   const narrativeFindings = purchase.result.findings.filter(
     (finding) => finding.numericMeasurement === undefined,
   );
+  const narrativeGroups = narrativeFindings.reduce<
+    Array<{ label: string | null; findings: typeof narrativeFindings }>
+  >((groups, finding) => {
+    const label = finding.groupLabel ?? null;
+    const existing = groups.find((group) => group.label === label);
+    if (existing) existing.findings.push(finding);
+    else groups.push({ label, findings: [finding] });
+    return groups;
+  }, []);
 
   return (
     <article className="result-card">
@@ -138,25 +138,35 @@ function ResultCard({
         </div>
       ) : null}
       {narrativeFindings.length > 0 ? (
-        <ul className="finding-list">
-          {narrativeFindings.map((finding) => (
-            <li key={finding.id} className={`finding-row outcome-${finding.outcome}`}>
-              <b
-                className={`finding-marker outcome-${finding.outcome}`}
-                aria-label={findingOutcomeLabel(finding.outcome)}
-              >
-                {findingMarker(finding.outcome)}
-              </b>
-              <span className="finding-content">
-                <span className={`finding-outcome-chip outcome-${finding.outcome}`}>
-                  {findingOutcomeLabel(finding.outcome)}
-                </span>
-                <span>{finding.label}</span>
-                {finding.valueText ? <small>{finding.valueText}</small> : null}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="finding-groups">
+          {narrativeGroups.map((group, groupIndex) => {
+            const headingId = group.label
+              ? `${purchase.actionId.replaceAll('.', '-')}-group-${groupIndex + 1}`
+              : undefined;
+            return (
+              <section className="finding-group" key={group.label ?? 'ungrouped'}>
+                {group.label ? (
+                  <h4 className="finding-group-title" id={headingId}>
+                    {group.label}
+                  </h4>
+                ) : null}
+                <ul className="finding-list" aria-labelledby={headingId}>
+                  {group.findings.map((finding) => (
+                    <li key={finding.id} className={`finding-row outcome-${finding.outcome}`}>
+                      <span className="finding-content">
+                        <span className={`finding-outcome-chip outcome-${finding.outcome}`}>
+                          {findingOutcomeLabel(finding.outcome)}
+                        </span>
+                        <span>{finding.label}</span>
+                        {finding.valueText ? <small>{finding.valueText}</small> : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
       ) : null}
       <small>Fulfilled by {purchase.fulfillmentLabel}</small>
     </article>
@@ -296,6 +306,11 @@ export function EncounterView({
     state.selections.continueMedicationIds.length +
     state.selections.interventionIds.length +
     (state.selections.dispositionId ? 1 : 0);
+  const treatmentCostQuote = quoteTreatmentOperatingCosts(state, catalogs);
+  const selectedTreatmentExpense = treatmentCostQuote.ok
+    ? treatmentCostQuote.value.totalOperatingCost
+    : 0;
+  const visibleOperatingExpense = state.expenseTotal + selectedTreatmentExpense;
   const displayedPurchases = newestResultsFirst
     ? [...state.purchases].reverse()
     : [...state.purchases];
@@ -344,8 +359,8 @@ export function EncounterView({
         </div>
         <dl>
           <div>
-            <dt>Expense</dt>
-            <dd>{state.expenseTotal.toLocaleString()} pts</dd>
+            <dt>Operating cost</dt>
+            <dd>{visibleOperatingExpense.toLocaleString()} pts</dd>
           </div>
           <div>
             <dt>Bank</dt>
@@ -384,16 +399,20 @@ export function EncounterView({
             </p>
             <p className="opening-summary">{state.caseInstance.opening.summary}</p>
             <p>{state.caseInstance.opening.context}</p>
-            {state.caseInstance.opening.knownMedicationIds.length > 0 ? (
-              <>
-                <h2>Known medications</h2>
+            <>
+              <h2>Known medications</h2>
+              {state.caseInstance.opening.medicationListStatus === 'provided' ? (
                 <ul>
                   {state.caseInstance.opening.knownMedicationIds.map((id) => (
                     <li key={id}>{medicationLabel(id)}</li>
                   ))}
                 </ul>
-              </>
-            ) : null}
+              ) : state.caseInstance.opening.medicationListStatus === 'verified_none' ? (
+                <p>No current medications reported after reconciliation.</p>
+              ) : (
+                <p>Medication list not yet reconciled.</p>
+              )}
+            </>
             {state.caseInstance.opening.knownHistory.length > 0 ? (
               <>
                 <h2>Known history</h2>
@@ -616,17 +635,27 @@ export function EncounterView({
               <div className="picker-options">
                 {interventions.map((intervention) => {
                   const selected = state.selections.interventionIds.includes(intervention.id);
+                  const quote = quoteTreatmentService(intervention.id, state, catalogs);
+                  const serviceQuote = quote.ok ? quote.value : null;
+                  const unavailable = !quote.ok;
                   return (
                     <button
                       key={intervention.id}
                       type="button"
                       className={`picker-option${selected ? ' selected' : ''}`}
                       aria-pressed={selected}
-                      disabled={readOnly}
+                      disabled={readOnly || unavailable}
                       onClick={() => toggle('interventionIds', intervention.id)}
                     >
                       <span>
                         <strong>{intervention.label}</strong>
+                        {serviceQuote ? (
+                          <small>
+                            {serviceQuote.operatingCost} pts · {serviceQuote.fulfillmentLabel}
+                          </small>
+                        ) : unavailable ? (
+                          <small>Unavailable in this setting</small>
+                        ) : null}
                       </span>
                       <b>{selected ? '✓' : '+'}</b>
                     </button>
@@ -643,13 +672,16 @@ export function EncounterView({
               <div className="picker-options">
                 {dispositions.map((disposition) => {
                   const selected = state.selections.dispositionId === disposition.id;
+                  const quote = quoteTreatmentService(disposition.id, state, catalogs);
+                  const serviceQuote = quote.ok ? quote.value : null;
+                  const unavailable = !quote.ok;
                   return (
                     <button
                       key={disposition.id}
                       type="button"
                       className={`picker-option${selected ? ' selected' : ''}`}
                       aria-pressed={selected}
-                      disabled={readOnly}
+                      disabled={readOnly || unavailable}
                       onClick={() =>
                         update({
                           ...state.selections,
@@ -659,6 +691,13 @@ export function EncounterView({
                     >
                       <span>
                         <strong>{disposition.label}</strong>
+                        {serviceQuote ? (
+                          <small>
+                            {serviceQuote.operatingCost} pts · {serviceQuote.fulfillmentLabel}
+                          </small>
+                        ) : unavailable ? (
+                          <small>Unavailable in this setting</small>
+                        ) : null}
                       </span>
                       <b>{selected ? '●' : '○'}</b>
                     </button>

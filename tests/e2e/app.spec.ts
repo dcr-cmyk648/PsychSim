@@ -37,7 +37,7 @@ test('completes a patient, stores review guidance, and preserves the profile and
   for (const actionName of [
     /Presenting problem and timeline, 20 points, in house/,
     /Depressive symptoms, 20 points, in house/,
-    /Manic and hypomanic symptoms, 25 points, in house/,
+    /Current and past mania or hypomania, 25 points, in house/,
     /Suicide and self-harm assessment, 15 points, in house/,
   ]) {
     await page.getByRole('button', { name: actionName }).click();
@@ -48,7 +48,8 @@ test('completes a patient, stores review guidance, and preserves the profile and
   const positiveSafetyMarker = page
     .locator('.result-card')
     .filter({ hasText: 'Suicide and self-harm assessment' })
-    .getByLabel('Present')
+    .locator('.finding-outcome-chip')
+    .filter({ hasText: 'Present' })
     .first();
   await expect(positiveSafetyMarker).toBeVisible();
   await expect(positiveSafetyMarker).toHaveCSS('color', 'rgb(255, 118, 94)');
@@ -62,12 +63,16 @@ test('completes a patient, stores review guidance, and preserves the profile and
   await page.getByRole('button', { name: 'Lock in treatment' }).click();
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Case receipt', exact: true }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Major depressive disorder · Initial treatment',
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(page.getByText(/points vs database plan/i)).toHaveCount(0);
   await expect(
     page.getByRole('meter', { name: 'Player care points compared with the database plan' }),
-  ).toHaveAttribute('aria-valuetext', '450 player care points; 450 database-plan care points');
+  ).toHaveAttribute('aria-valuetext', '450 player care points; 515 database-plan care points');
   const planComparison = page.locator('.plan-comparison-panel');
   await expect(
     planComparison.getByRole('heading', {
@@ -142,20 +147,19 @@ test('completes a patient, stores review guidance, and preserves the profile and
   ).toBeDisabled();
 
   await page.getByRole('button', { name: 'Developer' }).click();
-  await expect(page.getByRole('heading', { name: 'Opinions needing references' })).toBeVisible();
+  await page.getByText('Opinions needing references', { exact: true }).click();
   await expect(
     page.getByRole('searchbox', {
       name: 'Search opinions, rule IDs, medications, tests, or source requests',
     }),
   ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Clinical and content tickets' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Sources needed' })).toBeVisible();
+  await page.getByText('Sources needed', { exact: true }).click();
   await expect(page.locator('.source-request-card')).toHaveCount(6);
   await expect(
     page.getByText('Cyclothymia and duration-based near-miss generation', { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText('World Health Organization').first()).toBeVisible();
   await expect(page.getByText('TSH use in an initial depressive presentation')).toBeVisible();
+  await page.getByText('Clinical and content tickets', { exact: true }).click();
   await expect(
     page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   ).toBeVisible();
@@ -165,28 +169,33 @@ test('completes a patient, stores review guidance, and preserves the profile and
   const dispositionTicket = page.locator('.ticket-card').filter({
     has: page.getByText('Audit escalation and disposition penalties'),
   });
+  await dispositionTicket.locator('summary').first().click();
+  await dispositionTicket.getByText(/Current executable values/).click();
   await expect(dispositionTicket.getByText(/-80 pts/)).toBeVisible();
   await expect(dispositionTicket.getByText(/-450 pts/)).toBeVisible();
   await expect(dispositionTicket.getByText('200 when true').last()).toBeVisible();
   const baselineTicket = page.locator('.ticket-card').filter({
     has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   });
+  await baselineTicket.locator('summary').first().click();
   await baselineTicket
-    .getByLabel('What should Codex do?')
+    .getByLabel('Your response, judgment, or alternative references')
     .fill('Keep one broad first-line pathway and apply meaningful medication-fit modifiers.');
   await expect(baselineTicket.getByRole('combobox', { name: 'Status' })).toHaveCount(0);
-  await baselineTicket.getByRole('button', { name: 'Save instructions' }).click();
+  await baselineTicket.getByRole('button', { name: 'Save response' }).click();
   await expect(
     page.getByText(/Saved your instructions.*updated the Codex handoff file/),
   ).toBeVisible();
   await page.reload();
+  await page.getByText('Clinical and content tickets', { exact: true }).click();
   await page.getByText(/Reviewed locally · [1-9][0-9]*/).click();
   const persistedBaselineTicket = page.locator('.ticket-card').filter({
     has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
   });
-  await expect(persistedBaselineTicket.getByLabel('What should Codex do?')).toHaveValue(
-    'Keep one broad first-line pathway and apply meaningful medication-fit modifiers.',
-  );
+  await persistedBaselineTicket.locator('summary').first().click();
+  await expect(
+    persistedBaselineTicket.getByLabel('Your response, judgment, or alternative references'),
+  ).toHaveValue('Keep one broad first-line pathway and apply meaningful medication-fit modifiers.');
   await page.getByRole('button', { name: 'Update Codex handoff file' }).click();
   await expect(page.getByText(/tickets\.e2e\.json.*tell Codex the review is ready/)).toBeVisible();
   const downloadPromise = page.waitForEvent('download');

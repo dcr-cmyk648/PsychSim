@@ -6,12 +6,20 @@ import {
 } from '@psychsim/schemas';
 
 import { approvedCaseBlueprints, catalogs, startingClinic } from './content';
+import {
+  developerLiteratureSynthesisProposals,
+  validateLiteratureSynthesisProposals,
+} from './literature-synthesis';
 import { milestoneTwoClinicalAuditTickets } from './milestone-two-review-tickets';
 import { buildDeveloperOpinionReferenceNeeds } from './opinion-audit';
 import { buildCaseRuleAudit } from './review-inspector';
 import { reviewerCaseBlueprints } from './reviewer-content';
 import { developerSourceRequests } from './source-requests';
-export { developerSourceRequests };
+export {
+  developerLiteratureSynthesisProposals,
+  developerSourceRequests,
+  validateLiteratureSynthesisProposals,
+};
 
 const reviewCaseModules = import.meta.glob('../../../content/cases/review/*.case.json', {
   eager: true,

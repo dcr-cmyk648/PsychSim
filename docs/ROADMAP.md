@@ -10,7 +10,7 @@ Gate: documents agree on no virtual time, deterministic browser play, one visibl
 
 ## Milestone 1 — First playable clinical vertical slice (complete)
 
-Delivered: strict versioned schemas including rule-level review records; deterministic seeded instantiation; atomic finding sets; one-file-per-test contextual generation with UCUM units and EMR-style reference-interval display; pure encounter/points/economy/service/replay/eligibility/queue logic; starting solo office; one playable medically unreviewed MDD starter case with one broad primary medication-tag pathway plus one review-only engine fixture; a 36-option universal information catalog with immediate case-specific results; searchable structured treatment UI; itemized all-points receipt and full trace; durable Normal/Endgame/Developer queues; local profile/attempt/flag/ticket persistence; Developer whole-case review notes with immutable attempt/all-option snapshots; reviewer notes, developer ticket triage, automatic fixed-path Codex handoff mirror, and JSON export; content validation; four executable starter policies; unit and Playwright coverage.
+Delivered: strict versioned schemas including rule-level review records; deterministic seeded instantiation; atomic finding sets; one-file-per-test contextual generation with UCUM units and EMR-style reference-interval display; pure encounter/points/economy/service/replay/eligibility/queue logic; starting solo office; one playable medically unreviewed MDD starter case with one broad primary medication-tag pathway plus one review-only engine fixture; a 38-option universal information catalog with immediate case-specific results; searchable structured treatment UI; itemized all-points receipt and full trace; durable Normal/Endgame/Developer queues; local profile/attempt/flag/ticket persistence; Developer whole-case review notes with immutable attempt/all-option snapshots; reviewer notes, developer ticket triage, automatic fixed-path Codex handoff mirror, and JSON export; content validation; four executable starter policies; unit and Playwright coverage.
 
 Gate: one complete case plays opening-to-receipt; reload preserves profile/attempt/patient slot/tickets/Developer attempt reviews; same seed/history is deterministic; a whole-case review preserves every offered option and exact choices; tests prove complaint variation, criteria-constrained findings, immediate results, costs, nonrepeatability, negative-test credit, indicated reward above cost, omissions, waste, fit modifiers, alternative paths, discontinuation, dangerous combination, path-specific requirements, zero-floor settlement, service independence, reference ordering, Developer-content isolation, and AI/source bundle isolation; lint, typecheck, tests, e2e, validation, and production build pass.
 
@@ -66,7 +66,7 @@ anxiety finding, exercising subthreshold variation without creating a diagnosis 
 rubric. Finding rows display explicit outcome chips and grouped positive/negative states. Receipts
 use one responsive care-point meter and expose attempt-persisted rule provenance in every trace.
 The material cohort revision is namespaced as
-`reviewer-assignment.common-psychiatry.2026-07b`.
+`reviewer-assignment.common-psychiatry.2026-07c`.
 
 Progression follow-up on `beta`: a 900-point Clinical intake assistant, gated at 600 lifetime
 points, can automatically administer up to three selected routine checklist/medication-history
@@ -98,17 +98,26 @@ rather than one pyramid score. The user's private residency-article aggregate is
 physical source containing many dated logical article units and atomic Developer opinions; no
 SharePoint bytes have been imported.
 
-Remaining scope before complex generation: typed clinical facts and derived tags; internal condition
-states separate from chart diagnosis records; regimen-entry and prior-trial records; sourced
-decision-policy nodes; source-controlled patient templates that compile deterministic patient and
-encounter instances; focused decision horizons; patient-family-owned optional-comorbidity
-selection; a conflict taxonomy that preserves valid clinical tension; versioned patient-specific
-overrides; medication identity/evidence/opinion schemas; claim-specific evidence-body resolution;
-logical authored-source units and opinion/evidence relationships; and one source-cleared, tightly
-scoped medication import proof before broad catalog expansion.
+Clinical-record and encounter-economy follow-up on `beta`: medication-list certainty now
+distinguishes unreconciled, verified-none, and provided states; focused medication reconciliation
+remains distinct from full structured treatment history; weight/BMI remains distinct from body
+habitus; and selected service-backed interventions can incur separately itemized treatment
+operating costs without changing clinical correctness. The starter MDD reference policies now
+intentionally tie the database and strong-alternative medication baselines, with patient fit
+evaluated separately.
 
-Gate: current runtime behavior and reference runs remain unchanged; old snapshots replay through a
-versioned migration; unsourced severity cannot generate; the same template and seed reproduce the
+Remaining scope before complex generation: source-controlled patient templates that compile the
+existing typed facts, internal condition/chart, regimen, prior-trial, and treatment-history records
+into complete deterministic patient and encounter instances; sourced decision-policy nodes;
+focused decision horizons; patient-family-owned optional-comorbidity selection; a conflict taxonomy
+that preserves valid clinical tension; versioned patient-specific overrides; medication
+identity/evidence/opinion schemas; claim-specific evidence-body resolution; logical authored-source
+units and opinion/evidence relationships; and one source-cleared, tightly scoped medication import
+proof before broad catalog expansion.
+
+Gate: the runtime behavior and reference baselines recorded at this checkpoint remain stable through
+the next schema split; old snapshots replay through a versioned migration; unsourced severity
+cannot generate; the same template and seed reproduce the
 same complete patient/regimen/trial state; duplicate medications are independently addressable;
 chart claims do not automatically activate internal-condition rules; only decision-relevant
 positive rules plus global safety rules enter a focused encounter; every generated encounter has
@@ -126,6 +135,13 @@ Gate: case/location validator proves safe workup, acceptable treatment, and safe
 
 ## Milestone 5 — Content review and authoring tools
 
+Status: two additional bounded precursor slices are delivered without claiming the milestone
+complete. Developer queues now mount as collapsed decision packets with explicit patient/attempt
+links. One packet may show a validated, unreviewed literature-synthesis proposal that separates
+source-cleared support from metadata/abstract-only context and leaves the psychiatrist's
+plain-language response authoritative. No proposal edits a rule, assigns points, or grants
+approval.
+
 Scope: build on the Milestone 1 proposed-ticket queue with exact attempt replay; review inspector; dependency/conflict and supersession workflows; rubric editing; historical comparison/re-score; JSON bundles; reference-policy simulations and QA reports; generated content indexes.
 
 Gate: historical records are immutable and reproducible; current-engine comparisons are labeled;
@@ -136,7 +152,18 @@ clinical or lifecycle approval.
 
 ## Milestone 6 — Source-document ingestion
 
-Status: a bounded local slice was delivered by explicit follow-up after Milestone 2. It includes SHA-256 manifests, exact-duplicate retention, PDF/DOCX/TXT/Markdown extraction, hashed chunks with page/section context, watch mode, quarantine, privacy guards, a one-file-per-formal-source evidence catalog, explicit contribution records, Expert-opinion fallback labels, evidence auditing, tests, and source/review listing commands. Full source review, crash-recovery hardening, claim extraction, and remote-file byte transfer remain open, so Milestone 6 is not complete.
+Status: bounded local slices were delivered by explicit follow-up after Milestone 2. The general
+pipeline includes SHA-256 manifests, exact-duplicate retention, PDF/DOCX/TXT/Markdown extraction,
+hashed chunks with page/section context, watch mode, quarantine, privacy guards, a
+one-file-per-formal-source evidence catalog, explicit contribution records, Expert-opinion fallback
+labels, evidence auditing, tests, and source/review listing commands. A macOS Apple Notes adapter
+adds a metadata-only audit plus an explicitly acknowledged local sync for the exact
+`Psych research` folder. The sync uses the public Notes scripting boundary, protected private
+directories, local Vision/PDFKit OCR, per-note checkpoints, stable provider provenance, attachment
+hashing/deduplication, and the ordinary source queue. It never edits Notes or transmits content.
+Full source review, claim extraction, broader remote-file byte transfer, and completion of every
+Milestone 6 gate remain open. Only the metadata audit has run at this checkpoint; note bodies and
+attachment bytes remain unimported pending the required acknowledgments.
 
 Scope: SHA-256 scan/manifest/duplicates; PDF, DOCX, TXT, Markdown strategy; extraction/chunks; watch; processed/quarantine; provenance; privacy controls; source review.
 

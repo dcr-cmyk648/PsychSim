@@ -1,6 +1,7 @@
 {
   "metadata": {
     "title": "Basic MDD scaffold for developer review",
+    "debriefTitle": "Major depressive disorder · Developer scaffold",
     "fictional": true,
     "synthetic": true,
     "medicalReviewStatus": "unreviewed",
@@ -217,7 +218,9 @@
       "intervention.psychotherapy.supportive",
       "intervention.behavioral-activation",
       "intervention.sleep-routine",
-      "intervention.grounding-strategies"
+      "intervention.grounding-strategies",
+      "intervention.substance-use.brief-counseling",
+      "intervention.substance-use.motivational-interviewing"
     ],
     "dispositionIds": [
       "disposition.outpatient-followup",
@@ -856,6 +859,7 @@
         "info.history.medication-reconciliation",
         "info.history.adherence",
         "info.history.prior-trials",
+        "info.history.treatment-history",
         "info.history.medication-effects",
         "info.history.substance-use",
         "info.history.sleep",
@@ -865,6 +869,7 @@
         "info.history.outside-records",
         "info.physical.mental-status",
         "info.physical.general",
+        "info.physical.weight-bmi",
         "info.physical.neurologic",
         "info.physical.movement",
         "info.physical.orthostatic-vitals",
@@ -921,6 +926,7 @@
     "summaryTemplate": "{{patient.name}} is a {{patient.age}}-year-old {{patient.occupation}} who presents with “{{patient.chiefComplaint}}.”",
     "contextTemplate": "Scheduled outpatient visit",
     "knownMedicationIds": [],
+    "medicationListStatus": "unreconciled",
     "knownHistory": [],
     "basicVitals": [
       "Blood pressure 116/72",
@@ -1237,15 +1243,45 @@
             "id": "finding.trials.psychotropic",
             "labelVariants": ["Prior psychiatric medication", "Previous psychotropic trial"],
             "outcome": "absent"
-          },
-          {
-            "id": "finding.trials.structured-therapy",
-            "labelVariants": ["Prior structured psychotherapy", "Previous course of therapy"],
-            "outcome": "absent"
           }
         ],
         "shuffle": true,
         "factsRevealed": ["fact.mdd-treatment-naive"]
+      }
+    },
+    {
+      "actionId": "info.history.treatment-history",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-basic-treatment-history.medications",
+            "groupLabel": "Medication trials",
+            "labelVariants": ["Prior psychiatric medication trials"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.review-basic-treatment-history.psychotherapy",
+            "groupLabel": "Psychotherapy",
+            "labelVariants": ["Prior structured psychotherapy"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.review-basic-treatment-history.providers",
+            "groupLabel": "Current treatment providers",
+            "labelVariants": ["Current psychiatrist or therapist"],
+            "outcome": "absent"
+          },
+          {
+            "id": "finding.review-basic-treatment-history.levels",
+            "groupLabel": "Prior levels of care",
+            "labelVariants": ["Prior hospitalization, PHP, IOP, or residential care"],
+            "outcome": "absent"
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.review-basic-full-treatment-history"]
       }
     },
     {
@@ -1522,10 +1558,45 @@
             "id": "finding.exam.abdominal",
             "labelVariants": ["Abdominal examination", "Abdominal findings"],
             "outcome": "normal"
+          },
+          {
+            "id": "finding.exam.body-habitus",
+            "labelVariants": ["Body habitus"],
+            "outcome": "normal",
+            "valueTextVariants": ["Average adipose and muscular habitus"]
           }
         ],
         "shuffle": true,
         "factsRevealed": ["fact.mdd-general-exam-normal"]
+      }
+    },
+    {
+      "actionId": "info.physical.weight-bmi",
+      "defaultClassification": "defensible",
+      "result": {
+        "kind": "finding_set",
+        "findings": [
+          {
+            "id": "finding.review-basic-weight-bmi.weight",
+            "labelVariants": ["Measured weight"],
+            "outcome": "present",
+            "valueTextVariants": ["70.8 kg (156 lb)"]
+          },
+          {
+            "id": "finding.review-basic-weight-bmi.bmi",
+            "labelVariants": ["Body mass index"],
+            "outcome": "normal",
+            "valueTextVariants": ["23.8 kg/m²"]
+          },
+          {
+            "id": "finding.review-basic-weight-bmi.habitus",
+            "labelVariants": ["Body habitus"],
+            "outcome": "normal",
+            "valueTextVariants": ["Average adipose and muscular habitus"]
+          }
+        ],
+        "shuffle": false,
+        "factsRevealed": ["fact.review-basic-weight-bmi-normal"]
       }
     },
     {

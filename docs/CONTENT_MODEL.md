@@ -82,6 +82,14 @@ discovery or lifecycle promotion.
 
 Each medication has its own definition file. It owns class/tags plus separate arrays for active fit modifiers and protected human author overrides. Bupropion preserves supplied concepts as inactive, explicitly unreviewed overrides. Mirtazapine also contains active prototype modifiers (+35 for a matching insomnia tag and −50 for a matching high-BMI tag) to exercise the fit architecture requested for playtesting. The trace labels their unreviewed status. A modifier is not clinical authority merely because it is executable; later sourcing/review must version or reject it.
 
+Patient medication state preserves epistemic certainty. `medicationListStatus` distinguishes a
+known list from an unreconciled list, so an empty array cannot silently mean “takes no
+medications.” Current regimen entries remain separate from prior medication trials. A focused
+medication reconciliation may establish the current list; the more expensive full treatment
+history can return an arbitrarily long structured set of medication trials, psychotherapy
+experiences, current treatment relationships, and prior levels of care. Psychotherapy is never
+misfiled as a medication trial.
+
 The current medication shape is a runtime compatibility layer, not the target background
 knowledge database. Future authoring separates stable ingredient/formulation identity, sourced
 classification memberships, product/regulatory records, structured evidence claims, concise
@@ -98,7 +106,7 @@ referral, and complete manualized program are distinct concepts. Exact manual te
 scripts, and training materials remain outside the database unless an item-specific permission
 allows them.
 
-Locations declare facility tier, capabilities, formulary, and dispositions. Facilities declare stable location IDs, one default location, minimum lifetime points, persistent patient-slot count, and permitted upgrade/decor IDs. A clinic's effective formulary is the stable union of its persisted formulary purchases and the active location's baseline formularies. Services declare one or more outside, partner, shared, or in-house methods. Cases provide patient-specific results; catalogs and ClinicState provide availability and cost. Equipment acquisition adds capability IDs and makes a cheaper catalog service method eligible; it never alters the result or rubric. A facility purchase swaps only the declarative facility/location baseline while preserving owned upgrades. A decor purchase adds raw satisfaction and a visual token; the pure engine derives the capped multiplier.
+Locations declare facility tier, capabilities, formulary, and dispositions. Facilities declare stable location IDs, one default location, minimum lifetime points, persistent patient-slot count, and permitted upgrade/decor IDs. A clinic's effective formulary is the stable union of its persisted formulary purchases and the active location's baseline formularies. Services declare one or more outside, partner, shared, or in-house methods. Cases provide patient-specific results; catalogs and ClinicState provide availability and cost. Equipment acquisition adds capability IDs and makes a cheaper catalog service method eligible; it never alters the result or rubric. Selected nonmedication interventions and dispositions may also reference a service. Their availability and least-cost fulfillment resolve before submission, and their costs settle separately from investigation costs without changing clinical correctness. A facility purchase swaps only the declarative facility/location baseline while preserving owned upgrades. A decor purchase adds raw satisfaction and a visual token; the pure engine derives the capped multiplier.
 
 ## Template, patient instance, and encounter instance
 
@@ -108,7 +116,8 @@ executable. That shape is transitional and should not be multiplied into hundred
 
 The portable Reviewer cohort exercises a narrow intermediate split without claiming to be the
 final compiler. Each `ReviewCaseScenario` file owns patient state: internal diagnoses, typed
-critical facts, current regimen entries, prior-trial records, short complaint variants, one
+critical facts, explicit medication-list status, current regimen entries, focused
+prior-medication-trial records, full structured treatment history, short complaint variants, one
 structured duration profile, structured finding overrides, setting, and one referenced policy ID.
 A duration profile contains stable numeric value/unit options, short swappable display forms, an
 optional related diagnosis, an authored interpretation, and rule-level review metadata.
@@ -118,7 +127,7 @@ The generated display sentence is presentation only; replay and audit use the sa
 Eight shared
 `ReviewDecisionPolicy` records own the provisional focused workup/treatment/disposition rubric and
 four executable reference selections. `buildReviewCaseCohort` schema-parses both sets, rejects
-duplicate or missing/orphan policy IDs, fills the universal 36-action menu with patient-specific
+duplicate or missing/orphan policy IDs, fills the universal 38-action menu with patient-specific
 immediate results, and emits ten ordinary `CaseBlueprint` snapshots for existing engine/replay
 compatibility. The policies and all compiled rules remain medically unreviewed reviewer targets;
 they are not promoted shared clinical guidance.
@@ -175,6 +184,12 @@ Instantiation hashes the seed with stable variant IDs. It never calls `Math.rand
 
 Each test file declares the patient context it consumes (`age_years`, `sex_for_reference`, `diagnosis_ids`, and/or `clinical_tag_ids`) and either a `numeric_panel` generator or `patient_owned` policy. Numeric profiles have priorities, context predicates, a versionable reference-interval set ID/population label, UCUM units, low/high bounds, narrower normal-generation ranges, display precision, test-specific incidental probabilities, and curated mild low/high ranges. Resolved numeric observations preserve display precision and show result, unit, reference interval, and `N`/`H`/`L` interpretation. See [LAB_RESULTS.md](LAB_RESULTS.md). The current prototype numbers are explicitly unreviewed. When a patient does not own a result, instantiation selects the highest-priority matching profile, generates every component, and may flag at most one component in that panel. Generated observations carry `generated_normal` or `generated_incidental`, `clinicallyCritical: false`, and `notCaseDefining: true`. Validation requires a fallback profile, normal ranges inside reference limits, matching flags, and incidental ranges within 25% of the reference span outside the boundary. A patient-authored observation suppresses generic generation. Findings capable of changing workup, diagnosis, treatment safety, points, or disposition remain critical and require an explicit reviewed patient/variant.
 
+Weight/BMI and general physical examination are separate objective actions. The former owns
+structured measurement details; the latter may own a separate body-habitus observation. This lets
+the player distinguish an elevated BMI from an inference about adiposity or muscle mass. Reviewer
+scenario compilation and saved attempts preserve both fields rather than reconstructing one from
+the other.
+
 ## Information and workup
 
 Every information option has two layers. The shared `InformationActionDefinition` catalog owns the stable ID, neutral label and description, History/Physical/Labs/Imaging category, SOAP section, report source, service, and repeatability policy; that same presentation is used in every compatible case. Each patient blueprint supplies only the immediate patient-specific structured result, revealed fact IDs, and default post-submit classification. A result is a list of short finding atoms with swappable labels and explicit outcomes. Variable finding sets declare minimum/maximum positives and required present/absent IDs; they cannot contain arbitrary code. The browser never displays classification or point rationale before submission.
@@ -216,6 +231,20 @@ Predicates are JSON-safe only: `actionPurchased`, `factKnown`, exact medication 
 Each case includes database-plan, strong/acceptable alternative, shotgun, and unsafe policies. They are executable and must use only available actions/treatments. “Database plan” is the authored comparison route, not a claim that no other plan could be better. Validators require at least one acceptable path, a safe referral/transfer, accessible required objectives, valid par, and a compatible location. Eligibility further considers lifetime points, facility/location, service fulfillment, every workup objective required by a candidate path, effective formulary/tag availability, intervention capabilities, and disposition capabilities. Validation constructs a baseline clinic for every declared compatible location. A start medication must be stocked, while an existing medication may still be stopped or explicitly continued. External services count as capabilities even when expensive, so the ECG patient is winnable before equipment ownership.
 
 Waiting-room queues store complete resolved CaseInstances after eligibility evaluation. The setting is visible on each slot; hidden diagnosis IDs, tags, and pool labels are never launcher text. Normal slots remain unchanged until the patient is completed, then avoid recently used chief complaints when generating a replacement. If the clinic moves, the exact resolved waiting instance is retained and assigned to a compatible location in the new facility before extra slots are filled. Slot count rises from one to two to three across the first implemented tiers. Endgame derives a refreshable six-slot highest-tier queue from the approved pool. Local Developer mode dynamically loads approved plus review patients, tracks which blueprint IDs have run, and supports reroll/reset; production does not contain that module.
+
+`AppleNotesIntakeManifest` is an authoring-only provider record under the protected ignored
+boundary. Metadata audit preserves exact account, folder, note, and attachment identifiers, dates,
+locked/shared states, and counts without reading content. After all required acknowledgments, sync
+additionally records protected revision hashes, attachment duplicate/OCR status, composite hashes,
+and expected `SourceDocument` IDs. A note, screenshot, OCR result, embedded citation, or personal
+takeaway never becomes formal evidence or executable content merely through intake.
+
+`LiteratureSynthesisProposal` is a Developer-only decision-packet record linked to exact ticket,
+source-request, and blueprint IDs. It separates source-cleared support from opposing, qualifying,
+metadata-only, abstract-only, or inaccessible context. Validation requires at least one
+catalog-matching supporting source with a `SourceUseDecision` permitting synthesis; uncleared
+sources cannot support the proposed direction. Proposals remain medically unreviewed, exclude
+point magnitude, and never mutate or approve content.
 
 ## Lifecycle and production inclusion
 

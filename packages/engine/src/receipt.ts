@@ -9,6 +9,7 @@ import {
 } from '@psychsim/schemas';
 
 import { extractPredicateReferences } from './predicates';
+import type { TreatmentOperatingCostQuote } from './services';
 
 const labelForTreatment = (id: string, catalogs: CatalogBundle): string =>
   catalogs.medications.find((item) => item.id === id)?.label ??
@@ -56,6 +57,7 @@ export const buildCaseReceipt = (
   pointReport: ClinicalPointReport,
   settlement: EconomySettlement,
   catalogs: CatalogBundle,
+  treatmentQuote: TreatmentOperatingCostQuote = { items: [], totalOperatingCost: 0 },
 ): CaseReceipt => {
   const informationItems: ReceiptItem[] = state.purchases.map((purchase) => {
     const caseAction = state.caseInstance.informationActions.find(
@@ -182,12 +184,15 @@ export const buildCaseReceipt = (
       selection.kind === 'treatment'
         ? 'Included in the base treatment evaluation. No separate patient-specific modifier applies.'
         : 'Recorded in the final treatment combination.';
+    const serviceQuote = treatmentQuote.items.find(
+      (quote) => quote.treatmentId === selection.id && quote.kind === selection.kind,
+    );
     return {
       id: `receipt.selection-${index + 1}`,
       itemName: `${selection.prefix}: ${labelForTreatment(selection.id, catalogs)}`,
       kind: selection.kind,
-      fulfillmentMethod: 'Player selection',
-      operatingCost: 0,
+      fulfillmentMethod: serviceQuote?.fulfillmentLabel ?? 'Player selection',
+      operatingCost: serviceQuote?.operatingCost ?? 0,
       pointDelta: traces.reduce((sum, trace) => sum + trace.points, 0),
       scoreCategory:
         selection.kind === 'nonmedication'
@@ -200,7 +205,7 @@ export const buildCaseReceipt = (
       classification: materialTrace?.classification ?? 'safe',
       explanation: materialTrace?.explanation ?? emptyExplanation,
       acceptedPathwayMatch: pointReport.selectedPathwayId !== null,
-      externalCostAvoided: 0,
+      externalCostAvoided: serviceQuote?.externalCostAvoided ?? 0,
       upgradeSavings: 0,
     };
   });

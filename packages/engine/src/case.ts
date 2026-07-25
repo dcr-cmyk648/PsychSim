@@ -144,6 +144,7 @@ const resolveFinding = (
   );
   return {
     id: finding.id,
+    groupLabel: finding.groupLabel,
     label:
       selectVariant(finding.labelVariants, seed, `${actionId}:${finding.id}:label`) ??
       finding.labelVariants[0]!,
@@ -320,6 +321,7 @@ export const instantiateCase = (
       summary: resolveTemplate(blueprint.opening.summaryTemplate, resolvedVariants),
       context: resolveTemplate(blueprint.opening.contextTemplate, resolvedVariants),
       knownMedicationIds: blueprint.opening.knownMedicationIds,
+      medicationListStatus: blueprint.opening.medicationListStatus,
       knownHistory: blueprint.opening.knownHistory,
       basicVitals: blueprint.opening.basicVitals,
     },

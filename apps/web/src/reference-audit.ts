@@ -41,6 +41,8 @@ export interface CompletedAuditedReferenceRun extends AuditedReferenceRunBase {
   carePoints: number;
   differenceFromDatabasePlan: number;
   workupExpense: number;
+  treatmentExpense: number;
+  operatingExpense: number;
   netPayout: number;
   treatmentGrade: string;
 }
@@ -58,6 +60,8 @@ export interface AuditedPlayerPlan {
   carePoints: number;
   differenceFromDatabasePlan: number;
   workupExpense: number;
+  treatmentExpense: number;
+  operatingExpense: number;
   netPayout: number;
   treatmentGrade: string;
 }
@@ -137,6 +141,8 @@ const auditReferenceRun = (
       carePoints: completed.value.receipt.pointReport.carePointsEarned,
       differenceFromDatabasePlan: completed.value.receipt.pointReport.differenceFromDatabasePlan,
       workupExpense: completed.value.receipt.pointReport.actualWorkupExpense,
+      treatmentExpense: completed.value.receipt.settlement.treatmentExpenses,
+      operatingExpense: completed.value.receipt.settlement.operatingExpenses,
       netPayout: completed.value.receipt.settlement.netClinicPointsEarned,
       treatmentGrade: completed.value.receipt.pointReport.treatmentGrade,
     };
@@ -166,6 +172,8 @@ const auditPlayerPlan = (
   carePoints: attempt.receipt.pointReport.carePointsEarned,
   differenceFromDatabasePlan: attempt.receipt.pointReport.differenceFromDatabasePlan,
   workupExpense: attempt.receipt.pointReport.actualWorkupExpense,
+  treatmentExpense: attempt.receipt.settlement.treatmentExpenses,
+  operatingExpense: attempt.receipt.settlement.operatingExpenses,
   netPayout: attempt.receipt.settlement.netClinicPointsEarned,
   treatmentGrade: attempt.receipt.pointReport.treatmentGrade,
 });

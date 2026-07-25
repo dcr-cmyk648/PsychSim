@@ -1064,3 +1064,87 @@ the release SHA. Updating never clears browser storage. The install UI warns tha
 iPhone Home Screen app can use separate storage, so existing Safari feedback must be exported
 before installation. Offline app-shell caching, service-worker migration, push, and device sync
 remain Milestone 8 work rather than being implied by “installable.”
+
+## D-120 — Apple Notes research intake is acknowledged, private, local-only, and provenance-preserving
+
+Status: accepted and implemented as a local authoring adapter; no note body or attachment bytes
+were imported at this checkpoint. The macOS folder named exactly `Psych research` may first receive
+a metadata-only audit. The audit searches nested folders across Notes accounts, requires exactly
+one match, and records provider account/folder/note/attachment IDs, dates, counts, and locked/shared
+state in a gitignored mode-`0600` manifest without requesting note titles, bodies, or attachment
+bytes.
+
+Substantive sync requires explicit acknowledgments of no identifiable patient information,
+authorization for private local processing, rights to process shared material, and the named person
+making the acknowledgment. Unlocked new or changed notes are exported through Notes' public
+AppleScript interface into a protected revision directory; exact provider provenance is retained;
+attachments are SHA-256 hashed, size-bounded, MIME-identified, and duplicate-linked; and image/PDF
+OCR uses only local macOS Vision/PDFKit unless explicitly skipped. One deterministic Markdown
+composite per note then enters the ordinary hashed source pipeline. The manifest checkpoints after
+every note. Locked notes, missing notes, unsupported attachments, and failures retain
+metadata/status instead of being deleted, and the workflow never edits the Notes originals or
+transmits source material externally.
+
+The folder is a private intake corpus, not formal evidence or executable content. Personal
+takeaways remain Developer opinion; article images, OCR, and embedded references remain private
+rights-unverified or bibliographically unverified candidates. Formal-source cataloging,
+`SourceUseDecision`, exact-claim contribution, clinical review, content versioning, impact checks,
+and balance remain separate gates. Apple Notes intake cannot directly modify patients, rules,
+scores, citations, medical-review status, or the browser bundle.
+
+## D-121 — Medication-list certainty, full treatment history, and body measurements remain distinct
+
+Status: accepted and implemented for the current patient model. A patient opening may explicitly
+provide a medication list or leave it unreconciled; an empty list is never silently interpreted as
+“takes no medication.” Focused medication reconciliation and the more expensive full treatment
+history remain separate actions. The latter can display many structured medication trials,
+psychotherapies, current treatment relationships, and prior levels of care without putting therapy
+inside a medication-trial result.
+
+Weight/BMI and general physical examination are separate objective actions. Weight/BMI owns the
+reviewed measurement; general examination may describe body habitus so elevated BMI is not assumed
+to represent adiposity. Reviewer compilation preserves these structured details. Historical v5
+saves receive additive defaults rather than being discarded or silently regenerated.
+
+## D-122 — Selected interventions may have explicit operating costs
+
+Status: accepted and implemented as a narrow service extension. A nonmedication intervention or
+disposition may reference a service definition. Availability and least-cost fulfillment resolve
+before the player can commit the selection; completion charges the chosen method exactly once.
+Settlement and receipt separate investigation expense, treatment-service expense, and total
+operating expense. The exact method and cost are frozen in Developer attempt-review option
+snapshots.
+
+Service cost never determines clinical correctness. A selected intervention can still receive its
+clinical rule result independently of whether a future partner or owned service makes delivery
+cheaper. The first example is brief substance-use counseling. This does not create recurring
+salaries, capacity, scheduling, or longitudinal treatment simulation.
+
+## D-123 — Developer questions are lazy decision packets with reviewable evidence proposals
+
+Status: accepted and implemented as an authoring-only workflow. Large Developer queues and
+individual tickets begin collapsed and do not mount their expensive rule trees until opened.
+Closing a packet preserves unsaved local text. Patient questions attach only through an explicit
+blueprint ID; shared action or medication targets do not imply a patient link. Saving from a
+receipt can bind a ticket to that exact immutable attempt, and export validation rejects a
+different-patient attempt.
+
+A packet may include an unreviewed literature-synthesis proposal with a concise proposed answer,
+eligible supporting sources, opposing or qualifying context, search scope, limitations, and
+unresolved questions. A metadata-, abstract-, or inaccessible source cannot support the proposed
+direction. Source-cleared support must match the evidence catalog and a use decision permitting
+the synthesis. These packets never determine point magnitudes, mutate content, or approve a rule;
+the psychiatrist's plain-language response remains the decision. The first pilot addresses the
+starter-MDD initial-modality ticket only.
+
+## D-124 — Material Reviewer option changes receive a fresh assignment namespace
+
+Status: accepted and implemented. The portable Reviewer assignment is
+`reviewer-assignment.common-psychiatry.2026-07c`. This replaces the `2026-07b` namespace because
+the universal investigation menu, medication-list certainty, structured treatment-history
+results, physical measurements, and service-backed treatment options materially changed the
+offered-option snapshots. A fresh assignment uses a fresh IndexedDB name so a reviewer cannot
+silently mix earlier run history with the revised cohort.
+
+The assignment bump is a review-distribution boundary, not clinical approval. The ten scenarios,
+their compiled rules, and every new option remain fictional, synthetic, and medically unreviewed.
