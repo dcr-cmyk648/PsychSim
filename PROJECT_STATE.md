@@ -16,7 +16,7 @@ Last updated: 2026-07-25
   `20833712f8e7aae4af1352fee259231075049b9e`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
-- Beta workflow `30163426390` passed every verification gate. Its Pages jobs skipped as intended.
+- Beta workflow `30163825898` passed every verification gate. Its Pages jobs skipped as intended.
 - `origin/main` is `0536c287cb547e311298913a2509f98f4b5d28f1`. Main workflow `30138175892`
   passed verification, Pages packaging, and deployment.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
@@ -319,7 +319,7 @@ Current private-intake verification on 2026-07-25:
 - `pnpm test:e2e:reviewer`: 4 phone Reviewer tests.
 - `pnpm build`: Player bundle safety passed, 11 files.
 - Pages-equivalent `pnpm build:reviewer`: Reviewer bundle safety passed, 15 files.
-- GitHub Actions workflow `30163426390` repeated the complete beta verification matrix and passed;
+- GitHub Actions workflow `30163825898` repeated the complete beta verification matrix and passed;
   Pages packaging/deployment skipped on beta as intended.
 
 GitHub Actions workflow `30138035083` passed the complete beta matrix. Workflow `30138175892`
