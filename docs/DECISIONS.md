@@ -1067,12 +1067,11 @@ remain Milestone 8 work rather than being implied by “installable.”
 
 ## D-120 — Apple Notes research intake is acknowledged, private, local-only, and provenance-preserving
 
-Status: accepted and implemented as a local authoring adapter; no note body or attachment bytes
-were imported at this checkpoint. The macOS folder named exactly `Psych research` may first receive
-a metadata-only audit. The audit searches nested folders across Notes accounts, requires exactly
-one match, and records provider account/folder/note/attachment IDs, dates, counts, and locked/shared
-state in a gitignored mode-`0600` manifest without requesting note titles, bodies, or attachment
-bytes.
+Status: accepted and implemented as a local authoring adapter. The macOS folder named exactly
+`Psych research` may first receive a metadata-only audit. The audit searches nested folders across
+Notes accounts, requires exactly one match, and records provider
+account/folder/note/attachment IDs, dates, counts, and locked/shared state in a gitignored
+mode-`0600` manifest without requesting note titles, bodies, or attachment bytes.
 
 Substantive sync requires explicit acknowledgments of no identifiable patient information,
 authorization for private local processing, rights to process shared material, and the named person
@@ -1084,6 +1083,11 @@ composite per note then enters the ordinary hashed source pipeline. The manifest
 every note. Locked notes, missing notes, unsupported attachments, and failures retain
 metadata/status instead of being deleted, and the workflow never edits the Notes originals or
 transmits source material externally.
+
+The first authorized local run imported every one of the 204 note text records. Seven attachments
+that the public Notes interface could enumerate but not save are quarantined individually; their
+notes remain available from title/plaintext, and no partial attachment is accepted as source
+bytes. This is a preservation behavior, not a waiver of the later source-use or review gates.
 
 The folder is a private intake corpus, not formal evidence or executable content. Personal
 takeaways remain Developer opinion; article images, OCR, and embedded references remain private

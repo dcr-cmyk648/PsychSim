@@ -129,7 +129,9 @@ its shared-folder status. The sync preserves provider IDs and dates in a private
 note text and accessible attachments into the protected local boundary, hashes exact bytes,
 performs local-only Vision OCR for images and PDFs unless `--skip-ocr` is supplied, checkpoints
 after every note, and queues one deterministic Markdown composite per note through the ordinary
-source scanner and extractor. No note text or image is printed or transmitted.
+source scanner and extractor. If Notes cannot export one attachment, the attachment is quarantined
+with error provenance while usable title/plaintext from that note is retained. No note text or
+image is printed or transmitted.
 
 A controlled scaffold request can turn an existing reviewed-as-a-template case into a new
 medically unreviewed Developer patient with source provenance, proposed shared impact IDs, and

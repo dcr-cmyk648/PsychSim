@@ -162,8 +162,10 @@ adds a metadata-only audit plus an explicitly acknowledged local sync for the ex
 directories, local Vision/PDFKit OCR, per-note checkpoints, stable provider provenance, attachment
 hashing/deduplication, and the ordinary source queue. It never edits Notes or transmits content.
 Full source review, claim extraction, broader remote-file byte transfer, and completion of every
-Milestone 6 gate remain open. Only the metadata audit has run at this checkpoint; note bodies and
-attachment bytes remain unimported pending the required acknowledgments.
+Milestone 6 gate remain open. The first acknowledged private sync now preserves and extracts all
+204 note title/plaintext records, locally OCRs 116 accessible attachments, records one unsupported
+attachment, and quarantines seven attachment-save failures without discarding their note text.
+None of this creates evidence claims or executable content.
 
 Scope: SHA-256 scan/manifest/duplicates; PDF, DOCX, TXT, Markdown strategy; extraction/chunks; watch; processed/quarantine; provenance; privacy controls; source review.
 

@@ -128,6 +128,12 @@ quarantined metadata. The workflow never edits or deletes the Notes originals. I
 checkpoints the private manifest after every note, so a process interruption resumes from the
 first unfinished record.
 
+The public Notes scripting interface can expose a note's title/plaintext while refusing to save a
+particular attachment. That attachment is quarantined independently with a failed OCR state and a
+clear export error; the note's usable text still receives its deterministic composite. Partial
+attachment files are discarded inside the protected revision directory and never treated as valid
+source bytes.
+
 Unless `--skip-ocr` is supplied, image attachments and PDFs are processed locally with macOS Vision
 `VNRecognizeTextRequest` at accurate recognition level; PDFKit renders a bounded number of scanned
 pages and ImageIO bounds image dimensions. The helper is compiled into a private temporary

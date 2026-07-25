@@ -38,7 +38,9 @@ private note exports with restrictive permissions, hashes every accessible attac
 byte-identical attachment relationships, and uses macOS Vision locally for image/PDF OCR. Pass
 `--skip-ocr` to export without OCR. Locked notes remain metadata-only; changed notes create a new
 private revision; missing notes and failures remain recorded rather than being silently deleted.
-The manifest checkpoints after every note so an interrupted bulk run can resume without
+An attachment that the public Notes scripting interface cannot save is quarantined independently,
+so usable title/plaintext from the note can still enter review without pretending the attachment
+was read. The manifest checkpoints after every note so an interrupted bulk run can resume without
 re-exporting completed records. Each reviewable note becomes a deterministic Markdown composite
 that enters the ordinary `content:scan` and `content:extract` path. Validate provider metadata and
 attachment hashes with `pnpm content:notes:validate` or the combined

@@ -1,6 +1,6 @@
 # PsychSim project state
 
-Last updated: 2026-07-24
+Last updated: 2026-07-25
 
 ## Operational state
 
@@ -31,8 +31,8 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
    adding broad clinical content.
 4. Keep install/update behavior deterministic and observable without clearing local feedback or
    IndexedDB.
-5. Keep private Apple Notes intake separate from executable content and blocked until the required
-   acknowledgments are supplied.
+5. Keep private Apple Notes intake separate from executable content; physical intake is complete,
+   while semantic opinion/citation review remains separately gated and one item at a time.
 
 ## Portable Reviewer and gameplay checkpoint
 
@@ -144,34 +144,41 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 
 ## Apple Notes private-intake state
 
-- A metadata-only audit of the exact `Psych research` folder succeeded: 204 notes, 124 attachment
-  records, 0 locked notes, and all 204 notes reported shared status.
-- The gitignored mode-`0600` manifest preserves provider IDs, dates, counts, and flags. It contains
-  no note title, note body, attachment bytes, content hashes, or OCR text.
-- No substantive sync has run. `lastSynchronizedAt` and acknowledgment remain null; the private
-  export directory does not exist.
-- Sync is blocked until the user explicitly confirms no identifiable patient information,
-  authorized local processing, rights to process the shared material, and the acknowledging name.
-  The command after acknowledgment is:
-  `pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Dustin Rowland"`.
-- Intake is local-only, checkpoints every note, retains exact attachment/OCR failure provenance,
-  and cannot directly create evidence contributions, Developer opinions, rules, points, or medical
-  approval.
+- The user supplied the required no-PHI, authorized-local-processing, shared-material-rights, and
+  named-reviewer acknowledgments. The exact `Psych research` folder then synchronized locally:
+  204/204 note title/plaintext records are preserved, with 124 attachment records and no locked
+  notes.
+- Local macOS OCR completed for 116 attachments. One unsupported attachment and seven attachments
+  that Notes could enumerate but not save retain explicit status. The seven affected note texts
+  remain exported; the attachments alone are quarantined and no partial bytes are trusted.
+- The gitignored mode-`0600` manifest, private revisions, OCR, composites, and extracted chunks are
+  local-only. The source graph now contains 209 extracted artifacts: four prior sources, 204 Notes
+  composites, and one newly pulled Drive DOCX.
+- `content:notes:validate` and `content:sources:validate` pass. Re-running the sync is idempotent;
+  the final recovery pass reported 7 newly preserved notes, 197 unchanged notes, and zero
+  note-level quarantines.
+- Intake still cannot directly create evidence contributions, Developer opinions, rules, points,
+  citations, or medical approval. No Notes text or OCR has been printed or transmitted to an
+  external model. A future Codex semantic pass must expose only bounded title/plaintext packets,
+  exclude HTML/attachments/OCR, and record the repository's separate explicit external-processing
+  acknowledgment and hash-only audit.
 
 ## Google Drive source-inbox state
 
-- `PsychSim documents` was not remotely refreshed during this checkpoint because no callable Drive
-  connector was exposed in this session. Do not infer that the remote folder is unchanged.
-- The local-only discovery state still records five candidates from the prior scan. The separate
-  source manifest has four locally extracted artifacts; two correspond to pulled Drive candidates.
-  Inbox, quarantine, and archive are currently empty.
-- Do not claim that the fifth remote candidate is locally available merely because provider
-  metadata says it was once pulled; its bytes/hash cannot be verified from the observable local
-  source manifest.
+- The apparent missing connector was deferred-tool discovery, not an authentication failure. The
+  authenticated connector resolved the exact cached folder ID and listed eight direct children.
+- The three new candidates are native Docs: `Aggregate sharepoint notes`, `Additional notes`, and
+  `Brief Therapy Vignettes`. Account-specific IDs/timestamps remain only in the ignored discovery
+  manifest; none is publicly shared.
+- `Additional notes` was selected first, downloaded through a non-inline connector attachment,
+  verified as a 13,765-byte DOCX with SHA-256
+  `804ac28de2b1e8a6836082b1f4f0c461baf3ad60c5478b2e51353bceab4378bf`, then scanned and extracted
+  locally as `source-document.804ac28de2b1e8a68360`. No document body was printed or inspected.
+- The Drive discovery manifest now has eight candidates: three prior PDFs remain discovered, three
+  sources are pulled/hashed, and the two larger new native Docs remain discovered. Continue one
+  source at a time; do not bulk-pull the remaining queue.
 - Safe next source intake:
-  1. use a connector-enabled canonical session to list direct children and select one source at a
-     time, or manually download one rights-cleared, non-PHI source into
-     `content/source-docs/inbox/`;
+  1. classify/review `Additional notes` before choosing the next Drive source;
   2. run `pnpm content:scan`, `pnpm content:extract`, and
      `pnpm content:sources:validate`;
   3. review license/full-text/AI-use permissions;
@@ -223,6 +230,27 @@ Passed locally on 2026-07-24:
 - `git diff --check`
 - Metadata-only `pnpm content:notes:audit -- --folder "Psych research"`: 204 notes, 124
   attachments, no content access
+
+Current private-intake verification on 2026-07-25:
+
+- `pnpm content:notes:sync …`: 204 note texts preserved; 116 local OCR completions; one unsupported
+  attachment; seven attachment-only quarantines; zero note-level quarantines.
+- `pnpm content:notes:validate`: 204 note records and 124 attachment records.
+- `pnpm content:sources:validate`: 8 Drive candidates and 209 extracted local artifacts.
+- Focused `apple-notes-provider.test.ts`: 10/10 tests.
+- `pnpm format:check`
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test`: 26 TypeScript files, 184 tests; 10 handoff tests.
+- `pnpm content:validate`
+- `pnpm content:compile`
+- `pnpm content:evidence`
+- `pnpm content:diagnoses:validate`
+- `pnpm demo:reference-runs`
+- `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests.
+- `pnpm test:e2e:reviewer`: 4 phone Reviewer tests.
+- `pnpm build`: Player bundle safety passed, 11 files.
+- Pages-equivalent `pnpm build:reviewer`: Reviewer bundle safety passed, 15 files.
 
 GitHub Actions workflow `30138035083` passed the complete beta matrix. Workflow `30138175892`
 repeated the complete matrix on `main`, packaged the finite Reviewer build, and deployed Pages.
@@ -285,15 +313,17 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Obtain the required Apple Notes acknowledgments. Then run the private sync, validate its
-manifest/source graph, and review resulting sources one at a time. Until acknowledgment, do not
-read note titles, bodies, or attachment bytes. Intake must not automatically create evidence
-contributions, Developer opinions, gameplay rules, points, or approval.
+Obtain the separate explicit acknowledgment that Apple Note title/plaintext fields are
+user-authored or otherwise authorized and appropriate to transmit specifically to OpenAI Codex for
+private review, while HTML, attachment bytes, and OCR remain excluded. Then implement/use a
+bounded, one-note/one-segment, hash-audited bridge and classify the resulting material one source at
+a time into Developer-opinion candidates, bibliographic candidates, secondary context, or
+irrelevant/duplicate material. Intake must not automatically create evidence contributions,
+gameplay rules, points, citations, or approval.
 
-After that intake decision, the next queued product decision is how much formulation granularity
+After that source-review step, the next queued product decision is how much formulation granularity
 the medication catalog should initially model: ingredient only versus clinically meaningful
 IR/SR/XL, long-acting injectable, route, and combination-product distinctions.
 
 Do not implement a bulk medication importer, invent missing therapy/diagnosis guidance, begin
-Milestone 4, add a service worker, or run substantive Apple Notes sync without the required
-acknowledgments.
+Milestone 4, add a service worker, or bulk-transmit private source material.

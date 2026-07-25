@@ -244,9 +244,11 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
   Preserve exact provider IDs/dates and missing records in the ignored manifest; keep note exports,
   attachment bytes, OCR, and composites under the protected gitignored boundary with restrictive
   permissions; use only local macOS Vision OCR; quarantine locked or failed items without deleting
-  the Notes originals; and never transmit this material externally. A note, screenshot, OCR result,
-  embedded citation, or personal takeaway is not automatically a formal source, evidence
-  contribution, clinical rule, point value, or medical approval.
+  the Notes originals; quarantine an attachment-save failure independently so usable note text is
+  retained while partial attachment bytes are rejected; and never transmit this material
+  externally. A note, screenshot, OCR result, embedded citation, or personal takeaway is not
+  automatically a formal source, evidence contribution, clinical rule, point value, or medical
+  approval.
 - The connected Google Drive folder named `PsychSim documents` is a remote source inbox. On an explicit check request, discover new/changed files, persist local-only provider metadata, pull and hash content, deduplicate by SHA-256, and queue sources one at a time. Never propagate a source directly into scoring; create reviewable claim/change proposals first.
 
 ## Definition of done for future changes

@@ -84,12 +84,17 @@ on run argv
     repeat with sourceAttachment in attachments of sourceNote
       set attachmentOrdinal to attachmentOrdinal + 1
       set outputPath to outputDirectory & "/attachment-" & my paddedOrdinal(attachmentOrdinal) & ".bin"
-      save sourceAttachment in POSIX file outputPath
+      set attachmentSaved to true
+      try
+        save sourceAttachment in POSIX file outputPath
+      on error
+        set attachmentSaved to false
+      end try
       set contentIdentifier to ""
       try
         set contentIdentifier to content identifier of sourceAttachment as text
       end try
-      set end of outputRecords to my joinedRecord({"A", attachmentOrdinal as text, id of sourceAttachment as text, contentIdentifier, my stableTimestamp(creation date of sourceAttachment), my stableTimestamp(modification date of sourceAttachment)}, fieldDelimiter)
+      set end of outputRecords to my joinedRecord({"A", attachmentOrdinal as text, id of sourceAttachment as text, contentIdentifier, my stableTimestamp(creation date of sourceAttachment), my stableTimestamp(modification date of sourceAttachment), attachmentSaved as text}, fieldDelimiter)
     end repeat
   end tell
 

@@ -52,6 +52,7 @@ export interface AppleNotesAttachmentMetadata {
   providerContentIdentifier: string | null;
   createdAtProvider: string;
   modifiedAtProvider: string;
+  exportSucceeded?: boolean;
 }
 
 interface AppleNotesNoteMetadata {
@@ -395,6 +396,7 @@ const parseAppleNotesExportReceipt = (
       providerContentIdentifier: fields[3] ? fields[3] : null,
       createdAtProvider: fields[4] ?? '',
       modifiedAtProvider: fields[5] ?? '',
+      exportSucceeded: parseBoolean(fields[6] ?? 'true'),
     }))
     .sort((left, right) => left.ordinal - right.ordinal);
   if (
@@ -988,6 +990,31 @@ const syncAppleNotesFolderUnlocked = async (
       );
       for (const [attachmentIndex, attachment] of note.attachmentRecords.entries()) {
         if (attachment.exportStatus === 'missing') continue;
+        const exportedAttachment = exportReceipt.attachmentMetadata.find(
+          (candidate) => candidate.providerAttachmentId === attachment.providerAttachmentId,
+        );
+        if (exportedAttachment?.exportSucceeded === false) {
+          const attachmentPath = join(
+            noteDirectory,
+            `attachment-${attachment.ordinal.toString().padStart(4, '0')}.bin`,
+          );
+          await rm(attachmentPath, { force: true });
+          await rm(`${attachmentPath}.ocr.txt`, { force: true });
+          latestAttachmentRecords[attachmentIndex] = AppleNotesAttachmentRecordSchema.parse({
+            ...attachment,
+            exportStatus: 'quarantined',
+            relativePath: null,
+            mediaType: null,
+            sizeBytes: null,
+            sha256: null,
+            duplicateOfId: null,
+            ocrStatus: ocr ? 'failed' : 'not_requested',
+            ocrEngine,
+            ocrTextHash: null,
+            error: 'Notes could not export this attachment through its public scripting interface.',
+          });
+          continue;
+        }
         latestAttachmentRecords[attachmentIndex] = await processAttachment({
           paths,
           noteDirectory,

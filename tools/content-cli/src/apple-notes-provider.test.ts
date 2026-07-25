@@ -369,6 +369,63 @@ describe('Apple Notes local source intake', () => {
     });
   });
 
+  it('quarantines an unavailable attachment without discarding the note text', async () => {
+    const root = await makeRoot();
+    const audit = folderAudit();
+    const provider: AppleNotesProvider = {
+      auditFolder: vi.fn(async () => audit),
+      exportNote: vi.fn(async ({ providerNoteId, destinationDirectory }) => {
+        await mkdir(destinationDirectory, { recursive: true });
+        await Promise.all([
+          writeFile(join(destinationDirectory, 'title.txt'), 'Usable note title'),
+          writeFile(join(destinationDirectory, 'plaintext.txt'), 'Usable private takeaway'),
+          writeFile(join(destinationDirectory, 'body.html'), '<p>Usable private takeaway</p>'),
+        ]);
+        return {
+          providerNoteId,
+          modifiedAtProvider: audit.notes[0]!.modifiedAtProvider,
+          attachmentMetadata: audit.notes[0]!.attachmentMetadata.map((attachment) => ({
+            ...attachment,
+            exportSucceeded: false,
+          })),
+        };
+      }),
+    };
+
+    const report = await syncAppleNotesFolder({
+      folderName: 'Psych research',
+      sourceRoot: root,
+      provider,
+      acknowledgement,
+      ocrRunner: async (_input, _mediaType, output) => writeFile(output, 'unreachable'),
+      now: () => '2026-07-24T17:00:00.000Z',
+    });
+
+    expect(report).toMatchObject({
+      exported: 1,
+      quarantined: 0,
+      attachmentQuarantined: 1,
+      ocrFailed: 1,
+    });
+    const manifest = await validateAppleNotesManifest(root);
+    expect(manifest?.notes[0]).toMatchObject({
+      exportStatus: 'exported',
+      attachmentRecords: [
+        {
+          exportStatus: 'quarantined',
+          relativePath: null,
+          sha256: null,
+          ocrStatus: 'failed',
+          error: 'Notes could not export this attachment through its public scripting interface.',
+        },
+      ],
+    });
+    const filename = manifest!.notes[0]!.compositeInboxFilename!;
+    const composite = await readFile(join(root, 'inbox', filename), 'utf8');
+    expect(composite).toContain('Usable private takeaway');
+    expect(composite).toContain('[No OCR text: failed]');
+  });
+
   it('checkpoints each note so an interrupted bulk run resumes without re-exporting prior work', async () => {
     const root = await makeRoot();
     const first = folderAudit().notes[0]!;
