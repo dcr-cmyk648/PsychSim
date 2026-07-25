@@ -6,6 +6,9 @@ Last updated: 2026-07-25
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current beta feature checkpoint:
+  `ec5bd847130e1834cc76f8192ad9a5f59573b99d` (`Add reaction history and portable review tickets`).
+  The durable-state follow-up commit records this handoff; `main` is unchanged.
 - Released feature checkpoint: `0536c287cb547e311298913a2509f98f4b5d28f1`
   (`Defer macOS OCR discovery`), containing the feature commit
   `20833712f8e7aae4af1352fee259231075049b9e`.
@@ -16,9 +19,8 @@ Last updated: 2026-07-25
   passed verification, Pages packaging, and deployment.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
-- Beta is intentionally ahead with local-only authoring resilience and documentation; it does not
-  need a phone release. Browser runtime source on `beta` and `main` remains identical at the
-  released feature checkpoint.
+- Beta is intentionally ahead with the assignment-`2026-07d` portable-review checkpoint. It has
+  not been promoted to `main` or the public phone release.
 
 ## Current phase and bounded checkpoint
 
@@ -42,7 +44,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
-- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07c`. A material cohort or policy
+- Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07d`. A material cohort or policy
   change must bump this ID again.
 - The ten scenarios cover five MDD decision states plus initial GAD, bipolar depression, acute
   mania, schizophrenia relapse, and PTSD. Every case and executable clinical rule is fictional,
@@ -67,10 +69,25 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Treatment remains one searchable catalog menu spanning medication name/class, psychotherapy and
   other nonmedication labels/categories, and disposition. A regression test protects that search
   behavior.
-- Reviewer scenarios are content version `1.2.0`. They preserve explicit medication-list status,
+- Reviewer scenarios are content version `1.3.0`. They preserve explicit medication-list status,
   structured medication/psychotherapy/provider/level-of-care history, reviewed weight/BMI
   measurements, and separate body-habitus observations. Service-backed treatment choices freeze
   fulfillment and displayed cost in review snapshots.
+- The shared investigation catalog now has 40 neutral actions. `Allergies and adverse reactions`
+  and `Existing safety plan and crisis supports` are searchable History actions with immediate
+  results. Reviewing an existing plan is not the same as selecting a future create/revise safety
+  plan intervention.
+- Every authored Reviewer scenario owns explicit reaction state. Current entries use bounded
+  seasonal/environmental or food examples and separately author medication-reaction assessment;
+  a nonmedication entry can no longer imply “no medication reactions.” Chart labels remain
+  separate from disabled/unreviewed clinical interpretation.
+- Each patient carries a `budget_only` optional-feature profile. It records coarse room for future
+  richness but does not affect score, payout, eligibility, pool, facility, or difficulty.
+  Nonempty optional-module selection remains rejected until a catalog/compiler exists.
+- Assignment `2026-07d` includes exactly ten patient-linked, medically unreviewed review tickets.
+  Desktop Developer mode retains dense inline details plus a focused dialog. Portable/mobile
+  Reviewer opens each ticket in a full-screen view with its own response field; responses persist
+  in the assignment database and export with case feedback.
 - Debrief headings are diagnosis/decision-state labels authored for post-submit use. They never
   appear on patient cards or pre-submit charts.
 - Portable Reviewer feedback still captures both case-specific and subjective app-experience
@@ -118,7 +135,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 
 ## Content, evidence, and source state
 
-- The ordinary investigation menu remains a shared 38-action catalog; cases own structured
+- The ordinary investigation menu remains a shared 40-action catalog; cases own structured
   immediate results and post-submit rules, never answer-hint descriptions.
 - Fictional first and last names resolve independently from large curated pools, with a
   deterministic 25% middle-initial chance and more than 10,000 base combinations.
@@ -159,11 +176,18 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - `content:notes:validate` and `content:sources:validate` pass. Re-running the sync is idempotent;
   the final recovery pass reported 7 newly preserved notes, 197 unchanged notes, and zero
   note-level quarantines.
+- On 2026-07-25 Dustin Rowland additionally supplied the named “I confirm” acknowledgment after
+  re-reviewing the Notes folder. D-129 records it without treating the acknowledgment as a source
+  license waiver.
+- `content:notes:codex-review` now provides the separately acknowledged, one-note/one-segment
+  authoring boundary. It reads only verified title/plaintext, uses model-independent deterministic
+  segmentation, hashes complete canonical packets, stores exact-mode private files plus a
+  hash-only audit, rejects symlink/path escapes, and contains no provider/network/API-key call.
 - Intake still cannot directly create evidence contributions, Developer opinions, rules, points,
-  citations, or medical approval. No Notes text or OCR has been printed or transmitted to an
-  external model. A future Codex semantic pass must expose only bounded title/plaintext packets,
-  exclude HTML/attachments/OCR, and record the repository's separate explicit external-processing
-  acknowledgment and hash-only audit.
+  citations, or medical approval. No real packet was prepared because the active Codex surface did
+  not expose an exact model identifier with enough precision. Validation reports `PASS no private
+Apple Notes Codex review packets`; no Notes title/plaintext, HTML, attachment, or OCR was printed
+  or transmitted in this checkpoint.
 
 ## Google Drive source-inbox state
 
@@ -193,8 +217,10 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   `content/generated/local-review-tickets/tickets.json`. The existing human handoff file remains a
   legacy artifact until the next intentional browser save; do not overwrite it merely to modernize
   it. Playwright uses the separate `tickets.e2e.json`.
-- Portable Reviewer never exposes preloaded local source/opinion/ticket queues or the writer
-  endpoint. Reviewer-created guidance, flags, and tickets may be included in the manual export.
+- Portable Reviewer never exposes local source/opinion queues, arbitrary local tickets, or the
+  writer endpoint. Its only preassigned tickets are the exact ten patient-linked questions in the
+  assignment-`2026-07d` allowlist. Reviewer-created guidance, flags, and tickets may also be
+  included in the manual export.
 - Saving feedback is not clinical approval and is not authorization to edit a rule.
 - Source-linked trace rows now make the evidence trail visible, but bibliographic verification
   still does not confer medical or rule-level approval.
@@ -205,6 +231,35 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - The starter-MDD initial-modality packet includes one validated, medically unreviewed literature
   proposal. Source-cleared CANMAT can support its proposed direction; ACP/IPT metadata or abstracts
   remain qualifying context only. The proposal changes no rule, point value, or approval state.
+
+## Verification for beta feature checkpoint `ec5bd84`
+
+Passed locally on 2026-07-25:
+
+- `pnpm format:check`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`: 27 TypeScript files, 200 tests; 10 handoff tests
+- `pnpm test:handoff`: 10 tests
+- `pnpm content:validate`: catalogs plus 15 executable patients
+- `pnpm content:sources:validate`: 8 Drive candidates, 209 extracted artifacts, 204 private Apple
+  Notes records, and no private Codex-review packets
+- `pnpm content:notes:validate`: 204 note records, 124 attachment records, and no private
+  Codex-review packets
+- `pnpm content:compile`: 3 local review patients plus 10 portable Reviewer scenarios
+- `pnpm content:evidence`
+- `pnpm content:diagnoses:validate`: 1,112 local ICD-10-CM terms, hash
+  `f13efd1ce8e5a1134129cd3b511f56913c5a41d10577e22ae3e1fb286ffb3e97`
+- `pnpm demo:reference-runs`
+- `pnpm test:e2e`: 4 Player/Developer/Endgame browser tests
+- `pnpm test:e2e:reviewer`: 4 portable/mobile Reviewer tests at 390 px and 320 px
+- `pnpm build`: Player bundle safety passed, 11 files
+- Pages-equivalent `pnpm build:reviewer`: portable Reviewer bundle safety passed, 15 files
+- `git diff --check`
+
+The first full desktop E2E attempt exposed only a strict-selector ambiguity caused by the new
+hidden responsive ticket launcher. The assertion was scoped to the visible dense ticket card; the
+previously failing scenario and then the complete desktop/mobile suites passed.
 
 ## Verification for checkpoint `0536c28`
 
@@ -289,7 +344,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-124)
+- `docs/DECISIONS.md` (through D-129)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -312,22 +367,28 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `apps/web/src/review-export.ts`
 - `packages/engine/src/services.ts`
 - `tools/content-cli/src/apple-notes-provider.ts`
+- `tools/content-cli/src/apple-notes-codex-review.ts`
+- `content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json`
+- `content/catalogs/reactions/reaction-concepts.json`
 - `tests/e2e/reviewer-mobile.spec.ts`
 - `.github/workflows/pages.yml`
 
 ## Exact next action
 
-Obtain the separate explicit acknowledgment that Apple Note title/plaintext fields are
-user-authored or otherwise authorized and appropriate to transmit specifically to OpenAI Codex for
-private review, while HTML, attachment bytes, and OCR remain excluded. Then implement/use a
-bounded, one-note/one-segment, hash-audited bridge and classify the resulting material one source at
-a time into Developer-opinion candidates, bibliographic candidates, secondary context, or
-irrelevant/duplicate material. Intake must not automatically create evidence contributions,
-gameplay rules, points, citations, or approval.
+Run assignment `2026-07d` in local/mobile review and export at least one patient-linked ticket
+response. Review whether reaction history and existing-safety-plan history should earn or lose
+points in each focused decision; do not invent a universal clinical reward merely because the
+actions now exist.
 
-After that source-review step, the next queued product decision is how much formulation granularity
-the medication catalog should initially model: ingredient only versus clinically meaningful
-IR/SR/XL, long-acting injectable, route, and combination-product distinctions.
+Separately, obtain the exact model identifier from a Codex surface before using
+`content:notes:codex-review`. Then review one bounded Notes title/plaintext segment and classify it
+as a Developer-opinion candidate, bibliographic candidate, secondary context, or
+irrelevant/duplicate material. Do not infer the identifier and do not turn intake directly into
+rules, points, citations, or approval.
+
+After that, the next queued product decision remains medication formulation granularity:
+ingredient only versus clinically meaningful IR/SR/XL, long-acting injectable, route, and
+combination-product distinctions.
 
 Do not implement a bulk medication importer, invent missing therapy/diagnosis guidance, begin
 Milestone 4, add a service worker, or bulk-transmit private source material.
