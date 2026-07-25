@@ -877,15 +877,23 @@ const syncAppleNotesFolderUnlocked = async (
   const provider = options.provider ?? macOsAppleNotesProvider;
   const ocr = options.ocr ?? true;
   const ocrRunner = options.ocrRunner ?? defaultOcrRunner;
-  const ocrEngine = ocr
+  const timestamp = options.now?.() ?? new Date().toISOString();
+  await auditAppleNotesFolderUnlocked(options);
+  let manifest = (await loadManifest(paths.manifest))!;
+  const hasOcrCandidate =
+    ocr &&
+    manifest.notes.some(
+      (note) =>
+        note.exportStatus !== 'missing' &&
+        !note.locked &&
+        note.attachmentRecords.some((attachment) => attachment.exportStatus !== 'missing'),
+    );
+  const ocrEngine = hasOcrCandidate
     ? (options.ocrEngineId ??
       (options.ocrRunner
         ? `${APPLE_NOTES_OCR_ENGINE};custom-runner`
         : await getDefaultOcrEngineId()))
     : null;
-  const timestamp = options.now?.() ?? new Date().toISOString();
-  await auditAppleNotesFolderUnlocked(options);
-  let manifest = (await loadManifest(paths.manifest))!;
   manifest = AppleNotesIntakeManifestSchema.parse({
     ...manifest,
     acknowledgement,
