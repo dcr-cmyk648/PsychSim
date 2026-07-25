@@ -62,6 +62,27 @@ const relocateExistingSlot = (
   return locationId ? PatientQueueSlotSchema.parse({ ...slot, locationId }) : null;
 };
 
+const refreshLegacySafetyPlanningSnapshot = (
+  slot: PatientQueueSlot,
+  blueprints: readonly CaseBlueprint[],
+  catalogs: CatalogBundle,
+): PatientQueueSlot => {
+  if (slot.caseInstance.patientRecord.reportedSafetyPlanningAbility !== 'unassessed') return slot;
+  const currentBlueprint = blueprints.find(
+    (blueprint) => blueprint.id === slot.caseInstance.blueprintId,
+  );
+  if (
+    !currentBlueprint ||
+    currentBlueprint.patientRecord.reportedSafetyPlanningAbility === 'unassessed'
+  ) {
+    return slot;
+  }
+  return PatientQueueSlotSchema.parse({
+    ...slot,
+    caseInstance: instantiateCase(currentBlueprint, slot.caseInstance.seed, catalogs),
+  });
+};
+
 const makeSlot = (
   mode: ProgressionMode,
   blueprint: CaseBlueprint,
@@ -106,7 +127,8 @@ const fillMode = (
   const desiredCount =
     mode === 'developer' ? pool.length : getPatientSlotCount(clinic, mode, catalogs);
   const relocatedExisting = existing.flatMap((slot) => {
-    const relocated = relocateExistingSlot(slot, clinic, catalogs);
+    const refreshed = refreshLegacySafetyPlanningSnapshot(slot, blueprints, catalogs);
+    const relocated = relocateExistingSlot(refreshed, clinic, catalogs);
     return relocated ? [relocated] : [];
   });
   const slots = mode === 'developer' ? [] : relocatedExisting.slice(0, desiredCount);

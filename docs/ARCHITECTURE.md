@@ -243,6 +243,11 @@ only whether the patient reports feeling able to participate; it never emits an
 separate intervention boundary. Current disposition policies are unchanged until a reviewed rule
 specifies when and how this response contributes.
 
+Queue hydration repairs only the pre-change waiting-patient edge: when a saved slot has
+`reportedSafetyPlanningAbility: "unassessed"` and its current blueprint has an authored response,
+the engine re-instantiates that slot from the same blueprint and seed before eligibility and
+relocation. It does not rewrite completed attempts, event histories, receipts, or review snapshots.
+
 The launcher renders from that resolved CaseInstance—not internal case metadata—so it can show only patient name and chief complaint. Hidden diagnosis/category fields remain content and validation inputs and are never used as player-facing case labels.
 
 Encounter commands return new values and typed `Result` failures. Stable event IDs derive from

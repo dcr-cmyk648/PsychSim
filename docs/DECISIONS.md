@@ -1291,3 +1291,8 @@ move the ten scenarios to content version `1.4.0` and the portable assignment to
 `reviewer-assignment.common-psychiatry.2026-07e`. The new assignment intentionally uses a fresh
 IndexedDB namespace; any unexported `2026-07d` feedback remains in its old browser database rather
 than being silently mixed with revised cases.
+
+At local queue hydration, a waiting patient with the truthful legacy `unassessed` default is
+re-instantiated from the current matching blueprint and its original seed. This preserves the
+patient's deterministic identity while preventing the new menu label from revealing an old
+written-plan result. Completed attempts and their historical snapshots are never rewritten.

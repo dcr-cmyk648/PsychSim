@@ -862,6 +862,47 @@ describe('progression and patient queues', () => {
     );
   });
 
+  it('refreshes only a legacy queued safety-planning snapshot from the same blueprint and seed', () => {
+    const initial = ensurePatientQueues(
+      emptyPatientQueueState(),
+      startingClinic,
+      endgameClinic,
+      pools,
+      catalogs,
+    );
+    const legacy = structuredClone(initial);
+    const legacySlot = legacy.standardSlots[0]!;
+    legacySlot.caseInstance.patientRecord.reportedSafetyPlanningAbility = 'unassessed';
+    legacySlot.caseInstance.contentVersion = '4.1.0';
+    const legacyAction = legacySlot.caseInstance.informationActions.find(
+      (action) => action.actionId === 'info.history.existing-safety-plan',
+    )!;
+    legacyAction.result.findings = [
+      {
+        id: 'finding.legacy.existing-plan',
+        label: 'Existing written safety plan',
+        outcome: 'absent',
+        origin: 'authored',
+      },
+    ];
+    legacyAction.result.factsRevealed = ['fact.legacy-existing-safety-plan'];
+
+    const refreshed = ensurePatientQueues(legacy, startingClinic, endgameClinic, pools, catalogs);
+    const refreshedSlot = refreshed.standardSlots[0]!;
+    expect(refreshedSlot.id).toBe(legacySlot.id);
+    expect(refreshedSlot.caseInstance.seed).toBe(legacySlot.caseInstance.seed);
+    expect(refreshedSlot.caseInstance.opening).toEqual(legacySlot.caseInstance.opening);
+    expect(refreshedSlot.caseInstance.contentVersion).toBe(prototypeCaseBlueprint.contentVersion);
+    expect(refreshedSlot.caseInstance.patientRecord.reportedSafetyPlanningAbility).toBe(
+      'reports_able',
+    );
+    expect(
+      refreshedSlot.caseInstance.informationActions
+        .find((action) => action.actionId === 'info.history.existing-safety-plan')
+        ?.result.findings.map((finding) => finding.label),
+    ).toEqual(['Feels able to participate in safety planning']);
+  });
+
   it('keeps the waiting patient while relocating the slot after a facility move', () => {
     const initial = ensurePatientQueues(
       emptyPatientQueueState(),
