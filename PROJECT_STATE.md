@@ -6,6 +6,23 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current remaining-packet checkpoint:
+  `9c0993a0eea52abf3eafff5b5c5207521efa7786`
+  (`Prepare remaining evidence review packets`). The Developer-only review queue now contains 22
+  medically unreviewed, point-excluded literature-synthesis proposals. The ten newest packets
+  separate MDD severity generation; an overall antidepressant-fit frame; sleep,
+  weight/physiology, and sexual/adherence fit; TSH-testing thresholds; suicide-risk/disposition;
+  regimen intent; inadequate-response routing; and medication-transition state. Eight new
+  clinician-review tickets keep those decisions independent. The CANMAT 2025 corrigendum is
+  closed as an author-name-only correction with no clinical impact. WHO DEP1 through DEP4 and the
+  first BAP catatonia trigger packet are prepared; the VA/DoD item-level rights audit remains
+  restrictive and authorizes no semantic indexing or derived rule. Newer abstracts are qualifying
+  context only until formal evidence and source-use intake. No patient, diagnosis branch,
+  investigation reward, treatment grade, safety/disposition rule, regimen rule, score, point
+  value, or runtime behavior changed. Player and portable Reviewer bundle gates exclude every
+  `literature-synthesis.*` marker. After this state-file commit, the local `beta` branch is five
+  commits ahead of `origin/beta`; nothing from this checkpoint has been pushed or promoted to
+  `main`.
 - Current evidence-gap checkpoint: `4553b47eb0dba5bda5465ffc6fdb102a406c23a8`
   (`Add review packets for unresolved evidence gaps`). It converts six previously queued questions
   into medically unreviewed, point-excluded review packets: ECG monitoring after palpitations on
@@ -17,8 +34,8 @@ Last updated: 2026-07-26
   database projection has 129 records, and the source-request queue has 10 entries. Source-use
   decisions remain conservative where NHS special terms or VA/DoD third-party material need
   additional review. No patient fact, clinical rule, treatment grade, disposition, point magnitude,
-  or engine behavior changed. The local `beta` branch is three commits ahead of `origin/beta`;
-  these local commits have not been pushed or promoted to `main`.
+  or engine behavior changed. This earlier checkpoint has since been extended by the current
+  remaining-packet checkpoint.
 - Current beta review/scout checkpoint (`Add first personal knowledge review scout`) adapts the
   first fully classified Apple Notes revision into one immutable local Developer ticket with seven
   one-to-one, medically unreviewed Developer-opinion proposals. A discriminated private locator
@@ -28,8 +45,8 @@ Last updated: 2026-07-26
   profiles and four abstract-only, medically unreviewed discovery references covering short-term
   physiology/weight, sexual-function adverse effects, sleep adverse effects, tolerability, and the
   limits of severity-only personalization. It creates no evidence contribution, accepted opinion,
-  executable rule, point magnitude, medical approval, or runtime change. The local `beta` branch
-  is one commit ahead of `origin/beta`; this checkpoint has not been pushed or promoted to `main`.
+  executable rule, point magnitude, medical approval, or runtime change. This earlier checkpoint
+  remains local and has since been extended by later commits.
 - Current bounded source/scoring-design work catalogs Bostwick's 2010 Mayo antidepressant-fit
   review as verified, medically unreviewed metadata; records a metadata-only source-use decision;
   adds its abstract-level sleep, sexual-function, weight, and adherence/tolerability dimensions to
@@ -317,8 +334,8 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 
 ## Ticket literature-scout checkpoint
 
-- Every one of the 32 unresolved checked-in Developer tickets has exactly one tracked attachment:
-  17 tickets link through 13 reusable bounded questions and 15 have explicit exemptions because a
+- Every one of the 39 unresolved Developer tickets has exactly one tracked attachment: 24 tickets
+  link through 18 reusable bounded questions and 15 have explicit exemptions because a
   meta-analysis cannot resolve their legal/access, identity, architecture, balance, or umbrella
   decision.
 - Twelve profiles select a recent meta-analysis and store a concise original abstract-only
@@ -339,6 +356,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   in local Developer mode. Player and portable Reviewer bundle-safety gates exclude it.
 - The scout is medically unreviewed discovery context. It is not formal evidence, does not choose
   point magnitude, and made no rule, source-request, ticket-status, assignment, or approval change.
+- The literature-synthesis queue contains 22 proposals linked to 23 distinct ticket decisions. The
+  packet layer is also medically unreviewed, point-excluded, Developer-only, and made no patient,
+  rule, score, point, or runtime change.
 
 ## Apple Notes private-intake state
 
@@ -860,11 +880,15 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
 - `docs/DOCUMENT_INGESTION.md`
+- `docs/DIAGNOSIS_ENGINE.md`
 - `docs/MEDICATION_AND_INTERVENTION_DATA.md`
+- `docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md`
 - `docs/SOURCE_USE_POLICY.md`
+- `docs/WHO_MHGAP_2023_SOURCE_MAP.md`
 - `docs/INSTALL_AND_UPDATES.md`
 - `content/source-docs/README.md`
 - `content/cases/review/literature-synthesis.proposals.json`
+- `content/cases/review/canmat-2023-mdd-source-review.tickets.json`
 - `content/cases/review/ticket-literature-scout.catalog.json`
 - `content/cases/review/catalog-expansion-audit.tickets.json`
 - `content/cases/review/source-needed.requests.json`
@@ -929,19 +953,27 @@ Fictional, synthetic, medically unreviewed prototypes:
 5. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
    their source-specific acknowledgment boundary. Do not expand the hard-coded MDD profile until
    source-revision ownership/reuse and packet supersession are designed.
-6. Keep `source-request.mdd.tsh-workup` open. CANMAT supplies useful targeted-workup context but
-   does not by itself settle a universal or case-specific TSH reward, so no granular rule should be
-   inferred from the current packet.
-7. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
-   corrigendum impact, complete WHO DEP1–DEP4 review, atomize one BAP recommendation while excluding
-   BFCRS instrument content pending rights review, and complete the VA/DoD item-level rights audit
-   before semantic indexing.
-8. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
+6. Review the ten new packet decisions one at a time in dependency order: MDD severity;
+   suicide/disposition; TSH threshold; overall antidepressant-fit frame; sleep; weight/metabolic;
+   sexual/adherence; regimen intent; inadequate-response route; and switch-transition state. WHO
+   DEP1 and DEP4 remain blocked by severity review. The inadequate-response and transition packets
+   remain blocked by regimen-intent taxonomy. Reviewer prose is guidance only and must not change a
+   rule or points automatically.
+7. Do not repeat completed formal-source intake. The CANMAT corrigendum is closed as an
+   author-name-only, no-clinical-change correction. WHO DEP1 through DEP4 and the first BAP trigger
+   packet are prepared. The VA/DoD item-level audit is complete but remains restrictive and does
+   not authorize semantic indexing or derived rules.
+8. Keep `source-request.mdd.tsh-workup`, `source-request.mdd.severity-thresholds`,
+   `source-request.mdd.antidepressant-fit-dimensions`, and
+   `source-request.medications.regimen-combination-boundaries` open. The packets organize current
+   evidence and the clinician decisions; they do not satisfy the missing formal source intake or
+   authorize point values.
+9. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
    worker can preserve its exact bytes, hash, rights state, and manifest entry. Never report those
    four sources as extracted before that happens.
-9. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
-   `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Saving a comment
-   is never automatic clinical approval or authorization to alter a rule.
+10. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
+    `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Saving a comment
+    is never automatic clinical approval or authorization to alter a rule.
 
 Keep this mechanism-heavy checkpoint on `beta` until the user explicitly authorizes promotion.
 `main` and the public Pages Reviewer remain on the prior released checkpoint. Do not implement a
