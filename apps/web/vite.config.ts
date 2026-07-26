@@ -81,13 +81,15 @@ const localTicketWriter = (): Plugin => ({
           typeof raw !== 'object' ||
           raw === null ||
           !('exportVersion' in raw) ||
-          raw.exportVersion !== 5 ||
+          raw.exportVersion !== 6 ||
           !('completedAttempts' in raw) ||
           !Array.isArray(raw.completedAttempts) ||
           !('tickets' in raw) ||
           !Array.isArray(raw.tickets) ||
           !('attemptReviews' in raw) ||
           !Array.isArray(raw.attemptReviews) ||
+          !('databaseEntryReviews' in raw) ||
+          !Array.isArray(raw.databaseEntryReviews) ||
           !('flags' in raw) ||
           !Array.isArray(raw.flags) ||
           !raw.tickets.every(
@@ -108,6 +110,16 @@ const localTicketWriter = (): Plugin => ({
               'attemptSnapshot' in review &&
               typeof review.attemptSnapshot === 'object' &&
               review.attemptSnapshot !== null,
+          ) ||
+          !raw.databaseEntryReviews.every(
+            (review) =>
+              typeof review === 'object' &&
+              review !== null &&
+              'reviewerNote' in review &&
+              typeof review.reviewerNote === 'string' &&
+              'entrySnapshot' in review &&
+              typeof review.entrySnapshot === 'object' &&
+              review.entrySnapshot !== null,
           ) ||
           !raw.flags.every(
             (flag) =>

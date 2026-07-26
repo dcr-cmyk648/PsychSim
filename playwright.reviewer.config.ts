@@ -22,7 +22,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm --prefix apps/web run reviewer:e2e-server',
+    command: 'npm --prefix apps/web run preview -- --host 127.0.0.1 --port 43818 --strictPort',
     url: 'http://127.0.0.1:43818',
     reuseExistingServer: false,
     timeout: 120_000,

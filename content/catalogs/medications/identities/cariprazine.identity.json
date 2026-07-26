@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.cariprazine",
+  "label": "Cariprazine",
+  "normalizedIngredientName": "cariprazine",
+  "aliases": [],
+  "authoringStatus": "identity_only",
+  "runtimeMedicationDefinitionId": null,
+  "rxnorm": {
+    "rxcui": "1667655",
+    "termType": "IN",
+    "suppress": "N",
+    "releaseDate": "2026-07-06",
+    "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+    "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+    "verifiedAt": "2026-07-25T23:30:00.000Z"
+  },
+  "medicalReviewStatus": "unreviewed"
+}

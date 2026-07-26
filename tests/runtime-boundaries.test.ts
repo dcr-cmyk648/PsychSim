@@ -3,7 +3,10 @@ import { join, resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { approvedCaseBlueprints, catalogs } from '../packages/content-runtime/src/content';
+import { medicationIdentities } from '../packages/content-runtime/src/medication-identities';
 import { publicClinicalCatalog } from '../packages/content-runtime/src/public-clinical-catalog';
+import { reviewerCaseBlueprints } from '../packages/content-runtime/src/reviewer-content';
 
 const filesBelow = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -157,6 +160,27 @@ describe('runtime boundaries', () => {
       'Personal knowledge workbench',
     ]) {
       expect(serializedProjection).not.toContain(marker);
+    }
+  });
+
+  it('keeps identity-only medications out of gameplay catalogs and patient content', () => {
+    expect(medicationIdentities).toHaveLength(33);
+    expect(catalogs.medications).toHaveLength(13);
+    const identityOnlyIds = medicationIdentities
+      .filter((identity) => identity.authoringStatus === 'identity_only')
+      .map((identity) => identity.id);
+    expect(identityOnlyIds).toHaveLength(20);
+    const gameplayMedicationIds = new Set([
+      ...catalogs.medications.map((medication) => medication.id),
+      ...catalogs.formularies.flatMap((formulary) => formulary.medicationIds),
+    ]);
+    const serializedPatients = JSON.stringify([
+      ...approvedCaseBlueprints,
+      ...reviewerCaseBlueprints,
+    ]);
+    for (const id of identityOnlyIds) {
+      expect(gameplayMedicationIds.has(id)).toBe(false);
+      expect(serializedPatients).not.toContain(id);
     }
   });
 

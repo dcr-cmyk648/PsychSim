@@ -74,6 +74,13 @@ const migrateAdditiveV5Node = (value: unknown): unknown => {
       migrated.treatmentExpenses = 0;
     }
   }
+  if (
+    migrated.saveDataVersion === 5 &&
+    'profile' in migrated &&
+    !Array.isArray(migrated.databaseEntryReviews)
+  ) {
+    migrated.databaseEntryReviews = [];
+  }
   return migrated;
 };
 
@@ -140,6 +147,7 @@ export const migrateSaveData = (value: unknown): unknown => {
     },
     clinicalTickets: [],
     attemptReviews: [],
+    databaseEntryReviews: [],
     legacyArchive: [
       {
         schemaVersion: 1,

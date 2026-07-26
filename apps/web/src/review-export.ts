@@ -4,6 +4,7 @@ import {
   type ClinicalTicketExportBundle,
   type CompletedAttempt,
   type ContentFlag,
+  type DatabaseEntryReview,
   type DeveloperAttemptReview,
 } from '@psychsim/schemas';
 
@@ -15,12 +16,13 @@ export const buildClinicalTicketExportBundle = (input: {
   assignmentId: string | null;
   tickets: readonly ClinicalReviewTicket[];
   attemptReviews: readonly DeveloperAttemptReview[];
+  databaseEntryReviews: readonly DatabaseEntryReview[];
   flags: readonly ContentFlag[];
   completedAttempts: readonly CompletedAttempt[];
 }): ClinicalTicketExportBundle =>
   ClinicalTicketExportBundleSchema.parse({
     schemaVersion: 1,
-    exportVersion: 5,
+    exportVersion: 6,
     bundleId: `review-bundle.${input.exportedAt.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-')}`,
     buildKind: input.buildKind,
     assignmentId: input.assignmentId,
@@ -29,6 +31,7 @@ export const buildClinicalTicketExportBundle = (input: {
     profileId: input.profileId,
     tickets: [...input.tickets],
     attemptReviews: [...input.attemptReviews],
+    databaseEntryReviews: [...input.databaseEntryReviews],
     flags: [...input.flags],
     completedAttempts: [...input.completedAttempts],
   });

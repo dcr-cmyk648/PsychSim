@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { PublicClinicalCatalogProjectionSchema } from '@psychsim/schemas';
 
 import { catalogs } from './content';
-import { buildPublicClinicalCatalog, publicClinicalCatalog } from './public-clinical-catalog';
+import { medicationIdentities } from './medication-identities';
+import {
+  NLM_RXNORM_PUBLIC_ATTRIBUTION,
+  buildPublicClinicalCatalog,
+  publicClinicalCatalog,
+} from './public-clinical-catalog';
 
 const sorted = (values: readonly string[]): string[] =>
   [...values].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
@@ -19,14 +24,14 @@ describe('public clinical catalog projection', () => {
       ),
     ).toEqual({
       conditions: 8,
-      medications: 13,
+      medications: 33,
       interventions: 13,
       dispositions: 3,
       investigations: 40,
       tests: 14,
-      references: 11,
+      references: 12,
     });
-    expect(publicClinicalCatalog.totalEntryCount).toBe(102);
+    expect(publicClinicalCatalog.totalEntryCount).toBe(123);
 
     expect(
       sorted(
@@ -41,7 +46,7 @@ describe('public clinical catalog projection', () => {
           .filter((entry) => entry.kind === 'medication')
           .map((entry) => entry.id),
       ),
-    ).toEqual(sorted(catalogs.medications.map((entry) => entry.id)));
+    ).toEqual(sorted(medicationIdentities.map((entry) => entry.id)));
     expect(
       sorted(
         publicClinicalCatalog.entries
@@ -92,7 +97,10 @@ describe('public clinical catalog projection', () => {
   });
 
   it('is stable, uniquely keyed, and detached from mutable input objects', () => {
-    const rebuilt = buildPublicClinicalCatalog(structuredClone(catalogs));
+    const rebuilt = buildPublicClinicalCatalog(
+      structuredClone(catalogs),
+      structuredClone(medicationIdentities),
+    );
     expect(rebuilt).toEqual(publicClinicalCatalog);
     expect(new Set(rebuilt.entries.map((entry) => entry.id)).size).toBe(rebuilt.entries.length);
 
@@ -110,11 +118,36 @@ describe('public clinical catalog projection', () => {
     reorderedCatalogs.informationActions.reverse();
     reorderedCatalogs.tests.reverse();
     reorderedCatalogs.evidenceSources.reverse();
+    const reorderedIdentities = [...structuredClone(medicationIdentities)].reverse();
     for (const source of reorderedCatalogs.evidenceSources) source.sourceRelations.reverse();
-    expect(buildPublicClinicalCatalog(reorderedCatalogs)).toEqual(publicClinicalCatalog);
+    expect(buildPublicClinicalCatalog(reorderedCatalogs, reorderedIdentities)).toEqual(
+      publicClinicalCatalog,
+    );
+
+    const runtimeMedicationIds = new Set(catalogs.medications.map((entry) => entry.id));
+    const identityOnlyEntries = publicClinicalCatalog.entries.filter(
+      (entry) => entry.kind === 'medication' && entry.authoringStatus === 'identity_only',
+    );
+    expect(identityOnlyEntries).toHaveLength(20);
+    expect(identityOnlyEntries.every((entry) => !runtimeMedicationIds.has(entry.id))).toBe(true);
+    expect(
+      identityOnlyEntries.every(
+        (entry) => entry.kind === 'medication' && entry.classes.length === 0,
+      ),
+    ).toBe(true);
+    expect(
+      publicClinicalCatalog.entries
+        .filter((entry) => entry.kind === 'medication')
+        .every(
+          (entry) =>
+            entry.identityReleaseDate === '2026-07-06' &&
+            entry.identityAttribution === NLM_RXNORM_PUBLIC_ATTRIBUTION &&
+            entry.identityScopeNotice.includes('may not be current'),
+        ),
+    ).toBe(true);
   });
 
-  it('uses a strict display allowlist and excludes answer keys and authoring records', () => {
+  it('uses a strict display allowlist and excludes answer keys and private authoring records', () => {
     const commonKeys = [
       'categoryId',
       'contentVersion',
@@ -126,7 +159,18 @@ describe('public clinical catalog projection', () => {
     ];
     const keysByKind = {
       condition: [...commonKeys, 'description', 'severityLevels', 'specifierLabels'],
-      medication: [...commonKeys, 'classes'],
+      medication: [
+        ...commonKeys,
+        'aliases',
+        'authoringStatus',
+        'classes',
+        'identityAttribution',
+        'identityEvidenceSourceId',
+        'identityReleaseDate',
+        'identityScopeNotice',
+        'normalizedIngredientName',
+        'rxnormRxcui',
+      ],
       intervention: [...commonKeys, 'requiredCapabilityCount', 'treatmentCategory'],
       disposition: [...commonKeys, 'requiredCapabilityCount', 'treatmentCategory'],
       investigation: [
@@ -192,6 +236,12 @@ describe('public clinical catalog projection', () => {
       '"classificationBindings":',
       '"baseRules":',
       '"generator":',
+      '"runtimeMedicationDefinitionId":',
+      '"sourceUseDecisionId":',
+      '"releaseDate":',
+      '"verifiedAt":',
+      '"termType":',
+      '"suppress":',
       '"accessPolicy":',
       '"knownContentHashes":',
       '"note":',

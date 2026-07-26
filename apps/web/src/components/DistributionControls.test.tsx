@@ -12,6 +12,14 @@ afterEach(() => {
 });
 
 describe('DistributionControls', () => {
+  it('uses a neutral install-and-update label on desktop', () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+    render(<DistributionControls safeToReload showInstallControl />);
+
+    expect(screen.getByText('APP & UPDATES')).toBeVisible();
+    expect(screen.queryByText('PHONE INSTALL')).not.toBeInTheDocument();
+  });
+
   it('shows the current iPhone installation steps and local-storage warning', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
     render(<DistributionControls safeToReload showInstallControl />);

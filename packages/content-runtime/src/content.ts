@@ -14,6 +14,7 @@ import canmatMddCorrigendumJson from '../../../content/catalogs/evidence/formal/
 import canmatMddGuidelineJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json';
 import fdaCitalopramLabelJson from '../../../content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json';
 import niceSelfHarmGuidelineJson from '../../../content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json';
+import nlmRxNormCpcJson from '../../../content/catalogs/evidence/formal/nlm-rxnorm-cpc-2026-07-06.evidence.json';
 import vaDodSuicideRiskGuidelineJson from '../../../content/catalogs/evidence/formal/va-dod-suicide-risk-2024-guideline.evidence.json';
 import whoMhgapGuidelineJson from '../../../content/catalogs/evidence/formal/who-mhgap-2023-guideline.evidence.json';
 import bipolarSpectrumDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/bipolar-spectrum-disorder.diagnosis.json';
@@ -67,7 +68,7 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.6.0',
+  contentVersion: '3.7.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,
@@ -78,6 +79,7 @@ export const catalogs = CatalogBundleSchema.parse({
     canmatMddCorrigendumJson,
     fdaCitalopramLabelJson,
     niceSelfHarmGuidelineJson,
+    nlmRxNormCpcJson,
     vaDodSuicideRiskGuidelineJson,
     whoMhgapGuidelineJson,
   ],

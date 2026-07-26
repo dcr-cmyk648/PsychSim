@@ -89,13 +89,22 @@ Portable Reviewer is a separate static artifact for a colleague using desktop or
 workspace writer or local authoring queues. Its assignment-versioned IndexedDB retains patient
 slots, completed attempts, flags, tickets, and multiple case notes on that one browser/device. A
 completed receipt can be reopened after reload to add or edit feedback. Manual Export downloads
-one version-5 JSON bundle containing build kind, assignment identity, engine version, all completed
-attempts, all `DeveloperAttemptReview` option snapshots, all flags, and all tickets. The reviewer
+one version-6 JSON bundle containing build kind, assignment identity, engine version, all completed
+attempts, all `DeveloperAttemptReview` option snapshots, all `DatabaseEntryReview` snapshots, all
+flags, and all tickets. The reviewer
 can complete several cases and email the single file to the project owner. There is no server sync
 or formal bundle import yet; export before clearing browser data or moving devices. Free-text notes
 must never contain real patient information or other identifiable clinical material. A material
 cohort or policy revision receives a new assignment ID rather than silently sharing old run history
 and exports.
+
+Database review follows the same durable-feedback rule without exposing clinical answer keys.
+Every entry opens as the complete strict public projection. Developer and portable Reviewer may
+save one editable prose note; `DatabaseEntryReview` stores the exact safe entry snapshot,
+category/entry IDs, catalog/projection versions, and timestamps. Player has no comment form.
+Local Developer mirrors these reviews to the fixed Codex handoff bundle after IndexedDB succeeds;
+portable Reviewer keeps them assignment-local until export. Saving feedback never edits the entry,
+adds a clinical source, changes a score, or grants approval.
 
 Assignment `reviewer-assignment.common-psychiatry.2026-07f` adds one narrow exception to the rule
 that portable Reviewer has no authoring queue: it statically imports one exact ticket packet with
@@ -106,7 +115,7 @@ private-source, or arbitrary workspace queue.
 
 On desktop, the full ticket can be expanded inline or opened in a focused dialog. On mobile, a
 compact ticket launcher opens the same content and response field in a full-screen dialog.
-Responses use the assignment's existing IndexedDB and version-5 export. They do not write to the
+Responses use the assignment's existing IndexedDB and version-6 export. They do not write to the
 repository, edit a patient or rule, or confer medical approval. The owner must still supply the
 exported bundle to Codex.
 

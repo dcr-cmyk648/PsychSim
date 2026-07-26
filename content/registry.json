@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.12.0",
+  "contentVersion": "3.13.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -82,6 +82,51 @@
       "kind": "formulary_catalog",
       "path": "content/catalogs/medications/formularies.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "registry.catalog.medication-identities",
+      "kind": "medication_identity_catalog",
+      "path": "content/catalogs/medications/identities",
+      "runtimeIncluded": true,
+      "categoryIds": [
+        "medication.aripiprazole",
+        "medication.benztropine",
+        "medication.bupropion",
+        "medication.buspirone",
+        "medication.carbamazepine",
+        "medication.cariprazine",
+        "medication.citalopram",
+        "medication.clonazepam",
+        "medication.clozapine",
+        "medication.desvenlafaxine",
+        "medication.diazepam",
+        "medication.duloxetine",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.fluvoxamine",
+        "medication.haloperidol",
+        "medication.hydroxyzine",
+        "medication.lamotrigine",
+        "medication.lithium",
+        "medication.lorazepam",
+        "medication.lurasidone",
+        "medication.mirtazapine",
+        "medication.olanzapine",
+        "medication.paliperidone",
+        "medication.paroxetine",
+        "medication.prazosin",
+        "medication.propranolol",
+        "medication.quetiapine",
+        "medication.risperidone",
+        "medication.sertraline",
+        "medication.trazodone",
+        "medication.venlafaxine",
+        "medication.ziprasidone"
+      ],
+      "dependsOnIds": [
+        "evidence.nlm.rxnorm-cpc.2026-07-06",
+        "registry.catalog.source-use-decisions"
+      ]
     },
     {
       "id": "registry.catalog.locations",
@@ -222,7 +267,7 @@
       "id": "evidence.nlm.rxnorm-cpc.2026-07-06",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nlm-rxnorm-cpc-2026-07-06.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": true
     },
     {
       "id": "evidence.who.icd11-cddr.2024",

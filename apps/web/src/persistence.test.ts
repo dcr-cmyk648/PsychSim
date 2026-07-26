@@ -76,6 +76,7 @@ describe('save migrations', () => {
     expect('reputationXP' in migrated.profile.clinic).toBe(false);
     expect(migrated.patientQueues.standardSlots).toEqual([]);
     expect(migrated.attemptReviews).toEqual([]);
+    expect(migrated.databaseEntryReviews).toEqual([]);
   });
 
   it('archives incompatible historical score reports instead of silently discarding them', () => {
@@ -126,5 +127,32 @@ describe('save migrations', () => {
     expect(migrated.patientQueues.generation).toBe(3);
     expect(migrated.patientQueues.developerRunBlueprintIds).toEqual(['case.review.test']);
     expect(migrated.attemptReviews).toEqual([]);
+    expect(migrated.databaseEntryReviews).toEqual([]);
+  });
+
+  it('adds the database-entry review collection to an existing complete v5 save', () => {
+    const migrated = SaveDataSchema.parse(
+      migrateSaveData({
+        schemaVersion: 1,
+        saveDataVersion: 5,
+        profile: startingProfile,
+        attempts: [],
+        flags: [],
+        patientQueues: {
+          schemaVersion: 1,
+          generation: 0,
+          standardSlots: [],
+          endgameSlots: [],
+          developerSlots: [],
+          developerRunBlueprintIds: [],
+          recentChiefComplaints: [],
+        },
+        clinicalTickets: [],
+        attemptReviews: [],
+        legacyArchive: [],
+      }),
+    );
+
+    expect(migrated.databaseEntryReviews).toEqual([]);
   });
 });

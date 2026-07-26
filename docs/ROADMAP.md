@@ -46,7 +46,8 @@ depression, acute mania, schizophrenia relapse, and PTSD) through eight shared p
 decision policies. The separate static Reviewer artifact includes mobile workspace tabs,
 mobile-only immediate-result dialogs, newest/oldest reveal ordering, read-only post-submit context,
 near-top general feedback, reopenable completed receipts, an assignment-versioned IndexedDB, and
-one version-5 export containing multiple completed attempts/reviews/flags/tickets. GitHub Pages
+one version-6 export containing multiple completed attempts, case reviews, database-entry
+reviews, flags, and tickets. GitHub Pages
 deploys this finite Reviewer artifact from `main`; it does not include the local Developer glob,
 source/opinion queues, ticket discovery, writer endpoint, source bytes, or AI tooling. Assignment
 `2026-07f` additionally includes one exact finite packet of ten patient-linked review questions.
@@ -66,14 +67,15 @@ below the compact hub, reports how many assigned questions need input, and opens
 the existing full-screen phone dialog. This avoids replacing one long patient page with ten
 simultaneously expanded rule audits.
 
-Database-browser checkpoint: desktop and mobile hubs open one shared read-only, searchable
-Database screen. It presents a schema-minimized public projection of modeled conditions,
-medications, interventions, dispositions, investigations, tests, and formal bibliography, with
-collapsed records and logical catalog locators. It explicitly excludes patient answer keys,
-points/rules, review tickets, private sources, and the authoring-only ICD cache. Component,
+Database-browser checkpoint: desktop and mobile hubs open one shared searchable Database screen.
+It presents a schema-minimized public projection of modeled conditions, 33 normalized medication
+identities, interventions, dispositions, investigations, tests, and formal bibliography. Each
+record opens in a dedicated full reader. Developer and portable Reviewer can save/export a prose
+comment with the exact safe entry snapshot; Player remains read-only. It explicitly excludes
+patient answer keys, points/rules, private sources, and the authoring-only ICD cache. Component,
 runtime-boundary, desktop Player, and phone Reviewer tests keep those exclusions executable. This
-is catalog inspection, not a filesystem API, comprehensive diagnostic manual, or Milestone-5
-rubric editor.
+is catalog inspection and review, not a filesystem API, comprehensive diagnostic manual, or
+Milestone-5 rubric editor.
 
 Follow-up beta checkpoint: Reviewer symptom duration is now structured numeric/unit case state with
 short swappable displays and deterministic replay. Current ranges only support the already-authored
@@ -103,9 +105,11 @@ Medication/intervention authoring checkpoint: the target background database now
 normalized identity and regulatory facts, structured evidence claims, Developer opinions,
 executable clinical rules, and point balance. Public RxNorm/FDA/NLM sources form the preferred bulk
 factual scaffold; comparative evidence and guidelines remain separately scoped. Proprietary
-references are human-only absent permission, and psychotherapy manuals are not copied. This is a
-documented boundary only: no medication importer, therapy migration, clinical claim, or scoring
-change has been implemented.
+references are human-only absent permission, and psychotherapy manuals are not copied. The first
+implemented identity slice has 33 pinned RxNorm ingredient records: 13 runtime-compatible and 20
+identity-only. It includes required public attribution/currentness disclosure and does not change
+formularies, treatments, clinical claims, or scoring. A refresh importer, therapy migration, and
+the remaining knowledge layers are still open.
 
 DrugCentral is now registered as an authoring-only `structured_database` seed under a restrictive
 initial CC BY-SA gate: local deterministic indexing and unreviewed derived candidates are allowed,
@@ -193,6 +197,10 @@ source revision at a time, with segment-complete coverage, strict private import
 status reporting. Lexical matching only queues candidates; HTML, OCR, attachments, composites, and
 bulk-corpus semantic processing remain outside this slice. Candidate output cannot affect evidence,
 rules, points, or approval.
+An additional private lexical inventory now covers all 204 authorized title/plaintext revisions
+against 68 current safe identities. It stores only hashes, IDs, terms, and counts; 72 revisions
+matched at least one known target. Attachments, OCR, remote Drive sources, semantic interpretation,
+unknown-entity discovery, claims, and runtime changes remain outside that inventory.
 
 Scope: SHA-256 scan/manifest/duplicates; PDF, DOCX, TXT, Markdown strategy; extraction/chunks; watch; processed/quarantine; provenance; privacy controls; source review.
 

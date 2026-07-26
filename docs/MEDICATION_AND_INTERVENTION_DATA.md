@@ -56,8 +56,15 @@ interventions. That is enough to exercise the prototype, but not enough to disti
 - a source finding from the point value later assigned to it.
 
 Official and comparative data must not be poured directly into the current `classes`, `tags`, or
-`fitModifiers` fields. The current records remain the compatibility/runtime layer until the
-authoring model below is implemented and compiled.
+`fitModifiers` fields. The current records remain the compatibility/runtime layer.
+
+The first identity-only slice is now implemented separately. Thirty-three curated
+`MedicationIdentityDefinition` files carry normalized ingredient names, explicit aliases, RxCUIs,
+the pinned July 6, 2026 RxNorm CPC release, source/use-decision IDs, and unreviewed status.
+Thirteen link the existing same-ID runtime records; twenty are browseable authoring identities
+with no gameplay class, formulary membership, treatment availability, rule, or point effect.
+Validation locks that separation. Classification memberships, regulatory facts, evidence claims,
+Developer opinions, and compilation into additional runtime treatments remain future work.
 
 ## Five separate knowledge layers
 
@@ -546,7 +553,8 @@ To avoid building a comprehensive drug-reference product before proving the game
 
 1. Define the identity, claim, classification-membership, and Developer-opinion schemas.
 2. Migrate the ten current medication files without changing their clinical behavior.
-3. Build a source-cleared RxNorm CPC importer for only the curated psychiatric ingredient list.
+3. Extend the manually verified 33-ingredient RxNorm CPC identity checkpoint into a
+   source-cleared, versioned refresh/import tool for only the curated psychiatric ingredient list.
 4. Add one FDA/label pipeline for one medication and verify product/formulation scoping,
    source-update diffs, rights gates, and audit output.
 5. Add Cipriani 2018 as one comparative-evidence fixture for adult acute MDD, without converting

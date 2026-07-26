@@ -18,7 +18,7 @@
     "test:handoff": "python3 -m unittest tests/test_codex_handoff.py",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:reviewer": "playwright test --config playwright.reviewer.config.ts",
+    "test:e2e:reviewer": "pnpm build:reviewer:web && playwright test --config playwright.reviewer.config.ts",
     "content:validate": "tsx tools/content-cli/src/validate.ts",
     "content:sources:validate": "tsx tools/content-cli/src/validate-source-discovery.ts",
     "content:scan": "tsx tools/content-cli/src/scan-sources.ts",
@@ -32,6 +32,7 @@
     "content:knowledge:prepare": "tsx tools/content-cli/src/prepare-personal-knowledge-review.ts",
     "content:knowledge:import": "tsx tools/content-cli/src/import-personal-knowledge-review.ts",
     "content:knowledge:status": "tsx tools/content-cli/src/report-personal-knowledge.ts",
+    "content:knowledge:inventory": "tsx tools/content-cli/src/inventory-personal-knowledge.ts",
     "content:draft": "tsx tools/content-cli/src/draft-patient.ts",
     "content:review": "tsx tools/content-cli/src/review-content.ts",
     "content:evidence": "tsx tools/content-cli/src/evidence-report.ts",
@@ -59,6 +60,7 @@
     "tsx": "4.20.3",
     "typescript": "5.8.3",
     "typescript-eslint": "8.35.1",
-    "vitest": "3.2.4"
+    "vitest": "3.2.4",
+    "zod": "3.25.67"
   }
 }

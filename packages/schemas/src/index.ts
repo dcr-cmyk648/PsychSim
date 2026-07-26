@@ -552,6 +552,62 @@ export const MedicationDefinitionSchema = z
   .strict();
 export type MedicationDefinition = z.infer<typeof MedicationDefinitionSchema>;
 
+export const MedicationIdentityDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    normalizedIngredientName: z.string().min(1).max(180),
+    aliases: z.array(z.string().min(1).max(180)),
+    authoringStatus: z.enum(['identity_only', 'runtime_compatibility']),
+    runtimeMedicationDefinitionId: StableIdSchema.nullable(),
+    rxnorm: z
+      .object({
+        rxcui: z.string().regex(/^\d+$/),
+        termType: z.literal('IN'),
+        suppress: z.literal('N'),
+        releaseDate: z.string().date(),
+        evidenceSourceId: StableIdSchema,
+        sourceUseDecisionId: StableIdSchema,
+        verifiedAt: z.string().datetime(),
+      })
+      .strict(),
+    medicalReviewStatus: z.literal('unreviewed'),
+  })
+  .strict()
+  .superRefine((identity, context) => {
+    if (
+      (identity.authoringStatus === 'runtime_compatibility' &&
+        identity.runtimeMedicationDefinitionId !== identity.id) ||
+      (identity.authoringStatus === 'identity_only' &&
+        identity.runtimeMedicationDefinitionId !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['runtimeMedicationDefinitionId'],
+        message:
+          'A runtime-compatible medication identity must link its same-ID compatibility record; identity-only records cannot.',
+      });
+    }
+    const normalizedAliases = identity.aliases.map((alias) =>
+      alias.normalize('NFKC').toLocaleLowerCase('en-US'),
+    );
+    if (
+      new Set(normalizedAliases).size !== normalizedAliases.length ||
+      normalizedAliases.includes(
+        identity.normalizedIngredientName.normalize('NFKC').toLocaleLowerCase('en-US'),
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['aliases'],
+        message: 'Medication identity aliases must be unique and differ from the normalized name.',
+      });
+    }
+  });
+export type MedicationIdentityDefinition = z.infer<typeof MedicationIdentityDefinitionSchema>;
+
 export const FormularyDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -823,7 +879,15 @@ export const PublicClinicalCatalogMedicationEntrySchema =
   PublicClinicalCatalogEntryBaseSchema.extend({
     kind: z.literal('medication'),
     categoryId: z.literal('medications'),
-    classes: z.array(z.string().min(1).max(180)).min(1),
+    normalizedIngredientName: z.string().min(1).max(180),
+    aliases: z.array(z.string().min(1).max(180)),
+    authoringStatus: z.enum(['identity_only', 'runtime_compatibility']),
+    rxnormRxcui: z.string().regex(/^\d+$/),
+    identityEvidenceSourceId: StableIdSchema,
+    identityReleaseDate: z.string().date(),
+    identityAttribution: z.string().min(1).max(800),
+    identityScopeNotice: z.string().min(1).max(800),
+    classes: z.array(z.string().min(1).max(180)),
   }).strict();
 
 export const PublicClinicalCatalogTreatmentEntrySchema =
@@ -1053,6 +1117,48 @@ export const PublicClinicalCatalogProjectionSchema = z
   });
 export type PublicClinicalCatalogProjection = z.infer<typeof PublicClinicalCatalogProjectionSchema>;
 
+export const DatabaseEntryReviewSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    entryId: StableIdSchema,
+    categoryId: PublicClinicalCatalogCategoryIdSchema,
+    catalogContentVersion: ContentVersionSchema,
+    projectionVersion: z.literal(1),
+    entrySnapshot: PublicClinicalCatalogEntrySchema,
+    reviewerNote: z.string().min(1).max(8000),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict()
+  .superRefine((review, context) => {
+    if (
+      review.entrySnapshot.id !== review.entryId ||
+      review.entrySnapshot.categoryId !== review.categoryId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['entrySnapshot'],
+        message: 'A database review snapshot must match its entry and category IDs.',
+      });
+    }
+    if (review.id !== `database-review.${review.entryId}`) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: 'A database review ID must be derived from its catalog entry ID.',
+      });
+    }
+    if (review.updatedAt < review.createdAt) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['updatedAt'],
+        message: 'A database review cannot be updated before it was created.',
+      });
+    }
+  });
+export type DatabaseEntryReview = z.infer<typeof DatabaseEntryReviewSchema>;
+
 export const DiagnosisClassificationCodeSchema = z
   .string()
   .regex(
@@ -1142,6 +1248,7 @@ export const ContentRegistryEntrySchema = z
       'decor_catalog',
       'diagnosis_catalog',
       'diagnosis_classification_catalog',
+      'medication_identity_catalog',
       'personal_knowledge_pilot_profile',
       'source_use_decision_catalog',
       'source_request_catalog',
@@ -3612,7 +3719,7 @@ export type TicketLiteratureScoutCatalog = z.infer<typeof TicketLiteratureScoutC
 export const ClinicalTicketExportBundleSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
-    exportVersion: z.literal(5),
+    exportVersion: z.literal(6),
     bundleId: StableIdSchema,
     buildKind: z.enum(['local_developer', 'portable_reviewer']),
     assignmentId: StableIdSchema.nullable(),
@@ -3621,6 +3728,7 @@ export const ClinicalTicketExportBundleSchema = z
     profileId: StableIdSchema,
     tickets: z.array(ClinicalReviewTicketSchema),
     attemptReviews: z.array(DeveloperAttemptReviewSchema),
+    databaseEntryReviews: z.array(DatabaseEntryReviewSchema),
     flags: z.array(ContentFlagSchema),
     completedAttempts: z.array(CompletedAttemptSchema),
   })
@@ -3636,6 +3744,17 @@ export const ClinicalTicketExportBundleSchema = z
     const completedAttemptsById = new Map(
       bundle.completedAttempts.map((attempt) => [attempt.id, attempt]),
     );
+    const databaseEntryIds = new Set<string>();
+    bundle.databaseEntryReviews.forEach((review, index) => {
+      if (databaseEntryIds.has(review.entryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['databaseEntryReviews', index, 'entryId'],
+          message: 'An export can contain only one current review per database entry.',
+        });
+      }
+      databaseEntryIds.add(review.entryId);
+    });
     for (const [index, review] of bundle.attemptReviews.entries()) {
       if (!completedAttemptsById.has(review.attemptId)) {
         context.addIssue({
@@ -3697,9 +3816,23 @@ export const SaveDataSchema = z
     patientQueues: PatientQueueStateSchema,
     clinicalTickets: z.array(ClinicalReviewTicketSchema),
     attemptReviews: z.array(DeveloperAttemptReviewSchema),
+    databaseEntryReviews: z.array(DatabaseEntryReviewSchema).default([]),
     legacyArchive: z.array(LegacySaveArchiveEntrySchema),
   })
-  .strict();
+  .strict()
+  .superRefine((save, context) => {
+    const databaseEntryIds = new Set<string>();
+    save.databaseEntryReviews.forEach((review, index) => {
+      if (databaseEntryIds.has(review.entryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['databaseEntryReviews', index, 'entryId'],
+          message: 'Save data can contain only one current review per database entry.',
+        });
+      }
+      databaseEntryIds.add(review.entryId);
+    });
+  });
 export type SaveData = z.infer<typeof SaveDataSchema>;
 
 export const ProcessingStatusSchema = z.enum([

@@ -8,6 +8,7 @@ import {
   type ClinicalReviewTicket,
   type CompletedAttempt,
   type ContentFlag,
+  type DatabaseEntryReview,
   type EncounterState,
   type LiteratureSynthesisProposal,
   type PersonalKnowledgeWorkbenchProjection,
@@ -49,6 +50,7 @@ import { EncounterView } from './components/EncounterView';
 import { MobileWorkflowTabs, type MobileWorkflowPane } from './components/MobileWorkflowTabs';
 import { ReceiptView, type GuidanceDraft } from './components/ReceiptView';
 import { buildDeveloperAttemptReview } from './attempt-review';
+import { buildDatabaseEntryReview } from './database-review';
 import { mergeDeveloperAuditTickets } from './developer-review-state';
 import { IndexedDbSaveRepository } from './persistence';
 import { buildReferenceSolutionAudit } from './reference-audit';
@@ -78,6 +80,7 @@ const createInitialSave = (): SaveData =>
     patientQueues: emptyPatientQueueState(),
     clinicalTickets: [],
     attemptReviews: [],
+    databaseEntryReviews: [],
     legacyArchive: [],
   });
 
@@ -660,6 +663,7 @@ export default function App() {
       assignmentId: REVIEWER_BUILD ? REVIEWER_ASSIGNMENT_ID : null,
       tickets: sourceSave.clinicalTickets,
       attemptReviews: sourceSave.attemptReviews,
+      databaseEntryReviews: sourceSave.databaseEntryReviews,
       flags: sourceSave.flags,
       completedAttempts: sourceSave.attempts,
     });
@@ -674,7 +678,7 @@ export default function App() {
     const { downloadClinicalTicketBundle } = tools;
     downloadClinicalTicketBundle(bundle);
     setTicketToolStatus(
-      `Download started for one versioned JSON bundle with ${bundle.completedAttempts.length} completed case(s), ${bundle.attemptReviews.length} case review(s), ${bundle.flags.length} flag(s), and ${bundle.tickets.length} ticket(s). Confirm that the file appears in your browser's downloads before clearing this device.`,
+      `Download started for one versioned JSON bundle with ${bundle.completedAttempts.length} completed case(s), ${bundle.attemptReviews.length} case review(s), ${bundle.databaseEntryReviews.length} database comment(s), ${bundle.flags.length} flag(s), and ${bundle.tickets.length} ticket(s). Confirm that the file appears in your browser's downloads before clearing this device.`,
     );
   };
 
@@ -692,7 +696,7 @@ export default function App() {
       const path = await writeClinicalTicketBundleToWorkspace(bundle);
       setTicketToolStatus(
         successMessage ??
-          `Updated the Codex handoff file with ${bundle.tickets.length} ticket(s) and ${bundle.attemptReviews.length} attempt review(s) at ${path}. You can now tell Codex the review is ready.`,
+          `Updated the Codex handoff file with ${bundle.tickets.length} ticket(s), ${bundle.attemptReviews.length} attempt review(s), and ${bundle.databaseEntryReviews.length} database comment(s) at ${path}. You can now tell Codex the review is ready.`,
       );
       return true;
     } catch (caught) {
@@ -788,6 +792,45 @@ export default function App() {
     );
   };
 
+  const saveDatabaseEntryReview = async (
+    entry: Parameters<typeof buildDatabaseEntryReview>[0]['entry'],
+    reviewerNote: string,
+  ): Promise<boolean> => {
+    if (!REVIEW_TOOLS_ENABLED || !saveData) return false;
+    const existingReview = saveData.databaseEntryReviews.find(
+      (candidate) => candidate.entryId === entry.id,
+    );
+    const normalizedNote = reviewerNote.trim();
+    const databaseEntryReviews: DatabaseEntryReview[] = normalizedNote
+      ? [
+          ...saveData.databaseEntryReviews.filter((candidate) => candidate.entryId !== entry.id),
+          buildDatabaseEntryReview({
+            entry,
+            projection: publicClinicalCatalog,
+            reviewerNote: normalizedNote,
+            timestamp: new Date().toISOString(),
+            ...(existingReview ? { existingReview } : {}),
+          }),
+        ]
+      : saveData.databaseEntryReviews.filter((candidate) => candidate.entryId !== entry.id);
+    const nextSave = SaveDataSchema.parse({ ...saveData, databaseEntryReviews });
+    await persist(nextSave);
+    if (REVIEWER_BUILD) {
+      setTicketToolStatus(
+        normalizedNote
+          ? `Saved your comment on “${entry.label}” in this browser.`
+          : `Removed the saved comment on “${entry.label}”.`,
+      );
+      return true;
+    }
+    return writeTicketsToWorkspace(
+      nextSave,
+      normalizedNote
+        ? `Saved your comment on “${entry.label}” in browser storage and updated the Codex handoff file.`
+        : `Removed the comment on “${entry.label}” and updated the Codex handoff file.`,
+    );
+  };
+
   if (!saveData) {
     return (
       <main className="loading-screen" aria-live="polite">
@@ -859,7 +902,21 @@ export default function App() {
         />
       ) : null}
       {screen === 'database' ? (
-        <DatabaseBrowser projection={publicClinicalCatalog} onBack={() => setScreen('hub')} />
+        <DatabaseBrowser
+          projection={publicClinicalCatalog}
+          reviews={saveData.databaseEntryReviews}
+          reviewToolsEnabled={REVIEW_TOOLS_ENABLED}
+          reviewStatusMessage={ticketToolStatus}
+          exportAvailable={
+            saveData.databaseEntryReviews.length > 0 ||
+            saveData.attemptReviews.length > 0 ||
+            saveData.flags.length > 0 ||
+            saveData.clinicalTickets.some((ticket) => ticket.reviewerNotes.trim())
+          }
+          onSaveReview={saveDatabaseEntryReview}
+          onExportReviews={() => void exportTickets()}
+          onBack={() => setScreen('hub')}
+        />
       ) : null}
       {(screen === 'encounter' || screen === 'receipt') && encounter ? (
         <div

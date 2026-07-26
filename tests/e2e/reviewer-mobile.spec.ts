@@ -91,25 +91,49 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(page.getByText('Major depressive disorder')).toBeVisible();
   await expectDocumentFitsViewport(page);
 
-  const medicationCategory = page.getByRole('button', { name: /Medications 13/ });
+  const medicationCategory = page.getByRole('button', { name: /Medications 33/ });
   await medicationCategory.click();
   await expectWithinHorizontalViewport(medicationCategory);
-  await page.getByRole('searchbox', { name: 'Search database' }).fill('sertraline');
-  await expect(page.getByText('Sertraline', { exact: true })).toBeVisible();
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('bupropion');
+  await expect(page.getByText('Bupropion', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Open full entry' }).click();
+  await expect(page.getByRole('heading', { name: 'Bupropion', level: 1 })).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Entry content' })
+      .getByText(/RxNorm identity snapshot dated 2026-07-06/),
+  ).toBeVisible();
+  await expectWithinHorizontalViewport(page.locator('.database-reader-shell'));
+  const databaseNote = 'Phone database review: verify bupropion identity and source metadata.';
+  await page.getByRole('textbox', { name: 'Comment for Codex' }).fill(databaseNote);
+  await page.getByRole('button', { name: 'Save comment' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Saved your comment on “Bupropion” in this browser.',
+  );
   await expectDocumentFitsViewport(page);
 
-  const referencesCategory = page.getByRole('button', { name: /Formal references 11/ });
+  await page.reload();
+  await page.getByRole('button', { name: 'Database' }).click();
+  await page.getByRole('button', { name: /Medications 33/ }).click();
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('bupropion');
+  await expect(page.getByText('Comment saved')).toBeVisible();
+  await page.getByRole('button', { name: 'Open full entry' }).click();
+  await expect(page.getByRole('textbox', { name: 'Comment for Codex' })).toHaveValue(databaseNote);
+  await page.getByRole('button', { name: 'Back to database' }).click();
+
+  const referencesCategory = page.getByRole('button', { name: /Formal references 12/ });
   await referencesCategory.click();
   await expectWithinHorizontalViewport(referencesCategory);
   await page.getByRole('searchbox', { name: 'Search database' }).fill('CANMAT');
   const canmatReference = page
-    .locator('.database-record')
+    .locator('.database-record-launcher')
     .filter({ has: page.getByText('evidence.canmat.mdd-adults.2023-update', { exact: true }) });
-  await canmatReference.locator('summary').click();
-  await expect(canmatReference.getByRole('link', { name: 'Open source page' })).toBeVisible();
+  await canmatReference.getByRole('button', { name: 'Open full entry' }).click();
+  await expect(page.getByRole('link', { name: 'Open source page' })).toBeVisible();
   await expectDocumentFitsViewport(page);
+  await page.getByRole('button', { name: 'Back to database' }).click();
 
-  await page.getByRole('button', { name: /All 102/ }).click();
+  await page.getByRole('button', { name: /All 123/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('ticket.reviewer-cohort');
   await expect(page.getByRole('status')).toContainText('0 matches');
   await expect(page.getByText(/No catalog records match/)).toBeVisible();
@@ -347,6 +371,21 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       availableOptions: unknown[];
       attemptSnapshot: { events: unknown[]; receipt: unknown };
     }>;
+    databaseEntryReviews: Array<{
+      id: string;
+      entryId: string;
+      categoryId: string;
+      projectionVersion: number;
+      reviewerNote: string;
+      entrySnapshot: {
+        kind: string;
+        id: string;
+        normalizedIngredientName?: string;
+        rxnormRxcui?: string;
+        identityEvidenceSourceId?: string;
+        classes?: string[];
+      };
+    }>;
     flags: unknown[];
     tickets: Array<{ id: string; reviewerNotes: string; reviewerNotesUpdatedAt: string | null }>;
     completedAttempts: Array<{
@@ -356,11 +395,29 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       receipt: unknown;
     }>;
   };
-  expect(bundle.exportVersion).toBe(5);
+  expect(bundle.exportVersion).toBe(6);
   expect(bundle.buildKind).toBe('portable_reviewer');
   expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07f');
   expect(bundle.attemptReviews).toHaveLength(2);
   expect(bundle.completedAttempts).toHaveLength(2);
+  expect(bundle.databaseEntryReviews).toHaveLength(1);
+  expect(bundle.databaseEntryReviews[0]).toMatchObject({
+    id: 'database-review.medication.bupropion',
+    entryId: 'medication.bupropion',
+    categoryId: 'medications',
+    projectionVersion: 1,
+    reviewerNote: databaseNote,
+    entrySnapshot: {
+      kind: 'medication',
+      id: 'medication.bupropion',
+      normalizedIngredientName: 'bupropion',
+      rxnormRxcui: '42347',
+      identityEvidenceSourceId: 'evidence.nlm.rxnorm-cpc.2026-07-06',
+      classes: expect.arrayContaining(['NDRI antidepressant']),
+    },
+  });
+  expect(JSON.stringify(bundle.databaseEntryReviews)).not.toContain('pointDelta');
+  expect(JSON.stringify(bundle.databaseEntryReviews)).not.toContain('sourceDocumentId');
   expect(new Set(bundle.completedAttempts.map((attempt) => attempt.blueprintId)).size).toBe(2);
   expect(bundle.attemptReviews.map((review) => review.reviewerNote)).toEqual([
     'Phone review one: the investigation flow was clear.',

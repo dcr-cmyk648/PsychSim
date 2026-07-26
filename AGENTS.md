@@ -100,6 +100,7 @@ pnpm content:knowledge:index -- --refresh --next
 pnpm content:knowledge:prepare -- --provider openai-codex --model "<exact model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Reviewer name"
 pnpm content:knowledge:import -- /private/path/to/classification.json
 pnpm content:knowledge:status
+pnpm content:knowledge:inventory
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence

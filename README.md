@@ -12,14 +12,16 @@ chief complaint, and setting; hidden case labels, diagnoses, decision-policy nam
 organizations are never launcher copy. No external service, account, API key, backend, or AI call
 is required to play.
 
-The clinic hub also has a **Database** button on desktop and mobile. It opens a read-only,
-searchable view of the public-safe catalog compiled into that exact build: currently 8 modeled
-condition definitions, 13 medications, 13 therapies/interventions, 3 dispositions, 40 shared
-investigations, 14 test definitions, and 11 formal bibliography records. Records are collapsed by
-default and show stable IDs plus logical catalog locators. This is intentionally not direct
-filesystem access or a comprehensive diagnostic manual. Patient answer keys, points and scoring
-predicates, and review tickets stay outside this Database view. Private notes/source text and the
-local authoring-only ICD index also stay outside the portable bundle.
+The clinic hub also has a **Database** button on desktop and mobile. It opens a searchable
+public-safe catalog compiled into that exact build: currently 8 modeled condition definitions,
+33 normalized medication identities, 13 therapies/interventions, 3 dispositions, 40 shared
+investigations, 14 test definitions, and 12 formal bibliography records. Each entry opens in a
+dedicated full reader with its complete review-safe structured record. Twenty medication records
+are identity-only authoring entries and are not selectable in gameplay; the other thirteen retain
+the existing runtime compatibility definitions. Developer and portable Reviewer builds can save a
+free-text comment with an immutable entry snapshot and export it to Codex. This is intentionally
+not direct filesystem access or a comprehensive diagnostic manual. Patient answer keys, points,
+scoring predicates, and private source text stay outside this Database view.
 
 ## Quick start
 
@@ -54,6 +56,7 @@ pnpm content:knowledge:index -- --refresh --next
 pnpm content:knowledge:prepare -- --provider openai-codex --model "<exact exposed model identifier>" --ack-no-phi --ack-authorized-external-ai-processing --ack-title-plaintext-rights --ack-shared-material-rights --ack-appropriate-to-transmit --acknowledged-by "Your name"
 pnpm content:knowledge:import -- /private/path/to/classification.json
 pnpm content:knowledge:status
+pnpm content:knowledge:inventory
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -115,7 +118,7 @@ near the top of Results. Every completed receipt can be reopened after reload so
 phone session does not strand unsaved feedback.
 
 Reviewer feedback is local to that browser/device/origin until export. Several case comments,
-item flags, and generated tickets can be accumulated and exported together as one version-5 JSON
+database-entry comments, item flags, and generated tickets can be accumulated in one version-6 JSON
 bundle. It includes the assignment ID, every completed attempt, exact resolved patient and event
 history, normalized offered options for commented cases, selections, receipt, and rule trace. The
 reviewer can email that one file to the project owner. There is currently no account sync, server
@@ -162,9 +165,13 @@ at a time: `content:knowledge:index -- --refresh` creates a private lexical cand
 acknowledgments, `content:knowledge:import` validates one private classification result, and
 `content:knowledge:status` validates state and refreshes the local Developer workbench projection.
 Lexical matches only queue candidates; they do not establish relevance, a clinical claim, or
-evidence. All source-unit, opinion, and bibliographic candidates remain medically unreviewed,
-non-executable, point-free, and unable to approve or change gameplay. This is not a bulk claim that
-the Notes corpus has been semantically processed.
+evidence. `content:knowledge:inventory` verifies and indexes all 204 authorized Apple Notes
+title/plaintext revisions against the current safe medication, condition, intervention, and test
+identity dictionary. Its detailed output is private and gitignored, contains hashes and counts
+rather than note prose, and excludes HTML, attachments, OCR, composites, extracted chunks, and
+remote Drive sources. All source-unit, opinion, and bibliographic candidates remain medically
+unreviewed, non-executable, point-free, and unable to approve or change gameplay. Whole-corpus
+lexical inventory is not a claim that the Notes corpus has been semantically interpreted.
 
 A controlled scaffold request can turn an existing reviewed-as-a-template case into a new
 medically unreviewed Developer patient with source provenance, proposed shared impact IDs, and
@@ -226,14 +233,13 @@ permission or prohibit AI ingestion. Eight new Developer tickets own those acces
 scope decisions; no recommendation or point rule was activated. See the
 [recommended-guideline intake map](docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md).
 
-The beta catalog now also records the exact July 6, 2026 NLM RxNorm Current Prescribable Content
-release and a public-domain source-use decision for medication identity normalization only. The
-user-selected scope is a curated psychiatry/board-relevant allowlist, not every U.S. drug product.
-No RxNorm bytes, importer, clinical claim, formulary expansion, or medication point rule was added.
-Developer tickets separately queue the first identity list, the current thirteen-file provenance
-audit, therapy identity/fidelity normalization, and common outpatient diagnosis coverage. The
-existing treatment field already searches medications by label/class and searches nonmedication
-and disposition labels through one combined control.
+The beta catalog records 33 curated psychiatry-first ingredient identities verified against the
+July 6, 2026 NLM RxNorm Current Prescribable Content release. The Database reader shows the
+dated-snapshot/currentness warning and required NLM attribution. RxNorm supports identity
+normalization only: it does not supply indications, comparative efficacy, contraindications,
+interactions, monitoring, or medical approval. Adding 20 identity-only records did not expand the
+formulary, patient treatments, scoring, or medication point rules. Developer tickets still own
+therapy identity/fidelity normalization and broader outpatient diagnosis coverage.
 
 ## Static deployment
 

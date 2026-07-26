@@ -193,6 +193,26 @@ paths. It contains no provider SDK, network request, API-key lookup, or model in
 preparation is not proof that Codex consumed or classified the packet. Do not run it against the
 real corpus until the current Codex surface exposes an exact model identifier for the audit.
 
+## Whole-corpus private lexical inventory
+
+`pnpm content:knowledge:inventory` verifies every eligible Apple Notes title/plaintext revision
+against the private intake manifest and builds one deterministic lexical triage index. It uses
+NFKC/case normalization and Unicode-aware literal boundaries against only current safe medication
+identity, diagnosis, nonmedication-intervention, and test labels/explicit aliases. It neither
+guesses acronyms nor discovers new entities.
+
+The detailed JSON is mode `0600` under gitignored `content/generated/personal-knowledge/`. It stores
+source IDs/hashes/dates, target IDs/terms, counts, fingerprints, and fixed warnings; it stores no
+title, plaintext, excerpt, HTML, attachment, OCR, composite, or extracted-chunk prose. Console
+output is aggregate-only. The first run covered all 204 eligible revisions, with 72 revisions
+matching at least one of 68 current safe identities. All 124 attachments, 116 OCR outputs, and
+remote Drive sources were explicitly excluded.
+
+This is physical-coverage and prioritization infrastructure, not semantic processing. A lexical
+match cannot create an authored source unit, bibliographic record, Developer opinion, clinical
+claim, rule, point, citation, approval, or runtime entry. Unknown medication/condition concepts
+remain outside this first dictionary and require the separately reviewed identity-expansion path.
+
 ## Bounded personal-knowledge semantic workflow
 
 The first semantic pilot covers one tracked topic—initial MDD antidepressant selection—without

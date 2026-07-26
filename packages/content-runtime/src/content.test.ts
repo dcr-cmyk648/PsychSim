@@ -7,6 +7,7 @@ import {
   ClinicalDurationProfileSchema,
   DiagnosisDefinitionSchema,
   EvidenceSourceDefinitionSchema,
+  MedicationIdentityDefinitionSchema,
   PatientComplexityProfileSchema,
   PatientObservationSchema,
   PatientReactionHistorySchema,
@@ -22,8 +23,14 @@ import {
   startingClinic,
 } from './content';
 import { findAffectedContentIds } from './impact';
+import { medicationIdentities } from './medication-identities';
 import { contentRegistry } from './registry';
-import { validateCaseBlueprint, validateCatalogs, validateContentRegistry } from './validation';
+import {
+  validateCaseBlueprint,
+  validateCatalogs,
+  validateContentRegistry,
+  validateMedicationIdentities,
+} from './validation';
 
 describe('prototype content', () => {
   it('parses and passes semantic validation', () => {
@@ -69,6 +76,59 @@ describe('prototype content', () => {
       minimumCount: 2,
       maximumCount: availableAntidepressants.length,
     });
+  });
+
+  it('keeps the broader medication identity catalog separate from gameplay compatibility', () => {
+    expect(validateMedicationIdentities(medicationIdentities, catalogs)).toEqual({
+      valid: true,
+      issues: [],
+    });
+    expect(medicationIdentities).toHaveLength(33);
+    const runtimeCompatible = medicationIdentities.filter(
+      (identity) => identity.authoringStatus === 'runtime_compatibility',
+    );
+    const identityOnly = medicationIdentities.filter(
+      (identity) => identity.authoringStatus === 'identity_only',
+    );
+    expect(runtimeCompatible).toHaveLength(13);
+    expect(identityOnly).toHaveLength(20);
+    expect(runtimeCompatible.map((identity) => identity.id).sort()).toEqual(
+      catalogs.medications.map((medication) => medication.id).sort(),
+    );
+    const gameplayMedicationIds = new Set([
+      ...catalogs.medications.map((medication) => medication.id),
+      ...catalogs.formularies.flatMap((formulary) => formulary.medicationIds),
+    ]);
+    expect(identityOnly.every((identity) => !gameplayMedicationIds.has(identity.id))).toBe(true);
+
+    const invalidIdentityLink = structuredClone(identityOnly[0]!);
+    invalidIdentityLink.runtimeMedicationDefinitionId = runtimeCompatible[0]!.id;
+    expect(MedicationIdentityDefinitionSchema.safeParse(invalidIdentityLink).success).toBe(false);
+
+    const duplicateRxcui = structuredClone([...medicationIdentities]);
+    duplicateRxcui[1]!.rxnorm.rxcui = duplicateRxcui[0]!.rxnorm.rxcui;
+    expect(
+      validateMedicationIdentities(duplicateRxcui, catalogs).issues.some(
+        (issue) => issue.code === 'DUPLICATE_MEDICATION_IDENTITY_RXCUI',
+      ),
+    ).toBe(true);
+
+    const missingRuntimeIdentity = medicationIdentities.filter(
+      (identity) => identity.id !== catalogs.medications[0]!.id,
+    );
+    expect(
+      validateMedicationIdentities(missingRuntimeIdentity, catalogs).issues.some(
+        (issue) => issue.code === 'MISSING_RUNTIME_MEDICATION_IDENTITY',
+      ),
+    ).toBe(true);
+
+    const leakedCatalogs = structuredClone(catalogs);
+    leakedCatalogs.formularies[0]!.medicationIds.push(identityOnly[0]!.id);
+    expect(
+      validateMedicationIdentities(medicationIdentities, leakedCatalogs).issues.some(
+        (issue) => issue.code === 'IDENTITY_ONLY_MEDICATION_LEAKED_TO_GAMEPLAY',
+      ),
+    ).toBe(true);
   });
 
   it('rejects authoring-only records from the strict runtime catalog while diagnoses parse', () => {

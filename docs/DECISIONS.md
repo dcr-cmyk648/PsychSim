@@ -1424,3 +1424,64 @@ diagnostic list.” The 1,112-term local ICD-10-CM authoring cache remains gitig
 runtime-excluded, and governed by D-102/D-103. A future full classification inspector would be a
 separate local-Developer feature unless an explicit source-rights and distribution decision
 authorizes a minimized portable index.
+
+## D-136 — Database review uses a full safe reader and immutable comment snapshots
+
+Status: accepted and implemented. “Open database entry” now means a dedicated large reader on
+desktop and a contained full-screen reader on mobile. It renders every field in the strict
+`PublicClinicalCatalogEntry` union and offers the same parsed object as a formatted structured
+record. “Every field” does not widen D-135: patient/case answers, point rules, predicates, private
+source text, source chunks, local filesystem paths, and authoring-only indexes remain absent.
+
+Ordinary Player remains read-only. Local Developer and portable Reviewer may save one editable
+plain-language comment per entry. A `DatabaseEntryReview` preserves the exact review-safe entry
+snapshot, stable entry/category identity, catalog content version, projection version, note, and
+timestamps. Saving first updates assignment-scoped IndexedDB. Local Developer then mirrors the
+complete bundle to the fixed gitignored Codex handoff file; portable Reviewer includes it in the
+manual download. A comment never edits or approves the catalog.
+
+The review wire format is version 6 and now contains `databaseEntryReviews` alongside completed
+attempts, attempt reviews, flags, and tickets. This additive browser-save field remains under
+`saveDataVersion: 5`; older v5 saves receive an empty collection without losing prior data.
+Reviewer assignment `2026-07f` remains valid because no patient, policy, or intended case cohort
+changed.
+
+## D-137 — Medication identity coverage is broader than gameplay compatibility
+
+Status: accepted and implemented as a source-cleared identity slice. Each medication identity has
+one file, stable PsychSim ID, normalized ingredient name, explicit aliases, RxCUI, pinned RxNorm
+release, source/use-decision IDs, and unreviewed status. The first psychiatry-first allowlist has
+33 ingredients. Thirteen link same-ID runtime compatibility definitions; twenty are
+`identity_only`. Validators require exact static-import/disk/registry parity, unique IDs, RxCUIs
+and normalized terms, complete 13-to-13 compatibility parity, source/release/use permission, and
+absence of identity-only IDs from runtime medications and formularies.
+
+Identity-only means browseable and available for future authoring normalization, not selectable
+in a case. It supplies no class, indication, fit, interaction, contraindication, monitoring,
+formulary, pathway, or point rule. Adding or commenting on an identity cannot expand gameplay.
+The public reader includes the July 6, 2026 dated-snapshot/currentness warning and NLM's requested
+attribution/non-endorsement statement. RxNorm is identity provenance, never treatment authority.
+
+The registry currently maps the validated identity collection and its complete member-ID list;
+standard filenames make each ID-to-file relation deterministic. Individual impact-graph nodes
+remain a scalability follow-up before large automated catalog expansion.
+
+## D-138 — Whole-corpus Notes inventory is lexical triage, not semantic ingestion
+
+Status: accepted and implemented for the already authorized Apple Notes title/plaintext boundary.
+`content:knowledge:inventory` verifies every eligible source revision against the private manifest,
+then performs deterministic NFKC-normalized, Unicode-boundary-aware literal matching against the
+current safe medication, diagnosis, intervention, and test identity dictionary. The first run
+covered all 204 eligible revisions: 72 had at least one known-target match and 132 did not; 29 of
+68 current target identities were mentioned in 248 literal matches.
+
+Detailed output is mode-`0600`, gitignored, hash/fingerprint based, and contains source identities,
+target identities, and counts—but no title, plaintext, excerpt, HTML, attachment, OCR, composite,
+or extracted-chunk prose. The command prints aggregates only. It explicitly inspects zero remote
+Drive sources and excludes all 124 attachment records and 116 OCR outputs.
+
+This inventory proves physical coverage and creates a resumable prioritization map; it does not
+interpret all notes, discover unknown entities, create a bibliography, establish a clinical
+claim, attach evidence, approve content, or alter gameplay. Semantic review still proceeds through
+bounded source packets and medically unreviewed candidates. The remote SharePoint aggregate remains
+unprocessed until its bytes are available through the authorized Drive intake boundary.

@@ -4,6 +4,7 @@ import {
   type CatalogBundle,
   type ClinicState,
   type ContentRegistry,
+  type MedicationIdentityDefinition,
   type PatientContextPredicate,
   type ScorePredicate,
   type TreatmentSelection,
@@ -2264,6 +2265,19 @@ export const validateContentRegistry = (
       message: 'Exactly one runtime diagnosis catalog must be registered.',
     });
   }
+  const medicationIdentityCatalogEntries = registry.entries.filter(
+    (entry) => entry.kind === 'medication_identity_catalog',
+  );
+  if (
+    medicationIdentityCatalogEntries.length !== 1 ||
+    medicationIdentityCatalogEntries[0]?.runtimeIncluded !== true
+  ) {
+    issues.push({
+      severity: 'error',
+      code: 'INVALID_MEDICATION_IDENTITY_CATALOG_REGISTRATION',
+      message: 'Exactly one runtime medication identity catalog must be registered.',
+    });
+  }
   for (const source of catalogs.evidenceSources) {
     if (!registeredEvidenceSourceIds.has(source.id)) {
       issues.push({
@@ -2317,5 +2331,116 @@ export const validateContentRegistry = (
       });
     }
   }
+  return { valid: issues.length === 0, issues };
+};
+
+export const validateMedicationIdentities = (
+  identities: readonly MedicationIdentityDefinition[],
+  catalogs: CatalogBundle,
+): ContentValidationReport => {
+  const issues: ValidationIssue[] = [];
+  for (const duplicate of duplicateIds(identities.map((identity) => identity.id))) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_MEDICATION_IDENTITY_ID',
+      message: duplicate,
+    });
+  }
+  for (const duplicate of duplicateIds(identities.map((identity) => identity.rxnorm.rxcui))) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_MEDICATION_IDENTITY_RXCUI',
+      message: duplicate,
+    });
+  }
+
+  const normalizedTermOwners = new Map<string, string>();
+  for (const identity of identities) {
+    for (const term of [identity.normalizedIngredientName, ...identity.aliases]) {
+      const normalized = term.normalize('NFKC').toLocaleLowerCase('en-US');
+      const previousOwner = normalizedTermOwners.get(normalized);
+      if (previousOwner && previousOwner !== identity.id) {
+        issues.push({
+          severity: 'error',
+          code: 'DUPLICATE_MEDICATION_IDENTITY_TERM',
+          message: `${term}: ${previousOwner}, ${identity.id}`,
+        });
+      } else {
+        normalizedTermOwners.set(normalized, identity.id);
+      }
+    }
+  }
+
+  const runtimeById = new Map(
+    catalogs.medications.map((medication) => [medication.id, medication]),
+  );
+  const compatibleIdentityById = new Map(
+    identities
+      .filter((identity) => identity.authoringStatus === 'runtime_compatibility')
+      .map((identity) => [identity.id, identity]),
+  );
+  const formularyMedicationIds = new Set(
+    catalogs.formularies.flatMap((formulary) => formulary.medicationIds),
+  );
+  const evidenceSourceById = new Map(catalogs.evidenceSources.map((source) => [source.id, source]));
+
+  for (const medication of catalogs.medications) {
+    if (!compatibleIdentityById.has(medication.id)) {
+      issues.push({
+        severity: 'error',
+        code: 'MISSING_RUNTIME_MEDICATION_IDENTITY',
+        message: medication.id,
+      });
+    }
+  }
+  for (const identity of identities) {
+    const runtimeMedication = runtimeById.get(identity.id);
+    if (identity.authoringStatus === 'runtime_compatibility') {
+      if (!runtimeMedication) {
+        issues.push({
+          severity: 'error',
+          code: 'MISSING_RUNTIME_MEDICATION_DEFINITION',
+          message: identity.id,
+        });
+      } else if (runtimeMedication.label !== identity.label) {
+        issues.push({
+          severity: 'error',
+          code: 'MEDICATION_IDENTITY_LABEL_MISMATCH',
+          message: `${identity.id}: ${identity.label} != ${runtimeMedication.label}`,
+        });
+      }
+    } else if (runtimeMedication || formularyMedicationIds.has(identity.id)) {
+      issues.push({
+        severity: 'error',
+        code: 'IDENTITY_ONLY_MEDICATION_LEAKED_TO_GAMEPLAY',
+        message: identity.id,
+      });
+    }
+
+    const evidenceSource = evidenceSourceById.get(identity.rxnorm.evidenceSourceId);
+    if (!evidenceSource) {
+      issues.push({
+        severity: 'error',
+        code: 'UNKNOWN_MEDICATION_IDENTITY_EVIDENCE_SOURCE',
+        message: `${identity.id}: ${identity.rxnorm.evidenceSourceId}`,
+      });
+    } else {
+      if (evidenceSource.sourceType !== 'structured_database') {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_MEDICATION_IDENTITY_EVIDENCE_TYPE',
+          message: `${identity.id}: ${evidenceSource.id}`,
+        });
+      }
+      if (evidenceSource.publicationDate !== identity.rxnorm.releaseDate) {
+        issues.push({
+          severity: 'error',
+          code: 'MEDICATION_IDENTITY_RELEASE_MISMATCH',
+          message: `${identity.id}: ${identity.rxnorm.releaseDate} != ${evidenceSource.publicationDate}`,
+        });
+      }
+    }
+  }
+
   return { valid: issues.length === 0, issues };
 };

@@ -109,7 +109,9 @@ export function DistributionControls({
       {showInstallControl ? (
         <section className="distribution-controls" aria-label="Install and application updates">
           <div>
-            <span className="debug-label">{installed ? 'HOME SCREEN APP' : 'PHONE INSTALL'}</span>
+            <span className="debug-label">
+              {installed ? 'HOME SCREEN APP' : appleMobile ? 'PHONE INSTALL' : 'APP & UPDATES'}
+            </span>
             <small>
               Build {shortDistributionId(CURRENT_DISTRIBUTION.distributionId)} ·{' '}
               {CURRENT_DISTRIBUTION.channel}

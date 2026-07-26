@@ -88,15 +88,17 @@ describe('developer ticket tools', () => {
       assignmentId: null,
       tickets: [ticket],
       attemptReviews: [],
+      databaseEntryReviews: [],
       flags: [],
       completedAttempts: [],
     });
     expect(bundle).toMatchObject({
-      exportVersion: 5,
+      exportVersion: 6,
       buildKind: 'local_developer',
       assignmentId: null,
       tickets: [{ ...ticket, reviewerNotes: '', reviewerNotesUpdatedAt: null }],
       attemptReviews: [],
+      databaseEntryReviews: [],
       flags: [],
       completedAttempts: [],
     });
@@ -121,6 +123,7 @@ describe('developer ticket tools', () => {
       assignmentId: null,
       tickets: [ticket],
       attemptReviews: [],
+      databaseEntryReviews: [],
       flags: [],
       completedAttempts: [],
     });
@@ -151,6 +154,7 @@ describe('developer ticket tools', () => {
         assignmentId: null,
         tickets: [mismatchedTicket],
         attemptReviews: [],
+        databaseEntryReviews: [],
         flags: [],
         completedAttempts: [attempt],
       }),

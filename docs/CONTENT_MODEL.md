@@ -93,10 +93,21 @@ points, predicates, fit-modifier details, private provenance, review queues, and
 term caches. Its logical catalog locators are stable navigation hints, not host filesystem paths.
 The current eight condition records are the diagnosis families modeled for gameplay, not a
 comprehensive diagnostic manual; the larger local ICD authoring index remains separately
-rights-gated and runtime-excluded.
+rights-gated and runtime-excluded. The medication category is broader than gameplay: it includes
+all source-cleared `MedicationIdentityDefinition` records and explicitly marks which are
+identity-only versus runtime-compatible.
 
-Each medication has its own definition file. It owns human-readable class labels and stable
-runtime tags plus separate arrays for active fit modifiers and protected human author overrides.
+Each medication identity has its own file under `content/catalogs/medications/identities/`. It owns
+the stable PsychSim ID, normalized ingredient name, explicit aliases, RxCUI, pinned RxNorm
+release/source/use-decision metadata, authoring scope, and unreviewed status. The first curated set
+contains 33 ingredients. Thirteen link a same-ID runtime compatibility definition; twenty are
+identity-only and cannot enter a formulary, case treatment menu, or score. The collection registry
+lists all member IDs, and validation cross-checks registry, static imports, disk files, source
+permissions, names, RxCUIs, and runtime parity.
+
+Each runtime-compatible medication separately has its existing definition file. It owns
+human-readable class labels and stable runtime tags plus separate arrays for active fit modifiers
+and protected human author overrides.
 Every current medication has at least one class label, but executable rules must use stable tags;
 they may not parse display strings. Bupropion preserves supplied concepts as inactive, explicitly
 unreviewed overrides. Mirtazapine also contains active prototype modifiers (+35 for a matching
@@ -348,11 +359,13 @@ claim-application tickets rather than inferring a clinical change. Receipt guida
 `ClinicalReviewTicket` with an immutable item snapshot. A whole-playthrough
 `DeveloperAttemptReview` owns one editable note, the exact immutable `CompletedAttempt`, and a
 normalized snapshot of every option offered and whether it was chosen; information options also
-preserve displayed fulfillment and cost. Local Developer mode persists these records in IndexedDB
-and mirrors or downloads them. Portable Reviewer uses a separate assignment-versioned IndexedDB
-and manual version-5 export only. One bundle identifies its build kind, assignment, and engine
-version and includes every completed attempt plus all attempt reviews, flags, and tickets, so
-item-only feedback retains its historical patient/receipt context. There is no bundle import yet.
+preserve displayed fulfillment and cost. A `DatabaseEntryReview` similarly owns one editable note
+and the exact strict public-entry snapshot. Local Developer mode persists these records in
+IndexedDB and mirrors or downloads them. Portable Reviewer uses a separate assignment-versioned
+IndexedDB and manual version-6 export only. One bundle identifies its build kind, assignment, and
+engine version and includes every completed attempt plus all attempt reviews, database-entry
+reviews, flags, and tickets, so feedback retains its historical context. There is no bundle import
+yet.
 Neither save nor export mutates clinical rules or confers approval. Material changes to cohort
 membership, scenario/policy semantics, or the intended review package require a new assignment ID;
 reusing an ID could suppress revised patients through old run history and mix incompatible

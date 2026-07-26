@@ -894,6 +894,7 @@ export function ClinicHub({
               type="button"
               disabled={
                 saveData.attemptReviews.length === 0 &&
+                saveData.databaseEntryReviews.length === 0 &&
                 saveData.flags.length === 0 &&
                 saveData.clinicalTickets.every((ticket) => !ticket.reviewerNotes.trim())
               }
@@ -904,9 +905,10 @@ export function ClinicHub({
           </div>
           <p className="ticket-handoff-explanation">
             Feedback is stored only in this browser on this device until you export it. One JSON
-            file includes every saved case comment, the exact patient/options/choices/receipt/rule
-            trace behind each comment, plus all item flags and generated tickets. You can review
-            multiple cases before exporting and email the single file to the project owner.
+            file includes every saved case comment, database-entry comment and exact review-safe
+            entry snapshot, the patient/options/choices/receipt/rule trace behind each case comment,
+            plus all item flags and generated tickets. You can review multiple cases and database
+            records before exporting and email the single file to the project owner.
           </p>
           <dl className="review-export-counts">
             <div>
@@ -916,6 +918,10 @@ export function ClinicHub({
             <div>
               <dt>Saved case comments</dt>
               <dd>{saveData.attemptReviews.length}</dd>
+            </div>
+            <div>
+              <dt>Database comments</dt>
+              <dd>{saveData.databaseEntryReviews.length}</dd>
             </div>
             <div>
               <dt>Item flags</dt>

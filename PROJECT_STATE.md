@@ -6,6 +6,13 @@ Last updated: 2026-07-25
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current in-progress beta database-audit checkpoint: the Database now opens every public-safe
+  record in a dedicated desktop/mobile reader and lets Developer/portable Reviewer users save,
+  revise, remove, and export comments with immutable entry snapshots. The public catalog contains
+  123 records, including 33 normalized medication identities. A whole-corpus private lexical
+  inventory covers all 204 authorized Apple Notes title/plaintext revisions without importing
+  private prose or changing gameplay. This checkpoint is fully verified and awaiting its beta
+  commit; `main` remains unchanged.
 - Current beta database-inspection checkpoint:
   `0b714e65af4d4d128f85933d433141d64e16fe23`
   (`Add safe cross-device database browser`). It adds the strict public catalog projection and the
@@ -35,8 +42,8 @@ Last updated: 2026-07-25
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
 - The deployed cache-busted `version.json` independently returned exact release
   `8d78c078ba60b7e67f7934c714773aa277b64769`, build kind `portable_reviewer`, and channel `main`.
-- The working copy is on `beta`. The private-authoring workflow and the new Database screen are
-  beta-only and pushed to `origin/beta`; neither has been promoted to `main`.
+- The working copy is on `beta`. The private-authoring workflow and the Database inspection
+  mechanisms remain beta-only; neither has been promoted to `main`.
 - Local Developer remains available at `http://127.0.0.1:4318/`. A dedicated current portable
   Reviewer server is verified at `http://127.0.0.1:4319/`.
 
@@ -58,9 +65,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
    first title/plaintext source revision is classified only into unreviewed candidates.
 6. Keep validated runtime content, scoring/provenance, and the finite Reviewer ticket assignment
    current on `main`; reserve beta-only quarantine for materially risky UI or app mechanisms.
-7. Let reviewers inspect the modeled runtime catalog through a minimized read-only projection;
-   never turn that surface into filesystem access, an answer-key browser, or a route to private
-   authoring data.
+7. Let reviewers inspect every field in the strict public-safe catalog projection and comment on
+   an immutable snapshot. Never turn that surface into filesystem access, an answer-key browser,
+   direct content mutation, or a route to private authoring data.
 
 ## Portable Reviewer and gameplay checkpoint
 
@@ -68,18 +75,27 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
-- Every hub now exposes a shared read-only Database screen. It contains 102 public-safe records:
-  8 modeled conditions, 13 medications, 13 nonmedication interventions, 3 dispositions, 40 shared
-  investigations, 14 test definitions, and 11 formal bibliography records.
+- Every hub now exposes a shared Database screen. It contains 123 public-safe records: 8 modeled
+  conditions, 33 normalized medication identities, 13 nonmedication interventions, 3 dispositions,
+  40 shared investigations, 14 test definitions, and 12 formal bibliography records. Thirteen
+  medications have existing runtime compatibility definitions; twenty are explicitly identity-only
+  authoring records and cannot appear in treatment choices or formularies.
 - The Database projection is a strict schema allowlist with deterministic ordering, exact category
   and source-ID parity, unique IDs/logical paths, HTTPS-only source links, and minimized public
   correction/update relationships. It omits patient/case records, point values, predicates,
   modifier/rule counts, generation status, review queues, private provenance, and authoring-only
   diagnosis terms. The logical locators it shows are not host filesystem paths.
-- The Database screen defaults to modeled conditions, searches within a selected category or all
-  categories, collapses records by default, and restores keyboard focus to its launcher on return.
-  At phone widths its category rail scrolls horizontally without obscuring update controls or
-  creating document-wide overflow.
+- The Database screen defaults to modeled conditions and searches within one category or all
+  categories. Opening a result enters a dedicated reader that shows every review-safe semantic
+  field plus the complete strict JSON projection, then restores focus to that exact result on
+  return. At phone widths its category rail scrolls horizontally, and the reader stays within the
+  viewport.
+- Developer and portable Reviewer users may save one free-text comment per database entry. IndexedDB
+  is updated first; Developer mirrors the fixed local Codex handoff bundle, while portable Reviewer
+  comments remain on that browser/device until export. Export schema version 6 includes the exact
+  immutable entry snapshot. Player mode can read the database but has no comment form.
+- The top-left distribution control now says `APP & UPDATES` on desktop, `PHONE INSTALL` only on
+  Apple mobile browsers, and `HOME SCREEN APP` when running as an installed web app.
 - Reviewer assignment: `reviewer-assignment.common-psychiatry.2026-07f`. A material cohort or policy
   change must bump this ID again.
 - The ten scenarios cover five MDD decision states plus initial GAD, bipolar depression, acute
@@ -195,8 +211,12 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   BPD, medication-induced akathisia, and substance-induced mood disorder. The Reviewer cohort
   exercises provisional focused policies; it does not establish approved shared guidance.
 - Formal RxNorm current-prescribable-content metadata was verified against NLM's July 6, 2026
-  release. Its source-use decision permits identity/normalization authoring only. It does not make
-  RxNorm a treatment recommendation source and no dump, importer, or runtime expansion was added.
+  release. Thirty-three one-file-per-ingredient identity records now pin current ingredient RxCUIs,
+  normalized names, and reviewed aliases to that release. Thirteen link one-to-one to existing
+  runtime medication definitions; twenty are identity-only. The source-use decision permits
+  identity/normalization authoring only, the public reader carries NLM's requested attribution and
+  dated-snapshot warning, and none of these identities establishes indication, efficacy, safety,
+  monitoring, medical approval, or treatment availability.
 - Four Developer-visible catalog-gap tickets now queue:
   - a curated psychiatry medication allowlist;
   - formal provenance for current medication rules;
@@ -206,8 +226,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   or clinical rule was activated.
 - DSM and WHO CDDR remain metadata-only. The local ICD-10-CM cache remains gitignored
   authoring/search data and never enters the browser bundle.
-- The private residency-article aggregate remains pending user export and no-PHI acknowledgment. No
-  SharePoint bytes or developer opinions were imported.
+- The large native `Aggregate sharepoint notes` Drive document is discovered but has not been
+  pulled or parsed. The Google Drive connector is not callable in this session; generic download
+  routes must not be used as a substitute. No aggregate bytes or Developer opinions were imported.
 - The MDD prototype is content version `4.3.0`. CANMAT and Developer-opinion/game-balance
   contributions remain separate in the trace. Sertraline and escitalopram share the broad
   first-line baseline; medication-specific fit remains a separate modifier layer. All embedded
@@ -274,6 +295,46 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
 - Intake still cannot directly create evidence contributions, accepted Developer opinions, rules,
   points, citations, tickets, or medical approval. The 116 OCR outputs and all HTML, attachment,
   composite, and extracted-chunk content remain explicitly outside this semantic pilot.
+- `pnpm content:knowledge:inventory` now verifies all 204 authorized title/plaintext revisions
+  against the current 68-item safe dictionary (33 medication identities, 8 condition definitions,
+  13 non-disposition interventions, and 14 tests). The deterministic run found 72 revisions with
+  at least one known-target match, 132 without, 29 mentioned identities, and 248
+  Unicode-boundary-aware literal matches.
+- The inventory is a private, mode-protected locator index, not semantic parsing. It stores IDs,
+  hashes, exact catalog terms, and counts rather than source prose; it excludes 124 attachment
+  records, 116 OCR outputs, HTML, composites, extracted chunks, and all remote Drive material. It
+  neither discovers unknown entities nor creates evidence, opinions, clinical rules, points, or
+  runtime content.
+
+## Verification for database-reader and medication-identity checkpoint
+
+Passed locally on 2026-07-25:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`.
+- `pnpm test`: 37 TypeScript test files / 256 tests plus all 10 handoff tests.
+- `pnpm test:handoff`: 10 tests.
+- `pnpm content:validate`, including medication identity/disk/registry/source-use validation and
+  all approved/review patients.
+- `pnpm content:sources:validate`: 8 discovery candidates, 209 extracted artifacts, 204 Apple Notes,
+  and the private bounded-authoring state.
+- `pnpm content:notes:validate`: 204 Notes, 124 attachment records, one bounded packet, 13 queued
+  topic records, one semantic run, and seven opinion candidates.
+- `pnpm content:diagnoses:validate`: 1,112 local ICD-10-CM authoring/search terms.
+- `pnpm content:compile`, `pnpm content:evidence`, and `pnpm demo:reference-runs`.
+- `pnpm content:knowledge:inventory`: 204 eligible title/plaintext revisions, 72 matched revisions,
+  29 matched safe identities, and 248 exact boundary-aware matches.
+- `pnpm build`: Player bundle safety passed (11 files).
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed (15 files).
+- `pnpm test:e2e`: 5/5 desktop Player/Developer/Endgame tests.
+- `pnpm test:e2e:reviewer`: 4/4 portable Reviewer tests across 390-pixel and 320-pixel phone
+  projects. The build and preview phases are now separated so the test server exits cleanly after
+  the suite.
+
+The browser tests prove the desktop distribution label, 123-record catalog counts, dedicated
+reader, complete strict record, entry-comment persistence, Developer handoff refresh, phone
+viewport containment, portable local persistence, formal-reference reader, and exact export-schema
+version 6 snapshots. Bundle/runtime tests prove private corpus material and the twenty
+identity-only medication records cannot enter gameplay catalogs or formularies.
 
 ## Verification for database-inspection checkpoint `0b714e6`
 
@@ -334,6 +395,10 @@ candidate wording, citation, summary, or path was printed by aggregate status/va
 
 ## Google Drive source-inbox state
 
+- Historical connector discovery remains valid, but this current session has no callable Google
+  Drive connector. The already-discovered `Aggregate sharepoint notes` document therefore remains
+  remote-only. Do not bypass the connector, claim it was parsed, or bulk-copy it through an
+  ungoverned route.
 - The apparent missing connector was deferred-tool discovery, not an authentication failure. The
   authenticated connector resolved the exact cached folder ID. The folder now has a ninth direct
   child: the mobile review bundle described below. Source discovery intentionally retains eight
@@ -349,11 +414,14 @@ candidate wording, citation, summary, or path was printed by aggregate status/va
   sources are pulled/hashed, and the two larger new native Docs remain discovered. Continue one
   source at a time; do not bulk-pull the remaining queue.
 - Safe next source intake:
-  1. classify/review `Additional notes` before choosing the next Drive source;
-  2. run `pnpm content:scan`, `pnpm content:extract`, and
+  1. when the Drive connector is callable, pull and hash `Aggregate sharepoint notes` through the
+     protected source boundary;
+  2. classify/review one bounded source unit at a time rather than directly populating catalogs;
+  3. run `pnpm content:scan`, `pnpm content:extract`, and
      `pnpm content:sources:validate`;
-  3. review license/full-text/AI-use permissions;
-  4. create reviewable claim/change proposals and tickets before any runtime scoring change.
+  4. review license/full-text/AI-use permissions;
+  5. create reviewable identity/claim/change proposals and tickets before any runtime scoring
+     change.
 - Never propagate a Drive document directly into medication, therapy, diagnosis, or scoring rules.
 
 ## Review and provenance state
@@ -546,7 +614,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-134)
+- `docs/DECISIONS.md` (through D-138)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -569,6 +637,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `apps/web/src/App.tsx`
 - `apps/web/src/components/ClinicHub.tsx`
 - `apps/web/src/components/DatabaseBrowser.tsx`
+- `apps/web/src/database-review.ts`
 - `apps/web/src/components/EncounterView.tsx`
 - `apps/web/src/components/ReceiptView.tsx`
 - `apps/web/src/styles.css`
@@ -583,6 +652,9 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `apps/web/personal-knowledge-workbench-plugin.ts`
 - `packages/schemas/src/index.ts`
 - `packages/content-runtime/src/public-clinical-catalog.ts`
+- `packages/content-runtime/src/medication-identities.ts`
+- `content/catalogs/medications/identities/`
+- `tools/content-cli/src/personal-knowledge-inventory.ts`
 - `tools/content-cli/src/refresh-ticket-literature.ts`
 - `content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json`
 - `content/catalogs/reactions/reaction-concepts.json`
@@ -591,39 +663,29 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-Open **Database** from the hub at `http://127.0.0.1:4318/` and review the modeled-condition,
-medication, intervention, investigation, test, and reference inventories. Confirm whether the
-minimized public view is the desired reviewer-facing depth. The larger 1,112-term local ICD index
-is intentionally absent; adding a full classification inspector remains a separate rights and
-local-versus-portable distribution decision.
+1. Open **Database** in the local Developer build at `http://127.0.0.1:4318/` or the portable
+   Reviewer at `http://127.0.0.1:4319/`. Audit complete medication, condition, intervention, test,
+   investigation, and reference records; save concise entry comments. Developer comments refresh
+   the fixed Codex handoff bundle, while portable comments require version-6 JSON export.
+2. Treat the current 33 medications as an identity foundation, not a completed medication knowledge
+   base. Thirteen have executable compatibility records and twenty are identity-only. The next
+   bounded catalog task is to use reviewer comments plus verified source units to propose missing
+   psychiatry medication, therapy, and condition identities without creating treatment rules.
+3. Continue personal-source interpretation from the deterministic inventory one bounded source
+   revision at a time. The inventory proves physical coverage only: 132 title/plaintext revisions
+   have no known-target match, unknown entities are not discovered, and 116 OCR outputs remain
+   outside semantic review. Do not describe this as a completed semantic parse.
+4. When the authenticated Google Drive connector is callable again, pull and hash `Aggregate
+sharepoint notes` through the protected source boundary. Do not bypass the connector or write
+   document prose into tracked catalogs. Create reviewable source-unit, identity, opinion, and
+   bibliography candidates before any content or scoring change.
+5. After user database review, read both `databaseEntryReviews` and existing ticket/attempt reviews
+   from the exact saved bundle. Convert each comment into the smallest separate ticket, identity
+   proposal, provenance task, or versioned content edit. Saving a comment is never automatic
+   authorization to alter a clinical rule.
 
-The Database feature is pushed on `beta` but not distributed on `main`. Do not silently
-cherry-pick it around the beta-only private-authoring checkpoint or promote that private workflow.
-If the user wants the phone Pages artifact updated next, first make the release boundary an
-explicit bounded decision and preserve the Player/Reviewer bundle-isolation gates.
-
-On the local Developer server, switch to **Developer** mode and expand **Personal knowledge
-workbench**. Review the seven initial-MDD-antidepressant Developer-opinion candidates one at a time.
-For each, accept, narrow, reject, split, or remap the concise candidate judgment; preserve
-unresolved class-level targets rather than guessing. This adjudication must not directly change a
-clinical rule or point value.
-
-Independently verify the three bibliography leads and their currentness, identity, source-use
-permissions, and exact contribution. Attach a formal source only after the existing source-use,
-evidence-contribution, and rule-review gates pass. A verified citation may coexist with the
-Developer-opinion bridge and does not automatically convert the opinion into source-derived fact.
-
-Only after the first source revision is adjudicated should the next queued title/plaintext source
-revision be prepared. Continue one complete revision at a time. Do not bulk-process all 204 Notes
-or widen this pilot to the 116 OCR outputs, HTML, attachments, composites, or extracted chunks
-without a separate explicit scope decision.
-
-The prior Reviewer follow-ups remain queued: inspect one literature-scout packet, re-run the
-assignment-`2026-07f` initial MDD duplicate-antidepressant ticket with an exact completed attempt,
-then review `ticket.catalog.medications.normalized-regimen-risk-benefit`. The next queued product
-decision remains medication formulation granularity: ingredient only versus clinically meaningful
-IR/SR/XL, long-acting injectable, route, and combination-product distinctions.
-
-Do not implement a bulk medication importer, invent missing therapy/diagnosis guidance, begin
-Milestone 4, add a service worker, promote this private-authoring mechanism to `main`, or
-bulk-transmit private source material.
+Keep this mechanism-heavy checkpoint on `beta` until the user explicitly authorizes promotion.
+`main` and the public Pages Reviewer remain on the prior released checkpoint. Do not implement a
+bulk medication importer, infer guidance from lexical matches, invent missing therapy/diagnosis
+rules, begin Milestone 4, add a service worker, expose private source material, or make
+identity-only records selectable in gameplay.

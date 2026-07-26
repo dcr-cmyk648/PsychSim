@@ -7,16 +7,19 @@ import {
   DiagnosisClassificationReleaseSchema,
   EvidenceContributionSchema,
   EvidenceSourceDefinitionSchema,
+  MedicationIdentityDefinitionSchema,
   PersonalKnowledgePilotProfileSchema,
   SourceUseDecisionCatalogSchema,
 } from '@psychsim/schemas';
 import {
   approvedCaseBlueprints,
   catalogs,
+  medicationIdentities,
   startingClinic,
   validateCaseBlueprint,
   validateCatalogs,
   validateContentRegistry,
+  validateMedicationIdentities,
 } from '@psychsim/content-runtime';
 import { reviewerCaseBlueprints } from '@psychsim/content-runtime/reviewer';
 import { resolveClinicForProgressionMode } from '@psychsim/engine';
@@ -291,6 +294,112 @@ for (const source of allEvidenceSourcesById.values()) {
   }
 }
 
+const medicationIdentityIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+const medicationIdentityRegistryEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'medication_identity_catalog',
+);
+if (
+  medicationIdentityRegistryEntries.length !== 1 ||
+  medicationIdentityRegistryEntries[0]?.runtimeIncluded !== true
+) {
+  medicationIdentityIssues.push({
+    severity: 'error',
+    code: 'INVALID_MEDICATION_IDENTITY_CATALOG_REGISTRATION',
+    message: `Expected one runtime-included medication identity catalog; found ${medicationIdentityRegistryEntries.length}.`,
+  });
+} else {
+  const entry = medicationIdentityRegistryEntries[0]!;
+  const registeredIdentityIds = [...entry.categoryIds].sort();
+  const importedIdentityIds = medicationIdentities.map((identity) => identity.id).sort();
+  if (JSON.stringify(registeredIdentityIds) !== JSON.stringify(importedIdentityIds)) {
+    medicationIdentityIssues.push({
+      severity: 'error',
+      code: 'MEDICATION_IDENTITY_REGISTRY_MEMBER_MISMATCH',
+      message: 'The medication identity registry member list must exactly match static imports.',
+    });
+  }
+  const identityFiles = (await readdir(resolve(entry.path)))
+    .filter((fileName) => fileName.endsWith('.identity.json'))
+    .sort();
+  const diskIdentities = await Promise.all(
+    identityFiles.map(async (fileName) =>
+      MedicationIdentityDefinitionSchema.parse(
+        JSON.parse(await readFile(resolve(entry.path, fileName), 'utf8')) as unknown,
+      ),
+    ),
+  );
+  const importedById = new Map(medicationIdentities.map((identity) => [identity.id, identity]));
+  const diskById = new Map(diskIdentities.map((identity) => [identity.id, identity]));
+  medicationIdentityIssues.push(
+    ...validateMedicationIdentities(diskIdentities, catalogs).issues.map((issue) => ({
+      severity: 'error' as const,
+      code: `DISK_${issue.code}`,
+      message: issue.message,
+    })),
+  );
+  diskIdentities.forEach((identity, index) => {
+    const expectedFileName = `${identity.id.replace(/^medication\./, '')}.identity.json`;
+    if (identityFiles[index] !== expectedFileName) {
+      medicationIdentityIssues.push({
+        severity: 'error',
+        code: 'MEDICATION_IDENTITY_FILENAME_MISMATCH',
+        message: `${identityFiles[index]} resolves to ${identity.id}; expected ${expectedFileName}.`,
+      });
+    }
+  });
+  for (const identity of diskIdentities) {
+    const imported = importedById.get(identity.id);
+    if (!imported) {
+      medicationIdentityIssues.push({
+        severity: 'error',
+        code: 'UNIMPORTED_MEDICATION_IDENTITY_FILE',
+        message: identity.id,
+      });
+    } else if (JSON.stringify(imported) !== JSON.stringify(identity)) {
+      medicationIdentityIssues.push({
+        severity: 'error',
+        code: 'MEDICATION_IDENTITY_IMPORT_MISMATCH',
+        message: identity.id,
+      });
+    }
+  }
+  for (const identity of medicationIdentities) {
+    if (!diskById.has(identity.id)) {
+      medicationIdentityIssues.push({
+        severity: 'error',
+        code: 'MISSING_MEDICATION_IDENTITY_FILE',
+        message: identity.id,
+      });
+    }
+    const decision = sourceUseDecisionCatalog.decisions.find(
+      (candidate) => candidate.id === identity.rxnorm.sourceUseDecisionId,
+    );
+    if (
+      !decision ||
+      decision.evidenceSourceId !== identity.rxnorm.evidenceSourceId ||
+      !decision.permissions.localStructuredIndexing ||
+      !decision.permissions.runtimeRedistribution
+    ) {
+      medicationIdentityIssues.push({
+        severity: 'error',
+        code: 'INVALID_MEDICATION_IDENTITY_SOURCE_USE',
+        message: `${identity.id}: ${identity.rxnorm.sourceUseDecisionId}`,
+      });
+    }
+  }
+  medicationIdentityIssues.push(
+    ...validateMedicationIdentities(medicationIdentities, catalogs).issues.map((issue) => ({
+      severity: 'error' as const,
+      code: issue.code,
+      message: issue.message,
+    })),
+  );
+}
+
 interface ContributionUse {
   contribution: ReturnType<typeof EvidenceContributionSchema.parse>;
   owner: string;
@@ -496,6 +605,13 @@ const reports = [
     {
       valid: sourceUseDecisionIssues.length === 0,
       issues: sourceUseDecisionIssues,
+    },
+  ],
+  [
+    'medication-identities',
+    {
+      valid: medicationIdentityIssues.length === 0,
+      issues: medicationIdentityIssues,
     },
   ],
   [

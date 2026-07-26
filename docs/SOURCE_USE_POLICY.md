@@ -224,7 +224,10 @@ machine-validated source-use decision permits identity normalization, local inde
 redistribution subject to NLM acknowledgement, release/currentness disclosure, and exclusion of
 the full RxNorm release's proprietary source vocabularies. It does not support indications,
 comparative efficacy, contraindications, interactions, monitoring, patient fit, or points. No
-release bytes or importer are included in this checkpoint.
+bulk release bytes or importer are included in this checkpoint. Thirty-three curated ingredient
+identities were individually verified and are redistributed with the pinned release date, visible
+currentness warning, and NLM attribution/non-endorsement statement. Twenty remain identity-only;
+none of the new records changes a formulary, case, clinical rule, or point value.
 
 DrugCentral is accepted as a broad `structured_database` authoring seed under CC BY-SA 4.0. The
 source record pins the public 2023-11-01 dump version even though no bytes have yet been

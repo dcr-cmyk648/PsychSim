@@ -94,7 +94,7 @@ point evaluation or mutate content.
 
 The ordinary root also exports a derived `PublicClinicalCatalogProjection` for the cross-device
 Database screen. A strict Zod union and fixed category builder copy only neutral, explicitly
-allowlisted fields from modeled conditions, medications, nonmedication interventions,
+allowlisted fields from modeled conditions, normalized medication identities, nonmedication interventions,
 dispositions, shared investigations, test definitions, and formal bibliography records. The
 projection is deterministic, read-only, and generated at build time; it does not traverse
 `content/registry.json`, expose actual filesystem paths, or persist a second database. Patient
@@ -102,6 +102,11 @@ records, case solutions, point values, scoring predicates, medication-fit detail
 private source material, and authoring-only classification terms never enter it. Logical catalog
 locators help a reviewer identify a record without claiming access to the Mac or phone filesystem.
 The same minimized projection is safe for Player, local Developer, and portable Reviewer builds.
+Each entry opens in a dedicated reader. Developer and portable Reviewer may attach a
+`DatabaseEntryReview` containing prose plus the exact safe entry snapshot; the Player has no
+comment controls. The comment path writes browser storage/export data only and never mutates the
+projection. Medication identity records additionally carry the dated RxNorm snapshot warning and
+public NLM attribution required for redistribution.
 
 Formal source metadata is static content under `content/catalogs/evidence/formal`, distinct from
 private document/database bytes. It covers publications plus structured databases and includes
@@ -134,12 +139,14 @@ tickets, and Developer attempt reviews; those timestamps never affect clinical b
 `DeveloperAttemptReview` embeds the immutable `CompletedAttempt` plus a normalized snapshot of
 every information, medication, nonmedication, and disposition option shown for that attempt,
 including displayed service fulfillment/cost and whether it was chosen. This makes free-form
-comments auditable even after catalogs change. IndexedDB sits behind `SaveRepository`.
+comments auditable even after catalogs change. `DatabaseEntryReview` applies the same immutable
+snapshot principle to one review-safe database entry. IndexedDB sits behind `SaveRepository`.
 
 The ordinary Player and local Developer surfaces use `psychsim-local-save`. The portable Reviewer
 uses an assignment-namespaced database, forces practice progression, and can reopen every completed
-receipt after reload. Its version-5 download contains build kind, assignment identity, engine
-version, all completed attempts, case comments and normalized option snapshots, flags, and tickets.
+receipt after reload. Its version-6 download contains build kind, assignment identity, engine
+version, all completed attempts, case comments and normalized option snapshots, database-entry
+comments, flags, and tickets.
 Several cases can be reviewed before one manual export. The export is the only cross-device
 durability mechanism; there is no sync or import. In local development only, the fixed Vite
 middleware mirrors the same schema-validated bundle to

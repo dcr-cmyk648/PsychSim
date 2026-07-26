@@ -1,12 +1,17 @@
 import {
   PublicClinicalCatalogProjectionSchema,
   type CatalogBundle,
+  type MedicationIdentityDefinition,
   type PublicClinicalCatalogCategoryId,
   type PublicClinicalCatalogEntry,
   type PublicClinicalCatalogProjection,
 } from '@psychsim/schemas';
 
 import { catalogs } from './content';
+import { medicationIdentities } from './medication-identities';
+
+export const NLM_RXNORM_PUBLIC_ATTRIBUTION =
+  'This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product.';
 
 const CATEGORY_COPY: ReadonlyArray<{
   id: PublicClinicalCatalogCategoryId;
@@ -23,7 +28,7 @@ const CATEGORY_COPY: ReadonlyArray<{
     id: 'medications',
     label: 'Medications',
     description:
-      'Medication identities and classes available to the current game catalog. Patient-specific fit and point rules are intentionally excluded.',
+      'Normalized medication identities available for database review. Identity-only records are not selectable in gameplay; patient-specific fit and point rules are intentionally excluded.',
   },
   {
     id: 'interventions',
@@ -71,6 +76,7 @@ const logicalPath = (categoryId: PublicClinicalCatalogCategoryId, id: string): s
 
 export const buildPublicClinicalCatalog = (
   catalogs: CatalogBundle,
+  identities: readonly MedicationIdentityDefinition[] = medicationIdentities,
 ): PublicClinicalCatalogProjection => {
   const conditions: PublicClinicalCatalogEntry[] = catalogs.diagnoses.map((diagnosis) => ({
     kind: 'condition',
@@ -89,16 +95,32 @@ export const buildPublicClinicalCatalog = (
     specifierLabels: diagnosis.specifiers.map((specifier) => specifier.label),
   }));
 
-  const medications: PublicClinicalCatalogEntry[] = catalogs.medications.map((medication) => ({
-    kind: 'medication',
-    categoryId: 'medications',
-    id: medication.id,
-    label: medication.label,
-    logicalPath: logicalPath('medications', medication.id),
-    contentVersion: medication.contentVersion,
-    medicalReviewStatus: null,
-    classes: medication.classes,
-  }));
+  const runtimeMedicationById = new Map(
+    catalogs.medications.map((medication) => [medication.id, medication]),
+  );
+  const medications: PublicClinicalCatalogEntry[] = identities.map((identity) => {
+    const runtimeMedication = identity.runtimeMedicationDefinitionId
+      ? runtimeMedicationById.get(identity.runtimeMedicationDefinitionId)
+      : undefined;
+    return {
+      kind: 'medication',
+      categoryId: 'medications',
+      id: identity.id,
+      label: identity.label,
+      logicalPath: logicalPath('medications', identity.id),
+      contentVersion: identity.contentVersion,
+      medicalReviewStatus: identity.medicalReviewStatus,
+      normalizedIngredientName: identity.normalizedIngredientName,
+      aliases: identity.aliases,
+      authoringStatus: identity.authoringStatus,
+      rxnormRxcui: identity.rxnorm.rxcui,
+      identityEvidenceSourceId: identity.rxnorm.evidenceSourceId,
+      identityReleaseDate: identity.rxnorm.releaseDate,
+      identityAttribution: NLM_RXNORM_PUBLIC_ATTRIBUTION,
+      identityScopeNotice: `RxNorm identity snapshot dated ${identity.rxnorm.releaseDate}; it may not be current. Identity normalization only—not indications, comparative efficacy, contraindications, interactions, monitoring, or medical approval.`,
+      classes: runtimeMedication?.classes ?? [],
+    };
+  });
 
   const treatmentEntries: PublicClinicalCatalogEntry[] = catalogs.treatments.map((treatment) => {
     const isDisposition = treatment.kind === 'disposition';

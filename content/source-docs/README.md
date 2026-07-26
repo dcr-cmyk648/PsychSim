@@ -70,6 +70,7 @@ model identifier or treat the packet as a citation, clinical rule, or medical ap
 For the bounded personal-knowledge pilot, continue with:
 
 ```sh
+pnpm content:knowledge:inventory
 pnpm content:knowledge:index -- --refresh --next
 pnpm content:knowledge:prepare -- \
   --provider openai-codex \
@@ -84,7 +85,11 @@ pnpm content:knowledge:import -- /private/path/to/classification.json
 pnpm content:knowledge:status
 ```
 
-These commands operate on one tracked topic and one complete source revision at a time. Index
+The inventory command verifies all authorized title/plaintext revisions and writes a private,
+gitignored lexical target/count index with no note prose; it excludes HTML, attachments, OCR,
+composites, extracted chunks, and Drive sources. It is triage, not semantic interpretation.
+
+The remaining commands operate on one tracked topic and one complete source revision at a time. Index
 matches title/plaintext literally and only queues candidates. Prepare releases the next missing
 segment; import validates an independently produced private classification; status validates state
 and refreshes the ignored read-only local Developer projection. Multi-segment sources remain

@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test';
 test('browses the safe runtime database without changing the clinic', async ({ page }) => {
   await page.goto('/');
   const waitingPatient = await page.locator('.case-card h3').first().textContent();
+  await expect(page.getByText('APP & UPDATES', { exact: true })).toBeVisible();
+  await expect(page.getByText('PHONE INSTALL', { exact: true })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Database' }).click();
   await expect(page.getByRole('heading', { name: 'Database', level: 1 })).toBeFocused();
@@ -13,17 +15,34 @@ test('browses the safe runtime database without changing the clinic', async ({ p
   await expect(page.getByText('Major depressive disorder')).toBeVisible();
   await expect(page.getByText(/not a comprehensive diagnostic manual/i)).toBeVisible();
 
-  await page.getByRole('button', { name: /Medications 13/ }).click();
+  await page.getByRole('button', { name: /Medications 33/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('sertraline');
   await expect(page.getByRole('status')).toContainText('1 matches');
   const sertraline = page
-    .locator('.database-record')
+    .locator('.database-record-launcher')
     .filter({ has: page.getByText('Sertraline', { exact: true }) });
-  await sertraline.locator('summary').click();
-  await expect(sertraline).toContainText('SSRI antidepressant');
-  await expect(sertraline).not.toContainText('pointDelta');
+  await sertraline.getByRole('button', { name: 'Open full entry' }).click();
+  await expect(page.getByRole('heading', { name: 'Sertraline', level: 1 })).toBeVisible();
+  await expect(page.getByText('SSRI antidepressant', { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Entry content' })
+      .getByText(/RxNorm identity snapshot dated 2026-07-06/),
+  ).toBeVisible();
+  await page.getByText('Complete structured record').click();
+  const structuredRecord = page.locator('.database-structured-record pre');
+  await expect(structuredRecord).toContainText('"id": "medication.sertraline"');
+  await expect(structuredRecord).not.toContainText('pointDelta');
+  await expect(structuredRecord).not.toContainText('sourceDocumentId');
+  const databaseNote = 'Desktop database review: verify this identity and provenance.';
+  await page.getByRole('textbox', { name: 'Comment for Codex' }).fill(databaseNote);
+  await page.getByRole('button', { name: 'Save comment' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Saved your comment on “Sertraline” in browser storage and updated the Codex handoff file.',
+  );
+  await page.getByRole('button', { name: 'Back to database' }).click();
 
-  await page.getByRole('button', { name: /All 102/ }).click();
+  await page.getByRole('button', { name: /All 123/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('ticket.');
   await expect(page.getByRole('status')).toContainText('0 matches');
   await expect(page.getByText(/No catalog records match/)).toBeVisible();
@@ -33,6 +52,17 @@ test('browses the safe runtime database without changing the clinic', async ({ p
   await expect(page.getByRole('button', { name: 'Database' })).toBeFocused();
   await expect(page.locator('.profile-stats').getByText('250', { exact: true })).toBeVisible();
   await expect(page.locator('.case-card h3').first()).toHaveText(waitingPatient ?? '');
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Database' }).click();
+  await page.getByRole('button', { name: /Medications 33/ }).click();
+  await page.getByRole('searchbox', { name: 'Search database' }).fill('sertraline');
+  await expect(page.getByText('Comment saved')).toBeVisible();
+  await page.getByRole('button', { name: 'Open full entry' }).click();
+  await expect(page.getByRole('textbox', { name: 'Comment for Codex' })).toHaveValue(databaseNote);
+  await expect(page.getByRole('button', { name: 'Update comment' })).toBeVisible();
+  await page.getByRole('button', { name: 'Back to database' }).click();
+  await page.getByRole('button', { name: 'Back to clinic' }).click();
 });
 
 test('completes a patient, stores review guidance, and preserves the profile and queue', async ({
