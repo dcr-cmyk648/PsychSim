@@ -113,6 +113,30 @@ describe('source-use policy decisions', () => {
     });
   });
 
+  it('keeps the Bostwick review metadata-only pending explicit full-text rights', async () => {
+    const catalog = await readCatalog();
+    const bostwick = catalog.decisions.find(
+      (decision) => decision.evidenceSourceId === 'evidence.bostwick.mdd-antidepressant-fit.2010',
+    )!;
+
+    expect(bostwick).toMatchObject({
+      decisionStatus: 'metadata_only',
+      legalBasis: 'metadata_only',
+      fairUseAssessment: null,
+      permissionEvidence: null,
+      permissions: {
+        bibliographicMetadata: true,
+        localFullTextStorage: false,
+        localTextExtraction: false,
+        localStructuredIndexing: false,
+        aiAssistedProcessing: false,
+        derivedClinicalContent: false,
+        runtimeRedistribution: false,
+        commercialDistribution: false,
+      },
+    });
+  });
+
   it('records exactly one source-use decision for every formal source', async () => {
     const catalog = await readCatalog();
     const formalDirectory = resolve('content/catalogs/evidence/formal');
@@ -146,7 +170,11 @@ describe('source-use policy decisions', () => {
 
   it('rejects internally contradictory source-use decisions', async () => {
     const catalog = await readCatalog();
-    const permitted = structuredClone(catalog.decisions[0]!);
+    const permitted = structuredClone(
+      catalog.decisions.find(
+        (decision) => decision.evidenceSourceId === 'evidence.cdc-nchs.icd10cm.2026',
+      )!,
+    );
     expect(
       SourceUseDecisionSchema.safeParse({
         ...permitted,

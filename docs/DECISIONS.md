@@ -1559,8 +1559,8 @@ opinions, clinical rules, points, approval, or runtime content.
 **Decision:** One local private-source review decision is represented as a
 `SourceReviewSnapshot` embedded in the existing proposed `ClinicalReviewTicket`, not as a parallel
 queue or clinical engine. One preparation selects exactly one complete parser-v5
-`sectionInstance`. A browser-safe packet stores only a concise original paraphrase, one to eight
-atomic proposals (at most four), public target IDs or explicit unresolved labels, uncertainty, conflicts,
+`sectionInstance`. A browser-safe packet stores only a concise original paraphrase, one to four
+atomic proposals, public target IDs or explicit unresolved labels, uncertainty, conflicts,
 currentness, rights/boundary state, and the exact displayed ticket-routing context. It never stores
 raw source text, source headings, filenames, private provider IDs, document/chunk IDs, or
 filesystem paths.
@@ -1590,3 +1590,32 @@ therefore records its unresolved heading warning and no-change quarantine questi
 atomize clinical content or provide enough context to resolve the boundary. The next semantic step
 requires a source-specific acknowledged one-unit review or a separately designed local-only
 boundary inspector.
+
+## D-143 — Information is a real cost; positive fit credit requires discovered support
+
+**Decision:** Purchasing history, examination, laboratory, or imaging information always spends
+the displayed points. An unrevealing result is not refunded and does not receive points merely
+because it was purchased. Independently essential, high-yield, or treatment-required workup can
+still earn its separately authored workup reward, including when the result is negative.
+
+Useful structured findings create value by helping the player choose a better-fitting
+intervention. For the next scoring pass, a positive medication or therapy fit bonus requires both
+an objectively applicable resolved patient feature and sufficient player-known facts supporting
+that feature. Hidden patient state remains preserved for the post-submit audit, but it cannot by
+itself award a positive fit bonus. This narrows D-072: patient truth, evidence support, and player
+knowledge remain distinct, while positive discovery-dependent credit uses both truth and
+knowledge.
+
+Safety errors, contraindications, and dangerous interactions continue to follow actual patient
+state rather than disappearing when the player failed to ask. One point-design question remains
+open before implementation: whether ordinary non-safety fit decrements should also require
+discovery, or whether all negative fit effects should follow actual patient state. No runtime
+scoring behavior changes until that single branch is resolved and the knowledge-binding schema,
+validation, trace, and tests are implemented.
+
+The Bostwick 2010 Mayo Clinic Proceedings review is cataloged as a medically unreviewed historical
+authoring seed for this fit-first concept. Its verified abstract nominates sleep, sexual function,
+weight, and adherence/tolerability as candidate review dimensions. Its full text is free to read
+through PMC but is not in the PMC Open Access subset, so the current source-use decision is
+metadata-only and no full-text extraction, AI processing, medication-specific rule, or point value
+was created.

@@ -146,7 +146,7 @@ describe('developer clinical audit queue', () => {
       ),
     ).toMatchObject({
       category: 'medication_fit',
-      linkedSourceRequestIds: [],
+      linkedSourceRequestIds: ['source-request.mdd.antidepressant-fit-dimensions'],
     });
     expect(
       developerOpinionReferenceNeeds.find(

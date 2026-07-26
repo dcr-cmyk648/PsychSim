@@ -311,6 +311,22 @@ A contraindicated treatment cannot collect positive fit bonuses. High-risk but p
 defensible choices can retain graded penalties when the reviewed rule explicitly distinguishes
 them from absolute contraindications.
 
+### Historical fit-first authoring seed
+
+J. Michael Bostwick's 2010 Mayo Clinic Proceedings review, “A Generalist's Guide to Treating
+Patients With Depression With an Emphasis on Using Side Effects to Tailor Antidepressant
+Therapy,” is now a verified metadata record
+(`evidence.bostwick.mdd-antidepressant-fit.2010`). The remembered date was approximately 2008, but
+the article was published in 2010 and reports a literature search ending in 2009.
+
+Its abstract is useful for nominating sleep, sexual function, weight, and adherence/tolerability
+as candidate antidepressant-fit dimensions. It does not supply PsychSim's exact medication
+directions or point values. PMCID PMC2878258 is freely readable but the official PMC Open Access
+API reports that it is not in the Open Access subset; no reusable licence was identified.
+Accordingly, PsychSim stores verified bibliography and independently worded abstract-level
+discovery context only. Detailed medication claims require a current, legally processable source
+and separate psychiatrist review.
+
 ## File ownership and the “one medication file” editing experience
 
 The user should still be able to inspect one medication or therapy at a time. That does not require

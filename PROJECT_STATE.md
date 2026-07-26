@@ -6,6 +6,15 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current bounded source/scoring-design work catalogs Bostwick's 2010 Mayo antidepressant-fit
+  review as verified, medically unreviewed metadata; records a metadata-only source-use decision;
+  adds its abstract-level sleep, sexual-function, weight, and adherence/tolerability dimensions to
+  the existing antidepressant-baseline review question; and opens a focused request for current,
+  legally processable corroboration. No full text was downloaded or parsed and no clinical rule or
+  point value changed. D-143 records that information remains a real uncertain cost and that the
+  next engine pass should gate positive fit bonuses on relevant discovered facts. The one remaining
+  design decision is whether ordinary non-safety fit decrements are knowledge-gated; actual safety,
+  contraindication, and dangerous-interaction consequences are never gated.
 - Current beta immutable-source-review checkpoint:
   `e1fdb94ae5d063f351364485b692fd0e9f092c35`
   (`Add immutable local source review packets`). One complete parser-v5 source unit can now produce
@@ -29,7 +38,7 @@ Last updated: 2026-07-26
   (`Add auditable database reader and medication identities`). The Database opens every public-safe
   record in a dedicated desktop/mobile reader and lets Developer/portable Reviewer users save,
   revise, remove, and export comments with immutable entry snapshots. The public catalog contains
-  123 records, including 33 normalized medication identities. A whole-corpus private lexical
+  124 records, including 33 normalized medication identities. A whole-corpus private lexical
   inventory covers all 204 authorized Apple Notes title/plaintext revisions without importing
   private prose or changing gameplay. It is pushed to `origin/beta`; `main` remains unchanged.
 - Current beta database-inspection checkpoint:
@@ -111,9 +120,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
-- Every hub now exposes a shared Database screen. It contains 123 public-safe records: 8 modeled
+- Every hub now exposes a shared Database screen. It contains 124 public-safe records: 8 modeled
   conditions, 33 normalized medication identities, 13 nonmedication interventions, 3 dispositions,
-  40 shared investigations, 14 test definitions, and 12 formal bibliography records. Thirteen
+  40 shared investigations, 14 test definitions, and 13 formal bibliography records. Thirteen
   medications have existing runtime compatibility definitions; twenty are explicitly identity-only
   authoring records and cannot appear in treatment choices or formularies.
 - The Database projection is a strict schema allowlist with deterministic ordering, exact category
@@ -353,6 +362,25 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   neither discovers unknown entities nor creates evidence, opinions, clinical rules, points, or
   runtime content.
 
+## Verification for Bostwick source-intake and D-143 design checkpoint
+
+Passed locally on 2026-07-26:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`.
+- `pnpm test`: 40 TypeScript test files / 287 tests plus all 10 handoff tests.
+- `pnpm content:validate`, `pnpm content:evidence`, `pnpm content:compile`, and
+  `pnpm demo:reference-runs`; existing care, expense, and payout baselines are unchanged.
+- `pnpm build`: Player bundle safety passed (11 files).
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed (15 files).
+- `pnpm test:e2e`: 5/5 desktop Player/Developer/Endgame tests.
+- Mobile Reviewer assertions: 4/4 pass across the 390-pixel and 320-pixel projects against a
+  separately managed Reviewer preview server. Under the currently active Node 26.3.0 process,
+  Playwright's ordinary child preview-server teardown hung after passing assertions, so the
+  temporary test server was managed separately and stopped explicitly. Node 22 LTS remains the
+  documented clean-exit full-gate toolchain.
+- Live loopback smoke: current Developer and Reviewer roots return HTTP 200 at ports 4318 and 4319.
+- No source full text, article prose, source hash, source document, or source chunk was added.
+
 ## Verification for immutable source-review checkpoint
 
 Passed locally on 2026-07-26:
@@ -445,7 +473,7 @@ Passed locally on 2026-07-25:
   projects. The build and preview phases are now separated so the test server exits cleanly after
   the suite.
 
-The browser tests prove the desktop distribution label, 123-record catalog counts, dedicated
+The browser tests prove the desktop distribution label, 124-record catalog counts, dedicated
 reader, complete strict record, entry-comment persistence, Developer handoff refresh, phone
 viewport containment, portable local persistence, formal-reference reader, and exact export-schema
 version 7 snapshots. Bundle/runtime tests prove private corpus material and the twenty
@@ -800,29 +828,35 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-1. In local Developer mode, inspect the first source-boundary ticket as a workflow check. It can
+1. Resolve one point-design branch before implementing D-143: should knowledge gating apply only
+   to positive fit bonuses (recommended), while ordinary negative fit and all safety consequences
+   follow actual patient state, or should non-safety negative fit decrements also require discovery?
+2. After that answer, implement patient-owned clinical-tag knowledge bindings, initial known facts,
+   positive fit trace metadata, validation, and tests without putting case-local fact IDs into
+   shared medication files. Do not rebalance medication magnitudes in the same change.
+3. In local Developer mode, inspect the first source-boundary ticket as a workflow check. It can
    support only “keep quarantined/no change”; it intentionally lacks the private context required
    to decide whether the Word `Title` paragraph is front matter or a new authored unit.
-2. The next bounded engineering task is a safe adapter from the already acknowledged, already
+4. The next bounded source engineering task is a safe adapter from the already acknowledged, already
    classified Apple Notes source revision into one half-page immutable review packet. Reuse its
    existing packet/model/prompt audit and seven medically unreviewed opinion candidates; do not
    reread OCR/HTML/attachments or create runtime content. This is the first immediately available
    semantic packet.
-3. After that packet is reviewed, canonical Codex should create only the smallest separate
+5. After that packet is reviewed, canonical Codex should create only the smallest separate
    bibliography, Developer-opinion, identity, source-gap, balance, or no-change proposal. Any
    accepted clinical change still requires explicit implementation plus Database/rule-trace and
    affected-patient/reference-run audit.
-4. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
+6. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
    their source-specific acknowledgment boundary. Do not expand the hard-coded MDD profile until
    source-revision ownership/reuse and packet supersession are designed.
-5. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
+7. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
    corrigendum impact, complete WHO DEP1–DEP4 review, atomize one BAP recommendation while excluding
    BFCRS instrument content pending rights review, and complete the VA/DoD item-level rights audit
    before semantic indexing.
-6. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
+8. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
    worker can preserve its exact bytes, hash, rights state, and manifest entry. Never report those
    four sources as extracted before that happens.
-7. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
+9. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
    `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Saving a comment
    is never automatic clinical approval or authorization to alter a rule.
 

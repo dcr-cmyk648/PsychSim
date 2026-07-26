@@ -10,6 +10,7 @@ import apaBpdGuidelineJson from '../../../content/catalogs/evidence/formal/apa-b
 import apaDeliriumGuidelineJson from '../../../content/catalogs/evidence/formal/apa-delirium-2025-guideline.evidence.json';
 import asamBenzodiazepineTaperingGuidelineJson from '../../../content/catalogs/evidence/formal/asam-benzodiazepine-tapering-2025-guideline.evidence.json';
 import bapCatatoniaGuidelineJson from '../../../content/catalogs/evidence/formal/bap-catatonia-2023-guideline.evidence.json';
+import bostwickAntidepressantFitReviewJson from '../../../content/catalogs/evidence/formal/bostwick-2010-antidepressant-fit-review.evidence.json';
 import canmatMddCorrigendumJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-corrigendum-2025.evidence.json';
 import canmatMddGuidelineJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json';
 import fdaCitalopramLabelJson from '../../../content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json';
@@ -68,13 +69,14 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.7.0',
+  contentVersion: '3.8.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,
     apaDeliriumGuidelineJson,
     asamBenzodiazepineTaperingGuidelineJson,
     bapCatatoniaGuidelineJson,
+    bostwickAntidepressantFitReviewJson,
     canmatMddGuidelineJson,
     canmatMddCorrigendumJson,
     fdaCitalopramLabelJson,

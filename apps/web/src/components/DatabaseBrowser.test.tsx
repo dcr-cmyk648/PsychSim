@@ -67,19 +67,19 @@ describe('DatabaseBrowser', () => {
     expect(screen.getByRole('status')).toHaveTextContent('1 matches');
     expect(screen.getByText('Bupropion')).toBeVisible();
 
-    screen.getByRole('button', { name: /All 123/ }).click();
+    screen.getByRole('button', { name: /All 124/ }).click();
     fireEvent.change(search, { target: { value: 'ticket.' } });
     expect(screen.getByRole('status')).toHaveTextContent('0 matches');
     expect(screen.getByText(/No catalog records match/)).toBeVisible();
     fireEvent.click(screen.getAllByRole('button', { name: 'Clear search' })[0]!);
     expect(search).toHaveValue('');
-    expect(screen.getByRole('status')).toHaveTextContent('123 records shown');
+    expect(screen.getByRole('status')).toHaveTextContent('124 records shown');
   });
 
   it('shows every review-safe bibliography field in the reader', () => {
     render(<DatabaseBrowser projection={publicClinicalCatalog} onBack={vi.fn()} />);
 
-    screen.getByRole('button', { name: /Formal references 12/ }).click();
+    screen.getByRole('button', { name: /Formal references 13/ }).click();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search database' }), {
       target: { value: 'corrigendum' },
     });

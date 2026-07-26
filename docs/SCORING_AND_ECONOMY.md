@@ -80,6 +80,15 @@ The final combination is evaluated in named layers:
 
 The itemized receipt keeps these layers separate. For example, a selected SSRI can show a +100 base award and a separate +0 patient-fit row. It did not “earn zero”; it simply had no additional patient-specific adjustment. The current medically unreviewed mirtazapine prototype has a +35 insomnia fit modifier and a −50 high-BMI-without-countervailing-reason modifier. Those values exercise architecture and remain reviewable clinical content, not authoritative guidance.
 
+Every investigation remains a genuine point cost even when it reveals nothing useful. A purchase
+does not automatically earn care points; independent workup objectives reward only authored
+essential, high-yield, or treatment-required information. Under D-143, the next engine pass will
+let a useful revealed fact unlock an objectively applicable positive fit bonus, rather than
+awarding that bonus from hidden patient state alone. The fit points stay on the treatment row,
+while the trace separately shows the supporting knowledge. Safety and contraindication effects
+are never hidden by failure to ask. Ordinary non-safety negative-fit gating remains an explicit
+pending decision, so current runtime behavior is unchanged in this source-intake checkpoint.
+
 Exact complete matches are labeled `authored_pathway`. A nonexact programmed result is prominently labeled `engine_inferred`; the receipt says deterministic catalog rules estimated it. `unmatched` means no programmed route recognized the combination and invites a missing-alternative ticket.
 
 Medication and psychotherapy are peer modalities. A reviewed pathway may define either as a

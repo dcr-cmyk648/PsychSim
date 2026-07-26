@@ -86,8 +86,13 @@
     "receiptItemSnapshot": null,
     "targetContentIds": [
       "evidence.canmat.mdd-adults.2023-update",
+      "evidence.bostwick.mdd-antidepressant-fit.2010",
       "case.first-visit-depression",
       "medication-tag-set.mdd-antidepressant",
+      "info.history.depressive-symptoms",
+      "info.history.medication-effects",
+      "info.history.sleep",
+      "info.physical.weight-bmi",
       "grade.mdd-optimal-sertraline",
       "grade.mdd-strong-escitalopram",
       "grade.mdd-acceptable-other-antidepressant",
@@ -103,12 +108,12 @@
       "grade.mdd-strong-escitalopram",
       "grade.mdd-acceptable-other-antidepressant"
     ],
-    "proposedRouting": "Review CANMAT Q.3.e and Tables 3.3 through 3.5, then define one broad patient-owned medication pathway and keep agent-specific differences in reviewed medication-fit rules where possible.",
-    "guidance": "CANMAT permits selection among first-line antidepressants using efficacy, adverse effects, clinical presentation, cost, and patient preference, and notes that comparative differences are generally small. The current case gives sertraline 100 base-care points, escitalopram 95, and several other antidepressants 85 without patient-specific reasons for the spread. Decide the baseline family, starter-formulary subset, and magnitude of patient-fit modifiers; do not infer that CANMAT makes one agent universally optimal for this patient.",
+    "proposedRouting": "Review CANMAT Q.3.e and Tables 3.3 through 3.5 for the broad current pathway. Use only the verified abstract of Bostwick 2010 to nominate candidate fit dimensions; require current, legally processable evidence and separate psychiatrist review before assigning medication-specific directions or point values.",
+    "guidance": "CANMAT permits selection among first-line antidepressants using efficacy, adverse effects, clinical presentation, cost, and patient preference, and notes that comparative differences are generally small. Bostwick's 2010 Mayo narrative review is a useful historical expression of this fit-first approach: its verified abstract foregrounds sleep disturbance, sexual dysfunction, weight gain, and adherence when tailoring antidepressants. The full article has not been parsed because it is free to read in PMC but is not in the PMC Open Access subset. The current case gives sertraline 100 base-care points, escitalopram 95, and several other antidepressants 85 without patient-specific reasons for the spread. Decide the baseline family and starter-formulary subset, then review fit axes separately; do not infer that either source makes one agent universally optimal or supplies PsychSim's point magnitudes.",
     "resurfacingTrigger": "When the starter formulary, medication files, patient fit facts, or antidepressant guidance changes.",
     "resolution": null,
     "createdAt": "2026-07-22T22:00:00.000Z",
-    "updatedAt": "2026-07-22T22:00:00.000Z"
+    "updatedAt": "2026-07-26T11:18:54Z"
   },
   {
     "schemaVersion": 1,

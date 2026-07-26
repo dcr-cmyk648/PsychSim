@@ -345,6 +345,17 @@ describe('prototype content', () => {
           }),
         }),
         expect.objectContaining({
+          id: 'evidence.bostwick.mdd-antidepressant-fit.2010',
+          doi: '10.4065/mcp.2009.0565',
+          accessPolicy: expect.objectContaining({
+            fullTextStatus: 'public',
+            reuseStatus: 'permission_required',
+            aiUseStatus: 'permission_required',
+            localExtractionStatus: 'permission_required',
+          }),
+          medicalReviewStatus: 'unreviewed',
+        }),
+        expect.objectContaining({
           id: 'evidence.apa.bpd-treatment.second-edition.2024',
           accessPolicy: expect.objectContaining({
             aiUseStatus: 'prohibited',

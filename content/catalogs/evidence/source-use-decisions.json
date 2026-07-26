@@ -1,8 +1,43 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.1.0",
+  "contentVersion": "1.2.0",
   "id": "source-use-decisions.psychsim",
   "decisions": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.bostwick.mdd-antidepressant-fit.2010",
+      "evidenceSourceId": "evidence.bostwick.mdd-antidepressant-fit.2010",
+      "decisionStatus": "metadata_only",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "territories": ["Global"],
+      "attributionStatement": null,
+      "requiredNotices": [
+        "Treat free PMC reading access as distinct from Open Access or permission to extract, adapt, or use the full text with AI.",
+        "Keep any abstract-derived summary independently worded, labeled discovery context, medically unreviewed, and separate from executable clinical rules.",
+        "Check medication-specific propositions against current sources before clinical review because the article was published in 2010 and reports a literature search ending in 2009.",
+        "Do not reproduce article prose, tables, figures, or prescribing summaries in runtime content."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T11:18:54Z",
+      "notes": "PubMed and Mayo metadata verify the citation. PMCID PMC2878258 is freely readable, but the PMC Open Access API returns idIsNotOpenAccess and the article carries a Mayo Foundation copyright notice without a reusable licence. The current decision therefore permits metadata only. An applicable Elsevier text-and-data-mining agreement, written permission, or a new narrow fair-use assessment would be required before automated full-text processing."
+    },
     {
       "schemaVersion": 1,
       "contentVersion": "1.0.0",

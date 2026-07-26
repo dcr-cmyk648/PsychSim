@@ -105,6 +105,14 @@ fit even when the player failed to ask for it; a separate workup rule evaluates 
 obtained the relevant information. The receipt must trace those effects separately so an objective
 fit modifier is not mistaken for discovery credit.
 
+D-143 narrows the next scoring pass without collapsing those layers: an objectively applicable
+positive fit bonus will award points only when the player has established a sufficient
+patient-owned knowledge binding for that clinical tag. The hidden objective match remains
+available to the post-submit audit. Safety and contraindication effects always follow actual
+patient state; whether ordinary non-safety negative fit decrements are also knowledge-gated is the
+single unresolved design branch. The current runtime still uses the earlier objective-fit behavior
+until that branch, schema, validation, trace, and tests are completed.
+
 ## Comorbidity composition
 
 The schema can declare bounded optional contributing diagnoses with game inclusion probabilities, permitted severity/specifier IDs, a maximum active-diagnosis count, and `conflictPolicy: "quarantine"`. The composer already evaluates any resolved multi-diagnosis patient.

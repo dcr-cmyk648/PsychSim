@@ -269,6 +269,13 @@ PMC articles are processed only under their item-specific licences. AHRQ governm
 valuable, but each report is checked for its public-domain notice and embedded third-party
 material. ClinicalTrials.gov is a provenance and trial-record source, not an efficacy authority.
 
+The Bostwick 2010 Mayo antidepressant-fit review illustrates the distinction between free reading
+and reusable source material. PubMed and Mayo metadata verify DOI `10.4065/mcp.2009.0565`, PMID
+`20431115`, and PMCID `PMC2878258`, while the official PMC Open Access API returns
+`idIsNotOpenAccess`. PsychSim therefore catalogs the article and may retain an independently
+worded abstract-only discovery summary, but does not download, extract, index, send to AI, adapt,
+or redistribute its full text under the current metadata-only decision.
+
 Psychotherapy manuals, worksheets, scripts, fidelity instruments, and branded training materials
 are not copied. PsychSim may store original neutral intervention metadata and reviewed
 source-scoped claims while preserving the boundary between a broad therapy family, a referral,

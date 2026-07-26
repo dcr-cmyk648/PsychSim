@@ -289,5 +289,53 @@
     "resolutionNote": null,
     "createdAt": "2026-07-25T16:44:31.463Z",
     "updatedAt": "2026-07-25T16:44:31.463Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.mdd.antidepressant-fit-dimensions",
+    "title": "Current and reusable antidepressant-fit evidence",
+    "question": "Which current, legally processable sources support medication-specific antidepressant fit directions for sleep, sexual function, weight or metabolic concerns, tolerability or adherence, and other structured patient features without implying large efficacy differences among broadly reasonable first-line choices?",
+    "whyNeeded": "The Bostwick 2010 Mayo review is an excellent historical statement of the fit-first approach and its verified abstract nominates sleep, sexual dysfunction, weight gain, and adherence as candidate dimensions. Its full text is free to read but not in the PMC Open Access subset, so PsychSim cannot automatically parse its medication tables or detailed propositions under the current source-use decision. The old review also needs current corroboration before it supports reusable fit rules.",
+    "targetContentIds": [
+      "evidence.bostwick.mdd-antidepressant-fit.2010",
+      "diagnosis.major-depressive-disorder",
+      "info.history.depressive-symptoms",
+      "info.history.medication-effects",
+      "info.history.sleep",
+      "info.physical.weight-bmi",
+      "modifier.mirtazapine.insomnia-fit-active",
+      "modifier.mirtazapine.high-bmi-fit-active"
+    ],
+    "linkedTicketIds": ["ticket.source.canmat-mdd.antidepressant-baseline"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "journal_article",
+      "regulatory_document"
+    ],
+    "acceptanceCriteria": [
+      "Names patient features and medication-specific benefits or harms precisely enough to map to structured facts and reusable fit rules.",
+      "Separates average antidepressant efficacy from tolerability, adherence, preference, safety, and symptom-profile fit.",
+      "Provides current corroboration or a clear update to the 2010 review's medication-specific statements.",
+      "Has source terms that permit the intended extraction and concise derived authoring use, or is covered by an explicitly recorded narrow source-use decision.",
+      "Leaves game-point magnitude and final psychiatrist approval as separate review decisions."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [
+      "evidence.bostwick.mdd-antidepressant-fit.2010",
+      "evidence.canmat.mdd-adults.2023-update"
+    ],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-26T11:18:54Z",
+    "updatedAt": "2026-07-26T11:18:54Z"
   }
 ]

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.13.0",
+  "contentVersion": "3.14.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -38,6 +38,7 @@
         "evidence.apa.dsm5tr.2022",
         "evidence.asam.benzodiazepine-tapering.2025",
         "evidence.bap.catatonia.2023",
+        "evidence.bostwick.mdd-antidepressant-fit.2010",
         "evidence.canmat.mdd-adults.2023-update",
         "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
         "evidence.cdc-nchs.icd10cm.2026",
@@ -212,6 +213,12 @@
       "id": "evidence.bap.catatonia.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/bap-catatonia-2023-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.bostwick.mdd-antidepressant-fit.2010",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/bostwick-2010-antidepressant-fit-review.evidence.json",
       "runtimeIncluded": true
     },
     {
