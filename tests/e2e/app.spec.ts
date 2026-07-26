@@ -42,7 +42,7 @@ test('browses the safe runtime database without changing the clinic', async ({ p
   );
   await page.getByRole('button', { name: 'Back to database' }).click();
 
-  await page.getByRole('button', { name: /All 124/ }).click();
+  await page.getByRole('button', { name: /All 129/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('ticket.');
   await expect(page.getByRole('status')).toContainText('0 matches');
   await expect(page.getByText(/No catalog records match/)).toBeVisible();
@@ -219,7 +219,7 @@ test('completes a patient, stores review guidance, and preserves the profile and
     }),
   ).toBeVisible();
   await page.getByText('Sources needed', { exact: true }).click();
-  await expect(page.locator('.source-request-card')).toHaveCount(8);
+  await expect(page.locator('.source-request-card')).toHaveCount(10);
   await expect(
     page.getByText('Cyclothymia and duration-based near-miss generation', { exact: true }),
   ).toBeVisible();

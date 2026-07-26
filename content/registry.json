@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.14.0",
+  "contentVersion": "3.15.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -43,10 +43,15 @@
         "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
         "evidence.cdc-nchs.icd10cm.2026",
         "evidence.fda.citalopram-capsules-label.2023",
+        "evidence.mhra.citalopram-escitalopram-qt.2014",
         "evidence.nice.self-harm.ng225.2022",
+        "evidence.nhs.cyclothymia.2023",
+        "evidence.nhs.heart-palpitations.2026",
         "evidence.nimh.mental-health-topics.current",
         "evidence.nlm.rxnorm-cpc.2026-07-06",
+        "evidence.va-dod.bipolar.2023",
         "evidence.va-dod.suicide-risk.2024",
+        "evidence.villanueva.epilepsy-depression-consensus.2023",
         "evidence.who.icd11-cddr.2024",
         "evidence.who.mhgap-mns.2023"
       ]
@@ -241,15 +246,45 @@
       "runtimeIncluded": true
     },
     {
+      "id": "evidence.mhra.citalopram-escitalopram-qt.2014",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/mhra-citalopram-escitalopram-qt-2014.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
       "id": "evidence.nice.self-harm.ng225.2022",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json",
       "runtimeIncluded": true
     },
     {
+      "id": "evidence.nhs.cyclothymia.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nhs-cyclothymia-2023.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.nhs.heart-palpitations.2026",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nhs-heart-palpitations-2026.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.va-dod.bipolar.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/va-dod-bipolar-2023-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
       "id": "evidence.va-dod.suicide-risk.2024",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/va-dod-suicide-risk-2024-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.villanueva.epilepsy-depression-consensus.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/villanueva-epilepsy-depression-consensus-2023.evidence.json",
       "runtimeIncluded": true
     },
     {

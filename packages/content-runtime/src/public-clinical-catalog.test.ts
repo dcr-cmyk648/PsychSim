@@ -29,9 +29,9 @@ describe('public clinical catalog projection', () => {
       dispositions: 3,
       investigations: 40,
       tests: 14,
-      references: 13,
+      references: 18,
     });
-    expect(publicClinicalCatalog.totalEntryCount).toBe(124);
+    expect(publicClinicalCatalog.totalEntryCount).toBe(129);
 
     expect(
       sorted(

@@ -121,7 +121,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(page.getByRole('textbox', { name: 'Comment for Codex' })).toHaveValue(databaseNote);
   await page.getByRole('button', { name: 'Back to database' }).click();
 
-  const referencesCategory = page.getByRole('button', { name: /Formal references 13/ });
+  const referencesCategory = page.getByRole('button', { name: /Formal references 18/ });
   await referencesCategory.click();
   await expectWithinHorizontalViewport(referencesCategory);
   await page.getByRole('searchbox', { name: 'Search database' }).fill('CANMAT');
@@ -133,7 +133,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expectDocumentFitsViewport(page);
   await page.getByRole('button', { name: 'Back to database' }).click();
 
-  await page.getByRole('button', { name: /All 124/ }).click();
+  await page.getByRole('button', { name: /All 129/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('ticket.reviewer-cohort');
   await expect(page.getByRole('status')).toContainText('0 matches');
   await expect(page.getByText(/No catalog records match/)).toBeVisible();

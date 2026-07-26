@@ -80,7 +80,7 @@ describe('developer clinical audit queue', () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: 'source-request.ecg.monitoring-necessity',
-          status: 'needs_source',
+          status: 'source_received',
           destination: {
             provider: 'google_drive',
             folderLabel: 'PsychSim documents',
@@ -90,7 +90,21 @@ describe('developer clinical audit queue', () => {
         expect.objectContaining({ id: 'source-request.mdd.severity-thresholds' }),
         expect.objectContaining({
           id: 'source-request.cyclothymia.duration-discrimination',
-          status: 'needs_source',
+          status: 'source_received',
+          receivedEvidenceSourceIds: expect.arrayContaining([
+            'evidence.nhs.cyclothymia.2023',
+            'evidence.va-dod.bipolar.2023',
+          ]),
+        }),
+        expect.objectContaining({
+          id: 'source-request.ecg.normal-result-disposition',
+          status: 'source_received',
+          linkedTicketIds: ['ticket.audit.m2-ecg-disposition'],
+        }),
+        expect.objectContaining({
+          id: 'source-request.bupropion.seizure-history',
+          status: 'source_received',
+          linkedTicketIds: ['ticket.source.bupropion.seizure-history-nuance'],
         }),
         expect.objectContaining({
           id: 'source-request.medications.regimen-combination-boundaries',
@@ -112,13 +126,26 @@ describe('developer clinical audit queue', () => {
   });
 
   it('keeps evidence-synthesis proposals in the Developer-only module', () => {
-    expect(developerLiteratureSynthesisProposals).toEqual([
-      expect.objectContaining({
-        id: 'literature-synthesis.mdd.initial-modality.2026-07-24',
-        medicalReviewStatus: 'unreviewed',
-        pointMagnitudeExcluded: true,
-      }),
-    ]);
+    expect(developerLiteratureSynthesisProposals).toHaveLength(7);
+    expect(developerLiteratureSynthesisProposals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'literature-synthesis.mdd.initial-modality.2026-07-24',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.ecg.monitoring.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.bupropion.seizure-history.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+      ]),
+    );
   });
 
   it('keeps ticket literature scouting in the Developer-only module', () => {
@@ -253,7 +280,11 @@ describe('developer clinical audit queue', () => {
   });
 
   it('does not mistake existing context for newly received evidence', () => {
-    const request = structuredClone(developerSourceRequests[0]!);
+    const request = structuredClone(
+      developerSourceRequests.find(
+        (candidate) => candidate.id === 'source-request.mdd.tsh-workup',
+      )!,
+    );
     request.status = 'source_received';
     expect(request.existingEvidenceSourceIds.length).toBeGreaterThan(0);
     expect(request.receivedEvidenceSourceIds).toEqual([]);

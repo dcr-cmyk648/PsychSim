@@ -83,5 +83,454 @@
     ],
     "pointMagnitudeExcluded": true,
     "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.ecg.monitoring.2026-07-26",
+    "linkedTicketIds": ["ticket.audit.m2-ecg-workup-weight"],
+    "linkedSourceRequestIds": ["source-request.ecg.monitoring-necessity"],
+    "blueprintIds": ["case.medication-check-palpitations"],
+    "clinicalQuestion": "For a stable outpatient who develops intermittent palpitations while taking citalopram, what cardiac evaluation is supported and does one normal 12-lead ECG complete the focused workup?",
+    "focusedDecision": "Separate the indication for an initial ECG from any later need for ambulatory symptom-rhythm monitoring and from the game-point weight.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T16:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "GOV.UK",
+        "DailyMed",
+        "PubMed",
+        "Heart Rhythm Society"
+      ],
+      "queries": [
+        "citalopram palpitations ECG cardiac evaluation regulatory guidance",
+        "recurrent unexplained palpitations normal 12-lead ambulatory monitoring consensus"
+      ],
+      "resultCountReviewed": 6,
+      "selectionNote": "The search prioritized current regulatory advice and consensus guidance that distinguishes an initial 12-lead ECG from symptom-rhythm monitoring. MHRA is source-cleared support; the HRS consensus remains metadata-level context pending rights review."
+    },
+    "sources": [
+      {
+        "id": "literature-source.mhra-citalopram-qt.monitoring",
+        "evidenceSourceId": "evidence.mhra.citalopram-escitalopram-qt.2014",
+        "title": "Citalopram and escitalopram: QT interval prolongation",
+        "publicationYear": 2014,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.gov.uk/drug-safety-update/citalopram-and-escitalopram-qt-interval-prolongation",
+        "sourceKind": "regulatory_source",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The source advises cardiac evaluation including an ECG when cardiovascular symptoms such as palpitations develop during citalopram or escitalopram treatment.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.hrs-ambulatory-ecg.2017",
+        "evidenceSourceId": null,
+        "title": "2017 ISHNE-HRS expert consensus statement on ambulatory ECG and external cardiac monitoring/telemetry",
+        "publicationYear": 2017,
+        "doi": "10.1016/j.hrthm.2017.03.038",
+        "pmid": "28495301",
+        "url": "https://www.hrsonline.org/wp-content/uploads/2025/02/2017-ISHNE-HRS-Ambulatory-ECG.pdf",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The consensus supplies context that recurrent unexplained palpitations may require symptom-rhythm correlation and that a brief normal ECG does not necessarily identify an intermittent rhythm disturbance.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.fda-citalopram-label.monitoring-context",
+        "evidenceSourceId": "evidence.fda.citalopram-capsules-label.2023",
+        "title": "Citalopram Capsules: Highlights of Prescribing Information",
+        "publicationYear": 2023,
+        "doi": null,
+        "pmid": null,
+        "url": "https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=2f815b0c-6da7-cb61-e89c-7de628092d0d",
+        "sourceKind": "regulatory_source",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "context",
+        "conciseFinding": "The existing narrow source-use record supplies case-specific regulatory context for further evaluation after palpitations, but it was not cleared for broad automated synthesis.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "The source-cleared MHRA advice supports ordering an initial ECG when palpitations develop during citalopram treatment.",
+    "opposingOrQualifyingSummary": "The HRS consensus indicates that a normal snapshot ECG may not complete evaluation of recurrent unexplained palpitations. It is not source-cleared for executable derivation and does not determine this case's exact next step.",
+    "proposedDirection": "Keep the initial ECG clinically defensible and likely high-yield, but rename or explain it as an initial 12-lead evaluation rather than completed cardiac monitoring. Ask the psychiatrist reviewer separately whether the authored symptom pattern needs ambulatory or outpatient medical follow-up. Do not change +560, -350, or any rule from this packet.",
+    "limitations": [
+      "The case does not author enough episode-frequency, timing, rhythm, cardiac-history, or electrolyte-risk facts to decide the complete evaluation.",
+      "The ambulatory-monitoring consensus has not passed PsychSim source-use clearance.",
+      "Regulatory guidance cannot determine a video-game point magnitude."
+    ],
+    "unresolvedQuestions": [
+      "Is the initial ECG essential or merely high-yield for the exact authored facts?",
+      "Which additional facts would make ambulatory monitoring relevant?",
+      "What game-point magnitude is proportionate after the clinical category is reviewed?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.ecg.continue-switch.2026-07-26",
+    "linkedTicketIds": ["ticket.audit.m2-ecg-treatment-path"],
+    "linkedSourceRequestIds": ["source-request.ecg.continue-or-switch"],
+    "blueprintIds": ["case.medication-check-palpitations"],
+    "clinicalQuestion": "After palpitations prompt an ECG with an authored QTc of 428 ms, should citalopram continuation or a switch receive the preferred treatment grade?",
+    "focusedDecision": "Identify the missing patient facts needed to compare continuation with switching without turning a normal QTc into an automatic medication verdict.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T16:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": ["PsychSim formal evidence catalog", "GOV.UK", "PubMed", "DailyMed"],
+      "queries": [
+        "citalopram QTc threshold continuation withdrawal palpitations",
+        "major depressive disorder antidepressant switching response tolerability preference guideline"
+      ],
+      "resultCountReviewed": 5,
+      "selectionNote": "The review combined a source-cleared regulatory threshold source with source-cleared CANMAT decision factors. Neither source supports a universal 100-versus-95 ranking for this constructed patient."
+    },
+    "sources": [
+      {
+        "id": "literature-source.mhra-citalopram-qt.continue-switch",
+        "evidenceSourceId": "evidence.mhra.citalopram-escitalopram-qt.2014",
+        "title": "Citalopram and escitalopram: QT interval prolongation",
+        "publicationYear": 2014,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.gov.uk/drug-safety-update/citalopram-and-escitalopram-qt-interval-prolongation",
+        "sourceKind": "regulatory_source",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The source calls for gradual withdrawal above 500 ms and benefit-risk review at 480-500 ms; it does not mandate discontinuation at the case's authored QTc of 428 ms.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.canmat-mdd.continue-switch",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The guideline frames treatment changes around response, troublesome adverse effects, tolerability, and patient preference rather than one medication-independent ranking.",
+        "supportsProposedDirection": true
+      }
+    ],
+    "supportingSummary": "The authored QTc does not reach the MHRA withdrawal or benefit-risk threshold, and CANMAT supports using response, tolerability, adverse effects, and preference to decide whether switching is a better fit.",
+    "opposingOrQualifyingSummary": "A normal QTc does not establish the cause or acceptability of recurrent palpitations, and neither source says citalopram continuation must outrank a reasonable switch.",
+    "proposedDirection": "Do not finalize the 100-versus-95 grade split until the patient owns current dose and recent changes, temporal association, treatment benefit, symptom burden, interacting medications or risk factors, and preference. Preserve both continuation and a reasonable switch as reviewable routes; this packet authorizes no grade or point change.",
+    "limitations": [
+      "The source set does not answer whether the patient's palpitations are caused by citalopram.",
+      "The case omits several treatment-selection facts identified by the scout.",
+      "No evidence source can determine a five-point game difference."
+    ],
+    "unresolvedQuestions": [
+      "How helpful is current citalopram treatment?",
+      "How troublesome and temporally medication-linked are the palpitations?",
+      "Which risk factors or patient preferences should alter the fit modifier?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.ecg.disposition.2026-07-26",
+    "linkedTicketIds": ["ticket.audit.m2-ecg-disposition"],
+    "linkedSourceRequestIds": ["source-request.ecg.normal-result-disposition"],
+    "blueprintIds": ["case.medication-check-palpitations"],
+    "clinicalQuestion": "For intermittent palpitations during citalopram treatment with a normal snapshot ECG and no authored instability, what supports outpatient, urgent, or emergency disposition?",
+    "focusedDecision": "Separate emergency transfer from outpatient medical or cardiology evaluation and identify facts that must be explicit before escalation penalties are approved.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T16:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": ["PsychSim formal evidence catalog", "GOV.UK", "NHS Health A to Z", "PubMed"],
+      "queries": [
+        "palpitations emergency red flags chest pain dyspnea syncope outpatient evaluation",
+        "citalopram palpitations normal ECG disposition cardiology referral"
+      ],
+      "resultCountReviewed": 6,
+      "selectionNote": "The review prioritized national regulatory and public-triage material. The packet uses the NHS page only inside the developer review boundary established by its conditional OGL source-use decision."
+    },
+    "sources": [
+      {
+        "id": "literature-source.mhra-citalopram-qt.disposition",
+        "evidenceSourceId": "evidence.mhra.citalopram-escitalopram-qt.2014",
+        "title": "Citalopram and escitalopram: QT interval prolongation",
+        "publicationYear": 2014,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.gov.uk/drug-safety-update/citalopram-and-escitalopram-qt-interval-prolongation",
+        "sourceKind": "regulatory_source",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The source supports cardiac evaluation after palpitations but does not classify every such presentation as an emergency or say that a normal ECG ends evaluation.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.nhs-heart-palpitations.disposition",
+        "evidenceSourceId": "evidence.nhs.heart-palpitations.2026",
+        "title": "Heart palpitations",
+        "publicationYear": 2026,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.nhs.uk/symptoms/heart-palpitations/",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The public-triage page distinguishes recurrent stable palpitations suitable for outpatient evaluation from ongoing palpitations with chest pain, shortness of breath, faintness, or fainting that warrant emergency action.",
+        "supportsProposedDirection": true
+      }
+    ],
+    "supportingSummary": "The reviewed sources support cardiac evaluation and distinguish stable recurrent symptoms from explicit emergency red flags.",
+    "opposingOrQualifyingSummary": "The current case authors absence of syncope, dizziness, and chest pain but does not explicitly resolve shortness of breath, whether symptoms are ongoing, near-syncope, episode duration, or outpatient medical follow-up. A normal ECG does not fill those unknowns.",
+    "proposedDirection": "Do not approve a large urgent-care penalty until the missing red-flag facts are authored and an outpatient medical or cardiology referral is represented separately from ED transfer. If the reviewer confirms all emergency facts absent, the packet supports no ED transfer while preserving outpatient medical evaluation. It authorizes no disposition or point change.",
+    "limitations": [
+      "NHS material is public-facing triage guidance rather than a psychiatrist-specific clinical guideline.",
+      "The NHS source-use decision permits this internal synthesis but not runtime redistribution.",
+      "The exact meaning of the existing urgent-medical-evaluation option is ambiguous."
+    ],
+    "unresolvedQuestions": [
+      "Should the case add a distinct outpatient medical or cardiology disposition?",
+      "Which red-flag facts must be explicitly negative?",
+      "Should urgent medical evaluation remain available, and what should its label mean?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.targeted-workup.2026-07-26",
+    "linkedTicketIds": ["ticket.source.canmat-mdd.assessment-workup"],
+    "linkedSourceRequestIds": ["source-request.mdd.tsh-workup"],
+    "blueprintIds": ["case.first-visit-depression"],
+    "clinicalQuestion": "Which laboratory and diagnostic studies are supported in the initial assessment of an adult presenting with depressive symptoms?",
+    "focusedDecision": "Distinguish targeted low-cost contributor testing from mandatory routine panels and from investigation shotgun behavior.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T16:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "PubMed",
+        "VA/DoD guideline registry",
+        "USPSTF"
+      ],
+      "queries": [
+        "major depressive disorder initial assessment laboratory TSH CBC guideline",
+        "depression targeted physical examination routine bloodwork imaging"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "The source-cleared CANMAT guideline was the most directly applicable reusable source. VA/DoD material corroborates a differential-driven assessment but still needs item-level source-use review; USPSTF asymptomatic-population screening is context rather than an answer to symptomatic depression workup."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.targeted-workup",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "Question 1.d emphasizes history and targeted examination; it presents CBC and TSH as low-cost ways to detect treatable contributors, limits additional tests to clinical indications, and does not support routine ECG, EEG, or imaging.",
+        "supportsProposedDirection": true
+      }
+    ],
+    "supportingSummary": "CANMAT supports a targeted assessment. CBC and TSH can be defensible low-cost contributor checks, while additional laboratory or imaging studies require clues from history, examination, comorbidity, age, substance use, or function.",
+    "opposingOrQualifyingSummary": "CANMAT also notes limited direct evidence for routine bloodwork. Its language does not make TSH, CBC, or CMP mandatory in every uncomplicated MDD presentation and cannot set game-point values.",
+    "proposedDirection": "Keep history and targeted examination central. Treat CBC or TSH as potentially defensible when the authored presentation supplies an appropriate contributor question, not as globally essential actions. Keep CMP and imaging indication-driven and preserve a financial penalty for shotgun testing. Do not change any rule or point from this packet.",
+    "limitations": [
+      "The guideline's assessment recommendations rely substantially on lower-level evidence and expert consensus.",
+      "The source does not provide a complete patient-fact-to-test decision table.",
+      "The existing TSH request remains open for more granular reusable indications."
+    ],
+    "unresolvedQuestions": [
+      "Which specific structured facts should make TSH high-yield rather than optional?",
+      "Should CBC receive its own source request if it becomes point-relevant?",
+      "How should appropriate but negative tests be balanced financially?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.bupropion.seizure-history.2026-07-26",
+    "linkedTicketIds": ["ticket.source.bupropion.seizure-history-nuance"],
+    "linkedSourceRequestIds": ["source-request.bupropion.seizure-history"],
+    "blueprintIds": [],
+    "clinicalQuestion": "Does current evidence support a general bupropion exception for a person with a well-controlled seizure disorder, and how should other remote seizure histories be represented?",
+    "focusedDecision": "Keep current regulatory contraindication, consensus caution, and the psychiatrist/developer's contextual opinion as separate propositions while improving the future fact model.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T16:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "DailyMed",
+        "PubMed",
+        "Cochrane Library",
+        "Europe PMC",
+        "International League Against Epilepsy"
+      ],
+      "queries": [
+        "bupropion epilepsy seizure disorder antidepressant recommendation",
+        "depression adults epilepsy bupropion consensus systematic review",
+        "antidepressant associated seizures pharmacovigilance bupropion"
+      ],
+      "resultCountReviewed": 8,
+      "selectionNote": "The search broadened beyond title-only bupropion queries because rare-harm evidence appears in regulatory labels, epilepsy guidance, pharmacovigilance analyses, and consensus literature. Only the CC BY-NC consensus record is cleared to support this internal proposal."
+    },
+    "sources": [
+      {
+        "id": "literature-source.villanueva-epilepsy-depression.bupropion",
+        "evidenceSourceId": "evidence.villanueva.epilepsy-depression-consensus.2023",
+        "title": "Proposed Recommendations for the Management of Depression in Adults with Epilepsy: An Expert Consensus",
+        "publicationYear": 2023,
+        "doi": "10.1007/s40120-023-00437-0",
+        "pmid": "36692706",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10043101/",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The expert consensus treats bupropion as less recommended or best avoided in epilepsy while emphasizing individualized antidepressant selection; it does not establish safety in well-controlled epilepsy.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.dailymed-bupropion-sr.2026",
+        "evidenceSourceId": null,
+        "title": "Bupropion Hydrochloride Extended-Release Tablets (SR): Prescribing Information",
+        "publicationYear": 2026,
+        "doi": null,
+        "pmid": null,
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=39b2d509-1281-4464-9cf1-a94bbc18b84b",
+        "sourceKind": "regulatory_source",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "context",
+        "conciseFinding": "The current U.S. labeling lists seizure disorder as a contraindication and does not state an exception for a controlled disorder. PsychSim has not cleared the label for automated full-text synthesis.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.cochrane-antidepressants-epilepsy.2021",
+        "evidenceSourceId": null,
+        "title": "Antidepressants for people with epilepsy and depression",
+        "publicationYear": 2021,
+        "doi": "10.1002/14651858.CD010682.pub3",
+        "pmid": "33860531",
+        "url": "https://www.cochrane.org/evidence/CD010682_antidepressants-people-epilepsy-and-depression",
+        "sourceKind": "systematic_review",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The review describes a sparse evidence base focused largely on SSRIs and does not supply evidence that bupropion is safe in people with epilepsy.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.cho-antidepressant-seizures.2025",
+        "evidenceSourceId": null,
+        "title": "Global burden of antidepressant-associated seizures from 1967 to 2023: A pharmacovigilance study based on the FDA Adverse Event Reporting System database",
+        "publicationYear": 2025,
+        "doi": "10.1016/j.jad.2025.04.024",
+        "pmid": "40189065",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/40189065/",
+        "sourceKind": "primary_study",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The pharmacovigilance analysis reports a strong bupropion seizure disproportionality signal, but spontaneous reports cannot establish incidence, causality, or risk in controlled epilepsy.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "The cleared consensus supports treating bupropion as a poor default fit in epilepsy and does not support a general well-controlled-disease exception.",
+    "opposingOrQualifyingSummary": "Current U.S. labeling is stricter and treats seizure disorder as contraindicated. Evidence for selected exceptions is weak and does not justify converting the psychiatrist/developer opinion into a publication-backed general rule.",
+    "proposedDirection": "Do not activate a permissive bupropion exception. Add future typed states for active or controlled seizure disorder, remote isolated or provoked seizure, unclassified event, and unknown history. Preserve the formal regulatory proposition and the narrower psychiatrist/developer opinion separately, with any future exception visibly flagged as conflicting with labeling and requiring review. Assign no points.",
+    "limitations": [
+      "The supporting source is expert consensus rather than controlled comparative safety evidence.",
+      "The current U.S. label and several contextual sources are not cleared for automated full-text synthesis.",
+      "The evidence does not define a safe remote-event interval or a point magnitude."
+    ],
+    "unresolvedQuestions": [
+      "What structured facts distinguish a resolved provoked event from a seizure disorder?",
+      "Should any future exception be permitted in a question-bank case despite U.S. labeling?",
+      "How should a high relative-risk penalty interact with an otherwise favorable medication fit?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.cyclothymia.duration.2026-07-26",
+    "linkedTicketIds": ["ticket.source.cyclothymia.duration-discrimination"],
+    "linkedSourceRequestIds": ["source-request.cyclothymia.duration-discrimination"],
+    "blueprintIds": [],
+    "clinicalQuestion": "Which narrow temporal constraints can support adult and younger-person cyclothymia near-miss generation without importing a proprietary diagnostic manual?",
+    "focusedDecision": "Prepare a reviewable duration rule while keeping duration, full diagnostic determination, generator compatibility, and game points separate.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T16:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "NHS Mental Health",
+        "VA/DoD guideline registry",
+        "PubMed",
+        "WHO source registry"
+      ],
+      "queries": [
+        "cyclothymia duration two years one year children teenagers diagnostic guidance",
+        "cyclothymic disorder duration near threshold bipolar guideline"
+      ],
+      "resultCountReviewed": 8,
+      "selectionNote": "The review excluded DSM text under the repository's metadata-only APA policy and did not derive from the no-derivatives WHO ICD-11 source. The NHS page is the only current source in this scout that gives both duration groups under a processable licence."
+    },
+    "sources": [
+      {
+        "id": "literature-source.nhs-cyclothymia.duration",
+        "evidenceSourceId": "evidence.nhs.cyclothymia.2023",
+        "title": "Cyclothymia",
+        "publicationYear": 2023,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.nhs.uk/mental-health/conditions/cyclothymia/",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "The public guidance gives a two-year adult duration, a one-year duration for children and teenagers, and no symptom-free interval longer than two months, while stating that symptoms remain below full bipolar disorder or depression.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.va-dod-bipolar.cyclothymia",
+        "evidenceSourceId": "evidence.va-dod.bipolar.2023",
+        "title": "VA/DoD Clinical Practice Guideline for Management of Bipolar Disorder",
+        "publicationYear": 2023,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.healthquality.va.gov/guidelines/MH/bd/index.asp",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "context",
+        "conciseFinding": "The adult guideline provides corroborating context for frequent subthreshold mood fluctuations lasting two years or more, but its derived-content permissions remain disabled pending third-party review.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "The source-cleared NHS page supports preparing a narrow temporal distinction for adult versus child or teenager patient classes and a no-longer-than-two-month symptom-free interval.",
+    "opposingOrQualifyingSummary": "The source is public guidance, not a complete diagnostic standard. It does not define the exact numeric transition from teenager to adult, and duration alone cannot establish cyclothymia.",
+    "proposedDirection": "Prepare, but do not activate, a narrow declarative temporal contribution: at least two years for an explicitly adult population class or at least one year for an explicitly child/teen population class, with no interval longer than two months. A below-threshold duration should mean only that the temporal criterion is unmet. Keep incompatibility pruning and prevention of randomly generated full mania as separate engineering safeguards. Add no diagnosis or points from this packet.",
+    "limitations": [
+      "Runtime redistribution remains disabled until PsychSim resolves NHS adapted-content attribution in the trace UI.",
+      "The source does not define a numeric age cutoff between teenager and adult.",
+      "The source does not supply the complete diagnostic criteria or validate the generator algorithm."
+    ],
+    "unresolvedQuestions": [
+      "Which explicit patient population classes should the generator expose?",
+      "How should the trace display exact provenance while using the required generic OGL attribution?",
+      "Which additional criteria source is needed before a complete cyclothymia definition is reviewed?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
   }
 ]

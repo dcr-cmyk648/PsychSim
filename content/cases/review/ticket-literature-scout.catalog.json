@@ -363,7 +363,7 @@
       "clinicalQuestion": "Does this stable palpitations presentation with a normal ECG warrant routine outpatient care or escalation?",
       "metaAnalysisFit": "weak",
       "outcome": "no_suitable_recent_meta_analysis",
-      "linkedSourceRequestIds": [],
+      "linkedSourceRequestIds": ["source-request.ecg.normal-result-disposition"],
       "searchPlan": {
         "provider": "europe_pmc",
         "topicQuery": "(TITLE_ABS:citalopram OR TITLE_ABS:escitalopram) AND (TITLE_ABS:ECG OR TITLE_ABS:electrocardiogram OR TITLE_ABS:QT OR TITLE_ABS:palpitations)",
@@ -742,7 +742,7 @@
       "clinicalQuestion": "How should bupropion be weighted when a patient has a remote or controlled seizure history?",
       "metaAnalysisFit": "partial",
       "outcome": "no_suitable_recent_meta_analysis",
-      "linkedSourceRequestIds": [],
+      "linkedSourceRequestIds": ["source-request.bupropion.seizure-history"],
       "searchPlan": {
         "provider": "europe_pmc",
         "topicQuery": "TITLE_ABS:bupropion AND (TITLE_ABS:seizure OR TITLE_ABS:epilepsy OR TITLE_ABS:convulsion)",

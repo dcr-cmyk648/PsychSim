@@ -1,7 +1,7 @@
 [
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "1.1.0",
     "id": "source-request.ecg.monitoring-necessity",
     "title": "ECG need for palpitations during citalopram treatment",
     "question": "For a stable outpatient reporting intermittent palpitations during citalopram treatment, which structured findings make a 12-lead ECG or other cardiac monitoring indicated, optional, or unnecessary?",
@@ -28,18 +28,18 @@
       "folderLabel": "PsychSim documents"
     },
     "existingEvidenceSourceIds": ["evidence.fda.citalopram-capsules-label.2023"],
-    "receivedEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": ["evidence.mhra.citalopram-escitalopram-qt.2014"],
     "sourceDocumentIds": [],
     "sourceChunkIds": [],
     "sourceUseNoteIds": ["source-use.ecg-mdd.citalopram-monitoring"],
-    "status": "needs_source",
+    "status": "source_received",
     "resolutionNote": null,
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-23T00:00:00.000Z"
+    "updatedAt": "2026-07-26T16:00:00.000Z"
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "1.1.0",
     "id": "source-request.ecg.continue-or-switch",
     "title": "Continue or switch a helpful antidepressant after a normal ECG",
     "question": "When palpitations are reported but the authored ECG is normal, how should current antidepressant benefit, tolerability, symptom persistence, and patient preference affect continuation versus switching?",
@@ -70,14 +70,57 @@
       "evidence.canmat.mdd-adults.2023-update",
       "evidence.fda.citalopram-capsules-label.2023"
     ],
-    "receivedEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": ["evidence.mhra.citalopram-escitalopram-qt.2014"],
     "sourceDocumentIds": [],
     "sourceChunkIds": [],
     "sourceUseNoteIds": [],
-    "status": "needs_source",
+    "status": "source_received",
     "resolutionNote": null,
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-23T00:00:00.000Z"
+    "updatedAt": "2026-07-26T16:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.ecg.normal-result-disposition",
+    "title": "Disposition after palpitations and a normal snapshot ECG",
+    "question": "For a stable outpatient with intermittent palpitations during citalopram treatment and a normal authored 12-lead ECG, which structured red flags support emergency transfer, urgent medical review, outpatient medical or cardiology evaluation, or routine psychiatric follow-up?",
+    "whyNeeded": "The current case provisionally rewards ordinary outpatient follow-up and penalizes urgent or emergency escalation, but it lacks several potentially decisive structured facts and does not separately offer outpatient medical evaluation.",
+    "targetContentIds": [
+      "case.medication-check-palpitations",
+      "rule.ecg-mdd-outpatient-disposition",
+      "rule.ecg-mdd-urgent-escalation",
+      "rule.ecg-mdd-emergency-escalation"
+    ],
+    "linkedTicketIds": ["ticket.audit.m2-ecg-disposition"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "professional_guidance",
+      "regulatory_document",
+      "journal_article"
+    ],
+    "acceptanceCriteria": [
+      "Distinguishes emergency red flags from recurrent but stable symptoms suitable for outpatient evaluation.",
+      "Identifies the structured facts that must be authored rather than inferred from a normal ECG.",
+      "Separates an outpatient medical or cardiology referral from emergency-department transfer.",
+      "Does not assign game-point magnitudes."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.fda.citalopram-capsules-label.2023"],
+    "receivedEvidenceSourceIds": [
+      "evidence.mhra.citalopram-escitalopram-qt.2014",
+      "evidence.nhs.heart-palpitations.2026"
+    ],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": ["source-use.ecg-mdd.citalopram-monitoring"],
+    "status": "source_received",
+    "resolutionNote": null,
+    "createdAt": "2026-07-26T16:00:00.000Z",
+    "updatedAt": "2026-07-26T16:00:00.000Z"
   },
   {
     "schemaVersion": 1,
@@ -214,7 +257,7 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "1.1.0",
     "id": "source-request.cyclothymia.duration-discrimination",
     "title": "Cyclothymia and duration-based near-miss generation",
     "question": "Which legally reusable, current diagnostic source should PsychSim use for the adult and younger-person temporal criteria for cyclothymia, including how to represent a deliberately subthreshold duration near miss?",
@@ -237,14 +280,49 @@
       "folderLabel": "PsychSim documents"
     },
     "existingEvidenceSourceIds": [],
-    "receivedEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": ["evidence.nhs.cyclothymia.2023", "evidence.va-dod.bipolar.2023"],
     "sourceDocumentIds": [],
     "sourceChunkIds": [],
     "sourceUseNoteIds": [],
-    "status": "needs_source",
+    "status": "source_received",
     "resolutionNote": null,
     "createdAt": "2026-07-24T00:00:00.000Z",
-    "updatedAt": "2026-07-24T00:00:00.000Z"
+    "updatedAt": "2026-07-26T16:00:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.bupropion.seizure-history",
+    "title": "Bupropion use across distinct seizure-history states",
+    "question": "How should PsychSim distinguish an active or controlled seizure disorder, a remote isolated or provoked seizure, an unclassified past event, and an unknown seizure history when evaluating bupropion?",
+    "whyNeeded": "The psychiatrist/developer opinion describes possible contextual use despite a seizure history, while current U.S. labeling treats seizure disorder as a contraindication. These propositions must stay separate and the engine must not collapse clinically different histories into one boolean.",
+    "targetContentIds": ["medication.bupropion"],
+    "linkedTicketIds": ["ticket.source.bupropion.seizure-history-nuance"],
+    "preferredSourceTypes": [
+      "regulatory_document",
+      "clinical_guideline",
+      "systematic_review",
+      "journal_article"
+    ],
+    "acceptanceCriteria": [
+      "States current regulatory labeling separately from guideline, consensus, and observational evidence.",
+      "Distinguishes seizure disorder from a remote isolated or provoked event when the source permits that distinction.",
+      "Preserves the psychiatrist/developer interpretation as a separate opinion rather than relabeling it as a publication conclusion.",
+      "Does not infer a permissive exception or game-point magnitude from weak contextual evidence."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": ["evidence.villanueva.epilepsy-depression-consensus.2023"],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "source_received",
+    "resolutionNote": null,
+    "createdAt": "2026-07-26T16:00:00.000Z",
+    "updatedAt": "2026-07-26T16:00:00.000Z"
   },
   {
     "schemaVersion": 1,

@@ -14,9 +14,14 @@ import bostwickAntidepressantFitReviewJson from '../../../content/catalogs/evide
 import canmatMddCorrigendumJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-corrigendum-2025.evidence.json';
 import canmatMddGuidelineJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json';
 import fdaCitalopramLabelJson from '../../../content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json';
+import mhraCitalopramQtJson from '../../../content/catalogs/evidence/formal/mhra-citalopram-escitalopram-qt-2014.evidence.json';
+import nhsCyclothymiaJson from '../../../content/catalogs/evidence/formal/nhs-cyclothymia-2023.evidence.json';
+import nhsHeartPalpitationsJson from '../../../content/catalogs/evidence/formal/nhs-heart-palpitations-2026.evidence.json';
 import niceSelfHarmGuidelineJson from '../../../content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json';
 import nlmRxNormCpcJson from '../../../content/catalogs/evidence/formal/nlm-rxnorm-cpc-2026-07-06.evidence.json';
+import vaDodBipolarGuidelineJson from '../../../content/catalogs/evidence/formal/va-dod-bipolar-2023-guideline.evidence.json';
 import vaDodSuicideRiskGuidelineJson from '../../../content/catalogs/evidence/formal/va-dod-suicide-risk-2024-guideline.evidence.json';
+import villanuevaEpilepsyDepressionConsensusJson from '../../../content/catalogs/evidence/formal/villanueva-epilepsy-depression-consensus-2023.evidence.json';
 import whoMhgapGuidelineJson from '../../../content/catalogs/evidence/formal/who-mhgap-2023-guideline.evidence.json';
 import bipolarSpectrumDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/bipolar-spectrum-disorder.diagnosis.json';
 import borderlinePersonalityDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/borderline-personality-disorder.diagnosis.json';
@@ -69,7 +74,7 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.8.0',
+  contentVersion: '3.9.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,
@@ -80,9 +85,14 @@ export const catalogs = CatalogBundleSchema.parse({
     canmatMddGuidelineJson,
     canmatMddCorrigendumJson,
     fdaCitalopramLabelJson,
+    mhraCitalopramQtJson,
+    nhsCyclothymiaJson,
+    nhsHeartPalpitationsJson,
     niceSelfHarmGuidelineJson,
     nlmRxNormCpcJson,
+    vaDodBipolarGuidelineJson,
     vaDodSuicideRiskGuidelineJson,
+    villanuevaEpilepsyDepressionConsensusJson,
     whoMhgapGuidelineJson,
   ],
   diagnoses: [

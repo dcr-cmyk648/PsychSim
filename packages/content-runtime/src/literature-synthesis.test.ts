@@ -32,17 +32,37 @@ const validate = (
   );
 
 describe('developer literature synthesis proposals', () => {
-  it('loads one unreviewed, point-excluded proposal with exact workflow links', () => {
-    expect(developerLiteratureSynthesisProposals).toEqual([
-      expect.objectContaining({
-        id: 'literature-synthesis.mdd.initial-modality.2026-07-24',
-        linkedTicketIds: ['ticket.source.canmat-mdd.initial-modality'],
-        linkedSourceRequestIds: ['source-request.mdd.severity-thresholds'],
-        blueprintIds: ['case.first-visit-depression'],
-        pointMagnitudeExcluded: true,
-        medicalReviewStatus: 'unreviewed',
-      }),
-    ]);
+  it('loads unreviewed, point-excluded proposals with exact workflow links', () => {
+    expect(developerLiteratureSynthesisProposals).toHaveLength(7);
+    expect(developerLiteratureSynthesisProposals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'literature-synthesis.mdd.initial-modality.2026-07-24',
+          linkedTicketIds: ['ticket.source.canmat-mdd.initial-modality'],
+          linkedSourceRequestIds: ['source-request.mdd.severity-thresholds'],
+          blueprintIds: ['case.first-visit-depression'],
+          pointMagnitudeExcluded: true,
+          medicalReviewStatus: 'unreviewed',
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.ecg.disposition.2026-07-26',
+          linkedTicketIds: ['ticket.audit.m2-ecg-disposition'],
+          linkedSourceRequestIds: ['source-request.ecg.normal-result-disposition'],
+          blueprintIds: ['case.medication-check-palpitations'],
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.bupropion.seizure-history.2026-07-26',
+          linkedTicketIds: ['ticket.source.bupropion.seizure-history-nuance'],
+          linkedSourceRequestIds: ['source-request.bupropion.seizure-history'],
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.cyclothymia.duration.2026-07-26',
+          linkedSourceRequestIds: ['source-request.cyclothymia.duration-discrimination'],
+          medicalReviewStatus: 'unreviewed',
+        }),
+      ]),
+    );
     expect(validate()).toEqual({ valid: true, issues: [] });
   });
 

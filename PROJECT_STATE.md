@@ -6,6 +6,17 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current evidence-gap checkpoint (commit pending) converts six previously queued questions into
+  medically unreviewed, point-excluded review packets: ECG monitoring after palpitations on
+  citalopram, continue-versus-switch after a normal ECG, disposition after a normal snapshot ECG,
+  targeted initial-MDD workup, bupropion across distinct seizure-history states, and cyclothymia
+  duration/near-miss generation. Five new formal records cover MHRA citalopram/escitalopram QT
+  guidance, NHS palpitations and cyclothymia pages, the 2023 VA/DoD bipolar guideline, and a 2023
+  epilepsy/depression expert consensus. The formal-reference catalog now has 18 records, the public
+  database projection has 129 records, and the source-request queue has 10 entries. Source-use
+  decisions remain conservative where NHS special terms or VA/DoD third-party material need
+  additional review. No patient fact, clinical rule, treatment grade, disposition, point magnitude,
+  or engine behavior changed.
 - Current beta review/scout checkpoint (`Add first personal knowledge review scout`) adapts the
   first fully classified Apple Notes revision into one immutable local Developer ticket with seven
   one-to-one, medically unreviewed Developer-opinion proposals. A discriminated private locator
@@ -50,7 +61,7 @@ Last updated: 2026-07-26
   (`Add auditable database reader and medication identities`). The Database opens every public-safe
   record in a dedicated desktop/mobile reader and lets Developer/portable Reviewer users save,
   revise, remove, and export comments with immutable entry snapshots. The public catalog contains
-  124 records, including 33 normalized medication identities. A whole-corpus private lexical
+  129 records, including 33 normalized medication identities. A whole-corpus private lexical
   inventory covers all 204 authorized Apple Notes title/plaintext revisions without importing
   private prose or changing gameplay. It is pushed to `origin/beta`; `main` remains unchanged.
 - Current beta database-inspection checkpoint:
@@ -132,9 +143,9 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   - ordinary Player: approved-for-prototype root content only;
   - local Vite Developer: review/source/opinion queues plus the fixed workspace writer;
   - portable Reviewer: the two prototype patients plus exactly ten allowlisted review scenarios.
-- Every hub now exposes a shared Database screen. It contains 124 public-safe records: 8 modeled
+- Every hub now exposes a shared Database screen. It contains 129 public-safe records: 8 modeled
   conditions, 33 normalized medication identities, 13 nonmedication interventions, 3 dispositions,
-  40 shared investigations, 14 test definitions, and 13 formal bibliography records. Thirteen
+  40 shared investigations, 14 test definitions, and 18 formal bibliography records. Eighteen
   medications have existing runtime compatibility definitions; twenty are explicitly identity-only
   authoring records and cannot appear in treatment choices or formularies.
 - The Database projection is a strict schema allowlist with deterministic ordering, exact category
@@ -896,31 +907,37 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-1. In local Developer mode, review
+1. Review `literature-synthesis.ecg.monitoring.2026-07-26` first, as a single bounded decision:
+   decide whether the packet correctly separates an indicated post-palpitations ECG from the
+   broader and unresolved concept of “complete cardiac monitoring.” Reviewer prose is guidance
+   only; it must not mutate the rule or points automatically.
+2. Continue the five remaining new packets one at a time in dependency order: normal-ECG
+   disposition, continue-versus-switch, bupropion/seizure-history states, targeted initial-MDD
+   workup, and cyclothymia duration. Preserve the packet's visible disagreement, missing-data
+   limits, source-use restrictions, and Developer-opinion boundaries.
+3. In local Developer mode, review
    `ticket.source-review.636ebb260a20e5bf07aaaafe`, “Review one classified personal-knowledge
    revision.” Its seven candidate takeaways must be preserved, revised, rejected, or routed for
    current evidence review one at a time. Saving prose is reviewer guidance only.
-2. After the user says that packet is reviewed, canonical Codex must read its exact immutable
+4. After the user says that packet is reviewed, canonical Codex must read its exact immutable
    snapshot and response from the local handoff bundle, then create only the smallest separate
    bibliography, Developer-opinion, identity, source-gap, balance, or no-change proposal. Any
    accepted clinical change still requires explicit implementation plus Database/rule-trace and
    affected-patient/reference-run audit.
-3. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
+5. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
    their source-specific acknowledgment boundary. Do not expand the hard-coded MDD profile until
    source-revision ownership/reuse and packet supersession are designed.
-4. After the personal-note decisions, address the six literature profiles for which no suitable
-   recent meta-analysis exists using direct authoritative evidence rather than a forced synthesis:
-   ECG monitoring threshold, normal-ECG disposition, remote/controlled seizure history with
-   bupropion, continue-versus-switch after a normal ECG, targeted initial-MDD tests, and
-   cyclothymia duration/near-miss logic. Keep each as its own evidence question.
-5. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
+6. Keep `source-request.mdd.tsh-workup` open. CANMAT supplies useful targeted-workup context but
+   does not by itself settle a universal or case-specific TSH reward, so no granular rule should be
+   inferred from the current packet.
+7. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
    corrigendum impact, complete WHO DEP1–DEP4 review, atomize one BAP recommendation while excluding
    BFCRS instrument content pending rights review, and complete the VA/DoD item-level rights audit
    before semantic indexing.
-6. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
+8. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
    worker can preserve its exact bytes, hash, rights state, and manifest entry. Never report those
    four sources as extracted before that happens.
-7. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
+9. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
    `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Saving a comment
    is never automatic clinical approval or authorization to alter a rule.
 

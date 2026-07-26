@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.2.0",
+  "contentVersion": "1.3.0",
   "id": "source-use-decisions.psychsim",
   "decisions": [
     {
@@ -615,6 +615,179 @@
       "reviewedBy": "reviewer.codex-source-rights-audit",
       "reviewedAt": "2026-07-24T16:00:00.000Z",
       "notes": "Bibliographic metadata only."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.mhra.citalopram-escitalopram-qt.2014",
+      "evidenceSourceId": "evidence.mhra.citalopram-escitalopram-qt.2014",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "territories": ["Global, subject to the Open Government Licence v3.0"],
+      "attributionStatement": "Contains public sector information licensed under the Open Government Licence v3.0. Source page published by the Medicines and Healthcare products Regulatory Agency.",
+      "requiredNotices": [
+        "Identify adaptations and do not imply MHRA, Crown, or U.K. government endorsement.",
+        "Exclude linked and separately credited third-party material.",
+        "Verify the current source page before converting a proposition into an approved rule."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "excluded",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T16:00:00.000Z",
+      "notes": "OGL coverage permits developer-side synthesis and concise original derived propositions. This rights decision is not medical approval and does not establish a game-point magnitude."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.nhs.heart-palpitations.2026",
+      "evidenceSourceId": "evidence.nhs.heart-palpitations.2026",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "territories": ["Global, subject to the Open Government Licence v3.0 and NHS website terms"],
+      "attributionStatement": "Contains public sector information licensed under the Open Government Licence v3.0.",
+      "requiredNotices": [
+        "Use the generic OGL attribution for adapted or non-refreshed content; do not present the adaptation as authored or approved by the NHS.",
+        "Do not imply endorsement and exclude NHS logos, visual identity, media, medical devices, and third-party material.",
+        "Keep derived use in the developer review workflow until a runtime attribution and update policy is approved.",
+        "Recheck the source after its stated next-review date or any detected page change."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "excluded",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T16:00:00.000Z",
+      "notes": "This decision permits an internal, medically unreviewed evidence packet. Runtime redistribution remains disabled because PsychSim's precise provenance display must be reconciled with the NHS terms for adapted content."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.nhs.cyclothymia.2023",
+      "evidenceSourceId": "evidence.nhs.cyclothymia.2023",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "territories": ["Global, subject to the Open Government Licence v3.0 and NHS website terms"],
+      "attributionStatement": "Contains public sector information licensed under the Open Government Licence v3.0.",
+      "requiredNotices": [
+        "Use the generic OGL attribution for adapted or non-refreshed content; do not present the adaptation as authored or approved by the NHS.",
+        "Do not imply endorsement and exclude NHS logos, visual identity, media, medical devices, and third-party material.",
+        "Keep derived use in the developer review workflow until a runtime attribution and update policy is approved.",
+        "Recheck the source no later than October 9, 2026 or upon a detected page change."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "excluded",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T16:00:00.000Z",
+      "notes": "This decision permits internal review of a narrow duration proposition. It does not approve a complete diagnostic implementation, settle the teenager/adult boundary, or authorize runtime trace display."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.va-dod.bipolar.2023",
+      "evidenceSourceId": "evidence.va-dod.bipolar.2023",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "territories": ["United States"],
+      "attributionStatement": "Source: Department of Veterans Affairs and Department of Defense, VA/DoD Clinical Practice Guideline for Management of Bipolar Disorder, 2023.",
+      "requiredNotices": [
+        "Limit current use to protected local extraction and bibliographic review.",
+        "Audit every table, instrument, image, and credited element for third-party rights before further processing.",
+        "Do not imply VA, DoD, or U.S. government endorsement."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T16:00:00.000Z",
+      "notes": "Government-authored portions are generally public domain in the United States, but this pass stops at local extraction and metadata until embedded third-party material is audited."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.villanueva.epilepsy-depression-consensus.2023",
+      "evidenceSourceId": "evidence.villanueva.epilepsy-depression-consensus.2023",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": false
+      },
+      "territories": ["Global, subject to CC BY-NC 4.0"],
+      "attributionStatement": "Villanueva V, et al. Proposed Recommendations for the Management of Depression in Adults with Epilepsy: An Expert Consensus. Neurology and Therapy. 2023. CC BY-NC 4.0.",
+      "requiredNotices": [
+        "Give source and licence attribution and identify adaptations.",
+        "Do not imply author, publisher, or expert-panel endorsement.",
+        "Keep all use noncommercial and review third-party material separately.",
+        "Label consensus-based conclusions and their uncertainty accurately."
+      ],
+      "nonCommercialOnly": true,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T16:00:00.000Z",
+      "notes": "The PMC Open Access service identifies the article as CC BY-NC. The source is expert consensus and may support a cautious review proposal, not an absolute safety claim, a clinician-approved rule, or a point value."
     }
   ]
 }
