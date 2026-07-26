@@ -1,0 +1,74 @@
+.source-review-snapshot {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+  padding: 0.85rem;
+  border: 1px solid #5f5831;
+  background: #090e08;
+}
+
+.source-review-snapshot > header,
+.source-review-proposals article > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.source-review-snapshot > header p {
+  margin: 0;
+}
+
+.source-review-policy {
+  padding-left: 0.65rem;
+  border-left: 2px solid var(--gold);
+}
+
+.source-review-proposals {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.source-review-proposals article {
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  background: #050c08;
+}
+
+.source-review-proposals article > header strong {
+  color: var(--teal-dark);
+  font: 800 0.7rem/1.2 var(--mono);
+  text-transform: uppercase;
+}
+
+.source-review-uncertainty {
+  padding-left: 0.55rem;
+  border-left: 2px solid #7a6d3a;
+}
+
+.source-review-uncertainty strong {
+  color: var(--gold);
+}
+
+.source-review-proposals dl,
+.source-review-metadata {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.65rem 0 0;
+}
+
+.source-review-proposals dt,
+.source-review-metadata dt {
+  color: var(--gold);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.source-review-proposals dd,
+.source-review-metadata dd {
+  margin: 0.12rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}

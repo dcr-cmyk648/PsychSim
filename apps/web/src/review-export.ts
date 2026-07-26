@@ -22,7 +22,7 @@ export const buildClinicalTicketExportBundle = (input: {
 }): ClinicalTicketExportBundle =>
   ClinicalTicketExportBundleSchema.parse({
     schemaVersion: 1,
-    exportVersion: 6,
+    exportVersion: 7,
     bundleId: `review-bundle.${input.exportedAt.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-')}`,
     buildKind: input.buildKind,
     assignmentId: input.assignmentId,

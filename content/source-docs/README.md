@@ -131,6 +131,20 @@ plain-language reviewer judgment, a separate canonical-Codex versioned proposal,
 database/rule edit, and then Database plus patient/reference-run audit. Saving reviewer prose never
 directly mutates content.
 
+Prepare and validate one such packet with:
+
+```sh
+pnpm content:source-review:prepare
+pnpm content:sources:validate
+```
+
+The preparer accepts exactly one complete parser-v5 `sectionInstance`. It stores the browser-safe
+packet under ignored `content/generated/source-review/` and the private source locator under this
+directory's ignored `manifests/`; both are mode `0600`. If the selected material is not covered by
+the required source-specific semantic/transmission acknowledgment, prepare only a metadata
+boundary packet. Do not read or paraphrase the source merely because its bytes were locally
+authorized for preservation and extraction.
+
 Raw extraction is not a citation database. A formal article, guideline, or regulatory source must also have a tracked bibliographic entry under `content/catalogs/evidence/formal/`, and each clinical use must record what it contributed. Uncataloged notes and personal material are Expert opinion and cannot inherit a formal citation.
 
 Free-to-read is not the same as free to process. Check the formal record's `accessPolicy` before

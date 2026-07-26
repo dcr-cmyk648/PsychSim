@@ -92,6 +92,7 @@ pnpm test:e2e
 pnpm test:e2e:reviewer
 pnpm content:validate
 pnpm content:sources:validate
+pnpm content:source-review:prepare
 pnpm content:scan
 pnpm content:extract
 pnpm content:extract -- --refresh-entry <source-manifest-id>
@@ -260,6 +261,17 @@ guideline/source` creates a `source_gap` ticket; check existing evidence before 
   captured patient, events, choices, receipt, and trace to turn each observation into the smallest
   appropriate ticket or versioned change. Do not infer what the reviewer saw from current content,
   and do not treat a saved case review as automatic authorization to alter clinical rules.
+- Private source review uses the same ticket queue only through an immutable
+  `SourceReviewSnapshot`. Prepare exactly one complete parser-v5 heading unit at a time; keep exact
+  document/chunk locators in a separate mode-0600 private manifest; expose only a concise original
+  paraphrase, atomic proposals, public catalog targets, uncertainty, currentness, rights state, and
+  boundary question. The packet hash covers every displayed and routing field. Saving reviewer
+  prose never changes a source, claim, rule, point, or approval. A second packet for the same
+  source-unit fingerprint requires an explicit future supersession record. Private source packets
+  load only through the loopback Vite bridge and are forbidden from Player and portable Reviewer
+  builds/exports. Do not semantically summarize a private source for Codex unless its
+  source-specific external-processing command has recorded every required acknowledgment;
+  otherwise create metadata-only quarantine/boundary work.
 - The portable Reviewer build uses the same exact-attempt review record on desktop or mobile.
   Several completed-case reviews, flags, and tickets persist in its separate IndexedDB database and
   export together in one versioned JSON file. That browser/device is the only durable copy until

@@ -120,6 +120,9 @@ export const verifyProductionBundle = async (
     'content/generated/personal-knowledge',
     'Personal knowledge workbench',
     'Candidate material only — no gameplay effect',
+    '/__psychsim/source-review-tickets',
+    'content/generated/source-review',
+    'Unreviewed source summary · no gameplay effect',
     ...authoringOnlyRegistryMarkers,
   ];
 

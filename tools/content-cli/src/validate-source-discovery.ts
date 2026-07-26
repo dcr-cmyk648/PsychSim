@@ -18,6 +18,7 @@ import {
   sourceParserUsesStructuredProvenance,
   validateSourceManifestArtifactCoverage,
 } from './source-pipeline';
+import { validateSourceReviewPrivateState } from './source-review-packets';
 
 const manifestPath = resolve('content/source-docs/manifests/google-drive-discovery.json');
 
@@ -161,6 +162,14 @@ try {
     );
   } else {
     console.log('PASS no private personal-knowledge workflow state');
+  }
+  const sourceReview = await validateSourceReviewPrivateState();
+  if (sourceReview) {
+    console.log(
+      `PASS private source-review state (${sourceReview.tickets} immutable ticket packet${sourceReview.tickets === 1 ? '' : 's'})`,
+    );
+  } else {
+    console.log('PASS no private source-review packets');
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Source discovery validation failed.');

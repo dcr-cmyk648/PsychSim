@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import type {
   CaseInstance,
@@ -22,6 +22,13 @@ import { LiteratureSynthesisProposalView } from './LiteratureSynthesisProposalVi
 import { SourceRequestQueue } from './SourceRequestQueue';
 import { TicketLiteratureScoutView } from './TicketLiteratureScoutView';
 
+const SourceReviewSnapshotView = import.meta.env.DEV
+  ? lazy(async () => {
+      const module = await import('./SourceReviewSnapshotView');
+      return { default: module.SourceReviewSnapshotView };
+    })
+  : null;
+
 export interface PatientSlotPreview {
   id: string;
   casePreview: CaseInstance;
@@ -42,6 +49,7 @@ interface ClinicHubProps {
   literatureSynthesisProposals?: readonly LiteratureSynthesisProposal[];
   ticketLiteratureScoutCatalog?: TicketLiteratureScoutCatalog | null;
   developerKnowledgeWorkbench?: ReactNode;
+  sourceReviewFeedHealthy?: boolean;
   onStart: (slotId: string) => void;
   onOpenDatabase?: () => void;
   onOpenSavedAttempt?: (attemptId: string) => void;
@@ -95,6 +103,7 @@ interface TicketReviewCardProps {
   literatureSynthesisProposal: LiteratureSynthesisProposal | null;
   ticketLiteratureScoutCatalog: TicketLiteratureScoutCatalog | null;
   onSave: ClinicHubProps['onSaveTicketReview'];
+  readOnlyReason?: string;
   compact?: boolean;
 }
 
@@ -104,6 +113,7 @@ function TicketReviewCard({
   literatureSynthesisProposal,
   ticketLiteratureScoutCatalog,
   onSave,
+  readOnlyReason,
   compact = false,
 }: TicketReviewCardProps) {
   const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
@@ -151,10 +161,16 @@ function TicketReviewCard({
     setFocusedOpen(false);
     focusedReturn.current?.focus();
   };
+  const sourceReviewSnapshot = ticket.sourceReviewSnapshot;
 
   const detailBody = (idPrefix: 'inline' | 'focused') => (
     <div className="developer-question-body ticket-card-body">
       <div>
+        {sourceReviewSnapshot && SourceReviewSnapshotView ? (
+          <Suspense fallback={<p className="audit-disclaimer">Loading local source packet…</p>}>
+            <SourceReviewSnapshotView snapshot={sourceReviewSnapshot} />
+          </Suspense>
+        ) : null}
         <h4>Decision needed</h4>
         <p>{ticket.guidance}</p>
         {caseRuleAudit ? (
@@ -223,6 +239,11 @@ function TicketReviewCard({
         </details>
       </div>
       <div className="ticket-review-fields">
+        {readOnlyReason ? (
+          <p className="ticket-tool-status" role="alert">
+            {readOnlyReason}
+          </p>
+        ) : null}
         <label htmlFor={`${idPrefix}-ticket-reviewer-notes-${ticket.id}`}>
           Your response, judgment, or alternative references
         </label>
@@ -232,6 +253,7 @@ function TicketReviewCard({
           rows={6}
           maxLength={8000}
           placeholder="Agree, disagree, qualify the proposed direction, describe the desired change, or paste better references."
+          disabled={Boolean(readOnlyReason)}
           onChange={(event) => {
             setReviewerNotes(event.target.value);
             setSaveMessage(null);
@@ -244,7 +266,7 @@ function TicketReviewCard({
         <button
           className="secondary-button"
           type="button"
-          disabled={!dirty || saving}
+          disabled={Boolean(readOnlyReason) || !dirty || saving}
           onClick={() => void saveReview()}
         >
           {saving
@@ -280,7 +302,11 @@ function TicketReviewCard({
                 </small>
               </span>
               <span className="source-status">
-                {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
+                {readOnlyReason
+                  ? 'Quarantined'
+                  : ticket.reviewerNotes.trim()
+                    ? 'Response saved'
+                    : 'Response needed'}
               </span>
             </>
           }
@@ -320,7 +346,11 @@ function TicketReviewCard({
             </small>
           </span>
           <span className="source-status">
-            {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
+            {readOnlyReason
+              ? 'Quarantined'
+              : ticket.reviewerNotes.trim()
+                ? 'Response saved'
+                : 'Response needed'}
           </span>
         </span>
         <span aria-hidden="true">Open</span>
@@ -443,6 +473,7 @@ export function ClinicHub({
   literatureSynthesisProposals = [],
   ticketLiteratureScoutCatalog = null,
   developerKnowledgeWorkbench = null,
+  sourceReviewFeedHealthy = true,
   onStart,
   onOpenDatabase = () => undefined,
   onOpenSavedAttempt = () => undefined,
@@ -1069,6 +1100,11 @@ export function ClinicHub({
                         literatureSynthesisProposal={null}
                         ticketLiteratureScoutCatalog={null}
                         onSave={onSaveTicketReview}
+                        readOnlyReason={
+                          ticket.sourceReviewSnapshot && !sourceReviewFeedHealthy
+                            ? 'This cached source packet is read-only because its private locator is currently quarantined. Repair and revalidate the local source feed before adding a response.'
+                            : undefined
+                        }
                         compact
                       />
                     ))}
@@ -1095,6 +1131,11 @@ export function ClinicHub({
                           literatureSynthesisProposal={synthesisByTicketId.get(ticket.id) ?? null}
                           ticketLiteratureScoutCatalog={localTicketLiteratureScoutCatalog}
                           onSave={onSaveTicketReview}
+                          readOnlyReason={
+                            ticket.sourceReviewSnapshot && !sourceReviewFeedHealthy
+                              ? 'This cached source packet is read-only because its private locator is currently quarantined. Repair and revalidate the local source feed before adding a response.'
+                              : undefined
+                          }
                         />
                       ))}
                     </div>
@@ -1120,6 +1161,11 @@ export function ClinicHub({
                               }
                               ticketLiteratureScoutCatalog={localTicketLiteratureScoutCatalog}
                               onSave={onSaveTicketReview}
+                              readOnlyReason={
+                                ticket.sourceReviewSnapshot && !sourceReviewFeedHealthy
+                                  ? 'This cached source packet is read-only because its private locator is currently quarantined. Repair and revalidate the local source feed before adding a response.'
+                                  : undefined
+                              }
                             />
                           ))}
                         </div>

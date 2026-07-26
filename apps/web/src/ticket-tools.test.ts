@@ -93,7 +93,7 @@ describe('developer ticket tools', () => {
       completedAttempts: [],
     });
     expect(bundle).toMatchObject({
-      exportVersion: 6,
+      exportVersion: 7,
       buildKind: 'local_developer',
       assignmentId: null,
       tickets: [{ ...ticket, reviewerNotes: '', reviewerNotesUpdatedAt: null }],

@@ -64,6 +64,8 @@ const localTicketWriterTools =
   import.meta.env.DEV && !REVIEWER_BUILD ? import('./ticket-tools') : null;
 const personalKnowledgeWorkbenchTools =
   import.meta.env.DEV && !REVIEWER_BUILD ? import('./components/PersonalKnowledgeWorkbench') : null;
+const sourceReviewTicketTools =
+  import.meta.env.DEV && !REVIEWER_BUILD ? import('./source-review-tickets') : null;
 
 const createInitialSave = (): SaveData =>
   SaveDataSchema.parse({
@@ -141,6 +143,7 @@ export default function App() {
   const [developerTicketLiteratureScoutCatalog, setDeveloperTicketLiteratureScoutCatalog] =
     useState<TicketLiteratureScoutCatalog | null>(null);
   const [saveData, setSaveData] = useState<SaveData | null>(null);
+  const [sourceReviewFeedError, setSourceReviewFeedError] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>('hub');
   const [mobileWorkflowPane, setMobileWorkflowPane] = useState<MobileWorkflowPane>('patient');
   const [encounter, setEncounter] = useState<EncounterState | null>(null);
@@ -206,14 +209,31 @@ export default function App() {
             literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
             ticketLiteratureScoutCatalog: null as TicketLiteratureScoutCatalog | null,
           });
-    void Promise.all([repository.load(), developerContent])
-      .then(async ([saved, developerData]) => {
+    const sourceReviewTickets = sourceReviewTicketTools
+      ? sourceReviewTicketTools
+          .then((module) => module.loadSourceReviewTickets())
+          .then((tickets) => ({ tickets, error: null as string | null }))
+          .catch((caught: unknown) => ({
+            tickets: [] as ClinicalReviewTicket[],
+            error:
+              caught instanceof Error
+                ? `Source-review packets were quarantined: ${caught.message}`
+                : 'Source-review packets were quarantined because the local feed is invalid.',
+          }))
+      : Promise.resolve({ tickets: [] as ClinicalReviewTicket[], error: null as string | null });
+    void Promise.all([repository.load(), developerContent, sourceReviewTickets])
+      .then(async ([saved, developerData, localSourceReviewResult]) => {
         if (!active) return;
-        const hydrated = withFilledQueues(
-          saved ?? createInitialSave(),
-          developerData.blueprints,
-          developerData.auditTickets,
-        );
+        const sourceFeedError =
+          localSourceReviewResult.error ??
+          (localSourceReviewResult.tickets.length === 0 &&
+          saved?.clinicalTickets.some((ticket) => ticket.sourceReviewSnapshot)
+            ? 'Source-review packets were quarantined because their private local feed is unavailable.'
+            : null);
+        const hydrated = withFilledQueues(saved ?? createInitialSave(), developerData.blueprints, [
+          ...developerData.auditTickets,
+          ...localSourceReviewResult.tickets,
+        ]);
         await repository.save(hydrated);
         if (!active) return;
         setDeveloperBlueprints(developerData.blueprints);
@@ -222,6 +242,10 @@ export default function App() {
         setDeveloperSourceRequests(developerData.sourceRequests);
         setDeveloperLiteratureSynthesisProposals(developerData.literatureSynthesisProposals);
         setDeveloperTicketLiteratureScoutCatalog(developerData.ticketLiteratureScoutCatalog);
+        setSourceReviewFeedError(sourceFeedError);
+        if (sourceFeedError) {
+          setTicketToolStatus(sourceFeedError);
+        }
         setSaveData(hydrated);
       })
       .catch((caught: unknown) => {
@@ -661,7 +685,9 @@ export default function App() {
       profileId: sourceSave.profile.id,
       buildKind: REVIEWER_BUILD ? 'portable_reviewer' : 'local_developer',
       assignmentId: REVIEWER_BUILD ? REVIEWER_ASSIGNMENT_ID : null,
-      tickets: sourceSave.clinicalTickets,
+      tickets: sourceReviewFeedError
+        ? sourceSave.clinicalTickets.filter((ticket) => !ticket.sourceReviewSnapshot)
+        : sourceSave.clinicalTickets,
       attemptReviews: sourceSave.attemptReviews,
       databaseEntryReviews: sourceSave.databaseEntryReviews,
       flags: sourceSave.flags,
@@ -717,6 +743,10 @@ export default function App() {
     if (!saveData) return;
     const ticket = saveData.clinicalTickets.find((candidate) => candidate.id === ticketId);
     if (!ticket) return;
+    if (ticket.sourceReviewSnapshot && sourceReviewFeedError) {
+      setTicketToolStatus(sourceReviewFeedError);
+      return;
+    }
     const normalizedNotes = reviewerNotes.trim();
 
     const updatedAt = new Date().toISOString();
@@ -880,6 +910,7 @@ export default function App() {
               <PersonalKnowledgeWorkbenchComponent projection={personalKnowledgeProjection} />
             ) : null
           }
+          sourceReviewFeedHealthy={!sourceReviewFeedError}
           onStart={startPatientSlot}
           onOpenDatabase={() => {
             returnFocusId.current = 'database-launch-button';
@@ -893,7 +924,7 @@ export default function App() {
           onSaveTicketReview={saveTicketReview}
           onWriteTickets={() => void writeTicketsToWorkspace()}
           onExportTickets={() => void exportTickets()}
-          ticketToolStatus={ticketToolStatus}
+          ticketToolStatus={sourceReviewFeedError ?? ticketToolStatus}
           onPurchaseUpgrade={(upgradeId) => void buyUpgrade(upgradeId)}
           onConfigureStaffAutomation={(staffUpgradeId, actionIds) =>
             void updateStaffAutomation(staffUpgradeId, actionIds)
@@ -906,7 +937,7 @@ export default function App() {
           projection={publicClinicalCatalog}
           reviews={saveData.databaseEntryReviews}
           reviewToolsEnabled={REVIEW_TOOLS_ENABLED}
-          reviewStatusMessage={ticketToolStatus}
+          reviewStatusMessage={sourceReviewFeedError ?? ticketToolStatus}
           exportAvailable={
             saveData.databaseEntryReviews.length > 0 ||
             saveData.attemptReviews.length > 0 ||

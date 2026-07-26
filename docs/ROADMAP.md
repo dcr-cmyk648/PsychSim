@@ -46,7 +46,7 @@ depression, acute mania, schizophrenia relapse, and PTSD) through eight shared p
 decision policies. The separate static Reviewer artifact includes mobile workspace tabs,
 mobile-only immediate-result dialogs, newest/oldest reveal ordering, read-only post-submit context,
 near-top general feedback, reopenable completed receipts, an assignment-versioned IndexedDB, and
-one version-6 export containing multiple completed attempts, case reviews, database-entry
+one version-7 export containing multiple completed attempts, case reviews, database-entry
 reviews, flags, and tickets. GitHub Pages
 deploys this finite Reviewer artifact from `main`; it does not include the local Developer glob,
 source/opinion queues, ticket discovery, writer endpoint, source bytes, or AI tooling. Assignment
@@ -115,9 +115,10 @@ DrugCentral is now registered as an authoring-only `structured_database` seed un
 initial CC BY-SA gate: local deterministic indexing and unreviewed derived candidates are allowed,
 while AI-assisted processing and runtime/commercial redistribution remain blocked pending an
 isolated ShareAlike package. Evidence precedence is specified as claim- and question-specific
-rather than one pyramid score. The user's private residency-article aggregate is designed as one
-physical source containing many dated logical article units and atomic Developer opinions; no
-SharePoint bytes have been imported.
+rather than one pyramid score. The user's private residency-article aggregate is one protected
+physical source containing many dated logical article units and potential atomic Developer
+opinions. Its exact bytes are downloaded, hashed, and structure-aware extracted; no semantic unit,
+opinion, clinical rule, point value, or runtime content has been incorporated.
 
 Clinical-record and encounter-economy follow-up: medication-list certainty now distinguishes
 unreconciled, verified-none, and provided states; focused medication reconciliation remains
@@ -166,7 +167,11 @@ records relevance-first citation ranking and abstract-only discovery context wit
 formal evidence, changing ticket status, or entering Player/portable Reviewer bundles.
 A further local-only precursor adds a collapsed read-only personal-knowledge dossier projection.
 It separates candidate opinions/bibliography from current runtime balance and offers no apply or
-approval control.
+approval control. An additional immutable-source-packet precursor reuses the same focused ticket
+reader for one concise private-source decision at a time. The browser-safe packet is hash-bound to
+a separate private locator, reviewer prose cannot replace its snapshot, invalid private state is
+quarantined visibly, and Player/portable Reviewer bundles exclude the feature. The first packet is
+metadata-only and does not claim semantic atomization.
 
 Scope: build on the Milestone 1 proposed-ticket queue with exact attempt replay; review inspector; dependency/conflict and supersession workflows; rubric editing; historical comparison/re-score; JSON bundles; reference-policy simulations and QA reports; generated content indexes.
 
@@ -201,6 +206,11 @@ An additional private lexical inventory now covers all 204 authorized title/plai
 against 68 current safe identities. It stores only hashes, IDs, terms, and counts; 72 revisions
 matched at least one known target. Attachments, OCR, remote Drive sources, semantic interpretation,
 unknown-entity discovery, claims, and runtime changes remain outside that inventory.
+The local source manifest now contains 210 extracted artifacts: 204 Apple Notes composites, four
+formal PDFs, and two private Drive DOCX files. All six non-Notes sources use parser v5. Four Drive
+discovery candidates still have no local bytes, hash, or extraction and must not be reported as
+processed. A safe/local packet plus private-locator bridge is delivered, but broad claim
+extraction, source-unit supersession, and the remaining remote transfers are still open.
 
 Scope: SHA-256 scan/manifest/duplicates; PDF, DOCX, TXT, Markdown strategy; extraction/chunks; watch; processed/quarantine; provenance; privacy controls; source review.
 

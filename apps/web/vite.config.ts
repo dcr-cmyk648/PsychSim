@@ -7,6 +7,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
 import { personalKnowledgeWorkbenchBridge } from './personal-knowledge-workbench-plugin';
+import { sourceReviewTicketsBridge } from './source-review-tickets-plugin';
 
 const REVIEWER_BUILD = process.env.VITE_PSYCHSIM_REVIEW_BUILD === '1';
 const LOCAL_TICKET_FILE_NAME =
@@ -81,7 +82,7 @@ const localTicketWriter = (): Plugin => ({
           typeof raw !== 'object' ||
           raw === null ||
           !('exportVersion' in raw) ||
-          raw.exportVersion !== 6 ||
+          raw.exportVersion !== 7 ||
           !('completedAttempts' in raw) ||
           !Array.isArray(raw.completedAttempts) ||
           !('tickets' in raw) ||
@@ -177,7 +178,7 @@ export default defineConfig({
     react(),
     distributionManifest(),
     localTicketWriter(),
-    ...(REVIEWER_BUILD ? [] : [personalKnowledgeWorkbenchBridge()]),
+    ...(REVIEWER_BUILD ? [] : [personalKnowledgeWorkbenchBridge(), sourceReviewTicketsBridge()]),
   ],
   build: {
     sourcemap: true,

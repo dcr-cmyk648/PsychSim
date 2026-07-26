@@ -1,11 +1,27 @@
 # PsychSim project state
 
-Last updated: 2026-07-25
+Last updated: 2026-07-26
 
 ## Operational state
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current beta immutable-source-review checkpoint: feature commit pending. One complete parser-v5
+  source unit can now produce a hash-bound, local-Developer-only `SourceReviewSnapshot` plus a
+  separate private locator. The safe packet enters the existing focused ticket reader; saving
+  prose preserves its exact snapshot and never mutates clinical content. The first aggregate
+  packet is deliberately metadata-only and records the unresolved Word-heading boundary. It
+  creates no clinical atom, source claim, opinion, database entry, rule, point, or runtime change.
+- Local source coverage is 210/210 extracted artifacts: 204 Apple Notes composites, four formal
+  PDFs, and two private Drive DOCX files. All six non-Notes artifacts use parser v5. The connected
+  Drive listing has nine items: eight already-known source candidates plus one Reviewer-feedback
+  JSON; no new or changed clinical source was found. Four candidates still lack local bytes,
+  SHA-256, and extraction: psychotic depression, QTc/TdP Funk review, Pink Book 2021, and Brief
+  Therapy Vignettes.
+- Local Developer and portable Reviewer servers were restarted on the current worktree and are
+  available at `http://127.0.0.1:4318/` and `http://127.0.0.1:4319/`. The Developer source endpoint
+  returns exactly one validated safe packet with no private locator markers; the Reviewer endpoint
+  remains absent and falls through to the ordinary app shell.
 - Current beta database-audit checkpoint:
   `99989e9ef5d6a0c0c8caa4bd41a19cc3c08cc312`
   (`Add auditable database reader and medication identities`). The Database opens every public-safe
@@ -110,7 +126,7 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   viewport.
 - Developer and portable Reviewer users may save one free-text comment per database entry. IndexedDB
   is updated first; Developer mirrors the fixed local Codex handoff bundle, while portable Reviewer
-  comments remain on that browser/device until export. Export schema version 6 includes the exact
+  comments remain on that browser/device until export. Export schema version 7 includes the exact
   immutable entry snapshot. Player mode can read the database but has no comment form.
 - The top-left distribution control now says `APP & UPDATES` on desktop, `PHONE INSTALL` only on
   Apple mobile browsers, and `HOME SCREEN APP` when running as an installed web app.
@@ -294,8 +310,8 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   that Notes could enumerate but not save retain explicit status. The seven affected note texts
   remain exported; the attachments alone are quarantined and no partial bytes are trusted.
 - The gitignored mode-`0600` manifest, private revisions, OCR, composites, and extracted chunks are
-  local-only. The source graph now contains 209 extracted artifacts: four prior sources, 204 Notes
-  composites, and one newly pulled Drive DOCX.
+  local-only. The source graph now contains 210 extracted artifacts: 204 Notes composites, four
+  formal PDFs, and two private Drive DOCX files.
 - `content:notes:validate` and `content:sources:validate` pass. Re-running the sync is idempotent;
   the final recovery pass reported 7 newly preserved notes, 197 unchanged notes, and zero
   note-level quarantines.
@@ -334,6 +350,35 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   records, 116 OCR outputs, HTML, composites, extracted chunks, and all remote Drive material. It
   neither discovers unknown entities nor creates evidence, opinions, clinical rules, points, or
   runtime content.
+
+## Verification for immutable source-review checkpoint
+
+Passed locally on 2026-07-26:
+
+- `pnpm content:source-review:prepare`: one immutable metadata-only packet and one private locator;
+  rerun is idempotent.
+- Private packet/feed/draft and Drive discovery files are mode `0600` and gitignored.
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`.
+- `pnpm test`: 40 TypeScript test files / 286 tests plus all 10 handoff tests.
+- Focused source packet/bridge/loader/merge/reader tests: 29 tests.
+- `pnpm content:validate`: all catalogs and 15 executable patients.
+- `pnpm content:sources:validate`: 8 Drive candidates, 210 local manifest entries/210 extracted
+  artifacts, 204 Apple Notes records, 13 personal-knowledge queue records, and one immutable source
+  packet.
+- `pnpm content:compile`, `pnpm content:evidence`, and `pnpm demo:reference-runs`; existing care,
+  expense, and payout baselines remain unchanged.
+- `pnpm build`: Player bundle safety passed (11 files).
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed (15 files).
+- Node 22.23.1 desktop browser gate: 5/5 Player/Developer/Endgame tests.
+- Node 22.23.1 mobile Reviewer gate: 4/4 tests across 390-pixel and 320-pixel projects.
+- Live loopback smoke: Developer and Reviewer roots return 200; the Developer source endpoint
+  returns JSON with exactly one safe packet and no private document/chunk/path marker; Reviewer
+  contains no source endpoint. A fresh browser context opens the packet in Developer mode and
+  confirms its response field is enabled while the private locator is healthy.
+- The first sandboxed `tsx` and loopback attempts failed with environment `EPERM`; the exact root
+  commands and browser gates then passed outside the restricted IPC/network sandbox. Node's
+  nonblocking `module.register()` deprecation warning and Vite's existing large-chunk warning
+  remain.
 
 ## Verification for DOCX structure and aggregate extraction checkpoint
 
@@ -401,7 +446,7 @@ Passed locally on 2026-07-25:
 The browser tests prove the desktop distribution label, 123-record catalog counts, dedicated
 reader, complete strict record, entry-comment persistence, Developer handoff refresh, phone
 viewport containment, portable local persistence, formal-reference reader, and exact export-schema
-version 6 snapshots. Bundle/runtime tests prove private corpus material and the twenty
+version 7 snapshots. Bundle/runtime tests prove private corpus material and the twenty
 identity-only medication records cannot enter gameplay catalogs or formularies.
 
 ## Verification for database-inspection checkpoint `0b714e6`
@@ -463,6 +508,9 @@ candidate wording, citation, summary, or path was printed by aggregate status/va
 
 ## Google Drive source-inbox state
 
+- A fresh connected-folder verification found nine direct items: the same eight clinical/source
+  candidates already represented by the private discovery manifest plus one Reviewer-feedback
+  JSON. No additional clinical source or changed remote timestamp was found.
 - The prior connector failure had a concrete cause: the official Google Drive plugin existed in
   the marketplace cache but was not installed. It is now installed and enabled. The long-lived
   root session does not dynamically gain newly installed connector tools, but a fresh
@@ -493,9 +541,11 @@ candidate wording, citation, summary, or path was printed by aggregate status/va
   verified as a 13,765-byte DOCX with SHA-256
   `804ac28de2b1e8a6836082b1f4f0c461baf3ad60c5478b2e51353bceab4378bf`, then scanned and extracted
   locally as `source-document.804ac28de2b1e8a68360`. No document body was printed or inspected.
-- The Drive discovery manifest has eight candidates: three prior PDFs remain discovered, four
-  sources are pulled/hashed, and `Brief Therapy Vignettes` remains discovered. Continue one source
-  at a time; do not bulk-pull the remaining queue.
+- The Drive discovery manifest has eight candidates. Aggregate notes, Additional notes, WHO, and
+  CANMAT have local verified bytes and extraction. Psychotic depression, QTc/TdP Funk review, Pink
+  Book 2021, and `Brief Therapy Vignettes` remain discovered only, with no local bytes, SHA-256,
+  manifest entry, or extraction. Continue one source at a time; do not bulk-pull the remaining
+  queue.
 - Safe next source intake:
   1. build one local immutable source-review snapshot around one bounded aggregate heading unit;
   2. present only a concise summary, atomic proposals, uncertainty, currentness, rights state, and
@@ -748,34 +798,31 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-1. Add one local-only, typed, immutable `sourceReviewSnapshot` to the existing clinical-ticket
-   workflow. Reuse its desktop/mobile focused reader and free-text response instead of creating
-   another status queue. The snapshot should contain a packet version/hash, opaque private
-   source-unit fingerprint, concise original summary, atomic typed proposals, public target IDs,
-   uncertainty, conflicts/currentness/rights state, `medicalReviewStatus: "unreviewed"`, and
-   `runtimeEffect: false`.
-2. Generate the first packet from exactly one bounded aggregate heading unit. Do not expose raw
-   prose, titles/bylines lacking redistribution clearance, filesystem paths, or chunk text. Keep
-   this first implementation local Developer-only; portable Reviewer inclusion requires a
-   separately reviewed finite safe projection and assignment bump. The packet must surface and
-   resolve the recorded unrecognized-`Title`-style boundary ambiguity rather than assuming it is
-   front matter.
-3. Preserve the packet snapshot once reviewer prose exists. The durable loop is: phone-friendly
-   concise packet → plain-language reviewer judgment → canonical Codex versioned proposal →
-   explicit database/rule edit → Database plus affected patient/reference-run audit. Canonical
-   Codex may create separate versioned identity, bibliography, Developer-opinion, clinical-rule,
-   balance, or no-change proposals. Never let saving the response mutate content directly.
-4. Close each accepted change through existing audit surfaces: the changed public-safe Database
-   entry, exact rule trace, and affected patient/reference runs. This is the core loop the user
-   wants to perform repeatedly on a phone or in the app.
-5. Continue Apple Notes and aggregate interpretation one bounded source revision/unit at a time.
-   Physical or lexical coverage is not semantic review. Keep current medication counts framed as
-   an identity foundation and use reviewer comments plus verified units to propose missing
-   psychiatry medication, therapy, and condition identities.
-6. After user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
-   `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Convert each
-   comment into the smallest separate proposal or versioned edit; saving a comment is never
-   automatic clinical approval or authorization to alter a rule.
+1. In local Developer mode, inspect the first source-boundary ticket as a workflow check. It can
+   support only “keep quarantined/no change”; it intentionally lacks the private context required
+   to decide whether the Word `Title` paragraph is front matter or a new authored unit.
+2. The next bounded engineering task is a safe adapter from the already acknowledged, already
+   classified Apple Notes source revision into one half-page immutable review packet. Reuse its
+   existing packet/model/prompt audit and seven medically unreviewed opinion candidates; do not
+   reread OCR/HTML/attachments or create runtime content. This is the first immediately available
+   semantic packet.
+3. After that packet is reviewed, canonical Codex should create only the smallest separate
+   bibliography, Developer-opinion, identity, source-gap, balance, or no-change proposal. Any
+   accepted clinical change still requires explicit implementation plus Database/rule-trace and
+   affected-patient/reference-run audit.
+4. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
+   their source-specific acknowledgment boundary. Do not expand the hard-coded MDD profile until
+   source-revision ownership/reuse and packet supersession are designed.
+5. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
+   corrigendum impact, complete WHO DEP1–DEP4 review, atomize one BAP recommendation while excluding
+   BFCRS instrument content pending rights review, and complete the VA/DoD item-level rights audit
+   before semantic indexing.
+6. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
+   worker can preserve its exact bytes, hash, rights state, and manifest entry. Never report those
+   four sources as extracted before that happens.
+7. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
+   `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Saving a comment
+   is never automatic clinical approval or authorization to alter a rule.
 
 Keep this mechanism-heavy checkpoint on `beta` until the user explicitly authorizes promotion.
 `main` and the public Pages Reviewer remain on the prior released checkpoint. Do not implement a

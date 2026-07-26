@@ -401,12 +401,147 @@ describe('ClinicHub', () => {
 
     fireEvent.click(screen.getByText('Clinical and content tickets'));
     fireEvent.click(
-      await screen.findByText(ticket.title, {
-        selector: '.review-ticket-inline strong',
+      await screen.findByRole('button', {
+        name: new RegExp(ticket.title),
       }),
     );
     expect(await screen.findByText('Recent meta-analysis context')).toBeVisible();
     expect(screen.getByText('Abstract-only summary')).toBeVisible();
+  });
+
+  it('shows an immutable source packet as a concise local review question', async () => {
+    const packetHash = 'a'.repeat(64);
+    const ticket = ClinicalReviewTicketSchema.parse({
+      schemaVersion: 1,
+      id: `ticket.source-review.${packetHash.slice(0, 24)}`,
+      title: 'Review one imported medication summary',
+      sourceKind: 'source_claim',
+      sourceAuthority: 'source_document',
+      ticketType: 'medication_fit',
+      priority: 'high',
+      status: 'proposed',
+      requiresClinicalAcumen: true,
+      attemptId: null,
+      blueprintId: null,
+      caseContentVersion: null,
+      receiptItemId: null,
+      receiptItemSnapshot: null,
+      targetContentIds: ['medication.bupropion'],
+      dependencyTicketIds: [],
+      conflictContentIds: [],
+      proposedRouting: 'Keep every candidate unreviewed until evidence review.',
+      guidance: 'Which candidate takeaways should proceed to evidence review?',
+      sourceReviewSnapshot: {
+        schemaVersion: 1,
+        packetVersion: 1,
+        packetHash,
+        sourceUnitFingerprint: 'b'.repeat(64),
+        projectionPolicy: 'original_paraphrase_no_source_text',
+        derivedDisplayTitle: 'Review one imported medication summary',
+        decisionQuestion: 'Which candidate takeaways should proceed to evidence review?',
+        proposedRouting: 'Keep every candidate unreviewed until evidence review.',
+        reviewContext: {
+          ticketType: 'medication_fit',
+          priority: 'high',
+          requiresClinicalAcumen: true,
+          dependencyTicketIds: [],
+          conflictContentIds: [],
+          resurfacingTrigger: null,
+        },
+        originalSummary:
+          'A private author note contains medication-fit judgments and unverified reference leads.',
+        atomicProposals: [
+          {
+            schemaVersion: 1,
+            id: 'source-proposal.bupropion.seizure-fit',
+            proposalType: 'developer_opinion',
+            summary:
+              'Treat seizure history as a major negative fit factor without silently making it absolute.',
+            publicTargetContentIds: ['medication.bupropion'],
+            unresolvedTargetLabels: [],
+            uncertainty: ['The magnitude remains a separate balance decision.'],
+          },
+        ],
+        publicTargetContentIds: ['medication.bupropion'],
+        unresolvedTargetLabels: [],
+        uncertainty: ['The imported section boundary needs confirmation.'],
+        conflicts: [],
+        currentness: {
+          status: 'needs_currentness_review',
+          evaluatedThrough: null,
+          note: 'No currentness review has been completed.',
+        },
+        rightsState: {
+          status: 'source_use_decision',
+          sourceUseDecisionId: 'source-use-decision.synthetic',
+          portableReviewAllowed: false,
+          note: 'Local private review only.',
+        },
+        boundaryState: 'uncertain',
+        boundaryQuestion: 'Confirm the section boundary before atomization.',
+        medicalReviewStatus: 'unreviewed',
+        runtimeEffect: false,
+      },
+      resurfacingTrigger: null,
+      resolution: null,
+      createdAt: '2026-07-25T12:00:00.000Z',
+      updatedAt: '2026-07-25T12:00:00.000Z',
+    });
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 5,
+      profile: { ...startingProfile, progressionMode: 'developer' },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [ticket],
+      attemptReviews: [],
+      legacyArchive: [],
+    });
+    const renderSourceHub = (sourceReviewFeedHealthy: boolean) => (
+      <ClinicHub
+        saveData={saveData}
+        clinicState={saveData.profile.clinic}
+        catalogs={catalogs}
+        patientSlots={[]}
+        developerModeAvailable
+        caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
+        sourceRequests={[]}
+        sourceReviewFeedHealthy={sourceReviewFeedHealthy}
+        onStart={vi.fn()}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSaveTicketReview={vi.fn()}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={vi.fn()}
+        upgradeStatus={null}
+      />
+    );
+    const view = render(renderSourceHub(false));
+
+    fireEvent.click(screen.getByText('Clinical and content tickets'));
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: new RegExp(ticket.title),
+      }),
+    );
+    expect(await screen.findByRole('dialog', { name: ticket.title })).toBeVisible();
+    expect(await screen.findByText('Unreviewed source summary · no gameplay effect')).toBeVisible();
+    expect(await screen.findByText(ticket.sourceReviewSnapshot!.originalSummary)).toBeVisible();
+    expect(screen.getByText(/Treat seizure history as a major negative fit/)).toBeVisible();
+    expect(screen.getByText(/Confirm the section boundary before atomization/)).toBeVisible();
+    expect(screen.getAllByText('Quarantined')).not.toHaveLength(0);
+    const responseField = screen.getByRole('textbox', {
+      name: 'Your response, judgment, or alternative references',
+    });
+    expect(responseField).toBeDisabled();
+    view.rerender(renderSourceHub(true));
+    expect(responseField).toBeEnabled();
   });
 
   it('keeps the Developer literature scout out of portable Reviewer even if supplied', async () => {

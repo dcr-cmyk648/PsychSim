@@ -3346,6 +3346,213 @@ export const ClinicalTicketStatusSchema = z.enum([
 ]);
 export type ClinicalTicketStatus = z.infer<typeof ClinicalTicketStatusSchema>;
 
+const SourceReviewHashSchema = z.string().regex(/^[a-f0-9]{64}$/);
+const canonicalStableIds = (values: readonly string[]): string => [...values].sort().join('\0');
+
+export const SourceReviewAtomicProposalSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    proposalType: z.enum([
+      'catalog_identity',
+      'bibliographic_candidate',
+      'developer_opinion',
+      'clinical_rule_candidate',
+      'balance_question',
+      'no_change',
+    ]),
+    summary: z.string().min(1).max(400),
+    publicTargetContentIds: z.array(StableIdSchema).max(20),
+    unresolvedTargetLabels: z.array(z.string().min(1).max(180)).max(20),
+    uncertainty: z.array(z.string().min(1).max(300)).max(4),
+  })
+  .strict()
+  .superRefine((proposal, context) => {
+    if (new Set(proposal.publicTargetContentIds).size !== proposal.publicTargetContentIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['publicTargetContentIds'],
+        message: 'Source-review proposal targets must be unique.',
+      });
+    }
+    if (
+      proposal.publicTargetContentIds.length === 0 &&
+      proposal.unresolvedTargetLabels.length === 0 &&
+      proposal.proposalType !== 'no_change'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['publicTargetContentIds'],
+        message: 'A source-review proposal must identify a public target or unresolved label.',
+      });
+    }
+  });
+export type SourceReviewAtomicProposal = z.infer<typeof SourceReviewAtomicProposalSchema>;
+
+export const SourceReviewSnapshotSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    packetVersion: z.literal(1),
+    packetHash: SourceReviewHashSchema,
+    sourceUnitFingerprint: SourceReviewHashSchema,
+    projectionPolicy: z.literal('original_paraphrase_no_source_text'),
+    derivedDisplayTitle: z.string().min(1).max(180),
+    decisionQuestion: z.string().min(1).max(800),
+    proposedRouting: z.string().min(1).max(500),
+    reviewContext: z
+      .object({
+        ticketType: z.enum([
+          'technical',
+          'case_construction',
+          'test_generation',
+          'medication_fit',
+          'treatment_pathway',
+          'scoring',
+          'narrative',
+          'clinical_conflict',
+          'source_gap',
+        ]),
+        priority: z.enum(['low', 'medium', 'high', 'blocking']),
+        requiresClinicalAcumen: z.boolean(),
+        dependencyTicketIds: z.array(StableIdSchema).max(30),
+        conflictContentIds: z.array(StableIdSchema).max(30),
+        resurfacingTrigger: z.string().min(1).max(500).nullable(),
+      })
+      .strict(),
+    originalSummary: z.string().min(1).max(700),
+    atomicProposals: z.array(SourceReviewAtomicProposalSchema).min(1).max(4),
+    publicTargetContentIds: z.array(StableIdSchema).max(30),
+    unresolvedTargetLabels: z.array(z.string().min(1).max(180)).max(30),
+    uncertainty: z.array(z.string().min(1).max(300)).max(10),
+    conflicts: z.array(z.string().min(1).max(500)).max(10),
+    currentness: z
+      .object({
+        status: z.enum(['needs_currentness_review', 'current', 'superseded', 'retired']),
+        evaluatedThrough: z.string().date().nullable(),
+        note: z.string().min(1).max(500),
+      })
+      .strict(),
+    rightsState: z
+      .object({
+        status: z.enum([
+          'not_assessed',
+          'private_processing_only',
+          'permission_required',
+          'excluded',
+          'source_use_decision',
+        ]),
+        sourceUseDecisionId: StableIdSchema.nullable(),
+        portableReviewAllowed: z.boolean(),
+        note: z.string().min(1).max(600),
+      })
+      .strict(),
+    boundaryState: z.enum(['confirmed', 'uncertain']),
+    boundaryQuestion: z.string().min(1).max(600).nullable(),
+    medicalReviewStatus: z.literal('unreviewed'),
+    runtimeEffect: z.literal(false),
+  })
+  .strict()
+  .superRefine((snapshot, context) => {
+    if (new Set(snapshot.publicTargetContentIds).size !== snapshot.publicTargetContentIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['publicTargetContentIds'],
+        message: 'Source-review snapshot targets must be unique.',
+      });
+    }
+    if (
+      new Set(snapshot.atomicProposals.map((proposal) => proposal.id)).size !==
+      snapshot.atomicProposals.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['atomicProposals'],
+        message: 'Source-review proposal IDs must be unique within a packet.',
+      });
+    }
+    const snapshotTargets = new Set(snapshot.publicTargetContentIds);
+    const unresolvedLabels = new Set(snapshot.unresolvedTargetLabels);
+    snapshot.atomicProposals.forEach((proposal, proposalIndex) => {
+      proposal.publicTargetContentIds.forEach((targetId) => {
+        if (!snapshotTargets.has(targetId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['atomicProposals', proposalIndex, 'publicTargetContentIds'],
+            message: 'Every proposal target must also appear in the packet target list.',
+          });
+        }
+      });
+      proposal.unresolvedTargetLabels.forEach((label) => {
+        if (!unresolvedLabels.has(label)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['atomicProposals', proposalIndex, 'unresolvedTargetLabels'],
+            message:
+              'Every unresolved proposal label must also appear in the packet unresolved-label list.',
+          });
+        }
+      });
+    });
+    if (snapshot.boundaryState === 'uncertain' && snapshot.boundaryQuestion === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['boundaryQuestion'],
+        message: 'An uncertain source boundary requires an explicit reviewer question.',
+      });
+    }
+    if (snapshot.boundaryState === 'confirmed' && snapshot.boundaryQuestion !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['boundaryQuestion'],
+        message: 'A confirmed source boundary cannot retain an unresolved boundary question.',
+      });
+    }
+    if (
+      (snapshot.rightsState.status === 'source_use_decision') !==
+      (snapshot.rightsState.sourceUseDecisionId !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rightsState', 'sourceUseDecisionId'],
+        message:
+          'A source-review rights projection names a source-use decision exactly when that decision governs it.',
+      });
+    }
+    if (
+      snapshot.rightsState.status !== 'source_use_decision' &&
+      snapshot.rightsState.portableReviewAllowed
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rightsState', 'portableReviewAllowed'],
+        message:
+          'Only an explicit source-use decision can permit portable review of a source packet.',
+      });
+    }
+    if (
+      snapshot.rightsState.status === 'excluded' &&
+      snapshot.atomicProposals.some((proposal) => proposal.proposalType !== 'no_change')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['atomicProposals'],
+        message: 'An excluded source can record only a no-change proposal.',
+      });
+    }
+    if (
+      snapshot.rightsState.status !== 'source_use_decision' &&
+      snapshot.atomicProposals.some((proposal) => proposal.proposalType !== 'no_change')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['atomicProposals'],
+        message:
+          'A source without an explicit source-use decision can produce only a metadata no-change packet.',
+      });
+    }
+  });
+export type SourceReviewSnapshot = z.infer<typeof SourceReviewSnapshotSchema>;
+
 export const ClinicalReviewTicketSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -3377,6 +3584,7 @@ export const ClinicalReviewTicketSchema = z
     conflictContentIds: z.array(StableIdSchema),
     proposedRouting: z.string().min(1).max(500),
     guidance: z.string().min(1).max(4000),
+    sourceReviewSnapshot: SourceReviewSnapshotSchema.nullable().default(null),
     reviewerNotes: z.string().max(8000).default(''),
     reviewerNotesUpdatedAt: z.string().datetime().nullable().default(null),
     resurfacingTrigger: z.string().max(500).nullable(),
@@ -3392,8 +3600,132 @@ export const ClinicalReviewTicketSchema = z
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
-  .strict();
+  .strict()
+  .superRefine((ticket, context) => {
+    const snapshot = ticket.sourceReviewSnapshot;
+    if (!snapshot) return;
+    if (ticket.sourceKind !== 'source_claim' || ticket.sourceAuthority !== 'source_document') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceReviewSnapshot'],
+        message: 'A source-review snapshot must remain a source-document claim ticket.',
+      });
+    }
+    if (
+      ticket.attemptId !== null ||
+      ticket.blueprintId !== null ||
+      ticket.caseContentVersion !== null ||
+      ticket.receiptItemId !== null ||
+      ticket.receiptItemSnapshot !== null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceReviewSnapshot'],
+        message: 'A source-review snapshot cannot be bound to a patient attempt or receipt.',
+      });
+    }
+    const ticketTargets = [...ticket.targetContentIds].sort();
+    const snapshotTargets = [...snapshot.publicTargetContentIds].sort();
+    if (
+      ticketTargets.length !== snapshotTargets.length ||
+      ticketTargets.some((targetId, index) => targetId !== snapshotTargets[index])
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['targetContentIds'],
+        message: 'Source-review ticket targets must exactly match its immutable snapshot targets.',
+      });
+    }
+    if (
+      ticket.title !== snapshot.derivedDisplayTitle ||
+      ticket.guidance !== snapshot.decisionQuestion ||
+      ticket.proposedRouting !== snapshot.proposedRouting
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceReviewSnapshot'],
+        message:
+          'Displayed source-review title, question, and routing must match the immutable snapshot.',
+      });
+    }
+    if (
+      ticket.ticketType !== snapshot.reviewContext.ticketType ||
+      ticket.priority !== snapshot.reviewContext.priority ||
+      ticket.requiresClinicalAcumen !== snapshot.reviewContext.requiresClinicalAcumen ||
+      canonicalStableIds(ticket.dependencyTicketIds) !==
+        canonicalStableIds(snapshot.reviewContext.dependencyTicketIds) ||
+      canonicalStableIds(ticket.conflictContentIds) !==
+        canonicalStableIds(snapshot.reviewContext.conflictContentIds) ||
+      ticket.resurfacingTrigger !== snapshot.reviewContext.resurfacingTrigger
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceReviewSnapshot', 'reviewContext'],
+        message: 'Source-review routing context must match the immutable snapshot.',
+      });
+    }
+    if (ticket.id !== `ticket.source-review.${snapshot.packetHash.slice(0, 24)}`) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: 'A source-review ticket ID must be derived from its immutable packet hash.',
+      });
+    }
+  });
 export type ClinicalReviewTicket = z.infer<typeof ClinicalReviewTicketSchema>;
+
+export const SourceReviewTicketFeedSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    projectionVersion: z.literal(1),
+    generatedAt: z.string().datetime(),
+    tickets: z.array(ClinicalReviewTicketSchema).max(100),
+  })
+  .strict()
+  .superRefine((feed, context) => {
+    const ticketIds = new Set<string>();
+    const packetHashes = new Set<string>();
+    feed.tickets.forEach((ticket, index) => {
+      if (!ticket.sourceReviewSnapshot) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tickets', index, 'sourceReviewSnapshot'],
+          message: 'Every local source-review feed ticket requires an immutable snapshot.',
+        });
+        return;
+      }
+      if (
+        ticket.status !== 'proposed' ||
+        ticket.reviewerNotes !== '' ||
+        ticket.reviewerNotesUpdatedAt !== null ||
+        ticket.resolution !== null
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tickets', index],
+          message:
+            'The local source-review feed contains seed packets only; browser review state belongs in SaveData.',
+        });
+      }
+      if (ticketIds.has(ticket.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tickets', index, 'id'],
+          message: 'Source-review feed ticket IDs must be unique.',
+        });
+      }
+      ticketIds.add(ticket.id);
+      if (packetHashes.has(ticket.sourceReviewSnapshot.packetHash)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tickets', index, 'sourceReviewSnapshot', 'packetHash'],
+          message: 'Source-review feed packet hashes must be unique.',
+        });
+      }
+      packetHashes.add(ticket.sourceReviewSnapshot.packetHash);
+    });
+  });
+export type SourceReviewTicketFeed = z.infer<typeof SourceReviewTicketFeedSchema>;
 
 export const SourceRequestStatusSchema = z.enum(['needs_source', 'source_received', 'resolved']);
 export type SourceRequestStatus = z.infer<typeof SourceRequestStatusSchema>;
@@ -3719,7 +4051,7 @@ export type TicketLiteratureScoutCatalog = z.infer<typeof TicketLiteratureScoutC
 export const ClinicalTicketExportBundleSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
-    exportVersion: z.literal(6),
+    exportVersion: z.literal(7),
     bundleId: StableIdSchema,
     buildKind: z.enum(['local_developer', 'portable_reviewer']),
     assignmentId: StableIdSchema.nullable(),
@@ -3739,6 +4071,16 @@ export const ClinicalTicketExportBundleSchema = z
         code: z.ZodIssueCode.custom,
         path: ['assignmentId'],
         message: 'A portable Reviewer export must identify its finite assignment.',
+      });
+    }
+    if (
+      bundle.buildKind === 'portable_reviewer' &&
+      bundle.tickets.some((ticket) => ticket.sourceReviewSnapshot !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['tickets'],
+        message: 'Portable Reviewer exports cannot contain private source-review snapshots.',
       });
     }
     const completedAttemptsById = new Map(

@@ -28,6 +28,7 @@
     "content:notes:sync": "tsx tools/content-cli/src/sync-apple-notes.ts",
     "content:notes:validate": "tsx tools/content-cli/src/validate-apple-notes.ts",
     "content:notes:codex-review": "tsx tools/content-cli/src/prepare-apple-notes-codex-review.ts",
+    "content:source-review:prepare": "node --import tsx tools/content-cli/src/prepare-source-review.ts",
     "content:knowledge:index": "tsx tools/content-cli/src/index-personal-knowledge.ts",
     "content:knowledge:prepare": "tsx tools/content-cli/src/prepare-personal-knowledge-review.ts",
     "content:knowledge:import": "tsx tools/content-cli/src/import-personal-knowledge-review.ts",

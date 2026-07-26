@@ -12,6 +12,19 @@ export const mergeDeveloperAuditTickets = (
   const seededById = new Map(seededTickets.map((ticket) => [ticket.id, ticket]));
   const refreshed = savedTickets.map((ticket) => {
     const seeded = seededById.get(ticket.id);
+    if (seeded && (ticket.sourceReviewSnapshot || seeded.sourceReviewSnapshot)) {
+      if (
+        !ticket.sourceReviewSnapshot ||
+        !seeded.sourceReviewSnapshot ||
+        ticket.sourceReviewSnapshot.packetHash !== seeded.sourceReviewSnapshot.packetHash ||
+        JSON.stringify(ticket.sourceReviewSnapshot) !== JSON.stringify(seeded.sourceReviewSnapshot)
+      ) {
+        throw new Error(
+          `Immutable source-review ticket ${ticket.id} changed under an existing browser record.`,
+        );
+      }
+      return ClinicalReviewTicketSchema.parse(ticket);
+    }
     return seeded
       ? ClinicalReviewTicketSchema.parse({
           ...ticket,

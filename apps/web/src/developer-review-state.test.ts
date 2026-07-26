@@ -30,6 +30,70 @@ const baseTicket = ClinicalReviewTicketSchema.parse({
   updatedAt: '2026-07-22T00:00:00.000Z',
 });
 
+const sourceReviewTicket = ClinicalReviewTicketSchema.parse({
+  ...baseTicket,
+  id: 'ticket.source-review.aaaaaaaaaaaaaaaaaaaaaaaa',
+  title: 'Review one imported medication summary',
+  sourceKind: 'source_claim',
+  sourceAuthority: 'source_document',
+  ticketType: 'medication_fit',
+  attemptId: null,
+  blueprintId: null,
+  caseContentVersion: null,
+  targetContentIds: ['medication.bupropion'],
+  proposedRouting: 'Keep every proposed rule unreviewed until the packet is answered.',
+  guidance: 'Which candidate takeaways should proceed to evidence review?',
+  sourceReviewSnapshot: {
+    schemaVersion: 1,
+    packetVersion: 1,
+    packetHash: 'a'.repeat(64),
+    sourceUnitFingerprint: 'b'.repeat(64),
+    projectionPolicy: 'original_paraphrase_no_source_text',
+    derivedDisplayTitle: 'Review one imported medication summary',
+    decisionQuestion: 'Which candidate takeaways should proceed to evidence review?',
+    proposedRouting: 'Keep every proposed rule unreviewed until the packet is answered.',
+    reviewContext: {
+      ticketType: 'medication_fit',
+      priority: 'high',
+      requiresClinicalAcumen: true,
+      dependencyTicketIds: [],
+      conflictContentIds: [],
+      resurfacingTrigger: null,
+    },
+    originalSummary: 'A private author note contains several candidate medication judgments.',
+    atomicProposals: [
+      {
+        schemaVersion: 1,
+        id: 'source-proposal.bupropion.fit',
+        proposalType: 'developer_opinion',
+        summary: 'Consider one fit modifier only after evidence and clinical review.',
+        publicTargetContentIds: ['medication.bupropion'],
+        unresolvedTargetLabels: [],
+        uncertainty: ['Point magnitude remains undecided.'],
+      },
+    ],
+    publicTargetContentIds: ['medication.bupropion'],
+    unresolvedTargetLabels: [],
+    uncertainty: ['The source is not currentness-reviewed.'],
+    conflicts: [],
+    currentness: {
+      status: 'needs_currentness_review',
+      evaluatedThrough: null,
+      note: 'No currentness review has been completed.',
+    },
+    rightsState: {
+      status: 'source_use_decision',
+      sourceUseDecisionId: 'source-use-decision.synthetic',
+      portableReviewAllowed: false,
+      note: 'Local review only.',
+    },
+    boundaryState: 'uncertain',
+    boundaryQuestion: 'Confirm the imported heading boundary before atomization.',
+    medicalReviewStatus: 'unreviewed',
+    runtimeEffect: false,
+  },
+});
+
 describe('developer review state', () => {
   it('refreshes exact targets while retaining locally authored instructions', () => {
     const saved = ClinicalReviewTicketSchema.parse({
@@ -77,5 +141,48 @@ describe('developer review state', () => {
         reviewerNotes: 'Keep this linked to the patient I reviewed.',
       }),
     ]);
+  });
+
+  it('preserves an immutable source packet after it enters browser-owned review state', () => {
+    const saved = ClinicalReviewTicketSchema.parse({
+      ...sourceReviewTicket,
+      status: 'in_review',
+      reviewerNotes: 'Keep the seizure judgment separate from the efficacy claims.',
+      reviewerNotesUpdatedAt: '2026-07-25T20:00:00.000Z',
+    });
+    const seeded = ClinicalReviewTicketSchema.parse({
+      ...sourceReviewTicket,
+      updatedAt: '2026-07-25T21:00:00.000Z',
+    });
+
+    expect(mergeDeveloperAuditTickets([saved], [seeded])).toEqual([saved]);
+  });
+
+  it('rejects a source packet hash change under an existing ticket ID', () => {
+    const changed = {
+      ...sourceReviewTicket,
+      sourceReviewSnapshot: {
+        ...sourceReviewTicket.sourceReviewSnapshot!,
+        packetHash: 'c'.repeat(64),
+      },
+    } as typeof sourceReviewTicket;
+
+    expect(() => mergeDeveloperAuditTickets([sourceReviewTicket], [changed])).toThrow(
+      'Immutable source-review ticket',
+    );
+  });
+
+  it('rejects source packet content drift even when a stale hash is retained', () => {
+    const changed = {
+      ...sourceReviewTicket,
+      sourceReviewSnapshot: {
+        ...sourceReviewTicket.sourceReviewSnapshot!,
+        originalSummary: 'Changed content with the old packet hash.',
+      },
+    } as typeof sourceReviewTicket;
+
+    expect(() => mergeDeveloperAuditTickets([sourceReviewTicket], [changed])).toThrow(
+      'Immutable source-review ticket',
+    );
   });
 });

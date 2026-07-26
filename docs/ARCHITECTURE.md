@@ -144,7 +144,7 @@ snapshot principle to one review-safe database entry. IndexedDB sits behind `Sav
 
 The ordinary Player and local Developer surfaces use `psychsim-local-save`. The portable Reviewer
 uses an assignment-namespaced database, forces practice progression, and can reopen every completed
-receipt after reload. Its version-6 download contains build kind, assignment identity, engine
+receipt after reload. Its version-7 download contains build kind, assignment identity, engine
 version, all completed attempts, case comments and normalized option snapshots, database-entry
 comments, flags, and tickets.
 Several cases can be reviewed before one manual export. The export is the only cross-device
@@ -380,9 +380,11 @@ The connected Drive folder `PsychSim documents` is a remote discovery inbox. An 
 The user's SharePoint residency-article aggregate follows the same private-byte boundary but needs
 one additional logical segmentation layer: one physical `SourceDocument` contains multiple
 `AuthoredSourceUnit` articles, each of which can yield atomic Developer-opinion and bibliographic
-candidates. The current environment has no SharePoint connector. A heading-preserving manual
-export must enter the local or Drive inbox; exact article prose remains private and only accepted
-concise opinions become tracked content.
+candidates. A prior connector-enabled worker exported the exact native document into the protected
+local inbox, and parser v5 now preserves its heading instances and locator hashes. Connector access
+is session-specific: a worker can verify the current Drive listing, while a thread without the
+connector can still use the already verified local bytes. Exact article prose remains private and
+only reviewed, concise opinions may become tracked candidates.
 
 Before discovery, a versioned `SourceRequest` may identify the unresolved question and its acceptable evidence. Requests are tracked under review content, registered as runtime-excluded, and validated against exact content and ticket IDs. Linking a source moves the evidence workflow forward but never changes the executable rule; a separate contribution, content version, impact scan, and clinical review remain mandatory.
 
@@ -396,3 +398,24 @@ browser, and a portable reviewer must export before clearing site data or changi
 device/browser/origin. Pages provides no application authentication; access control, if desired,
 must be supplied outside this static app. There is no anti-cheat, server authority, or protected
 economy. These are intentional product constraints, not missing backend tasks.
+
+## Immutable local source-review packets
+
+`tools/content-cli/src/source-review-packets.ts` bridges protected parser-v5 artifacts into the
+existing Developer ticket workflow without creating a parallel clinical engine. One preparation
+selects exactly one complete `sectionInstance`. The source-unit fingerprint covers the document
+text hash, parser version, warning list/count, and every selected chunk locator, text hash, and
+provenance hash. The public packet hash separately covers the concise paraphrase, every atomic
+proposal, public targets, uncertainty/currentness/rights/boundary state, and all displayed ticket
+routing.
+
+The safe feed lives under ignored `content/generated/source-review/`; exact document/chunk locators
+live under ignored `content/source-docs/manifests/`. Both are mode `0600`, validated as a one-to-one
+pair, and updated with rollback. Re-running the same packet is idempotent. A different packet for
+the same source-unit fingerprint fails closed until an explicit supersession model exists.
+
+The Vite development server exposes the safe feed only to loopback requests. Invalid permissions,
+schema, path containment, or feed contents return a visible quarantine error rather than an empty
+queue. The renderer is a development-only lazy module. Player and portable Reviewer bundles,
+portable exports, source text, headings, private IDs, and the endpoint are all excluded by build
+gates.

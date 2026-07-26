@@ -395,7 +395,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       receipt: unknown;
     }>;
   };
-  expect(bundle.exportVersion).toBe(6);
+  expect(bundle.exportVersion).toBe(7);
   expect(bundle.buildKind).toBe('portable_reviewer');
   expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07f');
   expect(bundle.attemptReviews).toHaveLength(2);

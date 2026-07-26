@@ -122,7 +122,7 @@ near the top of Results. Every completed receipt can be reopened after reload so
 phone session does not strand unsaved feedback.
 
 Reviewer feedback is local to that browser/device/origin until export. Several case comments,
-database-entry comments, item flags, and generated tickets can be accumulated in one version-6 JSON
+database-entry comments, item flags, and generated tickets can be accumulated in one version-7 JSON
 bundle. It includes the assignment ID, every completed attempt, exact resolved patient and event
 history, normalized offered options for commented cases, selections, receipt, and rule trace. The
 reviewer can email that one file to the project owner. There is currently no account sync, server
@@ -244,6 +244,21 @@ normalization only: it does not supply indications, comparative efficacy, contra
 interactions, monitoring, or medical approval. Adding 20 identity-only records did not expand the
 formulary, patient treatments, scoring, or medication point rules. Developer tickets still own
 therapy identity/fidelity normalization and broader outpatient diagnosis coverage.
+
+Local source preparation now has a strict review-packet bridge:
+
+```sh
+pnpm content:source-review:prepare
+pnpm content:sources:validate
+```
+
+The preparer accepts one complete parser-v5 heading unit, writes an immutable safe ticket feed and
+a separate private locator manifest, and changes no database entry, rule, point, or runtime
+content. Developer mode may read the safe feed over loopback; Player and portable Reviewer builds
+and exports reject it. The first packet is deliberately metadata-only because the imported
+personal archive still has an unresolved heading warning and no source-specific external-AI
+transmission acknowledgment. The 204 Apple Notes title/plaintext revisions remain in their
+separately acknowledged one-source-at-a-time workflow.
 
 ## Static deployment
 

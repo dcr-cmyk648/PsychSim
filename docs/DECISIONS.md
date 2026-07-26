@@ -870,8 +870,10 @@ assigns points.
 
 ## D-109 — The residency-article aggregate is a private container for dated Developer opinions
 
-Status: accepted as an intake design; no SharePoint bytes or opinions have been imported. The long
-aggregate export is one private, hashed `SourceDocument` containing many logical
+Status: accepted as an intake design. At this decision's checkpoint no SharePoint bytes or
+opinions had been imported; D-139 through D-142 record the later exact-byte extraction and
+metadata-only review bridge without opinion or runtime incorporation. The long aggregate export is
+one private, hashed `SourceDocument` containing many logical
 `AuthoredSourceUnit` articles, not one formal source or one mega-opinion. Each article unit keeps
 its original title, byline, URL/venue, original and revision dates, section/chunk provenance,
 asserted authorship, rights status, and currentness. Short atomic `DeveloperOpinion` candidates and
@@ -1440,7 +1442,7 @@ timestamps. Saving first updates assignment-scoped IndexedDB. Local Developer th
 complete bundle to the fixed gitignored Codex handoff file; portable Reviewer includes it in the
 manual download. A comment never edits or approves the catalog.
 
-The review wire format is version 6 and now contains `databaseEntryReviews` alongside completed
+The review wire format is version 7 and contains `databaseEntryReviews` alongside completed
 attempts, attempt reviews, flags, and tickets. This additive browser-save field remains under
 `saveDataVersion: 5`; older v5 saves receive an empty collection without losing prior data.
 Reviewer assignment `2026-07f` remains valid because no patient, policy, or intended case cohort
@@ -1551,3 +1553,40 @@ retains exactly one warning for an unrecognized Word `Title` style; semantic rev
 that paragraph is front matter or a logical boundary. Heading paths establish deterministic
 candidate boundaries; they do not by themselves create authored units, evidence, Developer
 opinions, clinical rules, points, approval, or runtime content.
+
+## D-142 — Private source review uses an immutable safe packet and separate locator
+
+**Decision:** One local private-source review decision is represented as a
+`SourceReviewSnapshot` embedded in the existing proposed `ClinicalReviewTicket`, not as a parallel
+queue or clinical engine. One preparation selects exactly one complete parser-v5
+`sectionInstance`. A browser-safe packet stores only a concise original paraphrase, one to eight
+atomic proposals (at most four), public target IDs or explicit unresolved labels, uncertainty, conflicts,
+currentness, rights/boundary state, and the exact displayed ticket-routing context. It never stores
+raw source text, source headings, filenames, private provider IDs, document/chunk IDs, or
+filesystem paths.
+
+A separate mode-`0600`, gitignored locator stores the exact private document/chunk identities,
+hashes, parser warnings, and source-unit fingerprint. The safe packet hash covers every displayed
+and routing field; the source-unit fingerprint covers the parser artifact and every selected chunk
+locator, text hash, and provenance hash. Validation re-reads the extraction artifact and fails
+closed on drift, invalid permissions, path escape, warning mismatch, incomplete/noncontiguous
+units, unknown public targets, or a missing one-to-one packet/locator pair. Re-running an identical
+packet is idempotent. A different packet for the same source-unit fingerprint is rejected until an
+explicit supersession workflow is designed.
+
+The safe feed is seed-only. Reviewer prose and resolution remain browser-owned save data, and
+saving them cannot mutate source, evidence, opinion, clinical, balance, or runtime content.
+Developer mode exposes the safe feed only through a loopback read-only bridge and a lazy
+development-only renderer. Invalid private state surfaces as quarantine rather than an empty
+queue. A cached browser snapshot becomes read-only and is omitted from new handoff/export bundles
+while its private locator is invalid; unrelated saved profile/review state remains intact. Player
+and portable Reviewer bundles, portable exports, and source-document production paths reject this
+feature.
+
+Local preservation or extraction permission does not imply permission to transmit source text for
+semantic processing. When the exact source lacks the required source-specific external-processing
+acknowledgment, Codex may prepare only a metadata boundary packet. The first aggregate packet
+therefore records its unresolved heading warning and no-change quarantine question; it does not
+atomize clinical content or provide enough context to resolve the boundary. The next semantic step
+requires a source-specific acknowledged one-unit review or a separately designed local-only
+boundary inspector.

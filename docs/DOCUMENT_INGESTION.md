@@ -108,6 +108,14 @@ catatonia article. NICE, APA, ACE Singapore, and ASAM records remain metadata-on
 current terms require permission or prohibit AI ingestion. See
 [the intake map](RECOMMENDED_GUIDELINE_SOURCE_MAP.md) for exact IDs and tickets.
 
+The current connected-folder verification found nine direct items: eight clinical/source
+candidates already represented by the private discovery manifest and one Reviewer-feedback JSON
+that is not a clinical source. No new candidate or changed remote timestamp was found. Four
+discovery candidates still have no downloaded bytes, SHA-256, local manifest record, or extraction:
+the psychotic-depression PDF, QTc/TdP Funk review PDF, Pink Book 2021 PDF, and Brief Therapy
+Vignettes Doc. They remain discovered only and must be transferred one at a time under the ordinary
+source-identity and rights checks.
+
 ## Apple Notes private research intake
 
 On macOS, the folder named exactly `Psych research` is a local private source inbox. The adapter
@@ -295,6 +303,13 @@ that paragraph is front matter or a logical authored-unit boundary. Semantic rev
 candidates, Developer opinions, bibliography candidates, database changes, rule changes, and
 runtime incorporation have not begun. Gameplay content is unchanged.
 
+The first generated `SourceReviewSnapshot` is therefore metadata-only. It records the unresolved
+heading-boundary warning and asks whether the aggregate should remain semantically quarantined. It
+does not contain the private heading or source prose and cannot resolve the ambiguity by itself.
+Semantic atomization remains blocked until a source-specific acknowledged one-unit review or a
+separate local-only boundary inspector can show sufficient private context without widening the
+runtime or portable-review surface.
+
 The aggregate is one physical, private, hashed `SourceDocument`, but each original article is a
 separate future `AuthoredSourceUnit`. Article units preserve title, byline, original URL/venue,
 original and revised dates, heading path, chunk IDs, asserted authorship, rights status, and
@@ -349,11 +364,35 @@ separable throughout.
 | `pnpm content:knowledge:prepare -- …`                    | Release the next missing segment from the prioritized source revision under explicit acknowledgments; make no provider or API call.                                                                                           |
 | `pnpm content:knowledge:import -- <private-result>`      | Strictly validate and idempotently import one private candidate classification; create no evidence, rules, points, tickets, citations, or approval.                                                                           |
 | `pnpm content:knowledge:status`                          | Validate queue/workspace state and refresh the ignored, read-only local Developer projection without printing private content.                                                                                                |
+| `pnpm content:source-review:prepare`                     | Validate and persist one complete parser-v5 source unit as an immutable safe Developer ticket plus a separate private locator; make no rule, point, approval, or runtime change.                                              |
 | `pnpm content:review`                                    | List extracted source IDs/chunk counts and current Developer review patients without printing source text.                                                                                                                    |
 | `pnpm content:evidence`                                  | List every formal evidence record, linked contributions or unused status, and expert-opinion coverage.                                                                                                                        |
 | `pnpm content:draft <request.json>`                      | Create a medically unreviewed patient scaffold, local provenance, and blocking clinical-audit tickets.                                                                                                                        |
 | `pnpm content:compile`                                   | Schema- and semantically validate every review patient; it never promotes one.                                                                                                                                                |
 | `pnpm content:sources:validate`                          | Validate Drive/local manifests, duplicate references, document/chunk relationships, and text hashes.                                                                                                                          |
+
+## Current local extraction inventory
+
+The protected manifest currently contains 210 entries and 210 corresponding extracted artifacts:
+204 Apple Notes Markdown composites, four formal PDFs, and two private Drive DOCX files. All six
+non-Notes sources use parser v5 and every one of their 504 chunks has a locator/body
+`provenanceHash`. The four PDF source chunk IDs and text hashes remained stable through refresh, so
+all 12 tracked provenance references continue to resolve. No duplicate or missing active artifact
+is known.
+
+The Apple Notes corpus has 204/204 title/plaintext revisions and 124 attachment records. Local OCR
+completed for 116 attachments; one format is unsupported and seven attachment saves failed while
+their note text remained available. Those OCR, HTML, attachment, composite, and generic extracted
+chunk representations remain outside the authorized semantic scope. The current bounded MDD queue
+contains 13 exact Notes revisions: one classified into unreviewed candidates and 12 awaiting
+one-revision-at-a-time review. This is review workload, not incorporated knowledge.
+
+`Additional notes` is extracted into two parser-sized chunks but has no heading unit, so the current
+complete-`sectionInstance` source-review selector deliberately cannot packetize it. Its logical
+authored-unit boundaries must be reviewed before semantic use. The aggregate contains 27 heading
+instances plus one unsectioned preamble and the single warning described above. Extraction
+coverage is therefore high; review throughput, source rights/currentness, and immutable
+adjudication—not more bulk parsing—are the limiting steps.
 
 The scanner has a 50 MiB per-file safety bound and ignores dotfiles. It uses a content hash plus filename-derived stable entry ID, so re-running the same inbox converges while a differently named byte-identical file receives a duplicate record linked to its primary. Successful originals are renamed into `processed/` with their manifest ID; duplicates go to `archive/`; failures go to `quarantine/`. None is deleted.
 

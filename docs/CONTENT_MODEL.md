@@ -363,7 +363,7 @@ normalized snapshot of every option offered and whether it was chosen; informati
 preserve displayed fulfillment and cost. A `DatabaseEntryReview` similarly owns one editable note
 and the exact strict public-entry snapshot. Local Developer mode persists these records in
 IndexedDB and mirrors or downloads them. Portable Reviewer uses a separate assignment-versioned
-IndexedDB and manual version-6 export only. One bundle identifies its build kind, assignment, and
+IndexedDB and manual version-7 export only. One bundle identifies its build kind, assignment, and
 engine version and includes every completed attempt plus all attempt reviews, database-entry
 reviews, flags, and tickets, so feedback retains its historical context. There is no bundle import
 yet.
@@ -371,3 +371,16 @@ Neither save nor export mutates clinical rules or confers approval. Material cha
 membership, scenario/policy semantics, or the intended review package require a new assignment ID;
 reusing an ID could suppress revised patients through old run history and mix incompatible
 revisions in one browser database.
+
+`SourceReviewSnapshot` is the local-only source-review record embedded in a proposed
+`ClinicalReviewTicket`. It contains a hash of the exact displayed decision packet, an independent
+fingerprint of the private source unit, a short original paraphrase, one to eight atomic proposals,
+public-safe target IDs or unresolved labels, uncertainty/conflicts, currentness, rights and
+boundary states, and immutable routing context. It is always medically unreviewed and has
+`runtimeEffect: false`.
+
+The safe snapshot never owns raw source text, source headings, filenames, document IDs, chunk IDs,
+filesystem paths, or private provider identifiers. Those remain in a one-to-one
+`SourceReviewPrivateLocator` manifest. Source feed records are seed-only (`proposed`, no reviewer
+prose or resolution); browser-owned responses remain in `SaveData`. Local Developer export version
+7 may preserve them for Codex handoff, while portable Reviewer export rejects them.

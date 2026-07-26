@@ -14,6 +14,7 @@ const milestoneTwoTicket = (
     | 'receiptItemSnapshot'
     | 'dependencyTicketIds'
     | 'conflictContentIds'
+    | 'sourceReviewSnapshot'
     | 'reviewerNotes'
     | 'reviewerNotesUpdatedAt'
     | 'resurfacingTrigger'
@@ -34,6 +35,7 @@ const milestoneTwoTicket = (
     receiptItemSnapshot: null,
     dependencyTicketIds: [],
     conflictContentIds: [],
+    sourceReviewSnapshot: null,
     resurfacingTrigger: null,
     resolution: null,
     createdAt: '2026-07-22T00:00:00.000Z',

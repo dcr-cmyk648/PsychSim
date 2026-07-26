@@ -89,7 +89,7 @@ Portable Reviewer is a separate static artifact for a colleague using desktop or
 workspace writer or local authoring queues. Its assignment-versioned IndexedDB retains patient
 slots, completed attempts, flags, tickets, and multiple case notes on that one browser/device. A
 completed receipt can be reopened after reload to add or edit feedback. Manual Export downloads
-one version-6 JSON bundle containing build kind, assignment identity, engine version, all completed
+one version-7 JSON bundle containing build kind, assignment identity, engine version, all completed
 attempts, all `DeveloperAttemptReview` option snapshots, all `DatabaseEntryReview` snapshots, all
 flags, and all tickets. The reviewer
 can complete several cases and email the single file to the project owner. There is no server sync
@@ -115,7 +115,7 @@ private-source, or arbitrary workspace queue.
 
 On desktop, the full ticket can be expanded inline or opened in a focused dialog. On mobile, a
 compact ticket launcher opens the same content and response field in a full-screen dialog.
-Responses use the assignment's existing IndexedDB and version-6 export. They do not write to the
+Responses use the assignment's existing IndexedDB and version-7 export. They do not write to the
 repository, edit a patient or rule, or confer medical approval. The owner must still supply the
 exported bundle to Codex.
 
@@ -165,6 +165,45 @@ terms. Their tickets ask for permission or scope adjudication; they do not parap
 recommendations. VA/DoD, CANMAT, BAP, and WHO have local protected documents, but their rule-level
 tickets remain medically unreviewed. A published correction is a separate evidence record linked
 to the affected source and must be checked before downstream review continues.
+
+## Immutable private-source review packets
+
+Private personal material enters the same local Developer ticket queue through a narrower
+`SourceReviewSnapshot`, not through tracked source-review ticket files. One preparation selects
+exactly one complete parser-v5 `sectionInstance` and writes two mode-`0600`, gitignored records:
+
+- a browser-safe decision packet containing a short original paraphrase, one to four atomic
+  proposals, public catalog targets or explicit unresolved labels, uncertainty, conflicts,
+  currentness, rights/boundary state, and the exact ticket routing shown to the reviewer;
+- a private locator containing the source-document/chunk identities, hashes, parser warnings, and
+  source-unit fingerprint needed to reproduce and audit that packet.
+
+The public packet never contains raw source text, headings, filenames, provider IDs, filesystem
+paths, document IDs, or chunk IDs. Its hash covers every displayed and routing field. The separate
+source-unit fingerprint covers the exact parser artifact and chunk locators. Re-preparing the same
+packet is idempotent; a different packet for the same fingerprint is rejected until an explicit
+supersession workflow exists.
+
+Developer mode presents this as one concise decision at a time in the existing responsive focused
+reader on the local loopback device. The layout can be tested at phone widths, but private packets
+are not available to a separate physical phone or the portable Reviewer. Saving prose updates
+IndexedDB and the ordinary local Codex handoff bundle while preserving the exact original
+snapshot. It does not modify a source unit, create a claim, accept an opinion, attach evidence,
+edit a rule, change points, or grant medical approval.
+
+If the safe feed or private locator later fails validation, an already saved packet remains visible
+only as historical context and becomes read-only. It is omitted from new handoff/export bundles
+until private validation recovers; unrelated profile and review data remain usable.
+Canonical Codex later interprets the response and prepares the smallest separate versioned
+proposal. Any accepted implementation must still pass its normal source-use, provenance, review,
+impact, reference-run, and release gates.
+
+The first generated packet is intentionally a metadata-only quarantine decision for the private
+residency-article aggregate. It records that one Word heading-boundary warning remains unresolved
+and asks whether semantic work should remain paused. Because it contains no source-unit context, it
+cannot itself resolve that boundary or atomize clinical content. The unblock is a source-specific
+acknowledged one-unit semantic review or a separately designed local-only boundary inspector.
+Portable Reviewer rejects `SourceReviewSnapshot` records; this queue remains local Developer-only.
 
 ## Exact rule audit and source-needed queue
 
