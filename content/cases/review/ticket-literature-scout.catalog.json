@@ -930,19 +930,43 @@
       "exemptionReason": null
     },
     {
+      "ticketId": "ticket.source.mdd.tsh-workup-threshold",
+      "profileIds": ["literature-profile.mdd.initial-assessment-targeted-labs"],
+      "exemptionReason": null
+    },
+    {
       "ticketId": "ticket.source.canmat-mdd.initial-modality",
       "profileIds": ["literature-profile.mdd.initial-modality"],
       "exemptionReason": null
     },
     {
+      "ticketId": "ticket.source.mdd.severity-generator-policy",
+      "profileIds": [],
+      "exemptionReason": "This is a diagnostic-standard and generator-policy decision. Treatment-effect meta-analysis can expose incompatible severity groupings but cannot select the authoritative MDD severity envelopes."
+    },
+    {
       "ticketId": "ticket.source.canmat-mdd.antidepressant-baseline",
       "profileIds": [
         "literature-profile.mdd.antidepressant-baseline-fit",
-        "literature-profile.mdd.antidepressant-weight-metabolic-fit",
-        "literature-profile.mdd.antidepressant-sexual-function-fit",
-        "literature-profile.mdd.antidepressant-sleep-sedation-fit",
-        "literature-profile.mdd.antidepressant-tolerability-adherence-fit",
         "literature-profile.mdd.antidepressant-symptom-moderators-fit"
+      ],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.mdd.antidepressant-sleep-fit",
+      "profileIds": ["literature-profile.mdd.antidepressant-sleep-sedation-fit"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.mdd.antidepressant-weight-fit",
+      "profileIds": ["literature-profile.mdd.antidepressant-weight-metabolic-fit"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.mdd.antidepressant-sexual-adherence-fit",
+      "profileIds": [
+        "literature-profile.mdd.antidepressant-sexual-function-fit",
+        "literature-profile.mdd.antidepressant-tolerability-adherence-fit"
       ],
       "exemptionReason": null
     },
@@ -987,6 +1011,21 @@
       "exemptionReason": null
     },
     {
+      "ticketId": "ticket.source.canmat-mdd.regimen-intent-taxonomy",
+      "profileIds": ["literature-profile.medications.regimen-combination-boundaries"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.inadequate-response-route",
+      "profileIds": ["literature-profile.medications.regimen-combination-boundaries"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.canmat-mdd.switch-transition-state",
+      "profileIds": ["literature-profile.medications.regimen-combination-boundaries"],
+      "exemptionReason": null
+    },
+    {
       "ticketId": "ticket.source.va-dod-suicide-risk.2024-intake",
       "profileIds": ["literature-profile.suicide-risk.disposition-factors"],
       "exemptionReason": null
@@ -1005,11 +1044,6 @@
       "ticketId": "ticket.source.apa-delirium.2025-access-and-scope",
       "profileIds": [],
       "exemptionReason": "The current decision is permission and whether delirium belongs in a future focused game snapshot. A meta-analysis cannot resolve either product-scope or reuse terms."
-    },
-    {
-      "ticketId": "ticket.source.canmat-mdd.2025-corrigendum",
-      "profileIds": [],
-      "exemptionReason": "This is a bibliographic correction-impact check against the parent guideline, not a clinical synthesis question."
     },
     {
       "ticketId": "ticket.source.bap-catatonia.2023-intake",

@@ -406,10 +406,10 @@ describe('ClinicHub', () => {
       }),
     );
     expect(await screen.findByText('Recent meta-analysis context')).toBeVisible();
-    expect(screen.getAllByText('Abstract-only summary')).toHaveLength(6);
+    expect(screen.getAllByText('Abstract-only summary')).toHaveLength(2);
     expect(
       screen.getByText(
-        /Which medication-specific short-term weight and cardiometabolic effects are supported/,
+        /Does recent meta-analytic evidence support reliably personalizing antidepressant benefit/,
       ),
     ).toBeVisible();
   });

@@ -35,6 +35,14 @@ describe('developer clinical audit queue', () => {
       'ticket.source.canmat-mdd.antidepressant-baseline',
       'ticket.source.canmat-mdd.psychotherapy-catalog',
       'ticket.source.canmat-mdd.disposition-severity',
+      'ticket.source.mdd.severity-generator-policy',
+      'ticket.source.mdd.antidepressant-sleep-fit',
+      'ticket.source.mdd.tsh-workup-threshold',
+      'ticket.source.mdd.antidepressant-weight-fit',
+      'ticket.source.mdd.antidepressant-sexual-adherence-fit',
+      'ticket.source.canmat-mdd.regimen-intent-taxonomy',
+      'ticket.source.canmat-mdd.inadequate-response-route',
+      'ticket.source.canmat-mdd.switch-transition-state',
       'ticket.source.who-mhgap.dep1-antidepressant-baseline',
       'ticket.source.who-mhgap.dep2-continuation-patient',
       'ticket.source.who-mhgap.dep3-psychotherapy-catalog',
@@ -109,7 +117,12 @@ describe('developer clinical audit queue', () => {
         expect.objectContaining({
           id: 'source-request.medications.regimen-combination-boundaries',
           status: 'needs_source',
-          linkedTicketIds: ['ticket.catalog.medications.normalized-regimen-risk-benefit'],
+          linkedTicketIds: [
+            'ticket.catalog.medications.normalized-regimen-risk-benefit',
+            'ticket.source.canmat-mdd.regimen-intent-taxonomy',
+            'ticket.source.canmat-mdd.inadequate-response-route',
+            'ticket.source.canmat-mdd.switch-transition-state',
+          ],
           targetContentIds: expect.arrayContaining([
             'grade.review-mdd.multiple-antidepressant-starts',
             'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
@@ -126,7 +139,7 @@ describe('developer clinical audit queue', () => {
   });
 
   it('keeps evidence-synthesis proposals in the Developer-only module', () => {
-    expect(developerLiteratureSynthesisProposals).toHaveLength(7);
+    expect(developerLiteratureSynthesisProposals).toHaveLength(22);
     expect(developerLiteratureSynthesisProposals).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -141,6 +154,41 @@ describe('developer clinical audit queue', () => {
         }),
         expect.objectContaining({
           id: 'literature-synthesis.bupropion.seizure-history.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.who-mhgap.dep4-treatment-modality.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.bap-catatonia.snapshot-relevance.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.mdd.severity-generator-policy.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.mdd.antidepressant-fit-frame.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.mdd.tsh-workup-threshold.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.mdd.suicide-risk-disposition.2026-07-26',
+          medicalReviewStatus: 'unreviewed',
+          pointMagnitudeExcluded: true,
+        }),
+        expect.objectContaining({
+          id: 'literature-synthesis.canmat-mdd.switch-transition-state.2026-07-26',
           medicalReviewStatus: 'unreviewed',
           pointMagnitudeExcluded: true,
         }),
@@ -202,7 +250,6 @@ describe('developer clinical audit queue', () => {
       'ticket.source.nice-self-harm.ng225-access',
       'ticket.source.apa-bpd.2024-access-and-scope',
       'ticket.source.apa-delirium.2025-access-and-scope',
-      'ticket.source.canmat-mdd.2025-corrigendum',
       'ticket.source.bap-catatonia.2023-intake',
       'ticket.source.bfcrs.1996-reuse',
       'ticket.source.ace-gad.2025-access-and-scope',
@@ -217,6 +264,13 @@ describe('developer clinical audit queue', () => {
     });
     expect(byId.get('ticket.source.bap-catatonia.2023-intake')).toMatchObject({
       status: 'accepted_for_workflow',
+    });
+    expect(byId.get('ticket.source.canmat-mdd.2025-corrigendum')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: false,
+      resolution: {
+        disposition: 'no_change',
+      },
     });
     expect(byId.get('ticket.source.bfcrs.1996-reuse')).toMatchObject({
       status: 'proposed',

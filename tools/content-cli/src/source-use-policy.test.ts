@@ -137,6 +137,58 @@ describe('source-use policy decisions', () => {
     });
   });
 
+  it('keeps the verified CANMAT author-name correction metadata-only', async () => {
+    const catalog = await readCatalog();
+    const correction = catalog.decisions.find(
+      (decision) =>
+        decision.evidenceSourceId === 'evidence.canmat.mdd-adults.2023-update-corrigendum.2025',
+    )!;
+
+    expect(correction).toMatchObject({
+      contentVersion: '1.1.0',
+      decisionStatus: 'metadata_only',
+      legalBasis: 'metadata_only',
+      permissions: {
+        bibliographicMetadata: true,
+        localFullTextStorage: false,
+        localTextExtraction: false,
+        localStructuredIndexing: false,
+        aiAssistedProcessing: false,
+        derivedClinicalContent: false,
+        runtimeRedistribution: false,
+        commercialDistribution: false,
+      },
+    });
+    expect(correction.notes).toContain('Lena S. Quilty became Lena C. Quilty');
+  });
+
+  it('keeps the item-audited VA/DoD sources out of AI-derived content', async () => {
+    const catalog = await readCatalog();
+    for (const evidenceSourceId of [
+      'evidence.va-dod.suicide-risk.2024',
+      'evidence.va-dod.bipolar.2023',
+    ]) {
+      const decision = catalog.decisions.find(
+        (candidate) => candidate.evidenceSourceId === evidenceSourceId,
+      )!;
+      expect(decision).toMatchObject({
+        decisionStatus: 'permitted_with_conditions',
+        permissions: {
+          localStructuredIndexing: false,
+          aiAssistedProcessing: false,
+          derivedClinicalContent: false,
+          runtimeRedistribution: false,
+          commercialDistribution: false,
+        },
+      });
+    }
+    expect(
+      catalog.decisions.find(
+        (decision) => decision.evidenceSourceId === 'evidence.va-dod.suicide-risk.2024',
+      )?.notes,
+    ).toContain('does not authorize either');
+  });
+
   it('records exactly one source-use decision for every formal source', async () => {
     const catalog = await readCatalog();
     const formalDirectory = resolve('content/catalogs/evidence/formal');

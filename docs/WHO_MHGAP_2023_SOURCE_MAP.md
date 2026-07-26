@@ -39,12 +39,12 @@ Process one module and one recommendation group at a time:
 
 ## First slice: depression DEP1–DEP4
 
-| Recommendation | Local chunks | Candidate use                                                                                                                    | Current disposition                                                           |
-| -------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| DEP1           | `.87`, `.88` | Broad antidepressant baseline plus selection/safety context for moderate-to-severe depression                                    | Ticketed; no shared or scoring rule activated                                 |
-| DEP2           | `.88`, `.89` | A future continuation/remission/adherence/adverse-effect best-next-step patient                                                  | Ticketed for case design; not copied into the initial-treatment patient       |
-| DEP3           | `.90`, `.91` | Discrete psychotherapy catalog entries and a broad structured-therapy family                                                     | Ticketed; missing therapy entries and possible double counting require review |
-| DEP4           | `.91`, `.92` | Medication, psychotherapy, and combined-treatment route logic conditioned on availability, preferences, and benefit/harm balance | Blocking review ticket; no pathway changed                                    |
+| Recommendation | Local chunks | Candidate use                                                                                                                    | Current disposition                                                   |
+| -------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| DEP1           | `.87`, `.88` | Broad antidepressant baseline plus selection/safety context for moderate-to-severe depression                                    | Unreviewed, point-excluded synthesis packet; no rule activated        |
+| DEP2           | `.88`, `.89` | A future continuation/remission/adherence/adverse-effect best-next-step patient                                                  | Unreviewed snapshot-design packet; no longitudinal mechanics added    |
+| DEP3           | `.90`, `.91` | Discrete psychotherapy catalog entries and a broad structured-therapy family                                                     | Unreviewed catalog-mapping packet; no therapy or scoring rule changed |
+| DEP4           | `.91`, `.92` | Medication, psychotherapy, and combined-treatment route logic conditioned on availability, preferences, and benefit/harm balance | Unreviewed conflict packet; no pathway changed                        |
 
 The first source-backed Developer patient is `case.review.who-mhgap-mdd-initial`. It is a
 deterministic, medically unreviewed scaffold derived from the existing mechanics template. It
@@ -57,6 +57,13 @@ The existing MDD diagnosis-family file now carries one context-only, medically u
 source note for DEP1–DEP4. That note explicitly says the source does not define PsychSim’s
 diagnostic criteria or operational severity thresholds. No base, severity, specifier, treatment, or
 point rule references the note.
+
+Each DEP recommendation now also has exactly one tracked `LiteratureSynthesisProposal` attached to
+its existing Developer ticket. These are concise original adaptations of the source-cleared WHO
+material, retain the non-specialist and certainty limitations, and are explicitly medically
+unreviewed and point-excluded. DEP4 keeps its tension with CANMAT visible instead of averaging the
+sources into a false consensus. DEP2 describes only a possible future continue-versus-stop
+snapshot; it does not authorize virtual time, follow-up intervals, or monitoring simulation.
 
 The DEP1/DEP3/DEP4 source-use records identify proposed shared impact targets in the review ticket.
 Apart from the diagnosis file’s context-only provenance note, they do not mutate diagnosis

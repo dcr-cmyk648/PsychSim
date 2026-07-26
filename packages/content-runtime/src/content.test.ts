@@ -388,14 +388,21 @@ describe('prototype content', () => {
       (source) => source.id === 'evidence.canmat.mdd-adults.2023-update-corrigendum.2025',
     )!;
     expect(correction).toMatchObject({
+      contentVersion: '1.1.0',
       sourceType: 'correction_notice',
       sourceRelations: [
         {
           sourceId: 'evidence.canmat.mdd-adults.2023-update',
           relationType: 'corrects',
+          note: expect.stringContaining('Lena S. Quilty to Lena C. Quilty'),
         },
       ],
     });
+    const parent = catalogs.evidenceSources.find(
+      (source) => source.id === 'evidence.canmat.mdd-adults.2023-update',
+    )!;
+    expect(parent.authors).toContain('Lena C. Quilty');
+    expect(parent.authors).not.toContain('Lena S. Quilty');
 
     const invalid = structuredClone(catalogs);
     invalid.evidenceSources.find(

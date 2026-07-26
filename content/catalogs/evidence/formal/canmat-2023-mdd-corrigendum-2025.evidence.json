@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
   "authority": "formal_publication",
   "sourceType": "correction_notice",
@@ -17,7 +17,7 @@
   "pages": "652",
   "doi": "10.1177/07067437251349087",
   "pmid": "40490255",
-  "url": "https://pubmed.ncbi.nlm.nih.gov/40490255/",
+  "url": "https://journals.sagepub.com/doi/full/10.1177/07067437251349087",
   "citation": "Corrigendum to Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults. Can J Psychiatry. 2025;70(8):652. doi:10.1177/07067437251349087.",
   "knownContentHashes": [],
   "jurisdictions": ["Canada"],
@@ -27,22 +27,22 @@
     {
       "sourceId": "evidence.canmat.mdd-adults.2023-update",
       "relationType": "corrects",
-      "note": "Published correction notice for the CANMAT guideline. The exact correction and whether it has any clinical-rule impact remain explicit review items."
+      "note": "The notice corrects the author name Lena S. Quilty to Lena C. Quilty. It does not change a recommendation, table, evidence statement, or other clinical content."
     }
   ],
   "accessPolicy": {
     "fullTextStatus": "public",
-    "reuseStatus": "not_verified",
-    "adaptationStatus": "not_verified",
-    "commercialUseStatus": "not_verified",
-    "aiUseStatus": "not_verified",
-    "localExtractionStatus": "not_verified",
+    "reuseStatus": "permission_required",
+    "adaptationStatus": "permission_required",
+    "commercialUseStatus": "permission_required",
+    "aiUseStatus": "permission_required",
+    "localExtractionStatus": "permission_required",
     "licenseLabel": null,
     "licenseUrl": null,
     "termsUrl": "https://pmc.ncbi.nlm.nih.gov/about/copyright/",
-    "note": "Bibliographic metadata and the correction relationship are verified. The correction record is not in the PMC Open Access Subset, so no local full-text ingestion was performed."
+    "note": "The primary SAGE page verifies that the correction changes only Lena Quilty's middle initial and that the online parent article was updated. The notice is free to read but provides no reusable licence, and PMCID PMC12149145 is not in the PMC Open Access Subset. PsychSim retains metadata and the exact correction relationship only; no local full-text ingestion was performed."
   },
-  "metadataReviewedAt": "2026-07-23T16:40:00.000Z",
+  "metadataReviewedAt": "2026-07-26T17:00:00.000Z",
   "bibliographicStatus": "verified",
   "medicalReviewStatus": "unreviewed"
 }

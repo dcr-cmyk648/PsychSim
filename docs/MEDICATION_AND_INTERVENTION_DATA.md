@@ -327,6 +327,21 @@ Accordingly, PsychSim stores verified bibliography and independently worded abst
 discovery context only. Detailed medication claims require a current, legally processable source
 and separate psychiatrist review.
 
+### Current fit and regimen review packets
+
+The review queue splits antidepressant fit into a broad modifier envelope and three independently
+auditable subdomains: sleep; weight/physiology; and sexual effects/adherence. Population-average
+effects and adverse-effect signals do not automatically establish a BMI-specific rule,
+diabetes-specific outcome, individual medication ranking, adherence prediction, or point
+magnitude. Existing modifiers remain provisional and unchanged.
+
+The regimen queue separately distinguishes simultaneous combination, later adjunctive treatment,
+indiscriminate multi-start prescribing, and a deliberate medication transition. A future switch
+may use categorical intent plus pair-specific compatibility; it must not introduce virtual time or
+infer a safe cross-taper from start/stop selections alone. These packets neither remove the current
+case-specific shotgun consequence nor generalize it into a universal interaction or
+contraindication. No runtime rule or point value changed.
+
 ## File ownership and the “one medication file” editing experience
 
 The user should still be able to inspect one medication or therapy at a time. That does not require

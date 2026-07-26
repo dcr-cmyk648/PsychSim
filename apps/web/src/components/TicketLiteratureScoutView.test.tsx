@@ -19,12 +19,10 @@ describe('TicketLiteratureScoutView', () => {
       />,
     );
 
-    expect(screen.getAllByText('Abstract-only summary')).toHaveLength(6);
-    expect(screen.getAllByText(/Across 522 trials and 116,477 adults/)).toHaveLength(2);
-    expect(screen.getByText(/151 trials and 17 FDA reports/)).toBeInTheDocument();
-    expect(screen.getByText(/216 acute depression trials/)).toBeInTheDocument();
+    expect(screen.getAllByText('Abstract-only summary')).toHaveLength(2);
+    expect(screen.getByText(/Across 522 trials and 116,477 adults/)).toBeInTheDocument();
     expect(screen.getByText(/91 placebo-controlled trials/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Europe PMC cited by 2,220/)).toHaveLength(2);
+    expect(screen.getByText(/Europe PMC cited by 2,220/)).toBeInTheDocument();
     expect(screen.getByText('Unreviewed')).toBeInTheDocument();
     expect(screen.getByText(/cannot approve a clinical claim/)).toBeInTheDocument();
   });
@@ -47,11 +45,11 @@ describe('TicketLiteratureScoutView', () => {
     render(
       <TicketLiteratureScoutView
         catalog={developerTicketLiteratureScoutCatalog}
-        ticketId="ticket.source.canmat-mdd.2025-corrigendum"
+        ticketId="ticket.catalog.medications.psychiatry-allowlist"
       />,
     );
 
     expect(screen.getByText('Meta-analysis not applicable to this ticket')).toBeInTheDocument();
-    expect(screen.getByText(/bibliographic correction-impact check/)).toBeInTheDocument();
+    expect(screen.getByText(/identity and product-scope curation decision/)).toBeInTheDocument();
   });
 });

@@ -127,7 +127,7 @@
     "sourceAuthority": "source_document",
     "ticketType": "technical",
     "priority": "medium",
-    "status": "proposed",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -140,14 +140,19 @@
     ],
     "dependencyTicketIds": [],
     "conflictContentIds": [],
-    "proposedRouting": "Verify the exact published correction against the current CANMAT catalog record. If it is bibliographic only, resolve this ticket as no clinical change while preserving the first-class correction relationship.",
-    "guidance": "A separate 2025 corrigendum DOI now points to the CANMAT MDD guideline. The catalog records that relationship rather than silently treating the original as unchanged. The correction is not in the PMC Open Access Subset, so this intake did not ingest its text or infer an executable change. Confirm whether any citation metadata needs adjustment and whether the existing clinical tickets can proceed unchanged.",
+    "proposedRouting": "Preserve the first-class correction relationship and corrected author metadata. No clinical rule, recommendation, case, or point change is required.",
+    "guidance": "The primary correction page states that Lena S. Quilty was corrected to Lena C. Quilty. The parent catalog record and protected local extraction already use the corrected name. No recommendation, table, evidence statement, or clinical wording changed, so the existing CANMAT clinical tickets may proceed unchanged.",
     "reviewerNotes": "",
     "reviewerNotesUpdatedAt": null,
     "resurfacingTrigger": "When a further correction, retraction, or updated CANMAT MDD guideline appears.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "no_change",
+      "note": "Verified against the primary SAGE correction page, PubMed, and the parent record. This is an author-name-only correction with no clinical-rule impact. The first-class corrects relationship remains, and the source-use decision stays metadata-only because the notice has no reusable licence.",
+      "resolvedBy": "reviewer.codex-source-metadata-audit",
+      "resolvedAt": "2026-07-26T17:00:00.000Z"
+    },
     "createdAt": "2026-07-23T16:45:00.000Z",
-    "updatedAt": "2026-07-23T16:45:00.000Z"
+    "updatedAt": "2026-07-26T17:00:00.000Z"
   },
   {
     "schemaVersion": 1,

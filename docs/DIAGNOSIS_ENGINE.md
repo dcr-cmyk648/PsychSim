@@ -19,6 +19,13 @@ One diagnosis family lives in one file under `content/catalogs/diagnoses/definit
 
 MDD therefore has one family file containing the future mild, moderate, and severe branches. Its severity constraints are deliberately `disabled_pending_source`; the file does not guess symptom-count, impairment, psychosis, or safety thresholds while the source request remains open.
 
+A medically unreviewed severity-policy packet now asks whether a patient template should author
+intended severity while the generator validates separate bounded dimensions such as symptom
+burden, intensity, distress, and function. Psychosis and acute safety remain separate structured
+facts, and a PHQ band remains a symptom-burden measurement rather than a diagnosis or sole severity
+definition. This is a decision proposal, not an adopted generator algorithm; all MDD severity
+branches remain disabled until the envelopes and provenance receive psychiatrist review.
+
 A patient-template file continues to own:
 
 - the internal condition constraints and separately generated chart-diagnosis records needed for

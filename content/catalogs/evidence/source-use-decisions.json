@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.3.0",
+  "contentVersion": "1.5.0",
   "id": "source-use-decisions.psychsim",
   "decisions": [
     {
@@ -289,7 +289,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "source-use.bap.catatonia.2023",
       "evidenceSourceId": "evidence.bap.catatonia.2023",
       "decisionStatus": "permitted_with_conditions",
@@ -309,6 +309,7 @@
       "requiredNotices": [
         "Give source and licence attribution and identify changes.",
         "Do not imply BAP or author endorsement.",
+        "Use the hash-pinned PMC/SAGE CC BY article as the licensed artifact; do not assume a separately hosted portal copy has identical reuse terms.",
         "Review separately credited instruments and third-party tables before reuse."
       ],
       "nonCommercialOnly": false,
@@ -317,8 +318,8 @@
       "fairUseAssessment": null,
       "reviewBasis": "engineering_risk_assessment",
       "reviewedBy": "reviewer.codex-source-rights-audit",
-      "reviewedAt": "2026-07-24T16:00:00.000Z",
-      "notes": "The PMC Open Access record identifies the article as CC BY 4.0. Instrument wording remains a separate item-level rights question."
+      "reviewedAt": "2026-07-26T17:00:00.000Z",
+      "notes": "The PMC Open Access record identifies the hash-pinned article as CC BY 4.0. A first internal packet may paraphrase only the grade-D relevance trigger from source-chunk.1b36e6afa6c8a74a5a8a.12. BFCRS wording, other instrument content, treatment, disposition, and point values remain outside that packet and require separate review."
     },
     {
       "schemaVersion": 1,
@@ -357,7 +358,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "source-use.va-dod.suicide-risk.2024",
       "evidenceSourceId": "evidence.va-dod.suicide-risk.2024",
       "decisionStatus": "permitted_with_conditions",
@@ -376,7 +377,8 @@
       "attributionStatement": "Source: Department of Veterans Affairs and Department of Defense, VA/DoD Clinical Practice Guideline for Assessment and Management of Patients at Risk for Suicide, 2024.",
       "requiredNotices": [
         "Limit current use to protected local extraction and bibliographic review.",
-        "Audit every table, instrument, image, and credited element for third-party rights before further processing.",
+        "The current source-global schema cannot authorize selected government-authored excerpts while excluding the document's contractor and third-party material; keep AI processing and derived content disabled.",
+        "Exclude adapted tables, MIRECC risk-stratification material, named screening and assessment instruments, worksheets, algorithms, figures, logos, seals, and exact study prose.",
         "Do not imply VA, DoD, or U.S. government endorsement."
       ],
       "nonCommercialOnly": false,
@@ -385,8 +387,8 @@
       "fairUseAssessment": null,
       "reviewBasis": "engineering_risk_assessment",
       "reviewedBy": "reviewer.codex-source-rights-audit",
-      "reviewedAt": "2026-07-24T16:00:00.000Z",
-      "notes": "Government-authored portions are generally public domain in the United States, but the current decision stops at local extraction until embedded third-party material is audited."
+      "reviewedAt": "2026-07-26T17:00:00.000Z",
+      "notes": "The item-level audit found that the VA/DoD Work Group developed the recommendations but that the guideline also credits contractors and incorporates adapted tables, instruments, MIRECC materials, graphics, and linked tools. Recommendation 3 in source-chunk.3fdd289a235399016d65.44 and Recommendation 4 in source-chunk.3fdd289a235399016d65.48 are candidates for a future excerpt-scoped representation, but this decision does not authorize either. Global AI, structured-indexing, derived-content, and redistribution permissions remain false."
     },
     {
       "schemaVersion": 1,
@@ -432,7 +434,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "source-use.canmat-corrigendum.2025",
       "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
       "decisionStatus": "metadata_only",
@@ -450,7 +452,9 @@
       "territories": ["Global"],
       "attributionStatement": null,
       "requiredNotices": [
-        "Keep the correction relationship visible; do not infer its substantive effect without source access and review."
+        "Keep the correction relationship visible and identify the exact author-name correction.",
+        "Do not attach this notice as support for a clinical recommendation or point value.",
+        "Free reading access through SAGE or PMC is not permission for full-text extraction, AI processing, adaptation, or redistribution."
       ],
       "nonCommercialOnly": false,
       "shareAlikeRequired": false,
@@ -458,8 +462,8 @@
       "fairUseAssessment": null,
       "reviewBasis": "engineering_risk_assessment",
       "reviewedBy": "reviewer.codex-source-rights-audit",
-      "reviewedAt": "2026-07-24T16:00:00.000Z",
-      "notes": "Bibliographic metadata and the correction edge are verified; recommendation-level extraction remains pending."
+      "reviewedAt": "2026-07-26T17:00:00.000Z",
+      "notes": "The primary correction page verifies one bibliographic change: Lena S. Quilty became Lena C. Quilty. The parent evidence record and protected local parent extract already use the corrected name, so there is no clinical or extraction repair. PMCID PMC12149145 is not in the PMC Open Access Subset; all nonmetadata permissions remain disabled."
     },
     {
       "schemaVersion": 1,
@@ -722,7 +726,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "source-use.va-dod.bipolar.2023",
       "evidenceSourceId": "evidence.va-dod.bipolar.2023",
       "decisionStatus": "permitted_with_conditions",
@@ -740,7 +744,7 @@
       "territories": ["United States"],
       "attributionStatement": "Source: Department of Veterans Affairs and Department of Defense, VA/DoD Clinical Practice Guideline for Management of Bipolar Disorder, 2023.",
       "requiredNotices": [
-        "Limit current use to protected local extraction and bibliographic review.",
+        "Limit current use to bibliographic review; no local hash-pinned source artifact or extraction is currently present.",
         "Audit every table, instrument, image, and credited element for third-party rights before further processing.",
         "Do not imply VA, DoD, or U.S. government endorsement."
       ],
@@ -751,8 +755,8 @@
       "permissionEvidence": null,
       "reviewBasis": "engineering_risk_assessment",
       "reviewedBy": "reviewer.codex-source-rights-audit",
-      "reviewedAt": "2026-07-26T16:00:00.000Z",
-      "notes": "Government-authored portions are generally public domain in the United States, but this pass stops at local extraction and metadata until embedded third-party material is audited."
+      "reviewedAt": "2026-07-26T17:00:00.000Z",
+      "notes": "Government-authored portions are generally public domain in the United States, but the current repository has no hash-pinned local PDF or extraction for this source. The decision permits a future protected local extraction while keeping structured indexing, AI processing, derived content, and redistribution disabled. Current literature packets may use this record only as context, never as source-cleared support."
     },
     {
       "schemaVersion": 1,

@@ -130,7 +130,10 @@
     "question": "For an adult outpatient presenting with depressive symptoms, which history, examination, demographic, medication, or medical factors make TSH testing indicated, optional, or low value?",
     "whyNeeded": "The user wants routine bloodwork penalized when there is no reason, while TSH receives its own reusable test-level provenance rather than a case-specific guess.",
     "targetContentIds": ["case.first-visit-depression", "info.labs.tsh", "test.lab.tsh"],
-    "linkedTicketIds": ["ticket.source.canmat-mdd.assessment-workup"],
+    "linkedTicketIds": [
+      "ticket.source.canmat-mdd.assessment-workup",
+      "ticket.source.mdd.tsh-workup-threshold"
+    ],
     "preferredSourceTypes": [
       "clinical_guideline",
       "systematic_review",
@@ -174,6 +177,7 @@
       "info.history.depressive-symptoms"
     ],
     "linkedTicketIds": [
+      "ticket.source.mdd.severity-generator-policy",
       "ticket.source.canmat-mdd.initial-modality",
       "ticket.source.who-mhgap.dep1-antidepressant-baseline",
       "ticket.source.who-mhgap.dep4-treatment-modality"
@@ -340,7 +344,12 @@
       "rule.review-mdd.multiple-antidepressant-starts.safety-cap",
       "case.restless-after-augmentation"
     ],
-    "linkedTicketIds": ["ticket.catalog.medications.normalized-regimen-risk-benefit"],
+    "linkedTicketIds": [
+      "ticket.catalog.medications.normalized-regimen-risk-benefit",
+      "ticket.source.canmat-mdd.regimen-intent-taxonomy",
+      "ticket.source.canmat-mdd.inadequate-response-route",
+      "ticket.source.canmat-mdd.switch-transition-state"
+    ],
     "preferredSourceTypes": [
       "clinical_guideline",
       "systematic_review",
@@ -389,7 +398,12 @@
       "modifier.mirtazapine.diabetes-fit",
       "modifier.bupropion.weight-preference-fit"
     ],
-    "linkedTicketIds": ["ticket.source.canmat-mdd.antidepressant-baseline"],
+    "linkedTicketIds": [
+      "ticket.source.canmat-mdd.antidepressant-baseline",
+      "ticket.source.mdd.antidepressant-sleep-fit",
+      "ticket.source.mdd.antidepressant-weight-fit",
+      "ticket.source.mdd.antidepressant-sexual-adherence-fit"
+    ],
     "preferredSourceTypes": [
       "clinical_guideline",
       "systematic_review",

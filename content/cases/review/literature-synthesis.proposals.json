@@ -532,5 +532,1102 @@
     ],
     "pointMagnitudeExcluded": true,
     "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.who-mhgap.dep1-antidepressant-baseline.2026-07-26",
+    "linkedTicketIds": ["ticket.source.who-mhgap.dep1-antidepressant-baseline"],
+    "linkedSourceRequestIds": ["source-request.mdd.severity-thresholds"],
+    "blueprintIds": ["case.review.who-mhgap-mdd-initial"],
+    "clinicalQuestion": "What should WHO mhGAP DEP1 contribute to a broad antidepressant pathway for an adult with moderate-to-severe depression?",
+    "focusedDecision": "Use DEP1 as a non-specialist baseline without turning its named medication list into an exhaustive formulary or a medication-specific ranking.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T17:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected local WHO extraction",
+        "WHO guideline registry",
+        "PubMed"
+      ],
+      "queries": [
+        "WHO mhGAP 2023 DEP1 antidepressants moderate severe depression",
+        "adult major depressive disorder first line antidepressant guideline medication selection"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "The exact DEP1 recommendation and implementation context came from the source-cleared WHO guideline and its protected extraction. CANMAT is retained as a source-cleared specialist-context qualifier rather than blended into a false consensus."
+    },
+    "sources": [
+      {
+        "id": "literature-source.who-mhgap.dep1",
+        "evidenceSourceId": "evidence.who.mhgap-mns.2023",
+        "title": "Mental Health Gap Action Programme (mhGAP) guideline for mental, neurological and substance use disorders",
+        "publicationYear": 2023,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.who.int/publications/i/item/9789240084278",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "DEP1 conditionally considers a named group of SSRIs or amitriptyline for adults with moderate-to-severe depression and grades the certainty as very low.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.canmat-mdd.dep1-context",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "qualifies",
+        "conciseFinding": "CANMAT supplies a different adult specialist context and broader treatment-selection framework, so WHO's named list should not silently become PsychSim's universal or exhaustive antidepressant hierarchy.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "WHO DEP1 can support a broad medication-class route for a properly authored moderate-to-severe depression snapshot.",
+    "opposingOrQualifyingSummary": "The recommendation is conditional, carries very low certainty, and was written for non-specialist care with implementation constraints. It does not establish that unlisted antidepressants are ineffective or that one listed SSRI is uniquely optimal.",
+    "proposedDirection": "Keep a broad tag-based antidepressant pathway. Treat DEP1 as one baseline supporting reasonable members of its stated set only after severity and availability are explicit. Preserve medication-specific fit, contraindications, interactions, prior response, and the separate CANMAT context. Do not change a treatment grade or point value from this packet.",
+    "limitations": [
+      "The linked structured-severity request remains unresolved.",
+      "The WHO recommendation's setting and certainty limit direct generalization to a specialist outpatient game.",
+      "DEP1 does not compare the named medications closely enough to determine PsychSim fit modifiers or point magnitudes."
+    ],
+    "unresolvedQuestions": [
+      "Which structured facts establish moderate-to-severe depression in the review patient?",
+      "Which additional antidepressants belong in a separately sourced specialist pathway?",
+      "How should location formulary limits intersect with the broad medication route?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.who-mhgap.dep2-continuation-snapshot.2026-07-26",
+    "linkedTicketIds": ["ticket.source.who-mhgap.dep2-continuation-patient"],
+    "linkedSourceRequestIds": [],
+    "blueprintIds": [],
+    "clinicalQuestion": "Can WHO mhGAP DEP2 inform a future best-next-step continuation patient without adding longitudinal treatment simulation?",
+    "focusedDecision": "Separate a one-moment continue-versus-stop decision from virtual time, recurring monitoring, and follow-up simulation.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T17:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected local WHO extraction",
+        "WHO guideline registry"
+      ],
+      "queries": [
+        "WHO mhGAP 2023 DEP2 antidepressant continuation remission six months",
+        "depression antidepressant continuation after remission guideline"
+      ],
+      "resultCountReviewed": 3,
+      "selectionNote": "The packet uses the exact source-cleared DEP2 recommendation only to define a possible future snapshot. It deliberately excludes a monitoring or reassessment subsystem under PsychSim's product decisions."
+    },
+    "sources": [
+      {
+        "id": "literature-source.who-mhgap.dep2",
+        "evidenceSourceId": "evidence.who.mhgap-mns.2023",
+        "title": "Mental Health Gap Action Programme (mhGAP) guideline for mental, neurological and substance use disorders",
+        "publicationYear": 2023,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.who.int/publications/i/item/9789240084278",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "DEP2 conditionally supports continuing an antidepressant that benefited an adult with moderate-to-severe depression for at least six months after remission, with very low certainty.",
+        "supportsProposedDirection": true
+      }
+    ],
+    "supportingSummary": "DEP2 can define the prior state for a focused patient whose immediate question is whether to continue a beneficial medication after remission.",
+    "opposingOrQualifyingSummary": "DEP2 also discusses ongoing monitoring, but PsychSim explicitly does not model clinical time, pending follow-up, or longitudinal reassessment. Its very-low-certainty duration statement should not be generalized to every recurrence history.",
+    "proposedDirection": "Do not add DEP2 to the current initial-treatment patient. If this family is built later, resolve remission, prior benefit, adverse effects, adherence, and elapsed treatment state before the encounter, then ask for one immediate continue-versus-stop decision. Do not add virtual time, a follow-up interval control, or recurring monitoring mechanics.",
+    "limitations": [
+      "This packet does not define discontinuation technique, withdrawal management, recurrence-specific duration, or a complete future patient.",
+      "The recommendation is conditional and based on very low certainty.",
+      "PsychSim's focused snapshot may teach only the immediate decision, not the longitudinal protocol."
+    ],
+    "unresolvedQuestions": [
+      "Is a continuation snapshot sufficiently distinct and fun to justify a future patient family?",
+      "Which prior-episode or adverse-effect facts would materially change the immediate choice?",
+      "Which separate source should govern abrupt discontinuation or withdrawal scenarios?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.who-mhgap.dep3-psychotherapy-catalog.2026-07-26",
+    "linkedTicketIds": ["ticket.source.who-mhgap.dep3-psychotherapy-catalog"],
+    "linkedSourceRequestIds": [],
+    "blueprintIds": ["case.review.who-mhgap-mdd-initial"],
+    "clinicalQuestion": "Which existing PsychSim psychotherapy choices can WHO mhGAP DEP3 support for adults with moderate-to-severe depression?",
+    "focusedDecision": "Map named structured psychological interventions to distinct catalog identities without treating supportive counseling or every therapy label as equivalent.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T17:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected local WHO extraction",
+        "WHO guideline registry",
+        "PsychSim intervention catalog"
+      ],
+      "queries": [
+        "WHO mhGAP 2023 DEP3 structured psychological interventions depression",
+        "WHO depression behavioural activation CBT interpersonal problem solving third wave"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "The exact DEP3 intervention classes came from the source-cleared WHO guideline. Existing PsychSim IDs were compared by explicit identity only; no missing therapy was inferred from a loose label match."
+    },
+    "sources": [
+      {
+        "id": "literature-source.who-mhgap.dep3",
+        "evidenceSourceId": "evidence.who.mhgap-mns.2023",
+        "title": "Mental Health Gap Action Programme (mhGAP) guideline for mental, neurological and substance use disorders",
+        "publicationYear": 2023,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.who.int/publications/i/item/9789240084278",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "DEP3 strongly recommends specified structured psychological interventions for adults with moderate-to-severe depression, with moderate certainty.",
+        "supportsProposedDirection": true
+      }
+    ],
+    "supportingSummary": "The named WHO set directly supports reviewing CBT, interpersonal therapy, and behavioral activation as discrete depression-treatment entries already represented in PsychSim.",
+    "opposingOrQualifyingSummary": "DEP3 does not list nondirective supportive counseling in this recommendation. Brief psychodynamic, problem-solving, and third-wave therapies need exact catalog identities and scope decisions before they can be mapped.",
+    "proposedDirection": "Prepare CBT, interpersonal therapy, and behavioral activation for rule-level review as individual entries satisfying a broad structured-psychotherapy route. Do not treat supportive counseling as DEP3-equivalent, create missing therapy identities by implication, or award both a generic psychotherapy row and a modality row for the same selection. Make no catalog or point change from this packet.",
+    "limitations": [
+      "This packet does not establish availability, patient preference, therapist competence, or medication-versus-therapy weighting.",
+      "The phrase third-wave therapies is too broad to map automatically to a specific PsychSim intervention.",
+      "Clinical source support cannot decide the game's parsimony cap or point magnitude."
+    ],
+    "unresolvedQuestions": [
+      "Should supportive counseling remain a separate lower-grade intervention for this patient?",
+      "Which missing named modalities deserve their own catalog files first?",
+      "How should one selected therapy avoid duplicate credit through overlapping generic rules?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.who-mhgap.dep4-treatment-modality.2026-07-26",
+    "linkedTicketIds": ["ticket.source.who-mhgap.dep4-treatment-modality"],
+    "linkedSourceRequestIds": ["source-request.mdd.severity-thresholds"],
+    "blueprintIds": ["case.review.who-mhgap-mdd-initial"],
+    "clinicalQuestion": "How should WHO mhGAP DEP4's preference for psychological or combined treatment be represented alongside other adult-MDD guidance?",
+    "focusedDecision": "Preserve the WHO non-specialist recommendation, CANMAT specialist context, treatment availability, and patient preference as separable inputs rather than manufacturing one universal pathway.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T17:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected local WHO extraction",
+        "WHO guideline registry",
+        "PubMed"
+      ],
+      "queries": [
+        "WHO mhGAP 2023 DEP4 psychological combined antidepressant monotherapy availability",
+        "adult major depression initial psychotherapy medication combined guideline"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "WHO and CANMAT were kept as distinct source contexts. The packet does not average their recommendations or select a winner from source order."
+    },
+    "sources": [
+      {
+        "id": "literature-source.who-mhgap.dep4",
+        "evidenceSourceId": "evidence.who.mhgap-mns.2023",
+        "title": "Mental Health Gap Action Programme (mhGAP) guideline for mental, neurological and substance use disorders",
+        "publicationYear": 2023,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.who.int/publications/i/item/9789240084278",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "DEP4 conditionally considers psychological intervention or combined treatment according to preferences and benefit-harm balance, and reserves antidepressant monotherapy for settings where psychological intervention is unavailable.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.canmat-mdd.dep4-context",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "qualifies",
+        "conciseFinding": "CANMAT provides a different specialist adult-MDD framework in which initial modality depends on severity and individualized selection; it should remain an explicit contextual source rather than be blended into WHO DEP4.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "DEP4 makes treatment availability and patient preference clinically material rather than hidden assumptions.",
+    "opposingOrQualifyingSummary": "WHO's non-specialist, implementation-focused setting and conditional low-certainty recommendation differ from CANMAT's specialist context. Neither source establishes the current patient's unavailable facts or PsychSim point values.",
+    "proposedDirection": "Do not select a universal winner yet. Require a future reviewed patient to author severity, psychotherapy availability, and relevant preference before choosing its database-plan route. Keep WHO and CANMAT contributions visible as separate provenance rows, and allow engine-inferred alternatives only after the broad authored pathway is settled. Change no rule or points from this packet.",
+    "limitations": [
+      "The linked structured-severity request remains unresolved.",
+      "The current review patient does not clearly author psychotherapy availability or preference.",
+      "This packet cannot settle which guideline context should govern a specific PsychSim location."
+    ],
+    "unresolvedQuestions": [
+      "Which source context should govern the starter outpatient location?",
+      "Should availability be a patient fact, location capability, or both?",
+      "When should combination treatment receive a meaningful bonus rather than merely remain acceptable?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.bap-catatonia.snapshot-relevance.2026-07-26",
+    "linkedTicketIds": ["ticket.source.bap-catatonia.2023-intake"],
+    "linkedSourceRequestIds": [],
+    "blueprintIds": [],
+    "clinicalQuestion": "When should catatonia become a fair, point-relevant question in a focused PsychSim encounter?",
+    "focusedDecision": "Identify one small trigger boundary for future catatonia snapshots while keeping BFCRS instrument wording, diagnosis thresholds, treatment, disposition, and point values out of this packet.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T17:00:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected local BAP extraction",
+        "PubMed",
+        "PMC"
+      ],
+      "queries": [
+        "BAP catatonia guideline assessment substantially altered activity abnormal behavior",
+        "catatonia guideline initial assessment secondary care targeted investigations"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "The source-cleared BAP guideline was used for the narrow recognition and setting boundary. BFCRS item wording and other separately credited instruments were explicitly excluded."
+    },
+    "sources": [
+      {
+        "id": "literature-source.bap-catatonia.snapshot-relevance",
+        "evidenceSourceId": "evidence.bap.catatonia.2023",
+        "title": "Evidence-based consensus guidelines for the management of catatonia: Recommendations from the British Association for Psychopharmacology",
+        "publicationYear": 2023,
+        "doi": "10.1177/02698811231158232",
+        "pmid": "37039129",
+        "url": "https://journals.sagepub.com/doi/10.1177/02698811231158232",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "A grade-D recommendation advises considering catatonia as a differential diagnosis when a patient has a substantially altered level of activity or abnormal behavior that is grossly inappropriate to context.",
+        "supportsProposedDirection": true
+      }
+    ],
+    "supportingSummary": "BAP supports making catatonia a focused question when the authored presentation contains a conspicuous alteration of activity or context-inappropriate abnormal behavior.",
+    "opposingOrQualifyingSummary": "The recommendation does not define PsychSim's exact trigger tags, a universal screening requirement, or a diagnosis threshold. The broader guideline's evidence base is largely observational studies, case series, and case reports.",
+    "proposedDirection": "Prepare one trigger-only rule candidate for later review: current authored observations of substantially altered activity or grossly context-inappropriate abnormal behavior may make catatonia assessment point-relevant. Preserve the already accepted universally searchable menu entry as a separate Developer design decision. Decide prior-history triggers, workup, treatment, setting, and disposition in later packets. Do not copy BFCRS items or change a rule or point value now.",
+    "limitations": [
+      "The packet intentionally excludes BFCRS item text, scoring anchors, and interpretation.",
+      "It does not define a complete catatonia syndrome, treatment pathway, setting rule, or universal screening policy.",
+      "The trigger recommendation is grade D and the broader evidence base relies heavily on observational and case literature.",
+      "A source recommendation cannot determine the exact trigger predicate or game-point magnitude."
+    ],
+    "unresolvedQuestions": [
+      "Which minimal structured observations should activate the focused catatonia objective?",
+      "Should prior catatonia or prior ECT activate the objective without a current conspicuous clue?",
+      "Which separate packet should address assessment details, workup, immediate treatment, and disposition?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.severity-generator-policy.2026-07-26",
+    "linkedTicketIds": ["ticket.source.mdd.severity-generator-policy"],
+    "linkedSourceRequestIds": ["source-request.mdd.severity-thresholds"],
+    "blueprintIds": [],
+    "clinicalQuestion": "How should a bounded MDD generator keep intended episode severity coherent without turning one symptom scale or one safety finding into the entire severity definition?",
+    "focusedDecision": "Choose an authoring and validation boundary while leaving the exact mild, moderate, and severe envelopes disabled pending a reusable diagnostic standard.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "PMC"
+      ],
+      "queries": [
+        "adult major depressive disorder severity symptom burden functional impairment guideline",
+        "less severe more severe depression treatment network meta-analysis"
+      ],
+      "resultCountReviewed": 5,
+      "selectionNote": "The source-cleared CANMAT record supports keeping symptoms, functioning, psychosis, and safety clinically visible. A recent open network meta-analysis shows that treatment studies may use a separate scale-cutoff definition of less versus more severe depression. Neither source supplies one complete three-band diagnostic generator."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.severity-generator-policy",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT makes symptom severity, functional impairment, psychotic features, safety, course, and other clinical dimensions separately relevant to assessment and treatment selection rather than reducing the episode to one observed field.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.mavranezouli-depression-treatments.2024",
+        "evidenceSourceId": null,
+        "title": "A systematic review and network meta-analysis of psychological, psychosocial, pharmacological, physical and combined treatments for adults with a new episode of depression",
+        "publicationYear": 2024,
+        "doi": "10.1016/j.eclinm.2024.102780",
+        "pmid": "39246718",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39246718/",
+        "sourceKind": "network_meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "This review stratified less versus more severe depression using depression-scale cutoffs for its treatment analysis, illustrating that a treatment-study severity split is not automatically a complete diagnostic or generator standard.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "The available source-cleared guidance supports preserving severity-relevant dimensions as distinct structured facts and requiring the generated patient to remain internally coherent.",
+    "opposingOrQualifyingSummary": "No reviewed source in the current catalog operationalizes all three desired severity bands across symptom count, intensity, distress, function, psychosis, and safety. PHQ-style symptom burden and study-specific less-versus-more-severe cutoffs must remain measurements or research strata, not silent substitutes for diagnosis severity.",
+    "proposedDirection": "Let a patient template author the intended severity, generate symptom burden, intensity or frequency, distress, function, psychosis, and safety as separate saved facts, and validate them against a later reviewed envelope. Retry or quarantine a conflicting patient rather than silently changing the intended diagnosis. Keep psychosis and safety separately explainable. Do not enable mild, moderate, or severe treatment branches from this packet.",
+    "limitations": [
+      "The exact three-band envelopes and their diagnostic provenance remain unresolved.",
+      "The Mavranezouli record has not yet received a PsychSim formal evidence record and source-use decision.",
+      "A symptom questionnaire score cannot by itself establish diagnosis, psychosis, safety, or functional severity.",
+      "This packet authorizes no diagnosis, generator, pathway, or point change."
+    ],
+    "unresolvedQuestions": [
+      "Which legally reusable diagnostic standard should define the bounded three-band envelopes?",
+      "Which conflicts should trigger a deterministic retry versus quarantine?",
+      "Which dimensions are required for every MDD patient and which remain optional context?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.antidepressant-fit-frame.2026-07-26",
+    "linkedTicketIds": ["ticket.source.canmat-mdd.antidepressant-baseline"],
+    "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+    "blueprintIds": ["case.first-visit-depression"],
+    "clinicalQuestion": "What broad baseline should PsychSim use before applying patient-specific antidepressant fit modifiers in an uncomplicated adult MDD snapshot?",
+    "focusedDecision": "Separate the broad first-line treatment route from smaller medication-specific efficacy, adverse-effect, preference, and feasibility modifiers.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "Europe PMC"
+      ],
+      "queries": [
+        "adult major depressive disorder antidepressants comparative efficacy acceptability network meta-analysis",
+        "major depressive disorder antidepressant clinical presentation adverse effects preference guideline"
+      ],
+      "resultCountReviewed": 5,
+      "selectionNote": "The source-cleared CANMAT guideline supports a broad individualized baseline. Cipriani 2018 remains the highest-cited directly relevant network meta-analysis in the recorded ten-year scout and is retained as abstract-level context only."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.antidepressant-fit-frame",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT describes generally small average efficacy differences among reasonable first-line antidepressants and makes adverse effects, clinical presentation, cost, preference, prior response, and feasibility relevant to selection.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.cipriani-antidepressants.2018",
+        "evidenceSourceId": null,
+        "title": "Comparative efficacy and acceptability of 21 antidepressant drugs for the acute treatment of adults with major depressive disorder: a systematic review and network meta-analysis",
+        "publicationYear": 2018,
+        "doi": "10.1016/S0140-6736(17)32802-7",
+        "pmid": "29477251",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29477251/",
+        "sourceKind": "network_meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The network meta-analysis reports efficacy and acceptability differences among acute antidepressant monotherapies, but its trial populations and aggregate estimates do not create deterministic patient-specific rankings.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "A broad class- or tag-based pathway can carry most treatment points while smaller, independently traceable fit rules distinguish otherwise reasonable choices.",
+    "opposingOrQualifyingSummary": "Aggregate medication rankings do not establish that one drug is universally optimal for the starter patient, and evidence of average differences does not supply PsychSim's point magnitudes.",
+    "proposedDirection": "Review one broad antidepressant route first. Keep medication-specific fit, adverse-effect, interaction, contraindication, prior-response, and preference contributions as separate trace rows. Let fit be meaningful but smaller than the primary decision, and never allow positive fit modifiers to rescue a treatment disqualified by a reviewed critical safety rule. Do not change the current medication grades or points from this packet.",
+    "limitations": [
+      "The Cipriani record is abstract-level context under the current source policy.",
+      "The starter formulary and exact broad medication set remain product and clinical review decisions.",
+      "Specific sleep, weight, sexual-function, and adherence directions are split into separate packets.",
+      "No evidence source can set a game-point envelope."
+    ],
+    "unresolvedQuestions": [
+      "Which medication tags satisfy the broad starter route?",
+      "How large may the total positive fit envelope be relative to the primary route?",
+      "Which current medication-specific grades should be retired after the broad route is approved?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.antidepressant-sleep-fit.2026-07-26",
+    "linkedTicketIds": ["ticket.source.mdd.antidepressant-sleep-fit"],
+    "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+    "blueprintIds": [],
+    "clinicalQuestion": "When can baseline insomnia or other sleep disturbance legitimately alter antidepressant fit without equating sedation with therapeutic sleep benefit?",
+    "focusedDecision": "Keep therapeutic effect on an authored sleep problem separate from treatment-emergent insomnia, somnolence, sedation, and weight burden.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "Europe PMC"
+      ],
+      "queries": [
+        "depression mirtazapine trazodone insomnia systematic review meta-analysis",
+        "antidepressants treatment emergent insomnia somnolence network meta-analysis"
+      ],
+      "resultCountReviewed": 5,
+      "selectionNote": "CANMAT supplies source-cleared selection context. Zhang 2026 directly reviews therapeutic sleep outcomes for three agents, while Zhou 2023 separately reviews acute treatment-emergent insomnia and somnolence. Both remain context-only until formal source intake."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.antidepressant-sleep-fit",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT treats sleep disturbance as a possible medication-selection factor and identifies mirtazapine among options with evidence relevant to sleep disturbance, while still requiring individualized benefit-harm review.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.zhang-depression-insomnia.2026",
+        "evidenceSourceId": null,
+        "title": "Management of insomnia symptoms in depressed patients treated with agomelatine, mirtazapine and trazodone: A systematic review and meta-analysis",
+        "publicationYear": 2026,
+        "doi": "10.1016/j.jad.2026.121378",
+        "pmid": "41679391",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41679391/",
+        "sourceKind": "meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The abstract reports subjective and objective sleep findings for agomelatine, mirtazapine, and trazodone, while also describing medication-specific adverse effects and mixed study designs.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.zhou-antidepressant-sleep.2023",
+        "evidenceSourceId": null,
+        "title": "Adverse effects of 21 antidepressants on sleep during acute-phase treatment in major depressive disorder: a systemic review and dose-effect network meta-analysis",
+        "publicationYear": 2023,
+        "doi": "10.1093/sleep/zsad177",
+        "pmid": "37422714",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37422714/",
+        "sourceKind": "network_meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "This review compares treatment-emergent insomnia and somnolence across antidepressants; those harms cannot by themselves prove therapeutic benefit for pre-existing insomnia.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "Sleep can be a real fit dimension, but the trace must say whether the rule concerns improvement of an authored sleep problem or avoidance of a medication-emergent sleep harm.",
+    "opposingOrQualifyingSummary": "Sedation is not a synonym for restorative sleep treatment. The context reviews cover different outcomes, time horizons, medications, and study designs and do not authorize a universal insomnia bonus.",
+    "proposedDirection": "Keep baseline sleep findings and medication-emergent sleep risks as separate predicates. Consider a small positive fit direction only when the patient has a relevant authored sleep problem and the selected medication has reviewed therapeutic support; separately show sedation, somnolence, insomnia, and weight risks. Leave the active mirtazapine modifier and its magnitude provisional.",
+    "limitations": [
+      "Zhang 2026 is publisher-copyrighted and remains abstract-only until a formal source-use review.",
+      "Zhou 2023 and its 2026 affiliation correction still need formal evidence and correction records before derived use.",
+      "The sources do not establish the same benefit for every kind of sleep complaint.",
+      "This packet authorizes no modifier or point change."
+    ],
+    "unresolvedQuestions": [
+      "Which structured sleep findings are specific enough to activate a fit rule?",
+      "Which medication-outcome pairs deserve formal source intake first?",
+      "How should therapeutic sleep benefit and daytime sedation appear side by side in the trace?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.antidepressant-weight-fit.2026-07-26",
+    "linkedTicketIds": ["ticket.source.mdd.antidepressant-weight-fit"],
+    "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+    "blueprintIds": [],
+    "clinicalQuestion": "What short-term medication-associated weight direction is strong enough to inform antidepressant fit without converting BMI or diabetes into an unsupported contraindication?",
+    "focusedDecision": "Separate average medication-associated weight change from patient BMI, diabetes risk, long-term metabolic outcomes, preference, contraindication, and point magnitude.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "queries": [
+        "antidepressants cardiometabolic physiological parameters network meta-analysis weight",
+        "antidepressant weight change bupropion mirtazapine meta-analysis"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "CANMAT provides source-cleared benefit-harm selection context. Pillinger 2025 is the directly relevant recent network meta-analysis and is retained as abstract-level context pending formal evidence intake despite its verified CC BY publication license."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.antidepressant-weight-fit",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT supports considering medication adverse-effect profiles, the clinical presentation, and patient preference when selecting among otherwise reasonable antidepressants.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.pillinger-antidepressant-physiology.2025",
+        "evidenceSourceId": null,
+        "title": "The effects of antidepressants on cardiometabolic and other physiological parameters: a systematic review and network meta-analysis",
+        "publicationYear": 2025,
+        "doi": "10.1016/S0140-6736(25)01293-0",
+        "pmid": "41135546",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41135546/",
+        "sourceKind": "network_meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "Across short acute-treatment studies, the abstract reports meaningful between-drug physiological differences, including average weight direction; it does not establish long-term diabetes outcomes or deterministic individual response.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "A reviewed average weight-direction difference may support a small preference-sensitive fit modifier among otherwise acceptable treatments.",
+    "opposingOrQualifyingSummary": "Short-term study-level averages do not prove that high BMI changes an individual's medication effect, that a medication causes a specific long-term diabetes outcome, or that either choice is absolutely contraindicated.",
+    "proposedDirection": "Review medication-associated weight direction as one modest traceable dimension. Keep BMI, current weight trajectory, diabetes, long-term metabolic risk, appetite symptoms, and patient preference as separate facts or later rules. Do not approve the current high-BMI or diabetes modifiers, and do not treat a weight concern as a contraindication from this packet.",
+    "limitations": [
+      "The Pillinger record is not yet admitted to the formal evidence and source-use catalogs.",
+      "Median follow-up in the review was short and the populations extended beyond uncomplicated adult MDD.",
+      "Study-level meta-regression must not become a deterministic patient-level modifier.",
+      "No point direction or magnitude is authorized."
+    ],
+    "unresolvedQuestions": [
+      "Is average short-term weight direction sufficient for a small preference modifier?",
+      "What additional evidence is needed for BMI- or diabetes-specific rules?",
+      "Which authored patient facts should make weight direction clinically relevant rather than automatically scored?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.antidepressant-sexual-adherence-fit.2026-07-26",
+    "linkedTicketIds": ["ticket.source.mdd.antidepressant-sexual-adherence-fit"],
+    "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+    "blueprintIds": [],
+    "clinicalQuestion": "How should baseline sexual function, medication-associated sexual effects, adverse-effect burden, and adherence be represented as distinct antidepressant-fit dimensions?",
+    "focusedDecision": "Decide whether the dimensions belong in the model without inventing a complete drug ranking or medication-specific adherence prediction.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "PMC"
+      ],
+      "queries": [
+        "SSRI sexual dysfunction adults depression systematic review meta-analysis",
+        "antidepressant side effects medication adherence depression systematic review"
+      ],
+      "resultCountReviewed": 6,
+      "selectionNote": "CANMAT is the source-cleared basis for considering baseline sexual function and adverse-effect differences. A focused 2026 SSRI meta-analysis and a 2024 adherence review are current context only until formal evidence and source-use records are created."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.antidepressant-sexual-adherence-fit",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT supports assessing baseline sexual function and considering medication adverse-effect differences, prior tolerability, preference, and likely treatment adherence when choosing among reasonable options.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.ferraz-ssri-sexual-dysfunction.2026",
+        "evidenceSourceId": null,
+        "title": "Sexual dysfunction associated with selective serotonin reuptake inhibitors in adults with depression: a systematic review and meta-analysis",
+        "publicationYear": 2026,
+        "doi": "10.1007/s00228-026-04011-z",
+        "pmid": "41721013",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41721013/",
+        "sourceKind": "meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The abstract reports increased orgasmic dysfunction and reduced sexual satisfaction with SSRIs versus placebo, but it does not compare the complete antidepressant catalog or establish an individual patient's outcome.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.niarchou-antidepressant-adherence.2024",
+        "evidenceSourceId": null,
+        "title": "What is the impact of antidepressant side effects on medication adherence among adult patients diagnosed with depressive disorder: A systematic review",
+        "publicationYear": 2024,
+        "doi": "10.1177/02698811231224171",
+        "pmid": "38344912",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/38344912/",
+        "sourceKind": "systematic_review",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "Seven included studies found an association between reported antidepressant adverse effects and suboptimal adherence, but the review does not support deterministic medication-specific adherence points.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "Baseline sexual function and adverse-effect burden are legitimate treatment-selection inputs and should remain visible in the explanation trace.",
+    "opposingOrQualifyingSummary": "The current context does not provide a complete antidepressant sexual-effect ranking, distinguish all patient-level moderators, or prove that a given adverse effect will cause nonadherence in one patient.",
+    "proposedDirection": "Model baseline sexual function, medication-associated sexual effects, general adverse-effect burden, and adherence history as separate facts. Review only qualitative class or medication directions that have exact support. Do not infer medication-specific adherence, double count a sexual effect as both harm and adherence loss, or activate points from this packet.",
+    "limitations": [
+      "Both recent reviews require formal evidence records and source-use decisions before derived rule use.",
+      "The adherence evidence is observational and heterogeneous and does not produce a medication ranking.",
+      "The SSRI review does not compare every starter-formulary alternative.",
+      "No point magnitude is supported."
+    ],
+    "unresolvedQuestions": [
+      "Which baseline sexual-function findings should make the dimension point-relevant?",
+      "Which medication or class comparisons should receive formal source intake first?",
+      "When should adherence history influence fit without duplicating a tolerability consequence?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.tsh-workup-threshold.2026-07-26",
+    "linkedTicketIds": ["ticket.source.mdd.tsh-workup-threshold"],
+    "linkedSourceRequestIds": ["source-request.mdd.tsh-workup"],
+    "blueprintIds": ["case.first-visit-depression"],
+    "clinicalQuestion": "When should TSH be required, optional, or low-value in a focused adult depressive-presentation workup?",
+    "focusedDecision": "Choose a conservative clinical category for uncomplicated depression and separately decide whether the starter patient's authored fatigue and weight change cross into a targeted indication.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "PMC",
+        "AHRQ"
+      ],
+      "queries": [
+        "depression initial assessment TSH thyroid targeted laboratory guideline",
+        "thyroid dysfunction screening asymptomatic adults systematic review"
+      ],
+      "resultCountReviewed": 7,
+      "selectionNote": "CANMAT supplies source-cleared depression-assessment context but acknowledges limited evidence for routine bloodwork. A recent systematic review of asymptomatic screening is included only as qualifying context and does not directly answer targeted psychiatric case finding."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.tsh-workup-threshold",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT describes targeted medical assessment and lists TSH as a low-cost test that may identify a treatable contributor, while noting limited direct evidence for routine bloodwork.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.reyes-domingo-thyroid-screening.2019",
+        "evidenceSourceId": null,
+        "title": "Screening for thyroid dysfunction and treatment of screen-detected thyroid dysfunction in asymptomatic, community-dwelling adults: a systematic review",
+        "publicationYear": 2019,
+        "doi": "10.1186/s13643-019-1181-7",
+        "pmid": "31735166",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/31735166/",
+        "sourceKind": "systematic_review",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The review found no direct studies of population screening and limited benefit evidence for treating screen-detected subclinical hypothyroidism; its asymptomatic screening population does not resolve targeted testing for a symptomatic psychiatric presentation.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "TSH can be defensible when authored facts create a targeted contributor question, and a clinically appropriate normal result should not lose credit merely because it is normal.",
+    "opposingOrQualifyingSummary": "The current evidence does not support an undifferentiated routine laboratory panel or establish that every depressive presentation requires TSH. Population-screening evidence is not the same as case finding in a patient with a coherent thyroid history, examination finding, medication exposure, or symptom cluster.",
+    "proposedDirection": "Present one reviewer choice: make TSH optional and defensible with no omission penalty in uncomplicated depression, then separately decide whether fatigue plus weight gain in this exact patient is enough to make it high-yield. Reserve strong reusable indications for explicit thyroid history or treatment, abnormal thyroid examination, thyroid-affecting medication, autoimmune or strong family history, or a reviewed coherent multi-feature syndrome. Do not change the current rule or points.",
+    "limitations": [
+      "The Reyes Domingo record requires formal evidence and source-use intake before derived use.",
+      "The packet does not establish an exact symptom-count trigger.",
+      "Fatigue and modest weight change are nonspecific and need psychiatrist review in the authored context.",
+      "Testing cost and clinical correctness remain separate."
+    ],
+    "unresolvedQuestions": [
+      "Is uncomplicated outpatient depression optional-and-defensible or routinely high-yield for TSH?",
+      "Does this starter patient's fatigue plus weight gain cross the chosen threshold?",
+      "Which exact history, examination, medication, and medical facts should activate a reusable objective?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.mdd.suicide-risk-disposition.2026-07-26",
+    "linkedTicketIds": [
+      "ticket.source.canmat-mdd.disposition-severity",
+      "ticket.source.va-dod-suicide-risk.2024-intake"
+    ],
+    "linkedSourceRequestIds": ["source-request.mdd.suicide-risk-disposition"],
+    "blueprintIds": ["case.first-visit-depression"],
+    "clinicalQuestion": "Which suicide-related observations must remain distinct when scoring a focused assessment and choosing outpatient, urgent, or emergency disposition?",
+    "focusedDecision": "Preserve screening, detailed assessment, formulation, safety-planning response, intervention, and disposition as separable backend concepts while presenting a concise player-facing history.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "VA/DoD guideline registry",
+        "NICE guideline registry",
+        "PubMed",
+        "Europe PMC"
+      ],
+      "queries": [
+        "major depressive disorder suicide risk assessment disposition guideline",
+        "suicidal thoughts behaviors risk factors meta-analysis prediction"
+      ],
+      "resultCountReviewed": 7,
+      "selectionNote": "CANMAT is the only source-cleared support used for direction. Franklin 2017 qualifies reliance on isolated predictors. The received VA/DoD document remains protected and not authorized for AI-assisted derivation, and NICE remains metadata-only pending permission."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.suicide-risk-disposition",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT supports routine inquiry, individualized multi-factor assessment and formulation, attention to modifiable and protective factors, and avoiding use of a scale as the sole determinant of disposition.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.franklin-suicide-risk.2017",
+        "evidenceSourceId": null,
+        "title": "Risk factors for suicidal thoughts and behaviors: A meta-analysis of 50 years of research",
+        "publicationYear": 2017,
+        "doi": "10.1037/bul0000084",
+        "pmid": "27841450",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/27841450/",
+        "sourceKind": "meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "Across longitudinal studies, isolated risk factors had limited predictive performance; the result cautions against letting one factor or one score dictate an individual disposition.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.va-dod-suicide-risk.2024",
+        "evidenceSourceId": "evidence.va-dod.suicide-risk.2024",
+        "title": "VA/DoD Clinical Practice Guideline for Assessment and Management of Patients at Risk for Suicide",
+        "publicationYear": 2024,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.healthquality.va.gov/guidelines/mh/srb/",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "context",
+        "conciseFinding": "The official source is locally available for protected review, but its mixed government, contractor, instrument, and third-party material keeps AI-assisted processing and derived-content permissions disabled.",
+        "supportsProposedDirection": false
+      },
+      {
+        "id": "literature-source.nice-self-harm.2022",
+        "evidenceSourceId": "evidence.nice.self-harm.ng225.2022",
+        "title": "Self-harm: assessment, management and preventing recurrence",
+        "publicationYear": 2022,
+        "doi": null,
+        "pmid": null,
+        "url": "https://www.nice.org.uk/guidance/ng225",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "inaccessible",
+        "findingRole": "context",
+        "conciseFinding": "NICE NG225 remains bibliographic context only because its AI and reuse terms require permission; no recommendation-level content was extracted for this packet.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "The backend should retain each observed or unknown suicide-related fact and explain why a selected disposition was accepted, deferred, or penalized without collapsing the decision into one label or number.",
+    "opposingOrQualifyingSummary": "The current source-cleared material does not prescribe PsychSim's exact two-purchase history workflow, exact three-way disposition thresholds, safety-planning weight, over-escalation penalties, or point values. Those remain transparent developer judgments requiring psychiatrist review.",
+    "proposedDirection": "Keep the existing staged interface proposal as Developer opinion: a concise general screen and a separate detailed assessment. On the backend, store screen observations, ideation, intent, plan, preparatory behavior, attempts, means access, acute and chronic factors, protective factors, uncertainty, safety-planning response, and disposition reasoning separately. Unknown must never become absent. A safety-planning response may contribute but never decide disposition alone. Fix the current action/result mismatch before approving a rule; change no disposition category or points from this packet.",
+    "limitations": [
+      "VA/DoD and NICE recommendation-level content is excluded by the current source-use decisions.",
+      "Franklin 2017 is predictive evidence, not an individual disposition guideline.",
+      "CANMAT does not determine the exact fields or game penalties.",
+      "The current patient result omits some fields advertised by the detailed assessment action."
+    ],
+    "unresolvedQuestions": [
+      "Which minimum facts must be known before outpatient, urgent, or emergency disposition can receive full credit?",
+      "Which exact structured result fields should the detailed assessment reveal?",
+      "How should clearly unnecessary escalation be categorized before balance points are assigned?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.canmat-mdd.regimen-intent-taxonomy.2026-07-26",
+    "linkedTicketIds": ["ticket.source.canmat-mdd.regimen-intent-taxonomy"],
+    "linkedSourceRequestIds": ["source-request.medications.regimen-combination-boundaries"],
+    "blueprintIds": [],
+    "clinicalQuestion": "How should PsychSim distinguish planned combination treatment, adjunctive treatment, medication switching, and shotgun simultaneous starts?",
+    "focusedDecision": "Decide whether future regimen evaluation must store explicit treatment intent instead of inferring clinical meaning from medication count alone.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "PMC",
+        "Europe PMC"
+      ],
+      "queries": [
+        "acute depression combining antidepressants monotherapy systematic review meta-analysis",
+        "major depressive disorder combination adjunctive switching treatment guideline"
+      ],
+      "resultCountReviewed": 5,
+      "selectionNote": "CANMAT supplies source-cleared terminology and treatment-stage context. Henssler 2022 is retained as abstract-level evidence that antidepressant count alone cannot label every pair intrinsically harmful."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.regimen-intent-taxonomy",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT distinguishes combination treatment begun together from adjunctive treatment added to an existing intervention and discusses switching as a separate route.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.henssler-antidepressant-combinations.2022",
+        "evidenceSourceId": null,
+        "title": "Combining Antidepressants vs Antidepressant Monotherapy for Treatment of Patients With Acute Depression: A Systematic Review and Meta-analysis",
+        "publicationYear": 2022,
+        "doi": "10.1001/jamapsychiatry.2021.4313",
+        "pmid": "35171215",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35171215/",
+        "sourceKind": "meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "The pooled trials found some antidepressant combinations could outperform monotherapy on average, which contradicts a blanket rule that any two antidepressants are automatically a dangerous combination.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "Treatment intent and treatment stage are necessary to explain why two selected medications represent supported combination, adjunctive treatment, a transition, duplicate therapy, or shotgun prescribing.",
+    "opposingOrQualifyingSummary": "Evidence that some combinations can be effective does not make every pair useful or safe. A specific interaction, contraindication, duplicate role, unsupported initial strategy, and avoidable complexity remain separate evaluable problems.",
+    "proposedDirection": "Require explicit categorical regimen intent in the future normalized regimen model. Retain a strong case-specific parsimony consequence for starting several same-role treatments when unsupported, but reserve reusable safety labels and score caps for an actual reviewed interaction, contraindication, duplication hazard, or case-supported danger. Do not revise the prototype safety rule from this packet.",
+    "limitations": [
+      "Henssler 2022 does not identify every useful or safe pair and remains abstract-level context.",
+      "This packet does not define the normalized regimen schema or point values.",
+      "Intent alone cannot override pair-specific safety.",
+      "The current low-level patient may still forbid multi-start treatment as a case-design decision."
+    ],
+    "unresolvedQuestions": [
+      "Which categorical intent values are the minimum needed for deterministic scoring?",
+      "Which duplicate-role patterns are low-value versus genuinely dangerous?",
+      "How should a case-specific shotgun consequence differ from a reusable safety rule?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.canmat-mdd.inadequate-response-route.2026-07-26",
+    "linkedTicketIds": ["ticket.source.canmat-mdd.inadequate-response-route"],
+    "linkedSourceRequestIds": ["source-request.medications.regimen-combination-boundaries"],
+    "blueprintIds": [],
+    "clinicalQuestion": "Which structured prior-treatment facts should distinguish switching from adjunctive treatment after an inadequate antidepressant response?",
+    "focusedDecision": "Keep no response, partial response, tolerability, adverse effects, adequacy, adherence, and patient preference separately visible before selecting a route.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "PMC"
+      ],
+      "queries": [
+        "major depressive disorder inadequate response switch adjunctive treatment guideline",
+        "antidepressant combination versus monotherapy acute depression meta-analysis"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "The source-cleared CANMAT guideline directly addresses qualitative route selection. Henssler 2022 is retained only to qualify blanket assumptions about combination efficacy and does not decide an individual switch-versus-adjunctive case."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.inadequate-response-route",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT generally favors switching after no response or troublesome adverse effects and considers adjunctive treatment after partial response with good tolerability, while incorporating prior adequacy and individual factors.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.henssler-antidepressant-combinations.inadequate-response.2022",
+        "evidenceSourceId": null,
+        "title": "Combining Antidepressants vs Antidepressant Monotherapy for Treatment of Patients With Acute Depression: A Systematic Review and Meta-analysis",
+        "publicationYear": 2022,
+        "doi": "10.1001/jamapsychiatry.2021.4313",
+        "pmid": "35171215",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35171215/",
+        "sourceKind": "meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "qualifies",
+        "conciseFinding": "Average combination results do not replace patient-specific assessment of current response, tolerability, treatment stage, compatibility, and the exact adjunctive option.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "A focused inadequate-response patient should own structured trial adequacy, adherence, response, tolerability, and adverse-effect facts before the engine evaluates switch or adjunctive routes.",
+    "opposingOrQualifyingSummary": "The qualitative branch is an adult community-MDD framework rather than a universal psychiatry rule, and it does not make all adjunctive combinations equivalent.",
+    "proposedDirection": "Prepare a future qualitative route branch: after confirming an adequate and adherent trial, no response or troublesome adverse effects may favor switching, while partial response with good tolerability may make a reviewed adjunctive option reasonable. Keep benefit, added burden, interactions, cost, adherence, and preference as separate trace contributors. Change no patient, grade, or points now.",
+    "limitations": [
+      "The exact adequate-trial definitions and medication-specific adjunctive options require separate review.",
+      "The Henssler abstract does not decide an individual best next step.",
+      "The route applies to the focused MDD decision horizon, not every background diagnosis.",
+      "No point magnitude is authorized."
+    ],
+    "unresolvedQuestions": [
+      "Which categorical adequacy and response states are required for the first inadequate-response patient?",
+      "Which adjunctive options belong in the initial reviewed catalog?",
+      "When should adverse effects outweigh partial benefit and favor switching?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "literature-synthesis.canmat-mdd.switch-transition-state.2026-07-26",
+    "linkedTicketIds": ["ticket.source.canmat-mdd.switch-transition-state"],
+    "linkedSourceRequestIds": ["source-request.medications.regimen-combination-boundaries"],
+    "blueprintIds": [],
+    "clinicalQuestion": "What minimal explicit state is needed so a medication overlap can be recognized as a planned switch rather than combination treatment or duplicate prescribing?",
+    "focusedDecision": "Represent a transition without adding dosing, virtual time, or a full cross-titration simulator.",
+    "searchStrategy": {
+      "searchedAt": "2026-07-26T18:30:00.000Z",
+      "rollingWindowStartYear": 2016,
+      "databases": [
+        "PsychSim formal evidence catalog",
+        "protected CANMAT extraction",
+        "PubMed",
+        "PMC"
+      ],
+      "queries": [
+        "major depressive disorder antidepressant switching crossover washout guideline",
+        "antidepressant combination versus monotherapy transition meta-analysis"
+      ],
+      "resultCountReviewed": 4,
+      "selectionNote": "CANMAT is the source-cleared support for distinguishing crossover and washout switching strategies from simultaneous combination treatment. The recent combination meta-analysis is included only to show that medication count cannot resolve transition intent."
+    },
+    "sources": [
+      {
+        "id": "literature-source.canmat-mdd.switch-transition-state",
+        "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+        "title": "Canadian Network for Mood and Anxiety Treatments (CANMAT) 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults",
+        "publicationYear": 2024,
+        "doi": "10.1177/07067437241245384",
+        "pmid": "38711351",
+        "url": "https://journals.sagepub.com/doi/10.1177/07067437241245384",
+        "sourceKind": "clinical_guideline",
+        "accessStatus": "cataloged_and_cleared",
+        "findingRole": "supports",
+        "conciseFinding": "CANMAT distinguishes crossover and washout switching strategies from combination treatment and notes pair-specific exceptions such as required washout with monoamine oxidase inhibitors.",
+        "supportsProposedDirection": true
+      },
+      {
+        "id": "literature-source.henssler-antidepressant-combinations.transition-context.2022",
+        "evidenceSourceId": null,
+        "title": "Combining Antidepressants vs Antidepressant Monotherapy for Treatment of Patients With Acute Depression: A Systematic Review and Meta-analysis",
+        "publicationYear": 2022,
+        "doi": "10.1001/jamapsychiatry.2021.4313",
+        "pmid": "35171215",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35171215/",
+        "sourceKind": "meta_analysis",
+        "accessStatus": "metadata_or_abstract_only",
+        "findingRole": "context",
+        "conciseFinding": "Combination efficacy evidence does not identify whether a patient's temporary overlap is a planned transition, so count alone cannot classify the regimen.",
+        "supportsProposedDirection": false
+      }
+    ],
+    "supportingSummary": "A start-plus-stop checklist is not enough to prove a safe switch; the engine needs explicit source medication, destination medication, transition intent or strategy, and pair compatibility.",
+    "opposingOrQualifyingSummary": "PsychSim should not simulate dose schedules or clinical time, and categorical transition intent must never override a pair-specific washout requirement, contraindication, or interaction.",
+    "proposedDirection": "For later schema review, represent a minimal categorical transition state with source regimen entry, destination medication, strategy class, and pair-specific compatibility. Use it only to explain a snapshot best-next-step decision. Do not implement cross-titration timing, infer safety from intent alone, or alter current combination scoring from this packet.",
+    "limitations": [
+      "The packet does not define medication-specific switch tables.",
+      "Exact dose schedules and timing are outside PsychSim's focused snapshot scope.",
+      "Henssler 2022 does not address switching strategy.",
+      "No schema migration, rule, or point change is authorized."
+    ],
+    "unresolvedQuestions": [
+      "Which transition categories are necessary beyond crossover and washout?",
+      "Where should pair-specific compatibility and washout requirements live?",
+      "How should the receipt distinguish a valid transition from unsupported overlapping starts?"
+    ],
+    "pointMagnitudeExcluded": true,
+    "medicalReviewStatus": "unreviewed"
   }
 ]
