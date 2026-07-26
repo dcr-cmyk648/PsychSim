@@ -6,8 +6,9 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
-- Current evidence-gap checkpoint (commit pending) converts six previously queued questions into
-  medically unreviewed, point-excluded review packets: ECG monitoring after palpitations on
+- Current evidence-gap checkpoint: `4553b47eb0dba5bda5465ffc6fdb102a406c23a8`
+  (`Add review packets for unresolved evidence gaps`). It converts six previously queued questions
+  into medically unreviewed, point-excluded review packets: ECG monitoring after palpitations on
   citalopram, continue-versus-switch after a normal ECG, disposition after a normal snapshot ECG,
   targeted initial-MDD workup, bupropion across distinct seizure-history states, and cyclothymia
   duration/near-miss generation. Five new formal records cover MHRA citalopram/escitalopram QT
@@ -16,7 +17,8 @@ Last updated: 2026-07-26
   database projection has 129 records, and the source-request queue has 10 entries. Source-use
   decisions remain conservative where NHS special terms or VA/DoD third-party material need
   additional review. No patient fact, clinical rule, treatment grade, disposition, point magnitude,
-  or engine behavior changed.
+  or engine behavior changed. The local `beta` branch is three commits ahead of `origin/beta`;
+  these local commits have not been pushed or promoted to `main`.
 - Current beta review/scout checkpoint (`Add first personal knowledge review scout`) adapts the
   first fully classified Apple Notes revision into one immutable local Developer ticket with seven
   one-to-one, medically unreviewed Developer-opinion proposals. A discriminated private locator
