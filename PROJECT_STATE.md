@@ -34,6 +34,11 @@ Last updated: 2026-07-25
 - Released feature checkpoint: `8d78c078ba60b7e67f7934c714773aa277b64769`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
+- Current beta structured-source checkpoint:
+  `36d1971d076659d3ecede55179779754d8a154c6`
+  (`Harden structured private source extraction`). It preserves private authored-unit structure and
+  provenance, validates explicit one-source refreshes transactionally, and keeps source extraction
+  separate from semantic review and executable content.
 - Current bounded source-structure work adds parser
   `psychsim-source-parser-5`, explicit one-entry extraction refresh with private artifact history,
   hierarchical DOCX/Markdown section paths, deterministic section-boundary instances, and
