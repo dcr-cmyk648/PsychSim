@@ -34,6 +34,8 @@ interface ReceiptViewProps {
   reviewExportAvailable?: boolean;
   linkedReviewTickets?: readonly ClinicalReviewTicket[];
   onBackToClinic: () => void;
+  nextDeveloperPatientAvailable?: boolean;
+  onContinueDeveloperReview?: () => void;
   onReplay: () => void;
   onExportReviews?: () => void;
   onFlag: (draft: FlagDraft) => Promise<void>;
@@ -332,39 +334,93 @@ function TraceRuleDetails({
 function LinkedTicketReviewCard({
   ticket,
   onSave,
+  onAdvance,
+  advanceLabel,
+  positionLabel,
 }: {
   ticket: ClinicalReviewTicket;
   onSave: (ticketId: string, reviewerNotes: string) => Promise<void>;
+  onAdvance: () => void;
+  advanceLabel: string;
+  positionLabel: string;
 }) {
   const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
   const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setReviewerNotes(ticket.reviewerNotes);
+    setSaveMessage(null);
   }, [ticket.id, ticket.reviewerNotes]);
 
-  const dirty = reviewerNotes.trim() !== ticket.reviewerNotes;
+  const dirty = reviewerNotes.trim() !== ticket.reviewerNotes.trim();
+  const save = async (): Promise<boolean> => {
+    setSaving(true);
+    setSaveMessage(null);
+    try {
+      await onSave(ticket.id, reviewerNotes.trim());
+      setSaveMessage('Response saved with this exact attempt.');
+      return true;
+    } catch (caught) {
+      setSaveMessage(
+        caught instanceof Error
+          ? `The response could not be saved: ${caught.message}`
+          : 'The response could not be saved.',
+      );
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+  const saveAndAdvance = async (): Promise<void> => {
+    if (!reviewerNotes.trim()) return;
+    if (dirty && !(await save())) return;
+    onAdvance();
+  };
+  const cleanAdvanceLabel = advanceLabel
+    .replace('Save and go', 'Go')
+    .replace('Save and finish', 'Finish');
+
   return (
-    <LazyDisclosure
-      className="ticket-card developer-question-card"
-      summary={
-        <>
-          <span>
-            <strong>{ticket.title}</strong>
-            <small>{ticket.guidance}</small>
-          </span>
-          <span className="source-status">
-            {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
-          </span>
-        </>
-      }
+    <article
+      className="ticket-card focused-review-card receipt-linked-review-card"
+      aria-labelledby={`receipt-linked-ticket-title-${ticket.id}`}
     >
-      {() => (
-        <div className="developer-question-body">
-          <p>
-            Answer this question after reviewing the exact patient, your submitted choices, the
-            database-plan comparison, and the rule trace on this receipt.
+      <header className="focused-review-header">
+        <div>
+          <p className="eyebrow">{positionLabel}</p>
+          <h3 id={`receipt-linked-ticket-title-${ticket.id}`} tabIndex={-1}>
+            {ticket.title}
+          </h3>
+          <p>{ticket.ticketType.replaceAll('_', ' ')} · linked to this completed patient</p>
+        </div>
+        <span className="source-status">
+          {ticket.reviewerNotes.trim() ? 'Response saved' : 'Response needed'}
+        </span>
+      </header>
+      <div className="focused-review-body">
+        <section className="decision-brief">
+          <h4>Decision needed</h4>
+          <p
+            id={`receipt-linked-ticket-question-${ticket.id}`}
+            className="decision-primary-question"
+          >
+            {ticket.guidance}
           </p>
+          <h4>Proposed direction</h4>
+          <p>{ticket.proposedRouting}</p>
+          {ticket.sourceReviewSnapshot ? (
+            <div className="decision-source-summary">
+              <strong>Imported source proposal</strong>
+              <p>{ticket.sourceReviewSnapshot.originalSummary}</p>
+            </div>
+          ) : null}
+          <p>
+            The exact patient, submitted plan, database comparison, rule trace, and references
+            remain available below this focused question.
+          </p>
+        </section>
+        <div className="ticket-review-fields">
           <label htmlFor={`receipt-ticket-response-${ticket.id}`}>
             Your response, judgment, or alternative references
           </label>
@@ -373,27 +429,49 @@ function LinkedTicketReviewCard({
             rows={6}
             maxLength={8000}
             value={reviewerNotes}
+            aria-describedby={`receipt-linked-ticket-question-${ticket.id}`}
             placeholder="Describe what the rule should do, qualify the proposed direction, or paste a better source."
-            onChange={(event) => setReviewerNotes(event.target.value)}
-          />
-          <button
-            className="secondary-button"
-            type="button"
-            disabled={!dirty || saving}
-            onClick={() => {
-              setSaving(true);
-              void onSave(ticket.id, reviewerNotes.trim()).finally(() => setSaving(false));
+            onChange={(event) => {
+              setReviewerNotes(event.target.value);
+              setSaveMessage(null);
             }}
-          >
-            {saving ? 'Saving…' : dirty ? 'Save response with this attempt' : 'Response saved'}
-          </button>
+          />
+          <div className="focused-review-actions">
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={!dirty || saving}
+              onClick={() => void save()}
+            >
+              {saving
+                ? 'Saving…'
+                : dirty
+                  ? reviewerNotes.trim()
+                    ? 'Save response with this attempt'
+                    : 'Clear saved response'
+                  : 'Response saved'}
+            </button>
+            <button
+              className="primary-button"
+              type="button"
+              disabled={!reviewerNotes.trim() || saving}
+              onClick={() => void saveAndAdvance()}
+            >
+              {saving ? 'Saving…' : dirty ? advanceLabel : cleanAdvanceLabel}
+            </button>
+          </div>
           <small>
             This links the question to this immutable completed attempt. It does not change a
             clinical rule.
           </small>
+          {saveMessage ? (
+            <p className="ticket-tool-status" role="status">
+              {saveMessage}
+            </p>
+          ) : null}
         </div>
-      )}
-    </LazyDisclosure>
+      </div>
+    </article>
   );
 }
 
@@ -407,6 +485,8 @@ export function ReceiptView({
   reviewExportAvailable = false,
   linkedReviewTickets = [],
   onBackToClinic,
+  nextDeveloperPatientAvailable = false,
+  onContinueDeveloperReview,
   onReplay,
   onExportReviews,
   onFlag,
@@ -430,6 +510,7 @@ export function ReceiptView({
   const [savedDeveloperReviewNote, setSavedDeveloperReviewNote] = useState(
     initialDeveloperReviewNote,
   );
+  const [focusedLinkedTicketId, setFocusedLinkedTicketId] = useState<string | null>(null);
   const [developerReviewStatus, setDeveloperReviewStatus] = useState<string | null>(null);
   const [savingDeveloperReview, setSavingDeveloperReview] = useState(false);
   const variance = pointReport.actualWorkupExpense - pointReport.selectedPathWorkupCost;
@@ -450,6 +531,38 @@ export function ReceiptView({
       subtotal: rules.reduce((total, trace) => total + trace.points, 0),
     };
   }).filter((group) => group.pointRelevant.length > 0 || group.zeroPoint.length > 0);
+  const pendingLinkedReviewTickets = linkedReviewTickets.filter(
+    (ticket) => !ticket.reviewerNotes.trim(),
+  );
+  const reviewedLinkedReviewTickets = linkedReviewTickets.filter((ticket) =>
+    ticket.reviewerNotes.trim(),
+  );
+  const focusedLinkedReviewTicket = focusedLinkedTicketId
+    ? (linkedReviewTickets.find((ticket) => ticket.id === focusedLinkedTicketId) ?? null)
+    : (pendingLinkedReviewTickets[0] ?? null);
+  const focusedLinkedTicketIndex = focusedLinkedReviewTicket
+    ? pendingLinkedReviewTickets.findIndex((ticket) => ticket.id === focusedLinkedReviewTicket.id)
+    : -1;
+
+  useEffect(() => {
+    if (!focusedLinkedTicketId) return;
+    if (!linkedReviewTickets.some((ticket) => ticket.id === focusedLinkedTicketId)) {
+      setFocusedLinkedTicketId(null);
+    }
+  }, [focusedLinkedTicketId, linkedReviewTickets]);
+
+  useEffect(() => {
+    if (!focusedLinkedTicketId) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById(`receipt-linked-ticket-title-${focusedLinkedTicketId}`)?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusedLinkedTicketId]);
+
+  const advanceLinkedTicket = (ticketId: string): void => {
+    const nextTicket = pendingLinkedReviewTickets.find((ticket) => ticket.id !== ticketId) ?? null;
+    setFocusedLinkedTicketId(nextTicket?.id ?? null);
+  };
 
   const submitFlag = async (): Promise<void> => {
     await onFlag({
@@ -481,9 +594,9 @@ export function ReceiptView({
     setGuidanceItemId(null);
   };
 
-  const submitDeveloperReview = async (): Promise<void> => {
+  const submitDeveloperReview = async (): Promise<boolean> => {
     const normalizedNote = developerReviewNote.trim();
-    if (!normalizedNote) return;
+    if (!normalizedNote) return false;
     setSavingDeveloperReview(true);
     setDeveloperReviewStatus(null);
     try {
@@ -497,15 +610,23 @@ export function ReceiptView({
             ? 'Review saved locally with the exact patient, options, selections, events, and receipt. The Codex handoff file is up to date.'
             : 'Review saved in browser storage with the exact attempt. The Codex handoff file could not be refreshed; use “Update Codex handoff file” from the Developer hub to retry.',
       );
+      return true;
     } catch (caught) {
       setDeveloperReviewStatus(
         caught instanceof Error
           ? `The case review could not be saved: ${caught.message}`
           : 'The case review could not be saved.',
       );
+      return false;
     } finally {
       setSavingDeveloperReview(false);
     }
+  };
+  const saveAndContinueDeveloperReview = async (): Promise<void> => {
+    if (!developerReviewNote.trim() || !onContinueDeveloperReview) return;
+    const changed = developerReviewNote.trim() !== savedDeveloperReviewNote.trim();
+    if (changed && !(await submitDeveloperReview())) return;
+    onContinueDeveloperReview();
   };
 
   const developerReviewPanel = developerCaseReviewEnabled ? (
@@ -549,6 +670,24 @@ export function ReceiptView({
           >
             {savingDeveloperReview ? 'Saving feedback…' : 'Save feedback for Codex'}
           </button>
+          {onContinueDeveloperReview ? (
+            <button
+              className="primary-button"
+              type="button"
+              disabled={savingDeveloperReview || !developerReviewNote.trim()}
+              onClick={() => void saveAndContinueDeveloperReview()}
+            >
+              {savingDeveloperReview
+                ? 'Saving feedback…'
+                : developerReviewNote.trim() !== savedDeveloperReviewNote.trim()
+                  ? nextDeveloperPatientAvailable
+                    ? 'Save feedback and open next patient'
+                    : 'Save feedback and finish review queue'
+                  : nextDeveloperPatientAvailable
+                    ? 'Open next patient'
+                    : 'Finish review queue'}
+            </button>
+          ) : null}
         </div>
         {developerReviewStatus ? (
           <p className="success-message" role="status">
@@ -601,7 +740,7 @@ export function ReceiptView({
         databaseScore={databaseComparisonScore}
       />
 
-      {portableReviewerBuild ? developerReviewPanel : null}
+      {developerReviewPanel}
 
       {developerCaseReviewEnabled && linkedReviewTickets.length > 0 ? (
         <LazyDisclosure
@@ -612,19 +751,72 @@ export function ReceiptView({
                 <small>Questions attached to this patient</small>
                 <strong>Review this case against queued decisions</strong>
               </span>
-              <span className="count-badge">{linkedReviewTickets.length}</span>
+              <span className="count-badge">{pendingLinkedReviewTickets.length} need input</span>
             </>
           }
         >
           {() => (
-            <div className="developer-disclosure-body ticket-list">
-              {linkedReviewTickets.map((ticket) => (
+            <div className="developer-disclosure-body">
+              {focusedLinkedReviewTicket ? (
                 <LinkedTicketReviewCard
-                  key={ticket.id}
-                  ticket={ticket}
+                  key={focusedLinkedReviewTicket.id}
+                  ticket={focusedLinkedReviewTicket}
                   onSave={onSaveLinkedTicketReview}
+                  onAdvance={() => advanceLinkedTicket(focusedLinkedReviewTicket.id)}
+                  advanceLabel={
+                    pendingLinkedReviewTickets.some(
+                      (ticket) => ticket.id !== focusedLinkedReviewTicket.id,
+                    )
+                      ? 'Save and go to next linked decision'
+                      : 'Save and finish linked decisions'
+                  }
+                  positionLabel={
+                    focusedLinkedTicketIndex >= 0
+                      ? `Linked decision ${focusedLinkedTicketIndex + 1} of ${
+                          pendingLinkedReviewTickets.length
+                        }`
+                      : 'Reviewed linked decision'
+                  }
                 />
-              ))}
+              ) : (
+                <p className="review-complete-message">
+                  Every question linked to this patient has a saved response.
+                </p>
+              )}
+              {reviewedLinkedReviewTickets.length > 0 ? (
+                <LazyDisclosure
+                  className="reviewed-ticket-group"
+                  summary={`Reviewed linked decisions · ${reviewedLinkedReviewTickets.length}`}
+                >
+                  {() => (
+                    <ul className="reviewed-decision-list">
+                      {reviewedLinkedReviewTickets.map((ticket) => (
+                        <li key={ticket.id}>
+                          <button
+                            className="text-button"
+                            type="button"
+                            onClick={() => setFocusedLinkedTicketId(ticket.id)}
+                          >
+                            <strong>{ticket.title}</strong>
+                            <small>Edit saved response</small>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </LazyDisclosure>
+              ) : null}
+              {focusedLinkedReviewTicket &&
+              focusedLinkedTicketIndex < 0 &&
+              pendingLinkedReviewTickets.length > 0 ? (
+                <button
+                  className="small-button return-to-pending-button"
+                  type="button"
+                  onClick={() => setFocusedLinkedTicketId(pendingLinkedReviewTickets[0]!.id)}
+                >
+                  Return to next unanswered linked decision
+                </button>
+              ) : null}
             </div>
           )}
         </LazyDisclosure>
@@ -1040,8 +1232,6 @@ export function ReceiptView({
           ))}
         </div>
       </section>
-
-      {!portableReviewerBuild ? developerReviewPanel : null}
 
       <section className="flag-panel" aria-labelledby="flag-title">
         <div>

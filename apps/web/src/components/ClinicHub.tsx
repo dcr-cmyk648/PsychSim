@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 
 import type {
   CaseInstance,
@@ -103,8 +103,10 @@ interface TicketReviewCardProps {
   literatureSynthesisProposal: LiteratureSynthesisProposal | null;
   ticketLiteratureScoutCatalog: TicketLiteratureScoutCatalog | null;
   onSave: ClinicHubProps['onSaveTicketReview'];
+  onAdvance?: () => void;
+  advanceLabel?: string;
+  positionLabel?: string;
   readOnlyReason?: string;
-  compact?: boolean;
 }
 
 function TicketReviewCard({
@@ -113,277 +115,250 @@ function TicketReviewCard({
   literatureSynthesisProposal,
   ticketLiteratureScoutCatalog,
   onSave,
+  onAdvance,
+  advanceLabel = 'Save and go to next decision',
+  positionLabel = 'Focused decision',
   readOnlyReason,
-  compact = false,
 }: TicketReviewCardProps) {
   const [reviewerNotes, setReviewerNotes] = useState(ticket.reviewerNotes);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [focusedOpen, setFocusedOpen] = useState(false);
-  const focusedDialog = useRef<HTMLDialogElement>(null);
-  const focusedReturn = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setReviewerNotes(ticket.reviewerNotes);
+    setSaveMessage(null);
   }, [ticket.id, ticket.reviewerNotes]);
 
-  useEffect(() => {
-    const dialog = focusedDialog.current;
-    if (!dialog) return;
-    if (focusedOpen && !dialog.open) {
-      if (typeof dialog.showModal === 'function') dialog.showModal();
-      else dialog.setAttribute('open', '');
-    }
-  }, [focusedOpen]);
-
   const dirty = reviewerNotes !== ticket.reviewerNotes;
-  const saveReview = async (): Promise<void> => {
+  const saveReview = async (): Promise<boolean> => {
     setSaving(true);
     setSaveMessage(null);
     try {
       await onSave(ticket.id, reviewerNotes);
       setSaveMessage('Saved in this browser.');
+      return true;
     } catch (caught) {
       setSaveMessage(
         caught instanceof Error ? `Could not save: ${caught.message}` : 'Could not save response.',
       );
+      return false;
     } finally {
       setSaving(false);
     }
   };
-  const closeFocusedView = (): void => {
-    const dialog = focusedDialog.current;
-    if (dialog?.open && typeof dialog.close === 'function') {
-      dialog.close();
-      return;
-    }
-    dialog?.removeAttribute('open');
-    setFocusedOpen(false);
-    focusedReturn.current?.focus();
+  const saveAndAdvance = async (): Promise<void> => {
+    if (!reviewerNotes.trim() || !onAdvance) return;
+    if (dirty && !(await saveReview())) return;
+    onAdvance();
   };
   const sourceReviewSnapshot = ticket.sourceReviewSnapshot;
-
-  const detailBody = (idPrefix: 'inline' | 'focused') => (
-    <div className="developer-question-body ticket-card-body">
-      <div>
-        {sourceReviewSnapshot && SourceReviewSnapshotView ? (
-          <Suspense fallback={<p className="audit-disclaimer">Loading local source packet…</p>}>
-            <SourceReviewSnapshotView snapshot={sourceReviewSnapshot} />
-          </Suspense>
-        ) : null}
-        <h4>Decision needed</h4>
-        <p>{ticket.guidance}</p>
-        {caseRuleAudit ? (
-          <dl className="developer-question-context">
-            <div>
-              <dt>Linked patient</dt>
-              <dd>
-                {caseRuleAudit.caseLabel} · case version {caseRuleAudit.contentVersion}
-              </dd>
-            </div>
-            <div>
-              <dt>Current database plan</dt>
-              <dd>
-                {caseRuleAudit.databasePlan.carePoints} care points ·{' '}
-                {caseRuleAudit.databasePlan.workupCostPar} investigation points
-              </dd>
-            </div>
-          </dl>
-        ) : (
-          <p className="audit-disclaimer">
-            Cross-cutting question: no focused patient is linked yet.
-          </p>
-        )}
-        {caseRuleAudit ? (
-          <CaseRuleAuditView audit={caseRuleAudit} targetContentIds={ticket.targetContentIds} />
-        ) : null}
-        {literatureSynthesisProposal ? (
-          <LiteratureSynthesisProposalView proposal={literatureSynthesisProposal} />
-        ) : null}
-        {ticketLiteratureScoutCatalog ? (
-          <TicketLiteratureScoutView catalog={ticketLiteratureScoutCatalog} ticketId={ticket.id} />
-        ) : null}
-        <details className="ticket-context">
-          <summary>Targets and review routing</summary>
-          <dl>
-            <div>
-              <dt>Source</dt>
-              <dd>
-                {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
-                {ticket.sourceAuthority.replaceAll('_', ' ')}
-              </dd>
-            </div>
-            <div>
-              <dt>Proposed routing</dt>
-              <dd>{ticket.proposedRouting}</dd>
-            </div>
-            <div>
-              <dt>Target IDs</dt>
-              <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
-            </div>
-            <div>
-              <dt>Dependencies</dt>
-              <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
-            </div>
-            <div>
-              <dt>Conflicts</dt>
-              <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
-            </div>
-            {ticket.resurfacingTrigger ? (
-              <div>
-                <dt>Resurface when</dt>
-                <dd>{ticket.resurfacingTrigger}</dd>
-              </div>
-            ) : null}
-          </dl>
-        </details>
-      </div>
-      <div className="ticket-review-fields">
-        {readOnlyReason ? (
-          <p className="ticket-tool-status" role="alert">
-            {readOnlyReason}
-          </p>
-        ) : null}
-        <label htmlFor={`${idPrefix}-ticket-reviewer-notes-${ticket.id}`}>
-          Your response, judgment, or alternative references
-        </label>
-        <textarea
-          id={`${idPrefix}-ticket-reviewer-notes-${ticket.id}`}
-          value={reviewerNotes}
-          rows={6}
-          maxLength={8000}
-          placeholder="Agree, disagree, qualify the proposed direction, describe the desired change, or paste better references."
-          disabled={Boolean(readOnlyReason)}
-          onChange={(event) => {
-            setReviewerNotes(event.target.value);
-            setSaveMessage(null);
-          }}
-        />
-        <small>
-          Codex will infer the intended action from your instructions and ask only if an important
-          choice remains ambiguous. Saving does not alter a clinical rule.
-        </small>
-        <button
-          className="secondary-button"
-          type="button"
-          disabled={Boolean(readOnlyReason) || !dirty || saving}
-          onClick={() => void saveReview()}
-        >
-          {saving
-            ? 'Saving…'
-            : dirty
-              ? reviewerNotes.trim()
-                ? 'Save response'
-                : 'Clear saved response'
-              : 'Response saved'}
-        </button>
-        {saveMessage ? (
-          <p className="ticket-tool-status" role="status">
-            {saveMessage}
-          </p>
-        ) : null}
-      </div>
-    </div>
-  );
+  const cleanAdvanceLabel = advanceLabel
+    .replace('Save and go', 'Go')
+    .replace('Save and finish', 'Finish');
 
   return (
-    <>
-      {!compact ? (
+    <article
+      className="ticket-card focused-review-card"
+      aria-labelledby={`focused-ticket-title-${ticket.id}`}
+    >
+      <header className="focused-review-header">
+        <div>
+          <p className="eyebrow">{positionLabel}</p>
+          <h3 id={`focused-ticket-title-${ticket.id}`} tabIndex={-1}>
+            {ticket.title}
+          </h3>
+          <p>
+            {caseRuleAudit ? `${caseRuleAudit.caseLabel} · ` : ''}
+            {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
+            {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
+          </p>
+        </div>
+        <span className="source-status">
+          {readOnlyReason
+            ? 'Quarantined'
+            : ticket.reviewerNotes.trim()
+              ? 'Response saved'
+              : 'Response needed'}
+        </span>
+      </header>
+      <div className="focused-review-body">
+        <section className="decision-brief" aria-labelledby={`decision-brief-${ticket.id}`}>
+          <h4>Decision needed</h4>
+          <p id={`decision-brief-${ticket.id}`} className="decision-primary-question">
+            {ticket.guidance}
+          </p>
+          <h4>Proposed direction</h4>
+          <p>{literatureSynthesisProposal?.proposedDirection ?? ticket.proposedRouting}</p>
+          {literatureSynthesisProposal ? (
+            <div className="decision-evidence-summary">
+              <div>
+                <strong>What supports it</strong>
+                <p>{literatureSynthesisProposal.supportingSummary}</p>
+              </div>
+              <div>
+                <strong>What qualifies it</strong>
+                <p>{literatureSynthesisProposal.opposingOrQualifyingSummary}</p>
+              </div>
+            </div>
+          ) : null}
+          {sourceReviewSnapshot ? (
+            <div className="decision-source-summary">
+              <strong>Imported source proposal</strong>
+              <p>{sourceReviewSnapshot.originalSummary}</p>
+              <ul>
+                {sourceReviewSnapshot.atomicProposals.map((proposal) => (
+                  <li key={proposal.id}>{proposal.summary}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {caseRuleAudit ? (
+            <dl className="developer-question-context">
+              <div>
+                <dt>Linked patient</dt>
+                <dd>
+                  {caseRuleAudit.caseLabel} · case version {caseRuleAudit.contentVersion}
+                </dd>
+              </div>
+              <div>
+                <dt>Current database plan</dt>
+                <dd>
+                  {caseRuleAudit.databasePlan.carePoints} care points ·{' '}
+                  {caseRuleAudit.databasePlan.workupCostPar} investigation points
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="audit-disclaimer">
+              Cross-cutting question: no focused patient is linked yet.
+            </p>
+          )}
+        </section>
+        <div className="ticket-review-fields">
+          {readOnlyReason ? (
+            <p className="ticket-tool-status" role="alert">
+              {readOnlyReason}
+            </p>
+          ) : null}
+          <label htmlFor={`workbench-ticket-reviewer-notes-${ticket.id}`}>
+            Your response, judgment, or alternative references
+          </label>
+          <textarea
+            id={`workbench-ticket-reviewer-notes-${ticket.id}`}
+            aria-describedby={`decision-brief-${ticket.id}`}
+            value={reviewerNotes}
+            rows={8}
+            maxLength={8000}
+            placeholder="Agree, disagree, qualify the proposed direction, describe the desired change, or paste better references."
+            disabled={Boolean(readOnlyReason)}
+            onChange={(event) => {
+              setReviewerNotes(event.target.value);
+              setSaveMessage(null);
+            }}
+          />
+          <small>
+            Codex will infer the intended action from your instructions and ask only if an important
+            choice remains ambiguous. Saving does not alter a clinical rule.
+          </small>
+          <div className="focused-review-actions">
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={Boolean(readOnlyReason) || !dirty || saving}
+              onClick={() => void saveReview()}
+            >
+              {saving
+                ? 'Saving…'
+                : dirty
+                  ? reviewerNotes.trim()
+                    ? 'Save response'
+                    : 'Clear saved response'
+                  : 'Response saved'}
+            </button>
+            {onAdvance ? (
+              <button
+                className="primary-button"
+                type="button"
+                disabled={Boolean(readOnlyReason) || !reviewerNotes.trim() || saving}
+                onClick={() => void saveAndAdvance()}
+              >
+                {saving ? 'Saving…' : dirty ? advanceLabel : cleanAdvanceLabel}
+              </button>
+            ) : null}
+          </div>
+          {saveMessage ? (
+            <p className="ticket-tool-status" role="status">
+              {saveMessage}
+            </p>
+          ) : null}
+        </div>
         <LazyDisclosure
-          className="ticket-card developer-question-card review-ticket-inline"
-          summary={
-            <>
-              <span>
-                <strong>{ticket.title}</strong>
-                <small>
-                  {caseRuleAudit ? `${caseRuleAudit.caseLabel} · ` : ''}
-                  {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
-                  {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
-                </small>
-              </span>
-              <span className="source-status">
-                {readOnlyReason
-                  ? 'Quarantined'
-                  : ticket.reviewerNotes.trim()
-                    ? 'Response saved'
-                    : 'Response needed'}
-              </span>
-            </>
-          }
+          className="focused-review-audit"
+          summary="Related material, references, and exact audit"
         >
           {() => (
-            <>
-              <button
-                className="small-button focused-ticket-button"
-                type="button"
-                onClick={(event) => {
-                  focusedReturn.current = event.currentTarget;
-                  setFocusedOpen(true);
-                }}
-              >
-                Open focused view
-              </button>
-              {detailBody('inline')}
-            </>
+            <div className="focused-review-audit-body">
+              {sourceReviewSnapshot && SourceReviewSnapshotView ? (
+                <Suspense
+                  fallback={<p className="audit-disclaimer">Loading local source packet…</p>}
+                >
+                  <SourceReviewSnapshotView snapshot={sourceReviewSnapshot} />
+                </Suspense>
+              ) : null}
+              {caseRuleAudit ? (
+                <CaseRuleAuditView
+                  audit={caseRuleAudit}
+                  targetContentIds={ticket.targetContentIds}
+                />
+              ) : null}
+              {literatureSynthesisProposal ? (
+                <LiteratureSynthesisProposalView proposal={literatureSynthesisProposal} />
+              ) : null}
+              {ticketLiteratureScoutCatalog ? (
+                <TicketLiteratureScoutView
+                  catalog={ticketLiteratureScoutCatalog}
+                  ticketId={ticket.id}
+                />
+              ) : null}
+              <details className="ticket-context">
+                <summary>Targets and review routing</summary>
+                <dl>
+                  <div>
+                    <dt>Source</dt>
+                    <dd>
+                      {ticket.sourceKind.replaceAll('_', ' ')} ·{' '}
+                      {ticket.sourceAuthority.replaceAll('_', ' ')}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Proposed routing</dt>
+                    <dd>{ticket.proposedRouting}</dd>
+                  </div>
+                  <div>
+                    <dt>Target IDs</dt>
+                    <dd>{ticket.targetContentIds.join(', ') || 'None'}</dd>
+                  </div>
+                  <div>
+                    <dt>Dependencies</dt>
+                    <dd>{ticket.dependencyTicketIds.join(', ') || 'None'}</dd>
+                  </div>
+                  <div>
+                    <dt>Conflicts</dt>
+                    <dd>{ticket.conflictContentIds.join(', ') || 'None'}</dd>
+                  </div>
+                  {ticket.resurfacingTrigger ? (
+                    <div>
+                      <dt>Resurface when</dt>
+                      <dd>{ticket.resurfacingTrigger}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </details>
+            </div>
           )}
         </LazyDisclosure>
-      ) : null}
-      <button
-        className={`ticket-card review-ticket-launch${compact ? ' review-ticket-launch-always' : ''}`}
-        type="button"
-        onClick={(event) => {
-          focusedReturn.current = event.currentTarget;
-          setFocusedOpen(true);
-        }}
-      >
-        <span>
-          <span>
-            <strong>{ticket.title}</strong>
-            <small>
-              {caseRuleAudit ? `${caseRuleAudit.caseLabel} · ` : ''}
-              {ticket.ticketType.replaceAll('_', ' ')} · {ticket.priority} ·{' '}
-              {ticket.requiresClinicalAcumen ? 'clinical review' : 'technical review'}
-            </small>
-          </span>
-          <span className="source-status">
-            {readOnlyReason
-              ? 'Quarantined'
-              : ticket.reviewerNotes.trim()
-                ? 'Response saved'
-                : 'Response needed'}
-          </span>
-        </span>
-        <span aria-hidden="true">Open</span>
-      </button>
-      <dialog
-        ref={focusedDialog}
-        className="review-ticket-dialog"
-        aria-labelledby={`focused-ticket-title-${ticket.id}`}
-        onCancel={(event) => {
-          event.preventDefault();
-          closeFocusedView();
-        }}
-        onClose={() => {
-          setFocusedOpen(false);
-          focusedReturn.current?.focus();
-        }}
-      >
-        {focusedOpen ? (
-          <div className="review-ticket-dialog-shell">
-            <header>
-              <div>
-                <p className="eyebrow">Review ticket</p>
-                <h2 id={`focused-ticket-title-${ticket.id}`}>{ticket.title}</h2>
-              </div>
-              <button className="secondary-button" type="button" onClick={closeFocusedView}>
-                Close
-              </button>
-            </header>
-            <div className="review-ticket-dialog-scroll">{detailBody('focused')}</div>
-          </div>
-        ) : null}
-      </dialog>
-    </>
+      </div>
+    </article>
   );
 }
 
@@ -490,6 +465,7 @@ export function ClinicHub({
   upgradeStatus,
 }: ClinicHubProps) {
   const { clinic, progressionMode } = saveData.profile;
+  const [focusedTicketId, setFocusedTicketId] = useState<string | null>(null);
   const latestAttempt = saveData.attempts.at(-1);
   const reviewedAttemptIds = new Set(saveData.attemptReviews.map((review) => review.attemptId));
   const reviewTickets = [...saveData.clinicalTickets]
@@ -502,6 +478,12 @@ export function ClinicHub({
     );
   const ticketsNeedingInput = reviewTickets.filter((ticket) => !ticket.reviewerNotes.trim());
   const reviewedTickets = reviewTickets.filter((ticket) => ticket.reviewerNotes.trim());
+  const focusedTicket = focusedTicketId
+    ? (reviewTickets.find((ticket) => ticket.id === focusedTicketId) ?? null)
+    : (ticketsNeedingInput[0] ?? null);
+  const focusedPendingIndex = focusedTicket
+    ? ticketsNeedingInput.findIndex((ticket) => ticket.id === focusedTicket.id)
+    : -1;
   const caseRuleAuditByBlueprintId = new Map(
     caseRuleAudits.map((audit) => [audit.blueprintId, audit]),
   );
@@ -535,6 +517,125 @@ export function ClinicHub({
   const hasPlant = clinicState.ownedUpgradeIds.includes('decor.plant.pothos');
   const hasArt = clinicState.ownedUpgradeIds.includes('decor.art.abstract-print');
   const hasWarmLighting = clinicState.ownedUpgradeIds.includes('decor.lighting.warm-lamps');
+
+  useEffect(() => {
+    if (!focusedTicketId) return;
+    if (!reviewTickets.some((ticket) => ticket.id === focusedTicketId)) {
+      setFocusedTicketId(null);
+    }
+  }, [focusedTicketId, reviewTickets]);
+
+  useEffect(() => {
+    if (!focusedTicketId) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById(`focused-ticket-title-${focusedTicketId}`)?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [focusedTicketId]);
+
+  const advanceFromTicket = (ticketId: string): void => {
+    const nextTicket = ticketsNeedingInput.find((ticket) => ticket.id !== ticketId) ?? null;
+    setFocusedTicketId(nextTicket?.id ?? null);
+  };
+  const patientQueueBody = (
+    <>
+      {progressionMode === 'developer' ? (
+        <div className="patient-queue-open-tools">
+          <p>
+            Open one patient at a time. Completed patient definitions leave this queue until the
+            review run is reset.
+          </p>
+          <button className="small-button" type="button" onClick={onRefresh}>
+            Refresh slots
+          </button>
+        </div>
+      ) : null}
+      {patientSlots.length > 0 ? (
+        <div className="patient-slot-grid">
+          {patientSlots.map((slot) => {
+            const linkedTickets = reviewTickets.filter(
+              (ticket) => ticket.blueprintId === slot.casePreview.blueprintId,
+            );
+            return (
+              <article className="case-card" key={slot.id}>
+                <div className="case-card-topline">
+                  <span className="case-level">Patient</span>
+                  <span className="status-chip">Waiting</span>
+                </div>
+                <p className="setting-label">
+                  <span>Setting</span>
+                  {slot.settingLabel}
+                </p>
+                {progressionMode === 'developer' && !reviewerBuild ? (
+                  <p className="setting-label">
+                    <span>Review provenance</span>
+                    {reviewProvenanceLabel(slot.casePreview, catalogs)}
+                  </p>
+                ) : null}
+                <h3>{slot.casePreview.opening.title}</h3>
+                <p className="chief-complaint">
+                  <span>Chief complaint</span>“{slot.casePreview.opening.chiefComplaint}”
+                </p>
+                {progressionMode === 'developer' && !reviewerBuild && linkedTickets.length > 0 ? (
+                  <LazyDisclosure
+                    className="patient-review-questions"
+                    summary={`${linkedTickets.length} linked review question${
+                      linkedTickets.length === 1 ? '' : 's'
+                    }`}
+                  >
+                    {() => (
+                      <ul>
+                        {linkedTickets.map((ticket) => (
+                          <li key={`${slot.id}.${ticket.id}`}>
+                            <strong>{ticket.title}</strong>
+                            <span>{ticket.guidance}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </LazyDisclosure>
+                ) : null}
+                <div className="case-card-actions">
+                  <button
+                    className="primary-button large-button"
+                    type="button"
+                    aria-label={`Open chart for ${slot.casePreview.opening.title}`}
+                    onClick={() => onStart(slot.id)}
+                  >
+                    Open chart
+                  </button>
+                  {progressionMode === 'developer' ? (
+                    <button
+                      className="small-button"
+                      type="button"
+                      onClick={() => onRerollDeveloper(slot.id)}
+                    >
+                      Reroll patient
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="empty-queue">
+          <p>
+            {reviewerBuild
+              ? 'Every assigned patient definition has been run.'
+              : progressionMode === 'developer'
+                ? 'Every currently loaded patient definition has been run.'
+                : 'No eligible patients are waiting.'}
+          </p>
+          {progressionMode === 'developer' ? (
+            <button className="secondary-button" type="button" onClick={onResetDeveloper}>
+              Reset {reviewerBuild ? 'reviewer' : 'developer'} run history
+            </button>
+          ) : null}
+        </div>
+      )}
+    </>
+  );
 
   return (
     <main className="hub-shell" id="main-content">
@@ -607,108 +708,40 @@ export function ClinicHub({
       </section>
 
       <div className="hub-grid">
-        <section className="patient-queue" aria-labelledby="patient-queue-title">
-          <div className="queue-heading">
-            <div>
-              <p className="eyebrow">Available now</p>
-              <h2 id="patient-queue-title">Patient queue</h2>
+        {progressionMode === 'developer' ? (
+          <LazyDisclosure
+            className="patient-queue patient-queue-disclosure developer-major-disclosure"
+            summary={
+              <>
+                <span>
+                  <small>Available now</small>
+                  <strong id="patient-queue-title">Patient queue</strong>
+                </span>
+                <span className="count-badge">{patientSlots.length} waiting</span>
+              </>
+            }
+          >
+            {() => <div className="patient-queue-body">{patientQueueBody}</div>}
+          </LazyDisclosure>
+        ) : (
+          <section className="patient-queue" aria-labelledby="patient-queue-title">
+            <div className="queue-heading">
+              <div>
+                <p className="eyebrow">Available now</p>
+                <h2 id="patient-queue-title">Patient queue</h2>
+              </div>
+              <div className="queue-tools">
+                <span className="count-badge">{patientSlots.length}</span>
+                {progressionMode !== 'standard' ? (
+                  <button className="small-button" type="button" onClick={onRefresh}>
+                    Refresh slots
+                  </button>
+                ) : null}
+              </div>
             </div>
-            <div className="queue-tools">
-              <span className="count-badge">{patientSlots.length}</span>
-              {progressionMode !== 'standard' ? (
-                <button className="small-button" type="button" onClick={onRefresh}>
-                  Refresh slots
-                </button>
-              ) : null}
-            </div>
-          </div>
-          {patientSlots.length > 0 ? (
-            <div className="patient-slot-grid">
-              {patientSlots.map((slot) => {
-                const linkedTickets = reviewTickets.filter(
-                  (ticket) => ticket.blueprintId === slot.casePreview.blueprintId,
-                );
-                return (
-                  <article className="case-card" key={slot.id}>
-                    <div className="case-card-topline">
-                      <span className="case-level">Patient</span>
-                      <span className="status-chip">Waiting</span>
-                    </div>
-                    <p className="setting-label">
-                      <span>Setting</span>
-                      {slot.settingLabel}
-                    </p>
-                    {progressionMode === 'developer' && !reviewerBuild ? (
-                      <p className="setting-label">
-                        <span>Review provenance</span>
-                        {reviewProvenanceLabel(slot.casePreview, catalogs)}
-                      </p>
-                    ) : null}
-                    <h3>{slot.casePreview.opening.title}</h3>
-                    <p className="chief-complaint">
-                      <span>Chief complaint</span>“{slot.casePreview.opening.chiefComplaint}”
-                    </p>
-                    {progressionMode === 'developer' &&
-                    !reviewerBuild &&
-                    linkedTickets.length > 0 ? (
-                      <LazyDisclosure
-                        className="patient-review-questions"
-                        summary={`${linkedTickets.length} linked review question${
-                          linkedTickets.length === 1 ? '' : 's'
-                        }`}
-                      >
-                        {() => (
-                          <ul>
-                            {linkedTickets.map((ticket) => (
-                              <li key={`${slot.id}.${ticket.id}`}>
-                                <strong>{ticket.title}</strong>
-                                <span>{ticket.guidance}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </LazyDisclosure>
-                    ) : null}
-                    <div className="case-card-actions">
-                      <button
-                        className="primary-button large-button"
-                        type="button"
-                        aria-label={`Open chart for ${slot.casePreview.opening.title}`}
-                        onClick={() => onStart(slot.id)}
-                      >
-                        Open chart
-                      </button>
-                      {progressionMode === 'developer' ? (
-                        <button
-                          className="small-button"
-                          type="button"
-                          onClick={() => onRerollDeveloper(slot.id)}
-                        >
-                          Reroll patient
-                        </button>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="empty-queue">
-              <p>
-                {reviewerBuild
-                  ? 'Every assigned patient definition has been run.'
-                  : progressionMode === 'developer'
-                    ? 'Every currently loaded patient definition has been run.'
-                    : 'No eligible patients are waiting.'}
-              </p>
-              {progressionMode === 'developer' ? (
-                <button className="secondary-button" type="button" onClick={onResetDeveloper}>
-                  Reset {reviewerBuild ? 'reviewer' : 'developer'} run history
-                </button>
-              ) : null}
-            </div>
-          )}
-        </section>
+            {patientQueueBody}
+          </section>
+        )}
 
         <aside className="office-card" aria-labelledby="office-capabilities-title">
           <div
@@ -1079,98 +1112,83 @@ export function ClinicHub({
               ) : null}
               {reviewTickets.length === 0 ? (
                 <p className="no-results">No open local review tickets.</p>
-              ) : reviewerBuild ? (
-                <>
-                  {ticketsNeedingInput.length === 0 ? (
-                    <p className="review-complete-message">
-                      Every assigned ticket has a saved response. Export the review bundle when you
-                      are ready to send it.
-                    </p>
-                  ) : null}
-                  <div className="ticket-list">
-                    {reviewTickets.map((ticket) => (
-                      <TicketReviewCard
-                        key={ticket.id}
-                        ticket={ticket}
-                        caseRuleAudit={
-                          ticket.blueprintId
-                            ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
-                            : null
-                        }
-                        literatureSynthesisProposal={null}
-                        ticketLiteratureScoutCatalog={null}
-                        onSave={onSaveTicketReview}
-                        readOnlyReason={
-                          ticket.sourceReviewSnapshot && !sourceReviewFeedHealthy
-                            ? 'This cached source packet is read-only because its private locator is currently quarantined. Repair and revalidate the local source feed before adding a response.'
-                            : undefined
-                        }
-                        compact
-                      />
-                    ))}
-                  </div>
-                </>
               ) : (
                 <>
                   {ticketsNeedingInput.length === 0 ? (
                     <p className="review-complete-message">
-                      Every open ticket has saved instructions. Tell Codex the local review is
-                      ready.
+                      {reviewerBuild
+                        ? 'Every assigned ticket has a saved response. Export the review bundle when you are ready to send it.'
+                        : 'Every open ticket has saved instructions. Tell Codex the local review is ready.'}
                     </p>
-                  ) : (
-                    <div className="ticket-list">
-                      {ticketsNeedingInput.map((ticket) => (
-                        <TicketReviewCard
-                          key={ticket.id}
-                          ticket={ticket}
-                          caseRuleAudit={
-                            ticket.blueprintId
-                              ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
-                              : null
-                          }
-                          literatureSynthesisProposal={synthesisByTicketId.get(ticket.id) ?? null}
-                          ticketLiteratureScoutCatalog={localTicketLiteratureScoutCatalog}
-                          onSave={onSaveTicketReview}
-                          readOnlyReason={
-                            ticket.sourceReviewSnapshot && !sourceReviewFeedHealthy
-                              ? 'This cached source packet is read-only because its private locator is currently quarantined. Repair and revalidate the local source feed before adding a response.'
-                              : undefined
-                          }
-                        />
-                      ))}
+                  ) : null}
+                  {focusedTicket ? (
+                    <div className="focused-review-workbench">
+                      <TicketReviewCard
+                        key={focusedTicket.id}
+                        ticket={focusedTicket}
+                        caseRuleAudit={
+                          focusedTicket.blueprintId
+                            ? (caseRuleAuditByBlueprintId.get(focusedTicket.blueprintId) ?? null)
+                            : null
+                        }
+                        literatureSynthesisProposal={
+                          reviewerBuild ? null : (synthesisByTicketId.get(focusedTicket.id) ?? null)
+                        }
+                        ticketLiteratureScoutCatalog={
+                          reviewerBuild ? null : localTicketLiteratureScoutCatalog
+                        }
+                        onSave={onSaveTicketReview}
+                        onAdvance={() => advanceFromTicket(focusedTicket.id)}
+                        advanceLabel={
+                          ticketsNeedingInput.some((ticket) => ticket.id !== focusedTicket.id)
+                            ? 'Save and go to next decision'
+                            : 'Save and finish decision queue'
+                        }
+                        positionLabel={
+                          focusedPendingIndex >= 0
+                            ? `Decision ${focusedPendingIndex + 1} of ${ticketsNeedingInput.length}`
+                            : 'Reviewed decision'
+                        }
+                        readOnlyReason={
+                          focusedTicket.sourceReviewSnapshot && !sourceReviewFeedHealthy
+                            ? 'This cached source packet is read-only because its private locator is currently quarantined. Repair and revalidate the local source feed before adding a response.'
+                            : undefined
+                        }
+                      />
                     </div>
-                  )}
+                  ) : null}
                   {reviewedTickets.length > 0 ? (
                     <LazyDisclosure
                       className="reviewed-ticket-group"
-                      summary={`Reviewed locally · ${reviewedTickets.length}`}
+                      summary={`Reviewed decision history · ${reviewedTickets.length}`}
                     >
                       {() => (
-                        <div className="ticket-list">
+                        <ul className="reviewed-decision-list">
                           {reviewedTickets.map((ticket) => (
-                            <TicketReviewCard
-                              key={ticket.id}
-                              ticket={ticket}
-                              caseRuleAudit={
-                                ticket.blueprintId
-                                  ? (caseRuleAuditByBlueprintId.get(ticket.blueprintId) ?? null)
-                                  : null
-                              }
-                              literatureSynthesisProposal={
-                                synthesisByTicketId.get(ticket.id) ?? null
-                              }
-                              ticketLiteratureScoutCatalog={localTicketLiteratureScoutCatalog}
-                              onSave={onSaveTicketReview}
-                              readOnlyReason={
-                                ticket.sourceReviewSnapshot && !sourceReviewFeedHealthy
-                                  ? 'This cached source packet is read-only because its private locator is currently quarantined. Repair and revalidate the local source feed before adding a response.'
-                                  : undefined
-                              }
-                            />
+                            <li key={ticket.id}>
+                              <button
+                                className="text-button"
+                                type="button"
+                                aria-pressed={focusedTicket?.id === ticket.id}
+                                onClick={() => setFocusedTicketId(ticket.id)}
+                              >
+                                <strong>{ticket.title}</strong>
+                                <small>Edit saved response</small>
+                              </button>
+                            </li>
                           ))}
-                        </div>
+                        </ul>
                       )}
                     </LazyDisclosure>
+                  ) : null}
+                  {focusedTicket && focusedPendingIndex < 0 && ticketsNeedingInput.length > 0 ? (
+                    <button
+                      className="small-button return-to-pending-button"
+                      type="button"
+                      onClick={() => setFocusedTicketId(ticketsNeedingInput[0]!.id)}
+                    >
+                      Return to next unanswered decision
+                    </button>
                   ) : null}
                 </>
               )}

@@ -5,8 +5,17 @@
   background: #030806;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  --font-console: 'SFMono-Regular', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  --font-reading: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: var(--font-console);
+  --text: var(--ink);
   --ink: #d8f5e6;
-  --muted: #83a795;
+  --muted: #a9c8b8;
+  --review-text: #e8fff3;
+  --review-muted: #b8d2c4;
+  --review-body-size: 1rem;
+  --review-meta-size: 0.875rem;
+  --review-caption-size: 0.8125rem;
   --paper: #07110d;
   --paper-strong: #0a1711;
   --line: #214738;
@@ -54,6 +63,7 @@ body::before {
     rgba(0, 0, 0, 0.08) 4px
   );
   content: '';
+  opacity: 0.2;
 }
 
 button,
@@ -648,6 +658,12 @@ code {
   overflow-wrap: anywhere;
 }
 
+.database-reader-position {
+  margin: 0.55rem 0 0;
+  color: var(--review-muted);
+  font: 700 var(--review-meta-size) / 1.4 var(--font-reading);
+}
+
 .database-reader-card {
   display: grid;
   gap: 1rem;
@@ -718,15 +734,14 @@ code {
   max-width: 880px;
   margin-bottom: 0;
   color: #d9cda9;
-  font-size: 0.82rem;
-  line-height: 1.55;
+  font: 400 var(--review-body-size) / 1.62 var(--font-reading);
 }
 
 .database-review-panel label {
   display: grid;
   gap: 0.4rem;
   color: #ffe3a2;
-  font-size: 0.76rem;
+  font-size: var(--review-meta-size);
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -738,6 +753,7 @@ code {
   resize: vertical;
   color: var(--ink);
   background: #020806;
+  font: 400 1rem/1.58 var(--font-reading);
   text-transform: none;
 }
 
@@ -748,10 +764,18 @@ code {
   flex-wrap: wrap;
 }
 
+.database-review-progression {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(232, 184, 77, 0.35);
+}
+
 .database-review-saved {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.76rem;
+  color: var(--review-muted);
+  font-size: var(--review-caption-size);
 }
 
 .eyebrow,
@@ -897,6 +921,45 @@ code {
   border-radius: 0.3rem;
   background: rgba(7, 17, 13, 0.97);
   box-shadow: var(--shadow);
+}
+
+.patient-queue-disclosure {
+  padding: 0;
+}
+
+.patient-queue-disclosure > summary {
+  min-height: 64px;
+  padding: 1rem;
+}
+
+.patient-queue-disclosure > summary small,
+.patient-queue-disclosure > summary strong {
+  display: block;
+}
+
+.patient-queue-disclosure > summary small {
+  margin-bottom: 0.2rem;
+  color: var(--review-muted);
+  font-size: var(--review-caption-size);
+}
+
+.patient-queue-body {
+  padding: 1rem;
+}
+
+.patient-queue-open-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.patient-queue-open-tools p {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--review-muted);
+  font: 400 var(--review-meta-size) / 1.55 var(--font-reading);
 }
 
 .queue-heading {
@@ -1382,6 +1445,202 @@ code {
 .ticket-review-fields .secondary-button {
   justify-self: stretch;
   margin-top: 0.15rem;
+}
+
+.focused-review-workbench {
+  max-width: 1040px;
+}
+
+.focused-review-card {
+  overflow: hidden;
+  border-color: #3d8f68;
+  color: var(--review-text);
+  background: #050d09;
+}
+
+.focused-review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem;
+  border-bottom: 1px solid var(--line);
+  background: #081711;
+}
+
+.focused-review-header h3 {
+  max-width: 34ch;
+  margin: 0.2rem 0 0.35rem;
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
+  line-height: 1.25;
+}
+
+.focused-review-header p:last-child {
+  margin: 0;
+  color: var(--review-muted);
+  font: 500 var(--review-meta-size) / 1.45 var(--font-reading);
+}
+
+.focused-review-body {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  font-family: var(--font-reading);
+}
+
+.decision-brief {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 76ch;
+}
+
+.decision-brief h4 {
+  margin: 0.35rem 0 0;
+  color: var(--gold);
+  font: 800 var(--review-caption-size) / 1.35 var(--font-console);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.decision-brief p,
+.decision-brief li {
+  margin: 0;
+  color: var(--review-text);
+  font-size: var(--review-body-size);
+  line-height: 1.62;
+}
+
+.decision-primary-question {
+  font-size: 1.08rem !important;
+  font-weight: 650;
+}
+
+.decision-evidence-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.decision-evidence-summary > div,
+.decision-source-summary {
+  padding: 0.85rem;
+  border: 1px solid #315d4a;
+  background: #07120d;
+}
+
+.decision-evidence-summary strong,
+.decision-source-summary > strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--teal-dark);
+  font: 800 var(--review-meta-size) / 1.4 var(--font-console);
+}
+
+.decision-source-summary ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.focused-review-card .developer-question-context {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 76ch;
+  margin: 0.35rem 0 0;
+}
+
+.focused-review-card .developer-question-context dt {
+  font-size: var(--review-caption-size);
+}
+
+.focused-review-card .developer-question-context dd {
+  color: var(--review-muted);
+  font-size: var(--review-meta-size);
+  line-height: 1.5;
+}
+
+.focused-review-card .ticket-review-fields {
+  max-width: 76ch;
+  padding: 1rem;
+  border: 1px solid #3d8f68;
+  background: #07120d;
+}
+
+.focused-review-card .ticket-review-fields label {
+  color: var(--review-text);
+  font: 800 var(--review-meta-size) / 1.4 var(--font-console);
+}
+
+.focused-review-card .ticket-review-fields textarea {
+  min-height: 11rem;
+  padding: 0.85rem;
+  border-color: #3d8f68;
+  color: var(--review-text);
+  font: 400 1rem/1.58 var(--font-reading);
+}
+
+.focused-review-card .ticket-review-fields > small {
+  color: var(--review-muted);
+  font: 400 var(--review-caption-size) / 1.5 var(--font-reading);
+}
+
+.focused-review-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 0.4rem;
+}
+
+.focused-review-audit {
+  max-width: 76ch;
+  border: 1px solid var(--line);
+  background: #030a07;
+}
+
+.focused-review-audit > summary {
+  min-height: 48px;
+  padding: 0.8rem;
+  color: var(--teal-dark);
+  cursor: pointer;
+  font: 800 var(--review-meta-size) / 1.4 var(--font-console);
+}
+
+.focused-review-audit-body {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.8rem;
+  border-top: 1px solid var(--line);
+  color: var(--review-muted);
+  font-size: var(--review-meta-size);
+  line-height: 1.55;
+}
+
+.reviewed-decision-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reviewed-decision-list button {
+  display: grid;
+  justify-items: start;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+.reviewed-decision-list small {
+  margin-top: 0.15rem;
+  color: var(--review-muted);
+  font-size: var(--review-caption-size);
+}
+
+.return-to-pending-button {
+  margin-top: 0.8rem;
 }
 
 .source-request-queue {
@@ -4506,6 +4765,125 @@ tbody th small {
   margin-top: 1rem;
 }
 
+.ticket-queue,
+.opinion-source-queue,
+.source-request-queue,
+.personal-knowledge-workbench,
+.developer-attempt-review,
+.database-reader-card {
+  color: var(--review-text);
+}
+
+.ticket-handoff-explanation,
+.developer-queue-tools > p,
+.ticket-tool-status,
+.review-complete-message {
+  color: var(--review-muted);
+  font-family: var(--font-reading);
+  font-size: var(--review-meta-size);
+  line-height: 1.58;
+}
+
+.developer-major-disclosure > summary small,
+.ticket-card > summary small,
+.opinion-card > summary small,
+.source-request-card > summary small,
+.personal-knowledge-dossier > summary small {
+  color: var(--review-muted);
+  font-size: var(--review-caption-size);
+  line-height: 1.45;
+}
+
+.opinion-search,
+.opinion-result-count,
+.opinion-source-summary span,
+.opinion-card p,
+.opinion-card li,
+.opinion-card dd,
+.source-request-card p,
+.source-request-card li,
+.source-request-card dd,
+.personal-knowledge-dossier-body,
+.personal-knowledge-candidates {
+  color: var(--review-muted);
+  font-family: var(--font-reading);
+  font-size: var(--review-meta-size);
+  line-height: 1.55;
+}
+
+.opinion-card .source-question,
+.source-request-card .source-question {
+  color: var(--review-text);
+  font-size: var(--review-body-size);
+  line-height: 1.62;
+}
+
+.developer-question-body h4,
+.opinion-card dt,
+.personal-knowledge-dossier-body dt,
+.source-request-card dt {
+  font-size: var(--review-caption-size);
+}
+
+.developer-attempt-review {
+  grid-template-columns: 1fr;
+  max-width: 1040px;
+  gap: 1rem;
+  color: var(--review-text);
+  font-family: var(--font-reading);
+}
+
+.developer-attempt-review > div > p:last-child {
+  max-width: 76ch;
+  color: var(--review-muted);
+  font-size: var(--review-body-size);
+  line-height: 1.62;
+}
+
+.developer-attempt-review .flag-fields {
+  max-width: 76ch;
+}
+
+.developer-attempt-review .flag-fields label {
+  color: var(--review-text);
+  font: 800 var(--review-meta-size) / 1.4 var(--font-console);
+}
+
+.developer-attempt-review .flag-fields textarea {
+  min-height: 11rem;
+  color: var(--review-text);
+  font: 400 1rem/1.58 var(--font-reading);
+}
+
+.receipt-shell table {
+  font-size: var(--review-meta-size);
+}
+
+.receipt-shell thead th,
+.receipt-shell .plan-comparison-metrics dt,
+.receipt-shell .plan-treatment-list dt,
+.receipt-shell .trace-provenance-badge {
+  font-size: var(--review-caption-size);
+}
+
+.receipt-shell .reference-audit-notice,
+.receipt-shell .trace-intro,
+.receipt-shell .score-comparison-note,
+.receipt-shell .trace-list details p,
+.receipt-shell .evidence-attributions {
+  color: var(--review-muted);
+  font-size: var(--review-meta-size);
+  line-height: 1.58;
+}
+
+.receipt-shell .plan-comparison-card li,
+.receipt-shell .plan-treatment-list dd,
+.receipt-shell .trace-category header small,
+.receipt-shell .trace-empty {
+  font-size: var(--review-caption-size);
+  line-height: 1.5;
+}
+
 .loading-screen {
   display: grid;
   place-content: center;
@@ -4751,6 +5129,35 @@ tbody th small {
 
   .patient-slot-grid > .case-card:only-child {
     flex-basis: 100%;
+  }
+
+  .patient-queue-open-tools,
+  .focused-review-header,
+  .focused-review-actions,
+  .database-review-progression {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .patient-queue-open-tools button,
+  .focused-review-actions button,
+  .database-review-progression button {
+    width: 100%;
+  }
+
+  .decision-evidence-summary,
+  .focused-review-card .developer-question-context {
+    grid-template-columns: 1fr;
+  }
+
+  .focused-review-card,
+  .focused-review-body {
+    min-width: 0;
+  }
+
+  .focused-review-header,
+  .focused-review-body {
+    padding: 0.85rem;
   }
 
   .review-ticket-inline {

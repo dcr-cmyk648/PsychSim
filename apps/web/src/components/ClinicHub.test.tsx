@@ -83,6 +83,63 @@ describe('ClinicHub', () => {
     expect(onStart).toHaveBeenCalledWith('patient-slot-1');
   });
 
+  it('keeps the Developer patient queue collapsed until the reviewer opens it', async () => {
+    const onStart = vi.fn();
+    const saveData = SaveDataSchema.parse({
+      schemaVersion: 1,
+      saveDataVersion: 5,
+      profile: { ...startingProfile, progressionMode: 'developer' },
+      attempts: [],
+      flags: [],
+      patientQueues: emptyPatientQueueState(),
+      clinicalTickets: [],
+      attemptReviews: [],
+      legacyArchive: [],
+    });
+    const casePreview = instantiateCase(prototypeCaseBlueprint, 'developer-queue-1', catalogs);
+    render(
+      <ClinicHub
+        saveData={saveData}
+        clinicState={saveData.profile.clinic}
+        catalogs={catalogs}
+        patientSlots={[
+          {
+            id: 'patient-slot-developer-1',
+            casePreview,
+            settingLabel: 'Solo Office · Outpatient Room',
+            locationId: 'location.solo-office.outpatient',
+          },
+        ]}
+        developerModeAvailable
+        caseRuleAudits={[]}
+        opinionReferenceNeeds={[]}
+        sourceRequests={[]}
+        onStart={onStart}
+        onSetMode={vi.fn()}
+        onRefresh={vi.fn()}
+        onRerollDeveloper={vi.fn()}
+        onResetDeveloper={vi.fn()}
+        onSaveTicketReview={vi.fn()}
+        onWriteTickets={vi.fn()}
+        onExportTickets={vi.fn()}
+        ticketToolStatus={null}
+        onPurchaseUpgrade={vi.fn()}
+        upgradeStatus={null}
+      />,
+    );
+
+    expect(
+      screen.queryByRole('button', { name: `Open chart for ${casePreview.opening.title}` }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Patient queue'));
+    (
+      await screen.findByRole('button', {
+        name: `Open chart for ${casePreview.opening.title}`,
+      })
+    ).click();
+    expect(onStart).toHaveBeenCalledWith('patient-slot-developer-1');
+  });
+
   it('shows data-driven upgrade economics and emits a purchase request', () => {
     const onPurchaseUpgrade = vi.fn();
     const saveData = SaveDataSchema.parse({
@@ -321,18 +378,18 @@ describe('ClinicHub', () => {
     expect(screen.queryByText(/linked review question/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Your response, judgment/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('Clinical and content tickets'));
-    fireEvent.click(
-      await screen.findByText(ticket.title, {
-        selector: '.review-ticket-inline strong',
-      }),
-    );
+    expect(await screen.findByText('Decision 1 of 1')).toBeVisible();
+    expect(screen.getByRole('heading', { name: ticket.title })).toBeVisible();
     const notes = await screen.findByLabelText(
       'Your response, judgment, or alternative references',
     );
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
     const saveButton = screen.getByRole('button', { name: 'Response saved' });
     expect(saveButton).toBeDisabled();
     expect(screen.queryByRole('combobox', { name: 'Status' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText(/Current executable values/));
+    expect(screen.queryByText(/Current executable values/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Related material, references, and exact audit'));
+    fireEvent.click(await screen.findByText(/Current executable values/));
     expect((await screen.findAllByText('Emergency-department escalation')).length).toBeGreaterThan(
       0,
     );
@@ -346,7 +403,6 @@ describe('ClinicHub', () => {
     expect(await screen.findByText(/Mirtazapine: bonus fit/)).toBeInTheDocument();
     fireEvent.click(screen.getByText('Sources needed'));
     expect((await screen.findAllByText('PsychSim documents')).length).toBeGreaterThan(0);
-    expect(screen.getByText('World Health Organization')).toBeVisible();
 
     fireEvent.change(notes, {
       target: { value: 'Allow any first-line SSRI, then apply medication-fit modifiers.' },
@@ -400,11 +456,8 @@ describe('ClinicHub', () => {
     );
 
     fireEvent.click(screen.getByText('Clinical and content tickets'));
-    fireEvent.click(
-      await screen.findByRole('button', {
-        name: new RegExp(ticket.title),
-      }),
-    );
+    expect(await screen.findByRole('heading', { name: ticket.title })).toBeVisible();
+    fireEvent.click(screen.getByText('Related material, references, and exact audit'));
     expect(await screen.findByText('Recent meta-analysis context')).toBeVisible();
     expect(screen.getAllByText('Abstract-only summary')).toHaveLength(2);
     expect(
@@ -530,15 +583,15 @@ describe('ClinicHub', () => {
     const view = render(renderSourceHub(false));
 
     fireEvent.click(screen.getByText('Clinical and content tickets'));
-    fireEvent.click(
-      await screen.findByRole('button', {
-        name: new RegExp(ticket.title),
-      }),
-    );
-    expect(await screen.findByRole('dialog', { name: ticket.title })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: ticket.title })).toBeVisible();
+    fireEvent.click(screen.getByText('Related material, references, and exact audit'));
     expect(await screen.findByText('Unreviewed source summary · no gameplay effect')).toBeVisible();
-    expect(await screen.findByText(ticket.sourceReviewSnapshot!.originalSummary)).toBeVisible();
-    expect(screen.getByText(/Treat seizure history as a major negative fit/)).toBeVisible();
+    expect(
+      (await screen.findAllByText(ticket.sourceReviewSnapshot!.originalSummary)).length,
+    ).toBeGreaterThan(1);
+    expect(
+      screen.getAllByText(/Treat seizure history as a major negative fit/).length,
+    ).toBeGreaterThan(1);
     expect(screen.getByText(/Confirm the section boundary before atomization/)).toBeVisible();
     expect(screen.getAllByText('Quarantined')).not.toHaveLength(0);
     const responseField = screen.getByRole('textbox', {
@@ -591,11 +644,12 @@ describe('ClinicHub', () => {
     );
 
     fireEvent.click(screen.getByText('Review tickets', { selector: 'strong' }));
-    fireEvent.click(await screen.findByRole('button', { name: new RegExp(ticket.title) }));
+    expect(await screen.findByRole('heading', { name: ticket.title })).toBeVisible();
+    fireEvent.click(screen.getByText('Related material, references, and exact audit'));
     expect(screen.queryByText('Recent meta-analysis context')).not.toBeInTheDocument();
   });
 
-  it('opens portable Reviewer tickets in a focused dialog and saves the response', async () => {
+  it('opens one portable Reviewer decision inline and saves the response', async () => {
     const onSaveTicketReview = vi.fn().mockResolvedValue(undefined);
     const ticket = ClinicalReviewTicketSchema.parse({
       schemaVersion: 1,
@@ -664,14 +718,12 @@ describe('ClinicHub', () => {
     expect(
       screen.queryByRole('button', { name: 'Update Codex handoff file' }),
     ).not.toBeInTheDocument();
-    fireEvent.click(
-      await screen.findByRole('button', {
-        name: /Review the initial MDD patient and database plan/,
+    expect(await screen.findByText('Decision 1 of 1')).toBeVisible();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Review the initial MDD patient and database plan',
       }),
-    );
-    const dialog = await screen.findByRole('dialog', {
-      name: 'Review the initial MDD patient and database plan',
-    });
+    ).toBeVisible();
     const response = await screen.findByLabelText(
       'Your response, judgment, or alternative references',
     );
@@ -683,7 +735,5 @@ describe('ClinicHub', () => {
       ticket.id,
       'Keep the pathway, but make the allergy-history omission visible.',
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    expect(dialog).not.toHaveAttribute('open');
   });
 });

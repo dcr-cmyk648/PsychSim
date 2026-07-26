@@ -134,8 +134,47 @@ describe('DatabaseBrowser', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Export all saved feedback' }));
     expect(onExportReviews).toHaveBeenCalledOnce();
+    fireEvent.change(textarea, { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: 'Remove saved comment' }));
     await waitFor(() => expect(onSaveReview).toHaveBeenLastCalledWith(entry, ''));
+  });
+
+  it('saves a changed comment before moving to the next filtered entry', async () => {
+    let finishSave!: (value: boolean) => void;
+    const pendingSave = new Promise<boolean>((resolve) => {
+      finishSave = resolve;
+    });
+    const onSaveReview = vi.fn().mockReturnValue(pendingSave);
+    render(
+      <DatabaseBrowser
+        projection={publicClinicalCatalog}
+        reviewToolsEnabled
+        onSaveReview={onSaveReview}
+        onBack={vi.fn()}
+      />,
+    );
+
+    screen.getByRole('button', { name: /Medications 33/ }).click();
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('33 records shown'));
+    const firstLauncher = screen.getAllByRole('button', { name: 'Open full entry' })[0]!;
+    fireEvent.click(firstLauncher);
+    expect(screen.getByText('Entry 1 of 33')).toBeVisible();
+    const firstTitle = screen.getByRole('heading', { level: 1 }).textContent;
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Comment for Codex' }), {
+      target: { value: 'Review this medication entry.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save comment and next entry' }));
+
+    expect(onSaveReview).toHaveBeenCalledWith(
+      expect.objectContaining({ label: firstTitle }),
+      'Review this medication entry.',
+    );
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(firstTitle ?? '');
+    finishSave(true);
+    expect(await screen.findByText('Entry 2 of 33')).toBeVisible();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
+    expect(screen.getByRole('heading', { level: 1 })).not.toHaveTextContent(firstTitle ?? '');
   });
 
   it('keeps comment controls out of the ordinary Player reader', () => {

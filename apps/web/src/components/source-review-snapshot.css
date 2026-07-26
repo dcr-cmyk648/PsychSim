@@ -37,7 +37,7 @@
 
 .source-review-proposals article > header strong {
   color: var(--teal-dark);
-  font: 800 0.7rem/1.2 var(--mono);
+  font: 800 var(--review-meta-size) / 1.3 var(--mono);
   text-transform: uppercase;
 }
 
@@ -60,7 +60,7 @@
 .source-review-proposals dt,
 .source-review-metadata dt {
   color: var(--gold);
-  font-size: 0.6rem;
+  font-size: var(--review-caption-size);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -68,7 +68,8 @@
 .source-review-proposals dd,
 .source-review-metadata dd {
   margin: 0.12rem 0 0;
-  color: var(--muted);
-  font-size: 0.72rem;
+  color: var(--review-muted);
+  font-size: var(--review-meta-size);
+  line-height: 1.55;
   overflow-wrap: anywhere;
 }

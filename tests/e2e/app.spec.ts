@@ -36,7 +36,7 @@ test('browses the safe runtime database without changing the clinic', async ({ p
   await expect(structuredRecord).not.toContainText('sourceDocumentId');
   const databaseNote = 'Desktop database review: verify this identity and provenance.';
   await page.getByRole('textbox', { name: 'Comment for Codex' }).fill(databaseNote);
-  await page.getByRole('button', { name: 'Save comment' }).click();
+  await page.getByRole('button', { name: 'Save comment', exact: true }).click();
   await expect(page.getByRole('status')).toContainText(
     'Saved your comment on “Sertraline” in browser storage and updated the Codex handoff file.',
   );
@@ -230,60 +230,41 @@ test('completes a patient, stores review guidance, and preserves the profile and
   ).toBeVisible();
   await expect(page.getByText('TSH use in an initial depressive presentation')).toBeVisible();
   await page.getByText('Clinical and content tickets', { exact: true }).click();
+  const focusedTicket = page.locator('.focused-review-card');
+  await expect(focusedTicket).toHaveCount(1);
+  await expect(focusedTicket.getByText(/Decision 1 of \d+/)).toBeVisible();
+  await expect(focusedTicket.getByRole('heading', { name: 'Decision needed' })).toBeVisible();
+  await expect(focusedTicket.getByRole('heading', { name: 'Proposed direction' })).toBeVisible();
   await expect(
-    page
-      .locator('.review-ticket-inline')
-      .getByText('Set the broad first-line antidepressant baseline and fit modifiers')
-      .first(),
+    focusedTicket.getByText('Related material, references, and exact audit'),
   ).toBeVisible();
-  await expect(
-    page
-      .locator('.review-ticket-inline')
-      .getByText(/Receipt guidance:/)
-      .first(),
-  ).toBeVisible();
-  await expect(
-    page
-      .locator('.review-ticket-inline')
-      .getByText('Review flagged needs additional source')
-      .first(),
-  ).toBeVisible();
-  await expect(
-    page
-      .locator('.review-ticket-inline')
-      .getByText('Resolve WHO DEP4 treatment-modality implications')
-      .first(),
-  ).toBeVisible();
-  const dispositionTicket = page.locator('.review-ticket-inline').filter({
-    has: page.getByText('Audit escalation and disposition penalties'),
-  });
-  await dispositionTicket.locator('summary').first().click();
-  await dispositionTicket.getByText(/Current executable values/).click();
-  await expect(dispositionTicket.getByText(/-80 pts/)).toBeVisible();
-  await expect(dispositionTicket.getByText(/-450 pts/)).toBeVisible();
-  await expect(dispositionTicket.getByText('200 when true').last()).toBeVisible();
-  const baselineTicket = page.locator('.review-ticket-inline').filter({
-    has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
-  });
-  await baselineTicket.locator('summary').first().click();
-  await baselineTicket
+  await expect(focusedTicket.locator('.focused-review-audit-body')).toHaveCount(0);
+  const firstDecisionTitle =
+    (await focusedTicket.locator('.focused-review-header h3').textContent()) ?? '';
+  const firstDecisionResponse =
+    'Review this proposal one at a time and preserve the linked evidence and exact audit.';
+  await focusedTicket
     .getByLabel('Your response, judgment, or alternative references')
-    .fill('Keep one broad first-line pathway and apply meaningful medication-fit modifiers.');
-  await expect(baselineTicket.getByRole('combobox', { name: 'Status' })).toHaveCount(0);
-  await baselineTicket.getByRole('button', { name: 'Save response' }).click();
+    .fill(firstDecisionResponse);
+  await expect(focusedTicket.getByRole('combobox', { name: 'Status' })).toHaveCount(0);
+  await focusedTicket.getByRole('button', { name: 'Save and go to next decision' }).click();
   await expect(
     page.getByText(/Saved your instructions.*updated the Codex handoff file/),
   ).toBeVisible();
+  await expect(focusedTicket.locator('.focused-review-header h3')).not.toHaveText(
+    firstDecisionTitle,
+  );
+  await expect(focusedTicket.getByText(/Decision \d+ of \d+/)).toBeVisible();
   await page.reload();
   await page.getByText('Clinical and content tickets', { exact: true }).click();
-  await page.getByText(/Reviewed locally · [1-9][0-9]*/).click();
-  const persistedBaselineTicket = page.locator('.review-ticket-inline').filter({
-    has: page.getByText('Set the broad first-line antidepressant baseline and fit modifiers'),
-  });
-  await persistedBaselineTicket.locator('summary').first().click();
-  await expect(
-    persistedBaselineTicket.getByLabel('Your response, judgment, or alternative references'),
-  ).toHaveValue('Keep one broad first-line pathway and apply meaningful medication-fit modifiers.');
+  await page.getByText(/Reviewed decision history · [1-9][0-9]*/).click();
+  await page
+    .locator('.reviewed-decision-list button')
+    .filter({ hasText: firstDecisionTitle })
+    .click();
+  await expect(page.getByLabel('Your response, judgment, or alternative references')).toHaveValue(
+    firstDecisionResponse,
+  );
   await page.getByRole('button', { name: 'Update Codex handoff file' }).click();
   await expect(page.getByText(/tickets\.e2e\.json.*tell Codex the review is ready/)).toBeVisible();
   const downloadPromise = page.waitForEvent('download');
@@ -299,10 +280,12 @@ test('saves a Developer case review with the exact patient, options, choices, an
 }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Developer' }).click();
+  await page.getByText('Patient queue', { exact: true }).click();
   await page
     .getByRole('button', { name: /Open chart for/ })
     .first()
     .click();
+  const completedPatient = await page.locator('#patient-chart-title').textContent();
 
   await page
     .getByRole('button', { name: /Presenting problem and timeline, 20 points, in house/ })
@@ -335,10 +318,9 @@ test('saves a Developer case review with the exact patient, options, choices, an
   const reviewNote =
     'I missed suicide risk assessment and was not penalized. Sertraline should rank acceptable.';
   await page.getByRole('textbox', { name: 'Your feedback' }).fill(reviewNote);
-  await page.getByRole('button', { name: 'Save feedback for Codex' }).click();
-  await expect(page.getByRole('status')).toContainText(
-    'Review saved locally with the exact patient, options, selections, events, and receipt',
-  );
+  await page.getByRole('button', { name: 'Save feedback and open next patient' }).click();
+  await expect(page.locator('#patient-chart-title')).toBeFocused();
+  await expect(page.locator('#patient-chart-title')).not.toHaveText(completedPatient ?? '');
 
   const savedReview = await page.evaluate(async () => {
     const database = await new Promise<IDBDatabase>((resolve, reject) => {

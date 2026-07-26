@@ -6,6 +6,15 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current local review-workflow checkpoint implements D-144 without changing schemas or clinical
+  behavior. Developer/Reviewer patient queues begin collapsed; completed patient receipts save the
+  exact attempt review before opening the next persisted patient; the ticket workbench mounts one
+  decision with summary and response before optional audit detail; and the Database reader can
+  save and advance through one filtered entry at a time. Patient-linked receipt questions use that
+  same focused pattern while retaining their separate ticket responses. Review prose uses larger,
+  higher-contrast typography while console styling remains in the game chrome. This
+  mechanism-heavy checkpoint remains local on `beta`; it has not been pushed or promoted to
+  `main`.
 - Current remaining-packet checkpoint:
   `9c0993a0eea52abf3eafff5b5c5207521efa7786`
   (`Prepare remaining evidence review packets`). The Developer-only review queue now contains 22
@@ -20,9 +29,9 @@ Last updated: 2026-07-26
   context only until formal evidence and source-use intake. No patient, diagnosis branch,
   investigation reward, treatment grade, safety/disposition rule, regimen rule, score, point
   value, or runtime behavior changed. Player and portable Reviewer bundle gates exclude every
-  `literature-synthesis.*` marker. After this state-file commit, the local `beta` branch is five
-  commits ahead of `origin/beta`; nothing from this checkpoint has been pushed or promoted to
-  `main`.
+  `literature-synthesis.*` marker. The later focused review-workflow checkpoint makes the local
+  `beta` branch six commits ahead of `origin/beta`; nothing from either checkpoint has been pushed
+  or promoted to `main`.
 - Current evidence-gap checkpoint: `4553b47eb0dba5bda5465ffc6fdb102a406c23a8`
   (`Add review packets for unresolved evidence gaps`). It converts six previously queued questions
   into medically unreviewed, point-excluded review packets: ECG monitoring after palpitations on
@@ -228,15 +237,16 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   richness but does not affect score, payout, eligibility, pool, facility, or difficulty.
   Nonempty optional-module selection remains rejected until a catalog/compiler exists.
 - Assignment `2026-07f` includes exactly ten patient-linked, medically unreviewed review tickets.
-  Desktop Developer mode retains dense inline details plus a focused dialog. Portable/mobile
-  Reviewer opens each ticket in a full-screen view with its own response field; responses persist
-  in the assignment database and export with case feedback.
+  Desktop Developer and portable/mobile Reviewer use the same focused workbench: one current
+  decision, concise proposal/support summary, response field, save-and-next action, and optional
+  collapsed exact audit. Responses persist in the applicable local database and export with case
+  feedback.
 - At widths of 760 pixels or less, all waiting-patient cards occupy one contained horizontal row.
   The next card remains partially visible, touch/trackpad scrolling stays inside the queue, and
   focusing a later chart control scrolls it into view without introducing page-wide overflow.
 - The compact `Review tickets` disclosure remains collapsed so ten rule audits do not recreate a
-  long phone page. Its visible launcher reports the outstanding count, and its full-screen ticket
-  workflow is now an explicit 390-pixel/320-pixel regression assertion.
+  long phone page. Its visible launcher reports the outstanding count, and the shared focused
+  save-and-next workflow is an explicit 390-pixel/320-pixel regression assertion.
 - The assignment bump intentionally creates a fresh Reviewer IndexedDB namespace. Unexported
   `2026-07e` feedback remains in the old browser database and is not mixed into revised cases.
 - A pre-change waiting slot with legacy `unassessed` safety-planning state is re-instantiated from
@@ -410,6 +420,30 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   records, 116 OCR outputs, HTML, composites, extracted chunks, and all remote Drive material. It
   neither discovers unknown entities nor creates evidence, opinions, clinical rules, points, or
   runtime content.
+
+## Verification for focused review-workflow checkpoint
+
+Passed locally on 2026-07-26:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`.
+- Focused review-component suite: 3 files / 22 tests.
+- `pnpm test`: 40 TypeScript test files / 297 tests plus all 10 handoff tests.
+- `pnpm content:validate`, `pnpm content:sources:validate`, `pnpm content:compile`,
+  `pnpm content:evidence`, `pnpm content:diagnoses:validate`, and
+  `pnpm demo:reference-runs`. The exact reference-run care, expense, and payout baselines are
+  unchanged.
+- `pnpm test:e2e`: 5/5 desktop Player/Developer/Endgame tests, including persisted
+  save-and-next patient review and one-at-a-time ticket review.
+- `pnpm test:e2e:reviewer`: 4/4 mobile Reviewer tests across 390-pixel and 320-pixel projects,
+  including collapsed queues, one focused ticket, one focused patient-linked receipt decision,
+  save-and-next patient review, and one exported multi-patient feedback bundle.
+- `pnpm build`: Player bundle safety passed (11 files).
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed (15 files).
+- The first sandboxed root content-command and Playwright loopback attempts failed with the known
+  restricted IPC/network `EPERM`; the exact checked-in content tools and browser gates then passed
+  through their approved local execution boundaries.
+- No save schema, patient definition, diagnosis rule, treatment rule, point magnitude, provenance,
+  evidence contribution, or medical-review state changed.
 
 ## Verification for Bostwick source-intake and D-143 design checkpoint
 
@@ -874,7 +908,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-143)
+- `docs/DECISIONS.md` (through D-144)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`

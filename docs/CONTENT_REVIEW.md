@@ -45,12 +45,17 @@ direction requiring evidence from exact point magnitudes that remain game-balanc
 inventory is a read-only audit surface, not the still-pending dedicated Developer-opinion
 provenance schema and not 1:1 automatic ticket creation.
 
-Large Developer queues use lazy decision packets. The queue and each ticket begin collapsed, and
-expensive patient/rule audits are not mounted until opened. Closing a packet preserves unsaved
-reviewer text. A ticket appears on a patient only when it explicitly names that patient's
-blueprint ID; sharing a medication, action, or other target ID does not imply a patient link.
-Guidance created from a receipt binds to that exact immutable attempt, and export validation
-rejects an attempt whose blueprint differs from the ticket.
+Large Developer queues use lazy disclosures. The patient queue and ticket workbench begin
+collapsed. Opening the ticket workbench mounts exactly one current decision: a prose question,
+proposed direction, any concise evidence/source summary, and the response field. Detailed
+patient/rule audits, references, routing metadata, and source packets remain under a second
+collapsed disclosure and are not mounted until requested. Saving and advancing must finish local
+persistence before the next ticket replaces the current one; the next heading receives focus.
+Reviewed decisions remain in a separate collapsed history and can be reopened without mounting the
+whole queue. A ticket appears on a patient only when it explicitly names that patient's blueprint
+ID; sharing a medication, action, or other target ID does not imply a patient link. Guidance
+created from a receipt binds to that exact immutable attempt, and export validation rejects an
+attempt whose blueprint differs from the ticket.
 
 A packet may include an unreviewed `LiteratureSynthesisProposal`: a concise proposed answer,
 search scope, eligible supporting sources, opposing or qualifying context, limitations, and
@@ -104,7 +109,10 @@ save one editable prose note; `DatabaseEntryReview` stores the exact safe entry 
 category/entry IDs, catalog/projection versions, and timestamps. Player has no comment form.
 Local Developer mirrors these reviews to the fixed Codex handoff bundle after IndexedDB succeeds;
 portable Reviewer keeps them assignment-local until export. Saving feedback never edits the entry,
-adds a clinical source, changes a score, or grants approval.
+adds a clinical source, changes a score, or grants approval. The reader shows one entry at a time
+within the current filtered result order. Previous/next controls save any changed comment before
+navigating, focus the next entry heading, and return to the filtered Database list after the final
+entry.
 
 Assignment `reviewer-assignment.common-psychiatry.2026-07f` adds one narrow exception to the rule
 that portable Reviewer has no authoring queue: it statically imports one exact ticket packet with
@@ -113,11 +121,12 @@ artifact, not local Developer ticket discovery. Every ticket must name one of th
 blueprint IDs; the artifact still contains no source-request, opinion, literature-synthesis,
 private-source, or arbitrary workspace queue.
 
-On desktop, the full ticket can be expanded inline or opened in a focused dialog. On mobile, a
-compact ticket launcher opens the same content and response field in a full-screen dialog.
-Responses use the assignment's existing IndexedDB and version-7 export. They do not write to the
-repository, edit a patient or rule, or confer medical approval. The owner must still supply the
-exported bundle to Codex.
+Desktop and mobile use the same one-decision workbench. Only the current ticket is mounted; its
+question, proposed direction, concise support/qualification summary, and response field appear
+first, while exact audit material remains optional and collapsed. “Save and go to next decision”
+persists the response before advancing. Responses use the assignment's existing IndexedDB and
+version-7 export. They do not write to the repository, edit a patient or rule, or confer medical
+approval. The owner must still supply the exported bundle to Codex.
 
 Reaction-history review must distinguish the chart/patient label from any reviewed interpretation.
 A statement recorded as an “allergy” is not automatically an immune allergy, and prior-trial
@@ -134,6 +143,20 @@ implicated by the prose, then infers whether the user requested implementation, 
 deferral, sourcing, or clarification. It asks only when a material ambiguity remains. Any
 resulting content change still uses normal versioning and validation. Saving or exporting feedback
 is never authorization to change a clinical rule and never grants medical approval.
+
+Developer and portable Reviewer patient queues also begin collapsed. Completing a patient removes
+that exact persisted slot from the queue. The receipt puts “Case and app experience notes” before
+the long audit material and offers “Save feedback and open next patient”; it saves the immutable
+attempt review first, then opens the first remaining persisted slot without rerolling or
+regenerating it. On the last slot the action becomes “Save feedback and finish review queue.”
+Patient-linked ticket questions on the receipt use the same single-question/save-and-next pattern
+and preserve their separate ticket response instead of merging it into the whole-case note. Normal
+and Endgame patient queues and receipts keep their ordinary gameplay behavior.
+
+Read-only evidence-gap, opinion-reference, and private-knowledge inventories remain separate,
+collapsed audit indexes. They do not acquire parallel feedback stores. Any item that actually
+requires a reviewer decision is represented by the existing `ClinicalReviewTicket` workflow so
+there is one actionable decision queue and one durable response model.
 
 This lightweight queue adopts the useful workflow invariants from the user's book repository:
 

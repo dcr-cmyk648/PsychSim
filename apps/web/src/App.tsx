@@ -354,6 +354,16 @@ export default function App() {
     if (slot) openEncounter(slot.casePreview, slot.locationId, slot.id);
   };
 
+  const continueDeveloperReview = (): void => {
+    const nextSlot = patientSlots[0] ?? null;
+    if (nextSlot) {
+      startPatientSlot(nextSlot.id);
+      return;
+    }
+    setMobileWorkflowPane('patient');
+    setScreen('hub');
+  };
+
   const replayAttempt = (): void => {
     if (!attempt || !effectiveClinic) return;
     const locationId = effectiveClinic.locationIds.find((candidate) =>
@@ -1007,6 +1017,14 @@ export default function App() {
                       ticket.blueprintId === attempt.caseInstance.blueprintId,
                   )}
                   onBackToClinic={() => setScreen('hub')}
+                  nextDeveloperPatientAvailable={
+                    encounterMode === 'developer' && patientSlots.length > 0
+                  }
+                  onContinueDeveloperReview={
+                    REVIEW_TOOLS_ENABLED && encounterMode === 'developer'
+                      ? continueDeveloperReview
+                      : undefined
+                  }
                   onReplay={replayAttempt}
                   onExportReviews={() => void exportTickets()}
                   reviewExportAvailable={

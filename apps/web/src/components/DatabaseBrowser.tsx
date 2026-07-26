@@ -228,7 +228,13 @@ const DatabaseEntryReader = ({
   reviewToolsEnabled,
   reviewStatusMessage,
   exportAvailable,
+  position,
+  entryCount,
+  hasPrevious,
+  isLast,
   onBack,
+  onPrevious,
+  onAdvance,
   onSaveReview,
   onExportReviews,
 }: {
@@ -238,25 +244,72 @@ const DatabaseEntryReader = ({
   reviewToolsEnabled: boolean;
   reviewStatusMessage: string | null;
   exportAvailable: boolean;
+  position: number;
+  entryCount: number;
+  hasPrevious: boolean;
+  isLast: boolean;
   onBack: () => void;
+  onPrevious: () => void;
+  onAdvance: () => void;
   onSaveReview?: (entry: PublicClinicalCatalogEntry, reviewerNote: string) => Promise<boolean>;
   onExportReviews?: () => void;
 }) => {
   const [reviewerNote, setReviewerNote] = useState(review?.reviewerNote ?? '');
+  const [savedReviewerNote, setSavedReviewerNote] = useState(review?.reviewerNote ?? '');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
-  useEffect(() => setReviewerNote(review?.reviewerNote ?? ''), [entry.id, review?.reviewerNote]);
+  useEffect(() => {
+    const savedNote = review?.reviewerNote ?? '';
+    setReviewerNote(savedNote);
+    setSavedReviewerNote(savedNote);
+    setSaveError(null);
+  }, [entry.id, review?.reviewerNote]);
   useEffect(() => titleRef.current?.focus(), [entry.id]);
 
-  const save = async (note: string): Promise<void> => {
-    if (!onSaveReview) return;
+  const normalizedReviewerNote = reviewerNote.trim();
+  const dirty = normalizedReviewerNote !== savedReviewerNote.trim();
+  const save = async (note: string): Promise<boolean> => {
+    if (!onSaveReview) return false;
     setSaving(true);
+    setSaveError(null);
     try {
-      await onSaveReview(entry, note);
+      await onSaveReview(entry, note.trim());
+      setSavedReviewerNote(note.trim());
+      return true;
+    } catch (caught) {
+      setSaveError(
+        caught instanceof Error
+          ? `The comment could not be saved: ${caught.message}`
+          : 'The comment could not be saved.',
+      );
+      return false;
     } finally {
       setSaving(false);
     }
+  };
+  const advance = async (direction: 'previous' | 'next'): Promise<void> => {
+    if (dirty && !(await save(reviewerNote))) return;
+    if (direction === 'previous') onPrevious();
+    else onAdvance();
+  };
+  const progressionLabel = (direction: 'previous' | 'next', finalDestination: boolean): string => {
+    const destination = finalDestination
+      ? 'return to database'
+      : direction === 'previous'
+        ? 'previous entry'
+        : 'next entry';
+    if (!dirty) {
+      return finalDestination
+        ? 'Return to database'
+        : direction === 'previous'
+          ? 'Previous entry'
+          : 'Next entry';
+    }
+    return normalizedReviewerNote
+      ? `Save comment and ${destination}`
+      : `Remove comment and ${destination}`;
   };
 
   return (
@@ -271,6 +324,9 @@ const DatabaseEntryReader = ({
             {entry.label}
           </h1>
           <code>{entry.id}</code>
+          <p className="database-reader-position" aria-live="polite">
+            Entry {position} of {entryCount}
+          </p>
         </div>
       </header>
 
@@ -337,26 +393,19 @@ const DatabaseEntryReader = ({
               />
             </label>
             <div className="database-review-actions">
-              {review ? (
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={saving}
-                  onClick={() => {
-                    setReviewerNote('');
-                    void save('');
-                  }}
-                >
-                  Remove saved comment
-                </button>
-              ) : null}
               <button
-                className="primary-button"
+                className="secondary-button"
                 type="button"
-                disabled={saving || !reviewerNote.trim()}
+                disabled={saving || !dirty}
                 onClick={() => void save(reviewerNote)}
               >
-                {saving ? 'Saving…' : review ? 'Update comment' : 'Save comment'}
+                {saving
+                  ? 'Saving…'
+                  : normalizedReviewerNote
+                    ? review
+                      ? 'Update comment'
+                      : 'Save comment'
+                    : 'Remove saved comment'}
               </button>
               <button
                 className="secondary-button"
@@ -367,9 +416,32 @@ const DatabaseEntryReader = ({
                 Export all saved feedback
               </button>
             </div>
+            <div className="database-review-progression" aria-label="Database review navigation">
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={saving || !hasPrevious}
+                onClick={() => void advance('previous')}
+              >
+                {progressionLabel('previous', false)}
+              </button>
+              <button
+                className="primary-button"
+                type="button"
+                disabled={saving}
+                onClick={() => void advance('next')}
+              >
+                {saving ? 'Saving…' : progressionLabel('next', isLast)}
+              </button>
+            </div>
             {review ? (
               <p className="database-review-saved">
                 Saved locally · last updated {new Date(review.updatedAt).toLocaleString()}
+              </p>
+            ) : null}
+            {saveError ? (
+              <p className="global-error" role="alert">
+                {saveError}
               </p>
             ) : null}
             {reviewStatusMessage ? (
@@ -413,6 +485,7 @@ export function DatabaseBrowser({
     [categoryFilter, normalizedQuery, projection.entries],
   );
   const activeEntry = projection.entries.find((entry) => entry.id === activeEntryId) ?? null;
+  const activeEntryIndex = entries.findIndex((entry) => entry.id === activeEntryId);
 
   const closeReader = (): void => {
     const focusId = returnFocusId.current;
@@ -431,7 +504,24 @@ export function DatabaseBrowser({
         reviewToolsEnabled={reviewToolsEnabled}
         reviewStatusMessage={reviewStatusMessage}
         exportAvailable={exportAvailable}
+        position={activeEntryIndex + 1}
+        entryCount={entries.length}
+        hasPrevious={activeEntryIndex > 0}
+        isLast={activeEntryIndex === entries.length - 1}
         onBack={closeReader}
+        onPrevious={() => {
+          const previousEntry = entries[activeEntryIndex - 1];
+          if (previousEntry) setActiveEntryId(previousEntry.id);
+        }}
+        onAdvance={() => {
+          const nextEntry = entries[activeEntryIndex + 1];
+          if (nextEntry) {
+            returnFocusId.current = entryButtonId(nextEntry);
+            setActiveEntryId(nextEntry.id);
+            return;
+          }
+          closeReader();
+        }}
         onSaveReview={onSaveReview}
         onExportReviews={onExportReviews}
       />

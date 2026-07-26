@@ -106,7 +106,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expectWithinHorizontalViewport(page.locator('.database-reader-shell'));
   const databaseNote = 'Phone database review: verify bupropion identity and source metadata.';
   await page.getByRole('textbox', { name: 'Comment for Codex' }).fill(databaseNote);
-  await page.getByRole('button', { name: 'Save comment' }).click();
+  await page.getByRole('button', { name: 'Save comment', exact: true }).click();
   await expect(page.getByRole('status')).toContainText(
     'Saved your comment on “Bupropion” in this browser.',
   );
@@ -150,6 +150,8 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
     page.getByText(/stored only in this browser on this device until you export/i),
   ).toBeVisible();
   await expect(page.getByText('Review provenance')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Open chart for/ })).toHaveCount(0);
+  await page.getByText('Patient queue', { exact: true }).click();
   await expect(page.getByRole('button', { name: /Open chart for/ }).first()).toBeVisible();
   const patientQueue = page.locator('.patient-slot-grid');
   const patientCards = patientQueue.locator(':scope > .case-card');
@@ -188,26 +190,25 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(page.locator('#ticket-queue-title')).toBeVisible();
   await expect(page.getByLabel('10 need input')).toBeVisible();
   await page.locator('#ticket-queue-title').click();
-  await page
-    .getByRole('button', { name: /Recheck the initial MDD patient and database plan/ })
-    .click();
-  const ticketDialog = page.getByRole('dialog', {
-    name: 'Recheck the initial MDD patient and database plan',
-  });
-  await expect(ticketDialog).toBeVisible();
-  await expectWithinHorizontalViewport(ticketDialog);
-  expect(
-    await ticketDialog.evaluate((element) => {
-      const rectangle = element.getBoundingClientRect();
-      return rectangle.width >= window.innerWidth - 1 && rectangle.height >= window.innerHeight - 1;
+  const focusedTicket = page.locator('.focused-review-card');
+  await expect(focusedTicket).toHaveCount(1);
+  await expect(
+    focusedTicket.getByRole('heading', {
+      name: 'Recheck the initial MDD patient and database plan',
     }),
-  ).toBe(true);
-  await ticketDialog
+  ).toBeVisible();
+  await expect(focusedTicket.getByText('Decision 1 of 10')).toBeVisible();
+  await expectWithinHorizontalViewport(focusedTicket);
+  await expect(focusedTicket.locator('.focused-review-audit-body')).toHaveCount(0);
+  await focusedTicket
     .getByRole('textbox', { name: 'Your response, judgment, or alternative references' })
     .fill('Phone ticket review: keep the broad plan and show reaction-history effects clearly.');
-  await ticketDialog.getByRole('button', { name: 'Save response' }).click();
-  await ticketDialog.getByRole('button', { name: 'Close' }).click();
-  await expect(ticketDialog).toBeHidden();
+  await focusedTicket.getByRole('button', { name: 'Save and go to next decision' }).click();
+  await expect(
+    focusedTicket.getByRole('heading', {
+      name: 'Review the MDD adherence patient and database plan',
+    }),
+  ).toBeFocused();
   await expectDocumentFitsViewport(page);
 
   await page
@@ -308,34 +309,23 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(sourceLink).toBeVisible();
   await expect(sourceLink).toHaveAttribute('href', /^https:\/\//);
   await expect(sourcedTrace.getByText(/Contribution:/).first()).toBeVisible();
+  await page.getByText('Review this case against queued decisions').click();
+  const linkedDecision = page.locator('.receipt-linked-review-card');
+  await expect(linkedDecision).toHaveCount(1);
+  await expect(linkedDecision.getByText('Linked decision 1 of 1')).toBeVisible();
+  await linkedDecision
+    .getByRole('textbox', { name: 'Your response, judgment, or alternative references' })
+    .fill('Phone linked decision: keep this question attached to the exact completed patient.');
+  await linkedDecision.getByRole('button', { name: 'Save and finish linked decisions' }).click();
+  await expect(
+    page.getByText('Every question linked to this patient has a saved response.'),
+  ).toBeVisible();
   await page
     .getByRole('textbox', { name: 'Your feedback' })
     .fill('Phone review one: the investigation flow was clear.');
-  await page.getByRole('button', { name: 'Save feedback for Codex' }).click();
-  await expect(page.getByRole('status')).toContainText('Feedback saved in this browser');
-
-  await workspaceTabs.getByRole('tab', { name: 'Patient' }).click();
-  await expect(page.locator('#mobile-panel-patient')).toBeVisible();
-  await workspaceTabs.getByRole('tab', { name: 'Treatment' }).click();
-  await expect(page.getByText('Treatment locked · review context only')).toBeVisible();
-  await workspaceTabs.getByRole('tab', { name: 'Results / review' }).click();
-  await page.getByRole('button', { name: 'Return to clinic' }).click();
-
-  const savedCommentCount = page
-    .locator('.review-export-counts > div')
-    .filter({ hasText: 'Saved case comments' })
-    .getByRole('definition');
-  await expect(savedCommentCount).toHaveText('1');
-  await page.reload();
-  await expect(
-    page.getByText(/stored only in this browser on this device until you export/i),
-  ).toBeVisible();
-  await expect(savedCommentCount).toHaveText('1');
-
-  await page
-    .getByRole('button', { name: /Open chart for/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: 'Save feedback and open next patient' }).click();
+  await expect(page.locator('#patient-chart-title')).toBeFocused();
+  await expect(page.getByRole('tab', { name: 'Patient' })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('tab', { name: 'Treatment' }).click();
   await page.locator('.disposition-picker .picker-option').first().click();
   await page.getByRole('button', { name: 'Lock in treatment' }).click();
@@ -435,6 +425,13 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       'Phone ticket review: keep the broad plan and show reaction-history effects clearly.',
     reviewerNotesUpdatedAt: expect.any(String),
   });
+  expect(
+    bundle.tickets.some(
+      (ticket) =>
+        ticket.reviewerNotes ===
+        'Phone linked decision: keep this question attached to the exact completed patient.',
+    ),
+  ).toBe(true);
   await download.delete();
   await page.close();
 });

@@ -1636,3 +1636,34 @@ weight, and adherence/tolerability as candidate review dimensions. Its full text
 through PMC but is not in the PMC Open Access subset, so the current source-use decision is
 metadata-only and no full-text extraction, AI processing, medication-specific rule, or point value
 was created.
+
+## D-144 — Reviewer work is one focused decision at a time
+
+**Decision:** Developer and portable Reviewer interfaces prioritize one actionable decision and
+one response field at a time. Their patient queue and clinical-ticket workbench begin collapsed.
+Opening the ticket workbench mounts only the next unanswered `ClinicalReviewTicket`: its
+plain-language question, proposed direction, concise source/evidence summary where available, and
+feedback field. References, exact rule values, source packets, routing metadata, and other audit
+detail remain available under a collapsed disclosure. Saving and advancing must complete browser
+persistence before replacing the current decision, then focus the next decision heading. Reviewed
+tickets remain separately reopenable.
+
+A completed Developer/Reviewer patient receipt puts the whole-case feedback field before the long
+audit and offers a combined save-and-next action. It saves the immutable
+`DeveloperAttemptReview`, then opens the first remaining already-persisted patient slot without
+rerolling or regenerating it. The final patient returns to the collapsed queue. Normal and Endgame
+gameplay do not gain this review-only navigation. Patient-linked ticket questions on a receipt also
+render one at a time with their own save-and-next control; their ticket responses remain separate
+from the whole-case attempt note.
+
+The Database reader follows the same pattern within the current filtered result order: one complete
+entry, one comment field, and previous/next controls that save changed prose before navigation.
+Read-only opinion, source-gap, and private-knowledge inventories remain collapsed audit indexes;
+they do not gain parallel feedback models. Items that require a decision continue to enter the
+existing ticket system.
+
+Review prose and textareas use a readable sans-serif face at approximately 16 px with increased
+line height and contrast; console typography remains for labels, headings, IDs, and game chrome.
+Secondary review metadata does not fall below approximately 13 px. This decision supersedes only
+the prior desktop-inline/mobile-dialog presentation described in D-123 and D-128. It changes no
+schema, patient content, clinical rule, point calculation, provenance, or approval state.
