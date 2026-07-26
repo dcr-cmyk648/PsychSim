@@ -484,6 +484,9 @@ export function ClinicHub({
   const focusedPendingIndex = focusedTicket
     ? ticketsNeedingInput.findIndex((ticket) => ticket.id === focusedTicket.id)
     : -1;
+  const focusedQueueIndex = focusedTicket
+    ? reviewTickets.findIndex((ticket) => ticket.id === focusedTicket.id)
+    : -1;
   const caseRuleAuditByBlueprintId = new Map(
     caseRuleAudits.map((audit) => [audit.blueprintId, audit]),
   );
@@ -1146,7 +1149,7 @@ export function ClinicHub({
                         }
                         positionLabel={
                           focusedPendingIndex >= 0
-                            ? `Decision ${focusedPendingIndex + 1} of ${ticketsNeedingInput.length}`
+                            ? `Decision ${focusedQueueIndex + 1} of ${reviewTickets.length}`
                             : 'Reviewed decision'
                         }
                         readOnlyReason={

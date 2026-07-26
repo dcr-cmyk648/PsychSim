@@ -543,6 +543,9 @@ export function ReceiptView({
   const focusedLinkedTicketIndex = focusedLinkedReviewTicket
     ? pendingLinkedReviewTickets.findIndex((ticket) => ticket.id === focusedLinkedReviewTicket.id)
     : -1;
+  const focusedLinkedQueueIndex = focusedLinkedReviewTicket
+    ? linkedReviewTickets.findIndex((ticket) => ticket.id === focusedLinkedReviewTicket.id)
+    : -1;
 
   useEffect(() => {
     if (!focusedLinkedTicketId) return;
@@ -772,8 +775,8 @@ export function ReceiptView({
                   }
                   positionLabel={
                     focusedLinkedTicketIndex >= 0
-                      ? `Linked decision ${focusedLinkedTicketIndex + 1} of ${
-                          pendingLinkedReviewTickets.length
+                      ? `Linked decision ${focusedLinkedQueueIndex + 1} of ${
+                          linkedReviewTickets.length
                         }`
                       : 'Reviewed linked decision'
                   }

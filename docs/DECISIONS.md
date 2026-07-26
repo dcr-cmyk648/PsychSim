@@ -1646,7 +1646,9 @@ plain-language question, proposed direction, concise source/evidence summary whe
 feedback field. References, exact rule values, source packets, routing metadata, and other audit
 detail remain available under a collapsed disclosure. Saving and advancing must complete browser
 persistence before replacing the current decision, then focus the next decision heading. Reviewed
-tickets remain separately reopenable.
+tickets remain separately reopenable. The visible ordinal stays anchored to the complete ordered
+queue, so completing the first of ten advances to “Decision 2 of 10” rather than restarting the
+remaining queue at “Decision 1 of 9.”
 
 A completed Developer/Reviewer patient receipt puts the whole-case feedback field before the long
 audit and offers a combined save-and-next action. It saves the immutable

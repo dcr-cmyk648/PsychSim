@@ -51,11 +51,12 @@ proposed direction, any concise evidence/source summary, and the response field.
 patient/rule audits, references, routing metadata, and source packets remain under a second
 collapsed disclosure and are not mounted until requested. Saving and advancing must finish local
 persistence before the next ticket replaces the current one; the next heading receives focus.
-Reviewed decisions remain in a separate collapsed history and can be reopened without mounting the
-whole queue. A ticket appears on a patient only when it explicitly names that patient's blueprint
-ID; sharing a medication, action, or other target ID does not imply a patient link. Guidance
-created from a receipt binds to that exact immutable attempt, and export validation rejects an
-attempt whose blueprint differs from the ticket.
+The progress ordinal remains anchored to the complete ordered queue instead of resetting as
+answered items move into history. Reviewed decisions remain in a separate collapsed history and
+can be reopened without mounting the whole queue. A ticket appears on a patient only when it
+explicitly names that patient's blueprint ID; sharing a medication, action, or other target ID
+does not imply a patient link. Guidance created from a receipt binds to that exact immutable
+attempt, and export validation rejects an attempt whose blueprint differs from the ticket.
 
 A packet may include an unreviewed `LiteratureSynthesisProposal`: a concise proposed answer,
 search scope, eligible supporting sources, opposing or qualifying context, limitations, and

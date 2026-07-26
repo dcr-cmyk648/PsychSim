@@ -209,6 +209,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       name: 'Review the MDD adherence patient and database plan',
     }),
   ).toBeFocused();
+  await expect(focusedTicket.getByText('Decision 2 of 10')).toBeVisible();
   await expectDocumentFitsViewport(page);
 
   await page
