@@ -6,13 +6,14 @@ Last updated: 2026-07-25
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
-- Current in-progress beta database-audit checkpoint: the Database now opens every public-safe
+- Current beta database-audit checkpoint:
+  `99989e9ef5d6a0c0c8caa4bd41a19cc3c08cc312`
+  (`Add auditable database reader and medication identities`). The Database opens every public-safe
   record in a dedicated desktop/mobile reader and lets Developer/portable Reviewer users save,
   revise, remove, and export comments with immutable entry snapshots. The public catalog contains
   123 records, including 33 normalized medication identities. A whole-corpus private lexical
   inventory covers all 204 authorized Apple Notes title/plaintext revisions without importing
-  private prose or changing gameplay. This checkpoint is fully verified and awaiting its beta
-  commit; `main` remains unchanged.
+  private prose or changing gameplay. It is pushed to `origin/beta`; `main` remains unchanged.
 - Current beta database-inspection checkpoint:
   `0b714e65af4d4d128f85933d433141d64e16fe23`
   (`Add safe cross-device database browser`). It adds the strict public catalog projection and the
@@ -42,8 +43,8 @@ Last updated: 2026-07-25
   cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
 - The deployed cache-busted `version.json` independently returned exact release
   `8d78c078ba60b7e67f7934c714773aa277b64769`, build kind `portable_reviewer`, and channel `main`.
-- The working copy is on `beta`. The private-authoring workflow and the Database inspection
-  mechanisms remain beta-only; neither has been promoted to `main`.
+- The working copy is on `beta`. The private-authoring workflow and the Database audit mechanisms
+  are pushed to `origin/beta`; neither has been promoted to `main`.
 - Local Developer remains available at `http://127.0.0.1:4318/`. A dedicated current portable
   Reviewer server is verified at `http://127.0.0.1:4319/`.
 
