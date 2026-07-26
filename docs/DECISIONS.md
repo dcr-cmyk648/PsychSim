@@ -417,7 +417,9 @@ candidate clinical behavior came from; encounter events determine what the playe
 learned. UI wording may make a pre-reveal option feel natural and compact, but the backend and
 receipt must always disentangle those three layers. Unknown is not false. A lower-priority routine
 path may be deferred by a relevant finding or missing selected-treatment prerequisite, but the
-engine does not impose one rigid universal hierarchy on every patient.
+engine does not impose one rigid universal hierarchy on every patient. Unknown to the player is
+not absent from the patient: player knowledge never gates an objectively applicable treatment-fit
+or safety effect.
 
 ## D-083 — Primary choices dominate points; fit remains rich but bounded
 
@@ -1591,27 +1593,33 @@ atomize clinical content or provide enough context to resolve the boundary. The 
 requires a source-specific acknowledged one-unit review or a separately designed local-only
 boundary inspector.
 
-## D-143 — Information is a real cost; positive fit credit requires discovered support
+## D-143 — Information is a real cost; fit follows complete resolved patient state
 
 **Decision:** Purchasing history, examination, laboratory, or imaging information always spends
 the displayed points. An unrevealing result is not refunded and does not receive points merely
 because it was purchased. Independently essential, high-yield, or treatment-required workup can
 still earn its separately authored workup reward, including when the result is negative.
 
-Useful structured findings create value by helping the player choose a better-fitting
-intervention. For the next scoring pass, a positive medication or therapy fit bonus requires both
-an objectively applicable resolved patient feature and sufficient player-known facts supporting
-that feature. Hidden patient state remains preserved for the post-submit audit, but it cannot by
-itself award a positive fit bonus. This narrows D-072: patient truth, evidence support, and player
-knowledge remain distinct, while positive discovery-dependent credit uses both truth and
-knowledge.
+Every modeled gameplay-relevant patient stat is resolved deterministically when the patient is
+generated and saved with the patient instance. Reusable treatment-fit rules consume that complete
+resolved state through derived clinical tags or other explicit predicates. Every objectively
+applicable positive bonus, negative fit decrement, contraindication, interaction, and immediate
+downstream effect therefore applies whether or not the player bought the information that would
+have revealed its supporting feature. A lucky blind choice can receive its actual fit benefit, and
+an uninformed poor choice still receives its actual downside.
 
-Safety errors, contraindications, and dangerous interactions continue to follow actual patient
-state rather than disappearing when the player failed to ask. One point-design question remains
-open before implementation: whether ordinary non-safety fit decrements should also require
-discovery, or whether all negative fit effects should follow actual patient state. No runtime
-scoring behavior changes until that single branch is resolved and the knowledge-binding schema,
-validation, trace, and tests are implemented.
+Information creates value by improving the player's chance of choosing well; it does not unlock
+the patient's underlying outcomes. Workup rewards and omissions remain separately authored, so
+the receipt can distinguish the cost and quality of information gathering from the downstream fit
+of the submitted plan. All matching fit modifiers may contribute within D-083's bounded fit
+budget, but critical-error caps and contraindication precedence prevent a pile of small bonuses
+from rescuing unsafe care. Every applied modifier remains a separate post-submit trace row with
+its signed points, reason, review state, related treatment, and exact formal-source or
+Developer/Expert-opinion provenance.
+
+This reaffirms D-072 and resolves the prior proposed knowledge-gating branch. The existing
+medication-fit engine already evaluates resolved clinical tags independently of `knownFactIds`;
+no patient-tag knowledge-binding subsystem should be added.
 
 The Bostwick 2010 Mayo Clinic Proceedings review is cataloged as a medically unreviewed historical
 authoring seed for this fit-first concept. Its verified abstract nominates sleep, sexual function,

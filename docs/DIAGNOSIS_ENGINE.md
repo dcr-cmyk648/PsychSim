@@ -105,13 +105,12 @@ fit even when the player failed to ask for it; a separate workup rule evaluates 
 obtained the relevant information. The receipt must trace those effects separately so an objective
 fit modifier is not mistaken for discovery credit.
 
-D-143 narrows the next scoring pass without collapsing those layers: an objectively applicable
-positive fit bonus will award points only when the player has established a sufficient
-patient-owned knowledge binding for that clinical tag. The hidden objective match remains
-available to the post-submit audit. Safety and contraindication effects always follow actual
-patient state; whether ordinary non-safety negative fit decrements are also knowledge-gated is the
-single unresolved design branch. The current runtime still uses the earlier objective-fit behavior
-until that branch, schema, validation, trace, and tests are completed.
+D-143 confirms that all objectively applicable positive and negative fit effects use this complete
+resolved state whether or not the player revealed it. Information helps the player select the
+right treatment but does not change the patient's downstream response. Player knowledge remains
+available for independent workup predicates and audit; it is not a fit-point gate. The current
+medication-fit engine already follows this rule by evaluating saved clinical tags rather than
+`knownFactIds`.
 
 ## Comorbidity composition
 

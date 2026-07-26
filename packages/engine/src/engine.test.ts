@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { CaseBlueprint, ClinicState, TreatmentSelection } from '@psychsim/schemas';
+import type {
+  CaseBlueprint,
+  CatalogBundle,
+  ClinicState,
+  TreatmentSelection,
+} from '@psychsim/schemas';
 
 import {
   approvedCaseBlueprints,
@@ -46,14 +51,15 @@ const play = (
   selections: TreatmentSelection,
   clinic: ClinicState = startingClinic,
   seed = 'unit-engine',
+  catalogBundle: CatalogBundle = catalogs,
 ) => {
-  const instance = instantiateCase(blueprint, seed, catalogs);
+  const instance = instantiateCase(blueprint, seed, catalogBundle);
   let state = startEncounter(instance, clinic, clinic.activeLocationId);
   for (const actionId of actionIds) {
-    state = requireCompleted(purchaseInformationAction(state, actionId, catalogs));
+    state = requireCompleted(purchaseInformationAction(state, actionId, catalogBundle));
   }
-  state = requireCompleted(updateTreatmentSelections(state, selections, catalogs));
-  return requireCompleted(completeEncounter(state, catalogs));
+  state = requireCompleted(updateTreatmentSelections(state, selections, catalogBundle));
+  return requireCompleted(completeEncounter(state, catalogBundle));
 };
 
 const playStarter = (
@@ -508,11 +514,29 @@ describe('encounter engine', () => {
         catalogs,
       ),
     );
-    const insomnia = playStarter(databasePlan.actionIds, mirtazapineSelections, expandedClinic);
+    const hiddenInsomnia = playStarter(
+      databasePlan.actionIds,
+      mirtazapineSelections,
+      expandedClinic,
+    );
+    const revealedInsomnia = playStarter(
+      [...databasePlan.actionIds, 'info.history.sleep'],
+      mirtazapineSelections,
+      expandedClinic,
+    );
     const highBmiBlueprint = structuredClone(prototypeCaseBlueprint);
     highBmiBlueprint.patientRecord.clinicalTagIds = highBmiBlueprint.patientRecord.clinicalTagIds
       .filter((tag) => tag !== 'symptom.insomnia')
       .concat('medical.high-bmi');
+    const highBmiResult = highBmiBlueprint.informationActions.find(
+      (action) => action.actionId === 'info.physical.weight-bmi',
+    )!.result;
+    const highBmiFinding = highBmiResult.findings.find(
+      (finding) => finding.id === 'finding.weight-bmi.bmi',
+    )!;
+    highBmiFinding.outcome = 'high';
+    highBmiFinding.valueTextVariants = ['33.1 kg/m²'];
+    highBmiResult.factsRevealed = ['fact.mdd-weight-bmi-high'];
     const highBmi = play(
       highBmiBlueprint,
       databasePlan.actionIds,
@@ -520,19 +544,141 @@ describe('encounter engine', () => {
       expandedClinic,
       'high-bmi',
     );
+    const hiddenInsomniaTrace = hiddenInsomnia.receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'modifier.mirtazapine.insomnia-fit-active',
+    );
+    const revealedInsomniaTrace = revealedInsomnia.receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'modifier.mirtazapine.insomnia-fit-active',
+    );
+    const hiddenHighBmiTrace = highBmi.receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'modifier.mirtazapine.high-bmi-fit-active',
+    );
+    expect(hiddenInsomnia.state.knownFactIds).not.toContain('fact.mdd-insomnia');
+    expect(revealedInsomnia.state.knownFactIds).toContain('fact.mdd-insomnia');
+    expect(hiddenInsomniaTrace).toEqual(revealedInsomniaTrace);
+    expect(hiddenInsomniaTrace).toMatchObject({
+      label: 'Mirtazapine: fit bonus',
+      points: 35,
+      evidenceAttributions: [
+        expect.objectContaining({
+          authority: 'expert_opinion',
+        }),
+      ],
+    });
+    expect(highBmi.state.knownFactIds).not.toContain('fact.mdd-weight-bmi-normal');
+    expect(highBmi.state.purchases.map((purchase) => purchase.actionId)).not.toContain(
+      'info.physical.weight-bmi',
+    );
+    expect(hiddenHighBmiTrace).toMatchObject({
+      label: 'Mirtazapine: fit penalty',
+      points: -50,
+    });
+    const mixedFitBlueprint = structuredClone(highBmiBlueprint);
+    mixedFitBlueprint.patientRecord.clinicalTagIds.push('symptom.insomnia');
+    const mixedFit = play(
+      mixedFitBlueprint,
+      databasePlan.actionIds,
+      mirtazapineSelections,
+      expandedClinic,
+      'mixed-fit',
+    );
     expect(
-      insomnia.receipt.pointReport.ruleTrace.find(
-        (trace) => trace.ruleId === 'modifier.mirtazapine.insomnia-fit-active',
-      )?.points,
-    ).toBe(35);
-    expect(
-      highBmi.receipt.pointReport.ruleTrace.find(
-        (trace) => trace.ruleId === 'modifier.mirtazapine.high-bmi-fit-active',
-      )?.points,
-    ).toBe(-50);
-    expect(insomnia.receipt.pointReport.carePointsEarned).toBeGreaterThan(
+      mixedFit.receipt.pointReport.ruleTrace
+        .filter((trace) =>
+          [
+            'modifier.mirtazapine.insomnia-fit-active',
+            'modifier.mirtazapine.high-bmi-fit-active',
+          ].includes(trace.ruleId),
+        )
+        .map((trace) => ({
+          ruleId: trace.ruleId,
+          label: trace.label,
+          points: trace.points,
+          provenance: trace.evidenceAttributions[0]?.authority,
+        })),
+    ).toEqual([
+      {
+        ruleId: 'modifier.mirtazapine.insomnia-fit-active',
+        label: 'Mirtazapine: fit bonus',
+        points: 35,
+        provenance: 'expert_opinion',
+      },
+      {
+        ruleId: 'modifier.mirtazapine.high-bmi-fit-active',
+        label: 'Mirtazapine: fit penalty',
+        points: -50,
+        provenance: 'expert_opinion',
+      },
+    ]);
+    expect(hiddenInsomnia.receipt.pointReport.carePointsEarned).toBeGreaterThan(
       highBmi.receipt.pointReport.carePointsEarned,
     );
+    expect(revealedInsomnia.receipt.pointReport.actualWorkupExpense).toBeGreaterThan(
+      hiddenInsomnia.receipt.pointReport.actualWorkupExpense,
+    );
+  });
+
+  it('preserves modifier-owned formal provenance in the post-submit fit trace', () => {
+    const sourcedCatalogs = structuredClone(catalogs);
+    const mirtazapine = sourcedCatalogs.medications.find(
+      (medication) => medication.id === 'medication.mirtazapine',
+    )!;
+    const modifier = mirtazapine.fitModifiers.find(
+      (candidate) => candidate.id === 'modifier.mirtazapine.insomnia-fit-active',
+    )!;
+    const sourceUseNoteId = 'source-use.test.mirtazapine-fit-provenance';
+    mirtazapine.sourceUseNotes.push({
+      id: sourceUseNoteId,
+      authority: 'formal_publication',
+      evidenceSourceIds: ['evidence.canmat.mdd-adults.2023-update'],
+      sourceDocumentId: null,
+      sourceChunkIds: [],
+      targetContentIds: [modifier.id],
+      contributionTypes: ['medication_fit'],
+      contribution:
+        'Test-only provenance fixture for modifier plumbing; this is not a clinical claim.',
+      generatedBy: 'human',
+      medicalReviewStatus: 'unreviewed',
+    });
+    modifier.sourceUseNoteIds = [sourceUseNoteId];
+    expect(modifier.review.sourceUseNoteIds).toEqual([]);
+
+    const expandedClinic = requireCompleted(
+      purchaseUpgrade(
+        { ...startingClinic, clinicPoints: 2_000 },
+        'upgrade.formulary.expanded-outpatient',
+        sourcedCatalogs,
+      ),
+    );
+    const run = play(
+      prototypeCaseBlueprint,
+      databasePlan.actionIds,
+      {
+        ...databasePlan.selections,
+        startMedicationIds: ['medication.mirtazapine'],
+      },
+      expandedClinic,
+      'sourced-fit',
+      sourcedCatalogs,
+    );
+    expect(
+      run.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'modifier.mirtazapine.insomnia-fit-active',
+      ),
+    ).toMatchObject({
+      points: 35,
+      evidenceAttributions: [
+        {
+          sourceUseNoteId,
+          authority: 'formal_publication',
+          evidenceSourceId: 'evidence.canmat.mdd-adults.2023-update',
+          citation: expect.stringContaining('CANMAT'),
+          url: expect.stringMatching(/^https:/),
+          contribution:
+            'Test-only provenance fixture for modifier plumbing; this is not a clinical claim.',
+        },
+      ],
+    });
   });
 });
 

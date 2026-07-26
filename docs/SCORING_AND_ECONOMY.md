@@ -82,12 +82,13 @@ The itemized receipt keeps these layers separate. For example, a selected SSRI c
 
 Every investigation remains a genuine point cost even when it reveals nothing useful. A purchase
 does not automatically earn care points; independent workup objectives reward only authored
-essential, high-yield, or treatment-required information. Under D-143, the next engine pass will
-let a useful revealed fact unlock an objectively applicable positive fit bonus, rather than
-awarding that bonus from hidden patient state alone. The fit points stay on the treatment row,
-while the trace separately shows the supporting knowledge. Safety and contraindication effects
-are never hidden by failure to ask. Ordinary non-safety negative-fit gating remains an explicit
-pending decision, so current runtime behavior is unchanged in this source-intake checkpoint.
+essential, high-yield, or treatment-required information. Revealing a useful fact improves the
+player's ability to select a fitting intervention, but it does not unlock that intervention's
+points. All positive and negative fit modifiers evaluate the complete resolved patient state
+whether revealed or not, representing the immediate downstream effects of the submitted choice.
+Fit points stay on the treatment row, while workup cost/reward remains separate. The complete rule
+trace itemizes every applied modifier and its provenance so a player can inspect exactly why a
+choice gained or lost points.
 
 Exact complete matches are labeled `authored_pathway`. A nonexact programmed result is prominently labeled `engine_inferred`; the receipt says deterministic catalog rules estimated it. `unmatched` means no programmed route recognized the combination and invites a missing-alternative ticket.
 

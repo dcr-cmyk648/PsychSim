@@ -15,7 +15,7 @@ is required to play.
 The clinic hub also has a **Database** button on desktop and mobile. It opens a searchable
 public-safe catalog compiled into that exact build: currently 8 modeled condition definitions,
 33 normalized medication identities, 13 therapies/interventions, 3 dispositions, 40 shared
-investigations, 14 test definitions, and 12 formal bibliography records. Each entry opens in a
+investigations, 14 test definitions, and 13 formal bibliography records. Each entry opens in a
 dedicated full reader with its complete review-safe structured record. Twenty medication records
 are identity-only authoring entries and are not selectable in gameplay; the other thirteen retain
 the existing runtime compatibility definitions. Developer and portable Reviewer builds can save a

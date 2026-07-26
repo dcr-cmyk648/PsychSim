@@ -87,8 +87,11 @@ const evidenceAttributionsFor = (
   review: ClinicalRuleReview | undefined,
   sourceUseNotes: readonly EvidenceContribution[],
   catalogs: CatalogBundle,
+  additionalSourceUseNoteIds: readonly string[] = [],
 ): RuleEvaluation['evidenceAttributions'] => {
-  const sourceUseNoteIds = review?.sourceUseNoteIds ?? [];
+  const sourceUseNoteIds = [
+    ...new Set([...(review?.sourceUseNoteIds ?? []), ...additionalSourceUseNoteIds]),
+  ];
   if (sourceUseNoteIds.length === 0) {
     return [
       {
@@ -153,28 +156,37 @@ const medicationFitTrace = (state: EncounterState, catalogs: CatalogBundle): Rul
     if (!medication) return [];
     return medication.fitModifiers
       .filter((modifier) => modifier.patientTagIds.every((tagId) => patientTags.has(tagId)))
-      .map((modifier) => ({
-        ruleId: modifier.id,
-        label: `${medication.label}: patient fit`,
-        component: 'medication_selection' as const,
-        matched: true,
-        points: modifier.pointDelta,
-        classification:
+      .map((modifier) => {
+        const effectLabel =
           modifier.effect === 'contraindication'
-            ? ('harmful' as const)
+            ? 'contraindication'
             : modifier.effect === 'penalty'
-              ? ('weak' as const)
-              : ('strong_alternative' as const),
-        explanation: `${modifier.explanation} Catalog fit modifier; prototype medical review status: ${modifier.medicalReviewStatus}.`,
-        reviewStatus: modifier.review.status,
-        evidenceAttributions: evidenceAttributionsFor(
-          modifier.review,
-          medication.sourceUseNotes,
-          catalogs,
-        ),
-        relatedActionIds: [],
-        relatedTreatmentIds: [medicationId],
-      }));
+              ? 'fit penalty'
+              : 'fit bonus';
+        return {
+          ruleId: modifier.id,
+          label: `${medication.label}: ${effectLabel}`,
+          component: 'medication_selection' as const,
+          matched: true,
+          points: modifier.pointDelta,
+          classification:
+            modifier.effect === 'contraindication'
+              ? ('harmful' as const)
+              : modifier.effect === 'penalty'
+                ? ('weak' as const)
+                : ('strong_alternative' as const),
+          explanation: `${modifier.explanation} Catalog fit modifier; prototype medical review status: ${modifier.medicalReviewStatus}.`,
+          reviewStatus: modifier.review.status,
+          evidenceAttributions: evidenceAttributionsFor(
+            modifier.review,
+            medication.sourceUseNotes,
+            catalogs,
+            modifier.sourceUseNoteIds,
+          ),
+          relatedActionIds: [],
+          relatedTreatmentIds: [medicationId],
+        };
+      });
   });
 };
 

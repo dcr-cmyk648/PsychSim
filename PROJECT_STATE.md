@@ -11,10 +11,12 @@ Last updated: 2026-07-26
   adds its abstract-level sleep, sexual-function, weight, and adherence/tolerability dimensions to
   the existing antidepressant-baseline review question; and opens a focused request for current,
   legally processable corroboration. No full text was downloaded or parsed and no clinical rule or
-  point value changed. D-143 records that information remains a real uncertain cost and that the
-  next engine pass should gate positive fit bonuses on relevant discovered facts. The one remaining
-  design decision is whether ordinary non-safety fit decrements are knowledge-gated; actual safety,
-  contraindication, and dangerous-interaction consequences are never gated.
+  point value changed. D-143 now confirms that information remains a real uncertain cost while all
+  positive and negative fit effects follow the complete resolved patient state whether revealed or
+  not. The current medication-fit engine already follows that rule. A regression test locks hidden
+  versus revealed parity, and runtime provenance now honors the validated union of modifier-owned
+  and rule-review source-use notes so each fit row can expose its exact source or retain an honest
+  Developer/Expert-opinion label.
 - Current beta immutable-source-review checkpoint:
   `e1fdb94ae5d063f351364485b692fd0e9f092c35`
   (`Add immutable local source review packets`). One complete parser-v5 source unit can now produce
@@ -380,6 +382,32 @@ Passed locally on 2026-07-26:
   documented clean-exit full-gate toolchain.
 - Live loopback smoke: current Developer and Reviewer roots return HTTP 200 at ports 4318 and 4319.
 - No source full text, article prose, source hash, source document, or source chunk was added.
+
+## Verification for resolved-patient fit and provenance checkpoint
+
+Passed locally on 2026-07-26:
+
+- Focused fit, diagnosis, and receipt suite: 3 files / 50 tests. Hidden and revealed insomnia
+  produce the same +35 mirtazapine fit row; hidden high BMI produces its -50 fit row; and both
+  separately itemize when both patient tags are present.
+- A modifier-owned, test-only formal contribution attached outside the review record reaches the
+  runtime trace with its exact source-use ID, source ID, citation, URL, and contribution. Existing
+  unsourced mirtazapine modifiers remain honestly labeled `Expert opinion`.
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`.
+- `pnpm test`: 40 TypeScript test files / 288 tests plus all 10 handoff tests.
+- `pnpm content:validate`: all catalogs and 15 executable patients.
+- `pnpm content:sources:validate`: 8 Drive candidates, 210 local manifest entries/210 extracted
+  artifacts, 204 Apple Notes records, 13 personal-knowledge queue records, and one immutable source
+  packet.
+- `pnpm content:compile`: 3 local review patients plus 10 portable Reviewer scenarios.
+- `pnpm demo:reference-runs`: existing care, expense, and payout baselines are unchanged.
+- `pnpm build`: Player bundle safety passed (11 files).
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed (15 files).
+- `pnpm test:e2e`: 5/5 Player/Developer/Endgame browser tests.
+- `pnpm test:e2e:reviewer`: 4/4 mobile Reviewer tests across 390-pixel and 320-pixel projects.
+- The first sandboxed `tsx` validation and Playwright loopback attempts failed with environment
+  `EPERM`; the exact root commands then passed outside the restricted IPC/network sandbox.
+- No fit magnitude, patient rule, treatment grade, case content, or formal clinical claim changed.
 
 ## Verification for immutable source-review checkpoint
 
@@ -828,35 +856,29 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-1. Resolve one point-design branch before implementing D-143: should knowledge gating apply only
-   to positive fit bonuses (recommended), while ordinary negative fit and all safety consequences
-   follow actual patient state, or should non-safety negative fit decrements also require discovery?
-2. After that answer, implement patient-owned clinical-tag knowledge bindings, initial known facts,
-   positive fit trace metadata, validation, and tests without putting case-local fact IDs into
-   shared medication files. Do not rebalance medication magnitudes in the same change.
-3. In local Developer mode, inspect the first source-boundary ticket as a workflow check. It can
+1. In local Developer mode, inspect the first source-boundary ticket as a workflow check. It can
    support only “keep quarantined/no change”; it intentionally lacks the private context required
    to decide whether the Word `Title` paragraph is front matter or a new authored unit.
-4. The next bounded source engineering task is a safe adapter from the already acknowledged, already
+2. The next bounded source engineering task is a safe adapter from the already acknowledged, already
    classified Apple Notes source revision into one half-page immutable review packet. Reuse its
    existing packet/model/prompt audit and seven medically unreviewed opinion candidates; do not
    reread OCR/HTML/attachments or create runtime content. This is the first immediately available
    semantic packet.
-5. After that packet is reviewed, canonical Codex should create only the smallest separate
+3. After that packet is reviewed, canonical Codex should create only the smallest separate
    bibliography, Developer-opinion, identity, source-gap, balance, or no-change proposal. Any
    accepted clinical change still requires explicit implementation plus Database/rule-trace and
    affected-patient/reference-run audit.
-6. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
+4. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
    their source-specific acknowledgment boundary. Do not expand the hard-coded MDD profile until
    source-revision ownership/reuse and packet supersession are designed.
-7. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
+5. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
    corrigendum impact, complete WHO DEP1–DEP4 review, atomize one BAP recommendation while excluding
    BFCRS instrument content pending rights review, and complete the VA/DoD item-level rights audit
    before semantic indexing.
-8. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
+6. Transfer one of the four remote-only Drive candidates only when a connector-enabled canonical
    worker can preserve its exact bytes, hash, rights state, and manifest entry. Never report those
    four sources as extracted before that happens.
-9. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
+7. After any user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
    `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Saving a comment
    is never automatic clinical approval or authorization to alter a rule.
 

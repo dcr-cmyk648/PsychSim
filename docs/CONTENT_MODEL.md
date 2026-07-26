@@ -208,6 +208,12 @@ multi-diagnosis composition is separately bounded; its candidates and game weigh
 owned by the patient family rather than globally drawn from diagnosis relationships.
 [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) defines the current boundary.
 
+All modeled gameplay-relevant values are resolved before the encounter begins. Applicable
+treatment-fit and safety rules evaluate that saved patient truth even when the supporting detail
+remains unknown to the player. Purchasing information changes what the player can reason from and
+may independently satisfy workup objectives; it does not reroll the patient or activate an
+otherwise dormant fit modifier.
+
 Clinically meaningful duration uses `ClinicalDurationProfile`, not a cosmetic variant. Every
 option has a stable ID, positive integer value, `day`/`week`/`month`/`year` unit, and short display
 variants. The current Reviewer profiles are labeled `supports_authored_state`: their choices vary
