@@ -6,12 +6,14 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
-- Current beta immutable-source-review checkpoint: feature commit pending. One complete parser-v5
-  source unit can now produce a hash-bound, local-Developer-only `SourceReviewSnapshot` plus a
-  separate private locator. The safe packet enters the existing focused ticket reader; saving
-  prose preserves its exact snapshot and never mutates clinical content. The first aggregate
-  packet is deliberately metadata-only and records the unresolved Word-heading boundary. It
-  creates no clinical atom, source claim, opinion, database entry, rule, point, or runtime change.
+- Current beta immutable-source-review checkpoint:
+  `e1fdb94ae5d063f351364485b692fd0e9f092c35`
+  (`Add immutable local source review packets`). One complete parser-v5 source unit can now produce
+  a hash-bound, local-Developer-only `SourceReviewSnapshot` plus a separate private locator. The
+  safe packet enters the existing focused ticket reader; saving prose preserves its exact snapshot
+  and never mutates clinical content. The first aggregate packet is deliberately metadata-only and
+  records the unresolved Word-heading boundary. It creates no clinical atom, source claim,
+  opinion, database entry, rule, point, or runtime change.
 - Local source coverage is 210/210 extracted artifacts: 204 Apple Notes composites, four formal
   PDFs, and two private Drive DOCX files. All six non-Notes artifacts use parser v5. The connected
   Drive listing has nine items: eight already-known source candidates plus one Reviewer-feedback
