@@ -6,15 +6,16 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
-- Current local review-workflow checkpoint implements D-144 without changing schemas or clinical
+- Current focused review-workflow release implements D-144 without changing schemas or clinical
   behavior. Developer/Reviewer patient queues begin collapsed; completed patient receipts save the
   exact attempt review before opening the next persisted patient; the ticket workbench mounts one
   decision with summary and response before optional audit detail; and the Database reader can
   save and advance through one filtered entry at a time. Patient-linked receipt questions use that
   same focused pattern while retaining their separate ticket responses. Review prose uses larger,
-  higher-contrast typography while console styling remains in the game chrome. This
-  mechanism-heavy checkpoint remains local on `beta`; it has not been pushed or promoted to
-  `main`.
+  higher-contrast typography while console styling remains in the game chrome. The user explicitly
+  authorized whole-branch promotion on 2026-07-26. The portable Reviewer passed the complete
+  390-pixel and 320-pixel interaction suite locally; the release was promoted only after the
+  `beta` Node 22/iPhone-WebKit workflow passed, then the same fast-forward head was sent to `main`.
 - Current remaining-packet checkpoint:
   `9c0993a0eea52abf3eafff5b5c5207521efa7786`
   (`Prepare remaining evidence review packets`). The Developer-only review queue now contains 22
@@ -29,9 +30,9 @@ Last updated: 2026-07-26
   context only until formal evidence and source-use intake. No patient, diagnosis branch,
   investigation reward, treatment grade, safety/disposition rule, regimen rule, score, point
   value, or runtime behavior changed. Player and portable Reviewer bundle gates exclude every
-  `literature-synthesis.*` marker. The later focused review-workflow checkpoint makes the local
-  `beta` branch six commits ahead of `origin/beta`; nothing from either checkpoint has been pushed
-  or promoted to `main`.
+  `literature-synthesis.*` marker. The later focused review-workflow release promotes these
+  medically unreviewed, point-excluded Developer packets together with their quarantining and
+  bundle-isolation gates; none enters the Player or portable Reviewer artifact.
 - Current evidence-gap checkpoint: `4553b47eb0dba5bda5465ffc6fdb102a406c23a8`
   (`Add review packets for unresolved evidence gaps`). It converts six previously queued questions
   into medically unreviewed, point-excluded review packets: ECG monitoring after palpitations on
@@ -132,14 +133,14 @@ Last updated: 2026-07-26
 - Beta workflow `30170704601` passed every verification gate for
   `901aca33ec9353cf677d85d34db446f0223e7865`, including iPhone/WebKit and both bundle-safety
   builds; its Pages jobs skipped as intended.
-- `origin/main` is `8d78c078ba60b7e67f7934c714773aa277b64769`. Main workflow `30168178421`
-  repeated the full matrix, packaged the portable Reviewer, and deployed Pages.
+- The prior public release was
+  `8d78c078ba60b7e67f7934c714773aa277b64769`. The authorized focused-workflow release replaces it
+  by fast-forwarding the complete validated `beta` branch rather than cherry-picking files.
 - The public portable Reviewer is live at `https://dcr-cmyk648.github.io/PsychSim/`. Its
-  cache-busted `version.json` returned the exact release SHA, `portable_reviewer`, and `main`.
-- The deployed cache-busted `version.json` independently returned exact release
-  `8d78c078ba60b7e67f7934c714773aa277b64769`, build kind `portable_reviewer`, and channel `main`.
-- The working copy is on `beta`. The private-authoring workflow and the Database audit mechanisms
-  are pushed to `origin/beta`; neither has been promoted to `main`.
+  cache-busted `version.json` must match the exact shared release head, build kind
+  `portable_reviewer`, and channel `main`.
+- The working copy returns to `beta` after promotion. Local `beta`, `origin/beta`, and
+  `origin/main` share the released head; new work continues locally on `beta`.
 - Local Developer remains available at `http://127.0.0.1:4318/`. A dedicated current portable
   Reviewer server is verified at `http://127.0.0.1:4319/`.
 
@@ -1009,8 +1010,8 @@ Fictional, synthetic, medically unreviewed prototypes:
     `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Saving a comment
     is never automatic clinical approval or authorization to alter a rule.
 
-Keep this mechanism-heavy checkpoint on `beta` until the user explicitly authorizes promotion.
-`main` and the public Pages Reviewer remain on the prior released checkpoint. Do not implement a
-bulk medication importer, infer guidance from lexical matches, invent missing therapy/diagnosis
-rules, begin Milestone 4, add a service worker, expose private source material, or make
-identity-only records selectable in gameplay.
+The user explicitly authorized this focused review-workflow checkpoint for whole-branch promotion;
+it passed the required local phone suite and remote beta release gate before `main` advanced. Keep
+new work on `beta`. Do not implement a bulk medication importer, infer guidance from lexical
+matches, invent missing therapy/diagnosis rules, begin Milestone 4, add a service worker, expose
+private source material, or make identity-only records selectable in gameplay.
