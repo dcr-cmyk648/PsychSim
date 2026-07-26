@@ -1560,21 +1560,24 @@ opinions, clinical rules, points, approval, or runtime content.
 
 **Decision:** One local private-source review decision is represented as a
 `SourceReviewSnapshot` embedded in the existing proposed `ClinicalReviewTicket`, not as a parallel
-queue or clinical engine. One preparation selects exactly one complete parser-v5
-`sectionInstance`. A browser-safe packet stores only a concise original paraphrase, one to four
-atomic proposals, public target IDs or explicit unresolved labels, uncertainty, conflicts,
-currentness, rights/boundary state, and the exact displayed ticket-routing context. It never stores
-raw source text, source headings, filenames, private provider IDs, document/chunk IDs, or
-filesystem paths.
+queue or clinical engine. One preparation selects exactly one review unit: either one complete
+parser-v5 `sectionInstance` or one fully classified personal-knowledge source revision. A
+browser-safe packet stores only a concise original paraphrase, up to eight atomic proposals,
+public target IDs or explicit unresolved labels, uncertainty, conflicts, currentness,
+rights/boundary state, and the exact displayed ticket-routing context. A classified revision must
+project every opinion candidate one-to-one rather than merging, omitting, or reclassifying it. The
+packet never stores raw source text, source headings, filenames, private provider IDs,
+document/chunk/candidate IDs, private hashes, or filesystem paths.
 
-A separate mode-`0600`, gitignored locator stores the exact private document/chunk identities,
-hashes, parser warnings, and source-unit fingerprint. The safe packet hash covers every displayed
-and routing field; the source-unit fingerprint covers the parser artifact and every selected chunk
-locator, text hash, and provenance hash. Validation re-reads the extraction artifact and fails
-closed on drift, invalid permissions, path escape, warning mismatch, incomplete/noncontiguous
-units, unknown public targets, or a missing one-to-one packet/locator pair. Re-running an identical
-packet is idempotent. A different packet for the same source-unit fingerprint is rejected until an
-explicit supersession workflow is designed.
+A separate mode-`0600`, gitignored discriminated locator stores either the exact private
+document/chunk identities, hashes, and parser warnings or the exact queue revision, semantic run,
+classification audit entry, source-unit/opinion/bibliography candidate fingerprints, and
+source-unit fingerprint. The safe packet hash covers every displayed and routing field.
+Validation re-reads the protected source state and fails closed on drift, invalid permissions,
+path escape, warning mismatch, incomplete/noncontiguous units, changed queue/audit/run/candidate
+records, edited safe proposals, unknown public targets, or a missing one-to-one packet/locator
+pair. Re-running an identical packet is idempotent. A different packet for the same source-unit
+fingerprint is rejected until an explicit supersession workflow is designed.
 
 The safe feed is seed-only. Reviewer prose and resolution remain browser-owned save data, and
 saving them cannot mutate source, evidence, opinion, clinical, balance, or runtime content.
@@ -1592,6 +1595,12 @@ therefore records its unresolved heading warning and no-change quarantine questi
 atomize clinical content or provide enough context to resolve the boundary. The next semantic step
 requires a source-specific acknowledged one-unit review or a separately designed local-only
 boundary inspector.
+
+Bounded authorization to process the user's private personal knowledge locally likewise does not
+create a formal `SourceUseDecision`. A `private_processing_only` classified revision may project
+only local `developer_opinion` or `no_change` proposals. It remains medically unreviewed,
+nonportable, and nonruntime; nearby bibliography stays an unverified private lead until separately
+verified and admitted through the formal evidence workflow.
 
 ## D-143 — Information is a real cost; fit follows complete resolved patient state
 

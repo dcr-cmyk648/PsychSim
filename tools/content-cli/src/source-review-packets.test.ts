@@ -4,14 +4,24 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
+  AppleNotesCodexReviewAcknowledgementSchema,
+  AppleNotesLocalAcknowledgementSchema,
   ClinicalTicketExportBundleSchema,
   SourceReviewTicketFeedSchema,
   type SourceChunk,
 } from '@psychsim/schemas';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { prepareAppleNotesCodexReviewPacket } from './apple-notes-codex-review';
+import {
+  loadAppleNotesIntakeManifestMetadata,
+  syncAppleNotesFolder,
+  type AppleNotesFolderAudit,
+  type AppleNotesProvider,
+} from './apple-notes-provider';
 import { calculateSourceChunkProvenanceHash } from './source-pipeline';
 import {
   prepareSourceReviewPackets,
+  preparePersonalKnowledgeSourceReviewPacket,
   validateSourceReviewPrivateState,
 } from './source-review-packets';
 
@@ -35,6 +45,262 @@ interface Fixture {
   locatorPath: string;
   artifactPath: string;
 }
+
+interface PersonalKnowledgeFixture {
+  sourceRoot: string;
+  generatedRoot: string;
+  feedPath: string;
+  locatorPath: string;
+  workspacePath: string;
+  auditPath: string;
+  privateTitle: string;
+  privatePlaintext: string;
+}
+
+const createPersonalKnowledgeFixture = async (): Promise<PersonalKnowledgeFixture> => {
+  const root = await mkdtemp(join(tmpdir(), 'psychsim-personal-source-review-'));
+  temporaryDirectories.push(root);
+  const sourceRoot = join(root, 'source-docs');
+  const privateTitle = 'PRIVATE_NOTE_TITLE_SENTINEL';
+  const privatePlaintext = 'PRIVATE_NOTE_PLAINTEXT_SENTINEL about depression and bupropion.';
+  const folderAudit: AppleNotesFolderAudit = {
+    providerAccountId: 'account.synthetic',
+    providerFolderId: 'folder.synthetic',
+    folderName: 'Psych research',
+    folderShared: false,
+    notes: [
+      {
+        providerNoteId: 'note.synthetic',
+        createdAtProvider: '2026-07-25T00:00:00.000Z',
+        modifiedAtProvider: '2026-07-25T01:00:00.000Z',
+        locked: false,
+        shared: false,
+        attachmentMetadata: [],
+      },
+    ],
+  };
+  const provider: AppleNotesProvider = {
+    auditFolder: vi.fn().mockResolvedValue(folderAudit),
+    exportNote: vi.fn(async ({ destinationDirectory }) => {
+      await Promise.all([
+        writeFile(join(destinationDirectory, 'title.txt'), privateTitle),
+        writeFile(join(destinationDirectory, 'plaintext.txt'), privatePlaintext),
+        writeFile(join(destinationDirectory, 'body.html'), 'PRIVATE_HTML_SENTINEL'),
+      ]);
+      return {
+        providerNoteId: 'note.synthetic',
+        modifiedAtProvider: '2026-07-25T01:00:00.000Z',
+        attachmentMetadata: [],
+      };
+    }),
+  };
+  await syncAppleNotesFolder({
+    folderName: 'Psych research',
+    sourceRoot,
+    provider,
+    acknowledgement: AppleNotesLocalAcknowledgementSchema.parse({
+      schemaVersion: 1,
+      noIdentifiablePatientInformation: true,
+      authorizedForLocalProcessing: true,
+      sharedMaterialRightsAcknowledged: true,
+      acknowledgedAt: '2026-07-25T02:00:00.000Z',
+      acknowledgedBy: 'Synthetic reviewer',
+    }),
+    ocr: false,
+    now: () => '2026-07-25T02:00:00.000Z',
+  });
+  const packetReport = await prepareAppleNotesCodexReviewPacket({
+    selector: { kind: 'next' },
+    acknowledgement: AppleNotesCodexReviewAcknowledgementSchema.parse({
+      schemaVersion: 1,
+      contentScope: 'apple_notes_title_plaintext_only',
+      noIdentifiablePatientInformation: true,
+      authorizedForExternalAiProcessing: true,
+      titlePlaintextTransmissionRightsAcknowledged: true,
+      sharedMaterialRightsAcknowledged: true,
+      appropriateToTransmitToOpenAiCodex: true,
+      provider: 'openai_codex',
+      modelIdentifier: 'gpt-5.6-sol-test',
+      acknowledgedAt: '2026-07-25T03:00:00.000Z',
+      acknowledgedBy: 'Synthetic reviewer',
+    }),
+    sourceRoot,
+    now: () => '2026-07-25T03:00:00.000Z',
+  });
+  const intake = await loadAppleNotesIntakeManifestMetadata(sourceRoot);
+  const note = intake?.notes[0];
+  if (!note?.sourceDocumentId || !note.titleHash || !note.plaintextHash) {
+    throw new Error('Synthetic Apple Notes intake did not produce a complete note revision.');
+  }
+  const semanticDirectory = join(sourceRoot, 'extracted', 'apple-notes-private', 'semantic-review');
+  await mkdir(semanticDirectory, { recursive: true, mode: 0o700 });
+  await chmod(semanticDirectory, 0o700);
+  const profileId = 'authoring-pilot.initial-mdd-antidepressant-selection';
+  const queueEntryId = 'personal-knowledge-queue-entry.synthetic';
+  const runId = 'personal-knowledge-run.synthetic';
+  const sourceUnitId = 'authored-source-unit-candidate.synthetic';
+  const sourceLocator = {
+    kind: 'apple_notes_packet',
+    sourceDocumentId: note.sourceDocumentId,
+    packetId: packetReport.packetId,
+    segmentOrdinal: 0,
+    segmentHash: note.plaintextHash,
+  } as const;
+  const queue = {
+    schemaVersion: 1,
+    queueVersion: 1,
+    profileId,
+    contentScope: 'apple_notes_title_plaintext_only',
+    generatedAt: '2026-07-25T04:00:00.000Z',
+    entries: [
+      {
+        schemaVersion: 1,
+        id: queueEntryId,
+        profileId,
+        noteRecordId: note.id,
+        sourceDocumentId: note.sourceDocumentId,
+        titleHash: note.titleHash,
+        plaintextHash: note.plaintextHash,
+        sourceModifiedAtProvider: note.modifiedAtProvider,
+        matchedRequiredGroupIds: [
+          'authoring-term-group.mdd',
+          'authoring-term-group.antidepressant-selection',
+        ],
+        matchedTargetMatcherIds: ['authoring-target.mdd', 'authoring-target.bupropion'],
+        matchedTargetContentIds: ['diagnosis.major-depressive-disorder', 'medication.bupropion'],
+        distinctSignalCount: 2,
+        totalMatchCount: 2,
+        state: 'classified',
+        expectedSegmentCount: 1,
+        releasedPacketIds: [packetReport.packetId],
+        releasedSegmentOrdinals: [0],
+        classifiedSegmentOrdinals: [0],
+      },
+    ],
+  };
+  const candidateTargets = [
+    {
+      resolution: 'resolved',
+      targetKind: 'diagnosis',
+      targetContentId: 'diagnosis.major-depressive-disorder',
+      role: 'context',
+      rationale: 'Synthetic diagnosis target.',
+    },
+    {
+      resolution: 'resolved',
+      targetKind: 'medication',
+      targetContentId: 'medication.bupropion',
+      role: 'subject',
+      rationale: 'Synthetic medication target.',
+    },
+  ] as const;
+  const bibliographyCandidates = Array.from({ length: 3 }, (_, index) => ({
+    schemaVersion: 1,
+    candidateVersion: 1,
+    id: `bibliographic-candidate.synthetic-${index + 1}`,
+    sourceUnitCandidateIds: [sourceUnitId],
+    sourceUnitIds: [],
+    sourceLocators: [sourceLocator],
+    citationRole: 'mentioned_source',
+    title: `PRIVATE_BIBLIOGRAPHY_TITLE_${index + 1}`,
+    authors: [],
+    organization: null,
+    year: null,
+    doi: null,
+    pmid: null,
+    url: null,
+    citationText: null,
+    targets: candidateTargets,
+    verificationStatus: 'unverified',
+    matchedEvidenceSourceId: null,
+    semanticRunId: runId,
+    reviewStatus: 'proposed',
+  }));
+  const opinionCandidates = Array.from({ length: 7 }, (_, index) => ({
+    schemaVersion: 1,
+    candidateVersion: 1,
+    id: `developer-opinion-candidate.synthetic-${index + 1}`,
+    sourceUnitCandidateIds: [sourceUnitId],
+    sourceUnitIds: [],
+    sourceLocators: [sourceLocator],
+    summary: `Synthetic concise Developer-opinion candidate ${index + 1}.`,
+    contributionTypes: ['medication_fit'],
+    asOfDate: null,
+    asOfDateBasis: 'unknown',
+    currentness: 'needs_currentness_review',
+    targets: candidateTargets,
+    nearbyBibliographicCandidateIds: bibliographyCandidates.map((candidate) => candidate.id),
+    semanticRunId: runId,
+    reviewStatus: 'proposed',
+    medicalReviewStatus: 'unreviewed',
+    needsHumanReview: true,
+  }));
+  const workspace = {
+    schemaVersion: 1,
+    workspaceVersion: 1,
+    updatedAt: '2026-07-25T04:00:00.000Z',
+    contentScope: 'apple_notes_title_plaintext_only',
+    semanticRuns: [
+      {
+        schemaVersion: 1,
+        id: runId,
+        profileId,
+        packetId: packetReport.packetId,
+        packetSha256: packetReport.packetSha256,
+        modelIdentifier: 'gpt-5.6-sol-test',
+        promptVersion: 'personal-knowledge-classifier-1',
+        classifiedAt: '2026-07-25T04:00:00.000Z',
+        outputSha256: 'e'.repeat(64),
+      },
+    ],
+    sourceUnitCandidates: [
+      {
+        schemaVersion: 1,
+        candidateVersion: 1,
+        id: sourceUnitId,
+        sourceLocators: [sourceLocator],
+        unitKind: 'personal_takeaway',
+        boundaryState: 'complete',
+        title: 'PRIVATE_SOURCE_UNIT_TITLE',
+        byline: null,
+        venue: null,
+        url: null,
+        originalDate: null,
+        revisedDate: null,
+        assertedAuthorship: 'user_authored',
+        rightsState: 'private_processing_only',
+        currentness: 'needs_currentness_review',
+        excludedMaterialKinds: [],
+        targets: candidateTargets,
+        semanticRunId: runId,
+        reviewStatus: 'proposed',
+      },
+    ],
+    sourceUnits: [],
+    bibliographicCandidates: bibliographyCandidates,
+    opinionCandidates,
+    opinions: [],
+    opinionEvidenceRelationships: [],
+  };
+  const queuePath = join(semanticDirectory, `${profileId}.queue.json`);
+  const workspacePath = join(semanticDirectory, 'workspace.json');
+  await Promise.all([
+    writeFile(queuePath, `${JSON.stringify(queue, null, 2)}\n`, { mode: 0o600 }),
+    writeFile(workspacePath, `${JSON.stringify(workspace, null, 2)}\n`, { mode: 0o600 }),
+  ]);
+  await Promise.all([chmod(queuePath, 0o600), chmod(workspacePath, 0o600)]);
+  const generatedRoot = join(root, 'generated', 'source-review');
+  return {
+    sourceRoot,
+    generatedRoot,
+    feedPath: join(generatedRoot, 'tickets.json'),
+    locatorPath: join(sourceRoot, 'manifests', 'source-review-units.json'),
+    workspacePath,
+    auditPath: packetReport.auditPath,
+    privateTitle,
+    privatePlaintext,
+  };
+};
 
 const createFixture = async (): Promise<Fixture> => {
   const root = await mkdtemp(join(tmpdir(), 'psychsim-source-review-'));
@@ -162,6 +428,100 @@ const optionsFor = (fixture: Fixture) => ({
 });
 
 describe('source-review packet preparation', () => {
+  it('adapts one classified private revision into seven immutable local opinion proposals', async () => {
+    const fixture = await createPersonalKnowledgeFixture();
+    const options = {
+      sourceRoot: fixture.sourceRoot,
+      generatedRoot: fixture.generatedRoot,
+      feedPath: fixture.feedPath,
+      locatorPath: fixture.locatorPath,
+      publicTargetIds: ['diagnosis.major-depressive-disorder', 'medication.bupropion'],
+    };
+    const first = await preparePersonalKnowledgeSourceReviewPacket(options);
+    const second = await preparePersonalKnowledgeSourceReviewPacket(options);
+    expect(first).toEqual(second);
+    expect(first).toMatchObject({ tickets: 1, sourceUnits: 1 });
+    await expect(validateSourceReviewPrivateState(options)).resolves.toEqual(first);
+
+    const feedText = await readFile(fixture.feedPath, 'utf8');
+    const feed = SourceReviewTicketFeedSchema.parse(JSON.parse(feedText) as unknown);
+    expect(feed.tickets[0]?.sourceReviewSnapshot?.atomicProposals).toHaveLength(7);
+    expect(
+      feed.tickets[0]?.sourceReviewSnapshot?.atomicProposals.every(
+        (proposal) => proposal.proposalType === 'developer_opinion',
+      ),
+    ).toBe(true);
+    for (const forbidden of [
+      fixture.privateTitle,
+      fixture.privatePlaintext,
+      'PRIVATE_SOURCE_UNIT_TITLE',
+      'PRIVATE_BIBLIOGRAPHY_TITLE_1',
+      'personal-knowledge-queue-entry.synthetic',
+      'personal-knowledge-run.synthetic',
+      'developer-opinion-candidate.synthetic-1',
+    ]) {
+      expect(feedText).not.toContain(forbidden);
+    }
+
+    const locator = JSON.parse(await readFile(fixture.locatorPath, 'utf8')) as {
+      entries: Array<{
+        locatorKind: string;
+        opinionCandidates: Array<{ safeProposalId: string }>;
+      }>;
+    };
+    expect(locator.entries[0]?.locatorKind).toBe('personal_knowledge_classification');
+    expect(locator.entries[0]?.opinionCandidates).toHaveLength(7);
+    expect(
+      locator.entries[0]?.opinionCandidates.every((candidate) => candidate.safeProposalId),
+    ).toBe(true);
+  });
+
+  it('quarantines a personal packet when its exact opinion candidate drifts', async () => {
+    const fixture = await createPersonalKnowledgeFixture();
+    const options = {
+      sourceRoot: fixture.sourceRoot,
+      generatedRoot: fixture.generatedRoot,
+      feedPath: fixture.feedPath,
+      locatorPath: fixture.locatorPath,
+      publicTargetIds: ['diagnosis.major-depressive-disorder', 'medication.bupropion'],
+    };
+    await preparePersonalKnowledgeSourceReviewPacket(options);
+    const workspace = JSON.parse(await readFile(fixture.workspacePath, 'utf8')) as {
+      opinionCandidates: Array<{ summary: string }>;
+    };
+    workspace.opinionCandidates[0]!.summary = 'Mutated independently worded candidate.';
+    await writeFile(fixture.workspacePath, `${JSON.stringify(workspace, null, 2)}\n`, {
+      mode: 0o600,
+    });
+    await chmod(fixture.workspacePath, 0o600);
+
+    await expect(validateSourceReviewPrivateState(options)).rejects.toThrow(
+      'no longer matches its personal-knowledge classification',
+    );
+  });
+
+  it('quarantines a personal packet when its exact classification audit entry drifts', async () => {
+    const fixture = await createPersonalKnowledgeFixture();
+    const options = {
+      sourceRoot: fixture.sourceRoot,
+      generatedRoot: fixture.generatedRoot,
+      feedPath: fixture.feedPath,
+      locatorPath: fixture.locatorPath,
+      publicTargetIds: ['diagnosis.major-depressive-disorder', 'medication.bupropion'],
+    };
+    await preparePersonalKnowledgeSourceReviewPacket(options);
+    const audit = JSON.parse(await readFile(fixture.auditPath, 'utf8')) as {
+      entries: Array<{ acknowledgement: { acknowledgedBy: string } }>;
+    };
+    audit.entries[0]!.acknowledgement.acknowledgedBy = 'Changed synthetic reviewer';
+    await writeFile(fixture.auditPath, `${JSON.stringify(audit, null, 2)}\n`, { mode: 0o600 });
+    await chmod(fixture.auditPath, 0o600);
+
+    await expect(validateSourceReviewPrivateState(options)).rejects.toThrow(
+      'no longer matches its personal-knowledge classification',
+    );
+  });
+
   it('creates a deterministic safe packet and a separate immutable private locator', async () => {
     const fixture = await createFixture();
     const first = await prepareSourceReviewPackets(optionsFor(fixture));
@@ -228,7 +588,7 @@ describe('source-review packet preparation', () => {
     );
   });
 
-  it('keeps source material metadata-only until an explicit source-use decision exists', async () => {
+  it('allows an authorized local Developer-opinion candidate without granting source rights', async () => {
     const fixture = await createFixture();
     const draft = JSON.parse(await readFile(fixture.draftPath, 'utf8')) as {
       units: Array<Record<string, unknown>>;
@@ -242,8 +602,32 @@ describe('source-review packet preparation', () => {
     await writeFile(fixture.draftPath, JSON.stringify(draft), { mode: 0o600 });
     await chmod(fixture.draftPath, 0o600);
 
+    await expect(prepareSourceReviewPackets(optionsFor(fixture))).resolves.toMatchObject({
+      tickets: 1,
+      sourceUnits: 1,
+    });
+  });
+
+  it('does not let private-processing authorization create a clinical-rule candidate', async () => {
+    const fixture = await createFixture();
+    const draft = JSON.parse(await readFile(fixture.draftPath, 'utf8')) as {
+      units: Array<{
+        rightsState: Record<string, unknown>;
+        atomicProposals: Array<Record<string, unknown>>;
+      }>;
+    };
+    draft.units[0]!.rightsState = {
+      status: 'private_processing_only',
+      sourceUseDecisionId: null,
+      portableReviewAllowed: false,
+      note: 'Local preservation and review only.',
+    };
+    draft.units[0]!.atomicProposals[0]!.proposalType = 'clinical_rule_candidate';
+    await writeFile(fixture.draftPath, JSON.stringify(draft), { mode: 0o600 });
+    await chmod(fixture.draftPath, 0o600);
+
     await expect(prepareSourceReviewPackets(optionsFor(fixture))).rejects.toThrow(
-      'metadata no-change packet',
+      'local Developer-opinion candidates',
     );
   });
 

@@ -53,7 +53,7 @@ describe('Europe PMC literature discovery', () => {
   it('sorts eligible results by one provider citation snapshot and rejects retractions', async () => {
     const payload = JSON.stringify({
       version: '6.9',
-      hitCount: 3,
+      hitCount: 4,
       resultList: {
         result: [
           {
@@ -77,6 +77,12 @@ describe('Europe PMC literature discovery', () => {
             isRetracted: 'Y',
             pubTypeList: { pubType: ['Meta-Analysis'] },
           },
+          {
+            pmid: '4',
+            title: 'Retracted type string without explicit flag',
+            citedByCount: 200,
+            pubType: 'Journal Article; Meta-Analysis; Retracted Publication',
+          },
         ],
       },
     });
@@ -85,7 +91,7 @@ describe('Europe PMC literature discovery', () => {
       async () => new Response(payload, { status: 200 }),
     );
     expect(result.providerApiVersion).toBe('6.9');
-    expect(result.resultCount).toBe(3);
+    expect(result.resultCount).toBe(4);
     expect(result.candidates.map((candidate) => candidate.pmid)).toEqual(['1', '2']);
     expect(result.responseSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(result.candidateSetSha256).toMatch(/^[a-f0-9]{64}$/);

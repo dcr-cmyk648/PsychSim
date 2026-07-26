@@ -406,7 +406,12 @@ describe('ClinicHub', () => {
       }),
     );
     expect(await screen.findByText('Recent meta-analysis context')).toBeVisible();
-    expect(screen.getByText('Abstract-only summary')).toBeVisible();
+    expect(screen.getAllByText('Abstract-only summary')).toHaveLength(6);
+    expect(
+      screen.getByText(
+        /Which medication-specific short-term weight and cardiometabolic effects are supported/,
+      ),
+    ).toBeVisible();
   });
 
   it('shows an immutable source packet as a concise local review question', async () => {

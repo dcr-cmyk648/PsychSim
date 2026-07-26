@@ -305,7 +305,11 @@
       "info.history.sleep",
       "info.physical.weight-bmi",
       "modifier.mirtazapine.insomnia-fit-active",
-      "modifier.mirtazapine.high-bmi-fit-active"
+      "modifier.mirtazapine.high-bmi-fit-active",
+      "modifier.mirtazapine.insomnia-fit",
+      "modifier.mirtazapine.high-bmi-fit",
+      "modifier.mirtazapine.diabetes-fit",
+      "modifier.bupropion.weight-preference-fit"
     ],
     "linkedTicketIds": ["ticket.source.canmat-mdd.antidepressant-baseline"],
     "preferredSourceTypes": [

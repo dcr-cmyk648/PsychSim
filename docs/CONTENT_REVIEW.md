@@ -170,13 +170,18 @@ to the affected source and must be checked before downstream review continues.
 
 Private personal material enters the same local Developer ticket queue through a narrower
 `SourceReviewSnapshot`, not through tracked source-review ticket files. One preparation selects
-exactly one complete parser-v5 `sectionInstance` and writes two mode-`0600`, gitignored records:
+exactly one review unit—either one complete parser-v5 `sectionInstance` or one fully classified
+personal-knowledge source revision—and writes two mode-`0600`, gitignored records:
 
-- a browser-safe decision packet containing a short original paraphrase, one to four atomic
+- a browser-safe decision packet containing a short original paraphrase, up to eight atomic
   proposals, public catalog targets or explicit unresolved labels, uncertainty, conflicts,
-  currentness, rights/boundary state, and the exact ticket routing shown to the reviewer;
-- a private locator containing the source-document/chunk identities, hashes, parser warnings, and
-  source-unit fingerprint needed to reproduce and audit that packet.
+  currentness, rights/boundary state, and the exact ticket routing shown to the reviewer. A
+  classified personal-knowledge revision projects every candidate opinion one-to-one; it neither
+  merges nor silently drops candidates;
+- a discriminated private locator containing either parser artifact/chunk identities, hashes, and
+  warnings or the exact queue revision, semantic run, audit entry, source-unit candidate, opinion
+  candidate, bibliography-candidate, and fingerprint relationships needed to reproduce and audit
+  the packet.
 
 The public packet never contains raw source text, headings, filenames, provider IDs, filesystem
 paths, document IDs, or chunk IDs. Its hash covers every displayed and routing field. The separate
@@ -191,6 +196,13 @@ IndexedDB and the ordinary local Codex handoff bundle while preserving the exact
 snapshot. It does not modify a source unit, create a claim, accept an opinion, attach evidence,
 edit a rule, change points, or grant medical approval.
 
+The personal-knowledge branch may use `private_processing_only` only for local
+`developer_opinion` or `no_change` proposals. The user's bounded local-processing authorization is
+not a formal `SourceUseDecision`, does not make a bibliography candidate evidence, and does not
+authorize portable review, redistribution, or runtime use. The safe projection reports only the
+number of nearby unverified bibliography leads; their private identifiers and citation details
+remain in the locator-side workspace.
+
 If the safe feed or private locator later fails validation, an already saved packet remains visible
 only as historical context and becomes read-only. It is omitted from new handoff/export bundles
 until private validation recovers; unrelated profile and review data remain usable.
@@ -200,10 +212,12 @@ impact, reference-run, and release gates.
 
 The first generated packet is intentionally a metadata-only quarantine decision for the private
 residency-article aggregate. It records that one Word heading-boundary warning remains unresolved
-and asks whether semantic work should remain paused. Because it contains no source-unit context, it
-cannot itself resolve that boundary or atomize clinical content. The unblock is a source-specific
-acknowledged one-unit semantic review or a separately designed local-only boundary inspector.
-Portable Reviewer rejects `SourceReviewSnapshot` records; this queue remains local Developer-only.
+and asks whether semantic work should remain paused. The next packet demonstrates the classified
+personal-knowledge branch: one acknowledged Apple Notes revision projects its seven concise,
+medically unreviewed Developer-opinion candidates for reviewer disposition while retaining exact
+private hashes and relationships outside the browser-safe packet. Neither packet creates evidence,
+clinical content, rules, points, or runtime behavior. Portable Reviewer rejects
+`SourceReviewSnapshot` records; this queue remains local Developer-only.
 
 ## Exact rule audit and source-needed queue
 

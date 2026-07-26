@@ -11,7 +11,7 @@ import { TicketLiteratureScoutView } from './TicketLiteratureScoutView';
 afterEach(cleanup);
 
 describe('TicketLiteratureScoutView', () => {
-  it('shows a selected abstract-only summary and provider-specific citation snapshot', () => {
+  it('shows the bounded fit profiles with abstract-only summaries and citation snapshots', () => {
     render(
       <TicketLiteratureScoutView
         catalog={developerTicketLiteratureScoutCatalog}
@@ -19,9 +19,12 @@ describe('TicketLiteratureScoutView', () => {
       />,
     );
 
-    expect(screen.getByText('Abstract-only summary')).toBeInTheDocument();
-    expect(screen.getByText(/Across 522 trials and 116,477 adults/)).toBeInTheDocument();
-    expect(screen.getByText(/Europe PMC cited by 2,220/)).toBeInTheDocument();
+    expect(screen.getAllByText('Abstract-only summary')).toHaveLength(6);
+    expect(screen.getAllByText(/Across 522 trials and 116,477 adults/)).toHaveLength(2);
+    expect(screen.getByText(/151 trials and 17 FDA reports/)).toBeInTheDocument();
+    expect(screen.getByText(/216 acute depression trials/)).toBeInTheDocument();
+    expect(screen.getByText(/91 placebo-controlled trials/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Europe PMC cited by 2,220/)).toHaveLength(2);
     expect(screen.getByText('Unreviewed')).toBeInTheDocument();
     expect(screen.getByText(/cannot approve a clinical claim/)).toBeInTheDocument();
   });

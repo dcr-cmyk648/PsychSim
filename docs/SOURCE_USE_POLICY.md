@@ -45,13 +45,22 @@ contributions whose extraction, AI, derivative, or runtime use exceeds the recor
 Ticket literature scouting uses Europe PMC as a no-key bibliographic and citation-discovery
 provider. Its cited-by count is provider-specific, mutable metadata recorded with an as-of date;
 it is neither evidence certainty nor clinical authority. Clinical relevance is screened before
-the count is used to choose among responsive meta-analyses.
+the count is used to choose among responsive meta-analyses. Discovery rejects a record when either
+Europe PMC's explicit retraction flag or its publication-type field marks it as a retracted
+publication; the second check matters because real API records do not always populate both fields.
 
 The tracked catalog stores no copied abstract. It stores a short independently worded summary
 whose scope is explicitly abstract-only; raw API responses and abstract text remain local and
 ignored. Abstract availability does not grant full-text reuse rights and does not make a record
 formal support. Any later clinical use still needs an `EvidenceSourceDefinition`, a source-use
 decision, exact-claim contribution, applicability review, and clinician approval.
+
+Medication-fit scouting is divided by the actual decision dimension—broad efficacy/acceptability,
+weight and physiology, sexual function, sleep-related adverse effects, tolerability, and symptom
+moderators—instead of treating one broad antidepressant search as sufficient. A selected
+meta-analysis can nominate or constrain a fit dimension, but abstract-only context cannot set a
+point magnitude, establish deterministic patient-level prediction, or convert a treatment-emergent
+adverse effect into a therapeutic benefit.
 
 ## Reuse lanes
 

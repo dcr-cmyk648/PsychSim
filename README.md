@@ -61,6 +61,7 @@ pnpm content:knowledge:prepare -- --provider openai-codex --model "<exact expose
 pnpm content:knowledge:import -- /private/path/to/classification.json
 pnpm content:knowledge:status
 pnpm content:knowledge:inventory
+pnpm content:knowledge:review-packet
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -249,16 +250,18 @@ Local source preparation now has a strict review-packet bridge:
 
 ```sh
 pnpm content:source-review:prepare
+pnpm content:knowledge:review-packet
 pnpm content:sources:validate
 ```
 
-The preparer accepts one complete parser-v5 heading unit, writes an immutable safe ticket feed and
-a separate private locator manifest, and changes no database entry, rule, point, or runtime
-content. Developer mode may read the safe feed over loopback; Player and portable Reviewer builds
-and exports reject it. The first packet is deliberately metadata-only because the imported
-personal archive still has an unresolved heading warning and no source-specific external-AI
-transmission acknowledgment. The 204 Apple Notes title/plaintext revisions remain in their
-separately acknowledged one-source-at-a-time workflow.
+The first preparer accepts one complete parser-v5 heading unit. The second accepts one fully
+classified personal-knowledge revision and preserves one safe proposal per candidate opinion.
+Both write an immutable safe ticket feed plus a separate discriminated private locator manifest
+and change no database entry, rule, point, evidence relationship, or runtime content. Developer
+mode may read the safe feed over loopback; Player and portable Reviewer builds and exports reject
+it. The aggregate packet remains deliberately metadata-only because its heading warning is
+unresolved. The Apple Notes branch remains a separately acknowledged one-source-at-a-time workflow;
+local private-processing authorization is not a formal source-use decision.
 
 ## Static deployment
 

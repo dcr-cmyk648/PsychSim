@@ -3420,7 +3420,7 @@ export const SourceReviewSnapshotSchema = z
       })
       .strict(),
     originalSummary: z.string().min(1).max(700),
-    atomicProposals: z.array(SourceReviewAtomicProposalSchema).min(1).max(4),
+    atomicProposals: z.array(SourceReviewAtomicProposalSchema).min(1).max(8),
     publicTargetContentIds: z.array(StableIdSchema).max(30),
     unresolvedTargetLabels: z.array(z.string().min(1).max(180)).max(30),
     uncertainty: z.array(z.string().min(1).max(300)).max(10),
@@ -3539,15 +3539,28 @@ export const SourceReviewSnapshotSchema = z
         message: 'An excluded source can record only a no-change proposal.',
       });
     }
+    const locallyReviewablePrivateProposalTypes = new Set(['developer_opinion', 'no_change']);
     if (
-      snapshot.rightsState.status !== 'source_use_decision' &&
+      snapshot.rightsState.status === 'private_processing_only' &&
+      snapshot.atomicProposals.some(
+        (proposal) => !locallyReviewablePrivateProposalTypes.has(proposal.proposalType),
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['atomicProposals'],
+        message: 'Private-processing packets may review only local Developer-opinion candidates.',
+      });
+    }
+    if (
+      !['private_processing_only', 'source_use_decision'].includes(snapshot.rightsState.status) &&
       snapshot.atomicProposals.some((proposal) => proposal.proposalType !== 'no_change')
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['atomicProposals'],
         message:
-          'A source without an explicit source-use decision can produce only a metadata no-change packet.',
+          'A source without private-review authorization or an explicit source-use decision can produce only a metadata no-change packet.',
       });
     }
   });

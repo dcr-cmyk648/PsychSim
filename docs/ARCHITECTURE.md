@@ -401,18 +401,29 @@ economy. These are intentional product constraints, not missing backend tasks.
 
 ## Immutable local source-review packets
 
-`tools/content-cli/src/source-review-packets.ts` bridges protected parser-v5 artifacts into the
-existing Developer ticket workflow without creating a parallel clinical engine. One preparation
-selects exactly one complete `sectionInstance`. The source-unit fingerprint covers the document
-text hash, parser version, warning list/count, and every selected chunk locator, text hash, and
-provenance hash. The public packet hash separately covers the concise paraphrase, every atomic
-proposal, public targets, uncertainty/currentness/rights/boundary state, and all displayed ticket
-routing.
+`tools/content-cli/src/source-review-packets.ts` bridges protected parser-v5 artifacts and fully
+classified personal-knowledge revisions into the existing Developer ticket workflow without
+creating a parallel clinical engine. One preparation selects exactly one review unit. For a
+parser-v5 `sectionInstance`, the source-unit fingerprint covers the document text hash, parser
+version, warning list/count, and every selected chunk locator, text hash, and provenance hash. For
+a classified personal-knowledge revision, it covers the exact queue revision, semantic runs,
+classification audit entries, and candidate record fingerprints. The public packet hash
+separately covers the concise paraphrase, up to eight atomic proposals, public targets,
+uncertainty/currentness/rights/boundary state, and all displayed ticket routing.
 
 The safe feed lives under ignored `content/generated/source-review/`; exact document/chunk locators
-live under ignored `content/source-docs/manifests/`. Both are mode `0600`, validated as a one-to-one
-pair, and updated with rollback. Re-running the same packet is idempotent. A different packet for
-the same source-unit fingerprint fails closed until an explicit supersession model exists.
+or personal-knowledge record relationships live under ignored `content/source-docs/manifests/`.
+Both are mode `0600`, validated as a one-to-one pair, and updated with rollback. The locator is a
+discriminated union, so parser artifacts and classified revisions cannot be reinterpreted as one
+another. Re-running the same packet is idempotent. A different packet for the same source-unit
+fingerprint fails closed until an explicit supersession model exists.
+
+The classified-revision adapter recomputes every safe proposal from the exact private opinion
+candidate and rejects queue, audit, run, candidate, or safe-feed drift. It preserves one proposal
+per candidate, exposes no raw title/plaintext or private IDs/hashes, and reports nearby
+bibliography only as an unverified count. `private_processing_only` permits local
+Developer-opinion review only; it is not a formal source-use decision and cannot produce a
+portable packet, evidence contribution, executable rule, point value, approval, or runtime effect.
 
 The Vite development server exposes the safe feed only to loopback requests. Invalid permissions,
 schema, path containment, or feed contents return a visible quarantine error rather than an empty

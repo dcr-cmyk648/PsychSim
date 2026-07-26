@@ -6,6 +6,17 @@ Last updated: 2026-07-26
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
 - Current branch: `beta`, tracking `origin/beta`. Future local work stays on `beta`.
+- Current beta review/scout checkpoint (`Add first personal knowledge review scout`) adapts the
+  first fully classified Apple Notes revision into one immutable local Developer ticket with seven
+  one-to-one, medically unreviewed Developer-opinion proposals. A discriminated private locator
+  binds the safe packet to the exact queue revision, semantic run, classification audit, and
+  candidate fingerprints; private source text, IDs, hashes, and bibliography details remain
+  outside the safe feed. The same checkpoint adds five bounded antidepressant-fit literature
+  profiles and four abstract-only, medically unreviewed discovery references covering short-term
+  physiology/weight, sexual-function adverse effects, sleep adverse effects, tolerability, and the
+  limits of severity-only personalization. It creates no evidence contribution, accepted opinion,
+  executable rule, point magnitude, medical approval, or runtime change. The local `beta` branch
+  is one commit ahead of `origin/beta`; this checkpoint has not been pushed or promoted to `main`.
 - Current bounded source/scoring-design work catalogs Bostwick's 2010 Mayo antidepressant-fit
   review as verified, medically unreviewed metadata; records a metadata-only source-use decision;
   adds its abstract-level sleep, sexual-function, weight, and adherence/tolerability dimensions to
@@ -17,14 +28,13 @@ Last updated: 2026-07-26
   versus revealed parity, and runtime provenance now honors the validated union of modifier-owned
   and rule-review source-use notes so each fit row can expose its exact source or retain an honest
   Developer/Expert-opinion label.
-- Current beta immutable-source-review checkpoint:
+- Current beta immutable-source-review base checkpoint:
   `e1fdb94ae5d063f351364485b692fd0e9f092c35`
-  (`Add immutable local source review packets`). One complete parser-v5 source unit can now produce
-  a hash-bound, local-Developer-only `SourceReviewSnapshot` plus a separate private locator. The
-  safe packet enters the existing focused ticket reader; saving prose preserves its exact snapshot
-  and never mutates clinical content. The first aggregate packet is deliberately metadata-only and
-  records the unresolved Word-heading boundary. It creates no clinical atom, source claim,
-  opinion, database entry, rule, point, or runtime change.
+  (`Add immutable local source review packets`). The working tree extends its parser-v5 locator
+  into a discriminated parser/personal-knowledge locator. The safe packet enters the existing
+  focused ticket reader; saving prose preserves its exact snapshot and never mutates clinical
+  content. The ignored local feed now contains two paired packets: the deliberately metadata-only
+  aggregate boundary packet and the first seven-proposal classified personal-knowledge packet.
 - Local source coverage is 210/210 extracted artifacts: 204 Apple Notes composites, four formal
   PDFs, and two private Drive DOCX files. All six non-Notes artifacts use parser v5. The connected
   Drive listing has nine items: eight already-known source candidates plus one Reviewer-feedback
@@ -33,8 +43,8 @@ Last updated: 2026-07-26
   Therapy Vignettes.
 - Local Developer and portable Reviewer servers were restarted on the current worktree and are
   available at `http://127.0.0.1:4318/` and `http://127.0.0.1:4319/`. The Developer source endpoint
-  returns exactly one validated safe packet with no private locator markers; the Reviewer endpoint
-  remains absent and falls through to the ordinary app shell.
+  returns exactly two validated safe packets with no private locator markers; the Reviewer
+  endpoint remains absent and falls through to the ordinary app shell.
 - Current beta database-audit checkpoint:
   `99989e9ef5d6a0c0c8caa4bd41a19cc3c08cc312`
   (`Add auditable database reader and medication identities`). The Database opens every public-safe
@@ -298,12 +308,16 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   17 tickets link through 13 reusable bounded questions and 15 have explicit exemptions because a
   meta-analysis cannot resolve their legal/access, identity, architecture, balance, or umbrella
   decision.
-- Seven profiles select a recent meta-analysis and store a concise original abstract-only summary;
-  six record that no directly suitable recent meta-analysis was found rather than substituting an
-  unrelated paper.
-- The initial Europe PMC searches use the exact 2016-07-25 through 2026-07-25 window. Refreshes roll
-  that window forward as ten calendar years, preserve exact queries/result hashes, and record the
-  provider-specific cited-by count and as-of time. Relevance is screened before citation rank.
+- Twelve profiles select a recent meta-analysis and store a concise original abstract-only
+  summary; six record that no directly suitable recent meta-analysis was found rather than
+  substituting an unrelated paper. The five new antidepressant-fit profiles divide the question
+  into broad efficacy/acceptability, weight/physiology, sexual function, sleep adverse effects,
+  tolerability, and symptom-moderator limits rather than pretending one paper resolves all fit.
+- The original Europe PMC searches use the exact 2016-07-25 through 2026-07-25 window; the current
+  antidepressant-fit scout uses 2016-07-26 through 2026-07-26. Refreshes roll each window forward
+  as ten calendar years, preserve exact queries/result hashes, screen explicit and
+  publication-type retraction markers, and record the provider-specific cited-by count and as-of
+  time. Relevance is screened before citation rank.
 - `pnpm content:literature:refresh -- --ticket <ticket-id> --dry-run` and `--next` operate on one
   attached ticket at a time. Raw API responses remain under ignored
   `content/generated/literature-scout/`; a refresh cannot silently replace a selected paper.
@@ -428,15 +442,38 @@ Passed locally on 2026-07-26:
 - `pnpm build`: Player bundle safety passed (11 files).
 - `pnpm build:reviewer`: portable Reviewer bundle safety passed (15 files).
 - Node 22.23.1 desktop browser gate: 5/5 Player/Developer/Endgame tests.
-- Node 22.23.1 mobile Reviewer gate: 4/4 tests across 390-pixel and 320-pixel projects.
-- Live loopback smoke: Developer and Reviewer roots return 200; the Developer source endpoint
-  returns JSON with exactly one safe packet and no private document/chunk/path marker; Reviewer
-  contains no source endpoint. A fresh browser context opens the packet in Developer mode and
-  confirms its response field is enabled while the private locator is healthy.
-- The first sandboxed `tsx` and loopback attempts failed with environment `EPERM`; the exact root
-  commands and browser gates then passed outside the restricted IPC/network sandbox. Node's
-  nonblocking `module.register()` deprecation warning and Vite's existing large-chunk warning
-  remain.
+
+## Verification for first personal-knowledge packet and antidepressant-fit scout
+
+Passed locally on 2026-07-26:
+
+- `pnpm content:source-review:prepare` and
+  `pnpm content:knowledge:review-packet`: idempotent two-packet/two-locator private state; the
+  personal-knowledge packet contains exactly seven one-to-one Developer-opinion proposals.
+- Live Developer endpoint: HTTP 200 with packet proposal counts 1 and 7; no source document/chunk,
+  queue, candidate, title/plaintext-hash, or other checked private locator marker. The portable
+  Reviewer route returns only the ordinary HTML app shell and contains no packet.
+- Focused source-review tests: 11/11, including candidate drift, classification-audit drift,
+  private-projection isolation, idempotency, and portable-export rejection.
+- Focused literature-discovery tests: 5/5, including a real-world publication-type-only retraction
+  marker.
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`.
+- `pnpm test`: 40 TypeScript test files / 292 tests plus all 10 handoff tests.
+- `pnpm content:validate`: all catalogs and 15 executable patients.
+- `pnpm content:sources:validate`: 8 Drive candidates, 210 local manifest entries/210 extracted
+  artifacts, 204 Apple Notes records, 13 personal-knowledge queue records, one semantic run/seven
+  opinion candidates, and 2 immutable source-review packets.
+- `pnpm content:compile`: 3 local review files plus 10 portable Reviewer scenarios.
+- `pnpm content:evidence` and `pnpm demo:reference-runs`; existing care, expense, payout, and
+  provenance baselines remain unchanged.
+- `pnpm build`: Player bundle safety passed, 11 files.
+- `pnpm build:reviewer`: portable Reviewer bundle safety passed, 15 files.
+- `pnpm test:e2e`: 5/5 Player/Developer/Endgame browser tests.
+- `pnpm test:e2e:reviewer`: 4/4 portable/mobile Reviewer tests at 390-pixel and 320-pixel projects.
+- The first sandboxed `tsx` and Playwright loopback attempts hit environment `EPERM`; the exact
+  root commands were rerun with the required local IPC/loopback permission and passed.
+- No personal opinion, literature discovery record, formal contribution, clinical rule, point
+  magnitude, patient content, or runtime behavior was accepted or changed.
 
 ## Verification for DOCX structure and aggregate extraction checkpoint
 
@@ -804,7 +841,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-141)
+- `docs/DECISIONS.md` (through D-143)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -848,6 +885,9 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `packages/content-runtime/src/medication-identities.ts`
 - `content/catalogs/medications/identities/`
 - `tools/content-cli/src/personal-knowledge-inventory.ts`
+- `tools/content-cli/src/source-review-packets.ts`
+- `tools/content-cli/src/prepare-personal-knowledge-source-review.ts`
+- `tools/content-cli/src/literature-discovery.ts`
 - `tools/content-cli/src/refresh-ticket-literature.ts`
 - `content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json`
 - `content/catalogs/reactions/reaction-concepts.json`
@@ -856,21 +896,23 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-1. In local Developer mode, inspect the first source-boundary ticket as a workflow check. It can
-   support only “keep quarantined/no change”; it intentionally lacks the private context required
-   to decide whether the Word `Title` paragraph is front matter or a new authored unit.
-2. The next bounded source engineering task is a safe adapter from the already acknowledged, already
-   classified Apple Notes source revision into one half-page immutable review packet. Reuse its
-   existing packet/model/prompt audit and seven medically unreviewed opinion candidates; do not
-   reread OCR/HTML/attachments or create runtime content. This is the first immediately available
-   semantic packet.
-3. After that packet is reviewed, canonical Codex should create only the smallest separate
+1. In local Developer mode, review
+   `ticket.source-review.636ebb260a20e5bf07aaaafe`, “Review one classified personal-knowledge
+   revision.” Its seven candidate takeaways must be preserved, revised, rejected, or routed for
+   current evidence review one at a time. Saving prose is reviewer guidance only.
+2. After the user says that packet is reviewed, canonical Codex must read its exact immutable
+   snapshot and response from the local handoff bundle, then create only the smallest separate
    bibliography, Developer-opinion, identity, source-gap, balance, or no-change proposal. Any
    accepted clinical change still requires explicit implementation plus Database/rule-trace and
    affected-patient/reference-run audit.
-4. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
+3. Continue the remaining 12 MDD Notes revisions one complete revision at a time only through
    their source-specific acknowledgment boundary. Do not expand the hard-coded MDD profile until
    source-revision ownership/reuse and packet supersession are designed.
+4. After the personal-note decisions, address the six literature profiles for which no suitable
+   recent meta-analysis exists using direct authoritative evidence rather than a forced synthesis:
+   ECG monitoring threshold, normal-ECG disposition, remote/controlled seizure history with
+   bupropion, continue-versus-switch after a normal ECG, targeted initial-MDD tests, and
+   cyclothymia duration/near-miss logic. Keep each as its own evidence question.
 5. For formal sources, finish existing queues rather than duplicate them: resolve the CANMAT
    corrigendum impact, complete WHO DEP1–DEP4 review, atomize one BAP recommendation while excluding
    BFCRS instrument content pending rights review, and complete the VA/DoD item-level rights audit

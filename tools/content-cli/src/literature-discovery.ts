@@ -11,6 +11,7 @@ export interface EuropePmcLiteResult {
   pubYear?: string;
   firstPublicationDate?: string;
   citedByCount?: number;
+  pubType?: string;
   pubTypeList?: { pubType?: string[] };
   isRetracted?: string;
 }
@@ -43,10 +44,24 @@ const canonicalCandidateSet = (candidates: readonly EuropePmcLiteResult[]): stri
       pubYear: candidate.pubYear ?? null,
       firstPublicationDate: candidate.firstPublicationDate ?? null,
       citedByCount: candidate.citedByCount ?? 0,
-      publicationTypes: candidate.pubTypeList?.pubType ?? [],
+      publicationTypes:
+        candidate.pubTypeList?.pubType ??
+        candidate.pubType
+          ?.split(';')
+          .map((type) => type.trim())
+          .filter(Boolean) ??
+        [],
       isRetracted: candidate.isRetracted ?? 'N',
     })),
   );
+
+const hasRetractedPublicationType = (candidate: EuropePmcLiteResult): boolean =>
+  (candidate.pubTypeList?.pubType ?? []).some(
+    (type) => type.trim().toLowerCase() === 'retracted publication',
+  ) ||
+  (candidate.pubType ?? '')
+    .split(';')
+    .some((type) => type.trim().toLowerCase() === 'retracted publication');
 
 export const buildEuropePmcMetaAnalysisQuery = (profile: TicketLiteratureScoutProfile): string => {
   const plan = profile.searchPlan;
@@ -93,7 +108,9 @@ export const searchEuropePmcMetaAnalyses = async (
         candidate.pmid &&
         candidate.title &&
         candidate.isRetracted !== 'Y' &&
+        !hasRetractedPublicationType(candidate) &&
         (candidate.pubTypeList?.pubType?.some((type) => type === 'Meta-Analysis') ||
+          (candidate.pubType ?? '').split(';').some((type) => type.trim() === 'Meta-Analysis') ||
           /\bmeta[- ]analysis\b/i.test(candidate.title)),
     )
     .sort(

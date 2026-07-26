@@ -33,6 +33,112 @@
       "medicalReviewStatus": "unreviewed"
     },
     {
+      "id": "literature-reference.pillinger-antidepressant-physiology.2025",
+      "title": "The effects of antidepressants on cardiometabolic and other physiological parameters: a systematic review and network meta-analysis.",
+      "authorLabel": "Pillinger T et al.",
+      "publicationDate": "2025-10-21",
+      "publicationYear": 2025,
+      "doi": "10.1016/S0140-6736(25)01293-0",
+      "pmid": "41135546",
+      "url": "https://europepmc.org/article/MED/41135546",
+      "synthesisKind": "network_meta_analysis",
+      "publicationTypes": ["Systematic Review", "Network Meta-Analysis", "Journal Article"],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 17,
+        "asOf": "2026-07-26T14:17:32.329Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "A network meta-analysis of 151 trials and 17 FDA reports, covering 58,534 participants and 30 antidepressants, found meaningful between-drug differences in short-term weight, metabolic, and haemodynamic effects. Study-level analyses also associated higher baseline weight with larger changes in some blood-pressure and liver measures. The studies covered acute monotherapy across psychiatric disorders and had a median duration of about eight weeks, so they do not establish long-term outcomes or patient-level prediction.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-26T14:17:32.329Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.kearns-antidepressant-adverse-events.2022",
+      "title": "The Incidence and Costs of Adverse Events Associated with Antidepressants: Results from a Systematic Review, Network Meta-Analysis and Multi-Country Economic Model.",
+      "authorLabel": "Kearns B et al.",
+      "publicationDate": "2022-06-07",
+      "publicationYear": 2022,
+      "doi": "10.2147/NDT.S356414",
+      "pmid": "35698594",
+      "url": "https://europepmc.org/article/MED/35698594",
+      "synthesisKind": "network_meta_analysis",
+      "publicationTypes": ["research-article", "Journal Article"],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 12,
+        "asOf": "2026-07-26T14:21:06.414Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Placebo-controlled evidence for eight antidepressants was synthesized across sexual dysfunction, weight change, insomnia, anxiety, and anhedonia. All evaluated antidepressants increased sexual-dysfunction rates relative to placebo, but the abstract did not provide a reliable drug-to-drug sexual-function ranking. Weight results had extreme heterogeneity, and no anhedonia evidence was found. This nominates adverse-effect dimensions for review but does not establish a medication-fit or point rule.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-26T14:21:06.414Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.zhou-antidepressant-sleep.2023",
+      "title": "Adverse effects of 21 antidepressants on sleep during acute-phase treatment in major depressive disorder: a systemic review and dose-effect network meta-analysis.",
+      "authorLabel": "Zhou S et al.",
+      "publicationDate": "2023-10-01",
+      "publicationYear": 2023,
+      "doi": "10.1093/sleep/zsad177",
+      "pmid": "37422714",
+      "url": "https://europepmc.org/article/MED/37422714",
+      "synthesisKind": "network_meta_analysis",
+      "publicationTypes": [
+        "Systematic Review",
+        "review-article",
+        "Network Meta-Analysis",
+        "Journal Article"
+      ],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 22,
+        "asOf": "2026-07-26T14:17:33.000Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "Across 216 acute depression trials with 64,696 patients, antidepressants differed in treatment-emergent somnolence and insomnia, with medication-specific and dose-related patterns. Evidence certainty ranged from very low to moderate. This supports tracking sleep-related adverse effects separately by medication, but it does not establish that sedation therapeutically improves a patient's baseline insomnia or justify a positive mirtazapine-fit bonus by itself.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-26T14:17:33.000Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-reference.maslej-antidepressant-individual-differences.2021",
+      "title": "Individual Differences in Response to Antidepressants: A Meta-analysis of Placebo-Controlled Randomized Clinical Trials.",
+      "authorLabel": "Maslej MM et al.",
+      "publicationDate": "2021-05-01",
+      "publicationYear": 2021,
+      "doi": "10.1001/jamapsychiatry.2020.4564",
+      "pmid": "33595620",
+      "url": "https://europepmc.org/article/MED/33595620",
+      "synthesisKind": "meta_analysis",
+      "publicationTypes": [
+        "Research Support, Non-U.S. Gov't",
+        "research-article",
+        "Network Meta-Analysis",
+        "Journal Article"
+      ],
+      "citationMetric": {
+        "provider": "europe_pmc",
+        "metric": "cited_by_count",
+        "count": 39,
+        "asOf": "2026-07-26T14:19:37.686Z",
+        "scope": "Europe PMC open-citation graph"
+      },
+      "abstractSummary": "In 91 placebo-controlled trials with 18,965 adults, response variability did not differ significantly between antidepressant and placebo groups and was not associated with baseline MDD severity. The study therefore did not support personalization based solely on total depression scores. It did not rule out true heterogeneity or evaluate detailed symptoms, adverse-effect vulnerability, comorbidities, or preferences, so it cautions against overconfident modifiers rather than disproving all fit adjustments.",
+      "summaryBasis": "abstract_only",
+      "summaryCreatedAt": "2026-07-26T14:19:37.686Z",
+      "accessStatus": "metadata_or_abstract_only",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
       "id": "literature-reference.cuijpers-depression-modalities.2020",
       "title": "A network meta-analysis of the effects of psychotherapies, pharmacotherapies and their combination in the treatment of adult depression.",
       "authorLabel": "Cuijpers P et al.",
@@ -359,7 +465,7 @@
       "clinicalQuestion": "What broad acute efficacy and acceptability baseline should frame antidepressant options for adult unipolar MDD?",
       "metaAnalysisFit": "strong",
       "outcome": "selected",
-      "linkedSourceRequestIds": [],
+      "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
       "searchPlan": {
         "provider": "europe_pmc",
         "topicQuery": "TITLE:\"major depressive disorder\" AND TITLE:antidepressant AND TITLE:\"comparative efficacy\"",
@@ -383,6 +489,181 @@
       "limitations": [
         "Complex and treatment-resistant populations were excluded.",
         "The abstract reports moderate-to-very-low certainty across comparisons."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.antidepressant-weight-metabolic-fit",
+      "clinicalQuestion": "Which medication-specific short-term weight and cardiometabolic effects are supported strongly enough to inform antidepressant-fit review?",
+      "metaAnalysisFit": "strong",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:antidepressants AND (TITLE:cardiometabolic OR TITLE:\"physiological parameters\")",
+        "windowStart": "2016-07-26",
+        "windowEnd": "2026-07-26",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-26T14:17:32.329Z",
+        "resultCount": 1,
+        "screenedResultCount": 1,
+        "selectedRank": 1,
+        "responseSha256": "46bec615f45696f619b6d26c71b2efdbac568576777652d1886468826c94c639",
+        "candidateSetSha256": "504a27e10ab99e6d5a7ce448d806784e64a71fa431026592e778904a46669de3",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.pillinger-antidepressant-physiology.2025",
+      "relevanceNote": "Directly supports medication-specific weight and physiological-risk review while leaving patient-level interpretation and point magnitudes unresolved.",
+      "limitations": [
+        "The included acute monotherapy trials covered psychiatric disorders beyond uncomplicated adult MDD.",
+        "Median follow-up was about eight weeks, so longer-term weight and diabetes outcomes require separate evidence.",
+        "Study-level meta-regression must not be converted into deterministic patient-level prediction."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.antidepressant-sexual-function-fit",
+      "clinicalQuestion": "What recent comparative evidence supports sexual-function adverse effects as an antidepressant-fit dimension for adults with depression?",
+      "metaAnalysisFit": "partial",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "(TITLE_ABS:antidepressant OR TITLE_ABS:antidepressants OR TITLE_ABS:SSRI OR TITLE_ABS:SSRIs) AND TITLE_ABS:\"sexual dysfunction\" AND (TITLE_ABS:depression OR TITLE_ABS:depressive)",
+        "windowStart": "2016-07-26",
+        "windowEnd": "2026-07-26",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-26T14:21:06.414Z",
+        "resultCount": 11,
+        "screenedResultCount": 8,
+        "selectedRank": 2,
+        "responseSha256": "5296f9c8b213396f197228a963fbc9acc8ace898e9faf7eb1bb1be87544c0a32",
+        "candidateSetSha256": "23476ba345e743f68c20dd9bf025641c3fd96555941b8745743319003e9431f4",
+        "selectionNote": "Selected rank 2 after excluding a higher-cited schizophrenia review that did not answer the tracked antidepressant-fit question."
+      },
+      "selectedReferenceId": "literature-reference.kearns-antidepressant-adverse-events.2022",
+      "relevanceNote": "Supports sexual dysfunction as a clinically relevant antidepressant adverse-effect dimension, but its abstract does not establish a dependable patient-specific drug ranking.",
+      "limitations": [
+        "Only eight antidepressants were evaluated.",
+        "The abstract reports increased sexual dysfunction versus placebo but not a complete drug-to-drug ranking.",
+        "A focused 2026 SSRI review was also returned but had a lower citation count and likewise did not compare the full medication set."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.antidepressant-sleep-sedation-fit",
+      "clinicalQuestion": "What drug-level acute insomnia and somnolence evidence can safely inform sleep-related antidepressant-fit review?",
+      "metaAnalysisFit": "partial",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "(TITLE:antidepressant OR TITLE:antidepressants OR TITLE:mirtazapine) AND (TITLE:sleep OR TITLE:insomnia OR TITLE:sedation) AND (TITLE:depression OR TITLE:depressive)",
+        "windowStart": "2016-07-26",
+        "windowEnd": "2026-07-26",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-26T14:17:33.000Z",
+        "resultCount": 2,
+        "screenedResultCount": 2,
+        "selectedRank": 1,
+        "responseSha256": "7368cac70a650e5a802940257b90e87c0af721f931b2881e9c340f5539a8c4ec",
+        "candidateSetSha256": "9ed4a18483cded63581180dab1c372b0c3746fafd00127e5a8b53652708f2807",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.zhou-antidepressant-sleep.2023",
+      "relevanceNote": "Directly compares acute medication-specific insomnia and somnolence harms, but does not establish therapeutic benefit for pre-existing insomnia.",
+      "limitations": [
+        "The outcome is treatment-emergent insomnia or somnolence rather than improvement in baseline sleep symptoms.",
+        "Evidence certainty ranged from very low to moderate.",
+        "It cannot independently authorize the active mirtazapine insomnia bonus or its magnitude."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.antidepressant-tolerability-adherence-fit",
+      "clinicalQuestion": "What broad acute medication-level acceptability differences should inform antidepressant tolerability review for adult MDD?",
+      "metaAnalysisFit": "strong",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:\"major depressive disorder\" AND TITLE:antidepressant AND (TITLE:tolerability OR TITLE:acceptability)",
+        "windowStart": "2016-07-26",
+        "windowEnd": "2026-07-26",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-26T14:17:33.359Z",
+        "resultCount": 3,
+        "screenedResultCount": 3,
+        "selectedRank": 1,
+        "responseSha256": "e7115e2471de1bb235ced48b112d5f98f0b67de453b276e818c49966029a0771",
+        "candidateSetSha256": "43f1e6cbec1984abf2f15d95c9572d067c4ef1439ddf830b6d8c5a06f05c5c39",
+        "selectionNote": "Selected the highest-cited result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.cipriani-antidepressants.2018",
+      "relevanceNote": "Supports broad medication-level acute acceptability differences, not deterministic patient-specific adherence predictions.",
+      "limitations": [
+        "Acceptability was measured as all-cause discontinuation rather than a specific adverse-effect or adherence mechanism.",
+        "Complex, treatment-resistant, psychotic, bipolar, and serious-medical-comorbidity populations were largely excluded.",
+        "It cannot supply PsychSim's point magnitudes."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "literature-profile.mdd.antidepressant-symptom-moderators-fit",
+      "clinicalQuestion": "Does recent meta-analytic evidence support reliably personalizing antidepressant benefit from baseline depression severity or symptom profile?",
+      "metaAnalysisFit": "partial",
+      "outcome": "selected",
+      "linkedSourceRequestIds": ["source-request.mdd.antidepressant-fit-dimensions"],
+      "searchPlan": {
+        "provider": "europe_pmc",
+        "topicQuery": "TITLE:\"individual differences\" AND TITLE:antidepressants AND NOT PUB_TYPE:\"Retracted Publication\"",
+        "windowStart": "2016-07-26",
+        "windowEnd": "2026-07-26",
+        "lookbackYears": 10,
+        "selectionPolicy": "highest_cited_relevant_meta_analysis",
+        "selectionPolicyVersion": "psychsim-literature-scout-v1"
+      },
+      "searchRun": {
+        "searchedAt": "2026-07-26T14:19:37.686Z",
+        "resultCount": 1,
+        "screenedResultCount": 1,
+        "selectedRank": 1,
+        "responseSha256": "8c443291a9c3b7b8c8a6d5edd3f8db1b70464bf469bc1f7d1bb0e8a016d25cec",
+        "candidateSetSha256": "66e9a425458e4b193b5ad04ff2d74d76929c35a27345b6e264a94761149f7e70",
+        "selectionNote": "Selected the highest-cited non-retracted result returned by the exact, clinically bounded query."
+      },
+      "selectedReferenceId": "literature-reference.maslej-antidepressant-individual-differences.2021",
+      "relevanceNote": "Provides an important caution against inferring reliable individual benefit differences from total depression severity alone.",
+      "limitations": [
+        "Trial-level response variance cannot identify a true individual treatment effect.",
+        "The analysis did not test detailed symptom, adverse-effect, comorbidity, or preference matching.",
+        "It neither validates nor disproves individual medication-fit modifiers based on those more specific dimensions."
       ],
       "pointMagnitudeExcluded": true,
       "supportsExecutableRule": false,
@@ -655,7 +936,14 @@
     },
     {
       "ticketId": "ticket.source.canmat-mdd.antidepressant-baseline",
-      "profileIds": ["literature-profile.mdd.antidepressant-baseline-fit"],
+      "profileIds": [
+        "literature-profile.mdd.antidepressant-baseline-fit",
+        "literature-profile.mdd.antidepressant-weight-metabolic-fit",
+        "literature-profile.mdd.antidepressant-sexual-function-fit",
+        "literature-profile.mdd.antidepressant-sleep-sedation-fit",
+        "literature-profile.mdd.antidepressant-tolerability-adherence-fit",
+        "literature-profile.mdd.antidepressant-symptom-moderators-fit"
+      ],
       "exemptionReason": null
     },
     {
