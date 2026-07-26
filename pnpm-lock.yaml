@@ -26,9 +26,15 @@ importers:
       globals:
         specifier: 16.3.0
         version: 16.3.0
+      jszip:
+        specifier: 3.10.1
+        version: 3.10.1
       mammoth:
         specifier: 1.9.1
         version: 1.9.1
+      parse5:
+        specifier: 7.3.0
+        version: 7.3.0
       pdfjs-dist:
         specifier: 5.4.149
         version: 5.4.149

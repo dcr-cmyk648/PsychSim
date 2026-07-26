@@ -52,13 +52,14 @@ redistribution. Every candidate retains the database release, record origin, ava
 source IDs, and `aggregator` role. Direct-source verification can refine or supersede its support
 without erasing that provenance.
 
-The user's residency-site article aggregate will use a separate future authoring shape. One private
-hashed `SourceDocument` contains many logical `AuthoredSourceUnit` records; short
-`DeveloperOpinion` candidates point back to the exact unit/chunks and retain the original “as of”
-date, currentness, target IDs, and later evidence relationships. Embedded citations begin as
-unverified bibliographic candidates. Current schemas do not yet implement those logical units or
-opinion-to-evidence relationships; the aggregate must not be flattened into the existing
-case-specific contribution shape.
+The user's residency-site article aggregate uses one private hashed `SourceDocument` containing
+many future logical `AuthoredSourceUnit` records. The schemas now distinguish authored-unit
+candidates, reviewed authored units, `DeveloperOpinion` candidates and accepted opinions, and
+unverified bibliographic candidates with later evidence relationships. The current private
+workbench exercises those shapes for a bounded Apple Notes pilot; the aggregate has only completed
+structure-aware physical extraction. It must not be flattened into one case-specific contribution,
+and no authored unit or opinion exists until a bounded semantic review creates and a human reviews
+that candidate.
 
 `SourceUseDecision` is the rights gate between bibliography and any processing or derived content.
 It records permission for local storage, extraction, local structured indexing, AI-assisted

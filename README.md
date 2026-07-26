@@ -25,7 +25,9 @@ scoring predicates, and private source text stay outside this Database view.
 
 ## Quick start
 
-Requirements: Node 22+ and pnpm 10.13.1.
+Requirements: Node 22 LTS and pnpm 10.13.1 for the complete acceptance gate. Node 26 can run the
+app and ordinary tests, but pinned Playwright 1.53 currently leaves its portable-Reviewer worker
+open after reporting all passing assertions.
 
 ```sh
 pnpm install
@@ -47,6 +49,8 @@ pnpm content:validate
 pnpm content:sources:validate
 pnpm content:scan
 pnpm content:extract
+# Explicitly refresh one known older-parser source; never bulk-migrate ordinal chunk IDs.
+pnpm content:extract -- --refresh-entry <source-manifest-id>
 pnpm content:watch
 pnpm content:notes:audit -- --folder "Psych research"
 pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Your name"

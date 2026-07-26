@@ -9,7 +9,8 @@ Folder contract:
 - `processed/`: successfully parsed local source files.
 - `archive/`: intentionally retired source files retained by the author.
 - `quarantine/`: files that failed scanning or extraction, with an eventual explicit error record.
-- `extracted/`: local-only structured text/chunks and the private Apple Notes export tree under
+- `extracted/`: local-only structured text/chunks, prior parser artifacts under
+  `extracted/history/`, and the private Apple Notes export tree under
   `extracted/apple-notes-private/`.
 - `manifests/`: local-only hash and provenance records, including `apple-notes-intake.json`.
 
@@ -104,6 +105,31 @@ extraction supports PDF, DOCX, TXT, and Markdown; Apple Notes audit and acknowle
 provider provenance and keep OCR local; watch mode runs the same idempotent path; review lists
 local artifacts; and drafting creates a controlled Developer-only patient scaffold from an
 explicit request.
+
+DOCX and Markdown chunks may carry both a leaf `section` and complete `sectionPath`. Parser
+upgrades do not rewrite older artifacts automatically. Use
+`pnpm content:extract -- --refresh-entry <manifest-id>` only for one known older-parser entry after
+checking its chunk consumers; the command preserves the prior private artifact and refuses
+already-current or invalid targets. Parser v5 persists parser warnings and their total count, a deterministic
+`sectionInstance` for each sectioned chunk and a locator/body `provenanceHash` for every chunk.
+Refresh validates every available old-artifact field and any existing same-named history revision,
+serializes source operations behind a fixed atomic stale-recovery claim, fails closed on an
+ambiguous prior claim, refuses a changed manifest, and recovers an interrupted transaction
+on the next source command. Parser-v1/v2 locator metadata predates provenance hashes and cannot be
+retrospectively authenticated.
+
+The current `Aggregate sharepoint notes` source retains its exact original SHA-256 while parser v5
+represents it as 39 chunks: 38 sectioned, 24 top-level heading instances, three nested heading
+instances, and one unsectioned preamble. All 39 chunks have `provenanceHash`; all 38 sectioned
+chunks have `sectionInstance`; parser-v1 through parser-v4 artifacts remain as four private history
+revisions. Exactly one parser warning is retained for an unrecognized Word `Title` style, which semantic
+review must classify as front matter or a possible logical boundary. This is extraction only. No
+semantic review, candidate, database/rule change, or runtime incorporation follows from it.
+
+The intended authoring loop is a concise phone/app review packet with an immutable source snapshot,
+plain-language reviewer judgment, a separate canonical-Codex versioned proposal, an explicit
+database/rule edit, and then Database plus patient/reference-run audit. Saving reviewer prose never
+directly mutates content.
 
 Raw extraction is not a citation database. A formal article, guideline, or regulatory source must also have a tracked bibliographic entry under `content/catalogs/evidence/formal/`, and each clinical use must record what it contributed. Uncataloged notes and personal material are Expert opinion and cannot inherit a formal citation.
 

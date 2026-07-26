@@ -11,6 +11,13 @@ import {
 import { validateAppleNotesCodexReviewAudit } from './apple-notes-codex-review';
 import { validateAppleNotesManifest } from './apple-notes-provider';
 import { validatePersonalKnowledgePrivateState } from './personal-knowledge-workspace';
+import {
+  calculateSourceChunkProvenanceHash,
+  sourceParserCapturesWarningCount,
+  sourceParserCapturesWarnings,
+  sourceParserUsesStructuredProvenance,
+  validateSourceManifestArtifactCoverage,
+} from './source-pipeline';
 
 const manifestPath = resolve('content/source-docs/manifests/google-drive-discovery.json');
 
@@ -55,25 +62,67 @@ const validateLocalManifest = async (): Promise<void> => {
     const artifactNames = (await readdir(extractedDirectory)).filter(
       (filename) => filename.startsWith('source-document.') && filename.endsWith('.json'),
     );
+    const artifactDocuments = [];
     for (const artifactName of artifactNames) {
       const raw = JSON.parse(await readFile(join(extractedDirectory, artifactName), 'utf8')) as {
         document?: unknown;
         chunks?: unknown;
       };
       const document = SourceDocumentSchema.parse(raw.document);
+      artifactDocuments.push(document);
       const chunks = SourceChunkSchema.array().parse(raw.chunks);
+      const manifestEntry = manifest.entries.find(
+        (entry) => entry.id === document.sourceManifestEntryId,
+      );
+      if (!manifestEntry) {
+        throw new Error(
+          `${artifactName} references missing manifest entry ${document.sourceManifestEntryId}.`,
+        );
+      }
+      if (artifactName !== `${document.id}.json`) {
+        throw new Error(`${artifactName} does not match its source document ID ${document.id}.`);
+      }
+      if (manifestEntry.parserVersion !== document.parserVersion) {
+        throw new Error(`${document.id} parser version does not match its source manifest entry.`);
+      }
+      if (sourceParserCapturesWarnings(document.parserVersion) && !document.extractionWarnings) {
+        throw new Error(`${document.id} is missing parser-warning provenance.`);
+      }
+      if (
+        sourceParserCapturesWarningCount(document.parserVersion) &&
+        document.extractionWarningCount === undefined
+      ) {
+        throw new Error(`${document.id} is missing parser-warning-count provenance.`);
+      }
       if (chunks.some((chunk) => chunk.sourceDocumentId !== document.id)) {
         throw new Error(`${artifactName} contains a chunk for another source document.`);
       }
-      for (const chunk of chunks) {
+      for (const [index, chunk] of chunks.entries()) {
+        const expectedId = `${document.id.replace('source-document.', 'source-chunk.')}.${index + 1}`;
+        if (chunk.ordinal !== index || chunk.id !== expectedId) {
+          throw new Error(`${chunk.id} does not match its deterministic ordinal locator.`);
+        }
         if (sha256(chunk.text) !== chunk.textHash) {
           throw new Error(`${chunk.id} text hash does not match its extracted text.`);
+        }
+        if (
+          chunk.provenanceHash &&
+          calculateSourceChunkProvenanceHash(chunk) !== chunk.provenanceHash
+        ) {
+          throw new Error(`${chunk.id} provenance hash does not match its locator metadata.`);
+        }
+        if (
+          sourceParserUsesStructuredProvenance(document.parserVersion) &&
+          (!chunk.provenanceHash || (chunk.sectionPath && !chunk.sectionInstance))
+        ) {
+          throw new Error(`${chunk.id} is missing structured parser provenance.`);
         }
       }
       if (sha256(chunks.map((chunk) => chunk.text).join('\n\n')) !== document.extractedTextHash) {
         throw new Error(`${document.id} combined extracted-text hash does not match its chunks.`);
       }
     }
+    validateSourceManifestArtifactCoverage(manifest, artifactDocuments);
     console.log(
       `PASS local source manifest (${manifest.entries.length} entries; ${artifactNames.length} extracted artifacts)`,
     );

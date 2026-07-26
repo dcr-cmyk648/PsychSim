@@ -435,4 +435,6 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       'Phone ticket review: keep the broad plan and show reaction-history effects clearly.',
     reviewerNotesUpdatedAt: expect.any(String),
   });
+  await download.delete();
+  await page.close();
 });

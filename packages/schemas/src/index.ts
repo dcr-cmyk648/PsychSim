@@ -4807,9 +4807,24 @@ export const SourceDocumentSchema = z
     ]),
     extractedTextHash: z.string().regex(/^[a-f0-9]{64}$/),
     parserVersion: z.string().min(1),
+    extractionWarnings: z.array(z.string().min(1).max(1000)).max(50).optional(),
+    extractionWarningCount: z.number().int().nonnegative().optional(),
     processedAt: z.string().datetime(),
   })
-  .strict();
+  .strict()
+  .superRefine((document, context) => {
+    if (
+      document.extractionWarnings &&
+      document.extractionWarningCount !== undefined &&
+      document.extractionWarningCount < document.extractionWarnings.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['extractionWarningCount'],
+        message: 'Extraction warning count cannot be smaller than the retained warning list.',
+      });
+    }
+  });
 export type SourceDocument = z.infer<typeof SourceDocumentSchema>;
 
 export const SourceChunkSchema = z
@@ -4820,10 +4835,32 @@ export const SourceChunkSchema = z
     ordinal: z.number().int().nonnegative(),
     page: z.number().int().positive().optional(),
     section: z.string().optional(),
+    sectionPath: z.array(z.string().min(1).max(500)).min(1).max(6).optional(),
+    sectionInstance: z.number().int().positive().optional(),
     text: z.string().min(1),
     textHash: z.string().regex(/^[a-f0-9]{64}$/),
+    provenanceHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((chunk, context) => {
+    if (chunk.sectionPath && (!chunk.section || chunk.sectionPath.at(-1) !== chunk.section)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sectionPath'],
+        message: 'A source chunk heading path must end with its leaf section.',
+      });
+    }
+    if (chunk.sectionInstance && !chunk.sectionPath) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sectionInstance'],
+        message: 'A source chunk section instance requires a heading path.',
+      });
+    }
+  });
 export type SourceChunk = z.infer<typeof SourceChunkSchema>;
 
 export const SourceClaimSchema = z

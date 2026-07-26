@@ -34,6 +34,18 @@ Last updated: 2026-07-25
 - Released feature checkpoint: `8d78c078ba60b7e67f7934c714773aa277b64769`.
 - Current beta source-intake checkpoint:
   `8d0816e155643f4ee37e090571efa5637e322d6c` (`Harden private source intake`).
+- Current bounded source-structure work adds parser
+  `psychsim-source-parser-5`, explicit one-entry extraction refresh with private artifact history,
+  hierarchical DOCX/Markdown section paths, deterministic section-boundary instances, and
+  per-chunk locator/body provenance hashes. Refresh captures parser warnings, serializes source
+  operations behind a lock whose fixed atomic stale-recovery claim prevents concurrent
+  compare/unlink races and fails closed when a prior claim needs inspection, verifies the manifest
+  has not changed before commit,
+  validates every available field in the old artifact and same-named history revision, and
+  recovers an interrupted transaction on the next source command. The exact
+  `Aggregate sharepoint notes` DOCX is now downloaded, SHA-256 verified, and structure-aware
+  extracted. It has not been semantically reviewed and has changed no database entry, patient,
+  rule, point value, or runtime bundle.
 - Beta workflow `30170704601` passed every verification gate for
   `901aca33ec9353cf677d85d34db446f0223e7865`, including iPhone/WebKit and both bundle-safety
   builds; its Pages jobs skipped as intended.
@@ -227,9 +239,20 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   or clinical rule was activated.
 - DSM and WHO CDDR remain metadata-only. The local ICD-10-CM cache remains gitignored
   authoring/search data and never enters the browser bundle.
-- The large native `Aggregate sharepoint notes` Drive document is discovered but has not been
-  pulled or parsed. The Google Drive connector is not callable in this session; generic download
-  routes must not be used as a substitute. No aggregate bytes or Developer opinions were imported.
+- The official Google Drive plugin is installed and enabled. A fresh connector-enabled worker
+  located and exported the exact native `Aggregate sharepoint notes` document as DOCX. Its
+  protected local bytes are 93,214 bytes with SHA-256
+  `8fedf00c83190f6a3661bf820382b76d27a59ce3d425b02202a7fe8b797f03c1`.
+- The local pipeline scanned and extracted that source as
+  `source-document.8fedf00c83190f6a3661`. Parser v5 preserves 24 top-level heading instances,
+  three nested heading instances, and one unsectioned preamble across 39 chunks. Thirty-eight
+  chunks are sectioned and carry deterministic `sectionInstance` values; all 39 chunks carry a
+  locator/body `provenanceHash`. One private parser warning records an unrecognized Word `Title`
+  paragraph style; whether it is front matter or an additional authored-unit boundary remains for
+  semantic review rather than being guessed. Parser-v1 through parser-v4 extractions remain as four
+  private history revisions. Semantic review, authored-unit candidates,
+  Developer-opinion candidates, bibliography candidates, database/rule changes, and incorporation
+  remain at zero; runtime content is unchanged.
 - The MDD prototype is content version `4.3.0`. CANMAT and Developer-opinion/game-balance
   contributions remain separate in the trace. Sertraline and escitalopram share the broad
   first-line baseline; medication-specific fit remains a separate modifier layer. All embedded
@@ -306,6 +329,45 @@ pre-Milestone-4 clinical-authoring, portable-review, and phone-distribution chec
   records, 116 OCR outputs, HTML, composites, extracted chunks, and all remote Drive material. It
   neither discovers unknown entities nor creates evidence, opinions, clinical rules, points, or
   runtime content.
+
+## Verification for DOCX structure and aggregate extraction checkpoint
+
+Current local results:
+
+- `pnpm exec vitest run tools/content-cli/src/source-pipeline.test.ts`: 14/14 tests pass. Coverage
+  includes real DOCX H1/H2 extraction, complete heading paths, inert HTML/link/image handling,
+  nested-list/table deduplication, >6,000-character split context, repeated-heading boundary
+  identity, schema-level locator consistency, parser-warning capture, manifest/artifact
+  one-to-one coverage, explicit-only refresh, operation locking, compare-and-swap protection,
+  restart recovery, transaction rollback, corrupted-prior rejection, private-history equivalence,
+  and parser-version agreement.
+- `pnpm typecheck`: pass.
+- Explicit aggregate refresh: 0 ordinary extractions, 1 named refresh, 0 duplicates, 0
+  quarantines.
+- Aggregate integrity smoke check: exact source SHA unchanged; parser manifest/document versions
+  agree on `psychsim-source-parser-5`; 39 nonempty chunks; 38 sectioned chunks; 24 top-level
+  heading instances; three nested heading instances; one unsectioned preamble; all 39 chunks carry
+  `provenanceHash`; all 38 sectioned chunks carry `sectionInstance`; one unrecognized-`Title`-style
+  warning is retained with total count one; combined extracted-text hash matches; parser-v1
+  through parser-v4 artifacts remain as four private history revisions.
+- `pnpm content:sources:validate`: pass with 8 Drive candidates, 210 manifest entries/210 extracted
+  artifacts, 204 Apple Notes records, one bounded Notes review packet, and the existing private
+  personal-knowledge state.
+- `pnpm format:check`, `pnpm lint`, and `pnpm typecheck`: pass.
+- `pnpm test`: 37 TypeScript files, 267 tests; 10 handoff tests; all pass.
+- `pnpm content:validate`, `pnpm content:compile`, `pnpm content:evidence`, and
+  `pnpm demo:reference-runs`: pass; existing care, expense, and payout baselines are unchanged.
+- `pnpm build`: Player bundle-safety scan passes (11 files); the existing nonblocking Vite
+  large-chunk warning remains.
+- `pnpm build:reviewer`: portable Reviewer bundle-safety scan passes (15 files); the same
+  nonblocking Vite warning remains.
+- `pnpm test:e2e`: 5/5 desktop Player/Developer/Endgame tests pass.
+- The exact mobile Reviewer suite under temporary Node 22.23.1 exits cleanly: 4/4 pass at 390 px
+  and 320 px. It now releases the downloaded review artifact and page explicitly and runs its
+  viewport projects with one worker; parallel local Chrome 150 teardown could otherwise leave the
+  pinned Playwright 1.53 worker IPC open after all assertions passed. Node 22 LTS remains the
+  full-gate toolchain until the pinned Playwright runner is upgraded and verified on Node 26.
+- `git diff --check`: pass.
 
 ## Verification for database-reader and medication-identity checkpoint
 
@@ -396,14 +458,29 @@ candidate wording, citation, summary, or path was printed by aggregate status/va
 
 ## Google Drive source-inbox state
 
-- Historical connector discovery remains valid, but this current session has no callable Google
-  Drive connector. The already-discovered `Aggregate sharepoint notes` document therefore remains
-  remote-only. Do not bypass the connector, claim it was parsed, or bulk-copy it through an
-  ungoverned route.
-- The apparent missing connector was deferred-tool discovery, not an authentication failure. The
-  authenticated connector resolved the exact cached folder ID. The folder now has a ninth direct
-  child: the mobile review bundle described below. Source discovery intentionally retains eight
-  candidates because a feedback export is not clinical source material.
+- The prior connector failure had a concrete cause: the official Google Drive plugin existed in
+  the marketplace cache but was not installed. It is now installed and enabled. The long-lived
+  root session does not dynamically gain newly installed connector tools, but a fresh
+  connector-enabled worker can use the authenticated Drive app. Report that session attachment
+  limitation explicitly rather than treating it as an authentication or file-permission failure.
+- The authenticated connector resolved the exact `PsychSim documents` folder and its
+  `Aggregate sharepoint notes` native Doc. The connector supplied a valid DOCX export without
+  exposing document prose in logs. The fixed private file is 93,214 bytes with SHA-256
+  `8fedf00c83190f6a3661bf820382b76d27a59ce3d425b02202a7fe8b797f03c1`.
+- The file entered the ordinary protected inbox, scanned as
+  `source-manifest.8fedf00c83190f6a36.97f972a7`, and extracted as
+  `source-document.8fedf00c83190f6a3661`. The original now remains mode `0600` under processed
+  storage. Parser-v1 through parser-v4 artifacts are archived as four private history revisions.
+- Parser v5 detected 24 top-level heading instances, three nested heading instances, and one
+  unsectioned preamble across 39 chunks, of which 38 are sectioned. All chunks have verified
+  locator/body provenance hashes, and every sectioned chunk has a deterministic section-boundary
+  instance. It records one unrecognized Word `Title` style; the first semantic packet must resolve
+  whether that paragraph is front matter or a logical boundary. This completes only discovery,
+  exact-byte download/hash verification, and extraction. No semantic unit has been reviewed, no
+  candidate has been created, no database or rule has changed, and no content has been
+  incorporated into runtime.
+- The folder also has the mobile review bundle described below. Source discovery intentionally
+  retains eight candidates because a feedback export is not clinical source material.
 - The three new candidates are native Docs: `Aggregate sharepoint notes`, `Additional notes`, and
   `Brief Therapy Vignettes`. Account-specific IDs/timestamps remain only in the ignored discovery
   manifest; none is publicly shared.
@@ -411,18 +488,17 @@ candidate wording, citation, summary, or path was printed by aggregate status/va
   verified as a 13,765-byte DOCX with SHA-256
   `804ac28de2b1e8a6836082b1f4f0c461baf3ad60c5478b2e51353bceab4378bf`, then scanned and extracted
   locally as `source-document.804ac28de2b1e8a68360`. No document body was printed or inspected.
-- The Drive discovery manifest now has eight candidates: three prior PDFs remain discovered, three
-  sources are pulled/hashed, and the two larger new native Docs remain discovered. Continue one
-  source at a time; do not bulk-pull the remaining queue.
+- The Drive discovery manifest has eight candidates: three prior PDFs remain discovered, four
+  sources are pulled/hashed, and `Brief Therapy Vignettes` remains discovered. Continue one source
+  at a time; do not bulk-pull the remaining queue.
 - Safe next source intake:
-  1. when the Drive connector is callable, pull and hash `Aggregate sharepoint notes` through the
-     protected source boundary;
-  2. classify/review one bounded source unit at a time rather than directly populating catalogs;
-  3. run `pnpm content:scan`, `pnpm content:extract`, and
-     `pnpm content:sources:validate`;
-  4. review license/full-text/AI-use permissions;
-  5. create reviewable identity/claim/change proposals and tickets before any runtime scoring
-     change.
+  1. build one local immutable source-review snapshot around one bounded aggregate heading unit;
+  2. present only a concise summary, atomic proposals, uncertainty, currentness, rights state, and
+     affected public IDs in the existing Developer ticket flow;
+  3. save the psychiatrist's free-text response with that exact packet snapshot;
+  4. let canonical Codex create the smallest separate versioned candidate changes;
+  5. audit any accepted implementation through Database entries and affected patient/reference
+     runs before proceeding to the next unit.
 - Never propagate a Drive document directly into medication, therapy, diagnosis, or scoring rules.
 
 ## Review and provenance state
@@ -615,7 +691,7 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 - `AGENTS.md`
 - `README.md`
-- `docs/DECISIONS.md` (through D-138)
+- `docs/DECISIONS.md` (through D-141)
 - `docs/ROADMAP.md`
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
@@ -646,6 +722,9 @@ Fictional, synthetic, medically unreviewed prototypes:
 - `apps/web/src/review-export.ts`
 - `packages/engine/src/services.ts`
 - `tools/content-cli/src/apple-notes-provider.ts`
+- `tools/content-cli/src/source-pipeline.ts`
+- `tools/content-cli/src/source-pipeline.test.ts`
+- `tools/content-cli/src/validate-source-discovery.ts`
 - `tools/content-cli/src/apple-notes-codex-review.ts`
 - `tools/content-cli/src/personal-knowledge-workspace.ts`
 - `content/catalogs/authoring/personal-knowledge/initial-mdd-antidepressant-selection.profile.json`
@@ -664,26 +743,34 @@ Fictional, synthetic, medically unreviewed prototypes:
 
 ## Exact next action
 
-1. Open **Database** in the local Developer build at `http://127.0.0.1:4318/` or the portable
-   Reviewer at `http://127.0.0.1:4319/`. Audit complete medication, condition, intervention, test,
-   investigation, and reference records; save concise entry comments. Developer comments refresh
-   the fixed Codex handoff bundle, while portable comments require version-6 JSON export.
-2. Treat the current 33 medications as an identity foundation, not a completed medication knowledge
-   base. Thirteen have executable compatibility records and twenty are identity-only. The next
-   bounded catalog task is to use reviewer comments plus verified source units to propose missing
-   psychiatry medication, therapy, and condition identities without creating treatment rules.
-3. Continue personal-source interpretation from the deterministic inventory one bounded source
-   revision at a time. The inventory proves physical coverage only: 132 title/plaintext revisions
-   have no known-target match, unknown entities are not discovered, and 116 OCR outputs remain
-   outside semantic review. Do not describe this as a completed semantic parse.
-4. When the authenticated Google Drive connector is callable again, pull and hash `Aggregate
-sharepoint notes` through the protected source boundary. Do not bypass the connector or write
-   document prose into tracked catalogs. Create reviewable source-unit, identity, opinion, and
-   bibliography candidates before any content or scoring change.
-5. After user database review, read both `databaseEntryReviews` and existing ticket/attempt reviews
-   from the exact saved bundle. Convert each comment into the smallest separate ticket, identity
-   proposal, provenance task, or versioned content edit. Saving a comment is never automatic
-   authorization to alter a clinical rule.
+1. Add one local-only, typed, immutable `sourceReviewSnapshot` to the existing clinical-ticket
+   workflow. Reuse its desktop/mobile focused reader and free-text response instead of creating
+   another status queue. The snapshot should contain a packet version/hash, opaque private
+   source-unit fingerprint, concise original summary, atomic typed proposals, public target IDs,
+   uncertainty, conflicts/currentness/rights state, `medicalReviewStatus: "unreviewed"`, and
+   `runtimeEffect: false`.
+2. Generate the first packet from exactly one bounded aggregate heading unit. Do not expose raw
+   prose, titles/bylines lacking redistribution clearance, filesystem paths, or chunk text. Keep
+   this first implementation local Developer-only; portable Reviewer inclusion requires a
+   separately reviewed finite safe projection and assignment bump. The packet must surface and
+   resolve the recorded unrecognized-`Title`-style boundary ambiguity rather than assuming it is
+   front matter.
+3. Preserve the packet snapshot once reviewer prose exists. The durable loop is: phone-friendly
+   concise packet → plain-language reviewer judgment → canonical Codex versioned proposal →
+   explicit database/rule edit → Database plus affected patient/reference-run audit. Canonical
+   Codex may create separate versioned identity, bibliography, Developer-opinion, clinical-rule,
+   balance, or no-change proposals. Never let saving the response mutate content directly.
+4. Close each accepted change through existing audit surfaces: the changed public-safe Database
+   entry, exact rule trace, and affected patient/reference runs. This is the core loop the user
+   wants to perform repeatedly on a phone or in the app.
+5. Continue Apple Notes and aggregate interpretation one bounded source revision/unit at a time.
+   Physical or lexical coverage is not semantic review. Keep current medication counts framed as
+   an identity foundation and use reviewer comments plus verified units to propose missing
+   psychiatry medication, therapy, and condition identities.
+6. After user Database/ticket/patient review, read `databaseEntryReviews`, `tickets`,
+   `attemptReviews`, and completed snapshots from the exact saved/exported bundle. Convert each
+   comment into the smallest separate proposal or versioned edit; saving a comment is never
+   automatic clinical approval or authorization to alter a rule.
 
 Keep this mechanism-heavy checkpoint on `beta` until the user explicitly authorizes promotion.
 `main` and the public Pages Reviewer remain on the prior released checkpoint. Do not implement a

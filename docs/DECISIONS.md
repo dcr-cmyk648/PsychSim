@@ -1483,5 +1483,71 @@ Drive sources and excludes all 124 attachment records and 116 OCR outputs.
 This inventory proves physical coverage and creates a resumable prioritization map; it does not
 interpret all notes, discover unknown entities, create a bibliography, establish a clinical
 claim, attach evidence, approve content, or alter gameplay. Semantic review still proceeds through
-bounded source packets and medically unreviewed candidates. The remote SharePoint aggregate remains
-unprocessed until its bytes are available through the authorized Drive intake boundary.
+bounded source packets and medically unreviewed candidates. At that checkpoint the remote
+SharePoint aggregate had not reached the authorized download stage; D-139 through D-141 record its
+later exact-byte intake and structure-aware extraction without semantic or runtime incorporation.
+
+## D-139 — Source access and incorporation states must never be conflated
+
+**Decision:** Every private or external source is reported through six explicit stages:
+`discovered`, `downloaded and SHA-256 verified`, `extracted`, `semantically reviewed`,
+`candidates created`, and `incorporated`. “Processed,” “ingested,” and “incorporated” are not
+acceptable shorthand unless the exact completed stage is also named.
+
+Connector, authorization, export, parser, OCR, truncation, segmentation, and coverage failures are
+reported as soon as known, preserved in the applicable private manifest or `PROJECT_STATE.md`, and
+repeated in the final handoff while unresolved. Partial access never becomes silent success.
+
+An incorporated-source claim must name the resulting versioned catalog, rule, patient, or other
+content IDs. Discovery, byte preservation, extraction, or candidate generation does not change
+runtime content, and reports must say so explicitly when no content IDs changed.
+
+## D-140 — Personal-source authoring closes through phone review and patient audit
+
+**Decision:** Personal notes and authored archives produce concise, atomic, phone-readable review
+packets rather than direct database mutations. Each packet retains a typed, immutable
+source-unit/chunk snapshot, original derived summary, proposed targets, provenance, uncertainty,
+conflicts, and affected IDs. The reviewer responds in plain language on mobile or desktop.
+
+Saving reviewer guidance does not apply a rule. Canonical Codex work interprets the response and
+creates the smallest versioned identity, provenance, opinion, clinical-rule, balance, or no-change
+proposal. Any accepted database/rule edit remains a separate, explicit implementation step. The
+resulting Database entry and affected patient/reference runs then become the reviewer’s audit
+surface. Source statements, Developer opinion, reviewer instructions, implemented clinical rules,
+and point balance remain independently traceable so the explanatory system can disentangle them.
+The durable sequence is: phone-friendly concise packet → plain-language reviewer judgment →
+canonical Codex versioned proposal → explicit database/rule edit → Database plus affected
+patient/reference-run audit.
+
+## D-141 — DOCX structure is preserved without silently retargeting source chunks
+
+**Decision:** New DOCX extraction uses Mammoth's default heading mappings with embedded document
+style maps disabled and an image converter that does not read image bytes. parse5 treats the
+generated fragment as inert data and retains visible block text plus H1–H6 heading paths. Scripts,
+styles, image data, link targets, and HTML attributes are not retained. `SourceChunk.section`
+remains the compatible leaf label; optional `sectionPath` preserves the complete hierarchy.
+
+The parser version is `psychsim-source-parser-5`. Each section boundary has a deterministic
+`sectionInstance`, so repeated identical headings remain distinguishable. Every chunk has a
+`provenanceHash` over its stable locator metadata and exact body hash, making section/ordinal
+retargeting detectable independently of the combined document-text hash. Parser warnings and their
+total count are retained rather than silently discarded. A version bump never automatically re-extracts older
+sources because stable chunk IDs currently depend on source hash and ordinal, and changed
+boundaries could silently retarget an existing provenance reference. The CLI may refresh only
+explicitly named, previously extracted, older-parser manifest entries. It preserves the old
+artifact under the private extraction-history directory, validates every integrity field
+available for that parser version, requires an existing same-named history revision to be
+equivalent, serializes source operations behind a private lock with one fixed atomic
+stale-recovery claim, fails closed on an ambiguous prior claim, refuses to overwrite a changed
+manifest, and uses a durable marker to recover an interrupted refresh. Parser-v1/v2 locator
+metadata predates provenance hashes and therefore cannot be retrospectively authenticated.
+
+The private residency-article aggregate was explicitly refreshed because no tracked content or
+semantic candidate referenced its older-parser chunks. Its exact source bytes remained unchanged;
+its parser-v1 through parser-v4 artifacts remain as four private history revisions. Parser v5
+produced 39 chunks: 38 sectioned chunks with `sectionInstance`, all 39 with `provenanceHash`, 24
+top-level heading instances, three nested heading instances, and one unsectioned preamble. It also
+retains exactly one warning for an unrecognized Word `Title` style; semantic review must decide whether
+that paragraph is front matter or a logical boundary. Heading paths establish deterministic
+candidate boundaries; they do not by themselves create authored units, evidence, Developer
+opinions, clinical rules, points, approval, or runtime content.

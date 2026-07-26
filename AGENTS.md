@@ -74,7 +74,10 @@ projection schema and boundary tests first.
 
 ## Setup and commands
 
-Use Node 22 or newer and pnpm 10.13.1 (the pinned `packageManager`).
+Use Node 22 LTS and pnpm 10.13.1 (the pinned `packageManager`) for the complete acceptance gate.
+The application currently develops and builds under Node 26, but pinned Playwright 1.53 can leave
+portable-Reviewer worker IPC open after all tests pass there; do not certify that suite on Node 26
+until the runner exits cleanly.
 
 ```sh
 pnpm install
@@ -91,6 +94,7 @@ pnpm content:validate
 pnpm content:sources:validate
 pnpm content:scan
 pnpm content:extract
+pnpm content:extract -- --refresh-entry <source-manifest-id>
 pnpm content:watch
 pnpm content:notes:audit -- --folder "Psych research"
 pnpm content:notes:sync -- --folder "Psych research" --ack-no-phi --ack-authorized-local-processing --ack-shared-material-rights --acknowledged-by "Reviewer name"
@@ -309,6 +313,28 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
   automatically a formal source, evidence contribution, clinical rule, point value, or medical
   approval.
 - The connected Google Drive folder named `PsychSim documents` is a remote source inbox. On an explicit check request, discover new/changed files, persist local-only provider metadata, pull and hash content, deduplicate by SHA-256, and queue sources one at a time. Never propagate a source directly into scoring; create reviewable claim/change proposals first.
+- Never collapse source progress into an ambiguous word such as “processed,” “ingested,” or
+  “incorporated.” Report and persist these stages separately: metadata discovered; exact bytes
+  downloaded and SHA-256 verified; text extracted; semantic scope reviewed; candidate changes
+  created; human-accepted content incorporated. Surface connector, permission, export, parser,
+  OCR, truncation, and coverage failures as soon as they are known and repeat unresolved gaps in
+  the final handoff. A source is not incorporated unless the report names the resulting versioned
+  catalog/rule/content IDs; otherwise state explicitly that runtime content is unchanged.
+- Source-derived authoring must end in a reviewer loop, not an automatic apply step. Present
+  concise, phone-readable summaries and atomic proposals with exact source-unit/chunk provenance;
+  save the reviewer’s prose with the immutable proposal snapshot; let canonical Codex work turn
+  accepted direction into separately versioned candidate changes; apply database/rule edits only
+  as explicit later work; then expose affected Database entries and patient/reference runs for
+  audit. Keep source statements, Developer opinion, reviewer instructions, implemented rules, and
+  point balance independently traceable. Saving prose never mutates content directly.
+- DOCX extraction preserves inert visible text and heading paths. Never bulk-reprocess an older
+  parser version: ordinal source-chunk IDs may already have tracked consumers. Refresh one exact
+  older-parser manifest entry only after checking its consumers; retain its prior private artifact.
+  Current parser artifacts persist deterministic section-boundary instances and per-chunk
+  locator/body provenance hashes. Refresh must validate every available old-artifact/history
+  integrity field and restore the prior artifact if its manifest commit fails. Parser-v1/v2
+  locator metadata predates provenance hashes and cannot be retrospectively authenticated; retain
+  that limitation in review provenance.
 
 ## Definition of done for future changes
 

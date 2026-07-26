@@ -1,15 +1,37 @@
 # Source-document ingestion and patient scaffolding
 
 The protected authoring boundary now has a bounded local vertical slice: SHA-256 scanning,
-duplicate detection, PDF/DOCX/TXT/Markdown extraction, ordered text chunks, watch mode, manifest
-validation, a controlled patient scaffolder, automatic Developer-mode discovery, and a macOS-only
-Apple Notes adapter with metadata-only audit, acknowledged private export, per-note crash-recovery
-checkpoints, and explicit local OCR for image/PDF attachments. It is not the full Milestone 6–7
-workflow: there is no automatic Google Drive OAuth downloader, claim-review UI, external AI
-provider, critic model, or automatic clinical-rule authoring. General source extraction does not
-silently OCR arbitrary PDFs; OCR exists only in the explicit Apple Notes sync path.
+duplicate detection, PDF/DOCX/TXT/Markdown extraction, ordered text chunks, heading paths for
+Markdown and DOCX, watch mode, manifest validation, a controlled patient scaffolder, automatic
+Developer-mode discovery, and a macOS-only Apple Notes adapter with metadata-only audit,
+acknowledged private export, per-note crash-recovery checkpoints, and explicit local OCR for
+image/PDF attachments. It is not the full Milestone 6–7 workflow: there is no automatic Google
+Drive OAuth downloader in the CLI, source-summary review UI, external AI provider, critic model, or
+automatic clinical-rule authoring. General source extraction does not silently OCR arbitrary PDFs;
+OCR exists only in the explicit Apple Notes sync path.
 
 Three records remain deliberately separate: private `SourceDocument`/`SourceChunk` text, tracked formal `EvidenceSourceDefinition` bibliography, and `EvidenceContribution` application notes. A PDF does not become formal evidence merely because it looks academic. Formal use requires a catalog entry; anything else is Expert opinion until a human classifies and catalogs it.
+
+## Source access and incorporation status
+
+Every source report uses the following explicit stages:
+
+1. **Discovered** — provider metadata identifies a candidate; no source bytes are local.
+2. **Downloaded** — exact local bytes exist, have a SHA-256 hash, and passed duplicate comparison.
+3. **Extracted** — a parser produced verified `SourceDocument` and `SourceChunk` records.
+4. **Semantically reviewed** — the report names the exact document units/chunks and review scope;
+   unreviewed portions remain explicit.
+5. **Candidates created** — proposed identities, bibliography, Developer opinions, claims, or
+   content changes exist but remain non-executable and medically unreviewed.
+6. **Incorporated** — a human-accepted change names the resulting versioned catalog, rule, patient,
+   or other content IDs and has passed its normal validators.
+
+Do not use “processed,” “ingested,” or “incorporated” without identifying the exact stage. Report
+connector unavailability, authorization failure, unsupported export, parser loss, OCR failure,
+truncation, ambiguous segmentation, and partial coverage when first observed and again in the
+final handoff while unresolved. Discovery or extraction alone never implies semantic review, and
+semantic review alone never implies a gameplay change. If no versioned content IDs changed, say
+that runtime content is unchanged.
 
 Before downloading or processing third-party publication bytes for claim extraction, the authoring
 workflow requires an applicable `SourceUseDecision`. D-120 is a narrower exception for acknowledged
@@ -257,10 +279,21 @@ Reviewer bundles exclude the projection and endpoint.
 
 The user's aggregate of previously authored residency-site articles can seed a large
 Developer-opinion catalog, but it requires a logical layer above the physical document pipeline.
-The current connector set cannot read SharePoint directly, and no copy is present in the local
-source inbox. The first intake should use a manual export placed in
-`content/source-docs/inbox/`, or an export copied to the connected `PsychSim documents` Drive
-folder followed by an explicit check request.
+The official Google Drive connector exported the exact native document `Aggregate sharepoint
+notes` as a DOCX through the connected `PsychSim documents` folder. The protected local source has
+SHA-256
+`8fedf00c83190f6a3661bf820382b76d27a59ce3d425b02202a7fe8b797f03c1` and source-document ID
+`source-document.8fedf00c83190f6a3661`.
+
+Physical preservation and structure-aware extraction are complete. Parser version
+`psychsim-source-parser-5` found 24 top-level heading instances, three nested heading instances,
+and one unsectioned preamble across 39 bounded chunks. Thirty-eight chunks are sectioned and carry
+deterministic `sectionInstance` locators; all 39 carry a locator/body `provenanceHash`. Parser-v1
+through parser-v4 extractions are retained as four private extraction-history revisions. Exactly
+one parser warning records an unrecognized Word `Title` style; semantic review must decide whether
+that paragraph is front matter or a logical authored-unit boundary. Semantic review, authored-unit
+candidates, Developer opinions, bibliography candidates, database changes, rule changes, and
+runtime incorporation have not begun. Gameplay content is unchanged.
 
 The aggregate is one physical, private, hashed `SourceDocument`, but each original article is a
 separate future `AuthoredSourceUnit`. Article units preserve title, byline, original URL/venue,
@@ -269,7 +302,7 @@ currentness. Short atomic `DeveloperOpinion` candidates and unverified `Bibliogr
 records derive from each unit. The original articles are not automatically formal evidence, and
 their bibliography does not automatically support every nearby statement.
 
-Before intake, the user must confirm:
+Before semantic review or any optional external processing, the user must confirm:
 
 - the export contains no identifiable patient information;
 - it is appropriate to store and process locally;
@@ -278,12 +311,12 @@ Before intake, the user must confirm:
 - that third-party quotations, tables, figures, scales, screenshots, and publisher material can be
   excluded.
 
-Markdown is preferred for a long multi-article export. The current DOCX parser uses Mammoth
-raw-text extraction and loses heading styles, so an unmodified DOCX export cannot reliably
-establish article boundaries. HTML could preserve those headings but is not a currently supported
-input type. Before processing a DOCX, either add explicit plain-text article delimiters, export to
-Markdown, or implement and test semantic-heading DOCX/HTML extraction. Ambiguous segmentation
-creates a review ticket rather than a guessed boundary.
+Markdown remains a good interchange format for a long multi-article export. DOCX extraction now
+uses Mammoth's default heading mappings with embedded document style maps disabled, drops images
+without reading their bytes, parses the generated fragment as inert data, and retains both the
+leaf section and complete H1–H6 heading path. Heading structure is a candidate boundary, not proof
+that an article unit is complete; ambiguous boundaries still create review work rather than a
+guess.
 
 Review proceeds one article or small topic cluster at a time. Each batch shows proposed concise
 opinions, original dates, cited-source candidates and their verification state, newer potentially
@@ -291,12 +324,22 @@ conflicting evidence, and affected catalog IDs. Accepted opinions remain Develop
 must pass a separate change proposal, impact scan, clinical review, and balance decision before
 affecting gameplay.
 
+The intended reviewer surface is mobile as well as desktop. Each batch must be short enough to
+review on a phone and retain a typed, immutable snapshot of the source unit, concise derived
+summary, atomic proposals, provenance, uncertainty, conflicts, and affected IDs. The reviewer
+supplies plain-language guidance; saving it does not directly edit content. The durable loop is:
+phone-friendly concise packet → plain-language reviewer judgment → canonical Codex versioned
+proposal → explicit database/rule edit → Database plus affected patient/reference-run audit. The
+source, the reviewer’s Developer opinion, the implemented rule, and point balance remain
+separable throughout.
+
 ## Implemented commands
 
 | Command                                                  | Behavior                                                                                                                                                                                                                      |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm content:scan`                                      | Hash direct inbox files, detect byte-identical duplicates, write the local manifest, and retain unsupported inputs in quarantine.                                                                                             |
 | `pnpm content:extract`                                   | Parse discovered inputs, verify the pre-extraction hash, write document/chunk records atomically, and retain originals under processed or quarantine.                                                                         |
+| `pnpm content:extract -- --refresh-entry <manifest-id>`  | Explicitly re-extract one older-parser source, archive its prior private artifact, and update only that entry. Already-current, missing, and non-extracted entries are rejected.                                              |
 | `pnpm content:watch`                                     | Watch the inbox and serialize the same scan/extract functions; it adds no alternate behavior.                                                                                                                                 |
 | `pnpm content:notes:audit -- --folder "Psych research"`  | Record Apple Notes IDs, dates, locked/shared flags, and counts without reading note titles, bodies, or attachment bytes.                                                                                                      |
 | `pnpm content:notes:sync -- --folder "Psych research" …` | After all required acknowledgments, export changed unlocked notes privately, hash attachments, run local image/PDF OCR by default, checkpoint each note, queue deterministic Markdown composites, then scan and extract them. |
@@ -318,7 +361,31 @@ Success writes extracted artifacts before moving the original and marks the mani
 
 ## File and extraction strategy
 
-PDF parsing uses a developer-only PDF.js dependency and preserves page numbers. DOCX parsing uses a developer-only Mammoth dependency. TXT is normalized and paragraph-chunked; Markdown additionally preserves heading context. The common parser splits oversized text into bounded chunks, removes NULs, normalizes line endings, and never evaluates macros, scripts, links, or embedded instructions. Each parser run records `psychsim-source-parser-1`, a document text hash, ordered chunks, page/section context where available, and a hash for the exact local chunk text. The general file pipeline still has no silent OCR fallback. OCR is an explicit, provider-scoped capability of `content:notes:sync`: macOS Vision processes only exported Apple Notes image/PDF attachments, records its engine and outcome, and can be disabled with `--skip-ocr`.
+PDF parsing uses a developer-only PDF.js dependency and preserves page numbers. DOCX parsing uses
+developer-only Mammoth plus parse5: Mammoth creates inert HTML with embedded style maps disabled
+and a no-read image converter, while parse5 retains visible block text and H1–H6 paths without
+executing or preserving tags, attributes, links, scripts, styles, or images. TXT is normalized and
+paragraph-chunked; Markdown also preserves heading paths. The common parser splits oversized text
+into bounded chunks, removes NULs, normalizes line endings, and never evaluates macros, scripts,
+links, or embedded instructions. New parser runs record `psychsim-source-parser-5`, a document text
+hash, ordered chunks, page/section/section-path context where available, a deterministic
+section-boundary instance for sectioned chunks, a hash for the exact local chunk text, and a
+locator/body provenance hash for every chunk. DOCX parser warnings and their total count are
+retained in the private document record so ambiguous styles or truncated warning lists cannot
+disappear from semantic review.
+
+A parser upgrade never silently rewrites prior extracted artifacts because existing tracked
+source-chunk IDs depend on source hash and ordinal. Re-extraction therefore requires one exact
+manifest ID, rejects an already-current entry, preserves the prior artifact under
+`extracted/history/`, validates every integrity field available in the old parser version,
+requires an existing same-named history revision to be equivalent, serializes scan/extract behind
+a fixed atomic stale-recovery claim that fails closed if an earlier claim requires inspection,
+operations with a private lock, compares the manifest fingerprint before commit, and uses a
+durable marker to recover after interruption. Parser-v1/v2 locator metadata predates provenance
+hashes and cannot be retrospectively authenticated. The general file pipeline still has no silent
+OCR fallback. OCR is an explicit, provider-scoped capability of `content:notes:sync`: macOS Vision
+processes only exported Apple Notes image/PDF attachments, records its engine and outcome, and can
+be disabled with `--skip-ocr`.
 
 ## Patient scaffolding and testing
 

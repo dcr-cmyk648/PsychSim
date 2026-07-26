@@ -356,7 +356,20 @@ prose, timestamps, and resolution.
 
 ## Local authoring boundary
 
-`content/source-docs` is outside runtime and gitignored. `content:scan` hashes local inbox bytes, records a versioned manifest, identifies exact duplicates by hash, and quarantines unsupported or oversized files without deletion. `content:extract` parses PDF pages, DOCX text, TXT, and Markdown into hashed `SourceDocument`/`SourceChunk` artifacts with page or section context, then retains originals in processed/archive/quarantine. Text is untrusted inert data, extraction is idempotent, and every private artifact remains outside Vite and Git.
+`content/source-docs` is outside runtime and gitignored. `content:scan` hashes local inbox bytes,
+records a versioned manifest, identifies exact duplicates by hash, and quarantines unsupported or
+oversized files without deletion. `content:extract` parses PDF pages, DOCX, TXT, and Markdown into
+hashed `SourceDocument`/`SourceChunk` artifacts with page, leaf-section, or complete heading-path
+context, then retains originals in processed/archive/quarantine. DOCX conversion disables embedded
+style maps, does not read images, and reduces Mammoth-generated HTML to inert visible block text.
+Text remains untrusted data. Parser-v5 chunks persist parser warnings and their total count, a deterministic
+section-boundary instance, and a provenance hash over exact body and locator metadata, so repeated
+headings remain distinct and retargeting is detectable. A parser upgrade never silently rewrites
+old ordinal-based chunk IDs: one explicit older-parser entry may be refreshed only after every
+available integrity field in its prior artifact and same-named history is validated. A private
+lock, manifest fingerprint, and transaction marker prevent clobbering and recover interrupted
+refreshes. Parser-v1/v2 locator metadata predates provenance hashes and cannot be retrospectively
+authenticated. Every private artifact remains outside Vite and Git.
 
 A formal publication has a second, tracked representation containing citation and lawful-processing metadata only. Known byte hashes can associate a private copy with that entry without committing its text. A public download link is insufficient when the publisher requires permission for reuse or AI use; those records remain metadata-only. Source-use records are the third layer: they state whether authority is `formal_publication` or `expert_opinion`, list every relevant formal-source ID, identify target rules, classify the contribution, and summarize how it was used.
 
