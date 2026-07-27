@@ -460,5 +460,5 @@ describe('portable reviewer cohort', () => {
         ).toBe(true);
       }
     }
-  });
+  }, 15_000);
 });

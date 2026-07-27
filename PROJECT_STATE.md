@@ -167,6 +167,12 @@ One stale E2E balance assertion was corrected from 320 to 350 after the trace pr
 arithmetic: 250 starting points + 1,300 encounter payout - 1,200 ECG purchase = 350. No game logic
 changed for that correction.
 
+The first clean GitHub runner for this checkpoint exposed a separate test-harness issue:
+`reviewer-content.test.ts` completed its finite reference-policy replay in 5.146 seconds, just over
+Vitest's default five-second limit. The test now declares a 15-second timeout, matching the other
+many-seed/replay tests. Its assertions and runtime behavior are unchanged; the focused test and the
+complete 378-test/10-handoff-test suite pass after the correction.
+
 `pnpm content:knowledge:corpus:materialize` was intentionally not used as a generic regeneration
 step. An exploratory invocation without an input packet stopped at its mandatory four-part
 privacy/authorization gate and changed nothing. That command processes one separately prepared
