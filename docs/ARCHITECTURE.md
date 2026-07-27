@@ -317,6 +317,17 @@ frozen patient state. The result is independent of whether the corresponding his
 purchased; purchase affects workup scoring and player knowledge, not patient truth. The current
 generic severity mapping is medically unreviewed provisional balance and is designed to be
 superseded by more-specific reviewed medication/reaction policies.
+
+After every domain rule has emitted its own immutable trace draft, the pure rule-combination
+resolver performs the final relationship pass. Explicit `effectId` plus `specificityPriority`
+selects a same-effect replacement; explicit `issueId` collapses duplicate negative consequences;
+and the scorer passes the finite set of true hard contraindications and suppressible positive
+treatment-base/fit rows. The resolver never reads prose, React state, source hierarchy, file
+order, wall-clock time, or player knowledge. It preserves every input row with its resolution
+status and original points, then component totals and safety consequences use only applied point
+values. This central pass prevents catalog rules and patient-specific rules from inventing
+parallel override systems.
+
 `info.history.existing-safety-plan` retains its legacy stable ID for local replay compatibility but
 now reveals the typed, Subjective `reportedSafetyPlanningAbility` state. Its structured result says
 only whether the patient reports feeling able to participate; it never emits an

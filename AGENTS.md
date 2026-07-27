@@ -256,6 +256,12 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Scoring predicates are the constrained JSON-safe union in `@psychsim/schemas`; do not add arbitrary expressions or executable case code.
 - Reusable diagnosis selection predicates are narrower than case scoring predicates: they may inspect treatment selections only, never case-local fact IDs, purchased actions, service ownership, or browser state.
 - Score the final treatment combination. Do not put medication grades, interactions, or penalties in React components.
+- Combine rules only through explicit stable `effectId`, `issueId`, and `specificityPriority`
+  metadata. More-specific rules replace only the same effect; duplicate harms sharing one issue
+  keep the worst consequence; distinct fit effects stack; true hard contraindications suppress
+  affected positive base/fit rows. Preserve replaced, deduplicated, and suppressed rows with their
+  original points and controlling rule in the attempt trace. Never infer precedence from file
+  order, source hierarchy, prose, or point magnitude.
 - Clinical correctness is independent of fulfillment cost. Service ownership can change the financial receipt, never the clinical reward for an indicated test.
 - Staff automation is action-specific fulfillment, not free information. Persist an allowlisted configuration, buy each delegated action through the ordinary event path at a discounted nonzero cost, and preserve initiator/savings data for replay and receipts. Do not add salaries, schedules, capacity queues, departments, or treatment automation through this slice.
 - Points are the only visible unit. Care-point subtotals, investigation costs, reimbursement, banked balance, and lifetime progression all use points; there is no letter rank, 0–100 score, Reputation, XP, or credits layer. Store current spendable balance and lifetime points earned. Encounter expenses settle against that encounter; Normal-mode payout and the persistent bank have a zero floor.

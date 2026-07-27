@@ -64,7 +64,7 @@ describe('reference-solution audit', () => {
     const audit = buildReferenceSolutionAudit(attempt, catalogs);
 
     expect(audit.error).toBeNull();
-    expect(audit.currentEngineVersion).toBe('0.5.0');
+    expect(audit.currentEngineVersion).toBe('0.6.0');
     expect(audit.playerPlan).toMatchObject({
       carePoints: attempt.receipt.pointReport.carePointsEarned,
       workupExpense: attempt.receipt.pointReport.actualWorkupExpense,

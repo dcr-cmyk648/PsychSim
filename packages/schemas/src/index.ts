@@ -26,6 +26,12 @@ export type ClinicalConcernLevel = z.infer<typeof ClinicalConcernLevelSchema>;
 export const ClinicalCertaintyLevelSchema = z.enum(['tentative', 'moderate', 'strong']);
 export type ClinicalCertaintyLevel = z.infer<typeof ClinicalCertaintyLevelSchema>;
 
+const RuleCombinationSourceShape = {
+  effectId: StableIdSchema.nullable().default(null),
+  issueId: StableIdSchema.nullable().default(null),
+  specificityPriority: z.number().int().nonnegative().default(0),
+};
+
 export const MedicalReviewStatusSchema = z.enum([
   'unreviewed',
   'in_review',
@@ -555,6 +561,7 @@ export const MedicationDefinitionSchema = z
       z
         .object({
           id: StableIdSchema,
+          ...RuleCombinationSourceShape,
           patientTagIds: z.array(StableIdSchema).min(1),
           effect: z.enum(['bonus', 'penalty', 'contraindication']),
           pointDelta: z.number().int().min(-100).max(100),
@@ -569,6 +576,7 @@ export const MedicationDefinitionSchema = z
       z
         .object({
           id: StableIdSchema,
+          ...RuleCombinationSourceShape,
           patientTagIds: z.array(StableIdSchema).min(1),
           pointDelta: z.number().int().min(-100).max(100),
           explanation: z.string().min(1),
@@ -2370,6 +2378,7 @@ export type CaseInformationActionBlueprint = z.infer<typeof CaseInformationActio
 export const WorkupObjectiveSchema = z
   .object({
     id: StableIdSchema,
+    ...RuleCombinationSourceShape,
     label: z.string().min(1),
     importance: z.enum(['essential', 'high_yield', 'optional']),
     requiredByDefault: z.boolean(),
@@ -2678,6 +2687,7 @@ export const AvailableTreatmentsSchema = z
 export const TreatmentGradeDefinitionSchema = z
   .object({
     id: StableIdSchema,
+    ...RuleCombinationSourceShape,
     label: z.string().min(1),
     grade: TreatmentGradeSchema,
     priority: z.number().int(),
@@ -2691,6 +2701,7 @@ export type TreatmentGradeDefinition = z.infer<typeof TreatmentGradeDefinitionSc
 
 export const ConditionalRequirementSchema = z
   .object({
+    ...RuleCombinationSourceShape,
     objectiveId: StableIdSchema,
     pointsIfMet: z.number(),
     pointsIfMissing: z.number().max(0),
@@ -2704,6 +2715,7 @@ export const ConditionalRequirementSchema = z
 export const TreatmentWorkupRequirementSchema = z
   .object({
     id: StableIdSchema,
+    ...RuleCombinationSourceShape,
     sourceRuleIds: z.array(StableIdSchema).min(1),
     objectiveId: StableIdSchema,
     appliesWhen: DiagnosisSelectionPredicateSchema,
@@ -2811,6 +2823,7 @@ export const NonDiagnosisTraceClassificationSchema = z.enum([
 export const ScoreRuleSchema = z
   .object({
     id: StableIdSchema,
+    ...RuleCombinationSourceShape,
     label: z.string().min(1),
     component: NonDiagnosisScoreComponentSchema,
     predicate: ScorePredicateSchema,
@@ -3821,6 +3834,12 @@ export const RuleEvaluationSchema = z
       )
       .default([]),
     issueId: StableIdSchema.nullable().default(null),
+    effectId: StableIdSchema.nullable().optional(),
+    specificityPriority: z.number().int().nonnegative().optional(),
+    combinationStatus: z.enum(['applied', 'replaced', 'deduplicated', 'suppressed']).optional(),
+    pointsBeforeCombination: z.number().int().nullable().optional(),
+    resolvedByRuleId: StableIdSchema.nullable().optional(),
+    combinationExplanation: z.string().min(1).nullable().optional(),
     relatedActionIds: z.array(StableIdSchema),
     relatedDiagnosisIds: z.array(StableIdSchema).default([]),
     relatedTreatmentIds: z.array(StableIdSchema),

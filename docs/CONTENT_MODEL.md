@@ -178,6 +178,16 @@ insomnia tag and −50 for a matching high-BMI tag) to exercise the fit architec
 playtesting. The trace labels their unreviewed status. A modifier is not clinical authority merely
 because it is executable; later sourcing/review must version or reject it.
 
+Executable workup, treatment-grade, treatment-prerequisite, score, and medication-fit records may
+declare `effectId`, `issueId`, and `specificityPriority`. These are relationship metadata, not
+clinical findings or provenance. Same-effect records are replacement candidates; same-issue
+negative records are worst-only consequence candidates; records with distinct effect IDs stack.
+Null IDs mean “independent/no declared relationship,” preserving older content. Content validation
+rejects two same-effect candidates at the same specificity in one compatible encounter. A hard
+contraindication is separately typed by the medication rule—it cannot be inferred from a negative
+point value or from words in a label. The frozen receipt saves both raw and resolved contributor
+state so later catalog edits cannot rewrite what an old attempt displayed.
+
 Patient medication state preserves epistemic certainty. `medicationListStatus` distinguishes a
 known list from an unreconciled list, so an empty array cannot silently mean “takes no
 medications.” Current regimen entries remain separate from prior medication trials. A focused

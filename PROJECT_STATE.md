@@ -10,7 +10,7 @@ Last updated: 2026-07-27
 - Current phase: Milestone 3 is complete. The bounded work is still the pre-Milestone-4
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
-- Current checkpoint implements Decisions D-151 through D-158. The current GitHub-safe tree is
+- Current checkpoint implements Decisions D-151 through D-159. The current GitHub-safe tree is
   the verified backup checkpoint for `origin/beta`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
   `origin/main` remain unchanged unless the user separately authorizes promotion.
@@ -43,8 +43,8 @@ only the current operational state and should not grow into a second changelog.
 7. One broad database-plan treatment route should dominate when possible. Medication-specific fit,
    treatment-triggered prerequisites, interactions, duplicate therapy, adverse reactions, and
    disposition remain separately traceable.
-8. Every nonexact treatment result is labeled engine-inferred. Applied, omitted, suppressed, and
-   overridden contributors must remain explainable after submission.
+8. Every nonexact treatment result is labeled engine-inferred. Applied, replaced, deduplicated,
+   suppressed, and omitted contributors must remain explainable after submission.
 9. The personal knowledge database is a first-class learning product. It preserves the developer's
    notes, authored material, formal sources, interpretations, disagreements, staleness, and gaps.
    The game is a focused compiler over reviewed decision-relevant knowledge, not a display of the
@@ -67,6 +67,17 @@ only the current operational state and should not grow into a second changelog.
   Failing to reveal a prior reaction cannot erase its treatment consequence. Only the worst
   matching same-medication reaction policy applies per selected medication, with a separate safety
   trace and optional score cap.
+- Engine `0.6.0` adds one pure final rule-combination pass. Stable `effectId` plus explicit
+  specificity permits replacement only for the same effect; stable `issueId` collapses duplicate
+  negative consequences to the worst row; distinct fit effects stack; and a true medication
+  contraindication suppresses explicitly identified positive base/fit rows for the same
+  treatment. Serious nonabsolute risk penalties do not suppress legitimate benefits. Every
+  resolved contributor remains in the saved receipt trace with its original points, controlling
+  rule, and `applied`, `replaced`, `deduplicated`, or `suppressed` status.
+- Case/catalog validation rejects equal-specificity ambiguity for one effect. Synthetic engine
+  tests cover replacement, stacking, worst-only harm, hard-contraindication suppression,
+  nonabsolute benefit/risk visibility, deterministic tie-breaking, and safety-error/cap
+  deduplication. No current clinical rule or point magnitude changed.
 - Current unreviewed MDD reference runs:
 
   | Run                         |  Care points | Investigation cost | Payout |
@@ -150,40 +161,28 @@ only the current operational state and should not grow into a second changelog.
 
 ## Verification
 
-The complete checkpoint passed under Node 22.23.1 on 2026-07-27:
+The complete D-159 checkpoint passed on 2026-07-27:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
-- `pnpm test`: 51 test files / 378 tests plus 10 Python handoff tests;
+- `pnpm test`: 53 test files / 390 tests plus 10 Python handoff tests;
 - `pnpm content:validate`, `pnpm content:sources:validate`, and
   `pnpm content:diagnoses:validate`;
-- `pnpm content:knowledge:crossref` and `pnpm content:knowledge:crossref:validate`;
-- `pnpm content:compile`, `pnpm content:evidence`, and `pnpm demo:reference-runs`;
+- `pnpm demo:reference-runs`, with both existing finite policy sets unchanged;
 - `pnpm build` with Player bundle-safety scan;
 - `pnpm build:reviewer` with portable Reviewer bundle-safety scan;
 - `pnpm test:e2e`: five Player/Developer browser tests; and
 - `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
 
-One stale E2E balance assertion was corrected from 320 to 350 after the trace proved the intended
-arithmetic: 250 starting points + 1,300 encounter payout - 1,200 ECG purchase = 350. No game logic
-changed for that correction.
-
-The first clean GitHub runner for this checkpoint exposed a separate test-harness issue:
-`reviewer-content.test.ts` completed its finite reference-policy replay in 5.146 seconds, just over
-Vitest's default five-second limit. The test now declares a 15-second timeout, matching the other
-many-seed/replay tests. Its assertions and runtime behavior are unchanged; the focused test and the
-complete 378-test/10-handoff-test suite pass after the correction.
-
-`pnpm content:knowledge:corpus:materialize` was intentionally not used as a generic regeneration
-step. An exploratory invocation without an input packet stopped at its mandatory four-part
-privacy/authorization gate and changed nothing. That command processes one separately prepared
-private semantic packet; it is not a routine build or validation gate. The already materialized
-private state and current dossier projection passed their dedicated validators.
+The first sandboxed invocations of the three tsx content validators could not open their local IPC
+sockets; each passed unchanged when rerun outside that filesystem sandbox. Builds retain the
+existing advisory large-chunk warning. Tests retain the existing PDF standard-font warning and
+Node `module.register()` deprecation notice; none is a product/test failure.
 
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-158
+- `docs/DECISIONS.md` through D-159
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -193,6 +192,7 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `docs/SCORING_AND_ECONOMY.md`
 - `docs/SOURCE_USE_POLICY.md`
 - `packages/engine/src/scoring.ts`
+- `packages/engine/src/rule-combination.ts`
 - `packages/engine/src/diagnosis-scoring.ts`
 - `packages/content-runtime/src/reviewer-policies.ts`
 - `tools/content-cli/src/developer-database-knowledge.ts`
@@ -204,15 +204,11 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present `Q3` as one bounded engine-design decision: use stable effect and issue keys so a
-   more-specific rule replaces only the same effect, distinct fit effects can add, one mistake
-   receives only its worst equivalent penalty, critical safety suppresses positive fit for the
-   affected intervention, and every suppressed/replaced contributor remains visible in the trace.
-   Wait for the user's answer before shaping later workflow decisions.
-2. Once Q3 is settled, present the already queued initial-MDD severity/modality packet. Atomize the
-   response into the smallest formal contribution, Developer opinion, source gap, balance question,
-   or no-change outcome. Any executable change still requires versioning, rule-level review,
-   validators, reference runs, and affected browser tests.
+1. Present the already queued initial-MDD severity/modality packet as the next one-at-a-time
+   clinical decision. Wait for the user's answer; do not implement its proposal implicitly.
+2. Atomize the answer into the smallest formal contribution, Developer opinion, source gap,
+   balance question, or no-change outcome. Any executable change still requires versioning,
+   rule-level review, validators, reference runs, and affected browser tests.
 3. Later bounded tasks, kept separate:
    - add real broad-category and unspecified diagnosis identities plus explicit reviewed ancestry;
    - harden medication-fit activation so unreviewed modifiers remain inert and true

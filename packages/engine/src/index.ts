@@ -13,10 +13,11 @@ export * from './queue';
 export * from './receipt';
 export * from './replay';
 export * from './result';
+export * from './rule-combination';
 export * from './rng';
 export * from './scoring';
 export * from './services';
 export * from './satisfaction';
 export * from './upgrades';
 
-export const ENGINE_VERSION = '0.5.0';
+export const ENGINE_VERSION = '0.6.0';

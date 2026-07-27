@@ -4,7 +4,11 @@ import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { formatTraceProvenanceLabel, ScoreComparisonBar } from './ReceiptView';
+import {
+  formatTracePointOutcome,
+  formatTraceProvenanceLabel,
+  ScoreComparisonBar,
+} from './ReceiptView';
 
 afterEach(cleanup);
 
@@ -114,5 +118,27 @@ describe('formatTraceProvenanceLabel', () => {
         },
       ]),
     ).toBe('1 source + Developer opinion');
+  });
+});
+
+describe('formatTracePointOutcome', () => {
+  it('shows the original and applied points for a suppressed contributor', () => {
+    expect(
+      formatTracePointOutcome({
+        points: 0,
+        pointsBeforeCombination: 35,
+        combinationStatus: 'suppressed',
+      }),
+    ).toBe('Suppressed +35 → 0 pts');
+  });
+
+  it('keeps ordinary and historical trace rows compact', () => {
+    expect(
+      formatTracePointOutcome({
+        points: -30,
+        pointsBeforeCombination: undefined,
+        combinationStatus: undefined,
+      }),
+    ).toBe('−30 pts');
   });
 });

@@ -5279,6 +5279,16 @@ tbody th small {
   color: #ff9b89;
 }
 
+.trace-list details.combined-trace {
+  border-color: #6d647f;
+  background: #14111b;
+}
+
+.trace-list details.combined-trace summary,
+.trace-list details.combined-trace summary b {
+  color: #c9b8e8;
+}
+
 .trace-list summary {
   display: flex;
   align-items: center;
@@ -5330,6 +5340,17 @@ tbody th small {
 .trace-list details p {
   color: var(--muted);
   font-size: 0.82rem;
+}
+
+.trace-list details .trace-combination-note {
+  padding: 0.55rem 0.65rem;
+  border-left: 2px solid #8b75b2;
+  background: #0c0912;
+  color: #cabee0;
+}
+
+.trace-combination-note > b {
+  text-transform: capitalize;
 }
 
 .trace-list details small {

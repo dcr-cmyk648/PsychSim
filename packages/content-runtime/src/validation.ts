@@ -40,6 +40,35 @@ const duplicateIds = (ids: readonly string[]): string[] => [
   ...new Set(ids.filter((id, index) => ids.indexOf(id) !== index)),
 ];
 
+interface CombinationRuleCandidate {
+  id: string;
+  effectId: string | null;
+  specificityPriority: number;
+}
+
+const validateCombinationRulePriorities = (
+  candidates: readonly CombinationRuleCandidate[],
+  issues: ValidationIssue[],
+  path: string,
+): void => {
+  const ownerByEffectAndPriority = new Map<string, string>();
+  for (const candidate of candidates) {
+    if (candidate.effectId === null) continue;
+    const key = `${candidate.effectId}\u0000${candidate.specificityPriority}`;
+    const existingId = ownerByEffectAndPriority.get(key);
+    if (existingId) {
+      issues.push({
+        severity: 'error',
+        code: 'AMBIGUOUS_RULE_EFFECT_SPECIFICITY',
+        message: `${candidate.effectId} gives ${existingId} and ${candidate.id} the same specificity priority ${candidate.specificityPriority}.`,
+        path,
+      });
+      continue;
+    }
+    ownerByEffectAndPriority.set(key, candidate.id);
+  }
+};
+
 interface PatientContextReferences {
   diagnosisIds: string[];
   severities: Array<{ diagnosisId: string; severityId: string }>;
@@ -287,6 +316,28 @@ export const validateCaseBlueprint = (
       });
     }
   }
+
+  validateCombinationRulePriorities(
+    [
+      ...blueprint.workupObjectives,
+      ...blueprint.treatmentWorkupRequirements,
+      ...blueprint.treatmentGrades,
+      ...blueprint.scoreRules,
+      ...blueprint.treatmentPathways.flatMap((pathway) =>
+        pathway.conditionalRequirements.map((requirement) => ({
+          ...requirement,
+          id: `conditional.${pathway.id}.${requirement.objectiveId}`,
+        })),
+      ),
+      ...catalogs.medications
+        .filter((medication) =>
+          blueprint.availableTreatments.startMedicationIds.includes(medication.id),
+        )
+        .flatMap((medication) => medication.fitModifiers),
+    ],
+    issues,
+    'ruleCombination',
+  );
 
   for (const action of blueprint.informationActions) {
     const findingIds = action.result.findings.map((finding) => finding.id);
@@ -2256,6 +2307,11 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
   }
   for (const medication of catalogs.medications) {
     const medicationSourceUseNoteIds = new Set(medication.sourceUseNotes.map((note) => note.id));
+    validateCombinationRulePriorities(
+      medication.fitModifiers,
+      issues,
+      `${medication.id}.fitModifiers`,
+    );
     for (const note of medication.sourceUseNotes) {
       for (const sourceId of note.evidenceSourceIds) {
         if (!evidenceSourceIds.has(sourceId)) {

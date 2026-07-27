@@ -2067,3 +2067,30 @@ coverage display from hiding useful data that has not yet been atomized.
 This decision authorizes the architecture and future local projection, not an immediate large UI
 or schema migration. Begin with one entry and measure utility, rebuild cost, and omission behavior
 before expanding it.
+
+## D-159 — Rule combination is explicit, deterministic, and fully traceable
+
+**Decision:** Reusable scoring contributors use two independent stable relationship keys:
+`effectId` identifies the clinical/game effect that a more-specific rule may replace, while
+`issueId` identifies one underlying mistake whose duplicate negative consequences must not stack.
+Every replaceable contributor also declares an explicit nonnegative `specificityPriority`.
+File/import order, source date, evidence tier, and point magnitude never silently decide which
+rule is more specific.
+
+The final trace resolver applies the approved model in deterministic stages:
+
+1. Among contributors with the same non-null `effectId`, the highest explicit specificity wins;
+   a stable rule-ID tie-break exists for deterministic recovery, while content validation rejects
+   equal-priority ambiguity.
+2. A true hard-contraindication rule suppresses the affected treatment's positive primary-route
+   reward and positive fit modifiers. A serious but nonabsolute risk remains an ordinary large
+   negative contributor, so legitimate benefits remain visible and may still stack.
+3. Applied negative contributors sharing one non-null `issueId` collapse to the most negative
+   consequence. Distinct effects continue to stack.
+
+Resolution never deletes a contributor. Every row persists with `applied`, `replaced`,
+`deduplicated`, or `suppressed` status; changed rows preserve their pre-resolution points,
+controlling rule ID, and plain-language explanation. Receipts surface these rows with the
+point-changing rules rather than hiding them among routine zero-point evaluations. This
+architecture does not approve any clinical rule or alter current point magnitudes by itself.
+Engine version `0.6.0` marks the new deterministic scoring behavior.

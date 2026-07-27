@@ -852,6 +852,173 @@ describe('encounter engine', () => {
       ],
     });
   });
+
+  it('suppresses the primary route and fit bonus when a matching modifier is a hard contraindication', () => {
+    const contraindicatedCatalogs = structuredClone(catalogs);
+    const mirtazapine = contraindicatedCatalogs.medications.find(
+      (medication) => medication.id === 'medication.mirtazapine',
+    )!;
+    mirtazapine.fitModifiers.push({
+      id: 'modifier.test.mirtazapine.hard-contraindication',
+      effectId: 'effect.test.mirtazapine.suitability',
+      issueId: 'issue.test.mirtazapine.suitability',
+      specificityPriority: 100,
+      patientTagIds: ['symptom.insomnia'],
+      effect: 'contraindication',
+      pointDelta: -100,
+      explanation:
+        'Test-only hard-contraindication fixture; this is not a clinical recommendation.',
+      sourceUseNoteIds: [],
+      medicalReviewStatus: 'unreviewed',
+      review: {
+        status: 'unreviewed',
+        reviewerId: null,
+        reviewedAt: null,
+        sourceUseNoteIds: [],
+      },
+    });
+    const expandedClinic = requireCompleted(
+      purchaseUpgrade(
+        { ...startingClinic, clinicPoints: 2_000 },
+        'upgrade.formulary.expanded-outpatient',
+        contraindicatedCatalogs,
+      ),
+    );
+    const selections = {
+      ...databasePlan.selections,
+      startMedicationIds: ['medication.mirtazapine'],
+    };
+    const baseline = play(
+      prototypeCaseBlueprint,
+      databasePlan.actionIds,
+      selections,
+      expandedClinic,
+      'combination-contraindication',
+      catalogs,
+    );
+    const contraindicated = play(
+      prototypeCaseBlueprint,
+      databasePlan.actionIds,
+      selections,
+      expandedClinic,
+      'combination-contraindication',
+      contraindicatedCatalogs,
+    );
+
+    expect(
+      contraindicated.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'grade.mdd-initial-first-line-antidepressant',
+      ),
+    ).toMatchObject({
+      points: 0,
+      pointsBeforeCombination: 200,
+      combinationStatus: 'suppressed',
+      resolvedByRuleId: 'modifier.test.mirtazapine.hard-contraindication',
+    });
+    expect(
+      contraindicated.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'modifier.mirtazapine.insomnia-fit-active',
+      ),
+    ).toMatchObject({
+      points: 0,
+      pointsBeforeCombination: 35,
+      combinationStatus: 'suppressed',
+      resolvedByRuleId: 'modifier.test.mirtazapine.hard-contraindication',
+    });
+    expect(
+      contraindicated.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'modifier.test.mirtazapine.hard-contraindication',
+      ),
+    ).toMatchObject({
+      points: -100,
+      combinationStatus: 'applied',
+    });
+    expect(contraindicated.receipt.pointReport.carePointsEarned).toBe(
+      baseline.receipt.pointReport.carePointsEarned - 335,
+    );
+  });
+
+  it('applies safety errors and caps only from the retained worst consequence for one issue', () => {
+    const duplicateSafetyBlueprint = structuredClone(prototypeCaseBlueprint);
+    const matchingDisposition = databasePlan.selections.dispositionId!;
+    const review = {
+      status: 'unreviewed' as const,
+      reviewerId: null,
+      reviewedAt: null,
+      sourceUseNoteIds: [],
+    };
+    duplicateSafetyBlueprint.scoreRules.push(
+      {
+        id: 'rule.test.safety-general',
+        effectId: null,
+        issueId: 'issue.test.same-safety-error',
+        specificityPriority: 10,
+        label: 'General duplicate safety consequence',
+        component: 'safety',
+        predicate: { type: 'dispositionSelected', dispositionId: matchingDisposition },
+        pointsIfTrue: -40,
+        pointsIfFalse: 0,
+        classificationIfTrue: 'harmful',
+        classificationIfFalse: 'safe',
+        explanationIfTrue: 'Test-only general safety consequence.',
+        explanationIfFalse: 'Test-only general safety condition did not match.',
+        safetyErrorIfTrue: 'General duplicate safety error.',
+        carePointCapIfTrue: 400,
+        review,
+      },
+      {
+        id: 'rule.test.safety-specific',
+        effectId: null,
+        issueId: 'issue.test.same-safety-error',
+        specificityPriority: 30,
+        label: 'Specific duplicate safety consequence',
+        component: 'safety',
+        predicate: { type: 'dispositionSelected', dispositionId: matchingDisposition },
+        pointsIfTrue: -120,
+        pointsIfFalse: 0,
+        classificationIfTrue: 'harmful',
+        classificationIfFalse: 'safe',
+        explanationIfTrue: 'Test-only specific safety consequence.',
+        explanationIfFalse: 'Test-only specific safety condition did not match.',
+        safetyErrorIfTrue: 'Specific retained safety error.',
+        carePointCapIfTrue: 60,
+        review,
+      },
+    );
+
+    const run = play(
+      duplicateSafetyBlueprint,
+      databasePlan.actionIds,
+      databasePlan.selections,
+      startingClinic,
+      'duplicate-safety-consequence',
+      catalogs,
+      databasePlan.diagnosisSelections,
+    );
+
+    expect(
+      run.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'rule.test.safety-general',
+      ),
+    ).toMatchObject({
+      points: 0,
+      pointsBeforeCombination: -40,
+      combinationStatus: 'deduplicated',
+      resolvedByRuleId: 'rule.test.safety-specific',
+    });
+    expect(
+      run.receipt.pointReport.ruleTrace.find(
+        (trace) => trace.ruleId === 'rule.test.safety-specific',
+      ),
+    ).toMatchObject({
+      points: -120,
+      combinationStatus: 'applied',
+    });
+    expect(run.receipt.pointReport.safetyErrors).toContain('Specific retained safety error.');
+    expect(run.receipt.pointReport.safetyErrors).not.toContain('General duplicate safety error.');
+    expect(run.receipt.pointReport.carePointCapApplied).toBe(60);
+    expect(run.receipt.pointReport.carePointsEarned).toBe(60);
+  });
 });
 
 describe('clinic upgrades and formularies', () => {

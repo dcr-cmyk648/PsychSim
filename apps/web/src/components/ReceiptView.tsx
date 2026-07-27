@@ -256,6 +256,23 @@ function PlanCard({
 type RuleTrace = CompletedAttempt['receipt']['pointReport']['ruleTrace'][number];
 type TraceComponent = RuleTrace['component'];
 
+export const formatTracePointOutcome = (
+  trace: Pick<RuleTrace, 'points' | 'combinationStatus' | 'pointsBeforeCombination'>,
+): string => {
+  const status = trace.combinationStatus ?? 'applied';
+  if (
+    status === 'applied' ||
+    trace.pointsBeforeCombination === null ||
+    trace.pointsBeforeCombination === undefined
+  ) {
+    return `${signed(trace.points)} pts`;
+  }
+  const statusLabel = displayLabel(status);
+  return `${statusLabel.charAt(0).toUpperCase()}${statusLabel.slice(1)} ${signed(
+    trace.pointsBeforeCombination,
+  )} → ${signed(trace.points)} pts`;
+};
+
 export const formatTraceProvenanceLabel = (
   evidenceAttributions: RuleTrace['evidenceAttributions'],
 ): string => {
@@ -313,9 +330,12 @@ function TraceRuleDetails({
   onFlag: (ruleId: string) => void;
 }) {
   const provenanceLabel = formatTraceProvenanceLabel(trace.evidenceAttributions);
+  const pointOutcome = formatTracePointOutcome(trace);
+  const combinationStatus = trace.combinationStatus ?? 'applied';
   const traceClasses = [
     trace.points < 0 ? 'negative-trace' : null,
     trace.classification === 'critical_omission' ? 'critical-trace' : null,
+    combinationStatus !== 'applied' ? `combined-trace ${combinationStatus}-trace` : null,
   ]
     .filter(Boolean)
     .join(' ');
@@ -330,9 +350,15 @@ function TraceRuleDetails({
         >
           {provenanceLabel}
         </small>
-        <b>{signed(trace.points)} pts</b>
+        <b>{pointOutcome}</b>
       </summary>
       <p>{trace.explanation}</p>
+      {combinationStatus !== 'applied' && trace.combinationExplanation ? (
+        <p className="trace-combination-note">
+          <b>{displayLabel(combinationStatus)}</b> · {trace.combinationExplanation}
+          {trace.resolvedByRuleId ? ` Controlling rule: ${trace.resolvedByRuleId}.` : ''}
+        </p>
+      ) : null}
       <small>
         {displayLabel(trace.classification)} ·{' '}
         {trace.matched ? 'condition met' : 'condition not met'} · rule review:{' '}
@@ -598,8 +624,12 @@ export function ReceiptView({
     return {
       component,
       label: TRACE_COMPONENT_LABELS[component],
-      pointRelevant: rules.filter((trace) => trace.points !== 0),
-      zeroPoint: rules.filter((trace) => trace.points === 0),
+      pointRelevant: rules.filter(
+        (trace) => trace.points !== 0 || (trace.combinationStatus ?? 'applied') !== 'applied',
+      ),
+      zeroPoint: rules.filter(
+        (trace) => trace.points === 0 && (trace.combinationStatus ?? 'applied') === 'applied',
+      ),
       subtotal: rules.reduce((total, trace) => total + trace.points, 0),
     };
   }).filter((group) => group.pointRelevant.length > 0 || group.zeroPoint.length > 0);

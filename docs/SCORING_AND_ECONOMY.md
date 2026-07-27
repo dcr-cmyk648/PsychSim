@@ -117,6 +117,32 @@ additional patient-specific adjustment. The current medically unreviewed mirtaza
 has a +35 insomnia fit modifier and a −50 high-BMI-without-countervailing-reason modifier. Those
 values exercise architecture and remain reviewable clinical content, not authoritative guidance.
 
+### Rule combination and override semantics
+
+Rules do not override one another merely because they are loaded later or mention the same
+treatment. A contributor may declare:
+
+- `effectId`: the one effect it represents;
+- `specificityPriority`: explicit precedence among rules for that same effect; and
+- `issueId`: the underlying error to use for worst-only negative deduplication.
+
+A more-specific rule replaces a general rule only when their non-null `effectId` values match.
+Different effects—such as primary treatment appropriateness, insomnia fit, metabolic fit, prior
+response, and a separate interaction—remain independently visible and may stack. Negative rows
+sharing one `issueId` contribute only the worst point consequence. Equal specificity for the same
+effect is a content-validation error; the engine's stable-ID tie-break exists to preserve
+determinism if an older or otherwise unvalidated snapshot reaches replay.
+
+A true hard contraindication suppresses only explicitly marked positive primary-treatment and
+fit rows for that same treatment. A high-risk but nonabsolute concern remains a negative row and
+does not erase otherwise legitimate benefits. Other earned workup, diagnosis, and disposition
+points remain separate unless their own rule says otherwise. Safety caps remain an additional,
+explicit mechanism for a critical error; suppression is not an implicit global score cap.
+
+The resolver keeps every contributor in the saved trace. `replaced`, `deduplicated`, and
+`suppressed` rows show their original points, applied zero, controlling rule, and explanation.
+This makes the engine's estimate auditable without double-counting it.
+
 Every investigation remains a genuine point cost even when it reveals nothing useful. A purchase
 does not automatically earn care points; independent workup objectives reward only authored
 essential, high-yield, or treatment-required information. Revealing a useful fact improves the
@@ -124,8 +150,8 @@ player's ability to select a fitting intervention, but it does not unlock that i
 points. All positive and negative fit modifiers evaluate the complete resolved patient state
 whether revealed or not, representing the immediate downstream effects of the submitted choice.
 Fit points stay on the treatment row, while workup cost/reward remains separate. The complete rule
-trace itemizes every applied modifier and its provenance so a player can inspect exactly why a
-choice gained or lost points.
+trace itemizes every applied or resolved modifier and its provenance so a player can inspect
+exactly why a choice gained, lost, or had points suppressed.
 
 Resolved patient facts also remain separate from what the player purchased. A prior reaction to a
 selected medication therefore affects the submitted treatment even when the player did not reveal

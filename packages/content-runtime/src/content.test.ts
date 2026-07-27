@@ -527,6 +527,20 @@ describe('prototype content', () => {
     expect(report.issues.some((issue) => issue.code === 'SCHEMA_INVALID')).toBe(true);
   });
 
+  it('rejects ambiguous same-effect rules with equal specificity', () => {
+    const invalid = structuredClone(prototypeCaseBlueprint);
+    invalid.scoreRules[0]!.effectId = 'effect.test.ambiguous';
+    invalid.scoreRules[0]!.specificityPriority = 20;
+    invalid.scoreRules[1]!.effectId = 'effect.test.ambiguous';
+    invalid.scoreRules[1]!.specificityPriority = 20;
+
+    expect(
+      validateCaseBlueprint(invalid, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'AMBIGUOUS_RULE_EFFECT_SPECIFICITY',
+      ),
+    ).toBe(true);
+  });
+
   it('tracks medical review at rule level and requires attribution for approval', () => {
     expect(
       prototypeCaseBlueprint.workupObjectives.every(
