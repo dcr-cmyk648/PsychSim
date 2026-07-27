@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.0.0",
+  "contentVersion": "2.1.0",
   "id": "medication.bupropion",
   "label": "Bupropion",
   "classes": ["NDRI antidepressant"],
-  "tags": ["expanded-outpatient-formulary", "antidepressant"],
+  "tags": ["expanded-outpatient-formulary", "antidepressant", "mdd-initial-first-line"],
   "fitModifiers": [],
   "authorOverrides": [
     {

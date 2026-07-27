@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "supplement.saffron-extract",
+  "label": "Saffron extract",
+  "normalizedName": "saffron extract",
+  "aliases": ["Crocus sativus extract"],
+  "identityCategory": "botanical",
+  "preparation": "extract",
+  "identifiers": [
+    {
+      "system": "mesh",
+      "value": "D027622",
+      "relationship": "broader_botanical",
+      "sourceRelease": "MeSH 2026",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    },
+    {
+      "system": "rxnorm",
+      "value": "1484904",
+      "relationship": "preparation_specific",
+      "sourceRelease": "RxNorm CPC 2026-07-06",
+      "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    }
+  ],
+  "identityScopeNote": "Identity-only extract record. Whole saffron or stigma and saffron extract must not be treated as interchangeable.",
+  "runtimeSelectable": false,
+  "medicalReviewStatus": "unreviewed"
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "supplement.s-adenosylmethionine",
+  "label": "S-adenosylmethionine (SAMe)",
+  "normalizedName": "S-adenosylmethionine",
+  "aliases": ["SAMe", "SAM-e", "Ademetionine", "AdoMet"],
+  "identityCategory": "amino_acid_derivative",
+  "preparation": "compound",
+  "identifiers": [
+    {
+      "system": "mesh",
+      "value": "D012436",
+      "relationship": "exact",
+      "sourceRelease": "MeSH 2026",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    },
+    {
+      "system": "rxnorm",
+      "value": "9504",
+      "relationship": "exact",
+      "sourceRelease": "RxNorm CPC 2026-07-06",
+      "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    },
+    {
+      "system": "unii",
+      "value": "7LP2MPO46S",
+      "relationship": "exact",
+      "sourceRelease": "MeSH 2026 cross-reference",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    },
+    {
+      "system": "cas",
+      "value": "29908-03-0",
+      "relationship": "exact",
+      "sourceRelease": "MeSH 2026 cross-reference",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    }
+  ],
+  "identityScopeNote": "Identity-only compound record. It does not establish psychiatric efficacy, dosing, safety, or a gameplay modifier.",
+  "runtimeSelectable": false,
+  "medicalReviewStatus": "unreviewed"
+}

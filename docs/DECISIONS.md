@@ -446,15 +446,18 @@ to identify a memorized patient. D-087 defines how multiple owners constrain the
 
 ## D-085 — Developer opinion remains a distinct provenance object when sources are attached
 
-Status: accepted as a target model; schema implementation remains pending. An authorized
+Status: accepted and implemented for the authoring catalog and local Database projection. An authorized
 psychiatrist/developer judgment is labeled `Developer opinion` and stored separately in a concise,
 versioned form. A later source review may mark a publication as supporting, contextualizing, or
 challenging/limiting that opinion, but the opinion does not become a direct guideline recommendation
 merely because a source is linked. Where the judgment is more specific or interpretive than the
 publication, the provenance remains both the publication relationship and Developer opinion.
 This supersedes D-057's assumption that an expert-opinion object can never have a formal-source
-relationship; existing `EvidenceContribution` validation remains unchanged until a dedicated
-developer-opinion/source-relation schema is implemented.
+relationship. `DeveloperOpinionCatalog` now owns the opinions and their separately reviewed
+evidence relationships. Every relationship preserves whether the publication supports,
+contextualizes, challenges, or limits the opinion, plus what interpretive bridge remains the
+developer's. The catalog is nonruntime, cannot assign points or activate a rule, and is projected
+only into the local Developer Database through a minimized schema.
 
 ## D-086 — Lawful processing and publication corrections are evidence gates
 
@@ -712,8 +715,10 @@ optimal.
 
 ## D-101 — Developer mode inventories uncited opinions without inventing sources
 
-Status: accepted and implemented as an audit surface; D-085's dedicated Developer-opinion
-provenance object remains pending. Developer mode derives a searchable list of current rule-level
+Status: accepted and implemented as an audit surface. D-085's dedicated Developer-opinion
+catalog is now implemented separately; the older inferred inventory remains useful for locating
+unattributed executable rules and does not silently convert them into accepted opinions.
+Developer mode derives a searchable list of current rule-level
 clinical claims that have no formal `EvidenceContribution`. Copies of a stable rule across patient
 scaffolds are one inventory entry with multiple owners rather than dozens of duplicate tickets.
 Existing `SourceRequest` records are linked when their target IDs overlap; uncovered entries are
@@ -1425,9 +1430,16 @@ categories require a schema allowlist and boundary tests.
 
 The current eight condition entries mean “diagnosis families modeled for gameplay,” not “complete
 diagnostic list.” The 1,112-term local ICD-10-CM authoring cache remains gitignored,
-runtime-excluded, and governed by D-102/D-103. A future full classification inspector would be a
+runtime-excluded, and governed by D-102/D-103. A full classification inspector must be a
 separate local-Developer feature unless an explicit source-rights and distribution decision
 authorizes a minimized portable index.
+
+That separate local inspector is now implemented without widening the public projection. It is
+collapsed and lazily loads the validated cache only after the developer opens it, offers bounded
+search plus one complete term reader, and carries the exact local-use attribution and notices.
+It cannot create a `DatabaseEntryReview`, enter an export, appear in Player/portable Reviewer
+bundles, change the public catalog total, or imply that a classification term is a modeled
+diagnosis, diagnostic criterion, treatment rule, point value, or medical approval.
 
 ## D-136 — Database review uses a full safe reader and immutable comment snapshots
 
@@ -1454,8 +1466,8 @@ changed.
 
 Status: accepted and implemented as a source-cleared identity slice. Each medication identity has
 one file, stable PsychSim ID, normalized ingredient name, explicit aliases, RxCUI, pinned RxNorm
-release, source/use-decision IDs, and unreviewed status. The first psychiatry-first allowlist has
-33 ingredients. Thirteen link same-ID runtime compatibility definitions; twenty are
+release, source/use-decision IDs, and unreviewed status. The psychiatry-first allowlist currently has
+53 ingredients. Thirteen link same-ID runtime compatibility definitions; 40 are
 `identity_only`. Validators require exact static-import/disk/registry parity, unique IDs, RxCUIs
 and normalized terms, complete 13-to-13 compatibility parity, source/release/use permission, and
 absence of identity-only IDs from runtime medications and formularies.
@@ -1669,3 +1681,389 @@ line height and contrast; console typography remains for labels, headings, IDs, 
 Secondary review metadata does not fall below approximately 13 px. This decision supersedes only
 the prior desktop-inline/mobile-dialog presentation described in D-123 and D-128. It changes no
 schema, patient content, clinical rule, point calculation, provenance, or approval state.
+
+## D-145 — Whole-corpus cross-reference is a local lexical audit; authority lanes stay separate
+
+**Decision:** The local Developer Database may compile one deterministic cross-reference across
+the entire explicitly enrolled personal corpus: Apple Notes title/plaintext composites, locally
+available attachment OCR, the user-authored SharePoint/residency archive, and other private Drive
+documents named in the tracked private-source catalog. “Full corpus” means this enumerated,
+hash-verified snapshot only. Every run reports complete, partial, quarantined, matched, and
+unmatched unit counts. It never hides unavailable attachment content or a missing enrolled source.
+
+The cross-reference maps exact normalized catalog names and reviewed authoring aliases to opaque
+source units. A lexical match is a retrieval signal only—not a clinical claim, diagnosis,
+recommendation, evidence relationship, Developer opinion, semantic review, incorporation, or
+approval. The database reader must show personal-source signals, semantically atomized candidate
+summaries, verified formal-source contributions, executable/proposed rules, and point magnitudes
+as distinct lanes. A source can advance through those lanes only through the existing bounded
+review and versioned-change workflow; file order and match frequency never choose a clinical
+winner.
+
+The ignored projection is mode `0600`, deterministic, fingerprinted over its exact private input
+surfaces and tracked catalogs, and served only by the local Vite development server over
+loopback. A missing projection is “not compiled”; an invalid, stale, permissively readable, or
+schema-invalid projection is quarantined and surfaced as an error. Player and portable Reviewer
+bundles, exports, and ordinary `DatabaseEntryReview` snapshots exclude the projection, its private
+unit IDs, and its Developer-only rendering code. The complete structured record in the shared
+Database reader remains the strict public projection.
+
+Personal material remains `private_processing_only` and acquires no formal-source authority.
+Public adjuncts require their own `EvidenceSourceDefinition`, item-level `SourceUseDecision`,
+required attribution/notices, and an explicit contribution before they can appear as support for a
+target. MeSH, LactMed, LiverTox, and the FDA CYP/transporter examples table enter initially as
+authoring-only source records with no automatic assertion, medication fact, interaction,
+contraindication, recommendation, rule, point, or medical approval. This decision expands D-138's
+narrow title/plaintext inventory into a broader audit; it does not change D-139 through D-142's
+stage, privacy, or review boundaries.
+
+## D-146 — “My notes” means the complete enrolled authored corpus
+
+**Decision:** When the developer asks to process or cross-reference “my notes,” scope includes
+every explicitly enrolled, authorized private authored source available to the project: Apple
+Notes title/plaintext composites and locally OCRed attachments, the SharePoint/residency article
+archive, and other private writing recorded in the private-source catalog. A topic pilot may
+prioritize that corpus, but it may never be reported as the corpus boundary.
+
+Coverage is reported independently for physical capture, deterministic unit indexing, lexical
+cross-reference, semantic classification, candidate creation, human acceptance, formal-evidence
+attachment, and executable incorporation. The Database may expose all safe local cross-reference
+lanes in Developer mode, but private prose and source paths remain outside the browser projection.
+Material the developer wrote becomes proposed `Developer opinion`; a nearby paper is a separate
+bibliographic lead until verified and linked. Neither authorship nor capture is clinical approval.
+
+“Maximum allowable public information” means the largest source-specific, provenance-preserving
+subset that the applicable source terms actually allow—not the largest technically downloadable
+subset. Every public adjunct enters the formal source registry even when its current decision is
+metadata-only. The registry and each Database entry distinguish catalog presence, processing
+permission, attached contribution, rule review, and runtime redistribution. Catalog presence
+never fills a medication field, diagnosis definition, treatment recommendation, rule, or point
+value by itself.
+
+The initial extension admits openFDA Structured Product Labeling as an authoring-only source under
+its Public Domain/CC0 dataset statement with item-level third-party safeguards. RxClass and
+DailyMed remain metadata-only until relation-source and submitted-label rights are narrowed
+respectively. Nineteen additional RxNorm-verified ingredient identities discovered while
+cross-referencing the private corpus expand the browseable medication identity catalog from 33 to
+52; all nineteen are identity-only and add no formulary, treatment, scoring, or gameplay behavior.
+
+Every source decision that permits derived clinical content now enumerates its allowed formal
+contribution types, and validation rejects a contribution outside that source-specific allowlist.
+Terminology-only MeSH cannot become treatment or scoring authority; the FDA CYP examples remain
+classification/teaching context rather than a pairwise interaction or point source; and openFDA
+remains teaching/context-only until a narrower assertion model exists. A technical ticket owns the
+remaining need for machine-readable assertion kinds and item-level third-party-material clearance.
+The local private-projection writer also canonicalizes its protected root before mutation, rejects
+root/directory/output symlinks, and uses an exclusive mode-`0600` unique temporary file before an
+atomic rename.
+
+## D-147 — Database dossiers produce fingerprint-bound review tickets, never direct rules
+
+**Decision:** A local Developer Database entry may present one deterministic decision brief above
+its detailed authority lanes. The brief summarizes corpus coverage, directly mapped semantic
+candidates, unresolved cross-target mentions, bibliography leads, formal contributions, current
+rules/points, related entries, and known gaps. It preserves candidate contribution types and safe
+resolved target roles so a reviewer can distinguish patient-fact material from medication-fit,
+safety, treatment, workup, and other authoring implications. An unresolved target mention is
+retrieval for adjudication; it does not silently resolve or promote the candidate.
+
+Saving the psychiatrist's prose creates or updates one ordinary local
+`ClinicalReviewTicket` identified by the database entry and a deterministic fingerprint of that
+entry's exact concise brief. The brief is stored in ticket guidance; the resurfacing trigger stores
+both the entry-brief fingerprint and the complete source-projection fingerprint that produced it;
+and reviewer prose remains `reviewerNotes`. An unrelated corpus change or generation timestamp
+does not hide a still-current entry review. A material change to the displayed entry brief creates
+a new historical ticket. Ordinary `DatabaseEntryReview`, Player data, and portable Reviewer exports
+remain public-only and reject these dossier tickets.
+
+The saved review may later be atomized into separate evidence/Developer-opinion, typed patient
+fact, clinical-context generation, diagnosis-compatibility, treatment-fit, safety/interaction, or
+balance proposals. Saving performs none of those transformations and cannot assign a generation
+weight, create a tag, activate a rule, change a point value, make an identity selectable, or grant
+medical approval. A potential randomization lane may show only semantically classified
+`patient_fact` candidates; lexical matches never enter it.
+
+Browser persistence is authoritative for save-and-next. Failure to mirror an already-persisted
+review into the workspace handoff is visible and retryable but does not report that the browser
+save failed or trap the reviewer on the current entry. Because local dossier tickets can contain
+concise private-corpus-derived summaries, the handoff writer accepts only fully schema-validated
+`local_developer` bundles over loopback, rejects symlink/path escape, and writes through an
+exclusive mode-`0600` temporary file and atomic rename. Manual Developer exports carry an explicit
+privacy warning.
+
+## D-148 — Objective exposure, background substances, and compact applied feedback
+
+**Decision:** A purchased investigation remains one immutable purchase. Selecting it again may
+reopen its already-resolved result, but may not spend points, reveal a new value, or append an
+event. On phone layouts the primary result-dialog action closes the dialog; the smaller secondary
+action moves to the persistent Revealed-information pane. Measured values such as weight may render
+without a present/absent chip when the status itself conveys no useful interpretation. This is a
+presentation choice only: the structured outcome remains saved and auditable. Numeric laboratory
+results continue to show value, unit, reference interval, and `N`/`H`/`L`.
+
+Player-facing prior medication history shows objective exposure—duration and highest reported
+dose—alongside adherence, response, and tolerability. It does not announce that a trial was
+“adequate.” Legacy categorical adequacy remains an internal compatibility field until historical
+saves migrate; future records keep any reviewed adequacy inference separate from the observations
+that support it.
+
+Background nonpsychiatric medications and supplement use are resolved patient state, not cosmetic
+prose or free tags. Age-dependent generation requires a separately reviewed and saved demographic
+profile; it may not consume the current noncritical display-age variant. Each exposure is an
+independently addressable regimen or supplement entry with an identity reference, status, source,
+and impact class. A “supplement enthusiast” pattern is derived from multiple resolved supplement
+entries and never inserted as an ungrounded clinical tag. Counts, age-band distributions,
+allowlists, interactions, and clinical effects remain disabled until their source and generation
+mapping are reviewed. Supplement identity records may enter the Database without becoming
+selectable treatments or making efficacy claims; a missing RxNorm concept is never fabricated.
+
+Medication-associated sexual effects belong to structured medication tolerability and point to the
+specific current-regimen entry or prior trial. `unknown`, `absent`, and `present` stay distinct.
+Medication-specific incidence data must preserve population, outcome definition, time horizon,
+uncertainty, and the separately reviewed mapping from a published estimate to a game-generation
+probability. Sexual effects are not allergies.
+
+Current-medication recommendations will target regimen-entry IDs and support the categorical
+snapshot operations `continue`, `increase`, `reduce or limit`, `taper`, and `stop`. These are
+best-next-step recommendations, not virtual taper schedules. Duplicate prescriptions therefore
+remain independently addressable. Polypharmacy-cleanup and delirium-with-polypharmacy patient
+families remain review proposals until the regimen-operation model, withdrawal/interaction safety
+rules, and safe focused pathways are source-reviewed.
+
+One broad authored case pathway continues to own most points—for example, select one reasonable
+first-line treatment—while independently traceable medication, symptom, comorbidity, prior-trial,
+substance-use, and regimen-fit effects enrich the result. Activation waits for D-083 enforcement:
+a dedicated bounded fit budget, stable issue deduplication, and suppression of positive fit bonuses
+for contraindicated interventions. The mobile receipt prioritizes one vertical list of effects
+actually applied to the submitted playthrough, with signed care points, operating cost, and links
+to related rule traces. General rules that did not fire remain separately labeled audit material
+and must not be blended into that applied list.
+
+## D-149 — In-encounter review notes are private scratchpads, not gameplay
+
+**Decision:** Local Developer mode and the portable Reviewer build expose an optional note
+scratchpad while a patient encounter is in progress. It is a review aid only. The note is never an
+encounter command, clinical fact, purchased result, treatment selection, score input, or part of
+deterministic replay. Standard and Endgame play do not render the surface.
+
+The draft is stored in a dedicated IndexedDB object store keyed by the exact resolved
+`CaseInstance.id`. It autosaves after a short debounce and flushes on blur, backgrounding, leaving
+the encounter, and submission. Returning to the same persisted patient restores that draft. On
+submission, a nonblank draft becomes the editable `DeveloperAttemptReview.reviewerNote` attached
+to the immutable completed-attempt and offered-options snapshots. The primary save and draft
+deletion occur in one IndexedDB transaction so a completed draft cannot be lost or resurrected.
+Local Developer mode then mirrors the ordinary fixed Codex handoff bundle; the portable Reviewer
+includes the review in its ordinary JSON export. A draft that has not reached submission is local
+to that browser and is not independently exported.
+
+On narrow screens the scratchpad is a fixed 56-pixel bottom bar that opens into a readable drawer,
+following the useful interaction pattern in the Fractured Fate writing workbench. Desktop uses a
+compact fixed review panel. The control has a semantic toggle, visible label, save-status
+announcement, Escape-to-close behavior, focus restoration, safe-area handling, and
+`VisualViewport` adjustment for the software keyboard. Reviewers must not enter real patient
+information or other identifiable material.
+
+## D-150 — Review packets fan out knowledge and prioritize foundational decisions
+
+**Decision:** A completed review packet is atomized by authority and target rather than copied
+wholesale into one medication or diagnosis file. Formal findings remain
+`EvidenceContribution` records, accepted psychiatrist interpretations remain separate
+`DeveloperOpinion` records, and exact point values remain a later balance decision. The local
+Database projection resolves each formal contribution and opinion onto every explicitly named
+target entry, regardless of which tracked definition physically owns the contribution. This lets a
+clozapine-augmentation review also enrich aripiprazole, memantine, mirtazapine, and schizophrenia
+dossiers without duplicating claims or making identity-only medications playable.
+
+Exact doses, exposure ranges, or formulation details found during review may be retained in a
+source-scoped authoring note when relevant to future dose-change mechanics. Retention does not add
+milligram-entry gameplay, a dose rule, or permission to generalize an oral result to a long-acting
+formulation. Long-acting aripiprazole availability can inform a separately labeled Developer
+opinion about routine adherence practicality; it does not establish that the long-acting
+formulation has been studied as clozapine augmentation. Repeated or maintenance ECT practicality
+and involuntary/court-ordered availability remain separate considerations. No case may assume
+involuntary ECT is available or lawful without jurisdiction-specific legal or policy review.
+
+The one-packet-at-a-time queue normally proceeds from the highest-reuse, highest-foundational
+questions to narrower edge cases: shared encounter decisions and safety prerequisites first,
+common diagnosis pathways next, common medication/class fit and interactions after that, and rare
+augmentation scenarios later. A narrower packet may move earlier when it is already blocking a
+specific patient or tests a needed authoring mechanism, but its completion does not displace the
+foundational queue. Every packet states whether it changed only bibliography, formal
+contributions, Developer opinions, generation proposals, executable rules, or point balance.
+
+## D-151 — Initial MDD medication scoring uses one broad route plus separate fit
+
+**Decision:** For a focused, uncomplicated adult MDD snapshot that has already reached the
+initial-medication decision, starting exactly one currently reviewed first-line antidepressant is
+one dominant primary route. The current runtime set is sertraline, escitalopram, fluoxetine,
+bupropion, and mirtazapine. These five receive the same primary-route value; this does not rank
+them universally, make them available in every formulary, or erase patient-specific safety,
+interaction, prior-response, preference, feasibility, or fit differences.
+
+CANMAT support and the psychiatrist's accepted interpretation remain separately attributable.
+The qualitative diagnosis-owned rule is approved by Dustin Rowland. The prototype maps it to a
+provisional +200 care-point grade and allows separately itemized smaller medication-fit effects
+inside the existing medication-selection budget. Those exact magnitudes remain medically
+unreviewed game balance and may be retuned from patient review. Multiple simultaneous
+antidepressant starts remain governed by the separate nonparsimonious/harmful rule and safety cap.
+The focused decision tag prevents this initial-treatment rule from leaking into nonresponse,
+intolerance, bipolar, maintenance, or other MDD states.
+
+## D-152 — Every discovered source and semantic target gets an explicit landing state
+
+**Decision:** A newly referenced formal resource first receives one stable evidence-source record,
+which makes it a separately readable Database reference entry. Registration does not integrate
+the source into every medication or condition. A source-review ticket or source request then owns
+the later claim extraction, target selection, conflict review, and attachment work. A source may
+remain registered but unattached indefinitely; the Database must label that state rather than
+imply incorporation.
+
+Every atomized unresolved semantic target is retained in the local catalog-identity audit. The
+cross-reference compiler classifies it as one likely existing entry, multiple ambiguous existing
+entries, a proposed new medication/condition/intervention/test entry, a non-catalog rule/tag/
+template target, or a target whose kind still needs review. It also recomputes normalized terms
+owned by multiple catalog entries on every run. Neither likely matches nor overlaps are merged
+automatically. Unclear identity, synonym, parent/child, formulation, or diagnosis-boundary choices
+require Developer approval. Schema parity rejects a projection that drops an unresolved target,
+and the local Developer Database exposes both the landing audit and overlap inventory.
+
+This is the comprehensive-capture guarantee: raw source units remain preserved before semantic
+review; atomized facts cannot disappear for lack of an existing bin; and executable content still
+requires its ordinary provenance, clinical review, validation, and versioning gates.
+
+## D-153 — Diagnosis answers may be blank, broad, unspecified, or specific
+
+**Decision:** A player is never forced to submit a diagnosis. Blank is a valid structured answer
+state, although a case may assign a transparent omission consequence. Diagnosis selection remains
+separate from internal patient truth and cannot change treatment-fit, workup, safety, or
+disposition facts.
+
+The diagnosis catalog will explicitly model reviewed parent/child relationships among broad
+categories, unspecified clinical labels, diagnosis families, and supported specific diagnoses;
+the engine must not infer hierarchy from names or code prefixes. A case rubric can then give a
+correct broad or unspecified family meaningful partial credit, a correctly supported specific
+answer more credit, and an unrelated family zero credit or a case-specific negative/safety
+consequence when the misclassification would materially redirect care. “Unspecified depression”
+and “unspecified psychosis” are legitimate future selectable entries, not UI aliases for MDD or
+schizophrenia.
+
+The current diagnosis-answer engine already preserves a blank selection and supports explicit
+canonical, reasonable-alternative, partial, omission, and misclassification rows. Catalog
+hierarchy and reusable descendant matching remain a bounded follow-up; until then, partial-family
+credit must be authored explicitly in each case rubric rather than guessed.
+
+## D-154 — Initial-MDD emergency escalation retains a dominant consequence after rebalance
+
+**Decision:** Raising the broad initial-MDD medication route from +100 to +200 must not make an
+unnecessary emergency transfer materially less consequential. Its provisional disposition row
+changes from −450 to −500. D-155's treatment-triggered workup rewards later raised the escalated
+run above half the efficient database-plan payout, so its provisional care-point cap changes from
+200 to 75 to preserve the intended ordering with a small balance margin.
+
+These are game-balance preservation steps, not medical approval of the exact −500 value or cap.
+`ticket.source.canmat-mdd.disposition-severity` remains unresolved and still owns clinical review
+of the structured facts, disposition direction, and eventual magnitude. The adjustment applies
+only to the authored prototype snapshot and does not create a reusable emergency-disposition rule.
+
+## D-155 — Focused assessment rules retain treatment triggers, concern, and certainty
+
+**Decision:** The assessment rubric follows the focused snapshot and the submitted intervention;
+it is not one universal psychiatric checklist. The approved initial-MDD policy is:
+
+- **P1:** Depressive-symptom assessment is central to this initial-MDD decision but is not required
+  in every psychiatric encounter.
+- **P2:** Episode course, current depressive symptoms, functional effect, and this patient's
+  safety-relevant presentation form the core workup before treatment selection.
+- **P3:** Starting an antidepressant activates prior-mania/hypomania history. Starting no
+  antidepressant does not. Later reviewed medication- or class-specific rules may change the
+  magnitude without changing that trigger architecture.
+- **P4:** Starting any medication activates medication reconciliation. A future staff automation
+  can fulfill the same investigation at a lower operating cost; it cannot waive it.
+- **P5:** Starting any medication activates allergy and adverse-reaction history.
+- **P6:** A resolved prior reaction to the selected medication affects the treatment consequence
+  whether or not the player purchased the history. Purchasing information reveals patient state;
+  it never creates that state.
+- **P7:** Substance-use history is broadly rewarded for MDD, anxiety, and other presentations
+  commonly caused or worsened by substances. The omission consequence remains contextual rather
+  than automatically safety-critical.
+
+Reusable qualitative rules store trigger, patient scope, target, concern, certainty, rationale,
+provenance, and review independently from executable game balance. The current initial-MDD
+mapping uses strong certainty with moderate-to-critical concern labels and provisional workup
+values. Missing an activated necessary item renders as a red `critical_omission`; only a separately
+declared `safetyCritical` omission enters the safety-error list.
+
+The shared exact-same-medication reaction layer evaluates the pre-resolved patient record, chooses
+only the worst matching reaction policy per selected medication, and cannot be neutralized by
+failing to reveal the history. Its current severity-to-point mapping is medically unreviewed
+provisional balance. It must yield to a future more-specific reviewed medication/reaction rule and
+must not be mistaken for a general determination that every charted “allergy” is immune-mediated
+or absolutely contraindicating.
+
+## D-156 — Provisional balance starts from impact bands while certainty remains separate
+
+**Decision:** Use consistent default bands when an approved qualitative direction needs an initial
+game-balance estimate:
+
+- a dominant primary route starts near +200;
+- minor effects start near ±5–10;
+- moderate effects start near ±15–30;
+- major effects start near ±35–100; and
+- critical safety effects start near −150 to −500 and may impose a care-point cap.
+
+These values are authoring defaults, not an automatic clinical calculator or final balance. The
+executable rule stores its exact value, and a more-specific medication, diagnosis, interaction, or
+patient rule may override the starting estimate. Necessary investigation reward must still exceed
+its accessible cost. Critical contraindications receive no positive goodness-of-fit bonuses, and
+score caps preserve the rule that accumulated small bonuses cannot rescue a critical error.
+
+Clinical concern and evidence certainty remain independent. Certainty does not automatically scale
+points up or down: a serious but uncertain hazard should not become low-impact merely because the
+evidence is limited. Certainty instead remains visible in provenance, review requirements, and
+reuse eligibility.
+
+## D-157 — The personal knowledge database is a first-class learning product
+
+**Decision:** PsychSim has two compatible outputs from one coherent knowledge architecture:
+
+1. a comprehensive private authoring database representing the developer's accumulated notes,
+   authored teaching material, formal sources, interpretations, disagreements, and gaps; and
+2. a deliberately narrow, legible game compiled from reviewed decision-relevant portions of that
+   database.
+
+The database should help the developer audit why they believe something, distinguish personal
+judgment from source claims, identify weak, stale, missing, or conflicting coverage, receive
+bounded suggestions for recent reading, and improve retention through repeated dossier review and
+patient play. This learning loop resembles preparing to teach a class. Captured knowledge does not
+need an immediate gameplay use to be worth preserving.
+
+Database completeness and gameplay readiness are separate. A comprehensive dossier does not make
+its claims executable, and a focused reviewed game rule does not imply that the surrounding
+database entry is comprehensive. Reading suggestions remain proposals until reviewed; personal
+notes remain Developer opinion unless independently supported; and only reviewed, focused rules
+plus applicable safety constraints compile into an encounter.
+
+## D-158 — Knowledge coverage is a sparse derived audit, never a second database
+
+**Decision:** Use a multidimensional dossier coverage map only under the following constraints:
+
+- it is derived from canonical source units, evidence relationships, Developer opinions, review
+  records, rules, and gameplay mappings;
+- it stores or displays the exact supporting IDs rather than copying clinical claims;
+- it distinguishes unknown or unfinished review from demonstrated absence;
+- it never blocks entry creation, drops unmatched data, filters the source corpus, promotes a
+  claim, or determines runtime inclusion;
+- it has no aggregate completeness percentage;
+- it remains local-Developer-only and loads lazily for one dossier at a time; and
+- recent-reading suggestions remain separately reviewable search proposals.
+
+The initial dimensions are identity/regulatory baseline, personal knowledge, formal-evidence
+coverage, currentness, disagreement/uncertainty, reviewed psychiatrist interpretation, and
+gameplay mapping. Dimensions are sparse: `not_applicable` and `unknown` are valid, and adding a
+source must not require manually editing every related dossier. Unresolved or unrecognized
+material remains visible in the existing landing/identity-gap audit, preventing a polished
+coverage display from hiding useful data that has not yet been atomized.
+
+This decision authorizes the architecture and future local projection, not an immediate large UI
+or schema migration. Begin with one entry and measure utility, rebuild cost, and omission behavior
+before expanding it.

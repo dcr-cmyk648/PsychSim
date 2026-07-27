@@ -1,10 +1,61 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "medication.aripiprazole",
   "label": "Aripiprazole",
   "classes": ["second-generation antipsychotic"],
   "tags": ["antipsychotic", "bipolar-treatment", "cyp2d6-substrate", "akathisia-risk"],
   "fitModifiers": [],
-  "authorOverrides": []
+  "authorOverrides": [],
+  "sourceUseNotes": [
+    {
+      "id": "source-use.medication-aripiprazole.fda-oral-indications-2025",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.fda.abilify-oral-label.2025-01"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": [
+        "medication.aripiprazole",
+        "diagnosis.schizophrenia-spectrum-disorder",
+        "diagnosis.bipolar-spectrum-disorder",
+        "diagnosis.major-depressive-disorder"
+      ],
+      "contributionTypes": ["treatment", "medication_fit", "context_only"],
+      "contribution": "The January 2025 U.S. oral aripiprazole label lists schizophrenia, acute bipolar I manic or mixed episodes, adjunctive major-depressive-disorder treatment, autism-associated irritability, and Tourette disorder. Clozapine augmentation is not a listed indication; regulatory status is separate from comparative-effectiveness evidence.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "source-use.medication-aripiprazole.fda-lai-formulation-2025",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.fda.abilify-maintena-label.2025-01"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": [
+        "medication.aripiprazole",
+        "diagnosis.schizophrenia-spectrum-disorder",
+        "diagnosis.bipolar-spectrum-disorder"
+      ],
+      "contributionTypes": ["treatment", "medication_fit", "context_only"],
+      "contribution": "A long-acting injectable aripiprazole formulation is listed in the United States for adult schizophrenia and bipolar I maintenance monotherapy. Formulation availability may inform adherence practicality, but it does not establish efficacy for long-acting aripiprazole used with clozapine.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "source-use.medication-aripiprazole.tiihonen-2019-clozapine-combination",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": [
+        "medication.aripiprazole",
+        "medication.clozapine",
+        "diagnosis.schizophrenia-spectrum-disorder"
+      ],
+      "contributionTypes": ["treatment", "medication_fit", "teaching_point"],
+      "contribution": "In a Finnish nationwide observational cohort, clozapine plus aripiprazole was associated with lower psychiatric rehospitalization than clozapine monotherapy. This supports a real-world effectiveness signal, not causal proof, an acute symptom claim, or a general endorsement of antipsychotic polypharmacy.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
 }

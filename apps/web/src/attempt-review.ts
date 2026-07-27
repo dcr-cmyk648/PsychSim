@@ -76,6 +76,9 @@ export const buildDeveloperAttemptReview = ({
   }
 
   const selected = attempt.submittedTreatment;
+  const selectedDiagnosisIds = new Set(
+    attempt.submittedDiagnoses.map((selection) => selection.diagnosisId),
+  );
   const startedMedicationIds = new Set(selected.startMedicationIds);
   const stoppedMedicationIds = new Set(selected.stopMedicationIds);
   const continuedMedicationIds = new Set(selected.continueMedicationIds);
@@ -105,6 +108,23 @@ export const buildDeveloperAttemptReview = ({
       pointCost: fulfillment.value.method.operatingCost,
     };
   };
+
+  for (const diagnosis of catalogs.diagnoses.filter(
+    (candidate) => candidate.selectableInGameplay,
+  )) {
+    options.push({
+      kind: 'diagnosis',
+      optionId: diagnosis.id,
+      label: diagnosis.label,
+      category: 'Diagnosis',
+      description: diagnosis.description,
+      serviceId: null,
+      fulfillmentMethodId: null,
+      fulfillmentLabel: null,
+      pointCost: null,
+      selected: selectedDiagnosisIds.has(diagnosis.id),
+    });
+  }
 
   for (const action of attempt.caseInstance.informationActions) {
     const definition = requiredCatalogEntry(

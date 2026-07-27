@@ -58,13 +58,15 @@ interventions. That is enough to exercise the prototype, but not enough to disti
 Official and comparative data must not be poured directly into the current `classes`, `tags`, or
 `fitModifiers` fields. The current records remain the compatibility/runtime layer.
 
-The first identity-only slice is now implemented separately. Thirty-three curated
+The current identity slice is implemented separately. Fifty-three curated
 `MedicationIdentityDefinition` files carry normalized ingredient names, explicit aliases, RxCUIs,
 the pinned July 6, 2026 RxNorm CPC release, source/use-decision IDs, and unreviewed status.
-Thirteen link the existing same-ID runtime records; twenty are browseable authoring identities
+Thirteen link the existing same-ID runtime records; 40 are browseable authoring identities
 with no gameplay class, formulary membership, treatment availability, rule, or point effect.
 Validation locks that separation. Classification memberships, regulatory facts, evidence claims,
-Developer opinions, and compilation into additional runtime treatments remain future work.
+and compilation into additional runtime treatments remain future work. A first nonruntime
+Developer-opinion catalog is implemented: it preserves accepted psychiatrist interpretations and
+their separately typed evidence relationships without creating a clinical rule or point value.
 
 ## Five separate knowledge layers
 
@@ -239,6 +241,13 @@ commercial references may be consulted privately by a lawful subscriber, but the
 stored, pasted into prompts, or treated as reusable formal support unless the relevant terms or
 written permission allow the intended transformation.
 
+The tracked `content/catalogs/evidence/opinions/developer-opinions.json` catalog implements this
+boundary for accepted opinions. Each relationship records its type, concise source-specific
+support, applicability limits, remaining interpretive bridge, source-use decision, and independent
+review. The local dossier compiler fans an opinion and each formal contribution out to all
+explicitly targeted medication, diagnosis, intervention, or test entries. It never copies the
+claim into those files, promotes an identity-only medication, or changes gameplay.
+
 ### User-authored residency archive
 
 The user's long aggregate of previously authored residency-site articles is a high-value starting
@@ -341,6 +350,27 @@ may use categorical intent plus pair-specific compatibility; it must not introdu
 infer a safe cross-taper from start/stop selections alone. These packets neither remove the current
 case-specific shotgun consequence nor generalize it into a universal interaction or
 contraindication. No runtime rule or point value changed.
+
+The next regimen record targets one current entry—not merely its ingredient—so duplicate
+prescriptions can be distinguished. Its snapshot operations are `continue`, `increase`,
+`reduce_or_limit`, `taper`, and `stop`. These labels describe the immediate recommendation only;
+they do not encode a schedule or virtual follow-up. Polypharmacy-cleanup and
+delirium-with-polypharmacy cases remain quarantined proposals until withdrawal, interaction, and
+focused-decision rules have exact provenance and at least one safe reference route.
+
+Nonpsychiatric medications and supplements use identity records plus patient-owned exposure
+entries. Six initial supplement identities—ashwagandha, lavender oil, L-theanine, magnesium,
+S-adenosylmethionine, and saffron extract—are browseable identity-only scaffolds. Their MeSH and,
+where exact, RxNorm identifiers establish identity and preparation distinctions only. They do not
+establish efficacy, interactions, adverse effects, prevalence, or scoring, and they remain
+unselectable. Age-banded counts and a supplement-enthusiast pattern require a separately reviewed
+generation profile.
+
+Medication-associated sexual effects belong in tolerability facts tied to a specific current
+regimen entry or prior trial. `unknown`, `absent`, and `present` are not interchangeable. A source
+rate must keep its population, outcome definition, time horizon, and uncertainty; a distinct
+reviewed mapping determines whether and how it may generate a game finding. This prevents a
+published aggregate incidence from becoming an unexplained patient-level probability.
 
 ## File ownership and the “one medication file” editing experience
 

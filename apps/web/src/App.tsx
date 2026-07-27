@@ -9,6 +9,7 @@ import {
   type CompletedAttempt,
   type ContentFlag,
   type DatabaseEntryReview,
+  type DeveloperDatabaseKnowledgeProjection,
   type EncounterState,
   type LiteratureSynthesisProposal,
   type PersonalKnowledgeWorkbenchProjection,
@@ -44,8 +45,9 @@ import {
 } from '@psychsim/engine';
 
 import { ClinicHub, type PatientSlotPreview } from './components/ClinicHub';
-import { DatabaseBrowser } from './components/DatabaseBrowser';
+import { DatabaseBrowser, type DatabaseDossierReviewFeedback } from './components/DatabaseBrowser';
 import { DistributionControls } from './components/DistributionControls';
+import { EncounterScratchpad } from './components/EncounterScratchpad';
 import { EncounterView } from './components/EncounterView';
 import { MobileWorkflowTabs, type MobileWorkflowPane } from './components/MobileWorkflowTabs';
 import { ReceiptView, type GuidanceDraft } from './components/ReceiptView';
@@ -54,18 +56,19 @@ import { buildDatabaseEntryReview } from './database-review';
 import { mergeDeveloperAuditTickets } from './developer-review-state';
 import { IndexedDbSaveRepository } from './persistence';
 import { buildReferenceSolutionAudit } from './reference-audit';
+import { useEncounterScratchpad } from './useEncounterScratchpad';
 
 type Screen = 'hub' | 'database' | 'encounter' | 'receipt';
 
 const REVIEWER_BUILD = import.meta.env.VITE_PSYCHSIM_REVIEW_BUILD === '1';
+const LOCAL_DEVELOPER = import.meta.env.DEV && !REVIEWER_BUILD;
 const REVIEW_TOOLS_ENABLED = import.meta.env.DEV || REVIEWER_BUILD;
 const reviewExportTools = REVIEW_TOOLS_ENABLED ? import('./review-export') : null;
-const localTicketWriterTools =
-  import.meta.env.DEV && !REVIEWER_BUILD ? import('./ticket-tools') : null;
-const personalKnowledgeWorkbenchTools =
-  import.meta.env.DEV && !REVIEWER_BUILD ? import('./components/PersonalKnowledgeWorkbench') : null;
-const sourceReviewTicketTools =
-  import.meta.env.DEV && !REVIEWER_BUILD ? import('./source-review-tickets') : null;
+const localTicketWriterTools = LOCAL_DEVELOPER ? import('./ticket-tools') : null;
+const personalKnowledgeWorkbenchTools = LOCAL_DEVELOPER
+  ? import('./components/PersonalKnowledgeWorkbench')
+  : null;
+const sourceReviewTicketTools = LOCAL_DEVELOPER ? import('./source-review-tickets') : null;
 
 const createInitialSave = (): SaveData =>
   SaveDataSchema.parse({
@@ -144,6 +147,7 @@ export default function App() {
     useState<TicketLiteratureScoutCatalog | null>(null);
   const [saveData, setSaveData] = useState<SaveData | null>(null);
   const [sourceReviewFeedError, setSourceReviewFeedError] = useState<string | null>(null);
+  const [developerKnowledgeError, setDeveloperKnowledgeError] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>('hub');
   const [mobileWorkflowPane, setMobileWorkflowPane] = useState<MobileWorkflowPane>('patient');
   const [encounter, setEncounter] = useState<EncounterState | null>(null);
@@ -155,19 +159,72 @@ export default function App() {
   const [upgradeStatus, setUpgradeStatus] = useState<string | null>(null);
   const [personalKnowledgeWorkbench, setPersonalKnowledgeWorkbench] = useState<{
     Component: ComponentType<{ projection: PersonalKnowledgeWorkbenchProjection | null }>;
+    DatabasePanel: ComponentType<{
+      knowledge: DeveloperDatabaseKnowledgeProjection;
+      record: DeveloperDatabaseKnowledgeProjection['records'][number];
+      onOpenRelated: (entryId: string) => void;
+    }>;
+    DatabaseScope: ComponentType<{ knowledge: DeveloperDatabaseKnowledgeProjection }>;
+    ClassificationInspector: ComponentType;
+    buildDossierReviewTicket: (input: {
+      knowledge: DeveloperDatabaseKnowledgeProjection;
+      record: DeveloperDatabaseKnowledgeProjection['records'][number];
+      reviewerNotes: string;
+      timestamp: string;
+      existingTicket?: ClinicalReviewTicket;
+    }) => ClinicalReviewTicket;
+    findCurrentDossierReview: (
+      knowledge: DeveloperDatabaseKnowledgeProjection,
+      entryId: string,
+      tickets: readonly ClinicalReviewTicket[],
+    ) => ClinicalReviewTicket | undefined;
     projection: PersonalKnowledgeWorkbenchProjection | null;
+    databaseProjection: DeveloperDatabaseKnowledgeProjection | null;
   } | null>(null);
+  const encounterScratchpadEnabled =
+    REVIEW_TOOLS_ENABLED &&
+    encounterMode === 'developer' &&
+    screen === 'encounter' &&
+    encounter?.status === 'in_progress';
+  const encounterScratchpad = useEncounterScratchpad({
+    repository,
+    enabled: encounterScratchpadEnabled,
+    caseInstance: encounterScratchpadEnabled && encounter ? encounter.caseInstance : null,
+  });
 
   useEffect(() => {
     let active = true;
     if (!personalKnowledgeWorkbenchTools) return;
     void personalKnowledgeWorkbenchTools.then(async (module) => {
-      const projection = await module.loadPersonalKnowledgeWorkbench();
-      if (active) {
-        setPersonalKnowledgeWorkbench({
-          Component: module.PersonalKnowledgeWorkbench,
-          projection,
-        });
+      try {
+        const [projection, databaseProjection] = await Promise.all([
+          module.loadPersonalKnowledgeWorkbench(),
+          module.loadDeveloperDatabaseKnowledge(),
+        ]);
+        if (!databaseProjection) {
+          throw new Error('Compile and validate the local Developer database projection.');
+        }
+        if (active) {
+          setDeveloperKnowledgeError(null);
+          setPersonalKnowledgeWorkbench({
+            Component: module.PersonalKnowledgeWorkbench,
+            DatabasePanel: module.DeveloperDatabaseKnowledgePanel,
+            DatabaseScope: module.DeveloperDatabaseKnowledgeScope,
+            ClassificationInspector: module.DeveloperDiagnosisClassificationInspector,
+            buildDossierReviewTicket: module.buildDeveloperDatabaseDossierReviewTicket,
+            findCurrentDossierReview: module.findCurrentDeveloperDatabaseDossierReview,
+            projection,
+            databaseProjection,
+          });
+        }
+      } catch (caught) {
+        if (active) {
+          setDeveloperKnowledgeError(
+            caught instanceof Error
+              ? `Local knowledge compilation unavailable: ${caught.message}`
+              : 'Local knowledge compilation is unavailable.',
+          );
+        }
       }
     });
     return () => {
@@ -354,6 +411,21 @@ export default function App() {
     if (slot) openEncounter(slot.casePreview, slot.locationId, slot.id);
   };
 
+  const exitEncounter = async (): Promise<void> => {
+    try {
+      if (encounterScratchpadEnabled) {
+        await encounterScratchpad.flush();
+      }
+      setScreen('hub');
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? `The case note could not be saved before leaving: ${caught.message}`
+          : 'The case note could not be saved before leaving.',
+      );
+    }
+  };
+
   const continueDeveloperReview = (): void => {
     const nextSlot = patientSlots[0] ?? null;
     if (nextSlot) {
@@ -518,9 +590,13 @@ export default function App() {
   const finishEncounter = async (): Promise<void> => {
     if (!saveData || !encounter) return;
     try {
+      const scratchpadNote = encounterScratchpadEnabled
+        ? (await encounterScratchpad.flush()).trim()
+        : '';
       const completed = requireCompleted(completeEncounter(encounter, catalogs));
       const attemptNumber = saveData.attempts.length + 1;
       const attemptId = `attempt.${completed.state.caseInstance.blueprintId}.${attemptNumber}`;
+      const completedAt = new Date().toISOString();
       const completedAttempt = CompletedAttemptSchema.parse({
         schemaVersion: 1,
         id: attemptId,
@@ -532,10 +608,21 @@ export default function App() {
         clinicStateAtStart: completed.state.clinicState,
         events: completed.state.events,
         purchases: completed.state.purchases,
+        submittedDiagnoses: completed.state.diagnosisSelections,
         submittedTreatment: completed.state.selections,
         receipt: completed.receipt,
-        completedAt: new Date().toISOString(),
+        completedAt,
       });
+      const scratchpadReview =
+        scratchpadNote && REVIEW_TOOLS_ENABLED && encounterMode === 'developer'
+          ? buildDeveloperAttemptReview({
+              attempt: completedAttempt,
+              catalogs,
+              engineVersion: ENGINE_VERSION,
+              reviewerNote: scratchpadNote,
+              timestamp: completedAt,
+            })
+          : null;
       const settlement = completed.receipt.settlement;
       const updatedClinic = {
         ...saveData.profile.clinic,
@@ -563,13 +650,35 @@ export default function App() {
         },
         patientQueues,
         attempts: [...saveData.attempts, completedAttempt],
+        attemptReviews: scratchpadReview
+          ? [...saveData.attemptReviews, scratchpadReview]
+          : saveData.attemptReviews,
       });
-      await persist(nextSave);
+      if (REVIEW_TOOLS_ENABLED && encounterMode === 'developer') {
+        await repository.saveAndDeleteEncounterScratchpad(
+          nextSave,
+          completed.state.caseInstance.id,
+        );
+        setSaveData(nextSave);
+        encounterScratchpad.clearAfterCompletion();
+      } else {
+        await persist(nextSave);
+      }
       setEncounter(completed.state);
       setAttempt(completedAttempt);
       setActiveSlotId(null);
       setMobileWorkflowPane('results');
       setScreen('receipt');
+      if (scratchpadReview && REVIEWER_BUILD) {
+        setTicketToolStatus(
+          'Your in-case note is attached to this exact attempt and will be included in the next feedback export.',
+        );
+      } else if (scratchpadReview && LOCAL_DEVELOPER) {
+        await writeTicketsToWorkspace(
+          nextSave,
+          `Saved your in-case notes for ${completedAttempt.caseInstance.opening.title} with the exact attempt snapshot and updated the Codex handoff file.`,
+        );
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The encounter could not be settled.');
     }
@@ -593,6 +702,7 @@ export default function App() {
       engineVersion: ENGINE_VERSION,
       attemptId: attempt.id,
       eventHistory: attempt.events,
+      diagnosisSelections: attempt.submittedDiagnoses,
       treatmentSelections: attempt.submittedTreatment,
       pointReport: attempt.receipt.pointReport,
       disputedItemId: draft.disputedItemId,
@@ -713,8 +823,15 @@ export default function App() {
     if (!tools) return;
     const { downloadClinicalTicketBundle } = tools;
     downloadClinicalTicketBundle(bundle);
+    const includesPrivateDossierSummary = bundle.tickets.some((ticket) =>
+      ticket.id.startsWith('ticket.database-dossier.'),
+    );
     setTicketToolStatus(
-      `Download started for one versioned JSON bundle with ${bundle.completedAttempts.length} completed case(s), ${bundle.attemptReviews.length} case review(s), ${bundle.databaseEntryReviews.length} database comment(s), ${bundle.flags.length} flag(s), and ${bundle.tickets.length} ticket(s). Confirm that the file appears in your browser's downloads before clearing this device.`,
+      `Download started for one versioned JSON bundle with ${bundle.completedAttempts.length} completed case(s), ${bundle.attemptReviews.length} case review(s), ${bundle.databaseEntryReviews.length} database comment(s), ${bundle.flags.length} flag(s), and ${bundle.tickets.length} ticket(s). Confirm that the file appears in your browser's downloads before clearing this device.${
+        includesPrivateDossierSummary
+          ? ' This local Developer export contains concise summaries derived from your private corpus; keep it private.'
+          : ''
+      }`,
     );
   };
 
@@ -723,9 +840,9 @@ export default function App() {
     successMessage?: string,
   ): Promise<boolean> => {
     if (REVIEWER_BUILD || !import.meta.env.DEV || !sourceSave) return false;
-    const bundle = await ticketBundleFor(sourceSave);
-    if (!bundle) return false;
     try {
+      const bundle = await ticketBundleFor(sourceSave);
+      if (!bundle) return false;
       const tools = await localTicketWriterTools;
       if (!tools) return false;
       const { writeClinicalTicketBundleToWorkspace } = tools;
@@ -826,10 +943,11 @@ export default function App() {
       );
       return true;
     }
-    return writeTicketsToWorkspace(
+    await writeTicketsToWorkspace(
       nextSave,
       `Saved your review of ${attempt.caseInstance.opening.title} with the exact attempt snapshot and updated the Codex handoff file.`,
     );
+    return true;
   };
 
   const saveDatabaseEntryReview = async (
@@ -837,10 +955,70 @@ export default function App() {
     reviewerNote: string,
   ): Promise<boolean> => {
     if (!REVIEW_TOOLS_ENABLED || !saveData) return false;
+    const normalizedNote = reviewerNote.trim();
+    if (
+      LOCAL_DEVELOPER &&
+      (!developerDatabaseKnowledge ||
+        !personalKnowledgeWorkbench?.buildDossierReviewTicket ||
+        !personalKnowledgeWorkbench.findCurrentDossierReview)
+    ) {
+      setTicketToolStatus(
+        developerKnowledgeError ??
+          'The local knowledge dossier is still loading. Your interpretation has not been saved yet.',
+      );
+      return false;
+    }
+    const developerRecord = developerDatabaseKnowledge?.records.find(
+      (candidate) => candidate.entryId === entry.id,
+    );
+    if (LOCAL_DEVELOPER && !developerRecord) {
+      setTicketToolStatus(
+        `The local knowledge dossier has no validated record for “${entry.label}”. Your interpretation has not been saved.`,
+      );
+      return false;
+    }
+    if (
+      developerDatabaseKnowledge &&
+      developerRecord &&
+      personalKnowledgeWorkbench?.buildDossierReviewTicket &&
+      personalKnowledgeWorkbench.findCurrentDossierReview
+    ) {
+      const existingTicket = personalKnowledgeWorkbench.findCurrentDossierReview(
+        developerDatabaseKnowledge,
+        entry.id,
+        saveData.clinicalTickets,
+      );
+      const clinicalTickets = normalizedNote
+        ? [
+            ...saveData.clinicalTickets.filter((candidate) => candidate.id !== existingTicket?.id),
+            personalKnowledgeWorkbench.buildDossierReviewTicket({
+              knowledge: developerDatabaseKnowledge,
+              record: developerRecord,
+              reviewerNotes: normalizedNote,
+              timestamp: new Date().toISOString(),
+              ...(existingTicket ? { existingTicket } : {}),
+            }),
+          ]
+        : saveData.clinicalTickets.filter((candidate) => candidate.id !== existingTicket?.id);
+      const nextSave = SaveDataSchema.parse({
+        ...saveData,
+        clinicalTickets,
+        databaseEntryReviews: saveData.databaseEntryReviews.filter(
+          (candidate) => candidate.entryId !== entry.id,
+        ),
+      });
+      await persist(nextSave);
+      await writeTicketsToWorkspace(
+        nextSave,
+        normalizedNote
+          ? `Saved your interpretation of “${entry.label}” with the exact dossier brief and updated the Codex handoff file.`
+          : `Removed the current dossier interpretation for “${entry.label}” and updated the Codex handoff file.`,
+      );
+      return true;
+    }
     const existingReview = saveData.databaseEntryReviews.find(
       (candidate) => candidate.entryId === entry.id,
     );
-    const normalizedNote = reviewerNote.trim();
     const databaseEntryReviews: DatabaseEntryReview[] = normalizedNote
       ? [
           ...saveData.databaseEntryReviews.filter((candidate) => candidate.entryId !== entry.id),
@@ -863,12 +1041,13 @@ export default function App() {
       );
       return true;
     }
-    return writeTicketsToWorkspace(
+    await writeTicketsToWorkspace(
       nextSave,
       normalizedNote
         ? `Saved your comment on “${entry.label}” in browser storage and updated the Codex handoff file.`
         : `Removed the comment on “${entry.label}” and updated the Codex handoff file.`,
     );
+    return true;
   };
 
   if (!saveData) {
@@ -884,6 +1063,42 @@ export default function App() {
 
   const PersonalKnowledgeWorkbenchComponent = personalKnowledgeWorkbench?.Component ?? null;
   const personalKnowledgeProjection = personalKnowledgeWorkbench?.projection ?? null;
+  const developerDatabaseKnowledge = personalKnowledgeWorkbench?.databaseProjection ?? null;
+  const DeveloperDatabaseKnowledgePanel = personalKnowledgeWorkbench?.DatabasePanel ?? undefined;
+  const DeveloperDatabaseKnowledgeScope = personalKnowledgeWorkbench?.DatabaseScope ?? undefined;
+  const DeveloperDiagnosisClassificationInspector =
+    personalKnowledgeWorkbench?.ClassificationInspector ?? undefined;
+  const developerDossierReviews: DatabaseDossierReviewFeedback[] =
+    developerDatabaseKnowledge && personalKnowledgeWorkbench?.findCurrentDossierReview
+      ? [
+          ...new Set(
+            saveData.clinicalTickets
+              .filter((ticket) => ticket.id.startsWith('ticket.database-dossier.'))
+              .flatMap((ticket) => ticket.targetContentIds),
+          ),
+        ].flatMap((entryId) => {
+          const record = developerDatabaseKnowledge.records.find(
+            (candidate) => candidate.entryId === entryId,
+          );
+          if (!record) return [];
+          const ticket = personalKnowledgeWorkbench.findCurrentDossierReview(
+            developerDatabaseKnowledge,
+            entryId,
+            saveData.clinicalTickets,
+          );
+          return ticket
+            ? [
+                {
+                  id: ticket.id,
+                  entryId,
+                  reviewerNote: ticket.reviewerNotes,
+                  updatedAt: ticket.updatedAt,
+                  kind: 'developer_dossier' as const,
+                },
+              ]
+            : [];
+        })
+      : [];
 
   return (
     <>
@@ -945,9 +1160,21 @@ export default function App() {
       {screen === 'database' ? (
         <DatabaseBrowser
           projection={publicClinicalCatalog}
+          developerKnowledge={developerDatabaseKnowledge}
+          developerDossierMode={LOCAL_DEVELOPER}
+          developerDossierReady={Boolean(developerDatabaseKnowledge)}
+          DeveloperKnowledgePanel={DeveloperDatabaseKnowledgePanel}
+          DeveloperKnowledgeScope={DeveloperDatabaseKnowledgeScope}
+          DeveloperClassificationInspector={DeveloperDiagnosisClassificationInspector}
           reviews={saveData.databaseEntryReviews}
+          developerDossierReviews={developerDossierReviews}
           reviewToolsEnabled={REVIEW_TOOLS_ENABLED}
-          reviewStatusMessage={sourceReviewFeedError ?? ticketToolStatus}
+          reviewStatusMessage={
+            developerKnowledgeError ??
+            (LOCAL_DEVELOPER && !developerDatabaseKnowledge
+              ? 'Loading the validated local knowledge dossier…'
+              : (sourceReviewFeedError ?? ticketToolStatus))
+          }
           exportAvailable={
             saveData.databaseEntryReviews.length > 0 ||
             saveData.attemptReviews.length > 0 ||
@@ -962,7 +1189,9 @@ export default function App() {
       {(screen === 'encounter' || screen === 'receipt') && encounter ? (
         <div
           id="main-content"
-          className={`case-workflow phase-${screen} active-${mobileWorkflowPane}`}
+          className={`case-workflow phase-${screen} active-${mobileWorkflowPane}${
+            encounterScratchpadEnabled ? ' review-scratchpad-enabled' : ''
+          }`}
           data-testid="case-workflow"
         >
           <MobileWorkflowTabs
@@ -976,9 +1205,19 @@ export default function App() {
               catalogs={catalogs}
               onStateChange={setEncounter}
               onSubmit={() => void finishEncounter()}
-              onExit={() => setScreen('hub')}
+              onExit={() => void exitEncounter()}
               mobileActivePane={mobileWorkflowPane}
               onMobilePaneChange={setMobileWorkflowPane}
+            />
+          ) : null}
+          {screen === 'encounter' && encounterScratchpadEnabled ? (
+            <EncounterScratchpad
+              patientLabel={encounter.caseInstance.opening.title}
+              note={encounterScratchpad.note}
+              status={encounterScratchpad.status}
+              error={encounterScratchpad.error}
+              onChange={encounterScratchpad.updateNote}
+              onFlush={encounterScratchpad.flush}
             />
           ) : null}
           {screen === 'receipt' && attempt ? (
@@ -1003,6 +1242,7 @@ export default function App() {
               >
                 <ReceiptView
                   attempt={attempt}
+                  catalogs={catalogs}
                   developerToolsEnabled={REVIEW_TOOLS_ENABLED}
                   developerCaseReviewEnabled={REVIEW_TOOLS_ENABLED && encounterMode === 'developer'}
                   portableReviewerBuild={REVIEWER_BUILD}

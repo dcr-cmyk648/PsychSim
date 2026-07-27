@@ -110,16 +110,35 @@ describe('runtime boundaries', () => {
   });
 
   it('keeps the personal-knowledge workbench behind a local serve-only boundary', async () => {
-    const [plugin, app, runtimeRoot, reviewer] = await Promise.all([
-      readFile(resolve('apps/web/personal-knowledge-workbench-plugin.ts'), 'utf8'),
-      readFile(resolve('apps/web/src/App.tsx'), 'utf8'),
-      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
-      readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
-    ]);
+    const [plugin, app, browser, developerView, classificationView, runtimeRoot, reviewer] =
+      await Promise.all([
+        readFile(resolve('apps/web/personal-knowledge-workbench-plugin.ts'), 'utf8'),
+        readFile(resolve('apps/web/src/App.tsx'), 'utf8'),
+        readFile(resolve('apps/web/src/components/DatabaseBrowser.tsx'), 'utf8'),
+        readFile(resolve('apps/web/src/components/DeveloperDatabaseKnowledge.tsx'), 'utf8'),
+        readFile(
+          resolve('apps/web/src/components/DeveloperDiagnosisClassificationInspector.tsx'),
+          'utf8',
+        ),
+        readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+        readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
+      ]);
     expect(plugin).toContain("apply: 'serve'");
     expect(plugin).toContain("address === '127.0.0.1'");
+    expect(plugin).toContain('/__psychsim/developer-database-knowledge');
+    expect(plugin).toContain('/__psychsim/developer-diagnosis-classification');
     expect(app).toContain('import.meta.env.DEV && !REVIEWER_BUILD');
     expect(app).toContain("import('./components/PersonalKnowledgeWorkbench')");
+    expect(browser).not.toContain('Full personal-corpus cross-reference');
+    expect(browser).not.toContain('Cross-referenced knowledge');
+    expect(browser).not.toContain('Knowledge dossier brief');
+    expect(browser).not.toContain('Potential patient/randomization inputs');
+    expect(browser).not.toContain('ICD-10-CM authoring classification index');
+    expect(developerView).toContain('Full personal-corpus cross-reference');
+    expect(developerView).toContain('Knowledge dossier brief');
+    expect(developerView).toContain('Potential patient/randomization inputs');
+    expect(classificationView).toContain('ICD-10-CM authoring classification index');
+    expect(classificationView).toContain('does not increase the');
     expect(runtimeRoot).not.toContain('personal-knowledge');
     expect(reviewer).not.toContain('personal-knowledge');
   });
@@ -164,12 +183,12 @@ describe('runtime boundaries', () => {
   });
 
   it('keeps identity-only medications out of gameplay catalogs and patient content', () => {
-    expect(medicationIdentities).toHaveLength(33);
+    expect(medicationIdentities).toHaveLength(53);
     expect(catalogs.medications).toHaveLength(13);
     const identityOnlyIds = medicationIdentities
       .filter((identity) => identity.authoringStatus === 'identity_only')
       .map((identity) => identity.id);
-    expect(identityOnlyIds).toHaveLength(20);
+    expect(identityOnlyIds).toHaveLength(40);
     const gameplayMedicationIds = new Set([
       ...catalogs.medications.map((medication) => medication.id),
       ...catalogs.formularies.flatMap((formulary) => formulary.medicationIds),

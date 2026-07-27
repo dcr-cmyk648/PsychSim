@@ -350,6 +350,26 @@ const medicationTrialsForScenario = (
   return [...merged.values()];
 };
 
+const trialExposureSummary = (
+  trial: ReviewCaseScenario['priorMedicationTrials'][number],
+): string => {
+  const duration = trial.exposure?.duration;
+  const dose = trial.exposure?.maximumDose;
+  const durationText = duration
+    ? `${duration.value} ${duration.value === 1 ? duration.unit : `${duration.unit}s`}`
+    : 'duration unknown';
+  const doseText = dose
+    ? `max ${dose.amount.toLocaleString()} ${dose.unit} ${dose.frequency}`
+    : 'max dose unknown';
+  return [
+    durationText,
+    doseText,
+    trial.adherence.replaceAll('_', ' '),
+    `response: ${trial.response.replaceAll('_', ' ')}`,
+    `tolerability: ${trial.tolerability.replaceAll('_', ' ')}`,
+  ].join(' · ');
+};
+
 const priorTrialsAction = (
   scenario: ReviewCaseScenario,
   caseToken: string,
@@ -369,7 +389,7 @@ const priorTrialsAction = (
                 ?.label ?? trial.medicationId,
             ],
             outcome: 'present' as const,
-            valueTextVariants: [trial.summary],
+            valueTextVariants: [trialExposureSummary(trial)],
           }))
         : [
             {
@@ -426,7 +446,7 @@ const treatmentHistoryAction = (
               ?.label ?? trial.medicationId,
           ],
           outcome: 'present' as const,
-          valueTextVariants: [trial.summary],
+          valueTextVariants: [trialExposureSummary(trial)],
         }))
       : [
           {
@@ -732,6 +752,7 @@ export const buildReviewCaseScenario = (
       'scoreRules',
     ],
     informationActions: generatedActions,
+    diagnosisRubric: policy.diagnosisRubric,
     workupObjectives,
     availableTreatments: policy.availableTreatments,
     treatmentGrades,
@@ -739,6 +760,7 @@ export const buildReviewCaseScenario = (
     scoreRules,
     scoring: {
       componentPointCaps: {
+        diagnosis: null,
         workup: null,
         medication_selection: null,
         medication_discontinuation: null,

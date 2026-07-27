@@ -50,6 +50,21 @@ Psychopharmacology drives the puzzles: selection, discontinuation, adverse effec
 
 The engine grades complete combinations and supports several defensible paths. A familiar medication can be unavailable; a start can require a stop or a test; two acceptable individual drugs can form a dangerous pair; and referral can be safe but financially inefficient. Grades are case-specific: optimal, strong alternative, acceptable, weak, ineffective, and harmful.
 
+## Personal knowledge and learning loop
+
+PsychSim's authoring database is also a personal knowledge system. It should organize the
+developer's accumulated notes, authored teaching material, formal sources, concise interpretations,
+unresolved disagreements, and identified gaps into coherent medication, diagnosis, investigation,
+therapy, and policy dossiers. The developer should be able to audit what is known, see why a belief
+is held, identify stale or weakly supported areas, receive bounded suggestions for recent reading,
+and reinforce retention by reviewing dossiers and seeing the same rules exercised in varied
+patients. This is closer to preparing and teaching a class than passively collecting references.
+
+The knowledge layer may be comprehensive; an encounter must not be. The game compiles only the
+small, reviewed, decision-relevant slice needed for one legible question-bank snapshot. Knowledge
+that is useful for learning but irrelevant to that immediate decision remains available in the
+database without entering the stem, action menu, rubric, or receipt.
+
 ## Clinic loop and positive progression
 
 Points are the single economy, clinical-award, and progression unit. The profile tracks a current spendable balance and lifetime points earned. Every positive case payout increases both; a future purchase reduces only the balance, so progression never runs backward. Care decisions contribute signed point subcategories to the reimbursement calculation. In normal mode, investigation costs reduce only the case payout. Poor play generally earns zero rather than taking banked points, debt is impossible, starter cases remain repeatable, and safe referral remains available without up-front cash.

@@ -4,6 +4,7 @@ import {
   purchaseInformationAction,
   startEncounter,
   submitEncounter,
+  updateDiagnosisSelections,
   updateTreatmentSelections,
 } from './encounter';
 import { err, ok, type Result } from './result';
@@ -29,6 +30,10 @@ export const replayEncounter = (
       state = next.value;
     } else if (event.type === 'TreatmentSelectionsChanged') {
       const next = updateTreatmentSelections(state, event.selections, catalogs);
+      if (!next.ok) return err({ code: 'REPLAY_FAILED', message: next.error.message });
+      state = next.value;
+    } else if (event.type === 'DiagnosisSelectionsChanged') {
+      const next = updateDiagnosisSelections(state, event.selections, catalogs);
       if (!next.ok) return err({ code: 'REPLAY_FAILED', message: next.error.message });
       state = next.value;
     } else if (event.type === 'EncounterSubmitted' && state.status === 'in_progress') {

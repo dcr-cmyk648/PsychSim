@@ -37,6 +37,11 @@ const predicatePossibility = (
       return { canBeTrue: availability.actionIds.has(predicate.actionId), canBeFalse: true };
     case 'factKnown':
       return { canBeTrue: availability.factIds.has(predicate.factId), canBeFalse: true };
+    case 'anyMedicationStarted':
+      return {
+        canBeTrue: availability.startMedicationIds.size > 0,
+        canBeFalse: true,
+      };
     case 'treatmentStarted':
       return {
         canBeTrue: availability.startMedicationIds.has(predicate.medicationId),
@@ -225,6 +230,15 @@ export const evaluateCaseEligibility = (
     capabilityIds: effectiveCapabilities,
     medicationTagsById,
   };
+  for (const requirement of caseDefinition.treatmentWorkupRequirements) {
+    if (!predicatePossibility(requirement.appliesWhen, predicateAvailability).canBeTrue) continue;
+    const objective = objectiveById.get(requirement.objectiveId);
+    if (!objective || !evaluatePredicate(objective.satisfaction, workupContext)) {
+      reasons.push(
+        `Treatment-triggered workup requirement is inaccessible: ${requirement.objectiveId}`,
+      );
+    }
+  }
   const availablePathwayIds = caseDefinition.treatmentPathways
     .filter((pathway) => pathway.accepted)
     .filter((pathway) => {
@@ -282,6 +296,14 @@ export const evaluateCaseEligibility = (
         capabilities: effectiveCapabilities,
         medicationTagsById,
       };
+      const treatmentRequirementsComplete = caseDefinition.treatmentWorkupRequirements.every(
+        (requirement) => {
+          if (!evaluatePredicate(requirement.appliesWhen, context)) return true;
+          const objective = objectiveById.get(requirement.objectiveId);
+          return objective ? evaluatePredicate(objective.satisfaction, context) : false;
+        },
+      );
+      if (!treatmentRequirementsComplete) return false;
       return caseDefinition.treatmentPathways
         .filter((pathway) => pathway.accepted)
         .some((pathway) => {

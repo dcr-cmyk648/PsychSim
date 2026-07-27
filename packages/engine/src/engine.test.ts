@@ -3,6 +3,7 @@ import type {
   CaseBlueprint,
   CatalogBundle,
   ClinicState,
+  PlayerDiagnosisSelection,
   TreatmentSelection,
 } from '@psychsim/schemas';
 
@@ -23,6 +24,7 @@ import {
   startEncounter,
   startEncounterWithAutomaticIntake,
   submitEncounter,
+  updateDiagnosisSelections,
   updateTreatmentSelections,
 } from './encounter';
 import { buildCaseReceipt } from './receipt';
@@ -52,12 +54,14 @@ const play = (
   clinic: ClinicState = startingClinic,
   seed = 'unit-engine',
   catalogBundle: CatalogBundle = catalogs,
+  diagnosisSelections: readonly PlayerDiagnosisSelection[] = [],
 ) => {
   const instance = instantiateCase(blueprint, seed, catalogBundle);
   let state = startEncounter(instance, clinic, clinic.activeLocationId);
   for (const actionId of actionIds) {
     state = requireCompleted(purchaseInformationAction(state, actionId, catalogBundle));
   }
+  state = requireCompleted(updateDiagnosisSelections(state, diagnosisSelections, catalogBundle));
   state = requireCompleted(updateTreatmentSelections(state, selections, catalogBundle));
   return requireCompleted(completeEncounter(state, catalogBundle));
 };
@@ -66,7 +70,17 @@ const playStarter = (
   actionIds: readonly string[],
   selections: TreatmentSelection = databasePlan.selections,
   clinic: ClinicState = startingClinic,
-) => play(prototypeCaseBlueprint, actionIds, selections, clinic);
+  diagnosisSelections: readonly PlayerDiagnosisSelection[] = databasePlan.diagnosisSelections,
+) =>
+  play(
+    prototypeCaseBlueprint,
+    actionIds,
+    selections,
+    clinic,
+    'unit-engine',
+    catalogs,
+    diagnosisSelections,
+  );
 
 describe('encounter engine', () => {
   it('reveals structured findings immediately and adds the resolved operating cost', () => {
@@ -132,9 +146,9 @@ describe('encounter engine', () => {
     };
     const completed = playStarter(databasePlan.actionIds, selections);
     expect(completed.receipt.settlement).toMatchObject({
-      informationExpenses: 135,
+      informationExpenses: 145,
       treatmentExpenses: 25,
-      operatingExpenses: 160,
+      operatingExpenses: 170,
     });
     expect(
       completed.receipt.items.find(
@@ -229,18 +243,124 @@ describe('encounter engine', () => {
 
   it('awards full points for an appropriate negative mania screen', () => {
     const run = playStarter(databasePlan.actionIds);
-    const conditional = run.receipt.pointReport.ruleTrace.find((trace) =>
-      trace.ruleId.startsWith('conditional.path.mdd-single-antidepressant'),
+    const conditional = run.receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'treatment-requirement.mdd-antidepressant-mania-history',
     );
     expect(conditional).toMatchObject({
       points: 45,
       matched: true,
       classification: 'appropriate_for_selected_treatment',
+      concernLevel: 'major',
+      certaintyLevel: 'strong',
     });
     const mania = run.state.purchases.find(
       (purchase) => purchase.actionId === 'info.history.mania',
     );
     expect(mania?.result.findings.every((finding) => finding.outcome === 'absent')).toBe(true);
+  });
+
+  it('activates workup prerequisites from the submitted medication plan', () => {
+    const coreActions = databasePlan.actionIds.filter(
+      (id) =>
+        ![
+          'info.history.mania',
+          'info.history.medication-reconciliation',
+          'info.history.allergies-adverse-reactions',
+        ].includes(id),
+    );
+    const antidepressant = playStarter(coreActions);
+    expect(
+      antidepressant.receipt.pointReport.ruleTrace
+        .filter((trace) => trace.ruleId.startsWith('treatment-requirement.mdd-'))
+        .map((trace) => [trace.ruleId, trace.points, trace.classification]),
+    ).toEqual([
+      ['treatment-requirement.mdd-antidepressant-mania-history', -70, 'critical_omission'],
+      ['treatment-requirement.mdd-any-medication-reconciliation', -25, 'critical_omission'],
+      ['treatment-requirement.mdd-any-medication-reaction-history', -40, 'critical_omission'],
+    ]);
+
+    const noMedication = playStarter(coreActions, {
+      startMedicationIds: [],
+      stopMedicationIds: [],
+      continueMedicationIds: [],
+      interventionIds: ['intervention.psychotherapy.cbt'],
+      dispositionId: 'disposition.outpatient-followup',
+    });
+    expect(
+      noMedication.receipt.pointReport.ruleTrace.some((trace) =>
+        trace.ruleId.startsWith('treatment-requirement.mdd-'),
+      ),
+    ).toBe(false);
+
+    const nonAntidepressant = playStarter(
+      coreActions,
+      {
+        startMedicationIds: ['medication.haloperidol'],
+        stopMedicationIds: [],
+        continueMedicationIds: [],
+        interventionIds: [],
+        dispositionId: 'disposition.outpatient-followup',
+      },
+      resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs),
+    );
+    expect(
+      nonAntidepressant.receipt.pointReport.ruleTrace.some(
+        (trace) => trace.ruleId === 'treatment-requirement.mdd-antidepressant-mania-history',
+      ),
+    ).toBe(false);
+    expect(
+      nonAntidepressant.receipt.pointReport.ruleTrace
+        .filter((trace) => trace.ruleId.startsWith('treatment-requirement.mdd-'))
+        .map((trace) => trace.ruleId),
+    ).toEqual([
+      'treatment-requirement.mdd-any-medication-reconciliation',
+      'treatment-requirement.mdd-any-medication-reaction-history',
+    ]);
+  });
+
+  it('scores a resolved prior medication reaction even when the history was not revealed', () => {
+    const reactionBlueprint = structuredClone(prototypeCaseBlueprint);
+    reactionBlueprint.patientRecord.reactionHistory.medicationAssessmentStatus = 'entries_present';
+    reactionBlueprint.patientRecord.reactionHistory.records.push({
+      schemaVersion: 1,
+      id: 'reaction.outpatient-intake-001.sertraline',
+      trigger: {
+        kind: 'medication',
+        medicationId: 'medication.sertraline',
+      },
+      recordedAs: 'allergy',
+      manifestationIds: ['reaction-manifestation.hives'],
+      reportedSeverity: 'severe',
+      interpretedAs: null,
+      source: 'patient_report',
+      status: 'active',
+    });
+    const withoutReactionHistory = play(
+      reactionBlueprint,
+      databasePlan.actionIds.filter((id) => id !== 'info.history.allergies-adverse-reactions'),
+      databasePlan.selections,
+      startingClinic,
+      'hidden-prior-reaction',
+      catalogs,
+      databasePlan.diagnosisSelections,
+    );
+    const reactionTrace = withoutReactionHistory.receipt.pointReport.ruleTrace.find(
+      (trace) => trace.ruleId === 'reaction-policy.same-medication.severe.medication.sertraline',
+    );
+    expect(withoutReactionHistory.state.knownFactIds).not.toContain('fact.mdd-reaction-history');
+    expect(reactionTrace).toMatchObject({
+      points: -500,
+      classification: 'harmful',
+      concernLevel: 'critical',
+      certaintyLevel: 'tentative',
+      relatedTreatmentIds: ['medication.sertraline'],
+    });
+    expect(withoutReactionHistory.receipt.pointReport.carePointCapApplied).toBe(200);
+    expect(withoutReactionHistory.receipt.pointReport.safetyErrors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('prior severe reported reaction to Sertraline'),
+      ]),
+    );
   });
 
   it('snapshots formal contributions and labels uncited rules as expert opinion', () => {
@@ -323,6 +443,16 @@ describe('encounter engine', () => {
         (trace) => trace.ruleId === 'objective.mdd-safety',
       ),
     ).toMatchObject({ points: -80, matched: false, classification: 'critical_omission' });
+    expect(
+      omitted.receipt.items.find((item) => item.relatedRuleIds.includes('objective.mdd-safety')),
+    ).toMatchObject({
+      itemName: 'Missed: Assess suicide risk and outpatient suitability',
+      pointDelta: -80,
+      operatingCost: 0,
+    });
+    expect(omitted.receipt.items.reduce((sum, item) => sum + item.pointDelta, 0)).toBe(
+      omitted.receipt.pointReport.carePointsEarned,
+    );
     expect(omitted.receipt.pointReport.carePointsEarned).toBeLessThan(
       complete.receipt.pointReport.carePointsEarned,
     );
@@ -351,12 +481,53 @@ describe('encounter engine', () => {
       )!,
     );
     expect(database.receipt.pointReport).toMatchObject({
-      carePointsEarned: 515,
-      databasePlanCarePoints: 515,
+      carePointsEarned: 745,
+      databasePlanCarePoints: 745,
       treatmentGrade: 'optimal',
+      componentPoints: expect.objectContaining({ diagnosis: 100 }),
     });
     expect(alternative.receipt.pointReport.treatmentGrade).toBe('optimal');
-    expect(alternative.receipt.pointReport.carePointsEarned).toBe(515);
+    expect(alternative.receipt.pointReport.carePointsEarned).toBe(745);
+  });
+
+  it('keeps diagnostic answers separate while applying the worst consequence for one mistake', () => {
+    const canonical = playStarter(databasePlan.actionIds);
+    const bipolarMisclassification = playStarter(
+      databasePlan.actionIds,
+      databasePlan.selections,
+      startingClinic,
+      [
+        {
+          diagnosisId: 'diagnosis.bipolar-spectrum-disorder',
+          severityId: null,
+          specifierIds: [],
+        },
+      ],
+    );
+    const canonicalNonDiagnosis = {
+      ...canonical.receipt.pointReport.componentPoints,
+      diagnosis: 0,
+    };
+    const wrongNonDiagnosis = {
+      ...bipolarMisclassification.receipt.pointReport.componentPoints,
+      diagnosis: 0,
+    };
+
+    expect(wrongNonDiagnosis).toEqual(canonicalNonDiagnosis);
+    expect(bipolarMisclassification.receipt.pointReport.componentPoints.diagnosis).toBe(-120);
+    expect(bipolarMisclassification.receipt.pointReport.carePointCapApplied).toBe(250);
+    expect(
+      bipolarMisclassification.receipt.pointReport.ruleTrace.filter(
+        (row) => row.issueId === 'diagnostic-issue.mdd-initial.primary',
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        ruleId: 'diagnosis-error.mdd-initial.bipolar',
+        classification: 'diagnosis_dangerous_misclassification',
+        points: -120,
+      }),
+    ]);
+    expect(bipolarMisclassification.receipt.pointReport.safetyErrors).toHaveLength(1);
   });
 
   it('grades stopping a contributing medication correctly', () => {
@@ -402,7 +573,7 @@ describe('encounter engine', () => {
       withoutOrthostatics.receipt.pointReport.ruleTrace.find((trace) =>
         trace.ruleId.startsWith('conditional.path.strong-symptomatic'),
       ),
-    ).toMatchObject({ points: -48, classification: 'low_value' });
+    ).toMatchObject({ points: -48, classification: 'critical_omission' });
 
     const database = advancedPrototypeCaseBlueprint.referenceSolutions.find(
       (solution) => solution.kind === 'database_plan',
@@ -490,6 +661,7 @@ describe('encounter engine', () => {
     expect(buildCaseReceipt(replayed, replayedPoints, replayedSettlement, catalogs)).toEqual(
       original.receipt,
     );
+    expect(replayed.diagnosisSelections).toEqual(databasePlan.diagnosisSelections);
   });
 
   it('refuses to score before submission', () => {
@@ -839,7 +1011,10 @@ describe('clinic upgrades and formularies', () => {
     expect(manualComplete.receipt.settlement.operatingExpenses).toBe(50);
     expect(
       automaticComplete.receipt.items
-        .filter((item) => item.kind === 'information')
+        .filter(
+          (item) =>
+            item.kind === 'information' && item.fulfillmentMethod.startsWith('Automatic intake'),
+        )
         .map((item) => item.upgradeSavings),
     ).toEqual([12, 8]);
 

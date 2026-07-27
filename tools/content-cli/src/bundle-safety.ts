@@ -14,7 +14,7 @@ interface BundleSafetyOptions {
 
 const PORTABLE_REVIEWER_ALLOWLIST = new Map<string, string>([
   [
-    'registry.reviewer-assignment.common-psychiatry.2026-07f.tickets',
+    'registry.reviewer-assignment.common-psychiatry.2026-07g.tickets',
     'content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json',
   ],
   [
@@ -117,8 +117,16 @@ export const verifyProductionBundle = async (
     '/__psychsim/local-review-tickets',
     'content/generated/local-review-tickets',
     '/__psychsim/personal-knowledge-workbench',
+    '/__psychsim/developer-database-knowledge',
+    '/__psychsim/developer-diagnosis-classification',
     'content/generated/personal-knowledge',
     'Personal knowledge workbench',
+    'Full personal-corpus cross-reference',
+    'Cross-referenced knowledge',
+    'Knowledge dossier brief',
+    'Potential patient/randomization inputs',
+    'ICD-10-CM authoring classification index',
+    'Standardized identity index',
     'Candidate material only — no gameplay effect',
     '/__psychsim/source-review-tickets',
     'content/generated/source-review',

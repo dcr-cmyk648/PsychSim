@@ -7,6 +7,7 @@ import {
   purchaseInformationAction,
   requireCompleted,
   startEncounter,
+  updateDiagnosisSelections,
   updateTreatmentSelections,
 } from '@psychsim/engine';
 import { CompletedAttemptSchema } from '@psychsim/schemas';
@@ -18,6 +19,19 @@ const completedAttempt = () => {
   let state = startEncounter(instance, startingClinic, startingClinic.activeLocationId);
   state = requireCompleted(
     purchaseInformationAction(state, 'info.history.suicide-safety', catalogs),
+  );
+  state = requireCompleted(
+    updateDiagnosisSelections(
+      state,
+      [
+        {
+          diagnosisId: 'diagnosis.major-depressive-disorder',
+          severityId: null,
+          specifierIds: [],
+        },
+      ],
+      catalogs,
+    ),
   );
   state = requireCompleted(
     updateTreatmentSelections(
@@ -44,6 +58,7 @@ const completedAttempt = () => {
     clinicStateAtStart: startingClinic,
     events: completed.state.events,
     purchases: completed.state.purchases,
+    submittedDiagnoses: completed.state.diagnosisSelections,
     submittedTreatment: completed.state.selections,
     receipt: completed.receipt,
     completedAt: '2026-07-23T20:00:00.000Z',
@@ -63,6 +78,7 @@ describe('Developer attempt review snapshots', () => {
 
     const expectedOptionCount =
       attempt.caseInstance.informationActions.length +
+      catalogs.diagnoses.filter((diagnosis) => diagnosis.selectableInGameplay).length +
       attempt.caseInstance.availableTreatments.startMedicationIds.length +
       attempt.caseInstance.availableTreatments.stopMedicationIds.length +
       attempt.caseInstance.availableTreatments.continueMedicationIds.length +
@@ -84,6 +100,16 @@ describe('Developer attempt review snapshots', () => {
           optionId: 'info.imaging.brain-mri',
           selected: false,
           pointCost: 1_800,
+        }),
+        expect.objectContaining({
+          kind: 'diagnosis',
+          optionId: 'diagnosis.major-depressive-disorder',
+          selected: true,
+        }),
+        expect.objectContaining({
+          kind: 'diagnosis',
+          optionId: 'diagnosis.persistent-depressive-disorder',
+          selected: false,
         }),
         expect.objectContaining({
           kind: 'start_medication',
@@ -117,6 +143,7 @@ describe('Developer attempt review snapshots', () => {
     expect(review.attemptSnapshot).toEqual(attempt);
     expect(review.attemptSnapshot.purchases).toEqual(attempt.purchases);
     expect(review.attemptSnapshot.submittedTreatment).toEqual(attempt.submittedTreatment);
+    expect(review.attemptSnapshot.submittedDiagnoses).toEqual(attempt.submittedDiagnoses);
     expect(review.attemptSnapshot.receipt).toEqual(attempt.receipt);
   });
 

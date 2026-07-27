@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.2.0",
+  "id": "developer-opinions.psychsim",
+  "opinions": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.clozapine-aripiprazole-routine-augmentation.2026-07-27",
+      "summary": "After confirmed clozapine nonresponse, aripiprazole is the developer's preferred routine pharmacologic augmentation when another treatment is warranted. Replicated real-world data support a rehospitalization signal, and aripiprazole's long-acting formulations can make it more practical in adherence-focused care; neither point establishes acute symptom superiority or long-acting aripiprazole-plus-clozapine efficacy.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["treatment", "medication_fit", "teaching_point", "context_only"],
+      "asOfDate": "2026-07-27",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.aripiprazole",
+          "role": "subject",
+          "rationale": "The opinion identifies aripiprazole as the preferred routine pharmacologic augmenter."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.clozapine",
+          "role": "context",
+          "rationale": "The opinion applies only after confirmed inadequate response to clozapine."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.schizophrenia-spectrum-disorder",
+          "role": "context",
+          "rationale": "The reviewed decision concerns clozapine-resistant schizophrenia-spectrum illness."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T15:34:26.000Z",
+        "note": "Keep dose evidence without adding dose gameplay. evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025 reports a favorable association for oral aripiprazole 9 to <16.5 mg/day with clozapine at or above 330 mg/day; the source remains metadata-only, no dose rule is created, and the oral result must not be generalized to an LAI combination. Future treatment actions may express increase, reduce, taper, or stop without requiring exact milligram entry."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [
+        "opinion-evidence.clozapine-aripiprazole.tiihonen-2019",
+        "opinion-evidence.clozapine-aripiprazole.roerig-2019",
+        "opinion-evidence.clozapine-aripiprazole.fda-maintena-2025"
+      ],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.clozapine-ect-practicality-and-law.2026-07-27",
+      "summary": "ECT should remain a distinct, strongly supported option for severe symptoms after verified clozapine nonresponse, but repeated or maintenance delivery is substantially less practical than routine pharmacologic augmentation. Involuntary or court-ordered ECT is jurisdiction-specific and must never be assumed universally available or lawful.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["treatment", "safety", "teaching_point", "context_only"],
+      "asOfDate": "2026-07-27",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.schizophrenia-spectrum-disorder",
+          "role": "subject",
+          "rationale": "The opinion concerns severe clozapine-resistant schizophrenia-spectrum illness."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.clozapine",
+          "role": "context",
+          "rationale": "ECT is discussed as a post-clozapine augmentation route."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.aripiprazole",
+          "role": "comparator",
+          "rationale": "The practical comparison distinguishes a routine medication option from repeated ECT."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T15:34:26.000Z",
+        "note": "The efficacy and feasibility portions have limited literature context. The legality statement remains developer opinion and a game-availability constraint only; it requires jurisdiction-specific legal or policy review before any case can assume involuntary ECT access."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": ["opinion-evidence.clozapine-ect.roerig-2019"],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27",
+      "summary": "For a focused, uncomplicated adult MDD snapshot already routed to medication treatment, one reviewed first-line antidepressant should receive the same dominant primary-route credit. Medication-specific fit, safety, interactions, prior response, preference, feasibility, and formulary availability remain separate, smaller contributors; exact game-point magnitudes are provisional balance values.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["treatment", "medication_fit", "scoring", "teaching_point"],
+      "asOfDate": "2026-07-27",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.major-depressive-disorder",
+          "role": "subject",
+          "rationale": "The opinion defines a bounded initial-medication route for uncomplicated adult MDD snapshots."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.sertraline",
+          "role": "subject",
+          "rationale": "Sertraline is one currently modeled member of the reviewed equal-baseline set."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.escitalopram",
+          "role": "subject",
+          "rationale": "Escitalopram is one currently modeled member of the reviewed equal-baseline set."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.fluoxetine",
+          "role": "subject",
+          "rationale": "Fluoxetine is one currently modeled member of the reviewed equal-baseline set."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.bupropion",
+          "role": "subject",
+          "rationale": "Bupropion is one currently modeled member of the reviewed equal-baseline set."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "medication",
+          "targetContentId": "medication.mirtazapine",
+          "role": "subject",
+          "rationale": "Mirtazapine is one currently modeled member of the reviewed equal-baseline set."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T16:55:53.000Z",
+        "note": "Accepted for backend implementation. Start with Codex's best provisional point balance, keep the base route dominant, itemize medication-fit bonuses and penalties separately, and expect later patient review to tune exact magnitudes."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": ["opinion-evidence.mdd-initial-first-line.canmat-2023"],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
+      "summary": "Information requirements should follow the focused patient problem and the treatment actually selected rather than a universal psychiatric checklist. For an initial MDD medication decision, episode characterization and depressive symptoms are central; antidepressant selection makes mania history important; starting any medication makes medication reconciliation and allergy/adverse-reaction history important. Substance-use history is broadly rewarded in depression and other commonly substance-induced presentations. A known prior reaction to a selected medication affects treatment safety even when the player did not reveal it, because patient facts are resolved before play.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["workup", "safety", "scoring", "teaching_point"],
+      "asOfDate": "2026-07-27",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.major-depressive-disorder",
+          "role": "subject",
+          "rationale": "The first executable application defines focused assessment and treatment-triggered prerequisites for an uncomplicated initial MDD snapshot."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "note": "Approved as qualitative architecture. Use provisional point values to represent relative concern and certainty, keep the trigger and consequence separately auditable, and do not generalize depressive-symptom assessment to every psychiatric encounter. Medication-specific risk may later refine the antidepressant prerequisite. Exact point values and the generic severity mapping for reported reactions remain medically unreviewed game balance."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    }
+  ],
+  "evidenceRelationships": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.clozapine-aripiprazole.tiihonen-2019",
+      "opinionId": "developer-opinion.clozapine-aripiprazole-routine-augmentation.2026-07-27",
+      "evidenceSourceId": "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
+      "sourceUseDecisionId": "source-use.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
+      "relationType": "partially_supports",
+      "relationshipSummary": "The nationwide cohort supports a lower-rehospitalization association for clozapine plus aripiprazole, but it does not prove causation, acute symptom superiority, or the developer's broader routine-practicality preference.",
+      "sourceLocation": "Abstract, results, and discussion of the primary psychiatric-rehospitalization analysis.",
+      "applicabilityLimitations": [
+        "Observational within-individual cohort rather than a randomized augmentation trial.",
+        "Rehospitalization is a relapse proxy and not a direct acute symptom comparison.",
+        "The study does not establish long-acting injectable aripiprazole plus clozapine efficacy."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T15:34:26.000Z",
+        "note": "Accepted as supporting evidence while retaining the preference and practical interpretation as Developer opinion."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.clozapine-aripiprazole.roerig-2019",
+      "opinionId": "developer-opinion.clozapine-aripiprazole-routine-augmentation.2026-07-27",
+      "evidenceSourceId": "evidence.roerig.clozapine-augmentation-strategies.2019",
+      "sourceUseDecisionId": "source-use.roerig.clozapine-augmentation-strategies.2019",
+      "relationType": "contextualizes",
+      "relationshipSummary": "The review contextualizes why real-world aripiprazole findings should not be presented as strong acute symptom evidence and why feasibility matters when comparing medication and ECT augmentation.",
+      "sourceLocation": "Take-home points and antipsychotic- and ECT-augmentation sections.",
+      "applicabilityLimitations": [
+        "Narrative evidence synthesis that includes author judgment.",
+        "Underlying augmentation evidence varies substantially in design and quality."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T15:34:26.000Z",
+        "note": "Accepted as context, not as a direct ranking rule."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.clozapine-aripiprazole.fda-maintena-2025",
+      "opinionId": "developer-opinion.clozapine-aripiprazole-routine-augmentation.2026-07-27",
+      "evidenceSourceId": "evidence.fda.abilify-maintena-label.2025-01",
+      "sourceUseDecisionId": "source-use.fda.abilify-maintena-label.2025-01",
+      "relationType": "partially_supports",
+      "relationshipSummary": "The label supports that a long-acting aripiprazole formulation exists for adult schizophrenia, but the adherence-practicality judgment and any combination use with clozapine remain separate Developer opinion.",
+      "sourceLocation": "Highlights and Section 1, Indications and Usage.",
+      "applicabilityLimitations": [
+        "Regulatory formulation and indication information is not comparative-effectiveness evidence.",
+        "The label does not establish clozapine augmentation with the long-acting formulation."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T15:34:26.000Z",
+        "note": "Accepted only for formulation availability and regulatory context."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.clozapine-ect.roerig-2019",
+      "opinionId": "developer-opinion.clozapine-ect-practicality-and-law.2026-07-27",
+      "evidenceSourceId": "evidence.roerig.clozapine-augmentation-strategies.2019",
+      "sourceUseDecisionId": "source-use.roerig.clozapine-augmentation-strategies.2019",
+      "relationType": "partially_supports",
+      "relationshipSummary": "The review identifies ECT as the augmentation strategy with the strongest efficacy evidence and separately notes feasibility considerations; it does not establish the jurisdiction-specific legal statement.",
+      "sourceLocation": "Take-home points, feasibility discussion, and ECT-augmentation section.",
+      "applicabilityLimitations": [
+        "The review is not a jurisdictional legal source.",
+        "Feasibility varies by patient, setting, access, anesthesia resources, and treatment course."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T15:34:26.000Z",
+        "note": "Accepted for clinical and feasibility context; the legal availability statement remains Developer opinion."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.mdd-initial-first-line.canmat-2023",
+      "opinionId": "developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27",
+      "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+      "sourceUseDecisionId": "source-use.canmat.mdd-adults.2023-update",
+      "relationType": "partially_supports",
+      "relationshipSummary": "CANMAT supports a broad first-line antidepressant set and individualized selection among reasonable options. The exact five-medication runtime set, equal game baseline, dominant point weight, and fit-point envelope remain Developer opinion and game balance.",
+      "sourceLocation": "Question 3.e and Tables 3.3 through 3.5.",
+      "applicabilityLimitations": [
+        "The guideline addresses adults with MDD and does not define PsychSim's case-specific eligibility or point values.",
+        "Several CANMAT first-line agents are not yet runtime-compatible or locally available in the starter clinic.",
+        "Average comparative differences and patient preferences remain separate from equal primary-route membership."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T16:55:53.000Z",
+        "note": "Accepted as formal support for the broad option set while retaining exact game membership and point balance as Developer opinion."
+      }
+    }
+  ]
+}

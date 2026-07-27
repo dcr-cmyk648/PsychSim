@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.5.0",
+  "contentVersion": "1.6.0",
   "id": "case.review-cohort.mdd-prior-good-response",
   "internalTitle": "Reviewer cohort: recurrent MDD with prior good response",
   "difficultyTier": 2,
@@ -105,12 +105,16 @@
       "schemaVersion": 1,
       "id": "trial.review-mdd-prior-good.sertraline",
       "medicationId": "medication.sertraline",
+      "exposure": {
+        "duration": { "value": 12, "unit": "month" },
+        "maximumDose": { "amount": 100, "unit": "mg", "frequency": "daily" }
+      },
       "adequacy": "adequate",
       "adherence": "consistent",
       "response": "remission",
       "tolerability": "tolerated",
       "source": "patient_report",
-      "summary": "Prior adequate trial was well tolerated and associated with remission."
+      "summary": "The prior course was well tolerated and associated with remission."
     }
   ],
   "reactionHistory": {

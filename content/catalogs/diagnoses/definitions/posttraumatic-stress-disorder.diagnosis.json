@@ -3,6 +3,7 @@
   "contentVersion": "1.0.0",
   "id": "diagnosis.posttraumatic-stress-disorder",
   "label": "Post-traumatic stress disorder",
+  "selectableInGameplay": true,
   "description": "Unreviewed diagnosis-family placeholder for focused PTSD patient generation and later reviewed treatment rules.",
   "medicalReviewStatus": "unreviewed",
   "baseClinicalTagIds": ["diagnosis-tag.trauma-related"],

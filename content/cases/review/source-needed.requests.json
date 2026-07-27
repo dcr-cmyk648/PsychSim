@@ -379,7 +379,7 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "1.1.0",
     "id": "source-request.mdd.antidepressant-fit-dimensions",
     "title": "Current and reusable antidepressant-fit evidence",
     "question": "Which current, legally processable sources support medication-specific antidepressant fit directions for sleep, sexual function, weight or metabolic concerns, tolerability or adherence, and other structured patient features without implying large efficacy differences among broadly reasonable first-line choices?",
@@ -415,6 +415,7 @@
       "Separates average antidepressant efficacy from tolerability, adherence, preference, safety, and symptom-profile fit.",
       "Provides current corroboration or a clear update to the 2010 review's medication-specific statements.",
       "Has source terms that permit the intended extraction and concise derived authoring use, or is covered by an explicitly recorded narrow source-use decision.",
+      "For medication-specific sexual-adverse-effect incidence, preserves population, comparator, ascertainment method, outcome definition, exposure and time horizon, uncertainty, and the distinction between a source estimate and a generated-patient probability.",
       "Leaves game-point magnitude and final psychiatrist approval as separate review decisions."
     ],
     "destination": {
@@ -432,6 +433,360 @@
     "status": "needs_source",
     "resolutionNote": null,
     "createdAt": "2026-07-26T11:18:54Z",
-    "updatedAt": "2026-07-26T11:18:54Z"
+    "updatedAt": "2026-07-27T03:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.background-exposures.age-banded-counts",
+    "title": "Age-banded background medication and supplement counts",
+    "question": "For fictional ambulatory adults, what representative data support age-banded distributions for counts of current nonpsychiatric medications and supplements, and which identity-only ingredients can enter a reviewed neutral-background allowlist without implying indication or individual likelihood?",
+    "whyNeeded": "PsychSim should not invent the requested relationship between age and background exposure burden. Identity catalogs can normalize names but cannot supply prevalence, count distributions, co-use patterns, or game-generation probabilities. Population estimates must remain separate from transparent game calibration.",
+    "targetContentIds": ["info.history.medication-reconciliation"],
+    "linkedTicketIds": ["ticket.source.background-exposures.generation-calibration"],
+    "preferredSourceTypes": [
+      "structured_database",
+      "journal_article",
+      "systematic_review",
+      "professional_guidance"
+    ],
+    "acceptanceCriteria": [
+      "Reports the sampled population, setting, collection period, age bands, and definitions of prescription medication, over-the-counter medication, vitamin, and supplement use.",
+      "Provides medication and supplement count distributions, including zero use and higher-count use, rather than only reporting whether any product was used.",
+      "Separates ingredient identity and observed utilization from indication, clinical effect, and patient-level prediction.",
+      "Documents uncertainty and generalizability and leaves the mapping from population estimates to deterministic game probabilities for separate review.",
+      "Supports a reviewed neutral-background allowlist without authorizing clinical claims, scoring, or randomizer behavior."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.nlm.rxnorm-cpc.2026-07-06"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T03:30:00.000Z",
+    "updatedAt": "2026-07-27T03:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.background-exposures.supplement-enthusiast",
+    "title": "Multi-supplement pattern prevalence and calibration",
+    "question": "What representative evidence, if any, supports a distinct multi-supplement-use pattern among adults, including its prevalence and product-count distribution by age, and which parts must instead remain explicitly Developer-authored game calibration?",
+    "whyNeeded": "The proposed supplement-enthusiast tag is useful for patient variety but must not become an unsupported diagnosis, stereotype, or supposedly evidence-derived probability. Its prevalence, count envelope, and allowable combinations require an auditable basis before activation.",
+    "targetContentIds": ["info.history.medication-reconciliation"],
+    "linkedTicketIds": ["ticket.source.background-exposures.generation-calibration"],
+    "preferredSourceTypes": ["structured_database", "journal_article", "systematic_review"],
+    "acceptanceCriteria": [
+      "Defines what counts as a supplement and as multi-supplement use.",
+      "Reports the population, setting, observation period, prevalence, and product-count distribution.",
+      "States whether age differences were measured rather than assuming them.",
+      "Avoids using a selected commercial, specialty-clinic, or marketing sample as general-population prevalence.",
+      "Keeps population evidence, deterministic game calibration, clinical meaning, and point effects separate."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T03:30:00.000Z",
+    "updatedAt": "2026-07-27T03:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.supplements.effects-interactions",
+    "title": "Psychiatry-relevant effects and interactions for initial supplements",
+    "question": "Which current, legally processable sources support preparation-specific psychiatric effects, adverse effects, or clinically meaningful medication interactions for ashwagandha, lavender oil, L-theanine, magnesium, SAMe, and saffron extract in adults?",
+    "whyNeeded": "The six initial supplement records are identity-only. Making any exposure fit-relevant, companion-safety-relevant, case-defining, selectable, or scored requires exact claim-level evidence that does not collapse whole botanicals, extracts, routes, doses, or standardized products.",
+    "targetContentIds": ["info.history.medication-reconciliation"],
+    "linkedTicketIds": ["ticket.source.supplements.effects-interactions"],
+    "preferredSourceTypes": [
+      "systematic_review",
+      "clinical_guideline",
+      "regulatory_document",
+      "journal_article",
+      "professional_guidance"
+    ],
+    "acceptanceCriteria": [
+      "Names the exact supplement identity, preparation, route, dose or exposure, population, comparator, outcome, and time horizon.",
+      "Separates possible therapeutic effects, adverse effects, interaction mechanisms, observed clinical interactions, and regulatory warnings.",
+      "Reports uncertainty and does not generalize branded standardized-product evidence to every product with a similar name.",
+      "Has source terms permitting the intended concise derived authoring use.",
+      "Leaves generation probabilities, impact classification, clinical approval, and game-point magnitude for separate review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.nlm.rxnorm-cpc.2026-07-06"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T03:30:00.000Z",
+    "updatedAt": "2026-07-27T03:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.medications.regimen-adjustment-operations",
+    "title": "Medication-specific stop, taper, limit, and dose-change boundaries",
+    "question": "Which current, legally processable sources support immediate continue, increase, reduce or limit, taper, or stop recommendations for common psychiatric and nonpsychiatric medications in a focused polypharmacy snapshot, including withdrawal and toxicity risks?",
+    "whyNeeded": "A categorical operation model is useful only if the engine does not imply that every medication may be stopped abruptly or that every duplication has the same urgency. Ingredient- or class-specific withdrawal, toxicity, indication, and transition rules need exact provenance before grading.",
+    "targetContentIds": ["info.history.medication-reconciliation"],
+    "linkedTicketIds": [
+      "ticket.source.medications.regimen-adjustment-operations",
+      "ticket.case-family.polypharmacy-cleanup"
+    ],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "regulatory_document",
+      "professional_guidance",
+      "journal_article"
+    ],
+    "acceptanceCriteria": [
+      "Names the exact medication or defensible class, current exposure state, indication, and immediate operation being supported.",
+      "Distinguishes abrupt-stop hazards, taper needs, dose limitation, toxicity response, duplication cleanup, and deliberate transition.",
+      "Separates the categorical best-next-step operation from any longitudinal taper schedule.",
+      "Preserves exceptions, uncertainty, and active treatment benefit rather than treating medication count alone as harm.",
+      "Leaves game-point magnitude and case-specific route selection for separate review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T03:45:00.000Z",
+    "updatedAt": "2026-07-27T03:45:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.delirium.polypharmacy-focused-snapshot",
+    "title": "Focused medication decisions in delirium with polypharmacy",
+    "question": "For a hospital or consultation patient with delirium and a large medication regimen, which immediate medication-reduction, discontinuation, medical-evaluation, and disposition decisions are suitable for a short best-next-step game snapshot?",
+    "whyNeeded": "The user requested a delirium-with-polypharmacy case, but the existing APA record is metadata-only and permission-restricted. PsychSim needs a legally processable source and a deliberately bounded decision horizon before it can distinguish contributors, withdrawal hazards, urgent evaluation, and safe disposition.",
+    "targetContentIds": ["evidence.apa.delirium.2025"],
+    "linkedTicketIds": [
+      "ticket.source.apa-delirium.2025-access-and-scope",
+      "ticket.case-family.delirium-polypharmacy"
+    ],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "professional_guidance",
+      "regulatory_document"
+    ],
+    "acceptanceCriteria": [
+      "Supports a hospital or consultation best-next-step snapshot rather than a longitudinal delirium simulator.",
+      "Separates recognition and medical evaluation from medication-contributor cleanup and disposition.",
+      "Identifies medication classes or exact agents whose continuation, reduction, taper, or stop decision is immediately relevant, including withdrawal hazards.",
+      "Preserves uncertainty and active treatment benefit across a complex medication list.",
+      "Has source terms permitting concise derived authoring use and leaves points for separate review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.apa.delirium.2025"],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T03:45:00.000Z",
+    "updatedAt": "2026-07-27T03:45:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.persistent-depressive-disorder.duration-and-mdd-relationship",
+    "title": "Persistent depressive disorder and MDD boundary",
+    "question": "Which current, legally reusable diagnostic sources should define persistent depressive disorder, its longitudinal and duration boundary, and its relationship to chronic major depressive episodes, partial remission, and subthreshold depressive symptoms?",
+    "whyNeeded": "PsychSim now has an identity-only persistent-depressive-disorder record so private notes and future sources can be cross-referenced without pretending the MDD file already defines the condition. Criteria, duration, compatibility, and treatment must remain disabled until a psychiatrist reviews a source-supported boundary.",
+    "targetContentIds": [
+      "diagnosis.persistent-depressive-disorder",
+      "diagnosis.major-depressive-disorder"
+    ],
+    "linkedTicketIds": ["ticket.catalog.diagnoses.persistent-depressive-disorder-boundary"],
+    "preferredSourceTypes": [
+      "classification_standard",
+      "clinical_guideline",
+      "systematic_review",
+      "professional_guidance"
+    ],
+    "acceptanceCriteria": [
+      "Defines the current diagnostic name and exact longitudinal or duration boundary for the intended adult population.",
+      "Separates persistent subthreshold depressive symptoms, chronic major depressive episodes, partial remission, and other clinically distinct states when the source does.",
+      "Explains what can coexist with or supersede MDD without treating persistent depressive disorder as an MDD severity level.",
+      "Has source terms permitting concise declarative implementation and preserves corrections or superseding versions.",
+      "Leaves patient-family scope, clinical review, treatment mapping, and game points for separate decisions."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "receivedEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "sourceDocumentIds": ["source-document.412aade56104fd394503"],
+    "sourceChunkIds": ["source-chunk.412aade56104fd394503.9"],
+    "sourceUseNoteIds": [],
+    "status": "source_received",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T14:30:00.000Z",
+    "updatedAt": "2026-07-27T14:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.bpd-vs-bipolar.differential-boundaries",
+    "title": "BPD and bipolar differential boundaries",
+    "question": "Which legally processable diagnostic and longitudinal evidence can support a focused distinction between borderline personality disorder and bipolar-spectrum presentations without turning self-harm, affective instability, trauma, or difficult interactions into proxy diagnoses?",
+    "whyNeeded": "Both runtime diagnosis records are unreviewed placeholders. The private corpus has potentially relevant medicalization, factor-analysis, and criterion-differentiation notes, but they require separate hash-bound review and independent bibliographic verification before any claim can be considered.",
+    "targetContentIds": [
+      "diagnosis.borderline-personality-disorder",
+      "diagnosis.bipolar-spectrum-disorder"
+    ],
+    "linkedTicketIds": ["ticket.source.bpd-vs-bipolar.differential-and-private-review"],
+    "preferredSourceTypes": [
+      "classification_standard",
+      "systematic_review",
+      "journal_article",
+      "clinical_guideline"
+    ],
+    "acceptanceCriteria": [
+      "Defines the population, setting, comparator groups, diagnostic reference standard, and longitudinal versus cross-sectional design.",
+      "Separates overlapping symptoms from findings that actually contribute to differentiation and reports uncertainty.",
+      "Does not treat self-harm, suicidality, affective instability, trauma history, or interpersonal difficulty alone as establishing BPD.",
+      "Keeps sociological or medicalization context distinct from diagnostic-accuracy evidence and Developer interpretation.",
+      "Has a reviewed reuse and AI-processing route and leaves executable rules and points for later psychiatrist review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [
+      "evidence.apa.bpd-treatment.second-edition.2024",
+      "evidence.va-dod.bipolar.2023"
+    ],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T14:30:00.000Z",
+    "updatedAt": "2026-07-27T14:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.alcohol-withdrawal.ed-boundaries",
+    "title": "ED alcohol-withdrawal diagnosis and action boundaries",
+    "question": "Which current, legally processable sources define the focused diagnosis, validated assessment-instrument identities, immediate medication families, monitoring constraints, medical escalation, and disposition boundaries needed for a short ED alcohol-withdrawal snapshot?",
+    "whyNeeded": "The authoring ICD catalog supplies identity terms only, while private notes mention several local or named protocols without establishing their version, rights, validity, or generalizability. PsychSim must not infer an acute withdrawal algorithm from a chronic benzodiazepine-taper guideline or a local workflow.",
+    "targetContentIds": [
+      "info.history.substance-use",
+      "info.labs.urine-toxicology",
+      "disposition.urgent-medical-evaluation",
+      "disposition.emergency-transfer"
+    ],
+    "linkedTicketIds": [
+      "ticket.catalog.diagnoses.alcohol-withdrawal-family-boundary",
+      "ticket.catalog.assessments.alcohol-withdrawal-instrument-identities",
+      "ticket.case-family.ed-alcohol-withdrawal"
+    ],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "classification_standard",
+      "systematic_review",
+      "professional_guidance",
+      "regulatory_document"
+    ],
+    "acceptanceCriteria": [
+      "Separates uncomplicated withdrawal, perceptual disturbance, seizure-related risk, and withdrawal delirium using observable or obtainable facts.",
+      "Identifies each assessment instrument by full name, owner, version, population, setting, scoring semantics, and reproduction terms rather than treating acronyms as aliases.",
+      "Supports immediate best-next-step medication or intervention families and relevant monitoring constraints without requiring a longitudinal protocol simulator.",
+      "Defines medical escalation and disposition boundaries suitable for an Emergency Department snapshot and preserves local-policy overlays separately.",
+      "Has source terms permitting concise derived authoring use and leaves case design, clinical approval, and point magnitude for separate review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [],
+    "receivedEvidenceSourceIds": [],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "needs_source",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T14:30:00.000Z",
+    "updatedAt": "2026-07-27T14:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.hypothyroidism.depressive-presentation-and-lab-pattern",
+    "title": "Hypothyroidism presenting with depressive symptoms",
+    "question": "Which current, legally reusable sources define when a depressive presentation should prompt targeted thyroid testing, which laboratory pattern supports a hypothyroidism medical-contributor state, and what immediate medical coordination or referral is appropriate in a focused psychiatric snapshot?",
+    "whyNeeded": "The existing TSH workup request addresses whether to order the test, but it does not define a case-authored hypothyroidism state, a free-thyroxine boundary, or a safe next-step route. Incidental mild TSH variation must remain separate from a case-defining medical condition.",
+    "targetContentIds": [
+      "diagnosis.major-depressive-disorder",
+      "info.labs.tsh",
+      "test.lab.tsh",
+      "disposition.urgent-medical-evaluation"
+    ],
+    "linkedTicketIds": [
+      "ticket.source.mdd.tsh-workup-threshold",
+      "ticket.case-family.hypothyroidism-presenting-as-depression"
+    ],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "professional_guidance",
+      "classification_standard"
+    ],
+    "acceptanceCriteria": [
+      "Distinguishes targeted case finding in a symptomatic presentation from population screening.",
+      "Defines the history, examination, medication, or symptom facts that make thyroid testing relevant without making it universal.",
+      "Defines the laboratory components, units, reference interpretation, and pattern needed for a reviewed medical-condition state rather than relying on a single incidental flag.",
+      "Supports a focused medical-coordination, referral, or escalation choice without turning PsychSim into an endocrine-management simulator.",
+      "Has source terms permitting concise derived implementation and leaves case design and points for separate review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "receivedEvidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+    "sourceDocumentIds": ["source-document.412aade56104fd394503"],
+    "sourceChunkIds": ["source-chunk.412aade56104fd394503.8"],
+    "sourceUseNoteIds": [],
+    "status": "source_received",
+    "resolutionNote": null,
+    "createdAt": "2026-07-27T14:30:00.000Z",
+    "updatedAt": "2026-07-27T14:30:00.000Z"
   }
 ]

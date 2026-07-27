@@ -54,7 +54,10 @@ describe('source-use policy decisions', () => {
     );
     expect(fairUseDecisions.map((decision) => decision.evidenceSourceId).sort()).toEqual([
       'evidence.cdc-nchs.icd10cm.2026',
+      'evidence.fda.abilify-maintena-label.2025-01',
+      'evidence.fda.abilify-oral-label.2025-01',
       'evidence.fda.citalopram-capsules-label.2023',
+      'evidence.fda.clozaril-label.2025-01',
     ]);
     const cdc = fairUseDecisions.find(
       (decision) => decision.evidenceSourceId === 'evidence.cdc-nchs.icd10cm.2026',
@@ -68,6 +71,28 @@ describe('source-use policy decisions', () => {
     expect(fda.permissions.localTextExtraction).toBe(false);
     expect(fda.permissions.localStructuredIndexing).toBe(false);
     expect(fda.fairUseAssessment?.preciseUse).toContain('one original sentence');
+    for (const evidenceSourceId of [
+      'evidence.fda.abilify-maintena-label.2025-01',
+      'evidence.fda.abilify-oral-label.2025-01',
+      'evidence.fda.clozaril-label.2025-01',
+    ]) {
+      const labelDecision = fairUseDecisions.find(
+        (decision) => decision.evidenceSourceId === evidenceSourceId,
+      )!;
+      expect(labelDecision).toMatchObject({
+        decisionStatus: 'permitted_with_conditions',
+        permissions: {
+          localFullTextStorage: false,
+          localTextExtraction: false,
+          localStructuredIndexing: false,
+          aiAssistedProcessing: false,
+          derivedClinicalContent: true,
+          runtimeRedistribution: true,
+          commercialDistribution: false,
+        },
+      });
+      expect(labelDecision.fairUseAssessment?.preciseUse).toContain('independently worded');
+    }
   });
 
   it('keeps DrugCentral behind an authoring-only ShareAlike gate', async () => {
@@ -259,6 +284,56 @@ describe('source-use policy decisions', () => {
         legalBasis: 'written_permission',
         fairUseAssessment: null,
         permissionEvidence: null,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('makes every derived-content lane explicit and keeps narrow data sources narrow', async () => {
+    const catalog = await readCatalog();
+    for (const decision of catalog.decisions) {
+      expect(decision.allowedContributionTypes.length > 0).toBe(
+        decision.permissions.derivedClinicalContent,
+      );
+    }
+
+    const mesh = catalog.decisions.find(
+      (decision) => decision.evidenceSourceId === 'evidence.nlm.mesh.2026',
+    )!;
+    const cyp = catalog.decisions.find(
+      (decision) => decision.evidenceSourceId === 'evidence.fda.cyp-transporter-examples.current',
+    )!;
+    const openFda = catalog.decisions.find(
+      (decision) => decision.evidenceSourceId === 'evidence.fda.openfda-drug-label.current',
+    )!;
+    expect(mesh.allowedContributionTypes).toEqual(['classification_mapping', 'context_only']);
+    expect(cyp.allowedContributionTypes).toEqual([
+      'classification_mapping',
+      'teaching_point',
+      'context_only',
+    ]);
+    expect(cyp.allowedContributionTypes).not.toContain('scoring');
+    expect(cyp.allowedContributionTypes).not.toContain('safety');
+    expect(openFda.allowedContributionTypes).toEqual(['teaching_point', 'context_only']);
+  });
+
+  it('rejects a missing or contradictory contribution-type scope', async () => {
+    const catalog = await readCatalog();
+    const derived = structuredClone(
+      catalog.decisions.find((decision) => decision.permissions.derivedClinicalContent)!,
+    );
+    const metadataOnly = structuredClone(
+      catalog.decisions.find((decision) => !decision.permissions.derivedClinicalContent)!,
+    );
+    expect(
+      SourceUseDecisionSchema.safeParse({
+        ...derived,
+        allowedContributionTypes: [],
+      }).success,
+    ).toBe(false);
+    expect(
+      SourceUseDecisionSchema.safeParse({
+        ...metadataOnly,
+        allowedContributionTypes: ['treatment'],
       }).success,
     ).toBe(false);
   });

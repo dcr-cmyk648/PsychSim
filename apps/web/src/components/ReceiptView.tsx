@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { ClinicalReviewTicket, CompletedAttempt, ContentFlag } from '@psychsim/schemas';
+import type {
+  CatalogBundle,
+  ClinicalReviewTicket,
+  CompletedAttempt,
+  ContentFlag,
+  ReceiptItem,
+} from '@psychsim/schemas';
 
 import type {
   AuditedPlayerPlan,
@@ -26,6 +32,7 @@ export interface GuidanceDraft {
 
 interface ReceiptViewProps {
   attempt: CompletedAttempt;
+  catalogs: CatalogBundle;
   developerToolsEnabled: boolean;
   developerCaseReviewEnabled: boolean;
   referenceSolutionAudit: ReferenceSolutionAudit | null;
@@ -42,6 +49,31 @@ interface ReceiptViewProps {
   onSaveGuidance: (draft: GuidanceDraft) => Promise<void>;
   onSaveDeveloperReview: (reviewerNote: string) => Promise<boolean>;
   onSaveLinkedTicketReview?: (ticketId: string, reviewerNotes: string) => Promise<void>;
+}
+
+function ReceiptReviewActions({
+  item,
+  developerToolsEnabled,
+  onFlag,
+  onGuidance,
+}: {
+  item: ReceiptItem;
+  developerToolsEnabled: boolean;
+  onFlag: (item: ReceiptItem) => void;
+  onGuidance: (item: ReceiptItem) => void;
+}) {
+  return (
+    <div className="table-actions">
+      <button className="small-button" type="button" onClick={() => onFlag(item)}>
+        Flag
+      </button>
+      {developerToolsEnabled ? (
+        <button className="small-button" type="button" onClick={() => onGuidance(item)}>
+          Add guidance
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 const displayLabel = (value: string): string => value.replaceAll('_', ' ');
@@ -191,8 +223,16 @@ function PlanCard({
         )}
       </section>
       <section>
-        <h4>Treatment and disposition</h4>
+        <h4>Diagnosis, treatment, and disposition</h4>
         <dl className="plan-treatment-list">
+          <div>
+            <dt>Diagnosis</dt>
+            <dd>
+              {plan.selections.diagnoses.length > 0
+                ? plan.selections.diagnoses.map((selection) => selection.label).join(', ')
+                : 'None'}
+            </dd>
+          </div>
           {TREATMENT_GROUPS.map((group) => (
             <div key={group.key}>
               <dt>{group.label}</dt>
@@ -244,6 +284,7 @@ export const formatTraceProvenanceLabel = (
 };
 
 const TRACE_COMPONENT_ORDER: readonly TraceComponent[] = [
+  'diagnosis',
   'workup',
   'medication_selection',
   'medication_discontinuation',
@@ -254,6 +295,7 @@ const TRACE_COMPONENT_ORDER: readonly TraceComponent[] = [
 ];
 
 const TRACE_COMPONENT_LABELS: Record<TraceComponent, string> = {
+  diagnosis: 'Diagnosis',
   workup: 'Workup',
   medication_selection: 'Medication selection',
   medication_discontinuation: 'Medication changes',
@@ -278,7 +320,7 @@ function TraceRuleDetails({
     .filter(Boolean)
     .join(' ');
   return (
-    <details className={traceClasses || undefined}>
+    <details id={`rule-trace-${trace.ruleId}`} className={traceClasses || undefined}>
       <summary>
         <span>{trace.label}</span>
         <small
@@ -295,6 +337,8 @@ function TraceRuleDetails({
         {displayLabel(trace.classification)} ·{' '}
         {trace.matched ? 'condition met' : 'condition not met'} · rule review:{' '}
         {displayLabel(trace.reviewStatus)}
+        {trace.concernLevel ? ` · concern: ${displayLabel(trace.concernLevel)}` : ''}
+        {trace.certaintyLevel ? ` · certainty: ${displayLabel(trace.certaintyLevel)}` : ''}
       </small>
       <div className="evidence-attributions">
         <b>References &amp; provenance</b>
@@ -477,6 +521,7 @@ function LinkedTicketReviewCard({
 
 export function ReceiptView({
   attempt,
+  catalogs,
   developerToolsEnabled,
   developerCaseReviewEnabled,
   referenceSolutionAudit,
@@ -495,6 +540,33 @@ export function ReceiptView({
   onSaveLinkedTicketReview = async () => undefined,
 }: ReceiptViewProps) {
   const { pointReport, settlement, items } = attempt.receipt;
+  const diagnosisLabel = (id: string): string =>
+    catalogs.diagnoses.find((diagnosis) => diagnosis.id === id)?.label ?? id;
+  const diagnosisQualifierLabel = (
+    diagnosisId: string,
+    severityId: string | null,
+    specifierIds: readonly string[],
+  ): string | null => {
+    const definition = catalogs.diagnoses.find((diagnosis) => diagnosis.id === diagnosisId);
+    const labels = [
+      severityId
+        ? (definition?.severityAxis?.levels.find((level) => level.id === severityId)?.label ??
+          severityId)
+        : null,
+      ...specifierIds.map(
+        (specifierId) =>
+          definition?.specifiers.find((specifier) => specifier.id === specifierId)?.label ??
+          specifierId,
+      ),
+    ].filter((label): label is string => label !== null);
+    return labels.length > 0 ? labels.join(' · ') : null;
+  };
+  const caseDiagnoses = attempt.caseInstance.patientRecord.diagnoses.filter((diagnosis) =>
+    ['primary', 'contributing'].includes(diagnosis.role),
+  );
+  const inactiveCaseDiagnoses = attempt.caseInstance.patientRecord.diagnoses.filter((diagnosis) =>
+    ['excluded', 'reference_only'].includes(diagnosis.role),
+  );
   const [disputedItemId, setDisputedItemId] = useState<string | null>(null);
   const [issueCategory, setIssueCategory] =
     useState<ContentFlag['issueCategory']>('whole_encounter');
@@ -742,6 +814,103 @@ export function ReceiptView({
         playerScore={pointReport.carePointsEarned}
         databaseScore={databaseComparisonScore}
       />
+
+      <section className="diagnosis-comparison-panel" aria-labelledby="diagnosis-comparison-title">
+        <header>
+          <div>
+            <p className="panel-kicker">Diagnostic answer</p>
+            <h2 id="diagnosis-comparison-title">Your answer and the case record</h2>
+          </div>
+          <span
+            className={
+              pointReport.diagnosisEvaluationSource === 'not_scored'
+                ? 'diagnosis-points not-scored'
+                : pointReport.componentPoints.diagnosis < 0
+                  ? 'diagnosis-points negative'
+                  : 'diagnosis-points positive'
+            }
+          >
+            {pointReport.diagnosisEvaluationSource === 'not_scored' ? (
+              'Not scored'
+            ) : (
+              <>
+                {pointReport.componentPoints.diagnosis > 0 ? '+' : ''}
+                {pointReport.componentPoints.diagnosis.toLocaleString()} pts
+              </>
+            )}
+          </span>
+        </header>
+        <div className="diagnosis-comparison-grid">
+          <article>
+            <h3>Your submitted diagnoses</h3>
+            {attempt.submittedDiagnoses.length > 0 ? (
+              <ul>
+                {attempt.submittedDiagnoses.map((selection) => {
+                  const qualifiers = diagnosisQualifierLabel(
+                    selection.diagnosisId,
+                    selection.severityId,
+                    selection.specifierIds,
+                  );
+                  return (
+                    <li key={selection.diagnosisId}>
+                      <span>{diagnosisLabel(selection.diagnosisId)}</span>
+                      {qualifiers ? <small>{qualifiers}</small> : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p>None submitted.</p>
+            )}
+          </article>
+          <article>
+            <h3>Resolved patient diagnosis state</h3>
+            {caseDiagnoses.length > 0 ? (
+              <ul>
+                {caseDiagnoses.map((diagnosis) => (
+                  <li key={diagnosis.id}>
+                    <span>{diagnosisLabel(diagnosis.id)}</span>
+                    <small>
+                      {diagnosisQualifierLabel(
+                        diagnosis.id,
+                        diagnosis.severityId,
+                        diagnosis.specifierIds,
+                      )
+                        ? `${diagnosisQualifierLabel(
+                            diagnosis.id,
+                            diagnosis.severityId,
+                            diagnosis.specifierIds,
+                          )} · `
+                        : ''}
+                      {diagnosis.role.replaceAll('_', ' ')} ·{' '}
+                      {diagnosis.origin === 'authored'
+                        ? 'fixed in the case'
+                        : diagnosis.origin === 'generated_optional'
+                          ? 'generated optional complication'
+                          : 'incidentally derived during generation'}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No active case diagnosis was stored.</p>
+            )}
+          </article>
+        </div>
+        <p className="diagnosis-evaluation-notice">{pointReport.diagnosisEvaluationNotice}</p>
+        {developerToolsEnabled && inactiveCaseDiagnoses.length > 0 ? (
+          <details className="inactive-diagnosis-audit">
+            <summary>Developer audit · excluded and reference-only diagnoses</summary>
+            <ul>
+              {inactiveCaseDiagnoses.map((diagnosis) => (
+                <li key={`${diagnosis.role}-${diagnosis.id}`}>
+                  {diagnosisLabel(diagnosis.id)} · {diagnosis.role.replaceAll('_', ' ')}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+      </section>
 
       {developerReviewPanel}
 
@@ -1031,12 +1200,83 @@ export function ReceiptView({
       <section className="receipt-table-panel" aria-labelledby="itemized-title">
         <div className="panel-heading-row">
           <div>
-            <p className="panel-kicker">Base awards and modifiers separated</p>
+            <p className="panel-kicker">Selections, costs, and applied point effects</p>
             <h2 id="itemized-title">Itemized case receipt</h2>
           </div>
           <span className="count-badge">{items.length}</span>
         </div>
-        <div className="table-scroll">
+        <ol className="mobile-receipt-item-list" aria-label="Itemized case receipt">
+          {items.map((item) => {
+            const savings = item.externalCostAvoided + item.upgradeSavings;
+            return (
+              <li key={`mobile-${item.id}`} className={item.pointDelta < 0 ? 'negative-item' : ''}>
+                <div className="mobile-receipt-item-heading">
+                  <strong>{item.itemName}</strong>
+                  <b className={item.pointDelta < 0 ? 'negative-cell' : undefined}>
+                    {signed(item.pointDelta)} care pts
+                  </b>
+                </div>
+                <p>{item.explanation}</p>
+                <dl>
+                  <div>
+                    <dt>Cost</dt>
+                    <dd className={item.operatingCost > 0 ? 'negative-cell' : undefined}>
+                      {item.operatingCost > 0
+                        ? `−${item.operatingCost.toLocaleString()} pts`
+                        : '0 pts'}
+                    </dd>
+                  </div>
+                  {savings > 0 ? (
+                    <div>
+                      <dt>Upgrade savings</dt>
+                      <dd>+{savings.toLocaleString()} pts</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>Category</dt>
+                    <dd>{displayLabel(item.scoreCategory)}</dd>
+                  </div>
+                  <div>
+                    <dt>Classification</dt>
+                    <dd>{displayLabel(item.classification)}</dd>
+                  </div>
+                  <div>
+                    <dt>Fulfillment</dt>
+                    <dd>{item.fulfillmentMethod}</dd>
+                  </div>
+                  <div>
+                    <dt>Database path</dt>
+                    <dd>{item.acceptedPathwayMatch ? 'Matched' : '—'}</dd>
+                  </div>
+                </dl>
+                {item.relatedRuleIds.length > 0 ? (
+                  <a className="receipt-rule-link" href={`#rule-trace-${item.relatedRuleIds[0]}`}>
+                    Open linked rule trace
+                    {item.relatedRuleIds.length > 1 ? ` (${item.relatedRuleIds.length})` : ''}
+                  </a>
+                ) : (
+                  <small className="receipt-rule-unavailable">
+                    No separate applied rule was stored for this item.
+                  </small>
+                )}
+                <ReceiptReviewActions
+                  item={item}
+                  developerToolsEnabled={developerToolsEnabled}
+                  onFlag={(selectedItem) => {
+                    setDisputedItemId(selectedItem.id);
+                    setIssueCategory(
+                      selectedItem.kind === 'information'
+                        ? 'information_result'
+                        : 'treatment_grade',
+                    );
+                  }}
+                  onGuidance={(selectedItem) => setGuidanceItemId(selectedItem.id)}
+                />
+              </li>
+            );
+          })}
+        </ol>
+        <div className="table-scroll desktop-receipt-table">
           <table>
             <thead>
               <tr>
@@ -1072,29 +1312,19 @@ export function ReceiptView({
                   <td>{displayLabel(item.classification)}</td>
                   <td>{item.acceptedPathwayMatch ? 'Matched' : '—'}</td>
                   <td>
-                    <div className="table-actions">
-                      <button
-                        className="small-button"
-                        type="button"
-                        onClick={() => {
-                          setDisputedItemId(item.id);
-                          setIssueCategory(
-                            item.kind === 'information' ? 'information_result' : 'treatment_grade',
-                          );
-                        }}
-                      >
-                        Flag
-                      </button>
-                      {developerToolsEnabled ? (
-                        <button
-                          className="small-button"
-                          type="button"
-                          onClick={() => setGuidanceItemId(item.id)}
-                        >
-                          Add guidance
-                        </button>
-                      ) : null}
-                    </div>
+                    <ReceiptReviewActions
+                      item={item}
+                      developerToolsEnabled={developerToolsEnabled}
+                      onFlag={(selectedItem) => {
+                        setDisputedItemId(selectedItem.id);
+                        setIssueCategory(
+                          selectedItem.kind === 'information'
+                            ? 'information_result'
+                            : 'treatment_grade',
+                        );
+                      }}
+                      onGuidance={(selectedItem) => setGuidanceItemId(selectedItem.id)}
+                    />
                   </td>
                 </tr>
               ))}

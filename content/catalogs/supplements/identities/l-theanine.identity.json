@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "supplement.l-theanine",
+  "label": "L-theanine",
+  "normalizedName": "theanine",
+  "aliases": ["L-gamma-glutamylethylamide"],
+  "identityCategory": "amino_acid_derivative",
+  "preparation": "compound",
+  "identifiers": [
+    {
+      "system": "mesh",
+      "value": "C026166",
+      "relationship": "exact",
+      "sourceRelease": "MeSH 2026",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    },
+    {
+      "system": "rxnorm",
+      "value": "38022",
+      "relationship": "exact",
+      "sourceRelease": "RxNorm CPC 2026-07-06",
+      "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    }
+  ],
+  "identityScopeNote": "Identity-only compound record. It does not establish psychiatric efficacy, dosing, safety, or a gameplay modifier.",
+  "runtimeSelectable": false,
+  "medicalReviewStatus": "unreviewed"
+}

@@ -17,6 +17,8 @@ export const evaluatePredicate = (
       return context.purchasedActionIds.has(predicate.actionId);
     case 'factKnown':
       return context.knownFactIds.has(predicate.factId);
+    case 'anyMedicationStarted':
+      return context.selections.startMedicationIds.length > 0;
     case 'treatmentStarted':
       return context.selections.startMedicationIds.includes(predicate.medicationId);
     case 'treatmentStartedWithTag': {
@@ -49,6 +51,7 @@ export interface PredicateReferences {
   factIds: string[];
   medicationIds: string[];
   medicationTagIds: string[];
+  anyMedicationStarted: boolean;
   interventionIds: string[];
   dispositionIds: string[];
   capabilityIds: string[];
@@ -60,6 +63,7 @@ export const extractPredicateReferences = (predicate: ScorePredicate): Predicate
     factIds: [],
     medicationIds: [],
     medicationTagIds: [],
+    anyMedicationStarted: false,
     interventionIds: [],
     dispositionIds: [],
     capabilityIds: [],
@@ -72,6 +76,9 @@ export const extractPredicateReferences = (predicate: ScorePredicate): Predicate
         return;
       case 'factKnown':
         references.factIds.push(node.factId);
+        return;
+      case 'anyMedicationStarted':
+        references.anyMedicationStarted = true;
         return;
       case 'treatmentStarted':
       case 'treatmentStopped':

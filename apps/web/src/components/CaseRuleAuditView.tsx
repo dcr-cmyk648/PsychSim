@@ -27,6 +27,7 @@ export function CaseRuleAuditView({ audit, targetContentIds }: CaseRuleAuditView
   const focused = focusCaseRuleAudit(audit, targetContentIds);
   const focusedCount =
     focused.investigations.length +
+    focused.treatmentWorkupRequirements.length +
     focused.treatmentGrades.length +
     focused.medicationFitModifiers.length +
     focused.treatmentPathways.length +
@@ -135,6 +136,36 @@ export function CaseRuleAuditView({ audit, targetContentIds }: CaseRuleAuditView
                         <dd>{rule.condition}</dd>
                       </div>
                     </dl>
+                    <ReviewLine review={rule.review} />
+                    <code>{rule.id}</code>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {focused.treatmentWorkupRequirements.length > 0 ? (
+            <section className="audit-rule-group">
+              <h4>Treatment-triggered workup</h4>
+              <div className="audit-row-list">
+                {focused.treatmentWorkupRequirements.map((rule) => (
+                  <article className="audit-row" key={rule.id}>
+                    <header>
+                      <strong>{rule.objectiveLabel}</strong>
+                      <span>
+                        {words(rule.concernLevel)} concern · {words(rule.certaintyLevel)} certainty
+                      </span>
+                    </header>
+                    <p>
+                      <b>When:</b> {rule.condition}
+                    </p>
+                    <p>
+                      <b>{rule.safetyCritical ? 'Safety-critical requirement' : 'Requirement'}:</b>{' '}
+                      met {signed(rule.pointsIfMet)} · missing {signed(rule.pointsIfMissing)}
+                    </p>
+                    <p>
+                      <b>Qualitative source rules:</b> {rule.sourceRuleIds.join(' · ')}
+                    </p>
                     <ReviewLine review={rule.review} />
                     <code>{rule.id}</code>
                   </article>

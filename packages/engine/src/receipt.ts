@@ -5,6 +5,7 @@ import {
   type ClinicalPointReport,
   type EconomySettlement,
   type EncounterState,
+  type PlayerDiagnosisSelection,
   type ReceiptItem,
 } from '@psychsim/schemas';
 
@@ -16,6 +17,29 @@ const labelForTreatment = (id: string, catalogs: CatalogBundle): string =>
   catalogs.treatments.find((item) => item.id === id)?.label ??
   id;
 
+const labelForDiagnosis = (id: string, catalogs: CatalogBundle): string =>
+  catalogs.diagnoses.find((item) => item.id === id)?.label ?? id;
+
+const labelForDiagnosisSelection = (
+  selection: PlayerDiagnosisSelection,
+  catalogs: CatalogBundle,
+): string => {
+  const diagnosis = catalogs.diagnoses.find((item) => item.id === selection.diagnosisId);
+  if (!diagnosis) return selection.diagnosisId;
+  const qualifiers = [
+    selection.severityId
+      ? (diagnosis.severityAxis?.levels.find((level) => level.id === selection.severityId)?.label ??
+        selection.severityId)
+      : null,
+    ...selection.specifierIds.map(
+      (specifierId) =>
+        diagnosis.specifiers.find((specifier) => specifier.id === specifierId)?.label ??
+        specifierId,
+    ),
+  ].filter((label): label is string => label !== null);
+  return qualifiers.length > 0 ? `${diagnosis.label} — ${qualifiers.join('; ')}` : diagnosis.label;
+};
+
 const traceForAction = (actionId: string, pointReport: ClinicalPointReport) =>
   pointReport.ruleTrace.filter((trace) => {
     const assignedActionId =
@@ -26,12 +50,24 @@ const traceForAction = (actionId: string, pointReport: ClinicalPointReport) =>
 const categoryForComponent = (
   component: ClinicalPointReport['ruleTrace'][number]['component'] | undefined,
 ): ReceiptItem['scoreCategory'] => {
+  if (component === 'diagnosis') return 'diagnosis';
   if (component === 'efficiency') return 'efficiency';
   if (component === 'nonmedication') return 'nonmedication';
   if (component === 'disposition') return 'disposition';
   if (component === 'medication_discontinuation') return 'medication_change';
   if (component === 'safety') return 'interaction_modifier';
+  if (component === 'medication_selection') return 'patient_fit_modifier';
   return 'workup';
+};
+
+const kindForComponent = (
+  component: ClinicalPointReport['ruleTrace'][number]['component'],
+): ReceiptItem['kind'] => {
+  if (component === 'diagnosis') return 'diagnosis';
+  if (component === 'nonmedication') return 'nonmedication';
+  if (component === 'disposition') return 'disposition';
+  if (component === 'workup' || component === 'efficiency') return 'information';
+  return 'treatment';
 };
 
 const actionMatchesPath = (
@@ -91,6 +127,39 @@ export const buildCaseReceipt = (
       ),
       externalCostAvoided: purchase.externalCostAvoided,
       upgradeSavings: purchase.upgradeSavings,
+      relatedRuleIds: traces.map((trace) => trace.ruleId),
+    };
+  });
+
+  const diagnosisItems: ReceiptItem[] = state.diagnosisSelections.map((selection, index) => {
+    const traces = pointReport.ruleTrace.filter(
+      (trace) =>
+        trace.component === 'diagnosis' &&
+        trace.relatedDiagnosisIds.includes(selection.diagnosisId) &&
+        state.diagnosisSelections.findIndex((candidate) =>
+          trace.relatedDiagnosisIds.includes(candidate.diagnosisId),
+        ) === index,
+    );
+    const materialTrace = traces.find((trace) => trace.points !== 0) ?? traces[0];
+    return {
+      id: `receipt.diagnosis-${index + 1}`,
+      itemName: `Diagnosis: ${labelForDiagnosisSelection(selection, catalogs)}`,
+      kind: 'diagnosis',
+      fulfillmentMethod: 'Player diagnosis selection',
+      operatingCost: 0,
+      pointDelta: traces.reduce((sum, trace) => sum + trace.points, 0),
+      scoreCategory: 'diagnosis',
+      classification: materialTrace?.classification ?? 'diagnosis_not_scored',
+      explanation:
+        materialTrace?.explanation ??
+        'The diagnosis selection was preserved, but this case has no separate point rule for it.',
+      acceptedPathwayMatch:
+        materialTrace?.classification === 'diagnosis_canonical' ||
+        materialTrace?.classification === 'diagnosis_reasonable_alternative' ||
+        materialTrace?.classification === 'diagnosis_partial',
+      externalCostAvoided: 0,
+      upgradeSavings: 0,
+      relatedRuleIds: traces.map((trace) => trace.ruleId),
     };
   });
 
@@ -145,6 +214,7 @@ export const buildCaseReceipt = (
             acceptedPathwayMatch: pointReport.selectedPathwayId !== null,
             externalCostAvoided: 0,
             upgradeSavings: 0,
+            relatedRuleIds: [gradeTrace.ruleId],
           },
         ]
       : []),
@@ -166,6 +236,7 @@ export const buildCaseReceipt = (
             acceptedPathwayMatch: pointReport.selectedPathwayId !== null,
             externalCostAvoided: 0,
             upgradeSavings: 0,
+            relatedRuleIds: safetyTraces.map((trace) => trace.ruleId),
           },
         ]
       : []),
@@ -207,13 +278,86 @@ export const buildCaseReceipt = (
       acceptedPathwayMatch: pointReport.selectedPathwayId !== null,
       externalCostAvoided: serviceQuote?.externalCostAvoided ?? 0,
       upgradeSavings: 0,
+      relatedRuleIds: traces.map((trace) => trace.ruleId),
     };
   });
+
+  const directlyItemized = [
+    ...informationItems,
+    ...diagnosisItems,
+    ...combinationItems,
+    ...treatmentItems,
+  ];
+  const representedRuleIds = new Set(directlyItemized.flatMap((item) => item.relatedRuleIds));
+  const appliedRuleItems: ReceiptItem[] = pointReport.ruleTrace
+    .filter((trace) => trace.points !== 0 && !representedRuleIds.has(trace.ruleId))
+    .map((trace) => {
+      const actionId = trace.relatedActionIds.at(-1);
+      const treatmentId = trace.relatedTreatmentIds[0];
+      const diagnosisId = trace.relatedDiagnosisIds[0];
+      const actionLabel = actionId
+        ? catalogs.informationActions.find((action) => action.id === actionId)?.label
+        : undefined;
+      return {
+        id: `receipt.applied-rule.${trace.ruleId}`,
+        itemName:
+          trace.points < 0 && trace.component === 'workup'
+            ? `Missed: ${trace.label}`
+            : (actionLabel ??
+              (diagnosisId
+                ? labelForDiagnosis(diagnosisId, catalogs)
+                : treatmentId
+                  ? labelForTreatment(treatmentId, catalogs)
+                  : trace.label)),
+        kind: kindForComponent(trace.component),
+        fulfillmentMethod: 'Applied rule',
+        operatingCost: 0,
+        pointDelta: trace.points,
+        scoreCategory: categoryForComponent(trace.component),
+        classification: trace.classification,
+        explanation: trace.explanation,
+        acceptedPathwayMatch:
+          actionId !== undefined &&
+          actionMatchesPath(actionId, state, pointReport.selectedPathwayId),
+        externalCostAvoided: 0,
+        upgradeSavings: 0,
+        relatedRuleIds: [trace.ruleId],
+      };
+    });
+
+  const itemizedPointTotal = [...directlyItemized, ...appliedRuleItems].reduce(
+    (sum, item) => sum + item.pointDelta,
+    0,
+  );
+  const scoreAdjustment = pointReport.carePointsEarned - itemizedPointTotal;
+  const scoreAdjustmentItems: ReceiptItem[] =
+    scoreAdjustment === 0
+      ? []
+      : [
+          {
+            id: 'receipt.score-cap-or-floor',
+            itemName: 'Score cap or floor adjustment',
+            kind: 'treatment',
+            fulfillmentMethod: 'Final score reconciliation',
+            operatingCost: 0,
+            pointDelta: scoreAdjustment,
+            scoreCategory: 'interaction_modifier',
+            classification: scoreAdjustment < 0 ? 'safety_cap' : 'score_floor',
+            explanation:
+              scoreAdjustment < 0
+                ? 'The final safety cap reduced the sum of otherwise applicable point effects.'
+                : 'The final score floor prevented the total from falling below its allowed minimum.',
+            acceptedPathwayMatch: false,
+            externalCostAvoided: 0,
+            upgradeSavings: 0,
+            relatedRuleIds: [],
+          },
+        ];
 
   return CaseReceiptSchema.parse({
     schemaVersion: 1,
     pointReport,
     settlement,
-    items: [...informationItems, ...combinationItems, ...treatmentItems],
+    items: [...directlyItemized, ...appliedRuleItems, ...scoreAdjustmentItems],
   });
 };

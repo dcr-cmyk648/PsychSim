@@ -50,7 +50,7 @@ one version-7 export containing multiple completed attempts, case reviews, datab
 reviews, flags, and tickets. GitHub Pages
 deploys this finite Reviewer artifact from `main`; it does not include the local Developer glob,
 source/opinion queues, ticket discovery, writer endpoint, source bytes, or AI tooling. Assignment
-`2026-07f` additionally includes one exact finite packet of ten patient-linked review questions.
+`2026-07g` additionally includes one exact finite packet of ten patient-linked review questions.
 
 Portable review gate: every scenario passes schema, registry, reference, semantic eligibility, and
 four-policy ordering checks in the all-capabilities Reviewer clinic; ordinary Player and Reviewer
@@ -69,7 +69,8 @@ simultaneously expanded rule audits.
 
 Database-browser checkpoint: desktop and mobile hubs open one shared searchable Database screen.
 It presents a schema-minimized public projection of modeled conditions, 33 normalized medication
-identities, interventions, dispositions, investigations, tests, and formal bibliography. Each
+identities (subsequently expanded to 52 identity records without expanding gameplay),
+interventions, dispositions, investigations, tests, and formal bibliography. Each
 record opens in a dedicated full reader. Developer and portable Reviewer can save/export a prose
 comment with the exact safe entry snapshot; Player remains read-only. It explicitly excludes
 patient answer keys, points/rules, private sources, and the authoring-only ICD cache. Component,
@@ -85,7 +86,7 @@ anxiety finding, exercising subthreshold variation without creating a diagnosis 
 rubric. Finding rows display explicit outcome chips and grouped positive/negative states. Receipts
 use one responsive care-point meter and expose attempt-persisted rule provenance in every trace.
 The material cohort revision is namespaced as
-`reviewer-assignment.common-psychiatry.2026-07f`.
+`reviewer-assignment.common-psychiatry.2026-07g`.
 
 Progression follow-up: a 900-point Clinical intake assistant, gated at 600 lifetime points, can
 automatically administer up to three selected routine checklist/medication-history actions. Each
@@ -105,8 +106,8 @@ Medication/intervention authoring checkpoint: the target background database now
 normalized identity and regulatory facts, structured evidence claims, Developer opinions,
 executable clinical rules, and point balance. Public RxNorm/FDA/NLM sources form the preferred bulk
 factual scaffold; comparative evidence and guidelines remain separately scoped. Proprietary
-references are human-only absent permission, and psychotherapy manuals are not copied. The first
-implemented identity slice has 33 pinned RxNorm ingredient records: 13 runtime-compatible and 20
+references are human-only absent permission, and psychotherapy manuals are not copied. The current
+identity catalog has 52 pinned RxNorm ingredient records: 13 runtime-compatible and 39
 identity-only. It includes required public attribution/currentness disclosure and does not change
 formularies, treatments, clinical claims, or scoring. A refresh importer, therapy migration, and
 the remaining knowledge layers are still open.
@@ -172,6 +173,13 @@ reader for one concise private-source decision at a time. The browser-safe packe
 a separate private locator, reviewer prose cannot replace its snapshot, invalid private state is
 quarantined visibly, and Player/portable Reviewer bundles exclude the feature. The first packet is
 metadata-only and does not claim semantic atomization.
+
+The whole-corpus Database overlay now adds one fingerprint-bound dossier decision brief per entry.
+It preserves candidate contribution types, resolved target roles, unresolved cross-target
+mentions, and an explicitly non-executable patient/randomization lane. Saving one psychiatrist
+interpretation reuses the existing local ticket workflow; it creates no rule, weight, point,
+runtime treatment, or approval. This is still an authoring precursor, not completion of historical
+comparison, rubric editing, re-scoring, or the Milestone 5 gate.
 
 Scope: build on the Milestone 1 proposed-ticket queue with exact attempt replay; review inspector; dependency/conflict and supersession workflows; rubric editing; historical comparison/re-score; JSON bundles; reference-policy simulations and QA reports; generated content indexes.
 

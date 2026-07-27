@@ -2,6 +2,12 @@
 
 PsychSim is a browser-based psychiatric clinic-building game prototype. Milestones 0–3 deliver a small playable clinical loop plus the first progression arc: purchase immediate structured information, assemble a treatment plan, lock it in, receive an itemized all-points settlement, and reinvest banked points in services, formularies, facilities, and visible ambience.
 
+Its private authoring database is also a first-class personal learning system. It preserves the
+developer's accumulated notes, authored teaching material, formal sources, interpretations,
+disagreements, and knowledge gaps so they can be audited, updated, and reinforced through review
+and patient play. The game remains a deliberately focused projection over that richer database:
+comprehensive capture must never make one encounter read like a comprehensive clinical simulator.
+
 Cross-device Codex work uses one canonical write-capable thread per local worktree. Start every new or resumed thread from [PROJECT_STATE.md](PROJECT_STATE.md), run `./scripts/codex-handoff status`, and follow [the phone/Mac handoff guide](docs/CODEX_THREAD_HANDOFF.md) before editing. Conversation history is not project memory.
 
 The ordinary Player build currently has two approved-for-prototype patients. A separate portable
@@ -13,15 +19,28 @@ organizations are never launcher copy. No external service, account, API key, ba
 is required to play.
 
 The clinic hub also has a **Database** button on desktop and mobile. It opens a searchable
-public-safe catalog compiled into that exact build: currently 8 modeled condition definitions,
-33 normalized medication identities, 13 therapies/interventions, 3 dispositions, 40 shared
-investigations, 14 test definitions, and 18 formal bibliography records. Each entry opens in a
-dedicated full reader with its complete review-safe structured record. Twenty medication records
-are identity-only authoring entries and are not selectable in gameplay; the other thirteen retain
+public-safe catalog compiled into that exact build: currently 9 modeled condition definitions,
+53 normalized medication identities, 6 supplement identities, 13 therapies/interventions, 3
+dispositions, 40 shared investigations, 14 test definitions, and 26 formal bibliography records.
+Each entry opens in a dedicated full reader with its complete review-safe structured record. Forty medication
+records are identity-only authoring entries and are not selectable in gameplay; the other thirteen retain
 the existing runtime compatibility definitions. Developer and portable Reviewer builds can save a
 free-text comment with an immutable entry snapshot and export it to Codex. This is intentionally
 not direct filesystem access or a comprehensive diagnostic manual. Patient answer keys, points,
 scoring predicates, and private source text stay outside this Database view.
+
+On the local development server, the same Database reader can load a separate ignored
+whole-personal-corpus projection. “Personal corpus” includes authorized Apple Notes, locally
+available attachment OCR, SharePoint/residency articles written by the developer, and other
+explicitly enrolled private writing. It shows lexical retrieval links, semantic candidates,
+formal-source contributions, and executable/proposed rules in separate collapsed lanes. This
+overlay never enters Player or portable Reviewer bundles and never equates indexing with clinical
+incorporation.
+
+Developer Database also has a separate collapsed ICD-10-CM authoring inspector. It lazily reads the
+local 1,112-term F01–F99 cache for code/title lookup and displays its rights boundary. It does not
+change the eight modeled-condition count, contain diagnostic criteria, accept exportable comments,
+or enter any distributed build.
 
 ## Quick start
 
@@ -61,6 +80,8 @@ pnpm content:knowledge:prepare -- --provider openai-codex --model "<exact expose
 pnpm content:knowledge:import -- /private/path/to/classification.json
 pnpm content:knowledge:status
 pnpm content:knowledge:inventory
+pnpm content:knowledge:crossref
+pnpm content:knowledge:crossref:validate
 pnpm content:knowledge:review-packet
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
@@ -111,6 +132,12 @@ refresh the fixed gitignored Codex handoff file at
 copy, while JSON export is a backup. The ordinary Player build contains neither these queues nor the
 writable local endpoint.
 
+While a Developer patient is open, the fixed “Case notes” control saves an encounter-scoped draft
+in IndexedDB. On a phone it is a compact bar at the bottom of the viewport; on desktop it opens as
+a small review panel. Reopening the same waiting-room patient restores the draft. Submitting the
+case turns it into the editable completed-attempt review and refreshes the same Codex handoff file.
+It never enters the clinical event history, score, or Player/Endgame interface.
+
 The portable Reviewer build is the controlled phone/desktop review surface. It uses a separate
 assignment-versioned IndexedDB database, provides the all-capabilities practice clinic, and loads
 the two prototype patients plus exactly ten medically unreviewed reviewer-cohort scenarios. It
@@ -121,6 +148,10 @@ Treatment, and Results/review tabs; purchased results also appear in a dismissib
 and remain permanently available newest-first in Revealed. After submission, the feedback box is
 near the top of Results. Every completed receipt can be reopened after reload so an interrupted
 phone session does not strand unsaved feedback.
+
+The portable Reviewer has the same encounter-scoped note control. Its completed note is included
+with the exact attempt in the next feedback export; an unfinished draft remains local to that
+browser and device.
 
 Reviewer feedback is local to that browser/device/origin until export. Several case comments,
 database-entry comments, item flags, and generated tickets can be accumulated in one version-7 JSON
@@ -178,6 +209,18 @@ remote Drive sources. All source-unit, opinion, and bibliographic candidates rem
 unreviewed, non-executable, point-free, and unable to approve or change gameplay. Whole-corpus
 lexical inventory is not a claim that the Notes corpus has been semantically interpreted.
 
+`content:knowledge:crossref` is the broader local Developer audit. It enrolls all Apple Notes
+composites, locally available attachment OCR, and the explicitly cataloged private Drive
+documents—including the SharePoint/residency writing archive—into one deterministic,
+fingerprinted cross-reference. The generated mode-`0600` projection is loopback-only and ignored
+by Git. Database entries show lexical source links, semantic candidates, formal contributions,
+rules, and points in separate lanes. A match is not a claim or incorporation; the projection
+reports the remaining semantic-review backlog honestly. Each local entry also presents one concise
+fingerprint-bound dossier brief. Saving the psychiatrist's interpretation creates a local review
+ticket for later Codex atomization; it does not resolve a candidate, activate randomization,
+change points, make a medication selectable, or approve content. Developer exports containing
+these concise private-corpus-derived summaries should remain private.
+
 A controlled scaffold request can turn an existing reviewed-as-a-template case into a new
 medically unreviewed Developer patient with source provenance, proposed shared impact IDs, and
 blocking clinical-audit tickets. Neither Apple Notes intake nor scaffolding infers a clinical rule,
@@ -218,8 +261,11 @@ balanced. MDD severity and optional comorbidity generation remain disabled in ap
 pending source and compiler gates; see [DIAGNOSIS_ENGINE.md](docs/DIAGNOSIS_ENGINE.md) and
 [PATIENT_GENERATION_ENGINE.md](docs/PATIENT_GENERATION_ENGINE.md).
 
-The CANMAT MDD source has been decomposed into five unresolved Developer tickets rather than
-applied automatically. The 2023 WHO mhGAP guideline is now cataloged as a broad non-specialist
+The CANMAT MDD source has been decomposed into focused Developer tickets rather than applied
+automatically. The reviewed initial-medication packet now supplies one broad qualitative
+first-line route for the five currently modeled examples, while its exact point magnitude remains
+provisional and medication-specific fit remains separate. The remaining CANMAT questions stay
+queued. The 2023 WHO mhGAP guideline is now cataloged as a broad non-specialist
 baseline; its DEP1–DEP4 depression section produced one source-linked Developer patient and four
 recommendation-level tickets without changing executable shared guidance. The MDD diagnosis file
 retains only an unreviewed context note that explicitly does not define criteria or severity.
@@ -238,11 +284,11 @@ permission or prohibit AI ingestion. Eight new Developer tickets own those acces
 scope decisions; no recommendation or point rule was activated. See the
 [recommended-guideline intake map](docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md).
 
-The beta catalog records 33 curated psychiatry-first ingredient identities verified against the
+The beta catalog records 53 curated psychiatry-first ingredient identities verified against the
 July 6, 2026 NLM RxNorm Current Prescribable Content release. The Database reader shows the
 dated-snapshot/currentness warning and required NLM attribution. RxNorm supports identity
 normalization only: it does not supply indications, comparative efficacy, contraindications,
-interactions, monitoring, or medical approval. Adding 20 identity-only records did not expand the
+interactions, monitoring, or medical approval. The 40 identity-only records do not expand the
 formulary, patient treatments, scoring, or medication point rules. Developer tickets still own
 therapy identity/fidelity normalization and broader outpatient diagnosis coverage.
 

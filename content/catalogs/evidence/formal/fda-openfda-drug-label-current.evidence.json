@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.fda.openfda-drug-label.current",
+  "authority": "formal_publication",
+  "sourceType": "structured_database",
+  "title": "openFDA Drug Product Labeling (Structured Product Labeling) API",
+  "authors": [],
+  "organization": "U.S. Food and Drug Administration",
+  "publicationYear": 2026,
+  "publicationDate": "2026",
+  "lastReviewedDate": "2026-07-26",
+  "versionLabel": "Weekly-updated API; source-use snapshot reviewed July 26, 2026",
+  "containerTitle": "openFDA",
+  "volume": null,
+  "issue": null,
+  "pages": null,
+  "doi": null,
+  "pmid": null,
+  "url": "https://open.fda.gov/apis/drug/label/",
+  "citation": "U.S. Food and Drug Administration. openFDA Drug Product Labeling API. Weekly-updated Structured Product Labeling dataset. Source-use snapshot reviewed July 26, 2026.",
+  "knownContentHashes": [],
+  "jurisdictions": ["United States"],
+  "populations": [
+    "Products represented by company-submitted U.S. Structured Product Labeling records"
+  ],
+  "settings": [
+    "Developer-side medication labeling, safety, identity, and regulatory-fact authoring"
+  ],
+  "sourceRelations": [],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "public_domain",
+    "adaptationStatus": "permitted",
+    "commercialUseStatus": "permitted",
+    "aiUseStatus": "permitted",
+    "localExtractionStatus": "allowed",
+    "licenseLabel": "Public Domain and CC0 1.0, subject to marked third-party exceptions",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "termsUrl": "https://open.fda.gov/terms/",
+    "note": "The SPL dataset is offered as Public Domain and CC0 subject to marked third-party exceptions. API records are company-submitted labeling, not verified by FDA, and may differ from currently distributed or FDA-approved labeling. Preserve record identity, version, API update metadata, formulation, labeler, and whether a field is original SPL content or openFDA harmonization."
+  },
+  "metadataReviewedAt": "2026-07-26T23:30:00.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

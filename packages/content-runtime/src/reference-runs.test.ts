@@ -44,7 +44,7 @@ describe('reference policies', () => {
     const medication = database!.receipt.items.find(
       (item) => item.itemName === 'Start: Sertraline',
     );
-    expect(base).toMatchObject({ itemName: 'Base treatment fit', pointDelta: 100 });
+    expect(base).toMatchObject({ itemName: 'Base treatment fit', pointDelta: 200 });
     expect(medication).toMatchObject({
       scoreCategory: 'patient_fit_modifier',
       pointDelta: 0,
@@ -78,7 +78,7 @@ describe('reference policies', () => {
         dispositionId: 'disposition.emergency-transfer',
       },
     });
-    expect(escalated.receipt.pointReport.carePointCapApplied).toBe(200);
+    expect(escalated.receipt.pointReport.carePointCapApplied).toBe(75);
     expect(escalated.receipt.pointReport.differenceFromDatabasePlan).toBeLessThan(-500);
     expect(escalated.receipt.settlement.netClinicPointsEarned).toBeLessThan(
       database.receipt.settlement.netClinicPointsEarned / 2,
@@ -87,7 +87,7 @@ describe('reference policies', () => {
       escalated.receipt.items.find(
         (item) => item.itemName === 'Disposition: Transfer to emergency care',
       ),
-    ).toMatchObject({ pointDelta: -450, scoreCategory: 'disposition' });
+    ).toMatchObject({ pointDelta: -500, scoreCategory: 'disposition' });
   });
 
   it('orders every ECG-relevant patient policy and keeps unsafe play unprofitable', () => {

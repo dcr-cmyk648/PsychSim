@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.omega-3-fatty-acids",
+  "label": "Omega-3 fatty acids",
+  "normalizedIngredientName": "omega-3 fatty acids",
+  "aliases": ["Omega-3"],
+  "authoringStatus": "identity_only",
+  "runtimeMedicationDefinitionId": null,
+  "rxnorm": {
+    "rxcui": "4301",
+    "termType": "IN",
+    "suppress": "N",
+    "releaseDate": "2026-07-06",
+    "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+    "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+    "verifiedAt": "2026-07-26T23:50:00.000Z"
+  },
+  "medicalReviewStatus": "unreviewed"
+}

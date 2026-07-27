@@ -107,6 +107,8 @@ pnpm content:knowledge:prepare -- --provider openai-codex --model "<exact model 
 pnpm content:knowledge:import -- /private/path/to/classification.json
 pnpm content:knowledge:status
 pnpm content:knowledge:inventory
+pnpm content:knowledge:crossref
+pnpm content:knowledge:crossref:validate
 pnpm content:draft content/cases/blueprints/basic-mdd-scaffold.example.json
 pnpm content:review
 pnpm content:evidence
@@ -146,6 +148,22 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   rule may govern a valid benefit-versus-risk tension while both sides remain visible in the trace;
   evidence disagreement stays disabled behind a ticket and point-magnitude disagreement routes to
   balance review. Never select a clinical winner from file order.
+- When presenting multiple review policies or decisions, label policy statements `P1`, `P2`, and
+  so on, and label actual reviewer questions `Q1`, `Q2`, and so on. Preserve each executable
+  clinical judgment as independently auditable trigger, scope, exception, consequence, concern,
+  certainty, provenance, and point-mapping fields; a point value never substitutes for those
+  semantics.
+- Provisional point authoring uses default impact bands, not a universal hidden calculator:
+  dominant primary routes start near +200; minor effects near ±5–10; moderate effects near ±15–30;
+  major effects near ±35–100; and critical safety effects near −150 to −500 with an optional cap.
+  Exact values remain explicit, reviewable balance choices. Evidence certainty never
+  automatically multiplies points; it governs provenance language, review, and reuse eligibility.
+- A diagnosis submission may be empty. Broad categories, unspecified diagnoses, diagnosis
+  families, and specific diagnoses require real catalog identities plus explicit reviewed
+  parent/child relationships; never infer ancestry from labels, ICD prefixes, free tags, or file
+  order. A focused case rubric owns omission consequences, partial-credit magnitudes, reasonable
+  alternatives, and dangerous misclassifications. Catalog hierarchy supplies identity and
+  ancestry only.
 - Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Clinically meaningful duration is also structured saved case state; a deliberately below-threshold duration must name the reviewed diagnosis criterion it misses and cannot infer that criterion from prose. Optional-comorbidity pools are patient-family-owned; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, replay, and safe-route validation.
 - Treat typed clinical facts and measurements as sources of truth. Stable clinical tags are
   versioned derived relationship keys; never let a free tag contradict its originating fact.
@@ -172,6 +190,11 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   global safety and interaction rules. Do not grade a complex patient against an exhaustive plan for
   every background problem.
 - Keep private extracted documents, formal bibliographic sources, and clinical contributions separate. Every formal article/guideline/regulatory source has one stable file under `content/catalogs/evidence/formal/`. Every use names the catalog IDs, target content IDs, contribution types, and a concise statement of what the source contributed. A rule without a formal contribution is labeled `Expert opinion`; never invent a citation for notes, notebooks, or unsourced judgment. Bibliographic verification does not confer medical approval.
+- Register a newly referenced publication as its own evidence entry before integrating it.
+  Registration alone never propagates a claim. Target-specific source-use contributions and
+  developer-review tickets may be completed incrementally. Preserve every unresolved semantic
+  target in the catalog-identity audit; classify likely and ambiguous matches without silently
+  creating, aliasing, or merging catalog entries. Unclear merges require developer approval.
 - Evidence precedence is claim- and question-specific, not one global source pyramid or numeric
   authority score. Keep source role, design fit, bias/certainty, directness/applicability,
   currency/search-through date, corrections/supersession, and upstream provenance separate.
@@ -190,6 +213,18 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   unverified citation candidates. Never flatten it into one formal source, redistribute article
   prose, or promote embedded references without independent verification.
 - Personal-knowledge processing is a rich private authoring layer with a narrow runtime boundary.
+  Treat the coherent personal knowledge database as a first-class learning product: it should
+  preserve the developer's notes and sources, distinguish sourced findings from Developer
+  interpretations, expose disagreements, staleness, and missing coverage, suggest useful recent
+  reading for review, and support retention through repeated audit and patient play. Comprehensive
+  authoring capture is compatible with a deliberately narrow game because only focused,
+  reviewed, decision-relevant knowledge compiles into an encounter.
+  Any knowledge-coverage map is a versioned, local-only derived projection over canonical source,
+  contribution, opinion, rule, and review records. Do not create a parallel truth store, require
+  every dimension for entry creation, collapse unknown into absent, compute one completeness
+  percentage, hide unmatched source material, or use coverage to admit runtime content. Load
+  dossier coverage lazily per entry and preserve exact supporting IDs so the projection can be
+  rebuilt without copying clinical claims.
   Each tracked pilot profile covers one bounded topic. Normalized literal title/plaintext matches
   may only queue a source revision; they are not claims, evidence, or relevance judgments. Review
   one complete source revision at a time, track every deterministic segment, and do not call it
@@ -263,6 +298,15 @@ guideline/source` creates a `source_gap` ticket; check existing evidence before 
   captured patient, events, choices, receipt, and trace to turn each observation into the smallest
   appropriate ticket or versioned change. Do not infer what the reviewer saw from current content,
   and do not treat a saved case review as automatic authorization to alter clinical rules.
+- A local Developer Database dossier opinion is a fingerprint-bound
+  `ticket.database-dossier.*` `ClinicalReviewTicket`, not a portable `DatabaseEntryReview`.
+  Its guidance is the exact concise authority-separated brief shown to the reviewer; its
+  `reviewerNotes` are instructions, not executable content. When the user says dossier reviews are
+  ready, split each note into the smallest evidence/Developer-opinion, typed patient fact or
+  generation, diagnosis-compatibility, fit, safety/interaction, and balance proposals. Never infer
+  a patient fact from a lexical match, never activate a randomizer option or point value directly
+  from reviewer prose, and require deterministic many-seed, invariant, diagnostic-threshold, reveal
+  path, compatibility, and safe-route validation for any later generation change.
 - Private source review uses the same ticket queue only through an immutable
   `SourceReviewSnapshot`. Prepare exactly one review unit at a time: one complete parser-v5 heading
   unit or one fully classified personal-knowledge revision. Keep exact document/chunk or

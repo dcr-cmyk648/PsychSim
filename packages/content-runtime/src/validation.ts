@@ -4,9 +4,12 @@ import {
   type CatalogBundle,
   type ClinicState,
   type ContentRegistry,
+  type EvidenceSourceDefinition,
   type MedicationIdentityDefinition,
   type PatientContextPredicate,
+  type PlayerDiagnosisSelection,
   type ScorePredicate,
+  type SupplementIdentityDefinition,
   type TreatmentSelection,
 } from '@psychsim/schemas';
 import {
@@ -19,6 +22,7 @@ import {
   resolveClinicForProgressionMode,
   resolveServiceFulfillment,
 } from '@psychsim/engine';
+import { medicationIdentities } from './medication-identities';
 
 export interface ValidationIssue {
   severity: 'error' | 'warning';
@@ -223,6 +227,28 @@ const selectionReferencesAreValid = (
   );
 };
 
+const diagnosisSelectionReferenceIsValid = (
+  selection: PlayerDiagnosisSelection,
+  catalogs: CatalogBundle,
+): boolean => {
+  const definition = catalogs.diagnoses.find(
+    (diagnosis) => diagnosis.id === selection.diagnosisId && diagnosis.selectableInGameplay,
+  );
+  if (!definition) return false;
+  if (
+    selection.severityId !== null &&
+    !definition.severityAxis?.levels.some((level) => level.id === selection.severityId)
+  ) {
+    return false;
+  }
+  return selection.specifierIds.every((specifierId) =>
+    definition.specifiers.some((specifier) => specifier.id === specifierId),
+  );
+};
+
+const isFamilyOnlyDiagnosisSelection = (selection: PlayerDiagnosisSelection): boolean =>
+  selection.severityId === null && selection.specifierIds.length === 0;
+
 export const validateCaseBlueprint = (
   rawBlueprint: unknown,
   catalogs: CatalogBundle,
@@ -370,6 +396,15 @@ export const validateCaseBlueprint = (
       issues,
     ),
   );
+  blueprint.treatmentWorkupRequirements.forEach((requirement, index) =>
+    validatePredicateReferences(
+      requirement.appliesWhen,
+      blueprint,
+      catalogs,
+      `treatmentWorkupRequirements.${index}.appliesWhen`,
+      issues,
+    ),
+  );
   blueprint.treatmentGrades.forEach((grade, index) =>
     validatePredicateReferences(
       grade.predicate,
@@ -399,6 +434,71 @@ export const validateCaseBlueprint = (
   );
 
   const objectiveIds = new Set(blueprint.workupObjectives.map((objective) => objective.id));
+  const diagnosisRulesById = new Map(
+    catalogs.diagnoses
+      .flatMap((diagnosis) => [
+        ...diagnosis.baseRules,
+        ...(diagnosis.severityAxis?.levels.flatMap((level) => level.rules) ?? []),
+        ...diagnosis.specifiers.flatMap((specifier) => specifier.rules),
+      ])
+      .map((rule) => [rule.id, rule]),
+  );
+  for (const requirement of blueprint.treatmentWorkupRequirements) {
+    const objective = blueprint.workupObjectives.find(
+      (candidate) => candidate.id === requirement.objectiveId,
+    );
+    if (!objective) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_TREATMENT_WORKUP_OBJECTIVE',
+        message: `${requirement.id} references ${requirement.objectiveId}`,
+      });
+    }
+    for (const sourceRuleId of requirement.sourceRuleIds) {
+      const sourceRule = diagnosisRulesById.get(sourceRuleId);
+      if (!sourceRule) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_TREATMENT_WORKUP_SOURCE_RULE',
+          message: `${requirement.id} references ${sourceRuleId}`,
+        });
+        continue;
+      }
+      const objectiveActionIds = objective
+        ? extractPredicateReferences(objective.satisfaction).actionIds
+        : [];
+      if (
+        sourceRule.target.kind !== 'information_action' ||
+        !objectiveActionIds.includes(sourceRule.target.id)
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'TREATMENT_WORKUP_SOURCE_TARGET_MISMATCH',
+          message: `${requirement.id} does not preserve the target of ${sourceRuleId}`,
+        });
+      }
+      if (
+        sourceRule.selectionWhen === null ||
+        JSON.stringify(sourceRule.selectionWhen) !== JSON.stringify(requirement.appliesWhen)
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'TREATMENT_WORKUP_SOURCE_TRIGGER_MISMATCH',
+          message: `${requirement.id} does not preserve the selection trigger of ${sourceRuleId}`,
+        });
+      }
+      if (
+        sourceRule.concernLevel !== requirement.concernLevel ||
+        sourceRule.certaintyLevel !== requirement.certaintyLevel
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'TREATMENT_WORKUP_SOURCE_WEIGHT_MISMATCH',
+          message: `${requirement.id} does not preserve the concern/certainty of ${sourceRuleId}`,
+        });
+      }
+    }
+  }
   for (const pathway of blueprint.treatmentPathways) {
     if (pathway.workupCostPar < 0) {
       issues.push({ severity: 'error', code: 'INVALID_PAR', message: pathway.id });
@@ -474,6 +574,94 @@ export const validateCaseBlueprint = (
         code: 'INACTIVE_DIAGNOSIS_HAS_ACTIVE_QUALIFIERS',
         message: `${patientRecord.id}: ${patientDiagnosis.id} is ${patientDiagnosis.role} but has an active severity or specifier.`,
       });
+    }
+  }
+  if (blueprint.diagnosisRubric) {
+    const activeDiagnosisIds = new Set(
+      patientRecord.diagnoses
+        .filter((diagnosis) => ['primary', 'contributing'].includes(diagnosis.role))
+        .map((diagnosis) => diagnosis.id),
+    );
+    for (const group of blueprint.diagnosisRubric.groups) {
+      if (!isFamilyOnlyDiagnosisSelection(group.canonicalSelection)) {
+        issues.push({
+          severity: 'error',
+          code: 'UNSUPPORTED_DIAGNOSIS_QUALIFIER_UI',
+          message: `${group.id} requires a severity or specifier, but the current player UI supports diagnosis-family answers only.`,
+        });
+      }
+      if (!diagnosisSelectionReferenceIsValid(group.canonicalSelection, catalogs)) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_DIAGNOSIS_RUBRIC_CANONICAL_REF',
+          message: `${group.id} references an unavailable canonical diagnosis.`,
+        });
+      }
+      if (!activeDiagnosisIds.has(group.canonicalSelection.diagnosisId)) {
+        issues.push({
+          severity: 'error',
+          code: 'DIAGNOSIS_RUBRIC_CANONICAL_NOT_PATIENT_TRUTH',
+          message: `${group.id} canonical diagnosis is not an active authored patient diagnosis.`,
+        });
+      }
+      for (const option of group.options) {
+        if (
+          option.match.qualifierMode !== 'family' ||
+          option.match.severityId !== null ||
+          option.match.specifierIds.length > 0
+        ) {
+          issues.push({
+            severity: 'error',
+            code: 'UNSUPPORTED_DIAGNOSIS_QUALIFIER_UI',
+            message: `${option.id} requires qualifier matching, but the current player UI supports diagnosis-family answers only.`,
+          });
+        }
+        if (
+          !diagnosisSelectionReferenceIsValid(
+            {
+              diagnosisId: option.match.diagnosisId,
+              severityId: option.match.severityId,
+              specifierIds: option.match.specifierIds,
+            },
+            catalogs,
+          )
+        ) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_DIAGNOSIS_RUBRIC_OPTION_REF',
+            message: `${option.id} references an unavailable diagnosis or qualifier.`,
+          });
+        }
+      }
+    }
+    for (const rule of blueprint.diagnosisRubric.misclassificationRules) {
+      if (
+        rule.match.qualifierMode !== 'family' ||
+        rule.match.severityId !== null ||
+        rule.match.specifierIds.length > 0
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'UNSUPPORTED_DIAGNOSIS_QUALIFIER_UI',
+          message: `${rule.id} requires qualifier matching, but the current player UI supports diagnosis-family answers only.`,
+        });
+      }
+      if (
+        !diagnosisSelectionReferenceIsValid(
+          {
+            diagnosisId: rule.match.diagnosisId,
+            severityId: rule.match.severityId,
+            specifierIds: rule.match.specifierIds,
+          },
+          catalogs,
+        )
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_DIAGNOSIS_MISCLASSIFICATION_REF',
+          message: `${rule.id} references an unavailable diagnosis or qualifier.`,
+        });
+      }
     }
   }
   const fixedDiagnosisComposition = composeDiagnosisGuidance(catalogs.diagnoses, {
@@ -955,9 +1143,21 @@ export const validateCaseBlueprint = (
     patientRecord.id,
     treatmentReference.id,
     ...blueprint.workupObjectives.map((item) => item.id),
+    ...blueprint.treatmentWorkupRequirements.map((item) => item.id),
     ...blueprint.treatmentGrades.map((item) => item.id),
     ...blueprint.treatmentPathways.map((item) => item.id),
     ...blueprint.scoreRules.map((item) => item.id),
+    ...(blueprint.diagnosisRubric
+      ? [
+          ...blueprint.diagnosisRubric.groups.flatMap((group) => [
+            group.id,
+            group.omission.id,
+            ...group.options.map((option) => option.id),
+          ]),
+          ...blueprint.diagnosisRubric.misclassificationRules.map((rule) => rule.id),
+          blueprint.diagnosisRubric.additionalSelectionPolicy.id,
+        ]
+      : []),
     ...treatmentReference.acceptedMedicationTagSets.map((item) => item.id),
     ...contextDimensionIds,
     ...contextOptionIds,
@@ -969,12 +1169,23 @@ export const validateCaseBlueprint = (
     patientRecord.treatmentReference.review,
     ...patientRecord.treatmentReference.acceptedMedicationTagSets.map((tagSet) => tagSet.review),
     ...blueprint.workupObjectives.map((objective) => objective.review),
+    ...blueprint.treatmentWorkupRequirements.map((requirement) => requirement.review),
     ...blueprint.treatmentGrades.map((grade) => grade.review),
     ...blueprint.treatmentPathways.flatMap((pathway) => [
       pathway.review,
       ...pathway.conditionalRequirements.map((requirement) => requirement.review),
     ]),
     ...blueprint.scoreRules.map((rule) => rule.review),
+    ...(blueprint.diagnosisRubric
+      ? [
+          ...blueprint.diagnosisRubric.groups.flatMap((group) => [
+            group.omission.review,
+            ...group.options.map((option) => option.review),
+          ]),
+          ...blueprint.diagnosisRubric.misclassificationRules.map((rule) => rule.review),
+          blueprint.diagnosisRubric.additionalSelectionPolicy.review,
+        ]
+      : []),
     ...patientRecord.clinicalContextDimensions.flatMap((dimension) => [
       dimension.review,
       ...dimension.options.map((option) => option.review),
@@ -1198,6 +1409,48 @@ export const validateCaseBlueprint = (
         message: `${solution.id} uses an unavailable action or treatment.`,
       });
     }
+    if (
+      solution.diagnosisSelections.some(
+        (selection) => !diagnosisSelectionReferenceIsValid(selection, catalogs),
+      )
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'INVALID_REFERENCE_DIAGNOSIS_SELECTION',
+        message: `${solution.id} uses an unavailable diagnosis or qualifier.`,
+      });
+    }
+    if (
+      solution.diagnosisSelections.some((selection) => !isFamilyOnlyDiagnosisSelection(selection))
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'UNSUPPORTED_REFERENCE_DIAGNOSIS_QUALIFIER_UI',
+        message: `${solution.id} uses a severity or specifier that the current player UI cannot select.`,
+      });
+    }
+  }
+  if (blueprint.diagnosisRubric) {
+    const databasePlan = blueprint.referenceSolutions.find(
+      (solution) => solution.kind === 'database_plan',
+    );
+    const missingCanonical = blueprint.diagnosisRubric.groups.filter(
+      (group) =>
+        !databasePlan?.diagnosisSelections.some(
+          (selection) =>
+            selection.diagnosisId === group.canonicalSelection.diagnosisId &&
+            selection.severityId === group.canonicalSelection.severityId &&
+            [...selection.specifierIds].sort().join('|') ===
+              [...group.canonicalSelection.specifierIds].sort().join('|'),
+        ),
+    );
+    if (!databasePlan || missingCanonical.length > 0) {
+      issues.push({
+        severity: 'error',
+        code: 'REFERENCE_PLAN_MISSING_CANONICAL_DIAGNOSIS',
+        message: `${blueprint.id} database plan omits a canonical diagnostic answer.`,
+      });
+    }
   }
 
   const hasSafeDisposition = blueprint.availableTreatments.dispositionIds.some((id) =>
@@ -1401,6 +1654,11 @@ export const validateCaseBlueprint = (
           .filter((requirement) => requirement.objectiveId === objective.id)
           .map((requirement) => requirement.pointsIfMet),
       );
+      conditionalRewards.push(
+        ...blueprint.treatmentWorkupRequirements
+          .filter((requirement) => requirement.objectiveId === objective.id)
+          .map((requirement) => requirement.pointsIfMet),
+      );
       const earnedWhenIndicated =
         objective.points + (conditionalRewards.length > 0 ? Math.max(...conditionalRewards) : 0);
       const isIndicated =
@@ -1556,30 +1814,21 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       message: duplicate,
     });
   }
+  const evidenceTargetContentIds = new Set([
+    ...diagnosisNestedIds,
+    ...catalogs.medications.flatMap((medication) => [
+      medication.id,
+      ...medication.fitModifiers.map((modifier) => modifier.id),
+      ...medication.authorOverrides.map((modifier) => modifier.id),
+    ]),
+    ...medicationIdentities.map((identity) => identity.id),
+    ...catalogs.treatments.map((treatment) => treatment.id),
+    ...catalogs.informationActions.map((action) => action.id),
+    ...catalogs.tests.map((test) => test.id),
+  ]);
 
   for (const diagnosis of catalogs.diagnoses) {
     const sourceUseNoteIds = new Set(diagnosis.sourceUseNotes.map((note) => note.id));
-    const diagnosisContentIds = new Set([
-      diagnosis.id,
-      ...diagnosis.baseRules.map((rule) => rule.id),
-      ...diagnosis.complexityContributions.map((contribution) => contribution.id),
-      ...diagnosis.classificationBindings.map((binding) => binding.id),
-      ...(diagnosis.severityAxis
-        ? [
-            diagnosis.severityAxis.id,
-            ...diagnosis.severityAxis.levels.flatMap((level) => [
-              level.id,
-              ...level.rules.map((rule) => rule.id),
-              ...level.complexityContributions.map((contribution) => contribution.id),
-            ]),
-          ]
-        : []),
-      ...diagnosis.specifiers.flatMap((specifier) => [
-        specifier.id,
-        ...specifier.rules.map((rule) => rule.id),
-        ...specifier.complexityContributions.map((contribution) => contribution.id),
-      ]),
-    ]);
     if (diagnosis.severityAxis) {
       for (const duplicate of duplicateIds(
         diagnosis.severityAxis.levels.map((level) => String(level.rank)),
@@ -1679,7 +1928,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
         }
       }
       for (const targetContentId of note.targetContentIds) {
-        if (!diagnosisContentIds.has(targetContentId)) {
+        if (!evidenceTargetContentIds.has(targetContentId)) {
           issues.push({
             severity: 'error',
             code: 'INVALID_DIAGNOSIS_EVIDENCE_TARGET',
@@ -2007,11 +2256,6 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
   }
   for (const medication of catalogs.medications) {
     const medicationSourceUseNoteIds = new Set(medication.sourceUseNotes.map((note) => note.id));
-    const medicationContentIds = new Set([
-      medication.id,
-      ...medication.fitModifiers.map((modifier) => modifier.id),
-      ...medication.authorOverrides.map((modifier) => modifier.id),
-    ]);
     for (const note of medication.sourceUseNotes) {
       for (const sourceId of note.evidenceSourceIds) {
         if (!evidenceSourceIds.has(sourceId)) {
@@ -2023,7 +2267,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
         }
       }
       for (const targetContentId of note.targetContentIds) {
-        if (!medicationContentIds.has(targetContentId)) {
+        if (!evidenceTargetContentIds.has(targetContentId)) {
           issues.push({
             severity: 'error',
             code: 'INVALID_MEDICATION_EVIDENCE_TARGET',
@@ -2442,5 +2686,65 @@ export const validateMedicationIdentities = (
     }
   }
 
+  return { valid: issues.length === 0, issues };
+};
+
+export const validateSupplementIdentities = (
+  identities: readonly SupplementIdentityDefinition[],
+  evidenceSources: readonly EvidenceSourceDefinition[],
+  reservedIdentityIds: readonly string[] = [],
+): ContentValidationReport => {
+  const issues: ValidationIssue[] = [];
+  for (const duplicate of duplicateIds(identities.map((identity) => identity.id))) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_SUPPLEMENT_IDENTITY_ID',
+      message: duplicate,
+    });
+  }
+  const reservedIds = new Set(reservedIdentityIds);
+  const evidenceById = new Map(evidenceSources.map((source) => [source.id, source]));
+  const normalizedTermOwners = new Map<string, string>();
+  for (const identity of identities) {
+    if (reservedIds.has(identity.id)) {
+      issues.push({
+        severity: 'error',
+        code: 'SUPPLEMENT_IDENTITY_ID_COLLISION',
+        message: identity.id,
+      });
+    }
+    for (const term of [identity.normalizedName, ...identity.aliases]) {
+      const normalized = term.normalize('NFKC').toLocaleLowerCase('en-US');
+      const priorOwner = normalizedTermOwners.get(normalized);
+      if (priorOwner && priorOwner !== identity.id) {
+        issues.push({
+          severity: 'error',
+          code: 'DUPLICATE_SUPPLEMENT_IDENTITY_TERM',
+          message: `${term}: ${priorOwner}, ${identity.id}`,
+        });
+      } else {
+        normalizedTermOwners.set(normalized, identity.id);
+      }
+    }
+    for (const identifier of identity.identifiers) {
+      const evidence = evidenceById.get(identifier.evidenceSourceId);
+      if (!evidence) {
+        issues.push({
+          severity: 'error',
+          code: 'UNKNOWN_SUPPLEMENT_IDENTITY_EVIDENCE_SOURCE',
+          message: `${identity.id}: ${identifier.evidenceSourceId}`,
+        });
+      } else if (
+        (identifier.system === 'rxnorm' && evidence.sourceType !== 'structured_database') ||
+        (identifier.system !== 'rxnorm' && evidence.sourceType !== 'classification_standard')
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_SUPPLEMENT_IDENTITY_EVIDENCE_TYPE',
+          message: `${identity.id}: ${identifier.system} via ${identifier.evidenceSourceId}`,
+        });
+      }
+    }
+  }
   return { valid: issues.length === 0, issues };
 };

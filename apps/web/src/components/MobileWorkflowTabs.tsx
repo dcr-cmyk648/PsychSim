@@ -9,7 +9,7 @@ const ENCOUNTER_PANES: ReadonlyArray<{
   { id: 'patient', label: 'Patient' },
   { id: 'revealed', label: 'Revealed' },
   { id: 'investigate', label: 'Investigate' },
-  { id: 'treatment', label: 'Treatment' },
+  { id: 'treatment', label: 'Plan' },
 ];
 const RECEIPT_PANES: ReadonlyArray<{ id: MobileWorkflowPane; label: string }> = [
   ...ENCOUNTER_PANES,

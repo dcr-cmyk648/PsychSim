@@ -393,8 +393,8 @@ describe('ClinicHub', () => {
     expect((await screen.findAllByText('Emergency-department escalation')).length).toBeGreaterThan(
       0,
     );
-    expect(await screen.findByText(/-450 pts/)).toBeVisible();
-    expect(await screen.findByText('200 when true')).toBeVisible();
+    expect(await screen.findByText(/-500 pts/)).toBeVisible();
+    expect(await screen.findByText('75 when true')).toBeVisible();
     expect(screen.getByText('Sources needed')).toBeVisible();
     expect(screen.getByText('Opinions needing references')).toBeVisible();
     fireEvent.click(screen.getByText('Opinions needing references'));
@@ -417,7 +417,7 @@ describe('ClinicHub', () => {
 
   it('shows the exact literature-scout attachment only in local Developer mode', async () => {
     const ticket = developerClinicalAuditTickets.find(
-      (candidate) => candidate.id === 'ticket.source.canmat-mdd.antidepressant-baseline',
+      (candidate) => candidate.id === 'ticket.source.mdd.antidepressant-sleep-fit',
     )!;
     const saveData = SaveDataSchema.parse({
       schemaVersion: 1,
@@ -459,12 +459,12 @@ describe('ClinicHub', () => {
     expect(await screen.findByRole('heading', { name: ticket.title })).toBeVisible();
     fireEvent.click(screen.getByText('Related material, references, and exact audit'));
     expect(await screen.findByText('Recent meta-analysis context')).toBeVisible();
-    expect(screen.getAllByText('Abstract-only summary')).toHaveLength(2);
     expect(
       screen.getByText(
-        /Does recent meta-analytic evidence support reliably personalizing antidepressant benefit/,
+        /What drug-level acute insomnia and somnolence evidence can safely inform sleep-related antidepressant-fit review/,
       ),
     ).toBeVisible();
+    expect(screen.getByText(/Zhou/)).toBeVisible();
   });
 
   it('shows an immutable source packet as a concise local review question', async () => {
@@ -604,7 +604,7 @@ describe('ClinicHub', () => {
 
   it('keeps the Developer literature scout out of portable Reviewer even if supplied', async () => {
     const ticket = developerClinicalAuditTickets.find(
-      (candidate) => candidate.id === 'ticket.source.canmat-mdd.antidepressant-baseline',
+      (candidate) => candidate.id === 'ticket.source.mdd.antidepressant-sleep-fit',
     )!;
     const saveData = SaveDataSchema.parse({
       schemaVersion: 1,

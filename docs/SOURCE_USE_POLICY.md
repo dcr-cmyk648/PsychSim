@@ -35,10 +35,14 @@ Every formal source has:
 
 `content/catalogs/evidence/source-use-decisions.json` is the machine-validated decision log. It
 records the legal basis, territories, permitted uses, attribution, required notices,
-NonCommercial/ShareAlike obligations, third-party handling, reviewer role, and review date.
+NonCommercial/ShareAlike obligations, third-party handling, reviewer role, and review date. Every
+decision that permits derived clinical content also enumerates the allowed
+`EvidenceContributionType` lanes. A metadata-only or blocked source must enumerate none.
 `pnpm content:evidence` prints every formal source beside its effective decision; `pnpm
 content:validate` rejects missing or duplicate decisions, contradictory permissions, and formal
-contributions whose extraction, AI, derivative, or runtime use exceeds the recorded decision.
+contributions whose extraction, AI, derivative, contribution type, or runtime use exceeds the
+recorded decision. Narrow terminology and aggregate-data sources therefore cannot silently become
+treatment, safety, or scoring authority merely because broad derivative processing is allowed.
 
 ### Bibliographic discovery and abstract context
 
@@ -75,8 +79,34 @@ non-endorsement notices remain required project policy even when copyright does 
 Current examples:
 
 - NIMH topic text can supply attributed presentation and symptom scaffolds for common disorders.
+- MeSH can supply dated, attributed identity aliases and hierarchy, never criteria or treatment
+  authority.
+- LactMed can supply source-scoped lactation fact candidates while cited literature and other
+  third-party material remain separate.
+- LiverTox can supply source-scoped liver-injury candidates while cited cases, images, and article
+  prose remain separate.
+- FDA's CYP/transporter examples table can supply qualified metabolic-role candidates only when
+  its formulation, metabolite, category, footnote, retrieval date, and noncomprehensive scope
+  travel with the assertion.
+- openFDA's Structured Product Labeling dataset can supply concise authoring candidates under its
+  Public Domain/CC0 statement when each record retains its SPL/version identity, retrieval
+  metadata, formulation, labeler, disclaimer, and distinction between source SPL fields and
+  openFDA harmonization. Marked third-party material remains excluded.
 - VA/DoD, DoD, SAMHSA, NIAAA, and AHRQ material may be used item by item after authorship and
   embedded-rights review.
+
+These adjuncts begin as authoring-only source records and source-use decisions. Cataloging
+them does not ingest a bulk dataset, attach a fact to a medication, establish an interaction,
+create a recommendation, set points, or confer medical approval. Promotion remains:
+`source assertion → formal contribution and/or Developer opinion → clinical review → executable
+rule`.
+
+RxClass and DailyMed are separately cataloged but remain metadata-only at this checkpoint.
+RxClass mixes relation sources with independent terms, including SNOMED CT and WHO ATC; a later
+importer requires a source-by-source rights allowlist. DailyMed republishes company-submitted
+in-use SPL content whose public availability does not establish a blanket transformation or
+redistribution right. A public API endpoint is not itself permission to process every returned
+field.
 
 ### 2. Open licences that permit adaptation
 
@@ -186,8 +216,10 @@ The standardized background is deliberately layered:
    source-gap tickets or concise Developer opinions.
 
 An ICD code or title never supplies diagnostic criteria, severity, treatment, or medical approval.
-Playable diagnosis-family files may carry compact reviewed mappings to a classification release,
-but the 1,112-term background catalog is excluded from the browser bundle.
+Playable diagnosis-family files may carry compact reviewed mappings to a classification release.
+The 1,112-term background catalog is excluded from every distributed browser bundle; a separate
+loopback-only Developer inspector may search the gitignored cache under this exact narrow,
+private, noncommercial authoring decision.
 
 ## Source intake checklist
 
@@ -233,9 +265,9 @@ machine-validated source-use decision permits identity normalization, local inde
 redistribution subject to NLM acknowledgement, release/currentness disclosure, and exclusion of
 the full RxNorm release's proprietary source vocabularies. It does not support indications,
 comparative efficacy, contraindications, interactions, monitoring, patient fit, or points. No
-bulk release bytes or importer are included in this checkpoint. Thirty-three curated ingredient
+bulk release bytes or importer are included in this checkpoint. Fifty-two curated ingredient
 identities were individually verified and are redistributed with the pinned release date, visible
-currentness warning, and NLM attribution/non-endorsement statement. Twenty remain identity-only;
+currentness warning, and NLM attribution/non-endorsement statement. Thirty-nine remain identity-only;
 none of the new records changes a formulary, case, clinical rule, or point value.
 
 DrugCentral is accepted as a broad `structured_database` authoring seed under CC BY-SA 4.0. The

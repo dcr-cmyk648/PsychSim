@@ -1649,6 +1649,7 @@
             "id": "finding.review-basic-weight-bmi.weight",
             "labelVariants": ["Measured weight"],
             "outcome": "present",
+            "outcomeDisplay": "value_only",
             "valueTextVariants": ["70.8 kg (156 lb)"]
           },
           {

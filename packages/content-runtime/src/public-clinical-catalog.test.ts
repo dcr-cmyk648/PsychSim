@@ -4,11 +4,14 @@ import { PublicClinicalCatalogProjectionSchema } from '@psychsim/schemas';
 
 import { catalogs } from './content';
 import { medicationIdentities } from './medication-identities';
+import { supplementIdentities } from './supplement-identities';
 import {
+  NLM_MESH_PUBLIC_ATTRIBUTION,
   NLM_RXNORM_PUBLIC_ATTRIBUTION,
   buildPublicClinicalCatalog,
   publicClinicalCatalog,
 } from './public-clinical-catalog';
+import { publicSupplementCatalogEntries } from './public-supplement-catalog';
 
 const sorted = (values: readonly string[]): string[] =>
   [...values].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
@@ -23,15 +26,16 @@ describe('public clinical catalog projection', () => {
         publicClinicalCatalog.categories.map((category) => [category.id, category.entryCount]),
       ),
     ).toEqual({
-      conditions: 8,
-      medications: 33,
+      conditions: 9,
+      medications: 53,
+      supplements: 6,
       interventions: 13,
       dispositions: 3,
       investigations: 40,
       tests: 14,
-      references: 18,
+      references: 26,
     });
-    expect(publicClinicalCatalog.totalEntryCount).toBe(129);
+    expect(publicClinicalCatalog.totalEntryCount).toBe(164);
 
     expect(
       sorted(
@@ -47,6 +51,33 @@ describe('public clinical catalog projection', () => {
           .map((entry) => entry.id),
       ),
     ).toEqual(sorted(medicationIdentities.map((entry) => entry.id)));
+    expect(
+      sorted(
+        publicClinicalCatalog.entries
+          .filter((entry) => entry.kind === 'supplement')
+          .map((entry) => entry.id),
+      ),
+    ).toEqual(sorted(supplementIdentities.map((entry) => entry.id)));
+    for (const identity of supplementIdentities) {
+      const publicEntry = publicSupplementCatalogEntries.find((entry) => entry.id === identity.id);
+      expect(publicEntry).toMatchObject({
+        id: identity.id,
+        label: identity.label,
+        contentVersion: identity.contentVersion,
+        medicalReviewStatus: identity.medicalReviewStatus,
+        normalizedName: identity.normalizedName,
+        aliases: identity.aliases,
+        identityCategory: identity.identityCategory,
+        preparation: identity.preparation,
+        identifiers: identity.identifiers.map(({ system, value, relationship, sourceRelease }) => ({
+          system,
+          value,
+          relationship,
+          sourceRelease,
+        })),
+        identityScopeNote: identity.identityScopeNote,
+      });
+    }
     expect(
       sorted(
         publicClinicalCatalog.entries
@@ -119,16 +150,17 @@ describe('public clinical catalog projection', () => {
     reorderedCatalogs.tests.reverse();
     reorderedCatalogs.evidenceSources.reverse();
     const reorderedIdentities = [...structuredClone(medicationIdentities)].reverse();
+    const reorderedSupplements = [...structuredClone(publicSupplementCatalogEntries)].reverse();
     for (const source of reorderedCatalogs.evidenceSources) source.sourceRelations.reverse();
-    expect(buildPublicClinicalCatalog(reorderedCatalogs, reorderedIdentities)).toEqual(
-      publicClinicalCatalog,
-    );
+    expect(
+      buildPublicClinicalCatalog(reorderedCatalogs, reorderedIdentities, reorderedSupplements),
+    ).toEqual(publicClinicalCatalog);
 
     const runtimeMedicationIds = new Set(catalogs.medications.map((entry) => entry.id));
     const identityOnlyEntries = publicClinicalCatalog.entries.filter(
       (entry) => entry.kind === 'medication' && entry.authoringStatus === 'identity_only',
     );
-    expect(identityOnlyEntries).toHaveLength(20);
+    expect(identityOnlyEntries).toHaveLength(40);
     expect(identityOnlyEntries.every((entry) => !runtimeMedicationIds.has(entry.id))).toBe(true);
     expect(
       identityOnlyEntries.every(
@@ -158,7 +190,7 @@ describe('public clinical catalog projection', () => {
       'medicalReviewStatus',
     ];
     const keysByKind = {
-      condition: [...commonKeys, 'description', 'severityLevels', 'specifierLabels'],
+      condition: [...commonKeys, 'aliases', 'description', 'severityLevels', 'specifierLabels'],
       medication: [
         ...commonKeys,
         'aliases',
@@ -171,10 +203,21 @@ describe('public clinical catalog projection', () => {
         'normalizedIngredientName',
         'rxnormRxcui',
       ],
-      intervention: [...commonKeys, 'requiredCapabilityCount', 'treatmentCategory'],
-      disposition: [...commonKeys, 'requiredCapabilityCount', 'treatmentCategory'],
+      supplement: [
+        ...commonKeys,
+        'aliases',
+        'identifiers',
+        'identityAttribution',
+        'identityCategory',
+        'identityScopeNote',
+        'normalizedName',
+        'preparation',
+      ],
+      intervention: [...commonKeys, 'aliases', 'requiredCapabilityCount', 'treatmentCategory'],
+      disposition: [...commonKeys, 'aliases', 'requiredCapabilityCount', 'treatmentCategory'],
       investigation: [
         ...commonKeys,
+        'aliases',
         'description',
         'investigationCategory',
         'repeatable',
@@ -218,6 +261,11 @@ describe('public clinical catalog projection', () => {
         }
       }
     }
+    expect(
+      publicClinicalCatalog.entries
+        .filter((entry) => entry.kind === 'supplement')
+        .every((entry) => entry.identityAttribution === NLM_MESH_PUBLIC_ATTRIBUTION),
+    ).toBe(true);
 
     const serialized = JSON.stringify(publicClinicalCatalog);
     for (const forbidden of [

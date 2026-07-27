@@ -34,6 +34,8 @@ const rule = (
   domain: 'medication_selection',
   target: { kind: 'medication_tag', id: targetId },
   stance,
+  concernLevel: 'moderate',
+  certaintyLevel: 'tentative',
   patientWhen: null,
   selectionWhen: null,
   rationale: 'Synthetic mechanics fixture.',
@@ -63,6 +65,56 @@ const definition = (
   });
 
 describe('diagnosis guidance composition', () => {
+  it('scopes the reviewed initial-MDD route to the focused decision tag', () => {
+    const mdd = catalogs.diagnoses.find(
+      (diagnosis) => diagnosis.id === 'diagnosis.major-depressive-disorder',
+    )!;
+    const patientDiagnosis = {
+      diagnosisId: mdd.id,
+      role: 'primary' as const,
+      severityId: null,
+      specifierIds: [],
+    };
+    const withoutFocusedDecision = composeDiagnosisGuidance([mdd], {
+      diagnoses: [patientDiagnosis],
+      clinicalTagIds: [],
+    });
+    const withFocusedDecision = composeDiagnosisGuidance([mdd], {
+      diagnoses: [patientDiagnosis],
+      clinicalTagIds: ['decision.mdd-initial-treatment'],
+    });
+
+    expect(withoutFocusedDecision.activeRules).toHaveLength(0);
+    expect(withFocusedDecision.activeRules).toHaveLength(7);
+    expect(withFocusedDecision.activeRules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          rule: expect.objectContaining({
+            id: 'rule.diagnosis-mdd.initial-first-line-antidepressant',
+            stance: 'acceptable',
+          }),
+        }),
+        expect.objectContaining({
+          rule: expect.objectContaining({
+            id: 'rule.diagnosis-mdd.antidepressant-mania-history',
+            selectionWhen: {
+              type: 'treatmentStartedWithTag',
+              medicationTagId: 'antidepressant',
+              minimumCount: 1,
+              maximumCount: 20,
+            },
+          }),
+        }),
+        expect.objectContaining({
+          rule: expect.objectContaining({
+            id: 'rule.diagnosis-mdd.any-medication-reaction-history',
+            selectionWhen: { type: 'anyMedicationStarted' },
+          }),
+        }),
+      ]),
+    );
+  });
+
   it('layers shared, severity, and specifier guidance without assigning points', () => {
     const diagnosis = definition('diagnosis.fixture-mood', {
       baseClinicalTagIds: ['diagnosis-tag.fixture-mood'],

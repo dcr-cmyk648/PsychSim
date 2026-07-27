@@ -1,5 +1,6 @@
 import {
   EncounterStateSchema,
+  PlayerDiagnosisSelectionsSchema,
   TreatmentSelectionSchema,
   type CatalogBundle,
   type ClinicState,
@@ -7,6 +8,7 @@ import {
   type EncounterState,
   type InformationActionDefinition,
   type InformationPurchase,
+  type PlayerDiagnosisSelection,
   type TreatmentSelection,
 } from '@psychsim/schemas';
 
@@ -47,6 +49,7 @@ export const startEncounter = (
     locationId,
     purchases: [],
     knownFactIds: [],
+    diagnosisSelections: [],
     selections: EMPTY_TREATMENT_SELECTIONS,
     expenseTotal: 0,
     events: [started],
@@ -223,6 +226,70 @@ export const startEncounterWithAutomaticIntake = (
 
 const hasDuplicates = (values: readonly string[]): boolean =>
   new Set(values).size !== values.length;
+
+export const updateDiagnosisSelections = (
+  state: EncounterState,
+  selections: readonly PlayerDiagnosisSelection[],
+  catalogs: CatalogBundle,
+): Result<EncounterState> => {
+  if (state.status !== 'in_progress') {
+    return err({ code: 'ENCOUNTER_LOCKED', message: 'This encounter has already been submitted.' });
+  }
+  const parsed = PlayerDiagnosisSelectionsSchema.safeParse(selections);
+  if (!parsed.success) {
+    return err({ code: 'INVALID_DIAGNOSIS_SELECTION', message: parsed.error.message });
+  }
+  for (const selection of parsed.data) {
+    const definition = catalogs.diagnoses.find(
+      (diagnosis) => diagnosis.id === selection.diagnosisId && diagnosis.selectableInGameplay,
+    );
+    if (!definition) {
+      return err({
+        code: 'INVALID_DIAGNOSIS_SELECTION',
+        message: `Diagnosis ${selection.diagnosisId} is not available in the gameplay catalog.`,
+      });
+    }
+    if (
+      selection.severityId !== null &&
+      !definition.severityAxis?.levels.some((level) => level.id === selection.severityId)
+    ) {
+      return err({
+        code: 'INVALID_DIAGNOSIS_SELECTION',
+        message: `Severity ${selection.severityId} does not belong to ${definition.label}.`,
+      });
+    }
+    const selectedSpecifiers = definition.specifiers.filter((specifier) =>
+      selection.specifierIds.includes(specifier.id),
+    );
+    if (selectedSpecifiers.length !== selection.specifierIds.length) {
+      return err({
+        code: 'INVALID_DIAGNOSIS_SELECTION',
+        message: `A selected specifier does not belong to ${definition.label}.`,
+      });
+    }
+    const exclusiveGroups = selectedSpecifiers
+      .map((specifier) => specifier.exclusiveGroupId)
+      .filter((groupId): groupId is string => groupId !== null);
+    if (new Set(exclusiveGroups).size !== exclusiveGroups.length) {
+      return err({
+        code: 'INVALID_DIAGNOSIS_SELECTION',
+        message: `${definition.label} has mutually exclusive selected specifiers.`,
+      });
+    }
+  }
+  const event: EncounterEvent = {
+    id: nextEventId(state.id, state.events.length),
+    type: 'DiagnosisSelectionsChanged',
+    selections: parsed.data,
+  };
+  return ok(
+    EncounterStateSchema.parse({
+      ...state,
+      diagnosisSelections: parsed.data,
+      events: [...state.events, event],
+    }),
+  );
+};
 
 export const updateTreatmentSelections = (
   state: EncounterState,

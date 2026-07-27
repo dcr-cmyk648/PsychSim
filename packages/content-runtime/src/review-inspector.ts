@@ -52,6 +52,21 @@ export interface TreatmentGradeAudit {
   relatedContentIds: readonly string[];
 }
 
+export interface TreatmentWorkupRequirementAudit {
+  id: string;
+  objectiveId: string;
+  objectiveLabel: string;
+  condition: string;
+  pointsIfMet: number;
+  pointsIfMissing: number;
+  safetyCritical: boolean;
+  concernLevel: string;
+  certaintyLevel: string;
+  sourceRuleIds: readonly string[];
+  review: AuditReviewState;
+  relatedContentIds: readonly string[];
+}
+
 export interface MedicationFitAudit {
   id: string;
   medicationId: string;
@@ -121,6 +136,7 @@ export interface CaseRuleAudit {
     challengeBonus: number;
   };
   investigations: readonly InvestigationRuleAudit[];
+  treatmentWorkupRequirements: readonly TreatmentWorkupRequirementAudit[];
   treatmentGrades: readonly TreatmentGradeAudit[];
   medicationFitModifiers: readonly MedicationFitAudit[];
   treatmentPathways: readonly TreatmentPathwayAudit[];
@@ -145,6 +161,7 @@ export interface CaseRuleAudit {
 export interface FocusedCaseRuleAudit {
   mode: 'targeted' | 'complete';
   investigations: readonly InvestigationRuleAudit[];
+  treatmentWorkupRequirements: readonly TreatmentWorkupRequirementAudit[];
   treatmentGrades: readonly TreatmentGradeAudit[];
   medicationFitModifiers: readonly MedicationFitAudit[];
   treatmentPathways: readonly TreatmentPathwayAudit[];
@@ -179,6 +196,7 @@ const createLabelResolver = (catalogs: CatalogBundle) => {
   const labels = new Map<string, string>();
   for (const item of [
     ...catalogs.informationActions,
+    ...catalogs.diagnoses,
     ...catalogs.medications,
     ...catalogs.treatments,
     ...catalogs.services,
@@ -200,6 +218,8 @@ export const describeScorePredicate = (
         return `purchase ${label(node.actionId)}`;
       case 'factKnown':
         return `know ${label(node.factId)}`;
+      case 'anyMedicationStarted':
+        return 'start any medication';
       case 'treatmentStarted':
         return `start ${label(node.medicationId)}`;
       case 'treatmentStartedWithTag':
@@ -234,6 +254,7 @@ const treatmentSelectionSummary = (
   if (!reference) return '';
   const label = createLabelResolver(catalogs);
   const selections = [
+    ...reference.diagnosisSelections.map((selection) => `diagnose ${label(selection.diagnosisId)}`),
     ...reference.selections.startMedicationIds.map((id) => `start ${label(id)}`),
     ...reference.selections.stopMedicationIds.map((id) => `stop ${label(id)}`),
     ...reference.selections.continueMedicationIds.map((id) => `continue ${label(id)}`),
@@ -327,6 +348,28 @@ export const buildCaseRuleAudit = (
       ...grade.review.sourceUseNoteIds,
     ]),
   }));
+
+  const treatmentWorkupRequirements =
+    blueprint.treatmentWorkupRequirements.map<TreatmentWorkupRequirementAudit>((requirement) => ({
+      id: requirement.id,
+      objectiveId: requirement.objectiveId,
+      objectiveLabel: objectivesById.get(requirement.objectiveId)?.label ?? requirement.objectiveId,
+      condition: describeScorePredicate(requirement.appliesWhen, catalogs),
+      pointsIfMet: requirement.pointsIfMet,
+      pointsIfMissing: requirement.pointsIfMissing,
+      safetyCritical: requirement.safetyCritical,
+      concernLevel: requirement.concernLevel,
+      certaintyLevel: requirement.certaintyLevel,
+      sourceRuleIds: [...requirement.sourceRuleIds],
+      review: reviewState(requirement.review),
+      relatedContentIds: unique([
+        requirement.id,
+        requirement.objectiveId,
+        ...requirement.sourceRuleIds,
+        ...predicateReferenceIds(requirement.appliesWhen),
+        ...requirement.review.sourceUseNoteIds,
+      ]),
+    }));
 
   const availableMedicationIds = new Set(blueprint.availableTreatments.startMedicationIds);
   const patientTagIds = new Set(blueprint.patientRecord.clinicalTagIds);
@@ -428,6 +471,14 @@ export const buildCaseRuleAudit = (
           .join(' · '),
         relatedContentIds: objective.relatedContentIds,
       })),
+    ...treatmentWorkupRequirements
+      .filter((requirement) => requirement.safetyCritical)
+      .map((requirement) => ({
+        id: requirement.id,
+        label: requirement.objectiveLabel,
+        consequence: `${requirement.pointsIfMissing} if missing when ${requirement.condition} (safety-critical)`,
+        relatedContentIds: requirement.relatedContentIds,
+      })),
     ...scoreRules
       .filter(
         (rule) =>
@@ -469,6 +520,7 @@ export const buildCaseRuleAudit = (
       challengeBonus: blueprint.economy.challengeBonus,
     },
     investigations,
+    treatmentWorkupRequirements,
     treatmentGrades,
     medicationFitModifiers,
     treatmentPathways,
@@ -505,6 +557,9 @@ export const focusCaseRuleAudit = (
     investigations: audit.investigations.filter((row) =>
       rowMatches(row.relatedContentIds, targetIds),
     ),
+    treatmentWorkupRequirements: audit.treatmentWorkupRequirements.filter((row) =>
+      rowMatches(row.relatedContentIds, targetIds),
+    ),
     treatmentGrades: audit.treatmentGrades.filter((row) =>
       rowMatches(row.relatedContentIds, targetIds),
     ),
@@ -525,6 +580,7 @@ export const focusCaseRuleAudit = (
     : {
         mode: 'complete',
         investigations: audit.investigations,
+        treatmentWorkupRequirements: audit.treatmentWorkupRequirements,
         treatmentGrades: audit.treatmentGrades,
         medicationFitModifiers: audit.medicationFitModifiers,
         treatmentPathways: audit.treatmentPathways,

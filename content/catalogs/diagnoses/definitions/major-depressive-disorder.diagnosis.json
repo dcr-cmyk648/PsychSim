@@ -1,12 +1,238 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.1.0",
+  "contentVersion": "1.3.0",
   "id": "diagnosis.major-depressive-disorder",
   "label": "Major depressive disorder",
+  "selectableInGameplay": true,
   "description": "Diagnosis-family structure for shared MDD rules, episode-severity branches, and later reviewed specifiers.",
   "medicalReviewStatus": "unreviewed",
   "baseClinicalTagIds": ["diagnosis-tag.mood", "diagnosis-tag.unipolar"],
-  "baseRules": [],
+  "baseRules": [
+    {
+      "id": "rule.diagnosis-mdd.initial-first-line-antidepressant",
+      "label": "One reviewed first-line antidepressant for an initial MDD medication decision",
+      "domain": "medication_selection",
+      "target": {
+        "kind": "medication_tag",
+        "id": "mdd-initial-first-line"
+      },
+      "stance": "acceptable",
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": {
+        "type": "treatmentStartedWithTag",
+        "medicationTagId": "mdd-initial-first-line",
+        "minimumCount": 1,
+        "maximumCount": 1
+      },
+      "rationale": "For a focused, uncomplicated adult MDD snapshot already routed to medication treatment, one reviewed first-line antidepressant satisfies the broad medication route. Medication-specific fit, safety, interactions, prior response, preference, feasibility, and formulary availability remain separate contributors.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T16:55:53.000Z",
+        "sourceUseNoteIds": [
+          "source-use.diagnosis-mdd.canmat-initial-first-line-antidepressants",
+          "source-use.diagnosis-mdd.developer-initial-first-line-antidepressants"
+        ]
+      }
+    },
+    {
+      "id": "rule.diagnosis-mdd.initial-episode-course-assessment",
+      "label": "Characterize the current depressive episode and functional effect",
+      "domain": "assessment",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.presenting-problem"
+      },
+      "stance": "required",
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": null,
+      "rationale": "In an initial MDD snapshot, the episode course and functional effect are central to the focused decision. This is an MDD-specific assessment rule, not a requirement to obtain depressive history in every psychiatric encounter.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": [
+          "source-use.diagnosis-mdd.canmat-focused-assessment",
+          "source-use.diagnosis-mdd.developer-treatment-triggered-assessment"
+        ]
+      }
+    },
+    {
+      "id": "rule.diagnosis-mdd.initial-depressive-syndrome-assessment",
+      "label": "Characterize the depressive symptom cluster",
+      "domain": "assessment",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.depressive-symptoms"
+      },
+      "stance": "required",
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": null,
+      "rationale": "The focused initial-MDD decision requires enough structured depressive-symptom information to understand the syndrome being treated. This does not make a depressive-symptom checklist universally required for unrelated encounters.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": [
+          "source-use.diagnosis-mdd.canmat-focused-assessment",
+          "source-use.diagnosis-mdd.developer-treatment-triggered-assessment"
+        ]
+      }
+    },
+    {
+      "id": "rule.diagnosis-mdd.antidepressant-mania-history",
+      "label": "Assess prior mania or hypomania before starting an antidepressant",
+      "domain": "safety",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.mania"
+      },
+      "stance": "required",
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": {
+        "type": "treatmentStartedWithTag",
+        "medicationTagId": "antidepressant",
+        "minimumCount": 1,
+        "maximumCount": 20
+      },
+      "rationale": "Prior mania or hypomania becomes materially relevant when the submitted plan starts an antidepressant. No antidepressant selection means this treatment-triggered prerequisite does not fire; medication-specific rules may later refine its magnitude.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": [
+          "source-use.diagnosis-mdd.canmat-focused-assessment",
+          "source-use.diagnosis-mdd.developer-treatment-triggered-assessment"
+        ]
+      }
+    },
+    {
+      "id": "rule.diagnosis-mdd.any-medication-reconciliation",
+      "label": "Reconcile the medication list before starting a medication",
+      "domain": "safety",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.medication-reconciliation"
+      },
+      "stance": "required",
+      "concernLevel": "moderate",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": {
+        "type": "anyMedicationStarted"
+      },
+      "rationale": "Medication reconciliation becomes relevant when the submitted plan starts a medication. A future staff automation may fulfill the same investigation at a lower operating cost, but it must not bypass the underlying resolved information.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": [
+          "source-use.diagnosis-mdd.canmat-focused-assessment",
+          "source-use.diagnosis-mdd.developer-treatment-triggered-assessment"
+        ]
+      }
+    },
+    {
+      "id": "rule.diagnosis-mdd.any-medication-reaction-history",
+      "label": "Review allergies and adverse reactions before starting a medication",
+      "domain": "safety",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.allergies-adverse-reactions"
+      },
+      "stance": "required",
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": {
+        "type": "anyMedicationStarted"
+      },
+      "rationale": "Allergy and prior adverse-reaction history should be reviewed before a new medication is started. Discovering the history and the separate consequence of selecting a medication with a resolved prior reaction remain independently traceable.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": ["source-use.diagnosis-mdd.developer-treatment-triggered-assessment"]
+      }
+    },
+    {
+      "id": "rule.diagnosis-mdd.substance-history",
+      "label": "Assess substance use as a possible contributor",
+      "domain": "assessment",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.substance-use"
+      },
+      "stance": "preferred",
+      "concernLevel": "moderate",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": null,
+      "rationale": "Substance-use history is broadly useful in depression and other presentations that may be caused or worsened by substances. This initial MDD snapshot rewards obtaining it without making every omission a critical safety failure.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": [
+          "source-use.diagnosis-mdd.canmat-focused-assessment",
+          "source-use.diagnosis-mdd.developer-treatment-triggered-assessment"
+        ]
+      }
+    },
+    {
+      "id": "rule.diagnosis-mdd.passive-death-wish-safety-assessment",
+      "label": "Assess suicide risk when a passive wish for death is present",
+      "domain": "safety",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.suicide-safety"
+      },
+      "stance": "required",
+      "concernLevel": "critical",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "safety.passive-death-wish-without-intent"
+      },
+      "selectionWhen": null,
+      "rationale": "A resolved passive wish for death makes the detailed safety assessment central to the focused outpatient disposition decision. The underlying findings, rather than a single risk label, remain available for explanation.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": ["source-use.diagnosis-mdd.developer-treatment-triggered-assessment"]
+      }
+    }
+  ],
   "severityAxis": {
     "id": "severity-axis.mdd.episode",
     "label": "Current episode severity",
@@ -86,6 +312,90 @@
   "comorbidityRelationships": [],
   "complexityContributions": [],
   "sourceUseNotes": [
+    {
+      "id": "source-use.diagnosis-mdd.canmat-initial-first-line-antidepressants",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+      "sourceDocumentId": "source-document.412aade56104fd394503",
+      "sourceChunkIds": [
+        "source-chunk.412aade56104fd394503.17",
+        "source-chunk.412aade56104fd394503.18",
+        "source-chunk.412aade56104fd394503.19",
+        "source-chunk.412aade56104fd394503.20"
+      ],
+      "targetContentIds": [
+        "rule.diagnosis-mdd.initial-first-line-antidepressant",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.bupropion",
+        "medication.mirtazapine"
+      ],
+      "contributionTypes": ["treatment", "medication_fit"],
+      "contribution": "CANMAT Q.3.e and Table 3.3 place these five currently modeled medications among first-line adult MDD antidepressant options and describe selection using efficacy, adverse effects, clinical presentation, prior response, cost, preference, and feasibility. The source does not supply PsychSim point values or make one of these agents universally best.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "approved"
+    },
+    {
+      "id": "source-use.diagnosis-mdd.developer-initial-first-line-antidepressants",
+      "authority": "expert_opinion",
+      "evidenceSourceIds": [],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": [
+        "rule.diagnosis-mdd.initial-first-line-antidepressant",
+        "medication.sertraline",
+        "medication.escitalopram",
+        "medication.fluoxetine",
+        "medication.bupropion",
+        "medication.mirtazapine"
+      ],
+      "contributionTypes": ["treatment", "medication_fit"],
+      "contribution": "Developer opinion: in a focused uncomplicated adult MDD snapshot already routed to medication treatment, one member of this reviewed five-medication set receives equal primary-route status. Medication-specific fit and safety remain smaller, separate, auditable contributors.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "approved"
+    },
+    {
+      "id": "source-use.diagnosis-mdd.canmat-focused-assessment",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+      "sourceDocumentId": "source-document.412aade56104fd394503",
+      "sourceChunkIds": [
+        "source-chunk.412aade56104fd394503.8",
+        "source-chunk.412aade56104fd394503.9"
+      ],
+      "targetContentIds": [
+        "rule.diagnosis-mdd.initial-episode-course-assessment",
+        "rule.diagnosis-mdd.initial-depressive-syndrome-assessment",
+        "rule.diagnosis-mdd.antidepressant-mania-history",
+        "rule.diagnosis-mdd.any-medication-reconciliation",
+        "rule.diagnosis-mdd.substance-history"
+      ],
+      "contributionTypes": ["workup", "diagnosis_logic", "treatment"],
+      "contribution": "CANMAT Q.1.d supports a comprehensive, individualized assessment and psychiatric and medical differential before MDD treatment. It informs the direction of these focused assessment rules but does not specify PsychSim's triggers, concern labels, certainty labels, or point values.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "approved"
+    },
+    {
+      "id": "source-use.diagnosis-mdd.developer-treatment-triggered-assessment",
+      "authority": "expert_opinion",
+      "evidenceSourceIds": [],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": [
+        "rule.diagnosis-mdd.initial-episode-course-assessment",
+        "rule.diagnosis-mdd.initial-depressive-syndrome-assessment",
+        "rule.diagnosis-mdd.antidepressant-mania-history",
+        "rule.diagnosis-mdd.any-medication-reconciliation",
+        "rule.diagnosis-mdd.any-medication-reaction-history",
+        "rule.diagnosis-mdd.substance-history",
+        "rule.diagnosis-mdd.passive-death-wish-safety-assessment"
+      ],
+      "contributionTypes": ["workup", "safety", "scoring", "teaching_point"],
+      "contribution": "Developer opinion: assessment relevance follows the focused presentation and submitted treatment. Episode and depressive-syndrome history are central here; antidepressant selection activates mania history; any medication start activates medication reconciliation and allergy/adverse-reaction history; substance history is broadly rewarded; and this patient's passive wish for death activates detailed safety assessment.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "approved"
+    },
     {
       "id": "source-use.diagnosis-mdd.who-mhgap-dep1-4-context",
       "authority": "formal_publication",

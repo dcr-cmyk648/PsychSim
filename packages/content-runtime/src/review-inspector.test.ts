@@ -46,9 +46,9 @@ describe('case rule inspector', () => {
     expect(focused.scoreRules).toEqual([
       expect.objectContaining({
         id: 'rule.mdd-emergency-escalation',
-        pointsIfTrue: -450,
+        pointsIfTrue: -500,
         pointsIfFalse: 0,
-        carePointCapIfTrue: 200,
+        carePointCapIfTrue: 75,
       }),
     ]);
     expect(focused.criticalRules).toEqual([
@@ -61,13 +61,32 @@ describe('case rule inspector', () => {
     const audit = buildCaseRuleAudit(prototypeCaseBlueprint, catalogs, startingClinic);
 
     expect(
-      audit.treatmentGrades.find((rule) => rule.id === 'grade.mdd-optimal-sertraline'),
+      audit.treatmentGrades.find(
+        (rule) => rule.id === 'grade.mdd-initial-first-line-antidepressant',
+      ),
     ).toMatchObject({
-      baseCarePoints: 100,
+      baseCarePoints: 200,
       grade: 'optimal',
     });
     expect(audit.medicationFitModifiers.map((modifier) => modifier.pointDelta)).toEqual(
       expect.arrayContaining([35, -50]),
+    );
+    expect(audit.treatmentWorkupRequirements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'treatment-requirement.mdd-antidepressant-mania-history',
+          pointsIfMet: 45,
+          pointsIfMissing: -70,
+          concernLevel: 'major',
+          certaintyLevel: 'strong',
+          sourceRuleIds: ['rule.diagnosis-mdd.antidepressant-mania-history'],
+        }),
+        expect.objectContaining({
+          id: 'treatment-requirement.mdd-any-medication-reaction-history',
+          pointsIfMet: 30,
+          pointsIfMissing: -40,
+        }),
+      ]),
     );
     expect(audit.availableTreatments.interventions).toEqual(
       expect.arrayContaining([

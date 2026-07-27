@@ -15,7 +15,7 @@ describe('portable reviewer cohort', () => {
   const reviewerClinic = resolveClinicForProgressionMode(startingClinic, 'endgame', catalogs);
 
   it('compiles ten separate medically unreviewed patient scenarios', () => {
-    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07f');
+    expect(REVIEWER_ASSIGNMENT_ID).toBe('reviewer-assignment.common-psychiatry.2026-07g');
     expect(reviewerCaseBlueprints.map((blueprint) => blueprint.id)).toEqual([
       'case.review-cohort.mdd-initial',
       'case.review-cohort.mdd-adherence',
@@ -33,13 +33,13 @@ describe('portable reviewer cohort', () => {
         reviewerCaseBlueprints.map((blueprint) => [blueprint.id, blueprint.contentVersion]),
       ),
     ).toEqual({
-      'case.review-cohort.mdd-initial': '1.5.0',
+      'case.review-cohort.mdd-initial': '1.6.0',
       'case.review-cohort.mdd-adherence': '1.4.0',
-      'case.review-cohort.mdd-adequate-nonresponse': '1.4.0',
-      'case.review-cohort.mdd-prior-good-response': '1.5.0',
-      'case.review-cohort.mdd-prior-intolerance': '1.5.0',
+      'case.review-cohort.mdd-adequate-nonresponse': '1.5.0',
+      'case.review-cohort.mdd-prior-good-response': '1.6.0',
+      'case.review-cohort.mdd-prior-intolerance': '1.6.0',
       'case.review-cohort.gad-initial': '1.4.0',
-      'case.review-cohort.bipolar-depression': '1.4.0',
+      'case.review-cohort.bipolar-depression': '1.5.0',
       'case.review-cohort.acute-mania': '1.4.0',
       'case.review-cohort.schizophrenia-relapse': '1.4.0',
       'case.review-cohort.ptsd-initial': '1.4.0',
@@ -47,7 +47,7 @@ describe('portable reviewer cohort', () => {
     expect(reviewerDecisionPolicies.map((policy) => policy.id)).toHaveLength(8);
     expect(
       reviewerDecisionPolicies.find((policy) => policy.id === 'policy.review.mdd.initial'),
-    ).toMatchObject({ contentVersion: '1.1.0' });
+    ).toMatchObject({ contentVersion: '1.2.0' });
     for (const blueprint of reviewerCaseBlueprints) {
       expect(blueprint.metadata).toMatchObject({
         fictional: true,
@@ -77,6 +77,23 @@ describe('portable reviewer cohort', () => {
           ticket.requiresClinicalAcumen,
       ),
     ).toBe(true);
+  });
+
+  it('shows concrete prior-trial exposure without revealing an adequacy conclusion', () => {
+    const blueprint = reviewerCaseBlueprints.find(
+      (candidate) => candidate.id === 'case.review-cohort.mdd-adequate-nonresponse',
+    );
+    if (!blueprint) throw new Error('Expected the MDD nonresponse reviewer patient.');
+    const instance = instantiateCase(blueprint, 'objective-prior-trial', catalogs);
+    const result = instance.informationActions.find(
+      (action) => action.actionId === 'info.history.prior-trials',
+    )?.result;
+    const trialValue = result?.findings[0]?.valueText ?? '';
+
+    expect(trialValue).toContain('10 weeks');
+    expect(trialValue).toContain('max 200 mg daily');
+    expect(trialValue).toContain('response: none');
+    expect(trialValue.toLocaleLowerCase('en-US')).not.toContain('adequate');
   });
 
   it('scores every multi-antidepressant start in the initial outpatient MDD snapshot', () => {
@@ -119,6 +136,7 @@ describe('portable reviewer cohort', () => {
             label: 'Multiple antidepressant start test',
             kind: 'unsafe',
             actionIds: databasePlan.actionIds,
+            diagnosisSelections: [],
             selections: {
               startMedicationIds: [first, second],
               stopMedicationIds: [],
@@ -181,6 +199,7 @@ describe('portable reviewer cohort', () => {
       }
     }
 
+    const singleMedicationCarePoints = new Set<number>();
     for (const [index, medicationId] of antidepressants.entries()) {
       const receipt = runReferenceSolution(
         {
@@ -188,6 +207,7 @@ describe('portable reviewer cohort', () => {
           label: 'Single antidepressant start test',
           kind: 'strong_alternative',
           actionIds: databasePlan.actionIds,
+          diagnosisSelections: [],
           selections: {
             startMedicationIds: [medicationId],
             stopMedicationIds: [],
@@ -204,13 +224,29 @@ describe('portable reviewer cohort', () => {
         reviewerClinic,
       ).receipt;
 
-      expect(receipt.pointReport.treatmentGrade).not.toBe('harmful');
+      expect(receipt.pointReport.treatmentGrade).toBe('optimal');
+      singleMedicationCarePoints.add(receipt.pointReport.carePointsEarned);
+      expect(
+        receipt.pointReport.ruleTrace.find(
+          (trace) => trace.ruleId === 'grade.review-mdd.initial-first-line-antidepressant',
+        ),
+      ).toMatchObject({
+        matched: true,
+        points: 200,
+        evidenceAttributions: [
+          expect.objectContaining({
+            authority: 'formal_publication',
+            evidenceSourceId: 'evidence.canmat.mdd-adults.2023-update',
+          }),
+        ],
+      });
       expect(
         receipt.pointReport.ruleTrace.find(
           (trace) => trace.ruleId === 'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
         ),
       ).toMatchObject({ matched: false });
     }
+    expect(singleMedicationCarePoints).toEqual(new Set([510]));
 
     const allAntidepressantsReceipt = runReferenceSolution(
       {
@@ -218,6 +254,7 @@ describe('portable reviewer cohort', () => {
         label: 'All antidepressant starts test',
         kind: 'unsafe',
         actionIds: databasePlan.actionIds,
+        diagnosisSelections: [],
         selections: {
           startMedicationIds: antidepressants,
           stopMedicationIds: [],
@@ -247,7 +284,7 @@ describe('portable reviewer cohort', () => {
     expect(formalTrace?.evidenceAttributions).toEqual([
       expect.objectContaining({
         authority: 'formal_publication',
-        evidenceSourceId: 'evidence.who.mhgap-mns.2023',
+        evidenceSourceId: 'evidence.canmat.mdd-adults.2023-update',
       }),
     ]);
   });
@@ -404,7 +441,7 @@ describe('portable reviewer cohort', () => {
       const shotgun = byKind.get('shotgun')!;
       const unsafe = byKind.get('unsafe')!;
       expect(database.pointReport.carePointsEarned).toBe(blueprint.scoring.databasePlanCarePoints);
-      expect(database.pointReport.carePointsEarned).toBeGreaterThan(
+      expect(database.pointReport.carePointsEarned).toBeGreaterThanOrEqual(
         alternative.pointReport.carePointsEarned,
       );
       expect(alternative.pointReport.carePointsEarned).toBeGreaterThan(

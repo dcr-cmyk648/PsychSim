@@ -12,9 +12,11 @@ import {
 } from '@psychsim/schemas';
 
 import { evaluatePredicate, extractPredicateReferences, type PredicateContext } from './predicates';
+import { scoreDiagnosisSelections } from './diagnosis-scoring';
 import { err, ok, type Result } from './result';
 
 const COMPONENTS: readonly ScoreComponent[] = [
+  'diagnosis',
   'workup',
   'medication_selection',
   'medication_discontinuation',
@@ -42,6 +44,7 @@ const relatedTreatments = (
   return [
     ...new Set([
       ...refs.medicationIds,
+      ...(refs.anyMedicationStarted ? state.selections.startMedicationIds : []),
       ...taggedMedicationIds,
       ...refs.interventionIds,
       ...refs.dispositionIds,
@@ -183,11 +186,86 @@ const medicationFitTrace = (state: EncounterState, catalogs: CatalogBundle): Rul
             catalogs,
             modifier.sourceUseNoteIds,
           ),
+          issueId: null,
           relatedActionIds: [],
+          relatedDiagnosisIds: [],
           relatedTreatmentIds: [medicationId],
         };
       });
   });
+};
+
+const medicationReactionTrace = (
+  state: EncounterState,
+  catalogs: CatalogBundle,
+): {
+  trace: RuleEvaluation[];
+  safetyErrors: string[];
+  carePointCaps: number[];
+} => {
+  const trace: RuleEvaluation[] = [];
+  const safetyErrors: string[] = [];
+  const carePointCaps: number[] = [];
+  for (const medicationId of state.selections.startMedicationIds) {
+    const matchingCandidates = state.caseInstance.patientRecord.reactionHistory.records
+      .filter(
+        (record) =>
+          record.trigger.kind === 'medication' && record.trigger.medicationId === medicationId,
+      )
+      .flatMap((record) =>
+        catalogs.reactionConcepts.medicationSelectionPolicies
+          .filter(
+            (policy) =>
+              policy.recordedAs.includes(record.recordedAs) &&
+              policy.reportedSeverities.includes(record.reportedSeverity),
+          )
+          .map((policy) => ({ policy, record })),
+      )
+      .sort(
+        (left, right) =>
+          left.policy.pointDelta - right.policy.pointDelta ||
+          left.policy.id.localeCompare(right.policy.id),
+      );
+    const selected = matchingCandidates[0];
+    if (!selected) continue;
+
+    const medicationLabel =
+      catalogs.medications.find((medication) => medication.id === medicationId)?.label ??
+      medicationId;
+    const ruleId = `${selected.policy.id}.${medicationId}`;
+    const safetyMessage = `A prior ${selected.record.reportedSeverity} reported reaction to ${medicationLabel} was present in the resolved patient record.`;
+    trace.push({
+      ruleId,
+      label: `${medicationLabel}: prior reported reaction`,
+      component: 'safety',
+      matched: true,
+      points: selected.policy.pointDelta,
+      classification: selected.policy.classification,
+      explanation: `${selected.policy.explanation} The reaction existed in the resolved patient record before the encounter and affects treatment scoring whether or not the player revealed it.`,
+      reviewStatus: selected.policy.review.status,
+      concernLevel: selected.policy.concernLevel,
+      certaintyLevel: selected.policy.certaintyLevel,
+      evidenceAttributions: [
+        {
+          sourceUseNoteId: null,
+          authority: 'expert_opinion',
+          evidenceSourceId: null,
+          citation: null,
+          url: null,
+          contribution: `Developer opinion: ${selected.policy.explanation} The exact point value is provisional game balance.`,
+        },
+      ],
+      issueId: `issue.prior-reaction.${medicationId}`,
+      relatedActionIds: [],
+      relatedDiagnosisIds: [],
+      relatedTreatmentIds: [medicationId],
+    });
+    if (selected.policy.safetyCritical) safetyErrors.push(safetyMessage);
+    if (selected.policy.carePointCap !== null) {
+      carePointCaps.push(selected.policy.carePointCap);
+    }
+  }
+  return { trace, safetyErrors, carePointCaps };
 };
 
 export const scoreEncounter = (
@@ -202,10 +280,39 @@ export const scoreEncounter = (
   }
   const context = makeContext(state, catalogs);
   const trace: RuleEvaluation[] = [];
-  const safetyErrors: string[] = [];
-  const carePointCaps: number[] = [];
+  const diagnosisScore = scoreDiagnosisSelections(state, catalogs);
+  const safetyErrors: string[] = [...diagnosisScore.safetyErrors];
+  const carePointCaps: number[] = [...diagnosisScore.carePointCaps];
+
+  trace.push(
+    ...diagnosisScore.trace.map(({ review, sourceUseNoteIds, ...draft }) => ({
+      ...draft,
+      reviewStatus: review.status,
+      evidenceAttributions: evidenceAttributionsFor(
+        review,
+        state.caseInstance.patientRecord.sourceUseNotes,
+        catalogs,
+        sourceUseNoteIds,
+      ),
+    })),
+  );
+
+  const treatmentOnlyObjectiveIds = new Set([
+    ...state.caseInstance.treatmentWorkupRequirements.map((requirement) => requirement.objectiveId),
+    ...state.caseInstance.treatmentPathways.flatMap((pathway) =>
+      pathway.conditionalRequirements.map((requirement) => requirement.objectiveId),
+    ),
+  ]);
 
   for (const objective of state.caseInstance.workupObjectives) {
+    if (
+      treatmentOnlyObjectiveIds.has(objective.id) &&
+      !objective.requiredByDefault &&
+      objective.points === 0 &&
+      objective.omissionPenalty === 0
+    ) {
+      continue;
+    }
     const matched = evaluatePredicate(objective.satisfaction, context);
     const refs = extractPredicateReferences(objective.satisfaction);
     trace.push({
@@ -234,9 +341,45 @@ export const scoreEncounter = (
         state.caseInstance.patientRecord.sourceUseNotes,
         catalogs,
       ),
+      issueId: null,
       relatedActionIds: orderedPurchasedActions(refs.actionIds, state),
+      relatedDiagnosisIds: [],
       relatedTreatmentIds: [],
     });
+  }
+
+  for (const requirement of state.caseInstance.treatmentWorkupRequirements) {
+    if (!evaluatePredicate(requirement.appliesWhen, context)) continue;
+    const objective = state.caseInstance.workupObjectives.find(
+      (candidate) => candidate.id === requirement.objectiveId,
+    );
+    if (!objective) continue;
+    const matched = evaluatePredicate(objective.satisfaction, context);
+    const refs = extractPredicateReferences(objective.satisfaction);
+    trace.push({
+      ruleId: requirement.id,
+      label: objective.label,
+      component: 'workup',
+      matched,
+      points: matched ? requirement.pointsIfMet : requirement.pointsIfMissing,
+      classification: matched ? 'appropriate_for_selected_treatment' : 'critical_omission',
+      explanation: matched ? requirement.explanationMet : requirement.explanationMissing,
+      reviewStatus: requirement.review.status,
+      concernLevel: requirement.concernLevel,
+      certaintyLevel: requirement.certaintyLevel,
+      evidenceAttributions: evidenceAttributionsFor(
+        requirement.review,
+        state.caseInstance.patientRecord.sourceUseNotes,
+        catalogs,
+      ),
+      issueId: null,
+      relatedActionIds: orderedPurchasedActions(refs.actionIds, state),
+      relatedDiagnosisIds: [],
+      relatedTreatmentIds: relatedTreatments(requirement.appliesWhen, state, catalogs),
+    });
+    if (!matched && requirement.safetyCritical) {
+      safetyErrors.push(requirement.explanationMissing);
+    }
   }
 
   const treatmentGrade = chooseTreatmentGrade(state, context);
@@ -256,13 +399,19 @@ export const scoreEncounter = (
       state.caseInstance.patientRecord.sourceUseNotes,
       catalogs,
     ),
+    issueId: null,
     relatedActionIds: [],
+    relatedDiagnosisIds: [],
     relatedTreatmentIds: treatmentGrade
       ? relatedTreatments(treatmentGrade.predicate, state, catalogs)
       : [],
   });
 
   trace.push(...medicationFitTrace(state, catalogs));
+  const reactionResult = medicationReactionTrace(state, catalogs);
+  trace.push(...reactionResult.trace);
+  safetyErrors.push(...reactionResult.safetyErrors);
+  carePointCaps.push(...reactionResult.carePointCaps);
 
   const pathway = choosePathway(state, context);
   if (pathway) {
@@ -279,11 +428,7 @@ export const scoreEncounter = (
         component: 'medication_selection',
         matched,
         points: matched ? requirement.pointsIfMet : requirement.pointsIfMissing,
-        classification: matched
-          ? 'appropriate_for_selected_treatment'
-          : requirement.safetyCritical
-            ? 'critical_omission'
-            : 'low_value',
+        classification: matched ? 'appropriate_for_selected_treatment' : 'critical_omission',
         explanation: matched ? requirement.explanationMet : requirement.explanationMissing,
         reviewStatus: requirement.review.status,
         evidenceAttributions: evidenceAttributionsFor(
@@ -291,7 +436,9 @@ export const scoreEncounter = (
           state.caseInstance.patientRecord.sourceUseNotes,
           catalogs,
         ),
+        issueId: null,
         relatedActionIds: orderedPurchasedActions(refs.actionIds, state),
+        relatedDiagnosisIds: [],
         relatedTreatmentIds: relatedTreatments(pathway.match, state, catalogs),
       });
       if (!matched && requirement.safetyCritical) safetyErrors.push(requirement.explanationMissing);
@@ -315,7 +462,9 @@ export const scoreEncounter = (
         state.caseInstance.patientRecord.sourceUseNotes,
         catalogs,
       ),
+      issueId: null,
       relatedActionIds: orderedPurchasedActions(refs.actionIds, state),
+      relatedDiagnosisIds: [],
       relatedTreatmentIds: relatedTreatments(rule.predicate, state, catalogs),
     });
     const safetyError = matched ? rule.safetyErrorIfTrue : rule.safetyErrorIfFalse;
@@ -371,6 +520,10 @@ export const scoreEncounter = (
       treatmentEvaluationNotice,
       selectedPathwayId: pathway?.id ?? null,
       selectedPathwayLabel: pathway?.label ?? null,
+      diagnosisEvaluationSource: state.caseInstance.diagnosisRubric ? 'case_rubric' : 'not_scored',
+      diagnosisEvaluationNotice: state.caseInstance.diagnosisRubric
+        ? 'The submitted diagnosis set was evaluated against this frozen case rubric. Diagnostic scoring remains separate from hidden patient truth and treatment-fit scoring.'
+        : 'This case has no authored diagnostic-answer point rubric. Submitted diagnoses are preserved and compared with case-authored diagnosis state without changing care points.',
       componentPoints,
       ruleTrace: trace,
       safetyErrors: [...new Set(safetyErrors)],

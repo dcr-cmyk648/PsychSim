@@ -54,6 +54,18 @@ The tracked developer-only queue at `content/cases/review/source-needed.requests
 
 The queue directs the user to `PsychSim documents`, but it contains no copyrighted text and performs no connector action. After the user asks Codex to check Drive, new bytes still pass through discovery, SHA-256 deduplication, the protected local inbox, extraction, and one-at-a-time claim review. Only then may the request link source-document/chunk IDs and move to source-received. Resolution additionally requires a concise resolution note and the normal rule-level content change/revalidation workflow. `pnpm content:validate` checks the tracked request graph; `pnpm content:sources:validate` checks the private discovery and extraction graph.
 
+When a new publication is referenced, the first durable public step is its own stable evidence
+record with verified bibliographic and rights metadata. The source does not need to be interpreted
+into every potentially related catalog entry immediately. Instead, one or more target-specific
+review tickets record the proposed uses, affected entries, unresolved questions, and source-use
+boundary. A registered source with no approved contribution remains visible bibliography, not an
+implemented claim. This prevents both silent propagation and silent loss.
+
+Private semantic extraction follows the same landing rule. Every unresolved target mention must
+remain in the generated catalog-identity audit even when no matching medication, diagnosis, test,
+therapy, or other catalog entry exists yet. A likely alias is not silently attached, and ambiguous
+or overlapping entries are not merged without developer review.
+
 ## Local workflow
 
 ```text
@@ -71,6 +83,20 @@ in these folders, including the account-specific Drive discovery manifest, the A
 manifest, private note revisions, attachment bytes, OCR text, and deterministic composites. Vite
 imports neither this directory nor content tooling; a bundle-safety test scans production output.
 Private manifests and Apple Notes derivatives use restrictive local permissions.
+
+### Backup boundary
+
+The project repository may be public, so pushing a checkpoint to GitHub backs up only code,
+schemas, tests, documentation, public-safe metadata, and accepted concise contributions. It must
+never override the ignore rules above to back up private source bytes, extracted text, provider
+identifiers, local review handoffs, or browser-only feedback. Before describing a GitHub push as a
+backup, report these exclusions explicitly.
+
+Private-corpus disaster recovery is a separate, encrypted, access-controlled workflow that requires
+an explicitly approved destination. Git history is not that workflow. A cleanup must preserve an
+ambiguous source or authoring artifact until its manifest relationship and review value are known;
+only exact duplicates, reproducible build/test output, or explicitly superseded artifacts may be
+removed automatically.
 
 ## Classification import is a separate authoring path
 
@@ -243,6 +269,39 @@ match cannot create an authored source unit, bibliographic record, Developer opi
 claim, rule, point, citation, approval, or runtime entry. Unknown medication/condition concepts
 remain outside this first dictionary and require the separately reviewed identity-expansion path.
 
+## Whole-corpus Database cross-reference
+
+`pnpm content:knowledge:crossref` broadens the local audit beyond D-138's title/plaintext-only
+inventory. It includes:
+
+- every eligible Apple Notes composite, with title, plaintext, and successfully extracted
+  attachment OCR kept as distinct matching surfaces;
+- one deterministic source unit per Apple Note;
+- the user-authored SharePoint/residency archive, grouped by parser-v5 `sectionInstance` plus its
+  unsectioned preamble; and
+- other private Drive files explicitly enrolled by exact SHA-256 and parser-v5 unit strategy.
+
+The current enrolled snapshot contains 206 private documents and 234 deterministic units: 204
+Apple Notes revisions, 28 SharePoint/residency archive units, and two units from the other private
+Drive notes document. Of 124 Apple attachment records, 116 have OCR; 226 units are fully indexed
+and eight remain partial. These mutable counts belong to the operational checkpoint, not to the
+schema. Partial access is visible and never reported as complete semantic processing.
+
+The compiler emits normalized term/count/surface links only. It excludes raw prose, headings,
+filenames, provider IDs, source-document/chunk IDs, and paths. The same Database entry may then
+show, in separate lanes, an existing semantic candidate, a formal evidence contribution, and an
+executable rule. Match frequency cannot promote content between lanes. The output is ignored,
+mode `0600`, loopback-only, and fingerprinted over all source surfaces and tracked inputs.
+`pnpm content:knowledge:crossref:validate` fails on missing enrolled sources, source drift, stale
+output, a permissive file mode, or a path escape.
+
+“My notes” means this complete enrolled private authored corpus, not only the current
+topic-specific Apple Notes queue. The July 26, 2026 projection links 175 of 234 source units to 87
+of 154 current Database entries through 1,921 lexical matches. Thirty-three units have an explicit
+semantic disposition and 51 medically unreviewed candidate summaries exist; the remainder are
+still indexing/review coverage, not incorporated knowledge. Those figures must be regenerated
+after source or catalog changes rather than copied into clinical content.
+
 ## Bounded personal-knowledge semantic workflow
 
 The first semantic pilot covers one tracked topic—initial MDD antidepressant selection—without
@@ -298,17 +357,20 @@ Physical preservation and structure-aware extraction are complete. Parser versio
 and one unsectioned preamble across 39 bounded chunks. Thirty-eight chunks are sectioned and carry
 deterministic `sectionInstance` locators; all 39 carry a locator/body `provenanceHash`. Parser-v1
 through parser-v4 extractions are retained as four private extraction-history revisions. Exactly
-one parser warning records an unrecognized Word `Title` style; semantic review must decide whether
-that paragraph is front matter or a logical authored-unit boundary. Semantic review, authored-unit
-candidates, Developer opinions, bibliography candidates, database changes, rule changes, and
-runtime incorporation have not begun. Gameplay content is unchanged.
+one parser warning records an unrecognized Word `Title` style.
 
-The first generated `SourceReviewSnapshot` is therefore metadata-only. It records the unresolved
-heading-boundary warning and asks whether the aggregate should remain semantically quarantined. It
-does not contain the private heading or source prose and cannot resolve the ambiguity by itself.
-Semantic atomization remains blocked until a source-specific acknowledged one-unit review or a
-separate local-only boundary inspector can show sufficient private context without widening the
-runtime or portable-review surface.
+The 28 accepted coarse source units now all have explicit semantic classifications: 20 contain
+candidate material and eight are no-candidate, context, noise, or boundary-repair outcomes. Six
+candidate-bearing units remain intentionally marked as mixed and require a later split before
+their contents can become atomic accepted opinions. Classification created medically unreviewed
+candidate summaries only. No candidate has been accepted, no formal source has been inferred from
+the archive, and no database rule, point value, patient, or runtime behavior changed.
+
+The first generated `SourceReviewSnapshot` remains metadata-only historical review context. It
+records the heading-boundary warning and does not contain the private heading or source prose.
+The later acknowledged, one-unit-at-a-time classification pass resolved every coarse unit's
+disposition while preserving the six mixed-unit split requirements. Exact atomic acceptance
+remains blocked for those mixed units; the classifier did not silently guess article boundaries.
 
 The aggregate is one physical, private, hashed `SourceDocument`, but each original article is a
 separate future `AuthoredSourceUnit`. Article units preserve title, byline, original URL/venue,
@@ -385,8 +447,10 @@ The Apple Notes corpus has 204/204 title/plaintext revisions and 124 attachment 
 completed for 116 attachments; one format is unsupported and seven attachment saves failed while
 their note text remained available. Those OCR, HTML, attachment, composite, and generic extracted
 chunk representations remain outside the authorized semantic scope. The current bounded MDD queue
-contains 13 exact Notes revisions: one classified into unreviewed candidates and 12 awaiting
-one-revision-at-a-time review. This is review workload, not incorporated knowledge.
+contains 13 exact Notes revisions. Five have completed one-revision-at-a-time semantic
+classification into 31 medically unreviewed opinion candidates; the next revision may be released
+while the remaining revisions stay queued. This is a topic-prioritized review workload, not the
+definition of “my notes” and not incorporated knowledge.
 
 `Additional notes` is extracted into two parser-sized chunks but has no heading unit, so the current
 complete-`sectionInstance` source-review selector deliberately cannot packetize it. Its logical

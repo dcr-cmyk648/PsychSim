@@ -74,7 +74,20 @@ const resetRuleReview = (blueprint: CaseBlueprint): void => {
   for (const tagSet of blueprint.patientRecord.treatmentReference.acceptedMedicationTagSets) {
     tagSet.review = { ...UNREVIEWED_RULE };
   }
+  if (blueprint.diagnosisRubric) {
+    for (const group of blueprint.diagnosisRubric.groups) {
+      for (const option of group.options) option.review = { ...UNREVIEWED_RULE };
+      group.omission.review = { ...UNREVIEWED_RULE };
+    }
+    for (const rule of blueprint.diagnosisRubric.misclassificationRules) {
+      rule.review = { ...UNREVIEWED_RULE };
+    }
+    blueprint.diagnosisRubric.additionalSelectionPolicy.review = { ...UNREVIEWED_RULE };
+  }
   for (const objective of blueprint.workupObjectives) objective.review = { ...UNREVIEWED_RULE };
+  for (const requirement of blueprint.treatmentWorkupRequirements) {
+    requirement.review = { ...UNREVIEWED_RULE };
+  }
   for (const grade of blueprint.treatmentGrades) grade.review = { ...UNREVIEWED_RULE };
   for (const pathway of blueprint.treatmentPathways) {
     pathway.review = { ...UNREVIEWED_RULE };

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.15.0",
+  "contentVersion": "3.20.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -13,9 +13,23 @@
       "kind": "diagnosis_catalog",
       "path": "content/catalogs/diagnoses/definitions",
       "runtimeIncluded": true,
+      "categoryIds": [
+        "diagnosis.major-depressive-disorder",
+        "diagnosis.persistent-depressive-disorder",
+        "diagnosis.bipolar-spectrum-disorder",
+        "diagnosis.borderline-personality-disorder",
+        "diagnosis.substance-induced-mood-disorder",
+        "diagnosis.medication-induced-akathisia",
+        "diagnosis.generalized-anxiety-disorder",
+        "diagnosis.posttraumatic-stress-disorder",
+        "diagnosis.schizophrenia-spectrum-disorder"
+      ],
       "dependsOnIds": [
         "registry.catalog.information-actions",
         "registry.catalog.treatments",
+        "evidence.fda.clozaril-label.2025-01",
+        "evidence.mishra.clozapine-augmentation-network-meta-analysis.2024",
+        "evidence.roerig.clozapine-augmentation-strategies.2019",
         "evidence.who.mhgap-mns.2023"
       ]
     },
@@ -42,18 +56,40 @@
         "evidence.canmat.mdd-adults.2023-update",
         "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
         "evidence.cdc-nchs.icd10cm.2026",
+        "evidence.fda.abilify-maintena-label.2025-01",
+        "evidence.fda.abilify-oral-label.2025-01",
         "evidence.fda.citalopram-capsules-label.2023",
+        "evidence.fda.clozaril-label.2025-01",
+        "evidence.mishra.clozapine-augmentation-network-meta-analysis.2024",
         "evidence.mhra.citalopram-escitalopram-qt.2014",
         "evidence.nice.self-harm.ng225.2022",
         "evidence.nhs.cyclothymia.2023",
         "evidence.nhs.heart-palpitations.2026",
         "evidence.nimh.mental-health-topics.current",
         "evidence.nlm.rxnorm-cpc.2026-07-06",
+        "evidence.roerig.clozapine-augmentation-strategies.2019",
+        "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
+        "evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025",
         "evidence.va-dod.bipolar.2023",
+        "evidence.va-dod.schizophrenia.2023",
         "evidence.va-dod.suicide-risk.2024",
         "evidence.villanueva.epilepsy-depression-consensus.2023",
         "evidence.who.icd11-cddr.2024",
         "evidence.who.mhgap-mns.2023"
+      ]
+    },
+    {
+      "id": "developer-opinions.psychsim",
+      "kind": "developer_opinion_catalog",
+      "path": "content/catalogs/evidence/opinions/developer-opinions.json",
+      "runtimeIncluded": false,
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.medication-identities",
+        "registry.catalog.source-use-decisions",
+        "evidence.fda.abilify-maintena-label.2025-01",
+        "evidence.roerig.clozapine-augmentation-strategies.2019",
+        "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019"
       ]
     },
     {
@@ -70,6 +106,25 @@
         "medication.bupropion",
         "medication.mirtazapine"
       ]
+    },
+    {
+      "id": "authoring-aliases.personal-knowledge.cross-reference",
+      "kind": "personal_knowledge_alias_catalog",
+      "path": "content/catalogs/authoring/personal-knowledge/cross-reference-aliases.json",
+      "runtimeIncluded": false,
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.information-actions",
+        "registry.catalog.medication-identities",
+        "registry.catalog.tests",
+        "registry.catalog.treatments"
+      ]
+    },
+    {
+      "id": "authoring-sources.personal-knowledge.private",
+      "kind": "personal_knowledge_source_catalog",
+      "path": "content/catalogs/authoring/personal-knowledge/private-source-catalog.json",
+      "runtimeIncluded": false
     },
     {
       "id": "registry.catalog.services",
@@ -95,7 +150,9 @@
       "path": "content/catalogs/medications/identities",
       "runtimeIncluded": true,
       "categoryIds": [
+        "medication.amitriptyline",
         "medication.aripiprazole",
+        "medication.atomoxetine",
         "medication.benztropine",
         "medication.bupropion",
         "medication.buspirone",
@@ -103,33 +160,70 @@
         "medication.cariprazine",
         "medication.citalopram",
         "medication.clonazepam",
+        "medication.clonidine",
         "medication.clozapine",
+        "medication.desipramine",
         "medication.desvenlafaxine",
+        "medication.dexmedetomidine",
         "medication.diazepam",
+        "medication.diphenhydramine",
+        "medication.doxazosin",
+        "medication.doxepin",
+        "medication.doxylamine",
         "medication.duloxetine",
         "medication.escitalopram",
+        "medication.esketamine",
         "medication.fluoxetine",
         "medication.fluvoxamine",
+        "medication.gabapentin",
         "medication.haloperidol",
         "medication.hydroxyzine",
+        "medication.ketamine",
         "medication.lamotrigine",
         "medication.lithium",
         "medication.lorazepam",
         "medication.lurasidone",
+        "medication.melatonin",
+        "medication.memantine",
         "medication.mirtazapine",
+        "medication.nefazodone",
+        "medication.nortriptyline",
         "medication.olanzapine",
+        "medication.omega-3-fatty-acids",
         "medication.paliperidone",
         "medication.paroxetine",
         "medication.prazosin",
         "medication.propranolol",
         "medication.quetiapine",
         "medication.risperidone",
+        "medication.selegiline",
         "medication.sertraline",
         "medication.trazodone",
+        "medication.valproate",
         "medication.venlafaxine",
+        "medication.viloxazine",
         "medication.ziprasidone"
       ],
       "dependsOnIds": [
+        "evidence.nlm.rxnorm-cpc.2026-07-06",
+        "registry.catalog.source-use-decisions"
+      ]
+    },
+    {
+      "id": "registry.catalog.supplement-identities",
+      "kind": "supplement_identity_catalog",
+      "path": "content/catalogs/supplements/identities",
+      "runtimeIncluded": true,
+      "categoryIds": [
+        "supplement.ashwagandha",
+        "supplement.lavender-oil",
+        "supplement.l-theanine",
+        "supplement.magnesium",
+        "supplement.s-adenosylmethionine",
+        "supplement.saffron-extract"
+      ],
+      "dependsOnIds": [
+        "evidence.nlm.mesh.2026",
         "evidence.nlm.rxnorm-cpc.2026-07-06",
         "registry.catalog.source-use-decisions"
       ]
@@ -185,7 +279,7 @@
       "dependsOnIds": ["registry.review.source-requests"]
     },
     {
-      "id": "registry.reviewer-assignment.common-psychiatry.2026-07f.tickets",
+      "id": "registry.reviewer-assignment.common-psychiatry.2026-07g.tickets",
       "kind": "reviewer_assignment_ticket_catalog",
       "path": "content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json",
       "runtimeIncluded": false
@@ -240,9 +334,33 @@
       "dependsOnIds": ["evidence.canmat.mdd-adults.2023-update"]
     },
     {
+      "id": "evidence.fda.abilify-maintena-label.2025-01",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/fda-abilify-maintena-2025-label.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.fda.abilify-oral-label.2025-01",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/fda-abilify-oral-2025-label.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
       "id": "evidence.fda.citalopram-capsules-label.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.fda.clozaril-label.2025-01",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/fda-clozaril-2025-label.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.mishra.clozapine-augmentation-network-meta-analysis.2024",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/mishra-2024-clozapine-augmentation-network-meta-analysis.evidence.json",
       "runtimeIncluded": true
     },
     {
@@ -270,9 +388,33 @@
       "runtimeIncluded": true
     },
     {
+      "id": "evidence.roerig.clozapine-augmentation-strategies.2019",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/roerig-2019-clozapine-augmentation-strategies.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/tiihonen-2019-clozapine-aripiprazole-rehospitalization.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/tiihonen-2025-clozapine-augmentation-dose-cohorts.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
       "id": "evidence.va-dod.bipolar.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/va-dod-bipolar-2023-guideline.evidence.json",
+      "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.va-dod.schizophrenia.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/va-dod-schizophrenia-2023-guideline.evidence.json",
       "runtimeIncluded": true
     },
     {
@@ -324,6 +466,48 @@
       "runtimeIncluded": false
     },
     {
+      "id": "evidence.nlm.mesh.2026",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nlm-mesh-2026.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.nichd.lactmed.current",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nichd-lactmed-current.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.niddk.livertox.current",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/niddk-livertox-current.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.fda.cyp-transporter-examples.current",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/fda-cyp-transporter-examples-current.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.fda.openfda-drug-label.current",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/fda-openfda-drug-label-current.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.nlm.rxclass.current",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nlm-rxclass-current.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.nlm.dailymed.current",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nlm-dailymed-current.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
       "id": "evidence.apa.dsm5tr.2022",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/apa-dsm5tr-2022.evidence.json",
@@ -357,7 +541,12 @@
       "id": "medication.aripiprazole",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/aripiprazole.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "dependsOnIds": [
+        "evidence.fda.abilify-maintena-label.2025-01",
+        "evidence.fda.abilify-oral-label.2025-01",
+        "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019"
+      ]
     },
     {
       "id": "medication.propranolol",

@@ -451,38 +451,25 @@ export const buildReviewerDecisionPolicies = (
         'For this initial outpatient snapshot, simultaneously starting two or more antidepressants is scored as a harmful, nonparsimonious shotgun regimen. This case rule does not generalize to cross-titration or established combination treatment.',
     },
     {
-      id: 'grade.review-mdd.sertraline',
-      label: 'Single starter SSRI',
+      id: 'grade.review-mdd.initial-first-line-antidepressant',
+      label: 'One reviewed first-line antidepressant',
       grade: 'optimal',
       priority: 200,
-      predicate: started('medication.sertraline'),
-      points: 150,
-      explanation: 'A single starter-formulary antidepressant matches this provisional route.',
-    },
-    {
-      id: 'grade.review-mdd.other-first-line',
-      label: 'Other single antidepressant',
-      grade: 'strong_alternative',
-      priority: 150,
-      predicate: any(
-        started('medication.escitalopram'),
-        started('medication.fluoxetine'),
-        started('medication.bupropion'),
-        started('medication.mirtazapine'),
-      ),
-      points: 135,
-      explanation: 'A different single antidepressant is retained as a substantial alternative.',
+      predicate: startedWithTag('mdd-initial-first-line', 1, 1),
+      points: 200,
+      explanation:
+        'One reviewed first-line antidepressant satisfies the dominant initial-medication route; medication-specific fit remains a separate layer.',
     },
   ];
 
   const policies: PolicySeed[] = [
     {
       id: 'policy.review.mdd.initial',
-      contentVersion: '1.1.0',
+      contentVersion: '1.2.0',
       label: 'Initial outpatient depressive presentation',
-      evidenceSourceId: 'evidence.who.mhgap-mns.2023',
+      evidenceSourceId: 'evidence.canmat.mdd-adults.2023-update',
       evidenceContribution:
-        'Broad depression assessment and treatment context seeded this unreviewed reviewer policy; exact game rules and points require psychiatrist review.',
+        'CANMAT adult MDD assessment and initial-treatment context supports the reviewed broad antidepressant route; exact game-point magnitude remains provisional balance.',
       workup: mddWorkup,
       available: {
         startMedicationIds: MDD_MEDICATIONS,
@@ -493,7 +480,7 @@ export const buildReviewerDecisionPolicies = (
         ],
       },
       grades: mddGrades,
-      primaryMatch: started('medication.sertraline'),
+      primaryMatch: startedWithTag('mdd-initial-first-line', 1, 1),
       alternativeMatch: started('medication.escitalopram'),
       databasePlan: selection({
         startMedicationIds: ['medication.sertraline'],
@@ -513,7 +500,7 @@ export const buildReviewerDecisionPolicies = (
       fallbackDispositionId: 'disposition.emergency-transfer',
       conditionalObjectiveId: 'objective.review-mdd.mania',
       databasePlanWorkupCost: 80,
-      databasePlanCarePoints: 460,
+      databasePlanCarePoints: 510,
       baseReimbursement: 720,
       complexityBonus: 60,
       additionalSourceUses: [
@@ -589,7 +576,7 @@ export const buildReviewerDecisionPolicies = (
           predicate: any(started('medication.bupropion'), started('medication.mirtazapine')),
           points: 20,
           explanation:
-            'A switch before clarifying an inadequate exposure is the lower-valued provisional route.',
+            'A switch before clarifying dose, duration, and actual exposure is the lower-valued provisional route.',
         },
       ],
       primaryMatch: { type: 'treatmentContinued', medicationId: 'medication.sertraline' },
@@ -617,7 +604,7 @@ export const buildReviewerDecisionPolicies = (
     },
     {
       id: 'policy.review.mdd.nonresponse',
-      label: 'Depressive symptoms after an adequate prior trial',
+      label: 'Depressive symptoms after a prior medication trial',
       evidenceSourceId: 'evidence.canmat.mdd-adults.2023-update',
       evidenceContribution:
         'Prior-trial and treatment-selection context seeded this unreviewed next-step snapshot; its treatment ranking remains for reviewer critique.',
@@ -625,7 +612,7 @@ export const buildReviewerDecisionPolicies = (
         ...mddWorkup,
         {
           id: 'objective.review-mdd.prior-trials',
-          label: 'Establish adequacy, response, and tolerability of prior treatment',
+          label: 'Establish duration, maximum dose, adherence, response, and tolerability',
           actionId: 'info.history.prior-trials',
           importance: 'essential',
           points: 75,
@@ -650,7 +637,7 @@ export const buildReviewerDecisionPolicies = (
           ),
           points: 180,
           explanation:
-            'This finite database route records one medication switch after an adequate nonresponse.',
+            'This finite database route records one medication switch after a documented nonresponse.',
         },
         {
           id: 'grade.review-mdd-nonresponse.alternative',

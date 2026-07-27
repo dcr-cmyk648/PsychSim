@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "diagnosis.schizophrenia-spectrum-disorder",
   "label": "Schizophrenia-spectrum disorder",
+  "selectableInGameplay": true,
   "description": "Unreviewed diagnosis-family placeholder for focused psychosis patient generation and later reviewed treatment rules.",
   "medicalReviewStatus": "unreviewed",
   "baseClinicalTagIds": ["diagnosis-tag.psychosis"],
@@ -21,6 +22,51 @@
       "targetContentIds": ["diagnosis.schizophrenia-spectrum-disorder"],
       "contributionTypes": ["context_only"],
       "contribution": "WHO mhGAP PSY1, PSY2, PSY10, and PSY11 are retained as broad psychosis-treatment context. They do not define PsychSim diagnostic criteria or executable scoring without separate review.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "source-use.diagnosis-schizophrenia.fda-clozapine-indications-2025",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.fda.clozaril-label.2025-01"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": ["diagnosis.schizophrenia-spectrum-disorder", "medication.clozapine"],
+      "contributionTypes": ["treatment", "medication_fit", "context_only"],
+      "contribution": "The January 2025 U.S. clozapine label lists treatment-resistant schizophrenia and reduction of recurrent suicidal behavior in schizophrenia or schizoaffective disorder. Those regulatory indications do not by themselves rank a particular augmentation strategy.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "source-use.diagnosis-schizophrenia.roerig-2019-clozapine-augmentation",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.roerig.clozapine-augmentation-strategies.2019"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": [
+        "diagnosis.schizophrenia-spectrum-disorder",
+        "medication.clozapine",
+        "medication.aripiprazole"
+      ],
+      "contributionTypes": ["workup", "treatment", "medication_fit", "teaching_point"],
+      "contribution": "This 2019 review advises verifying diagnosis, comorbidity, adherence, clozapine exposure, and ongoing stressors before augmentation. It describes mixed or weak symptom evidence for adding another antipsychotic and stronger evidence for ECT, while emphasizing feasibility and treatment burden.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "id": "source-use.diagnosis-schizophrenia.mishra-2024-memantine-mirtazapine-signals",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.mishra.clozapine-augmentation-network-meta-analysis.2024"],
+      "sourceDocumentId": null,
+      "sourceChunkIds": [],
+      "targetContentIds": [
+        "diagnosis.schizophrenia-spectrum-disorder",
+        "medication.clozapine",
+        "medication.memantine",
+        "medication.mirtazapine"
+      ],
+      "contributionTypes": ["treatment", "medication_fit", "teaching_point"],
+      "contribution": "A 2024 Bayesian network meta-analysis found candidate symptom-reduction signals for memantine and mirtazapine augmentation of clozapine. Each direct comparison rested on one small trial and safety outcomes could not be pooled consistently, so this is a review lead rather than a treatment rank, rule, or point modifier.",
       "generatedBy": "human",
       "medicalReviewStatus": "unreviewed"
     }

@@ -20,11 +20,16 @@ describe('Developer ticket literature scout', () => {
       .filter((ticket) => ticket.status !== 'resolved' && ticket.status !== 'rejected')
       .map((ticket) => ticket.id)
       .sort();
-    const attachedTicketIds = developerTicketLiteratureScoutCatalog.attachments
-      .map((attachment) => attachment.ticketId)
-      .sort();
-    expect(attachedTicketIds).toEqual(activeTicketIds);
-    expect(attachedTicketIds.some((id) => id.startsWith('ticket.reviewer-cohort.'))).toBe(false);
+    const attachedTicketIds = new Set(
+      developerTicketLiteratureScoutCatalog.attachments.map((attachment) => attachment.ticketId),
+    );
+    for (const ticketId of activeTicketIds) {
+      expect(attachedTicketIds.has(ticketId)).toBe(true);
+    }
+    expect(attachedTicketIds.has('ticket.source.canmat-mdd.antidepressant-baseline')).toBe(true);
+    expect([...attachedTicketIds].some((id) => id.startsWith('ticket.reviewer-cohort.'))).toBe(
+      false,
+    );
   });
 
   it('rejects a missing active-ticket attachment', () => {

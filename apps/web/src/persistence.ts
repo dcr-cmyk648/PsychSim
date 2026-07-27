@@ -1,12 +1,27 @@
-import { PlayerProfileSchema, SaveDataSchema, type SaveData } from '@psychsim/schemas';
+import {
+  DeveloperEncounterScratchpadSchema,
+  PlayerProfileSchema,
+  SaveDataSchema,
+  type DeveloperEncounterScratchpad,
+  type SaveData,
+} from '@psychsim/schemas';
 
 const DEFAULT_DATABASE_NAME = 'psychsim-local-save';
 const STORE_NAME = 'save-data';
+const SCRATCHPAD_STORE_NAME = 'encounter-scratchpads';
 const SAVE_KEY = 'primary';
+const DATABASE_VERSION = 2;
 
 export interface SaveRepository {
   load(): Promise<SaveData | null>;
   save(data: SaveData): Promise<void>;
+}
+
+export interface EncounterScratchpadRepository {
+  loadEncounterScratchpad(caseInstanceId: string): Promise<DeveloperEncounterScratchpad | null>;
+  saveEncounterScratchpad(scratchpad: DeveloperEncounterScratchpad): Promise<void>;
+  deleteEncounterScratchpad(caseInstanceId: string): Promise<void>;
+  saveAndDeleteEncounterScratchpad(data: SaveData, caseInstanceId: string): Promise<void>;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -168,19 +183,54 @@ const requestResult = <T>(request: IDBRequest<T>): Promise<T> =>
     request.onerror = () => reject(request.error ?? new Error('IndexedDB request failed.'));
   });
 
-export class IndexedDbSaveRepository implements SaveRepository {
+const transactionCompletion = (transaction: IDBTransaction): Promise<void> =>
+  new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error('IndexedDB transaction failed.'));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error('IndexedDB transaction was aborted.'));
+  });
+
+export class IndexedDbSaveRepository implements SaveRepository, EncounterScratchpadRepository {
   constructor(private readonly databaseName = DEFAULT_DATABASE_NAME) {}
 
   private openDatabase(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.databaseName, 1);
+      const request = indexedDB.open(this.databaseName, DATABASE_VERSION);
+      let settled = false;
       request.onupgradeneeded = () => {
         if (!request.result.objectStoreNames.contains(STORE_NAME)) {
           request.result.createObjectStore(STORE_NAME);
         }
+        if (!request.result.objectStoreNames.contains(SCRATCHPAD_STORE_NAME)) {
+          request.result.createObjectStore(SCRATCHPAD_STORE_NAME);
+        }
       };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error ?? new Error('Could not open local save data.'));
+      request.onsuccess = () => {
+        const database = request.result;
+        database.onversionchange = () => database.close();
+        if (settled) {
+          database.close();
+          return;
+        }
+        settled = true;
+        resolve(database);
+      };
+      request.onerror = () => {
+        if (settled) return;
+        settled = true;
+        reject(request.error ?? new Error('Could not open local save data.'));
+      };
+      request.onblocked = () => {
+        if (settled) return;
+        settled = true;
+        reject(
+          new Error(
+            'The local review-note database update is blocked by another open PsychSim tab. Close the other tab and retry.',
+          ),
+        );
+      };
     });
   }
 
@@ -203,6 +253,71 @@ export class IndexedDbSaveRepository implements SaveRepository {
     try {
       const transaction = database.transaction(STORE_NAME, 'readwrite');
       await requestResult(transaction.objectStore(STORE_NAME).put(validated, SAVE_KEY));
+    } finally {
+      database.close();
+    }
+  }
+
+  async loadEncounterScratchpad(
+    caseInstanceId: string,
+  ): Promise<DeveloperEncounterScratchpad | null> {
+    const database = await this.openDatabase();
+    try {
+      const transaction = database.transaction(SCRATCHPAD_STORE_NAME, 'readonly');
+      const value = await requestResult(
+        transaction.objectStore(SCRATCHPAD_STORE_NAME).get(caseInstanceId),
+      );
+      if (value === undefined) return null;
+      const parsed = DeveloperEncounterScratchpadSchema.safeParse(value);
+      if (!parsed.success) {
+        throw new Error(
+          'The saved case review note is invalid and was preserved for recovery. It was not replaced or deleted.',
+        );
+      }
+      return parsed.data;
+    } finally {
+      database.close();
+    }
+  }
+
+  async saveEncounterScratchpad(scratchpad: DeveloperEncounterScratchpad): Promise<void> {
+    const validated = DeveloperEncounterScratchpadSchema.parse(scratchpad);
+    const database = await this.openDatabase();
+    try {
+      const transaction = database.transaction(SCRATCHPAD_STORE_NAME, 'readwrite');
+      const completion = transactionCompletion(transaction);
+      await requestResult(
+        transaction.objectStore(SCRATCHPAD_STORE_NAME).put(validated, validated.caseInstanceId),
+      );
+      await completion;
+    } finally {
+      database.close();
+    }
+  }
+
+  async deleteEncounterScratchpad(caseInstanceId: string): Promise<void> {
+    const database = await this.openDatabase();
+    try {
+      const transaction = database.transaction(SCRATCHPAD_STORE_NAME, 'readwrite');
+      const completion = transactionCompletion(transaction);
+      await requestResult(transaction.objectStore(SCRATCHPAD_STORE_NAME).delete(caseInstanceId));
+      await completion;
+    } finally {
+      database.close();
+    }
+  }
+
+  async saveAndDeleteEncounterScratchpad(data: SaveData, caseInstanceId: string): Promise<void> {
+    const validated = SaveDataSchema.parse(data);
+    const database = await this.openDatabase();
+    try {
+      const transaction = database.transaction([STORE_NAME, SCRATCHPAD_STORE_NAME], 'readwrite');
+      const completion = transactionCompletion(transaction);
+      await Promise.all([
+        requestResult(transaction.objectStore(STORE_NAME).put(validated, SAVE_KEY)),
+        requestResult(transaction.objectStore(SCRATCHPAD_STORE_NAME).delete(caseInstanceId)),
+      ]);
+      await completion;
     } finally {
       database.close();
     }

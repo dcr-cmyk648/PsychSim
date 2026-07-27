@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "supplement.magnesium",
+  "label": "Magnesium",
+  "normalizedName": "magnesium",
+  "aliases": ["Elemental magnesium"],
+  "identityCategory": "mineral",
+  "preparation": "element",
+  "identifiers": [
+    {
+      "system": "mesh",
+      "value": "D008274",
+      "relationship": "exact",
+      "sourceRelease": "MeSH 2026",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    },
+    {
+      "system": "rxnorm",
+      "value": "6574",
+      "relationship": "exact",
+      "sourceRelease": "RxNorm CPC 2026-07-06",
+      "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    }
+  ],
+  "identityScopeNote": "Identity-only parent-mineral record. Oxide, citrate, chloride, and other salts require separate preparation records.",
+  "runtimeSelectable": false,
+  "medicalReviewStatus": "unreviewed"
+}

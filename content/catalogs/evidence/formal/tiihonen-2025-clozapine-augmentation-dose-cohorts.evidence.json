@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025",
+  "authority": "formal_publication",
+  "sourceType": "journal_article",
+  "title": "Effectiveness of clozapine augmentation with specific doses of other antipsychotics in schizophrenia: a meta-analysis from two nationwide cohorts",
+  "authors": [
+    "Jari Tiihonen",
+    "Antti Tanskanen",
+    "Ellenor Mittendorfer-Rutz",
+    "Oliver D. Howes",
+    "Christoph U. Correll",
+    "Dan Siskind",
+    "Heidi Taipale"
+  ],
+  "organization": null,
+  "publicationYear": 2025,
+  "publicationDate": "2025-05-15",
+  "lastReviewedDate": null,
+  "versionLabel": "PMCID PMC12079427; dose-stratified Finnish and Swedish cohorts",
+  "containerTitle": "World Psychiatry",
+  "volume": "24",
+  "issue": "2",
+  "pages": "250-259",
+  "doi": "10.1002/wps.21316",
+  "pmid": "40371869",
+  "url": "https://onlinelibrary.wiley.com/doi/10.1002/wps.21316",
+  "citation": "Tiihonen J, Tanskanen A, Mittendorfer-Rutz E, et al. Effectiveness of clozapine augmentation with specific doses of other antipsychotics in schizophrenia: a meta-analysis from two nationwide cohorts. World Psychiatry. 2025;24(2):250-259. doi:10.1002/wps.21316.",
+  "knownContentHashes": [],
+  "jurisdictions": ["Finland", "Sweden", "International clinical context"],
+  "populations": [
+    "People with schizophrenia or schizoaffective disorder receiving clozapine in two nationwide cohorts"
+  ],
+  "settings": ["Maintenance antipsychotic treatment", "Psychiatric hospital care"],
+  "sourceRelations": [],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "permission_required",
+    "adaptationStatus": "permission_required",
+    "commercialUseStatus": "permission_required",
+    "aiUseStatus": "permission_required",
+    "localExtractionStatus": "permission_required",
+    "licenseLabel": null,
+    "licenseUrl": null,
+    "termsUrl": "https://onlinelibrary.wiley.com/terms-and-conditions",
+    "note": "The article is publicly readable, but the NCBI PMC Open Access service reports PMCID PMC12079427 is not in the Open Access subset. PsychSim retains verified metadata only and does not extract or adapt the article under this decision."
+  },
+  "metadataReviewedAt": "2026-07-27T15:34:26.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.5.0",
+  "contentVersion": "1.7.0",
   "id": "source-use-decisions.psychsim",
   "decisions": [
     {
@@ -99,6 +99,13 @@
         "runtimeRedistribution": false,
         "commercialDistribution": false
       },
+      "allowedContributionTypes": [
+        "medication_fit",
+        "safety",
+        "classification_mapping",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["Global, subject to CC BY-SA 4.0"],
       "attributionStatement": "DrugCentral database, University of New Mexico Division of Translational Informatics, release 2023-11-01, licensed under CC BY-SA 4.0. https://drugcentral.org/",
       "requiredNotices": [
@@ -136,6 +143,7 @@
         "runtimeRedistribution": true,
         "commercialDistribution": true
       },
+      "allowedContributionTypes": ["classification_mapping", "context_only"],
       "territories": ["Global"],
       "attributionStatement": "This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product.",
       "requiredNotices": [
@@ -204,6 +212,14 @@
         "runtimeRedistribution": true,
         "commercialDistribution": true
       },
+      "allowedContributionTypes": [
+        "diagnosis_logic",
+        "workup",
+        "treatment",
+        "safety",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["United States"],
       "attributionStatement": "Source: National Institute of Mental Health.",
       "requiredNotices": [
@@ -271,6 +287,16 @@
         "runtimeRedistribution": true,
         "commercialDistribution": true
       },
+      "allowedContributionTypes": [
+        "diagnosis_logic",
+        "workup",
+        "treatment",
+        "medication_fit",
+        "safety",
+        "scoring",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["Global, subject to CC BY 4.0"],
       "attributionStatement": "Lam RW, et al. CANMAT 2023 Update on Clinical Guidelines for Management of Major Depressive Disorder in Adults. Canadian Journal of Psychiatry. 2024. CC BY 4.0.",
       "requiredNotices": [
@@ -304,6 +330,15 @@
         "runtimeRedistribution": true,
         "commercialDistribution": true
       },
+      "allowedContributionTypes": [
+        "diagnosis_logic",
+        "workup",
+        "treatment",
+        "safety",
+        "scoring",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["Global, subject to CC BY 4.0"],
       "attributionStatement": "Rogers JP, et al. Evidence-based consensus guidelines for the management of catatonia. Journal of Psychopharmacology. 2023. CC BY 4.0.",
       "requiredNotices": [
@@ -338,6 +373,16 @@
         "runtimeRedistribution": true,
         "commercialDistribution": false
       },
+      "allowedContributionTypes": [
+        "diagnosis_logic",
+        "workup",
+        "treatment",
+        "medication_fit",
+        "safety",
+        "scoring",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["Global, subject to CC BY-NC-SA 3.0 IGO"],
       "attributionStatement": "Adapted from Mental Health Gap Action Programme (mhGAP) guideline for mental, neurological and substance use disorders, third edition. Geneva: World Health Organization; 2023. Licence: CC BY-NC-SA 3.0 IGO.",
       "requiredNotices": [
@@ -407,6 +452,15 @@
         "runtimeRedistribution": true,
         "commercialDistribution": false
       },
+      "allowedContributionTypes": [
+        "workup",
+        "treatment",
+        "medication_fit",
+        "safety",
+        "scoring",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["United States"],
       "attributionStatement": "Source consulted: U.S. Food and Drug Administration prescribing information for citalopram capsules, 2023.",
       "requiredNotices": [
@@ -637,6 +691,15 @@
         "runtimeRedistribution": true,
         "commercialDistribution": true
       },
+      "allowedContributionTypes": [
+        "workup",
+        "treatment",
+        "medication_fit",
+        "safety",
+        "scoring",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["Global, subject to the Open Government Licence v3.0"],
       "attributionStatement": "Contains public sector information licensed under the Open Government Licence v3.0. Source page published by the Medicines and Healthcare products Regulatory Agency.",
       "requiredNotices": [
@@ -671,6 +734,7 @@
         "runtimeRedistribution": false,
         "commercialDistribution": false
       },
+      "allowedContributionTypes": ["workup", "safety", "teaching_point", "context_only"],
       "territories": ["Global, subject to the Open Government Licence v3.0 and NHS website terms"],
       "attributionStatement": "Contains public sector information licensed under the Open Government Licence v3.0.",
       "requiredNotices": [
@@ -706,6 +770,7 @@
         "runtimeRedistribution": false,
         "commercialDistribution": false
       },
+      "allowedContributionTypes": ["diagnosis_logic", "teaching_point", "context_only"],
       "territories": ["Global, subject to the Open Government Licence v3.0 and NHS website terms"],
       "attributionStatement": "Contains public sector information licensed under the Open Government Licence v3.0.",
       "requiredNotices": [
@@ -775,6 +840,13 @@
         "runtimeRedistribution": true,
         "commercialDistribution": false
       },
+      "allowedContributionTypes": [
+        "treatment",
+        "medication_fit",
+        "safety",
+        "teaching_point",
+        "context_only"
+      ],
       "territories": ["Global, subject to CC BY-NC 4.0"],
       "attributionStatement": "Villanueva V, et al. Proposed Recommendations for the Management of Depression in Adults with Epilepsy: An Expert Consensus. Neurology and Therapy. 2023. CC BY-NC 4.0.",
       "requiredNotices": [
@@ -792,6 +864,602 @@
       "reviewedBy": "reviewer.codex-source-rights-audit",
       "reviewedAt": "2026-07-26T16:00:00.000Z",
       "notes": "The PMC Open Access service identifies the article as CC BY-NC. The source is expert consensus and may support a cautious review proposal, not an absolute safety claim, a clinician-approved rule, or a point value."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.nlm.mesh.2026",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "allowedContributionTypes": ["classification_mapping", "context_only"],
+      "territories": ["United States; disclose dated snapshot and source for other territories"],
+      "attributionStatement": "This product uses Medical Subject Headings (MeSH) data from the U.S. National Library of Medicine. NLM is not responsible for this product and does not endorse it.",
+      "requiredNotices": [
+        "Identify NLM as the source and disclose the exact MeSH release or dated snapshot used.",
+        "Do not imply NLM endorsement or clinical authority.",
+        "Treat descriptors, entry terms, and hierarchy relationships as terminology—not diagnostic criteria, treatment evidence, or point rules.",
+        "Exclude translation files and separately identified third-party material unless independently cleared."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T22:00:00.000Z",
+      "notes": "The official NLM download and terms pages permit reuse with acknowledgement, nonendorsement, and current-version disclosure. This record authorizes a future terminology snapshot; no bulk file was downloaded and no condition or intervention identity was created in this change."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.nichd.lactmed.current",
+      "evidenceSourceId": "evidence.nichd.lactmed.current",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "allowedContributionTypes": ["medication_fit", "safety", "teaching_point", "context_only"],
+      "territories": ["United States"],
+      "attributionStatement": "Source: National Institute of Child Health and Human Development, Drugs and Lactation Database (LactMed), hosted by NCBI Bookshelf, with the exact record revision date retained.",
+      "requiredNotices": [
+        "LactMed is a registered trademark of the U.S. Department of Health and Human Services.",
+        "Retain each LactMed record's revision date and distinguish database text from cited literature.",
+        "Exclude third-party article prose, images, trade names, and separately credited material.",
+        "Do not present a source assertion as individualized advice, a contraindication, or a point rule without clinical review.",
+        "Do not imply NICHD, NLM, NIH, or HHS endorsement."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T22:00:00.000Z",
+      "notes": "This decision covers future source-scoped structured candidates from government-authored LactMed records. It does not clear the copyrighted literature cited by those records, and no LactMed bulk data or clinical assertion was added in this change."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.niddk.livertox.current",
+      "evidenceSourceId": "evidence.niddk.livertox.current",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "allowedContributionTypes": [
+        "workup",
+        "medication_fit",
+        "safety",
+        "teaching_point",
+        "context_only"
+      ],
+      "territories": ["United States"],
+      "attributionStatement": "Source: National Institute of Diabetes and Digestive and Kidney Diseases, LiverTox, with the exact record revision date retained.",
+      "requiredNotices": [
+        "Retain record revision dates and exact source scope.",
+        "Exclude third-party figures, quoted literature, and case-source material unless independently cleared.",
+        "Keep source assertions separate from reviewed contraindications, safety gates, and point rules.",
+        "Do not imply NIDDK, NIH, or NLM endorsement."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T22:00:00.000Z",
+      "notes": "LiverTox's official use statement says its text is not copyright protected and encourages general use. This authorizes future source-scoped candidates only; no drug-specific assertion, contraindication, or point rule was created in this change."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.fda.cyp-transporter-examples.current",
+      "evidenceSourceId": "evidence.fda.cyp-transporter-examples.current",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "allowedContributionTypes": ["classification_mapping", "teaching_point", "context_only"],
+      "territories": ["United States"],
+      "attributionStatement": "Source: U.S. Food and Drug Administration, Examples of Drugs that Interact with CYP Enzymes and Transporter Systems, with retrieval date retained.",
+      "requiredNotices": [
+        "Preserve every category, formulation, active-metabolite qualification, and footnote attached to a structured assertion.",
+        "State that the FDA table is evolving, illustrative, and noncomprehensive.",
+        "Do not infer a pairwise contraindication, treatment recommendation, or point value from a metabolic role alone.",
+        "Exclude logos, trademarks, linked labels, sponsor submissions, and third-party material and do not imply FDA endorsement."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "excluded",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T22:00:00.000Z",
+      "notes": "FDA-authored website material is generally public domain. This decision is scoped to the official examples table and its FDA-authored footnotes; linked labels and submissions remain separate sources. No CYP assertion or game rule was created in this change."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.fda.openfda-drug-label.current",
+      "evidenceSourceId": "evidence.fda.openfda-drug-label.current",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": ["teaching_point", "context_only"],
+      "territories": [
+        "United States; CC0 dedication applies to the extent FDA can waive rights globally"
+      ],
+      "attributionStatement": "Data provided by the U.S. Food and Drug Administration through openFDA (https://open.fda.gov).",
+      "requiredNotices": [
+        "Retain the API query, retrieval time, response hash, meta.last_updated, meta.license, meta.disclaimer, SPL set ID, SPL/version ID, effective time, labeler, product, route, and formulation.",
+        "Distinguish original SPL fields from openFDA harmonized fields.",
+        "State that records contain the latest company-submitted listing information available to the API, are not verified by FDA, and may differ from current distributed or FDA-approved labeling.",
+        "Exclude material marked as third-party, graphics, logos, trademarks, and any item whose copyright status conflicts with the dataset-level CC0 statement.",
+        "Create concise source-scoped assertions rather than copying label sections wholesale.",
+        "A label assertion remains medically unreviewed and cannot directly create a contraindication, recommendation, interaction severity, or point value.",
+        "Do not imply FDA endorsement or use openFDA for real medical decisions."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T23:30:00.000Z",
+      "notes": "This permits an authoring-only openFDA SPL assertion lane. Runtime and commercial redistribution remain disabled as a project safety boundary despite the dataset-level Public Domain/CC0 grant. No API result, label prose, medication assertion, contribution, rule, or point value is added by this decision. It does not alter the separate narrow fair-use decision for the existing citalopram label source."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.nlm.rxclass.current",
+      "evidenceSourceId": "evidence.nlm.rxclass.current",
+      "decisionStatus": "metadata_only",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "territories": ["Global, subject to each upstream relation source"],
+      "attributionStatement": "This product uses publicly available data courtesy of the U.S. National Library of Medicine; NLM is not responsible for the product and does not endorse or recommend it.",
+      "requiredNotices": [
+        "Never ingest SNOMEDCT relations without an applicable UMLS and SNOMED CT Affiliate License.",
+        "Do not ingest ATC or ATCPROD relations until WHO-derived class-name and hierarchy use is separately reviewed.",
+        "Preserve relaSource, source version, rela, class ID, class name, class type, RxCUI, member term type, and direct or indirect status.",
+        "Never blend competing relation sources into one anonymous class relationship.",
+        "A may_treat, CI_with, EPC, MoA, PE, PK, or VA relation is not automatically a PsychSim indication, contraindication, treatment class, clinical rule, or point value.",
+        "Do not imply NLM endorsement or use NLM logos."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T23:30:00.000Z",
+      "notes": "RxClass is cataloged for discovery only. A future importer requires an explicit per-relation-source allowlist and rights map before any class or membership relation is stored or transformed."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.nlm.dailymed.current",
+      "evidenceSourceId": "evidence.nlm.dailymed.current",
+      "decisionStatus": "metadata_only",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "territories": ["Global, subject to item-level labeling rights"],
+      "attributionStatement": "Source metadata: U.S. National Library of Medicine DailyMed.",
+      "requiredNotices": [
+        "Company-submitted labeling is not automatically public-domain government authorship.",
+        "Do not download, extract, index, send to AI, adapt, or redistribute SPL prose, PDF or XML content, images, or media under this decision.",
+        "DailyMed in-use labeling may differ from the most recent FDA-approved or distributed label.",
+        "Preserve SET ID, version, last-updated date, and active or archive status for any metadata reference.",
+        "Separate FDA-approved and unapproved products and cross-check clinically material propositions against an exact current source.",
+        "A public API is not itself permission to transform all returned label content.",
+        "Do not imply NLM endorsement or use NLM logos."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-26T23:30:00.000Z",
+      "notes": "DailyMed is cataloged for source discovery and version metadata only. Prefer the separately gated openFDA dataset for the initial structured label-assertion proof. No label content is authorized by this decision."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
+      "evidenceSourceId": "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "allowedContributionTypes": [
+        "treatment",
+        "medication_fit",
+        "safety",
+        "teaching_point",
+        "context_only"
+      ],
+      "territories": ["Worldwide under CC BY 4.0"],
+      "attributionStatement": "Adapted from Tiihonen et al., JAMA Psychiatry 2019, licensed CC BY 4.0.",
+      "requiredNotices": [
+        "Attribute the source and disclose adaptations.",
+        "Preserve the observational design and association-not-causation limitation.",
+        "Review third-party material separately.",
+        "Do not imply medical approval or JAMA endorsement."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "NCBI PMC Open Access reports PMCID PMC6495354 under CC BY. Only concise original propositions with design and applicability limits may enter PsychSim."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.tiihonen.clozapine-augmentation-dose-cohorts.2025",
+      "evidenceSourceId": "evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025",
+      "decisionStatus": "metadata_only",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["Global"],
+      "attributionStatement": "Source metadata: Tiihonen et al., World Psychiatry 2025.",
+      "requiredNotices": [
+        "Public readability is not permission for extraction, AI processing, adaptation, or redistribution.",
+        "Retain exact dose findings only in a reviewer-authored deferred note until source use and dose mechanics are separately approved.",
+        "Do not infer long-acting-injectable augmentation efficacy from an oral-dose cohort study."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "PMC identifies PMCID PMC12079427 as outside the Open Access subset. PsychSim retains verified bibliography only; the user's approved review note preserves that dose-specific evidence exists without creating a formal contribution or gameplay mechanic."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.roerig.clozapine-augmentation-strategies.2019",
+      "evidenceSourceId": "evidence.roerig.clozapine-augmentation-strategies.2019",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [
+        "workup",
+        "treatment",
+        "medication_fit",
+        "safety",
+        "teaching_point",
+        "context_only"
+      ],
+      "territories": ["Worldwide for noncommercial use under CC BY-NC 3.0"],
+      "attributionStatement": "Adapted from Roerig JL, Mental Health Clinician 2019, licensed CC BY-NC 3.0.",
+      "requiredNotices": [
+        "Attribute the source and disclose adaptations.",
+        "Use only for noncommercial PsychSim content.",
+        "Preserve the review's evidence-quality, feasibility, and author-opinion limitations.",
+        "Review third-party material separately."
+      ],
+      "nonCommercialOnly": true,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "NCBI PMC Open Access reports PMCID PMC6881106 under CC BY-NC. Concise original contributions must distinguish the review author's clinical synthesis from underlying trial evidence."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.mishra.clozapine-augmentation-network-meta-analysis.2024",
+      "evidenceSourceId": "evidence.mishra.clozapine-augmentation-network-meta-analysis.2024",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [
+        "treatment",
+        "medication_fit",
+        "safety",
+        "teaching_point",
+        "context_only"
+      ],
+      "territories": ["Worldwide for noncommercial use under CC BY-NC 4.0"],
+      "attributionStatement": "Adapted from Mishra et al., Clinical Psychopharmacology and Neuroscience 2024, licensed CC BY-NC 4.0.",
+      "requiredNotices": [
+        "Attribute the source and disclose adaptations.",
+        "Use only for noncommercial PsychSim content.",
+        "Preserve the small direct-comparison samples and heterogeneous safety-reporting limitations.",
+        "Do not convert treatment ranking into an approved gameplay rule without psychiatrist review."
+      ],
+      "nonCommercialOnly": true,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "NCBI PMC Open Access reports PMCID PMC11024692 under CC BY-NC. The memantine and mirtazapine results are retained as limited candidate signals, not treatment rankings or points."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.va-dod.schizophrenia.2023",
+      "evidenceSourceId": "evidence.va-dod.schizophrenia.2023",
+      "decisionStatus": "metadata_only",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["United States"],
+      "attributionStatement": "Source metadata: Department of Veterans Affairs and Department of Defense, schizophrenia guideline, 2023.",
+      "requiredNotices": [
+        "Keep current use bibliographic until a hash-pinned source artifact and item-level rights review are present.",
+        "Audit embedded instruments, tables, images, contractor material, and credited elements separately.",
+        "Do not imply VA, DoD, or U.S. government endorsement."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "This mirrors the existing conservative VA/DoD source boundary: verified bibliography and reviewer context only, with no executable or derived clinical contribution."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.fda.abilify-oral-label.2025-01",
+      "evidenceSourceId": "evidence.fda.abilify-oral-label.2025-01",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "fair_use",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": ["treatment", "medication_fit", "context_only"],
+      "territories": ["United States"],
+      "attributionStatement": "Source consulted: U.S. Food and Drug Administration prescribing information for oral ABILIFY, revised January 2025.",
+      "requiredNotices": [
+        "Use only a concise original statement of listed U.S. indications and off-label boundary.",
+        "Do not reproduce label prose, tables, dosing, warnings structure, or manufacturer expression.",
+        "Do not imply FDA endorsement or medical approval."
+      ],
+      "nonCommercialOnly": true,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": {
+        "preciseUse": "Retain one independently worded regulatory-context sentence listing the current indication categories and noting that clozapine augmentation is not a listed indication.",
+        "purposeAndCharacter": "The use is a highly transformed, noncommercial educational database fact that distinguishes regulatory status from evidence and clinician opinion.",
+        "natureOfWork": "A drug label is primarily factual and functional, although manufacturer-authored expression may be protected.",
+        "amountAndSubstantiality": "No label language, dosing table, warning text, organization, or substantial portion is copied.",
+        "marketEffect": "The concise regulatory fact cannot substitute for the official prescribing information or a licensed drug-information product.",
+        "conclusion": "proceed_narrowly",
+        "reviewerId": "reviewer.codex-source-rights-audit",
+        "reviewedAt": "2026-07-27T15:34:26.000Z"
+      },
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "This decision permits only the independently worded current-indications proposition. It does not permit label extraction or a dosing/safety import."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.fda.abilify-maintena-label.2025-01",
+      "evidenceSourceId": "evidence.fda.abilify-maintena-label.2025-01",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "fair_use",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": ["treatment", "medication_fit", "context_only"],
+      "territories": ["United States"],
+      "attributionStatement": "Source consulted: U.S. Food and Drug Administration prescribing information for ABILIFY MAINTENA, revised January 2025.",
+      "requiredNotices": [
+        "Use only a concise original statement that a long-acting injectable formulation exists and its listed U.S. indications.",
+        "Do not imply that formulation availability establishes efficacy for clozapine augmentation.",
+        "Do not reproduce label prose, dosing, tables, or warnings structure."
+      ],
+      "nonCommercialOnly": true,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": {
+        "preciseUse": "Retain one independently worded sentence that long-acting injectable aripiprazole exists and is listed for adult schizophrenia and bipolar I maintenance monotherapy, while excluding a clozapine-augmentation claim.",
+        "purposeAndCharacter": "The use is a highly transformed, noncommercial educational database fact used to separate formulation practicality from augmentation efficacy.",
+        "natureOfWork": "A drug label is primarily factual and functional, although manufacturer-authored expression may be protected.",
+        "amountAndSubstantiality": "No label language, dosing schedule, administration directions, warning text, organization, or substantial portion is copied.",
+        "marketEffect": "The concise formulation and indication fact cannot substitute for the official prescribing information or a licensed drug-information product.",
+        "conclusion": "proceed_narrowly",
+        "reviewerId": "reviewer.codex-source-rights-audit",
+        "reviewedAt": "2026-07-27T15:34:26.000Z"
+      },
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "This decision permits only the independently worded formulation and indication proposition. It does not permit label extraction or support a clozapine-plus-LAI efficacy claim."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.fda.clozaril-label.2025-01",
+      "evidenceSourceId": "evidence.fda.clozaril-label.2025-01",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "fair_use",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": ["treatment", "medication_fit", "safety", "context_only"],
+      "territories": ["United States"],
+      "attributionStatement": "Source consulted: U.S. Food and Drug Administration prescribing information for CLOZARIL, revised January 2025.",
+      "requiredNotices": [
+        "Use only a concise original statement of the listed U.S. indications.",
+        "Do not reproduce label prose, dosing, monitoring schedules, warnings, tables, or manufacturer expression.",
+        "Do not imply FDA endorsement or medical approval."
+      ],
+      "nonCommercialOnly": true,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": {
+        "preciseUse": "Retain one independently worded regulatory-context sentence identifying treatment-resistant schizophrenia and reduction of recurrent suicidal behavior in schizophrenia or schizoaffective disorder as listed indications.",
+        "purposeAndCharacter": "The use is a highly transformed, noncommercial educational database fact that distinguishes regulatory status from broader treatment recommendations.",
+        "natureOfWork": "A drug label is primarily factual and functional, although manufacturer-authored expression may be protected.",
+        "amountAndSubstantiality": "No label language, dosing, monitoring schedule, warning text, organization, or substantial portion is copied.",
+        "marketEffect": "The concise regulatory fact cannot substitute for the official prescribing information or a licensed drug-information product.",
+        "conclusion": "proceed_narrowly",
+        "reviewerId": "reviewer.codex-source-rights-audit",
+        "reviewedAt": "2026-07-27T15:34:26.000Z"
+      },
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-27T15:34:26.000Z",
+      "notes": "This decision permits only the independently worded current-indications proposition. It does not permit label extraction or a dosing/monitoring import."
     }
   ]
 }

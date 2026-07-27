@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.doxepin",
+  "label": "Doxepin",
+  "normalizedIngredientName": "doxepin",
+  "aliases": ["Silenor", "Sinequan"],
+  "authoringStatus": "identity_only",
+  "runtimeMedicationDefinitionId": null,
+  "rxnorm": {
+    "rxcui": "3638",
+    "termType": "IN",
+    "suppress": "N",
+    "releaseDate": "2026-07-06",
+    "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+    "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+    "verifiedAt": "2026-07-26T23:50:00.000Z"
+  },
+  "medicalReviewStatus": "unreviewed"
+}

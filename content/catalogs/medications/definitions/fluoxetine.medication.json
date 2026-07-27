@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "medication.fluoxetine",
   "label": "Fluoxetine",
   "classes": ["SSRI antidepressant"],
-  "tags": ["starter-formulary", "antidepressant", "cyp2d6-inhibitor"],
+  "tags": ["starter-formulary", "antidepressant", "mdd-initial-first-line", "cyp2d6-inhibitor"],
   "fitModifiers": [],
   "authorOverrides": []
 }

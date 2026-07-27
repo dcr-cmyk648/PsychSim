@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "authoring-aliases.personal-knowledge.cross-reference",
+  "runtimeExcluded": true,
+  "entries": [
+    {
+      "id": "authoring-alias.diagnosis.mdd",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.major-depressive-disorder",
+      "aliases": [
+        "MDD",
+        "major depression",
+        "unipolar depression",
+        "depressive disorder",
+        "depression"
+      ]
+    },
+    {
+      "id": "authoring-alias.diagnosis.bipolar",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.bipolar-spectrum-disorder",
+      "aliases": [
+        "bipolar disorder",
+        "bipolar depression",
+        "mania",
+        "manic episode",
+        "hypomania",
+        "hypomanic episode",
+        "mixed features"
+      ]
+    },
+    {
+      "id": "authoring-alias.diagnosis.borderline",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.borderline-personality-disorder",
+      "aliases": ["BPD", "borderline personality", "borderline personality disorder"]
+    },
+    {
+      "id": "authoring-alias.diagnosis.substance-induced-mood",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.substance-induced-mood-disorder",
+      "aliases": [
+        "SIMD",
+        "substance-induced depression",
+        "substance induced depression",
+        "substance-induced mood disorder"
+      ]
+    },
+    {
+      "id": "authoring-alias.diagnosis.akathisia",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.medication-induced-akathisia",
+      "aliases": ["akathisia", "medication-induced akathisia"]
+    },
+    {
+      "id": "authoring-alias.diagnosis.gad",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.generalized-anxiety-disorder",
+      "aliases": ["GAD", "generalized anxiety", "generalised anxiety"]
+    },
+    {
+      "id": "authoring-alias.diagnosis.ptsd",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.posttraumatic-stress-disorder",
+      "aliases": ["PTSD", "posttraumatic stress disorder", "post-traumatic stress disorder"]
+    },
+    {
+      "id": "authoring-alias.diagnosis.schizophrenia",
+      "targetCategoryId": "conditions",
+      "targetContentId": "diagnosis.schizophrenia-spectrum-disorder",
+      "aliases": [
+        "schizophrenia",
+        "schizophrenia spectrum",
+        "schizoaffective disorder",
+        "psychotic disorder"
+      ]
+    },
+    {
+      "id": "authoring-alias.intervention.psychotherapy-referral",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.psychotherapy-referral",
+      "aliases": ["psychotherapy referral", "therapy referral", "refer for therapy"]
+    },
+    {
+      "id": "authoring-alias.intervention.behavioral-activation",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.behavioral-activation",
+      "aliases": ["behavioral activation", "behavioural activation"]
+    },
+    {
+      "id": "authoring-alias.intervention.sleep-routine",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.sleep-routine",
+      "aliases": ["sleep hygiene", "circadian support"]
+    },
+    {
+      "id": "authoring-alias.intervention.cbt",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.psychotherapy.cbt",
+      "aliases": ["CBT", "cognitive behavioral therapy", "cognitive behavioural therapy"]
+    },
+    {
+      "id": "authoring-alias.intervention.ipt",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.psychotherapy.ipt",
+      "aliases": ["IPT", "interpersonal therapy", "interpersonal psychotherapy"]
+    },
+    {
+      "id": "authoring-alias.intervention.supportive",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.psychotherapy.supportive",
+      "aliases": ["supportive therapy", "supportive psychotherapy"]
+    },
+    {
+      "id": "authoring-alias.intervention.dbt",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.psychotherapy.dbt",
+      "aliases": ["DBT", "dialectical behavior therapy", "dialectical behaviour therapy"]
+    },
+    {
+      "id": "authoring-alias.intervention.trauma-focused-cbt",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.psychotherapy.trauma-focused-cbt",
+      "aliases": ["TF-CBT", "trauma-focused CBT", "trauma focused CBT"]
+    },
+    {
+      "id": "authoring-alias.intervention.emdr",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.psychotherapy.emdr",
+      "aliases": ["EMDR", "eye movement desensitization and reprocessing"]
+    },
+    {
+      "id": "authoring-alias.intervention.substance-counseling",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.substance-use.brief-counseling",
+      "aliases": ["substance counseling", "substance-use counseling", "brief intervention"]
+    },
+    {
+      "id": "authoring-alias.intervention.motivational-interviewing",
+      "targetCategoryId": "interventions",
+      "targetContentId": "intervention.substance-use.motivational-interviewing",
+      "aliases": ["MI", "motivational interviewing"]
+    },
+    {
+      "id": "authoring-alias.investigation.medication-reconciliation",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.history.medication-reconciliation",
+      "aliases": ["med rec", "medication reconciliation", "current medications"]
+    },
+    {
+      "id": "authoring-alias.investigation.allergies",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.history.allergies-adverse-reactions",
+      "aliases": ["allergies", "drug allergy", "adverse drug reaction", "ADR"]
+    },
+    {
+      "id": "authoring-alias.investigation.adherence",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.history.adherence",
+      "aliases": ["adherence", "compliance", "medication adherence"]
+    },
+    {
+      "id": "authoring-alias.investigation.prior-trials",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.history.prior-trials",
+      "aliases": ["prior trials", "medication trials", "failed medications"]
+    },
+    {
+      "id": "authoring-alias.investigation.treatment-history",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.history.treatment-history",
+      "aliases": ["treatment history", "psychiatric history", "prior hospitalization"]
+    },
+    {
+      "id": "authoring-alias.investigation.substance-use",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.history.substance-use",
+      "aliases": ["substance use", "alcohol use", "drug use"]
+    },
+    {
+      "id": "authoring-alias.investigation.mental-status",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.physical.mental-status",
+      "aliases": ["MSE", "mental status exam", "mental status examination"]
+    },
+    {
+      "id": "authoring-alias.investigation.weight-bmi",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.physical.weight-bmi",
+      "aliases": ["BMI", "body mass index", "body habitus"]
+    },
+    {
+      "id": "authoring-alias.investigation.orthostatics",
+      "targetCategoryId": "investigations",
+      "targetContentId": "info.physical.orthostatic-vitals",
+      "aliases": ["orthostatics", "orthostatic vitals", "orthostatic vital signs"]
+    },
+    {
+      "id": "authoring-alias.test.a1c",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.a1c",
+      "aliases": ["A1c", "HbA1c", "hemoglobin A1c"]
+    },
+    {
+      "id": "authoring-alias.test.b12-folate",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.b12-folate",
+      "aliases": ["B12", "vitamin B12", "folate"]
+    },
+    {
+      "id": "authoring-alias.test.cbc",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.cbc",
+      "aliases": ["CBC", "complete blood count"]
+    },
+    {
+      "id": "authoring-alias.test.cmp",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.cmp",
+      "aliases": ["CMP", "comprehensive metabolic panel"]
+    },
+    {
+      "id": "authoring-alias.test.ecg",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.diagnostic.ecg",
+      "aliases": ["ECG", "EKG", "electrocardiogram"]
+    },
+    {
+      "id": "authoring-alias.test.eeg",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.diagnostic.eeg",
+      "aliases": ["EEG", "electroencephalogram"]
+    },
+    {
+      "id": "authoring-alias.test.head-ct",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.diagnostic.head-ct",
+      "aliases": ["CT head", "head CT", "computed tomography"]
+    },
+    {
+      "id": "authoring-alias.test.brain-mri",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.diagnostic.brain-mri",
+      "aliases": ["MRI", "brain MRI", "magnetic resonance imaging"]
+    },
+    {
+      "id": "authoring-alias.test.lipids",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.lipids",
+      "aliases": ["lipids", "lipid panel", "cholesterol"]
+    },
+    {
+      "id": "authoring-alias.test.medication-level",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.medication-level",
+      "aliases": ["drug level", "medication level", "therapeutic drug monitoring", "TDM"]
+    },
+    {
+      "id": "authoring-alias.test.pharmacogenomics",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.pharmacogenomics",
+      "aliases": ["pharmacogenomics", "pharmacogenetics", "genetic testing"]
+    },
+    {
+      "id": "authoring-alias.test.pregnancy",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.pregnancy",
+      "aliases": ["pregnancy test", "hCG"]
+    },
+    {
+      "id": "authoring-alias.test.tsh",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.tsh",
+      "aliases": ["TSH", "thyroid-stimulating hormone", "thyroid stimulating hormone"]
+    },
+    {
+      "id": "authoring-alias.test.urine-toxicology",
+      "targetCategoryId": "tests",
+      "targetContentId": "test.lab.urine-toxicology",
+      "aliases": ["urine tox", "urine toxicology", "UDS", "urine drug screen"]
+    }
+  ]
+}

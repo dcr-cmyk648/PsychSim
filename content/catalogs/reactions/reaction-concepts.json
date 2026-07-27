@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "nonMedicationTriggers": [
     {
       "schemaVersion": 1,
@@ -41,6 +41,92 @@
       "contentVersion": "1.0.0",
       "id": "reaction-manifestation.oculogyric-crisis",
       "label": "Oculogyric crisis"
+    }
+  ],
+  "medicationSelectionPolicies": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-policy.same-medication.mild",
+      "recordedAs": ["allergy", "intolerance", "adverse_reaction", "unspecified"],
+      "reportedSeverities": ["mild"],
+      "pointDelta": -60,
+      "classification": "weak",
+      "safetyCritical": false,
+      "carePointCap": null,
+      "concernLevel": "moderate",
+      "certaintyLevel": "tentative",
+      "explanation": "Starting a medication with a previously reported mild reaction is a poorer fit unless the prior event has been clarified and deliberately accepted.",
+      "developerOpinionId": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-policy.same-medication.moderate",
+      "recordedAs": ["allergy", "intolerance", "adverse_reaction", "unspecified"],
+      "reportedSeverities": ["moderate"],
+      "pointDelta": -220,
+      "classification": "harmful",
+      "safetyCritical": false,
+      "carePointCap": null,
+      "concernLevel": "major",
+      "certaintyLevel": "tentative",
+      "explanation": "Starting a medication with a previously reported moderate reaction is a major negative unless the prior event has been clarified and deliberately accepted.",
+      "developerOpinionId": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-policy.same-medication.severe",
+      "recordedAs": ["allergy", "intolerance", "adverse_reaction", "unspecified"],
+      "reportedSeverities": ["severe"],
+      "pointDelta": -500,
+      "classification": "harmful",
+      "safetyCritical": true,
+      "carePointCap": 200,
+      "concernLevel": "critical",
+      "certaintyLevel": "tentative",
+      "explanation": "Starting a medication with a previously reported severe reaction is a critical provisional safety concern unless a more specific reviewed rule establishes otherwise.",
+      "developerOpinionId": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "reaction-policy.same-medication.unknown",
+      "recordedAs": ["allergy", "intolerance", "adverse_reaction", "unspecified"],
+      "reportedSeverities": ["unknown"],
+      "pointDelta": -120,
+      "classification": "weak",
+      "safetyCritical": false,
+      "carePointCap": null,
+      "concernLevel": "moderate",
+      "certaintyLevel": "tentative",
+      "explanation": "Starting a medication with an incompletely characterized prior reaction is a meaningful provisional concern that warrants clarification.",
+      "developerOpinionId": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": []
+      }
     }
   ]
 }

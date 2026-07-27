@@ -149,6 +149,7 @@ const resolveFinding = (
       selectVariant(finding.labelVariants, seed, `${actionId}:${finding.id}:label`) ??
       finding.labelVariants[0]!,
     outcome,
+    outcomeDisplay: finding.outcomeDisplay,
     valueText:
       durationDisplay && valueTemplate
         ? valueTemplate.replaceAll('{{duration}}', durationDisplay)
@@ -314,6 +315,7 @@ export const instantiateCase = (
     resolvedObservations: [...blueprint.patientRecord.observations, ...generatedObservations],
     metadata: blueprint.metadata,
     patientRecord,
+    diagnosisRubric: blueprint.diagnosisRubric,
     criticalFacts: blueprint.criticalFacts,
     opening: {
       title: resolveTemplate(blueprint.opening.titleTemplate, resolvedVariants),
@@ -327,6 +329,7 @@ export const instantiateCase = (
     },
     informationActions,
     workupObjectives: blueprint.workupObjectives,
+    treatmentWorkupRequirements: blueprint.treatmentWorkupRequirements,
     availableTreatments: blueprint.availableTreatments,
     treatmentGrades: blueprint.treatmentGrades,
     treatmentPathways: blueprint.treatmentPathways,

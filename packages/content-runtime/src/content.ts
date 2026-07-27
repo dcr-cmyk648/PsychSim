@@ -14,12 +14,20 @@ import bostwickAntidepressantFitReviewJson from '../../../content/catalogs/evide
 import canmatMddCorrigendumJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-corrigendum-2025.evidence.json';
 import canmatMddGuidelineJson from '../../../content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json';
 import fdaCitalopramLabelJson from '../../../content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json';
+import fdaAbilifyMaintenaLabelJson from '../../../content/catalogs/evidence/formal/fda-abilify-maintena-2025-label.evidence.json';
+import fdaAbilifyOralLabelJson from '../../../content/catalogs/evidence/formal/fda-abilify-oral-2025-label.evidence.json';
+import fdaClozarilLabelJson from '../../../content/catalogs/evidence/formal/fda-clozaril-2025-label.evidence.json';
+import mishraClozapineAugmentationJson from '../../../content/catalogs/evidence/formal/mishra-2024-clozapine-augmentation-network-meta-analysis.evidence.json';
 import mhraCitalopramQtJson from '../../../content/catalogs/evidence/formal/mhra-citalopram-escitalopram-qt-2014.evidence.json';
 import nhsCyclothymiaJson from '../../../content/catalogs/evidence/formal/nhs-cyclothymia-2023.evidence.json';
 import nhsHeartPalpitationsJson from '../../../content/catalogs/evidence/formal/nhs-heart-palpitations-2026.evidence.json';
 import niceSelfHarmGuidelineJson from '../../../content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json';
 import nlmRxNormCpcJson from '../../../content/catalogs/evidence/formal/nlm-rxnorm-cpc-2026-07-06.evidence.json';
+import roerigClozapineAugmentationJson from '../../../content/catalogs/evidence/formal/roerig-2019-clozapine-augmentation-strategies.evidence.json';
+import tiihonenClozapineAugmentationDoseJson from '../../../content/catalogs/evidence/formal/tiihonen-2025-clozapine-augmentation-dose-cohorts.evidence.json';
+import tiihonenClozapineAripiprazoleJson from '../../../content/catalogs/evidence/formal/tiihonen-2019-clozapine-aripiprazole-rehospitalization.evidence.json';
 import vaDodBipolarGuidelineJson from '../../../content/catalogs/evidence/formal/va-dod-bipolar-2023-guideline.evidence.json';
+import vaDodSchizophreniaGuidelineJson from '../../../content/catalogs/evidence/formal/va-dod-schizophrenia-2023-guideline.evidence.json';
 import vaDodSuicideRiskGuidelineJson from '../../../content/catalogs/evidence/formal/va-dod-suicide-risk-2024-guideline.evidence.json';
 import villanuevaEpilepsyDepressionConsensusJson from '../../../content/catalogs/evidence/formal/villanueva-epilepsy-depression-consensus-2023.evidence.json';
 import whoMhgapGuidelineJson from '../../../content/catalogs/evidence/formal/who-mhgap-2023-guideline.evidence.json';
@@ -27,6 +35,7 @@ import bipolarSpectrumDiagnosisJson from '../../../content/catalogs/diagnoses/de
 import borderlinePersonalityDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/borderline-personality-disorder.diagnosis.json';
 import majorDepressiveDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/major-depressive-disorder.diagnosis.json';
 import medicationInducedAkathisiaDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/medication-induced-akathisia.diagnosis.json';
+import persistentDepressiveDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/persistent-depressive-disorder.diagnosis.json';
 import substanceInducedMoodDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/substance-induced-mood-disorder.diagnosis.json';
 import generalizedAnxietyDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/generalized-anxiety-disorder.diagnosis.json';
 import posttraumaticStressDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/posttraumatic-stress-disorder.diagnosis.json';
@@ -74,7 +83,7 @@ import medicationCheckPalpitationsJson from '../../../content/cases/approved/med
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.9.0',
+  contentVersion: '3.13.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,
@@ -84,19 +93,28 @@ export const catalogs = CatalogBundleSchema.parse({
     bostwickAntidepressantFitReviewJson,
     canmatMddGuidelineJson,
     canmatMddCorrigendumJson,
+    fdaAbilifyMaintenaLabelJson,
+    fdaAbilifyOralLabelJson,
     fdaCitalopramLabelJson,
+    fdaClozarilLabelJson,
+    mishraClozapineAugmentationJson,
     mhraCitalopramQtJson,
     nhsCyclothymiaJson,
     nhsHeartPalpitationsJson,
     niceSelfHarmGuidelineJson,
     nlmRxNormCpcJson,
+    roerigClozapineAugmentationJson,
+    tiihonenClozapineAripiprazoleJson,
+    tiihonenClozapineAugmentationDoseJson,
     vaDodBipolarGuidelineJson,
+    vaDodSchizophreniaGuidelineJson,
     vaDodSuicideRiskGuidelineJson,
     villanuevaEpilepsyDepressionConsensusJson,
     whoMhgapGuidelineJson,
   ],
   diagnoses: [
     majorDepressiveDisorderDiagnosisJson,
+    persistentDepressiveDisorderDiagnosisJson,
     bipolarSpectrumDiagnosisJson,
     borderlinePersonalityDisorderDiagnosisJson,
     substanceInducedMoodDiagnosisJson,

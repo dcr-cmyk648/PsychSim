@@ -3,6 +3,7 @@
   "contentVersion": "1.0.0",
   "id": "diagnosis.generalized-anxiety-disorder",
   "label": "Generalized anxiety disorder",
+  "selectableInGameplay": true,
   "description": "Unreviewed diagnosis-family placeholder for focused GAD patient generation and later reviewed treatment rules.",
   "medicalReviewStatus": "unreviewed",
   "baseClinicalTagIds": ["diagnosis-tag.anxiety"],

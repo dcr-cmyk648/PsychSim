@@ -3,6 +3,7 @@
   "contentVersion": "1.0.0",
   "id": "diagnosis.substance-induced-mood-disorder",
   "label": "Substance-induced mood disorder",
+  "selectableInGameplay": true,
   "description": "Unreviewed diagnosis-family placeholder for patient composition and rule-reference validation.",
   "medicalReviewStatus": "unreviewed",
   "baseClinicalTagIds": ["diagnosis-tag.substance-induced"],

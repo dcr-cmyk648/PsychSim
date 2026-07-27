@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.5.0",
+  "contentVersion": "1.6.0",
   "id": "case.review-cohort.mdd-prior-intolerance",
   "internalTitle": "Reviewer cohort: MDD with prior medication intolerance",
   "difficultyTier": 2,
@@ -105,6 +105,10 @@
       "schemaVersion": 1,
       "id": "trial.review-mdd-intolerance.fluoxetine",
       "medicationId": "medication.fluoxetine",
+      "exposure": {
+        "duration": { "value": 8, "unit": "day" },
+        "maximumDose": { "amount": 20, "unit": "mg", "frequency": "daily" }
+      },
       "adequacy": "inadequate",
       "adherence": "consistent",
       "response": "unknown",

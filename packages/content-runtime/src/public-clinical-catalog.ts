@@ -5,13 +5,19 @@ import {
   type PublicClinicalCatalogCategoryId,
   type PublicClinicalCatalogEntry,
   type PublicClinicalCatalogProjection,
+  type PublicClinicalCatalogSupplementEntry,
 } from '@psychsim/schemas';
 
 import { catalogs } from './content';
 import { medicationIdentities } from './medication-identities';
+import {
+  NLM_MESH_PUBLIC_ATTRIBUTION,
+  publicSupplementCatalogEntries,
+} from './public-supplement-catalog';
 
 export const NLM_RXNORM_PUBLIC_ATTRIBUTION =
   'This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product.';
+export { NLM_MESH_PUBLIC_ATTRIBUTION };
 
 const CATEGORY_COPY: ReadonlyArray<{
   id: PublicClinicalCatalogCategoryId;
@@ -29,6 +35,12 @@ const CATEGORY_COPY: ReadonlyArray<{
     label: 'Medications',
     description:
       'Normalized medication identities available for database review. Identity-only records are not selectable in gameplay; patient-specific fit and point rules are intentionally excluded.',
+  },
+  {
+    id: 'supplements',
+    label: 'Supplements',
+    description:
+      'Identity-only supplement records for authoring and review. Preparation distinctions are explicit; no entry implies efficacy, safety, interaction, dosing, or gameplay points.',
   },
   {
     id: 'interventions',
@@ -77,6 +89,7 @@ const logicalPath = (categoryId: PublicClinicalCatalogCategoryId, id: string): s
 export const buildPublicClinicalCatalog = (
   catalogs: CatalogBundle,
   identities: readonly MedicationIdentityDefinition[] = medicationIdentities,
+  supplements: readonly PublicClinicalCatalogSupplementEntry[] = publicSupplementCatalogEntries,
 ): PublicClinicalCatalogProjection => {
   const conditions: PublicClinicalCatalogEntry[] = catalogs.diagnoses.map((diagnosis) => ({
     kind: 'condition',
@@ -87,6 +100,7 @@ export const buildPublicClinicalCatalog = (
     contentVersion: diagnosis.contentVersion,
     medicalReviewStatus: diagnosis.medicalReviewStatus,
     description: diagnosis.description,
+    aliases: diagnosis.searchAliases,
     severityLevels:
       diagnosis.severityAxis?.levels.map((level) => ({
         id: level.id,
@@ -122,6 +136,8 @@ export const buildPublicClinicalCatalog = (
     };
   });
 
+  const supplementEntries: PublicClinicalCatalogEntry[] = [...supplements];
+
   const treatmentEntries: PublicClinicalCatalogEntry[] = catalogs.treatments.map((treatment) => {
     const isDisposition = treatment.kind === 'disposition';
     const categoryId = isDisposition ? 'dispositions' : 'interventions';
@@ -134,6 +150,7 @@ export const buildPublicClinicalCatalog = (
       contentVersion: treatment.contentVersion,
       medicalReviewStatus: null,
       treatmentCategory: treatment.category,
+      aliases: treatment.searchAliases,
       requiredCapabilityCount: treatment.requiredCapabilities.length,
     };
   });
@@ -148,6 +165,7 @@ export const buildPublicClinicalCatalog = (
       contentVersion: null,
       medicalReviewStatus: null,
       description: action.description,
+      aliases: action.searchAliases,
       investigationCategory: action.category,
       soapSection: action.soapSection,
       resultSource: action.resultSource,
@@ -240,6 +258,7 @@ export const buildPublicClinicalCatalog = (
   const entries = [
     ...conditions,
     ...medications,
+    ...supplementEntries,
     ...treatmentEntries,
     ...investigations,
     ...tests,

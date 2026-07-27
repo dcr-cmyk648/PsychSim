@@ -1,9 +1,11 @@
 import { execFileSync } from 'node:child_process';
-import { mkdir, rename, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { chmod, lstat, mkdir, open, realpath, rename, unlink } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import react from '@vitejs/plugin-react';
+import { ClinicalTicketExportBundleSchema } from '@psychsim/schemas';
 import { defineConfig, type Plugin } from 'vite';
 
 import { personalKnowledgeWorkbenchBridge } from './personal-knowledge-workbench-plugin';
@@ -20,6 +22,53 @@ const LOCAL_TICKET_PATH = fileURLToPath(
 );
 const LOCAL_TICKET_DISPLAY_PATH = `content/generated/local-review-tickets/${LOCAL_TICKET_FILE_NAME}`;
 const MAX_REVIEW_BUNDLE_BYTES = 20_000_000;
+const PROJECT_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+
+const isLoopbackAddress = (address: string | undefined): boolean =>
+  address === '127.0.0.1' || address === '::1' || address?.startsWith('::ffff:127.') === true;
+
+const writePrivateReviewBundle = async (value: unknown): Promise<void> => {
+  const bundle = ClinicalTicketExportBundleSchema.parse(value);
+  if (bundle.buildKind !== 'local_developer' || bundle.assignmentId !== null) {
+    throw new Error('The local writer accepts only local Developer review bundles.');
+  }
+  const parent = dirname(LOCAL_TICKET_PATH);
+  await mkdir(parent, { recursive: true });
+  const [resolvedParent, resolvedProjectRoot] = await Promise.all([
+    realpath(parent),
+    realpath(PROJECT_ROOT),
+  ]);
+  if (
+    resolvedParent !== resolvedProjectRoot &&
+    !resolvedParent.startsWith(`${resolvedProjectRoot}/`)
+  ) {
+    throw new Error('The local review handoff directory resolves outside the PsychSim repository.');
+  }
+  const existing = await lstat(LOCAL_TICKET_PATH).catch((caught: unknown) => {
+    if ((caught as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw caught;
+  });
+  if (existing?.isSymbolicLink() || (existing && !existing.isFile())) {
+    throw new Error('The local review handoff target must be a regular file.');
+  }
+
+  const temporaryPath = `${LOCAL_TICKET_PATH}.${randomUUID()}.tmp`;
+  let handle: Awaited<ReturnType<typeof open>> | null = null;
+  try {
+    handle = await open(temporaryPath, 'wx', 0o600);
+    await handle.writeFile(`${JSON.stringify(bundle, null, 2)}\n`, 'utf8');
+    await handle.sync();
+    await handle.close();
+    handle = null;
+    await rename(temporaryPath, LOCAL_TICKET_PATH);
+    await chmod(LOCAL_TICKET_PATH, 0o600);
+  } finally {
+    await handle?.close().catch(() => undefined);
+    await unlink(temporaryPath).catch((caught: unknown) => {
+      if ((caught as NodeJS.ErrnoException).code !== 'ENOENT') throw caught;
+    });
+  }
+};
 
 const resolveDistributionId = (): string => {
   const supplied = process.env.VITE_PSYCHSIM_DISTRIBUTION_ID ?? process.env.GITHUB_SHA;
@@ -61,6 +110,13 @@ const localTicketWriter = (): Plugin => ({
   configureServer(server) {
     server.middlewares.use('/__psychsim/local-review-tickets', async (request, response) => {
       response.setHeader('Content-Type', 'application/json; charset=utf-8');
+      if (!isLoopbackAddress(request.socket.remoteAddress)) {
+        response.statusCode = 403;
+        response.end(
+          JSON.stringify({ ok: false, error: 'The local ticket writer is loopback-only.' }),
+        );
+        return;
+      }
       if (request.method !== 'PUT') {
         response.statusCode = 405;
         response.end(JSON.stringify({ ok: false, error: 'Use PUT for the local ticket writer.' }));
@@ -78,82 +134,7 @@ const localTicketWriter = (): Plugin => ({
           chunks.push(buffer);
         }
         const raw = JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
-        if (
-          typeof raw !== 'object' ||
-          raw === null ||
-          !('exportVersion' in raw) ||
-          raw.exportVersion !== 7 ||
-          !('completedAttempts' in raw) ||
-          !Array.isArray(raw.completedAttempts) ||
-          !('tickets' in raw) ||
-          !Array.isArray(raw.tickets) ||
-          !('attemptReviews' in raw) ||
-          !Array.isArray(raw.attemptReviews) ||
-          !('databaseEntryReviews' in raw) ||
-          !Array.isArray(raw.databaseEntryReviews) ||
-          !('flags' in raw) ||
-          !Array.isArray(raw.flags) ||
-          !raw.tickets.every(
-            (ticket) =>
-              typeof ticket === 'object' &&
-              ticket !== null &&
-              'reviewerNotes' in ticket &&
-              typeof ticket.reviewerNotes === 'string',
-          ) ||
-          !raw.attemptReviews.every(
-            (review) =>
-              typeof review === 'object' &&
-              review !== null &&
-              'reviewerNote' in review &&
-              typeof review.reviewerNote === 'string' &&
-              'availableOptions' in review &&
-              Array.isArray(review.availableOptions) &&
-              'attemptSnapshot' in review &&
-              typeof review.attemptSnapshot === 'object' &&
-              review.attemptSnapshot !== null,
-          ) ||
-          !raw.databaseEntryReviews.every(
-            (review) =>
-              typeof review === 'object' &&
-              review !== null &&
-              'reviewerNote' in review &&
-              typeof review.reviewerNote === 'string' &&
-              'entrySnapshot' in review &&
-              typeof review.entrySnapshot === 'object' &&
-              review.entrySnapshot !== null,
-          ) ||
-          !raw.flags.every(
-            (flag) =>
-              typeof flag === 'object' &&
-              flag !== null &&
-              'attemptId' in flag &&
-              typeof flag.attemptId === 'string' &&
-              'note' in flag &&
-              typeof flag.note === 'string',
-          ) ||
-          !raw.completedAttempts.every(
-            (attempt) =>
-              typeof attempt === 'object' &&
-              attempt !== null &&
-              'id' in attempt &&
-              typeof attempt.id === 'string' &&
-              'caseInstance' in attempt &&
-              typeof attempt.caseInstance === 'object' &&
-              attempt.caseInstance !== null &&
-              'receipt' in attempt &&
-              typeof attempt.receipt === 'object' &&
-              attempt.receipt !== null,
-          )
-        ) {
-          throw new Error('Developer review bundle has an unsupported shape.');
-        }
-        await mkdir(dirname(LOCAL_TICKET_PATH), { recursive: true });
-        const temporaryPath = `${LOCAL_TICKET_PATH}.tmp`;
-        await writeFile(temporaryPath, `${JSON.stringify(raw, null, 2)}\n`, {
-          encoding: 'utf8',
-          mode: 0o600,
-        });
-        await rename(temporaryPath, LOCAL_TICKET_PATH);
+        await writePrivateReviewBundle(raw);
         response.statusCode = 200;
         response.end(JSON.stringify({ ok: true, path: LOCAL_TICKET_DISPLAY_PATH }));
       } catch (caught) {
@@ -177,8 +158,9 @@ export default defineConfig({
   plugins: [
     react(),
     distributionManifest(),
-    localTicketWriter(),
-    ...(REVIEWER_BUILD ? [] : [personalKnowledgeWorkbenchBridge(), sourceReviewTicketsBridge()]),
+    ...(REVIEWER_BUILD
+      ? []
+      : [localTicketWriter(), personalKnowledgeWorkbenchBridge(), sourceReviewTicketsBridge()]),
   ],
   build: {
     sourcemap: true,

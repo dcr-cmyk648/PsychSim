@@ -1,13 +1,30 @@
 import { useMemo, useState } from 'react';
 
 import {
+  DeveloperDatabaseKnowledgeProjectionSchema,
   PersonalKnowledgeWorkbenchProjectionSchema,
+  type DeveloperDatabaseKnowledgeProjection,
   type PersonalKnowledgeWorkbenchProjection,
 } from '@psychsim/schemas';
 
 import { LazyDisclosure } from './LazyDisclosure';
 
+export {
+  DeveloperDatabaseKnowledgePanel,
+  DeveloperDatabaseKnowledgeScope,
+} from './DeveloperDatabaseKnowledge';
+export {
+  buildDeveloperDatabaseDossierBrief,
+  buildDeveloperDatabaseDossierReviewTicket,
+  findCurrentDeveloperDatabaseDossierReview,
+} from '../developer-database-dossier-review';
+export {
+  DeveloperDiagnosisClassificationInspector,
+  loadDeveloperDiagnosisClassification,
+} from './DeveloperDiagnosisClassificationInspector';
+
 const WORKBENCH_ENDPOINT = '/__psychsim/personal-knowledge-workbench';
+const DATABASE_KNOWLEDGE_ENDPOINT = '/__psychsim/developer-database-knowledge';
 
 export const loadPersonalKnowledgeWorkbench =
   async (): Promise<PersonalKnowledgeWorkbenchProjection | null> => {
@@ -20,6 +37,31 @@ export const loadPersonalKnowledgeWorkbench =
       return PersonalKnowledgeWorkbenchProjectionSchema.parse(await response.json());
     } catch {
       return null;
+    }
+  };
+
+export const loadDeveloperDatabaseKnowledge =
+  async (): Promise<DeveloperDatabaseKnowledgeProjection | null> => {
+    try {
+      const response = await fetch(DATABASE_KNOWLEDGE_ENDPOINT, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      if (response.status === 404) return null;
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
+        throw new Error(
+          typeof body?.error === 'string'
+            ? body.error
+            : 'The local database cross-reference could not be loaded.',
+        );
+      }
+      return DeveloperDatabaseKnowledgeProjectionSchema.parse(await response.json());
+    } catch (error) {
+      throw error instanceof Error
+        ? error
+        : new Error('The local database cross-reference could not be loaded.');
     }
   };
 

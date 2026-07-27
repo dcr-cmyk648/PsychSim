@@ -40,6 +40,33 @@ The current prototype still feeds `CaseBlueprint` directly into `CaseInstance`; 
 versioned compatibility path, not the target authoring boundary. The generated-patient migration is
 specified in [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).
 
+The private authoring database is deliberately richer than the runtime graph:
+
+```text
+private notes + authored material + formal sources
+                       │
+          provenance-preserving source units
+                       │
+      entry dossiers + gaps + disagreements + reading leads
+                       │ psychiatrist review
+          claims / contributions / Developer opinions
+                       │ separate rule and balance review
+             reusable qualitative rules
+                       │ focused encounter compilation
+              small question-bank snapshot
+```
+
+This is a compiler boundary, not two competing products. Comprehensive knowledge capture supports
+personal audit, reading, and retention. Runtime compilation admits only reviewed,
+decision-relevant rules and patient facts, preserving game legibility and bundle privacy.
+
+A future dossier coverage map remains a projection over this graph. It is calculated from existing
+source units, evidence links, Developer opinions, review records, and gameplay mappings rather than
+stored as a second clinical database. The local workbench requests one entry at a time; Player and
+portable Reviewer builds receive neither the map nor private supporting records. An empty cell
+means only that the projection cannot currently establish coverage—it never deletes, suppresses,
+or downgrades unmatched material.
+
 ## Package responsibilities
 
 `@psychsim/schemas` owns stable IDs, schema/content versions, catalogs, the content registry,
@@ -133,6 +160,13 @@ knowledge for one review page, but it is disposable output rather than a second 
 No source import, label change, or comparative-effect estimate writes a gameplay rule or point
 value directly. See `docs/MEDICATION_AND_INTERVENTION_DATA.md`.
 
+The current local-only authoring projection resolves formal contributions and accepted
+`DeveloperOpinion` records by their explicit target IDs rather than by the tracked file that owns
+the record. One reviewed source statement can therefore appear in every relevant medication and
+diagnosis dossier without duplication. The projection is still a disposable, schema-minimized
+view: neither fan-out nor an accepted opinion compiles a treatment option, rule, dose mechanic, or
+point modifier.
+
 `@psychsim/web` owns presentation, transient UI state, accessibility, local Developer tools, and the
 persistence boundary. It may add real timestamps when saving attempts, flags, reviewer notes,
 tickets, and Developer attempt reviews; those timestamps never affect clinical behavior. A
@@ -153,7 +187,7 @@ middleware mirrors the same schema-validated bundle to
 `content/generated/local-review-tickets/tickets.json`; Playwright uses the separate
 `tickets.e2e.json` target. The portable Reviewer contains no middleware endpoint, local
 ticket discovery, source/opinion queues, or arbitrary file writer. Its only preassigned questions
-are the exact finite ticket packet registered for assignment `2026-07f`; responses remain
+are the exact finite ticket packet registered for assignment `2026-07g`; responses remain
 browser-local until manual export.
 
 The assignment ID is a persistence migration boundary, not merely a label. A material change to
@@ -181,6 +215,13 @@ engine. They link exact ticket, source-request, blueprint, evidence, and source-
 requires source-cleared support and keeps metadata/abstract-only context non-supporting. React may
 render the packet only after the local Developer entry is dynamically loaded. The proposal cannot
 change a rule, choose point magnitudes, or enter Player/Reviewer production bundles.
+
+A newly referenced publication first receives one stable formal-source record (or a metadata-only
+record when rights or access are unresolved). Registration is a landing operation, not
+integration: a target-specific source-use contribution and a developer-review ticket are required
+before the source can change a diagnosis dossier, medication dossier, patient rubric, rule, or
+point value. This keeps a source discoverable immediately without pretending that every possible
+downstream use has already been interpreted.
 
 The separate `TicketLiteratureScoutCatalog` is an earlier discovery layer. A developer-side CLI
 queries Europe PMC for one bounded ticket question, records the exact ten-year query, provider
@@ -255,6 +296,14 @@ safety/interaction rules. See
 [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) and
 [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).
 
+The first runtime bridge from qualitative guidance is deliberately narrow.
+`TreatmentWorkupRequirement` names one or more diagnosis-owned source-rule IDs, a shared workup
+objective, and a constrained treatment-selection predicate. The trace retains concern and
+certainty independently from provisional point values and the safety-critical flag. This permits,
+for example, any medication start to activate reconciliation and reaction history while only an
+antidepressant start activates prior-mania history. It is not a second diagnosis engine and it
+does not let React infer prerequisites.
+
 Reaction history and complexity profile are frozen patient-record data on this compatibility path.
 Instantiation does not infer `interpretedAs` from `recordedAs`, and it does not select optional
 modules or convert their budget into a scalar difficulty, care points, payout, or progression.
@@ -263,6 +312,11 @@ metadata, not a measured complexity score. Reviewer scenarios own these fields d
 than receiving clinical facts from schema defaults. Medication-reaction completeness is a
 separate state from the presence of environmental or food reactions, and validation checks the
 typed history against the structured result shown after purchase.
+An exact selected-medication reaction can also enter a separate shared safety trace from that
+frozen patient state. The result is independent of whether the corresponding history was
+purchased; purchase affects workup scoring and player knowledge, not patient truth. The current
+generic severity mapping is medically unreviewed provisional balance and is designed to be
+superseded by more-specific reviewed medication/reaction policies.
 `info.history.existing-safety-plan` retains its legacy stable ID for local replay compatibility but
 now reveals the typed, Subjective `reportedSafetyPlanningAbility` state. Its structured result says
 only whether the patient reports feeling able to participate; it never emits an
@@ -430,3 +484,69 @@ schema, path containment, or feed contents return a visible quarantine error rat
 queue. The renderer is a development-only lazy module. Player and portable Reviewer bundles,
 portable exports, source text, headings, private IDs, and the endpoint are all excluded by build
 gates.
+
+## Whole-corpus Developer Database overlay
+
+`tools/content-cli/src/developer-database-knowledge.ts` compiles the explicitly enrolled personal
+corpus into a deterministic private cross-reference. The compiler authenticates source manifests,
+parser provenance, chunk hashes, Apple Notes composite/attachment states, the tracked private
+Drive hash catalog, semantic-workbench candidates, formal evidence, and source-use decisions. It
+writes only
+`content/generated/personal-knowledge/database-cross-reference.json` as a mode-`0600` ignored
+file. `content:knowledge:crossref:validate` rebuilds in memory and rejects a stale fingerprint or
+nonidentical deterministic output.
+
+Projection version 2 also emits a complete catalog-identity audit. Every unresolved semantic
+target is grouped into exactly one landing record and classified as a likely existing entry,
+ambiguous existing entries, a proposed new catalog entry, a noncatalog target, or a target needing
+kind review. All normalized terms or reviewed aliases shared by more than one catalog entry appear
+in a separate overlap list. These are audit signals only: the compiler never creates an entry,
+changes an alias, or merges records. An unclear landing or merge remains a developer-review
+decision.
+
+The existing serve-only Vite bridge exposes the projection at
+`/__psychsim/developer-database-knowledge` to loopback `GET` requests. Missing output means “not
+compiled”; invalid schema, permissions, path, or size returns a visible quarantine error. The
+loader and all cross-reference rendering live in the same development-only lazy module guarded by
+`import.meta.env.DEV && !REVIEWER_BUILD`. The shared Database component receives optional
+renderers and search data but never imports the Developer view. Player/Reviewer bundle scanning
+forbids the endpoint, generated path, and view markers. The shared complete-JSON reader and saved
+`DatabaseEntryReview` snapshot remain public-only.
+
+The same development-only module derives a concise `DeveloperDatabaseDossierBrief` for the active
+entry. It preserves authority boundaries while adding unresolved cross-target candidate mentions,
+candidate contribution types, resolved target roles, current implementation, and explicit
+randomization gaps. The brief contains no private unit ID, source label, heading, matched term,
+filename, provider/document/chunk ID, OCR text, source prose, or filesystem path.
+
+A saved dossier interpretation reuses the existing `ClinicalReviewTicket` repository rather than
+expanding the portable `DatabaseEntryReview` contract. Its stable ID combines the public entry and
+a deterministic fingerprint of the exact displayed concise brief; its immutable guidance is that
+brief; its resurfacing trigger retains both the entry-brief fingerprint and full source-projection
+fingerprint; and its reviewer prose remains separate. A material entry-brief change produces
+another ticket instead of rewriting history, while unrelated corpus or timestamp changes do not
+hide the current opinion. The ticket has no runtime effect and is rejected from portable Reviewer
+exports.
+
+The serve-only ticket handoff validates the entire `ClinicalTicketExportBundle`, accepts only a
+`local_developer`/null-assignment bundle from a loopback socket, verifies that its resolved parent
+stays inside the repository, rejects nonregular/symlink targets, and atomically replaces the fixed
+gitignored mode-`0600` file through an exclusive unique temporary file. IndexedDB remains the
+authoritative save; a handoff mirror failure is a visible retry condition, not a failed browser
+save.
+
+## Local diagnosis-classification inspector
+
+The local Developer Database exposes the ignored ICD-10-CM authoring cache through a second,
+independent serve-only projection. `personal-knowledge-workbench-plugin.ts` validates the pinned
+release manifest, term-catalog fingerprint and count, source-use decision, path containment,
+symlink boundary, file size, and narrow local-indexing permission before returning any terms from
+`/__psychsim/developer-diagnosis-classification`. It refuses to load if AI processing, derived
+content, runtime redistribution, or commercial reuse has been enabled for that source decision.
+
+The React inspector is collapsed by default and fetches only when opened. Search is bounded,
+results page in small batches, and the complete reader labels a term as classification data rather
+than a modeled diagnosis. It has no comment/export path and is not part of the public clinical
+catalog, personal-corpus semantic pipeline, treatment engine, or scoring model. The shared
+Database receives it only as an optional Development renderer. Player and portable Reviewer
+bundle gates forbid its endpoint and identifying markers.

@@ -155,8 +155,136 @@ describe('EncounterView laboratory results', () => {
     expect(within(findingRow).queryByText('−')).not.toBeInTheDocument();
   });
 
-  it('searches the combined medication, therapy, and disposition menu', () => {
+  it('renders a neutral measured value without a clinical status chip', () => {
+    const instance = instantiateCase(
+      prototypeCaseBlueprint,
+      'neutral-measurement-display',
+      catalogs,
+    );
+    const started = startEncounter(instance, startingClinic, 'location.solo-office.outpatient');
+    const purchased = requireCompleted(
+      purchaseInformationAction(started, 'info.physical.weight-bmi', catalogs),
+    );
+    const weightFinding = purchased.purchases[0]!.result.findings.find(
+      (finding) => finding.label === 'Measured weight',
+    );
+    if (!weightFinding) throw new Error('Expected a measured-weight fixture.');
+
+    render(
+      <EncounterView
+        state={purchased}
+        catalogs={catalogs}
+        onStateChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onExit={vi.fn()}
+      />,
+    );
+
+    const findingRow = screen.getByText('Measured weight').closest('li');
+    if (!findingRow) throw new Error('Expected the measured-weight row.');
+    expect(findingRow).toHaveClass('outcome-value-only');
+    expect(within(findingRow).queryByText('Present')).not.toBeInTheDocument();
+    expect(findingRow.querySelector('.finding-outcome-chip')).not.toBeInTheDocument();
+    expect(within(findingRow).getByText(weightFinding.valueText!)).toBeVisible();
+  });
+
+  it('reopens a purchased result without purchasing it or changing encounter state', () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockReturnValue({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    });
+    const instance = instantiateCase(prototypeCaseBlueprint, 'reopen-result', catalogs);
+    const started = startEncounter(instance, startingClinic, 'location.solo-office.outpatient');
+    const purchased = requireCompleted(
+      purchaseInformationAction(started, 'info.history.presenting-problem', catalogs),
+    );
+    const onStateChange = vi.fn();
+
+    render(
+      <EncounterView
+        state={purchased}
+        catalogs={catalogs}
+        onStateChange={onStateChange}
+        onSubmit={vi.fn()}
+        onExit={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /Presenting problem and timeline, \d+ points, in house, revealed/,
+      }),
+    );
+    expect(onStateChange).not.toHaveBeenCalled();
+    expect(purchased.purchases).toHaveLength(1);
+    expect(purchased.expenseTotal).toBe(
+      started.expenseTotal + purchased.purchases[0]!.operatingCost,
+    );
+  });
+
+  it('searches each diagnosis and treatment section as the player types', () => {
     const instance = instantiateCase(prototypeCaseBlueprint, 'treatment-search', catalogs);
+    const started = startEncounter(instance, startingClinic, 'location.solo-office.outpatient');
+    const onStateChange = vi.fn();
+
+    render(
+      <EncounterView
+        state={started}
+        catalogs={catalogs}
+        onStateChange={onStateChange}
+        onSubmit={vi.fn()}
+        onExit={vi.fn()}
+      />,
+    );
+
+    const search = screen.getByRole('searchbox', {
+      name: 'Search the active diagnosis or treatment section',
+    });
+    fireEvent.change(search, { target: { value: 'chronic depression' } });
+    const persistentDepression = screen.getByRole('button', {
+      name: /Persistent depressive disorder \(dysthymia\)/,
+    });
+    expect(persistentDepression).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: /Major depressive disorder/ }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(persistentDepression);
+    expect(onStateChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        diagnosisSelections: [
+          {
+            diagnosisId: 'diagnosis.persistent-depressive-disorder',
+            severityId: null,
+            specifierIds: [],
+          },
+        ],
+      }),
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Medication' }));
+    fireEvent.change(search, { target: { value: 'sertraline' } });
+    expect(screen.getByRole('button', { name: /Sertraline/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /Fluoxetine/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Cognitive behavioral therapy/ }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Non-medication' }));
+    fireEvent.change(search, { target: { value: 'therapy' } });
+    expect(screen.getByRole('button', { name: /Cognitive behavioral therapy/ })).toBeVisible();
+    expect(screen.queryByRole('button', { name: /Sertraline/ })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Disposition' }));
+    fireEvent.change(search, { target: { value: 'outpatient' } });
+    expect(screen.getByRole('button', { name: /Close outpatient follow-up/i })).toBeVisible();
+  });
+
+  it('supports keyboard navigation between final-answer sections', () => {
+    const instance = instantiateCase(prototypeCaseBlueprint, 'plan-keyboard-tabs', catalogs);
     const started = startEncounter(instance, startingClinic, 'location.solo-office.outpatient');
 
     render(
@@ -169,21 +297,14 @@ describe('EncounterView laboratory results', () => {
       />,
     );
 
-    const search = screen.getByRole('searchbox', {
-      name: 'Search medications, non-medication interventions, and dispositions',
-    });
-    fireEvent.change(search, { target: { value: 'sertraline' } });
-    expect(screen.getByRole('button', { name: /Sertraline/ })).toBeVisible();
-    expect(screen.queryByRole('button', { name: /Fluoxetine/ })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /Cognitive behavioral therapy/ }),
-    ).not.toBeInTheDocument();
+    const diagnosisTab = screen.getByRole('tab', { name: 'Diagnosis' });
+    diagnosisTab.focus();
+    fireEvent.keyDown(diagnosisTab, { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: 'Medication' })).toHaveFocus();
+    expect(screen.getByRole('tabpanel', { name: 'Medication' })).toBeVisible();
 
-    fireEvent.change(search, { target: { value: 'therapy' } });
-    expect(screen.getByRole('button', { name: /Cognitive behavioral therapy/ })).toBeVisible();
-    expect(screen.queryByRole('button', { name: /Sertraline/ })).not.toBeInTheDocument();
-
-    fireEvent.change(search, { target: { value: 'outpatient' } });
-    expect(screen.getByRole('button', { name: /Close outpatient follow-up/i })).toBeVisible();
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Medication' }), { key: 'End' });
+    expect(screen.getByRole('tab', { name: 'Disposition' })).toHaveFocus();
+    expect(screen.getByRole('tabpanel', { name: 'Disposition' })).toBeVisible();
   });
 });

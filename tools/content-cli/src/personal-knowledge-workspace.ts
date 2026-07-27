@@ -906,6 +906,14 @@ export const buildPersonalKnowledgeWorkbenchProjection = (
     sourceDate: candidate.asOfDate,
     currentness: candidate.currentness,
     reviewStatus: candidate.reviewStatus,
+    contributionTypes: candidate.contributionTypes,
+    resolvedTargets: candidate.targets
+      .filter((target) => target.resolution === 'resolved')
+      .map(({ targetKind, targetContentId, role }) => ({
+        targetKind,
+        targetContentId,
+        role,
+      })),
     unresolvedTargets: candidate.targets
       .filter((target) => target.resolution === 'unresolved')
       .map(({ targetKindHint, searchLabel, role, reason }) => ({
@@ -930,6 +938,12 @@ export const buildPersonalKnowledgeWorkbenchProjection = (
           : opinion.developerReview.status === 'retired'
             ? ('rejected' as const)
             : ('deferred' as const),
+      contributionTypes: opinion.contributionTypes,
+      resolvedTargets: opinion.targets.map(({ targetKind, targetContentId, role }) => ({
+        targetKind,
+        targetContentId,
+        role,
+      })),
       unresolvedTargets: [],
       evidenceRelations: relationships.map((relationship) => ({
         evidenceSourceId: relationship.evidenceSourceId,

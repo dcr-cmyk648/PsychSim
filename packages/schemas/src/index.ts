@@ -20,6 +20,12 @@ export const TreatmentGradeSchema = z.enum([
 ]);
 export type TreatmentGrade = z.infer<typeof TreatmentGradeSchema>;
 
+export const ClinicalConcernLevelSchema = z.enum(['minor', 'moderate', 'major', 'critical']);
+export type ClinicalConcernLevel = z.infer<typeof ClinicalConcernLevelSchema>;
+
+export const ClinicalCertaintyLevelSchema = z.enum(['tentative', 'moderate', 'strong']);
+export type ClinicalCertaintyLevel = z.infer<typeof ClinicalCertaintyLevelSchema>;
+
 export const MedicalReviewStatusSchema = z.enum([
   'unreviewed',
   'in_review',
@@ -55,6 +61,20 @@ const UnreviewedClinicalRuleSchema = ClinicalRuleReviewSchema.default({
 
 export const EvidenceAuthoritySchema = z.enum(['formal_publication', 'expert_opinion']);
 export type EvidenceAuthority = z.infer<typeof EvidenceAuthoritySchema>;
+
+export const EvidenceContributionTypeSchema = z.enum([
+  'patient_fact',
+  'diagnosis_logic',
+  'workup',
+  'treatment',
+  'medication_fit',
+  'safety',
+  'scoring',
+  'laboratory_reference',
+  'classification_mapping',
+  'teaching_point',
+  'context_only',
+]);
 
 export const FormalEvidenceSourceTypeSchema = z.enum([
   'journal_article',
@@ -232,6 +252,7 @@ export const SourceUseDecisionSchema = z
       'metadata_only',
     ]),
     permissions: SourceUsePermissionsSchema,
+    allowedContributionTypes: z.array(EvidenceContributionTypeSchema).default([]),
     territories: z.array(z.string().min(1).max(160)).min(1),
     attributionStatement: z.string().min(1).max(1200).nullable(),
     requiredNotices: z.array(z.string().min(1).max(1200)),
@@ -341,6 +362,28 @@ export const SourceUseDecisionSchema = z
         message: 'Local structured indexing requires local extraction permission.',
       });
     }
+    if (
+      decision.permissions.derivedClinicalContent &&
+      decision.allowedContributionTypes.length === 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedContributionTypes'],
+        message:
+          'A source-use decision that permits derived clinical content must name its allowed contribution types.',
+      });
+    }
+    if (
+      !decision.permissions.derivedClinicalContent &&
+      decision.allowedContributionTypes.length > 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedContributionTypes'],
+        message:
+          'A source-use decision cannot allow contribution types when derived clinical content is disabled.',
+      });
+    }
   });
 export type SourceUseDecision = z.infer<typeof SourceUseDecisionSchema>;
 
@@ -353,20 +396,6 @@ export const SourceUseDecisionCatalogSchema = z
   })
   .strict();
 export type SourceUseDecisionCatalog = z.infer<typeof SourceUseDecisionCatalogSchema>;
-
-export const EvidenceContributionTypeSchema = z.enum([
-  'patient_fact',
-  'diagnosis_logic',
-  'workup',
-  'treatment',
-  'medication_fit',
-  'safety',
-  'scoring',
-  'laboratory_reference',
-  'classification_mapping',
-  'teaching_point',
-  'context_only',
-]);
 
 export const EvidenceContributionSchema = z
   .object({
@@ -518,6 +547,7 @@ export const MedicationDefinitionSchema = z
     contentVersion: ContentVersionSchema,
     id: StableIdSchema,
     label: z.string().min(1),
+    searchAliases: z.array(z.string().min(1).max(180)).default([]),
     classes: z.array(z.string().min(1)).min(1),
     tags: z.array(z.string().min(1)),
     sourceUseNotes: z.array(EvidenceContributionSchema).default([]),
@@ -608,6 +638,74 @@ export const MedicationIdentityDefinitionSchema = z
   });
 export type MedicationIdentityDefinition = z.infer<typeof MedicationIdentityDefinitionSchema>;
 
+export const SupplementIdentityDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    normalizedName: z.string().min(1).max(180),
+    aliases: z.array(z.string().min(1).max(180)),
+    identityCategory: z.enum([
+      'botanical',
+      'mineral',
+      'vitamin',
+      'amino_acid_derivative',
+      'fatty_acid',
+      'other',
+    ]),
+    preparation: z.enum([
+      'whole_botanical',
+      'extract',
+      'essential_oil',
+      'element',
+      'compound',
+      'mixed_product',
+    ]),
+    identifiers: z
+      .array(
+        z
+          .object({
+            system: z.enum(['mesh', 'rxnorm', 'unii', 'cas']),
+            value: z.string().min(1).max(80),
+            relationship: z.enum(['exact', 'broader_botanical', 'preparation_specific']),
+            sourceRelease: z.string().min(1).max(80),
+            evidenceSourceId: StableIdSchema,
+            sourceUseDecisionId: StableIdSchema,
+            verifiedAt: z.string().datetime(),
+          })
+          .strict(),
+      )
+      .min(1),
+    identityScopeNote: z.string().min(1).max(600),
+    runtimeSelectable: z.literal(false),
+    medicalReviewStatus: z.literal('unreviewed'),
+  })
+  .strict()
+  .superRefine((identity, context) => {
+    const normalizedTerms = [identity.normalizedName, ...identity.aliases].map((term) =>
+      term.normalize('NFKC').toLocaleLowerCase('en-US'),
+    );
+    if (new Set(normalizedTerms).size !== normalizedTerms.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['aliases'],
+        message: 'Supplement identity names and aliases must be unique.',
+      });
+    }
+    const identifierKeys = identity.identifiers.map(
+      (identifier) => `${identifier.system}:${identifier.value}`,
+    );
+    if (new Set(identifierKeys).size !== identifierKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['identifiers'],
+        message: 'Supplement identifiers must be unique by system and value.',
+      });
+    }
+  });
+export type SupplementIdentityDefinition = z.infer<typeof SupplementIdentityDefinitionSchema>;
+
 export const FormularyDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -625,6 +723,7 @@ export const TreatmentOptionSchema = z
     contentVersion: ContentVersionSchema,
     id: StableIdSchema,
     label: z.string().min(1),
+    searchAliases: z.array(z.string().min(1).max(180)).default([]),
     kind: z.enum(['nonmedication', 'disposition']),
     category: z.enum([
       'psychotherapy',
@@ -805,14 +904,65 @@ export const ReactionManifestationDefinitionSchema = z
   .strict();
 export type ReactionManifestationDefinition = z.infer<typeof ReactionManifestationDefinitionSchema>;
 
+export const MedicationReactionSelectionPolicySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    recordedAs: z
+      .array(z.enum(['allergy', 'intolerance', 'adverse_reaction', 'unspecified']))
+      .min(1),
+    reportedSeverities: z.array(z.enum(['mild', 'moderate', 'severe', 'unknown'])).min(1),
+    pointDelta: z.number().int().max(-1),
+    classification: z.enum(['weak', 'harmful']),
+    safetyCritical: z.boolean(),
+    carePointCap: z.number().int().nullable(),
+    concernLevel: ClinicalConcernLevelSchema,
+    certaintyLevel: ClinicalCertaintyLevelSchema,
+    explanation: z.string().min(1).max(800),
+    developerOpinionId: StableIdSchema,
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type MedicationReactionSelectionPolicy = z.infer<
+  typeof MedicationReactionSelectionPolicySchema
+>;
+
 export const ReactionConceptCatalogSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     contentVersion: ContentVersionSchema,
     nonMedicationTriggers: z.array(NonMedicationReactionTriggerDefinitionSchema),
     manifestations: z.array(ReactionManifestationDefinitionSchema),
+    medicationSelectionPolicies: z.array(MedicationReactionSelectionPolicySchema).default([]),
   })
-  .strict();
+  .strict()
+  .superRefine((catalog, context) => {
+    const ids = catalog.medicationSelectionPolicies.map((policy) => policy.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['medicationSelectionPolicies'],
+        message: 'Medication-reaction selection policy IDs must be unique.',
+      });
+    }
+    const coveredPairs = new Set<string>();
+    catalog.medicationSelectionPolicies.forEach((policy, policyIndex) => {
+      for (const recordedAs of policy.recordedAs) {
+        for (const severity of policy.reportedSeverities) {
+          const key = `${recordedAs}:${severity}`;
+          if (coveredPairs.has(key)) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['medicationSelectionPolicies', policyIndex],
+              message: `Medication-reaction policies overlap for ${key}.`,
+            });
+          }
+          coveredPairs.add(key);
+        }
+      }
+    });
+  });
 export type ReactionConceptCatalog = z.infer<typeof ReactionConceptCatalogSchema>;
 
 export const CatalogBundleSchema = z
@@ -841,6 +991,7 @@ export type CatalogBundle = z.infer<typeof CatalogBundleSchema>;
 export const PublicClinicalCatalogCategoryIdSchema = z.enum([
   'conditions',
   'medications',
+  'supplements',
   'interventions',
   'dispositions',
   'investigations',
@@ -864,6 +1015,7 @@ export const PublicClinicalCatalogConditionEntrySchema =
     kind: z.literal('condition'),
     categoryId: z.literal('conditions'),
     description: z.string().min(1).max(600),
+    aliases: z.array(z.string().min(1).max(180)).default([]),
     severityLevels: z.array(
       z
         .object({
@@ -890,6 +1042,45 @@ export const PublicClinicalCatalogMedicationEntrySchema =
     classes: z.array(z.string().min(1).max(180)),
   }).strict();
 
+export const PublicClinicalCatalogSupplementEntrySchema =
+  PublicClinicalCatalogEntryBaseSchema.extend({
+    kind: z.literal('supplement'),
+    categoryId: z.literal('supplements'),
+    normalizedName: z.string().min(1).max(180),
+    aliases: z.array(z.string().min(1).max(180)),
+    identityCategory: z.enum([
+      'botanical',
+      'mineral',
+      'vitamin',
+      'amino_acid_derivative',
+      'fatty_acid',
+      'other',
+    ]),
+    preparation: z.enum([
+      'whole_botanical',
+      'extract',
+      'essential_oil',
+      'element',
+      'compound',
+      'mixed_product',
+    ]),
+    identifiers: z.array(
+      z
+        .object({
+          system: z.enum(['mesh', 'rxnorm', 'unii', 'cas']),
+          value: z.string().min(1).max(80),
+          relationship: z.enum(['exact', 'broader_botanical', 'preparation_specific']),
+          sourceRelease: z.string().min(1).max(80),
+        })
+        .strict(),
+    ),
+    identityScopeNote: z.string().min(1).max(600),
+    identityAttribution: z.string().min(1).max(800),
+  }).strict();
+export type PublicClinicalCatalogSupplementEntry = z.infer<
+  typeof PublicClinicalCatalogSupplementEntrySchema
+>;
+
 export const PublicClinicalCatalogTreatmentEntrySchema =
   PublicClinicalCatalogEntryBaseSchema.extend({
     kind: z.enum(['intervention', 'disposition']),
@@ -902,6 +1093,7 @@ export const PublicClinicalCatalogTreatmentEntrySchema =
       'sleep',
       'disposition',
     ]),
+    aliases: z.array(z.string().min(1).max(180)).default([]),
     requiredCapabilityCount: z.number().int().nonnegative(),
   })
     .strict()
@@ -923,6 +1115,7 @@ export const PublicClinicalCatalogInvestigationEntrySchema =
     kind: z.literal('investigation'),
     categoryId: z.literal('investigations'),
     description: z.string().min(1).max(600),
+    aliases: z.array(z.string().min(1).max(180)).default([]),
     investigationCategory: z.enum(['history', 'physical', 'labs', 'imaging']),
     soapSection: z.enum(['subjective', 'objective']),
     resultSource: z.enum([
@@ -1002,6 +1195,7 @@ export const PublicClinicalCatalogReferenceEntrySchema =
 export const PublicClinicalCatalogEntrySchema = z.union([
   PublicClinicalCatalogConditionEntrySchema,
   PublicClinicalCatalogMedicationEntrySchema,
+  PublicClinicalCatalogSupplementEntrySchema,
   PublicClinicalCatalogTreatmentEntrySchema,
   PublicClinicalCatalogInvestigationEntrySchema,
   PublicClinicalCatalogTestEntrySchema,
@@ -1230,6 +1424,76 @@ export const DiagnosisClassificationTermsSchema = z
   .strict();
 export type DiagnosisClassificationTerms = z.infer<typeof DiagnosisClassificationTermsSchema>;
 
+export const DeveloperDiagnosisClassificationSourceUseSchema = z
+  .object({
+    id: StableIdSchema,
+    evidenceSourceId: StableIdSchema,
+    decisionStatus: z.literal('permitted_with_conditions'),
+    legalBasis: z.literal('fair_use'),
+    permissions: SourceUsePermissionsSchema,
+    territories: z.array(z.string().min(1).max(160)).min(1),
+    attributionStatement: z.string().min(1).max(1200),
+    requiredNotices: z.array(z.string().min(1).max(1200)).min(1),
+    nonCommercialOnly: z.literal(true),
+    reviewedAt: z.string().datetime(),
+  })
+  .strict()
+  .superRefine((sourceUse, context) => {
+    if (
+      !sourceUse.permissions.bibliographicMetadata ||
+      !sourceUse.permissions.localFullTextStorage ||
+      !sourceUse.permissions.localTextExtraction ||
+      !sourceUse.permissions.localStructuredIndexing ||
+      sourceUse.permissions.aiAssistedProcessing ||
+      sourceUse.permissions.derivedClinicalContent ||
+      sourceUse.permissions.runtimeRedistribution ||
+      sourceUse.permissions.commercialDistribution
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['permissions'],
+        message:
+          'The local classification inspector requires indexing permission and forbids AI, derived-clinical, runtime, and commercial use.',
+      });
+    }
+  });
+export type DeveloperDiagnosisClassificationSourceUse = z.infer<
+  typeof DeveloperDiagnosisClassificationSourceUseSchema
+>;
+
+export const DeveloperDiagnosisClassificationProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    projectionVersion: z.literal(1),
+    release: DiagnosisClassificationReleaseSchema,
+    catalog: DiagnosisClassificationTermsSchema,
+    sourceUse: DeveloperDiagnosisClassificationSourceUseSchema,
+    warnings: z.array(z.string().min(1).max(600)).min(1),
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    if (
+      projection.release.id !== projection.catalog.releaseId ||
+      projection.release.termCount !== projection.catalog.terms.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['catalog'],
+        message: 'The Developer classification catalog must match its release and term count.',
+      });
+    }
+    if (projection.release.evidenceSourceId !== projection.sourceUse.evidenceSourceId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceUse', 'evidenceSourceId'],
+        message: 'The classification release and source-use decision must name the same source.',
+      });
+    }
+  });
+export type DeveloperDiagnosisClassificationProjection = z.infer<
+  typeof DeveloperDiagnosisClassificationProjectionSchema
+>;
+
 export const ContentRegistryEntrySchema = z
   .object({
     id: StableIdSchema,
@@ -1249,7 +1513,11 @@ export const ContentRegistryEntrySchema = z
       'diagnosis_catalog',
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
+      'supplement_identity_catalog',
       'personal_knowledge_pilot_profile',
+      'personal_knowledge_alias_catalog',
+      'personal_knowledge_source_catalog',
+      'developer_opinion_catalog',
       'source_use_decision_catalog',
       'source_request_catalog',
       'ticket_literature_scout_catalog',
@@ -1281,6 +1549,7 @@ export type ContentRegistry = z.infer<typeof ContentRegistrySchema>;
 export type ScorePredicate =
   | { type: 'actionPurchased'; actionId: string }
   | { type: 'factKnown'; factId: string }
+  | { type: 'anyMedicationStarted' }
   | { type: 'treatmentStarted'; medicationId: string }
   | {
       type: 'treatmentStartedWithTag';
@@ -1301,6 +1570,7 @@ export const ScorePredicateSchema: z.ZodType<ScorePredicate> = z.lazy(() =>
   z.discriminatedUnion('type', [
     z.object({ type: z.literal('actionPurchased'), actionId: StableIdSchema }).strict(),
     z.object({ type: z.literal('factKnown'), factId: StableIdSchema }).strict(),
+    z.object({ type: z.literal('anyMedicationStarted') }).strict(),
     z.object({ type: z.literal('treatmentStarted'), medicationId: StableIdSchema }).strict(),
     z
       .object({
@@ -1393,6 +1663,7 @@ export const PatientContextPredicateSchema: z.ZodType<PatientContextPredicate> =
 );
 
 export type DiagnosisSelectionPredicate =
+  | { type: 'anyMedicationStarted' }
   | { type: 'treatmentStarted'; medicationId: string }
   | {
       type: 'treatmentStartedWithTag';
@@ -1415,6 +1686,7 @@ export type DiagnosisSelectionPredicate =
 export const DiagnosisSelectionPredicateSchema: z.ZodType<DiagnosisSelectionPredicate> = z.lazy(
   () =>
     z.discriminatedUnion('type', [
+      z.object({ type: z.literal('anyMedicationStarted') }).strict(),
       z.object({ type: z.literal('treatmentStarted'), medicationId: StableIdSchema }).strict(),
       z
         .object({
@@ -1505,6 +1777,8 @@ export const DiagnosisRecommendationRuleSchema = z
     ]),
     target: DiagnosisRuleTargetSchema,
     stance: RecommendationStanceSchema,
+    concernLevel: ClinicalConcernLevelSchema.default('moderate'),
+    certaintyLevel: ClinicalCertaintyLevelSchema.default('tentative'),
     patientWhen: PatientContextPredicateSchema.nullable(),
     selectionWhen: DiagnosisSelectionPredicateSchema.nullable(),
     rationale: z.string().min(1).max(1200),
@@ -1647,6 +1921,8 @@ export const DiagnosisDefinitionSchema = z
     contentVersion: ContentVersionSchema,
     id: StableIdSchema,
     label: z.string().min(1).max(180),
+    searchAliases: z.array(z.string().min(1).max(180)).default([]),
+    selectableInGameplay: z.boolean().default(false),
     description: z.string().min(1).max(600),
     medicalReviewStatus: MedicalReviewStatusSchema,
     baseClinicalTagIds: z.array(StableIdSchema),
@@ -1835,11 +2111,29 @@ export const FindingBlueprintSchema = z
     groupLabel: z.string().min(1).max(80).optional(),
     labelVariants: z.array(z.string().min(1).max(80)).min(1).max(12),
     outcome: z.union([FindingOutcomeSchema, z.literal('variable')]),
+    outcomeDisplay: z.enum(['status', 'value_only']).optional(),
     valueTextVariants: z.array(z.string().min(1).max(120)).max(12).optional(),
     durationProfile: ClinicalDurationProfileSchema.optional(),
   })
   .strict()
   .superRefine((finding, context) => {
+    if (
+      finding.outcomeDisplay === 'value_only' &&
+      !['present', 'normal'].includes(finding.outcome)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['outcomeDisplay'],
+        message: 'Value-only findings may use only present or normal outcomes.',
+      });
+    }
+    if (finding.outcomeDisplay === 'value_only' && !finding.valueTextVariants?.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['valueTextVariants'],
+        message: 'A value-only finding requires visible value text.',
+      });
+    }
     if (!finding.durationProfile) return;
     if (finding.outcome !== 'present') {
       context.addIssue({
@@ -1968,6 +2262,7 @@ export const ResolvedFindingSchema = z
     groupLabel: z.string().min(1).max(80).optional(),
     label: z.string().min(1).max(120),
     outcome: FindingOutcomeSchema,
+    outcomeDisplay: z.enum(['status', 'value_only']).optional(),
     valueText: z.string().min(1).max(240).optional(),
     numericMeasurement: ResolvedNumericMeasurementSchema.optional(),
     durationMeasurement: z
@@ -1988,7 +2283,26 @@ export const ResolvedFindingSchema = z
       .optional(),
     origin: z.enum(['authored', 'generated_normal', 'generated_incidental']),
   })
-  .strict();
+  .strict()
+  .superRefine((finding, context) => {
+    if (
+      finding.outcomeDisplay === 'value_only' &&
+      !['present', 'normal'].includes(finding.outcome)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['outcomeDisplay'],
+        message: 'Value-only resolved findings may use only present or normal outcomes.',
+      });
+    }
+    if (finding.outcomeDisplay === 'value_only' && !finding.valueText) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['valueText'],
+        message: 'A value-only resolved finding requires visible value text.',
+      });
+    }
+  });
 export type ResolvedFinding = z.infer<typeof ResolvedFindingSchema>;
 
 export const InformationResultSchema = z
@@ -2016,6 +2330,7 @@ export const InformationActionDefinitionSchema = z
   .object({
     id: StableIdSchema,
     label: z.string().min(1),
+    searchAliases: z.array(z.string().min(1).max(180)).default([]),
     category: InformationActionCategorySchema,
     soapSection: z.enum(['subjective', 'objective']),
     resultSource: z.enum([
@@ -2079,6 +2394,277 @@ export const TreatmentSelectionSchema = z
   .strict();
 export type TreatmentSelection = z.infer<typeof TreatmentSelectionSchema>;
 
+/**
+ * The diagnosis a player locks in is an answer, not patient truth and not a
+ * treatment. Keeping this value separate prevents a submitted label from
+ * changing treatment-fit, workup, or safety evaluation.
+ */
+export const PlayerDiagnosisSelectionSchema = z
+  .object({
+    diagnosisId: StableIdSchema,
+    severityId: StableIdSchema.nullable().default(null),
+    specifierIds: z.array(StableIdSchema).default([]),
+  })
+  .strict()
+  .superRefine((selection, context) => {
+    if (new Set(selection.specifierIds).size !== selection.specifierIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['specifierIds'],
+        message: 'A diagnosis selection cannot repeat a specifier.',
+      });
+    }
+  });
+export type PlayerDiagnosisSelection = z.infer<typeof PlayerDiagnosisSelectionSchema>;
+
+export const PlayerDiagnosisSelectionsSchema = z
+  .array(PlayerDiagnosisSelectionSchema)
+  .superRefine((selections, context) => {
+    const seen = new Set<string>();
+    selections.forEach((selection, index) => {
+      if (seen.has(selection.diagnosisId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [index, 'diagnosisId'],
+          message: 'A final answer can contain a diagnosis family only once.',
+        });
+      }
+      seen.add(selection.diagnosisId);
+    });
+  });
+export type PlayerDiagnosisSelections = z.infer<typeof PlayerDiagnosisSelectionsSchema>;
+
+export const DiagnosisSelectionMatchSchema = z
+  .object({
+    diagnosisId: StableIdSchema,
+    qualifierMode: z.enum(['family', 'contains_qualifiers', 'exact']).default('family'),
+    severityId: StableIdSchema.nullable().default(null),
+    specifierIds: z.array(StableIdSchema).default([]),
+  })
+  .strict()
+  .superRefine((match, context) => {
+    if (new Set(match.specifierIds).size !== match.specifierIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['specifierIds'],
+        message: 'A diagnosis-match pattern cannot repeat a specifier.',
+      });
+    }
+    if (
+      match.qualifierMode === 'family' &&
+      (match.severityId !== null || match.specifierIds.length > 0)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A family-level diagnosis match cannot declare qualifiers.',
+      });
+    }
+    if (
+      match.qualifierMode === 'contains_qualifiers' &&
+      match.severityId === null &&
+      match.specifierIds.length === 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A qualifier match must declare a severity or at least one specifier.',
+      });
+    }
+  });
+export type DiagnosisSelectionMatch = z.infer<typeof DiagnosisSelectionMatchSchema>;
+
+const diagnosisSelectionMatchesPattern = (
+  selection: z.infer<typeof PlayerDiagnosisSelectionSchema>,
+  match: z.infer<typeof DiagnosisSelectionMatchSchema>,
+): boolean => {
+  if (selection.diagnosisId !== match.diagnosisId) return false;
+  if (match.qualifierMode === 'family') return true;
+  const hasMatchingQualifiers =
+    (match.severityId === null || selection.severityId === match.severityId) &&
+    match.specifierIds.every((specifierId) => selection.specifierIds.includes(specifierId));
+  if (match.qualifierMode === 'contains_qualifiers') return hasMatchingQualifiers;
+  return (
+    selection.severityId === match.severityId &&
+    selection.specifierIds.length === match.specifierIds.length &&
+    hasMatchingQualifiers
+  );
+};
+
+export const DiagnosisAnswerOptionSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    match: DiagnosisSelectionMatchSchema,
+    specificityPriority: z.number().int().nonnegative(),
+    grade: z.enum(['canonical', 'reasonable_alternative', 'partial']),
+    points: z.number().int().nonnegative(),
+    issueId: StableIdSchema,
+    explanation: z.string().min(1).max(800),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type DiagnosisAnswerOption = z.infer<typeof DiagnosisAnswerOptionSchema>;
+
+export const DiagnosisAnswerGroupSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    canonicalSelection: PlayerDiagnosisSelectionSchema,
+    options: z.array(DiagnosisAnswerOptionSchema).min(1),
+    omission: z
+      .object({
+        id: StableIdSchema,
+        label: z.string().min(1).max(180),
+        points: z.number().int().max(0),
+        issueId: StableIdSchema,
+        explanation: z.string().min(1).max(800),
+        review: UnreviewedClinicalRuleSchema,
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((group, context) => {
+    const optionIds = group.options.map((option) => option.id);
+    if (new Set(optionIds).size !== optionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['options'],
+        message: 'Diagnosis-answer option IDs must be unique within a group.',
+      });
+    }
+    const canonicalOptions = group.options.filter((option) => option.grade === 'canonical');
+    if (canonicalOptions.length !== 1) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['options'],
+        message: 'A diagnosis-answer group requires exactly one canonical option.',
+      });
+    }
+    if (
+      canonicalOptions[0] &&
+      !diagnosisSelectionMatchesPattern(group.canonicalSelection, canonicalOptions[0].match)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['canonicalSelection'],
+        message: 'The canonical selection must actually match the canonical answer option.',
+      });
+    }
+  });
+export type DiagnosisAnswerGroup = z.infer<typeof DiagnosisAnswerGroupSchema>;
+
+export const DiagnosisMisclassificationRuleSchema = z
+  .object({
+    id: StableIdSchema,
+    label: z.string().min(1).max(180),
+    match: DiagnosisSelectionMatchSchema,
+    specificityPriority: z.number().int().nonnegative(),
+    severity: z.enum(['minor', 'major', 'dangerous']),
+    points: z.number().int().max(0),
+    carePointCap: z.number().int().nullable().default(null),
+    issueId: StableIdSchema,
+    explanation: z.string().min(1).max(800),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type DiagnosisMisclassificationRule = z.infer<typeof DiagnosisMisclassificationRuleSchema>;
+
+export const CaseDiagnosisRubricSchema = z
+  .object({
+    groups: z.array(DiagnosisAnswerGroupSchema).min(1),
+    misclassificationRules: z.array(DiagnosisMisclassificationRuleSchema).default([]),
+    additionalSelectionPolicy: z
+      .object({
+        id: StableIdSchema,
+        label: z.string().min(1).max(180),
+        pointsPerSelection: z.number().int().max(0),
+        maximumDeduction: z.number().int().nonnegative(),
+        explanation: z.string().min(1).max(800),
+        review: UnreviewedClinicalRuleSchema,
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((rubric, context) => {
+    const groupIds = rubric.groups.map((group) => group.id);
+    if (new Set(groupIds).size !== groupIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['groups'],
+        message: 'Diagnosis-answer group IDs must be unique.',
+      });
+    }
+    const ruleIds = [
+      ...rubric.groups.flatMap((group) => [
+        ...group.options.map((option) => option.id),
+        group.omission.id,
+      ]),
+      ...rubric.misclassificationRules.map((rule) => rule.id),
+      rubric.additionalSelectionPolicy.id,
+    ];
+    if (new Set(ruleIds).size !== ruleIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Every diagnosis-answer rule ID must be unique within a case.',
+      });
+    }
+
+    const acceptedDiagnosisOwners = new Map<string, string>();
+    rubric.groups.forEach((group, groupIndex) => {
+      group.options.forEach((option, optionIndex) => {
+        const owner = acceptedDiagnosisOwners.get(option.match.diagnosisId);
+        if (owner && owner !== group.id) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['groups', groupIndex, 'options', optionIndex, 'match', 'diagnosisId'],
+            message:
+              'One diagnosis family cannot satisfy multiple answer groups in the first rubric version.',
+          });
+        }
+        acceptedDiagnosisOwners.set(option.match.diagnosisId, group.id);
+      });
+    });
+
+    const priorityByDiagnosis = new Map<string, Set<number>>();
+    const prioritized = [
+      ...rubric.groups.flatMap((group) => group.options),
+      ...rubric.misclassificationRules,
+    ];
+    prioritized.forEach((rule, index) => {
+      const priorities = priorityByDiagnosis.get(rule.match.diagnosisId) ?? new Set<number>();
+      if (priorities.has(rule.specificityPriority)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['misclassificationRules', index],
+          message:
+            'Overlapping diagnosis-answer rules for one family require distinct explicit specificity priorities.',
+        });
+      }
+      priorities.add(rule.specificityPriority);
+      priorityByDiagnosis.set(rule.match.diagnosisId, priorities);
+    });
+
+    for (const [groupIndex, group] of rubric.groups.entries()) {
+      const canonicalOption = group.options.find((option) => option.grade === 'canonical');
+      if (!canonicalOption) continue;
+      const shadowingRule = [
+        ...group.options.filter((option) => option.id !== canonicalOption.id),
+        ...rubric.misclassificationRules,
+      ].find(
+        (rule) =>
+          diagnosisSelectionMatchesPattern(group.canonicalSelection, rule.match) &&
+          rule.specificityPriority > canonicalOption.specificityPriority,
+      );
+      if (shadowingRule) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['groups', groupIndex, 'canonicalSelection'],
+          message: `The canonical answer is unreachable because ${shadowingRule.id} has a higher matching specificity priority.`,
+        });
+      }
+    }
+  });
+export type CaseDiagnosisRubric = z.infer<typeof CaseDiagnosisRubricSchema>;
+
 export const AvailableTreatmentsSchema = z
   .object({
     startMedicationIds: z.array(StableIdSchema),
@@ -2115,6 +2701,24 @@ export const ConditionalRequirementSchema = z
   })
   .strict();
 
+export const TreatmentWorkupRequirementSchema = z
+  .object({
+    id: StableIdSchema,
+    sourceRuleIds: z.array(StableIdSchema).min(1),
+    objectiveId: StableIdSchema,
+    appliesWhen: DiagnosisSelectionPredicateSchema,
+    pointsIfMet: z.number().int(),
+    pointsIfMissing: z.number().int().max(0),
+    safetyCritical: z.boolean(),
+    concernLevel: ClinicalConcernLevelSchema,
+    certaintyLevel: ClinicalCertaintyLevelSchema,
+    explanationMet: z.string().min(1),
+    explanationMissing: z.string().min(1),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict();
+export type TreatmentWorkupRequirement = z.infer<typeof TreatmentWorkupRequirementSchema>;
+
 export const TreatmentPathwaySchema = z
   .object({
     id: StableIdSchema,
@@ -2133,6 +2737,7 @@ export const TreatmentPathwaySchema = z
 export type TreatmentPathway = z.infer<typeof TreatmentPathwaySchema>;
 
 export const ScoreComponentSchema = z.enum([
+  'diagnosis',
   'workup',
   'medication_selection',
   'medication_discontinuation',
@@ -2143,7 +2748,46 @@ export const ScoreComponentSchema = z.enum([
 ]);
 export type ScoreComponent = z.infer<typeof ScoreComponentSchema>;
 
+export const NonDiagnosisScoreComponentSchema = z.enum([
+  'workup',
+  'medication_selection',
+  'medication_discontinuation',
+  'safety',
+  'nonmedication',
+  'disposition',
+  'efficiency',
+]);
+
 export const TraceClassificationSchema = z.enum([
+  'diagnosis_canonical',
+  'diagnosis_reasonable_alternative',
+  'diagnosis_partial',
+  'diagnosis_omitted',
+  'diagnosis_minor_mismatch',
+  'diagnosis_major_mismatch',
+  'diagnosis_dangerous_misclassification',
+  'diagnosis_additional_selection',
+  'essential_obtained',
+  'high_yield_obtained',
+  'appropriate_for_selected_treatment',
+  'defensible_not_necessary',
+  'low_value',
+  'critical_omission',
+  'optimal_treatment',
+  'strong_alternative',
+  'acceptable',
+  'weak',
+  'ineffective',
+  'harmful',
+  'safe',
+  'dangerous_combination',
+  'contributing_medication_stopped',
+  'contributing_medication_not_stopped',
+  'disposition',
+  'nonmedication',
+]);
+
+export const NonDiagnosisTraceClassificationSchema = z.enum([
   'essential_obtained',
   'high_yield_obtained',
   'appropriate_for_selected_treatment',
@@ -2168,12 +2812,12 @@ export const ScoreRuleSchema = z
   .object({
     id: StableIdSchema,
     label: z.string().min(1),
-    component: ScoreComponentSchema,
+    component: NonDiagnosisScoreComponentSchema,
     predicate: ScorePredicateSchema,
     pointsIfTrue: z.number(),
     pointsIfFalse: z.number(),
-    classificationIfTrue: TraceClassificationSchema,
-    classificationIfFalse: TraceClassificationSchema,
+    classificationIfTrue: NonDiagnosisTraceClassificationSchema,
+    classificationIfFalse: NonDiagnosisTraceClassificationSchema,
     explanationIfTrue: z.string().min(1),
     explanationIfFalse: z.string().min(1),
     safetyErrorIfTrue: z.string().min(1).optional(),
@@ -2187,7 +2831,18 @@ export type ScoreRule = z.infer<typeof ScoreRuleSchema>;
 
 export const ScoreConfigurationSchema = z
   .object({
-    componentPointCaps: z.record(ScoreComponentSchema, z.number().int().nullable()),
+    componentPointCaps: z
+      .object({
+        diagnosis: z.number().int().nullable().default(null),
+        workup: z.number().int().nullable(),
+        medication_selection: z.number().int().nullable(),
+        medication_discontinuation: z.number().int().nullable(),
+        safety: z.number().int().nullable(),
+        nonmedication: z.number().int().nullable(),
+        disposition: z.number().int().nullable(),
+        efficiency: z.number().int().nullable(),
+      })
+      .strict(),
     databasePlanWorkupCost: z.number().int().nonnegative(),
     databasePlanCarePoints: z.number().int(),
   })
@@ -2208,6 +2863,7 @@ export const ReferenceSolutionSchema = z
     label: z.string().min(1),
     kind: z.enum(['database_plan', 'strong_alternative', 'shotgun', 'unsafe']),
     actionIds: z.array(StableIdSchema),
+    diagnosisSelections: PlayerDiagnosisSelectionsSchema.default([]),
     selections: TreatmentSelectionSchema,
     explanation: z.string().min(1),
   })
@@ -2242,6 +2898,7 @@ export const PatientDiagnosisSchema = z
     tagIds: z.array(StableIdSchema),
     severityId: StableIdSchema.nullable().default(null),
     specifierIds: z.array(StableIdSchema).default([]),
+    origin: z.enum(['authored', 'generated_optional', 'derived_incidental']).default('authored'),
   })
   .strict();
 
@@ -2574,11 +3231,121 @@ export const MedicationRegimenEntrySchema = z
   .strict();
 export type MedicationRegimenEntry = z.infer<typeof MedicationRegimenEntrySchema>;
 
+export const ResolvedPatientDemographicsV2Schema = z
+  .object({
+    recordVersion: z.literal(2),
+    ageYears: z.number().int().min(0).max(120),
+    reviewedAgeBandId: StableIdSchema,
+    sexForReference: z.enum(['female', 'male', 'intersex', 'unspecified']),
+  })
+  .strict();
+export type ResolvedPatientDemographicsV2 = z.infer<typeof ResolvedPatientDemographicsV2Schema>;
+
+export const MedicationRegimenEntryV2Schema = z
+  .object({
+    recordVersion: z.literal(2),
+    id: StableIdSchema,
+    medicationIdentityId: StableIdSchema,
+    clinicalRole: z.enum(['psychiatric', 'nonpsychiatric', 'unknown']),
+    status: z.enum(['active', 'prescribed_not_taking', 'self_discontinued']),
+    adherence: z.enum(['consistent', 'intermittent', 'not_taking', 'unknown']),
+    prescribedForDiagnosisId: StableIdSchema.nullable(),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    knownAtOpening: z.boolean(),
+    impactClassification: z.enum([
+      'neutral_background',
+      'fit_relevant',
+      'companion_safety',
+      'case_defining',
+    ]),
+  })
+  .strict();
+export type MedicationRegimenEntryV2 = z.infer<typeof MedicationRegimenEntryV2Schema>;
+
+export const SupplementUseEntrySchema = z
+  .object({
+    recordVersion: z.literal(2),
+    id: StableIdSchema,
+    supplementIdentityId: StableIdSchema,
+    status: z.enum(['current', 'intermittent', 'recently_stopped']),
+    reportedPreparation: z.string().min(1).max(120).nullable(),
+    frequencyLabel: z.string().min(1).max(120).nullable(),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    knownAtOpening: z.boolean(),
+    impactClassification: z.enum([
+      'neutral_background',
+      'fit_relevant',
+      'companion_safety',
+      'case_defining',
+    ]),
+  })
+  .strict();
+export type SupplementUseEntry = z.infer<typeof SupplementUseEntrySchema>;
+
+export const PatientBackgroundExposureResolutionV2Schema = z
+  .object({
+    recordVersion: z.literal(2),
+    generationProfileId: StableIdSchema,
+    reviewedAgeBandId: StableIdSchema,
+    supplementPattern: z.enum(['typical', 'enthusiast']),
+    medicationRegimenEntries: z.array(MedicationRegimenEntryV2Schema),
+    supplementUseEntries: z.array(SupplementUseEntrySchema),
+  })
+  .strict()
+  .superRefine((resolution, context) => {
+    const entryIds = [
+      ...resolution.medicationRegimenEntries.map((entry) => entry.id),
+      ...resolution.supplementUseEntries.map((entry) => entry.id),
+    ];
+    if (new Set(entryIds).size !== entryIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Resolved background medication and supplement entry IDs must be unique.',
+      });
+    }
+    if (
+      resolution.supplementPattern === 'enthusiast' &&
+      new Set(resolution.supplementUseEntries.map((entry) => entry.supplementIdentityId)).size < 2
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['supplementPattern'],
+        message:
+          'The enthusiast pattern must be derived from multiple distinct resolved supplements.',
+      });
+    }
+  });
+export type PatientBackgroundExposureResolutionV2 = z.infer<
+  typeof PatientBackgroundExposureResolutionV2Schema
+>;
+
+export const MedicationTrialExposureSchema = z
+  .object({
+    duration: z
+      .object({
+        value: z.number().int().positive(),
+        unit: ClinicalDurationUnitSchema,
+      })
+      .strict()
+      .nullable(),
+    maximumDose: z
+      .object({
+        amount: z.number().positive(),
+        unit: z.string().min(1).max(24),
+        frequency: z.string().min(1).max(48),
+      })
+      .strict()
+      .nullable(),
+  })
+  .strict();
+export type MedicationTrialExposure = z.infer<typeof MedicationTrialExposureSchema>;
+
 export const MedicationTrialRecordSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     id: StableIdSchema,
     medicationId: StableIdSchema,
+    exposure: MedicationTrialExposureSchema.optional(),
     adequacy: z.enum(['adequate', 'inadequate', 'unclear']),
     adherence: z.enum(['consistent', 'inconsistent', 'unknown']),
     response: z.enum(['remission', 'partial', 'none', 'worsened', 'unknown']),
@@ -2588,6 +3355,56 @@ export const MedicationTrialRecordSchema = z
   })
   .strict();
 export type MedicationTrialRecord = z.infer<typeof MedicationTrialRecordSchema>;
+
+/**
+ * Planned medication-specific tolerability fact. Sexual effects live here,
+ * not in allergy history, and remain unknown until actually assessed or
+ * generated from a separately reviewed source-rate profile.
+ */
+export const MedicationTolerabilityFindingV2Schema = z
+  .object({
+    recordVersion: z.literal(2),
+    id: StableIdSchema,
+    subject: z.discriminatedUnion('kind', [
+      z
+        .object({
+          kind: z.literal('current_regimen_entry'),
+          regimenEntryId: StableIdSchema,
+        })
+        .strict(),
+      z
+        .object({
+          kind: z.literal('prior_trial'),
+          medicationTrialId: StableIdSchema,
+        })
+        .strict(),
+    ]),
+    domain: z.enum([
+      'sexual_function',
+      'sleep',
+      'appetite_weight',
+      'activation',
+      'sedation',
+      'gastrointestinal',
+      'movement',
+      'other',
+    ]),
+    findingStatus: z.enum(['unknown', 'absent', 'present']),
+    manifestationIds: z.array(StableIdSchema).max(12),
+    source: z.enum(['patient_report', 'collateral', 'outside_record', 'prescriber_record']),
+    sourceRateProfileId: StableIdSchema.nullable(),
+  })
+  .strict()
+  .superRefine((finding, context) => {
+    if ((finding.findingStatus === 'present') !== finding.manifestationIds.length > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['manifestationIds'],
+        message: 'Only a present tolerability finding may contain manifestations.',
+      });
+    }
+  });
+export type MedicationTolerabilityFindingV2 = z.infer<typeof MedicationTolerabilityFindingV2Schema>;
 
 export const PsychotherapyTrialRecordSchema = z
   .object({
@@ -2711,8 +3528,10 @@ export type PatientRecord = z.infer<typeof PatientRecordSchema>;
 const CaseCoreSchema = z.object({
   metadata: CaseMetadataSchema,
   patientRecord: PatientRecordSchema,
+  diagnosisRubric: CaseDiagnosisRubricSchema.nullable().default(null),
   criticalFacts: z.record(z.union([z.string(), z.number(), z.boolean()])),
   workupObjectives: z.array(WorkupObjectiveSchema).min(1),
+  treatmentWorkupRequirements: z.array(TreatmentWorkupRequirementSchema).default([]),
   availableTreatments: AvailableTreatmentsSchema,
   treatmentGrades: z.array(TreatmentGradeDefinitionSchema).min(1),
   treatmentPathways: z.array(TreatmentPathwaySchema).min(1),
@@ -2767,6 +3586,7 @@ export const ReviewDecisionPolicySchema = z
     contentVersion: ContentVersionSchema,
     id: StableIdSchema,
     label: z.string().min(1).max(180),
+    diagnosisRubric: CaseDiagnosisRubricSchema.nullable().default(null),
     workupObjectives: z.array(WorkupObjectiveSchema).min(1),
     availableTreatments: AvailableTreatmentsSchema,
     treatmentGrades: z.array(TreatmentGradeDefinitionSchema).min(1),
@@ -2935,6 +3755,13 @@ export const EncounterEventSchema = z.discriminatedUnion('type', [
       selections: TreatmentSelectionSchema,
     })
     .strict(),
+  z
+    .object({
+      id: StableIdSchema,
+      type: z.literal('DiagnosisSelectionsChanged'),
+      selections: PlayerDiagnosisSelectionsSchema,
+    })
+    .strict(),
   z.object({ id: StableIdSchema, type: z.literal('EncounterSubmitted') }).strict(),
   z
     .object({
@@ -2959,6 +3786,7 @@ export const EncounterStateSchema = z
     locationId: StableIdSchema,
     purchases: z.array(InformationPurchaseSchema),
     knownFactIds: z.array(StableIdSchema),
+    diagnosisSelections: PlayerDiagnosisSelectionsSchema.default([]),
     selections: TreatmentSelectionSchema,
     expenseTotal: z.number().int().nonnegative(),
     events: z.array(EncounterEventSchema),
@@ -2976,6 +3804,8 @@ export const RuleEvaluationSchema = z
     classification: TraceClassificationSchema,
     explanation: z.string().min(1),
     reviewStatus: MedicalReviewStatusSchema.default('unreviewed'),
+    concernLevel: ClinicalConcernLevelSchema.nullable().optional(),
+    certaintyLevel: ClinicalCertaintyLevelSchema.nullable().optional(),
     evidenceAttributions: z
       .array(
         z
@@ -2990,7 +3820,9 @@ export const RuleEvaluationSchema = z
           .strict(),
       )
       .default([]),
+    issueId: StableIdSchema.nullable().default(null),
     relatedActionIds: z.array(StableIdSchema),
+    relatedDiagnosisIds: z.array(StableIdSchema).default([]),
     relatedTreatmentIds: z.array(StableIdSchema),
   })
   .strict();
@@ -3007,7 +3839,23 @@ export const ClinicalPointReportSchema = z
     treatmentEvaluationNotice: z.string().min(1),
     selectedPathwayId: StableIdSchema.nullable(),
     selectedPathwayLabel: z.string().nullable(),
-    componentPoints: z.record(ScoreComponentSchema, z.number().int()),
+    diagnosisEvaluationSource: z.enum(['case_rubric', 'not_scored']).default('not_scored'),
+    diagnosisEvaluationNotice: z
+      .string()
+      .min(1)
+      .default('This historical encounter did not include a diagnostic-answer rubric.'),
+    componentPoints: z
+      .object({
+        diagnosis: z.number().int().default(0),
+        workup: z.number().int(),
+        medication_selection: z.number().int(),
+        medication_discontinuation: z.number().int(),
+        safety: z.number().int(),
+        nonmedication: z.number().int(),
+        disposition: z.number().int(),
+        efficiency: z.number().int(),
+      })
+      .strict(),
     ruleTrace: z.array(RuleEvaluationSchema),
     safetyErrors: z.array(z.string().min(1)),
     carePointCapApplied: z.number().int().nullable(),
@@ -3022,12 +3870,13 @@ export const ReceiptItemSchema = z
   .object({
     id: StableIdSchema,
     itemName: z.string().min(1),
-    kind: z.enum(['information', 'treatment', 'nonmedication', 'disposition']),
+    kind: z.enum(['diagnosis', 'information', 'treatment', 'nonmedication', 'disposition']),
     fulfillmentMethod: z.string().min(1),
     operatingCost: z.number().int().nonnegative(),
     pointDelta: z.number().int(),
     scoreCategory: z.enum([
       'workup',
+      'diagnosis',
       'base_treatment',
       'patient_fit_modifier',
       'interaction_modifier',
@@ -3041,6 +3890,7 @@ export const ReceiptItemSchema = z
     acceptedPathwayMatch: z.boolean(),
     externalCostAvoided: z.number().int().nonnegative(),
     upgradeSavings: z.number().int().nonnegative().default(0),
+    relatedRuleIds: z.array(StableIdSchema).default([]),
   })
   .strict();
 export type ReceiptItem = z.infer<typeof ReceiptItemSchema>;
@@ -3079,6 +3929,26 @@ export const CaseReceiptSchema = z
   .strict();
 export type CaseReceipt = z.infer<typeof CaseReceiptSchema>;
 
+export const DeveloperEncounterScratchpadSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    caseInstanceId: StableIdSchema,
+    blueprintId: StableIdSchema,
+    caseContentVersion: ContentVersionSchema,
+    seed: z.string().min(1),
+    reviewerNote: z
+      .string()
+      .max(8000)
+      .refine((note) => note.trim().length > 0, {
+        message: 'A persisted encounter scratchpad cannot be blank.',
+      }),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  })
+  .strict();
+export type DeveloperEncounterScratchpad = z.infer<typeof DeveloperEncounterScratchpadSchema>;
+
 export const CompletedAttemptSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -3091,6 +3961,7 @@ export const CompletedAttemptSchema = z
     clinicStateAtStart: ClinicStateSchema,
     events: z.array(EncounterEventSchema),
     purchases: z.array(InformationPurchaseSchema),
+    submittedDiagnoses: PlayerDiagnosisSelectionsSchema.default([]),
     submittedTreatment: TreatmentSelectionSchema,
     receipt: CaseReceiptSchema,
     completedAt: z.string().datetime(),
@@ -3102,6 +3973,7 @@ export const DeveloperAttemptReviewOptionSchema = z
   .object({
     kind: z.enum([
       'information',
+      'diagnosis',
       'start_medication',
       'stop_medication',
       'continue_medication',
@@ -3134,12 +4006,14 @@ export const DeveloperAttemptReviewOptionSchema = z
       });
     }
     if (
-      ['start_medication', 'stop_medication', 'continue_medication'].includes(option.kind) &&
+      ['diagnosis', 'start_medication', 'stop_medication', 'continue_medication'].includes(
+        option.kind,
+      ) &&
       fulfillmentFields.some((value) => value !== null)
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Medication-option snapshots cannot contain service-fulfillment data.',
+        message: 'Diagnosis and medication snapshots cannot contain service-fulfillment data.',
       });
     }
     if (
@@ -3212,6 +4086,10 @@ export const DeveloperAttemptReviewSchema = z
         attempt.purchases.some((purchase) => purchase.actionId === action.actionId),
       );
     }
+    addExpected(
+      'diagnosis',
+      attempt.submittedDiagnoses.map((selection) => selection.diagnosisId),
+    );
     addExpected('start_medication', selections.startMedicationIds);
     addExpected('stop_medication', selections.stopMedicationIds);
     addExpected('continue_medication', selections.continueMedicationIds);
@@ -3226,6 +4104,9 @@ export const DeveloperAttemptReviewSchema = z
       ...available.continueMedicationIds.map((id) => `continue_medication:${id}`),
       ...available.interventionIds.map((id) => `nonmedication:${id}`),
       ...available.dispositionIds.map((id) => `disposition:${id}`),
+      ...review.availableOptions
+        .filter((option) => option.kind === 'diagnosis')
+        .map((option) => `diagnosis:${option.optionId}`),
     ]);
     const seen = new Set<string>();
     for (const [index, option] of review.availableOptions.entries()) {
@@ -3312,6 +4193,7 @@ export const ContentFlagSchema = z
     engineVersion: z.string(),
     attemptId: StableIdSchema,
     eventHistory: z.array(EncounterEventSchema),
+    diagnosisSelections: PlayerDiagnosisSelectionsSchema.default([]),
     treatmentSelections: TreatmentSelectionSchema,
     pointReport: ClinicalPointReportSchema,
     disputedItemId: StableIdSchema.nullable(),
@@ -4096,6 +4978,16 @@ export const ClinicalTicketExportBundleSchema = z
         message: 'Portable Reviewer exports cannot contain private source-review snapshots.',
       });
     }
+    if (
+      bundle.buildKind === 'portable_reviewer' &&
+      bundle.tickets.some((ticket) => ticket.id.startsWith('ticket.database-dossier.'))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['tickets'],
+        message: 'Portable Reviewer exports cannot contain local Developer dossier reviews.',
+      });
+    }
     const completedAttemptsById = new Map(
       bundle.completedAttempts.map((attempt) => [attempt.id, attempt]),
     );
@@ -4830,11 +5722,14 @@ export const DeveloperOpinionSchema = z
   })
   .strict()
   .superRefine((opinion, context) => {
-    if (opinion.originSourceUnitIds.length + opinion.originCandidateIds.length === 0) {
+    if (
+      opinion.originKind === 'private_source' &&
+      opinion.originSourceUnitIds.length + opinion.originCandidateIds.length === 0
+    ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['originCandidateIds'],
-        message: 'A Developer opinion requires at least one reviewed origin.',
+        message: 'A private-source Developer opinion requires at least one reviewed origin.',
       });
     }
   });
@@ -4885,6 +5780,57 @@ export const OpinionEvidenceRelationshipSchema = z
     }
   });
 export type OpinionEvidenceRelationship = z.infer<typeof OpinionEvidenceRelationshipSchema>;
+
+export const DeveloperOpinionCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    opinions: z.array(DeveloperOpinionSchema),
+    evidenceRelationships: z.array(OpinionEvidenceRelationshipSchema),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const opinionIds = catalog.opinions.map((opinion) => opinion.id);
+    const relationshipIds = catalog.evidenceRelationships.map((relationship) => relationship.id);
+    if (
+      new Set(opinionIds).size !== opinionIds.length ||
+      new Set(relationshipIds).size !== relationshipIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['opinions'],
+        message: 'Developer opinions and evidence relationships require unique stable IDs.',
+      });
+    }
+    const opinionIdSet = new Set(opinionIds);
+    const relationshipsByOpinionId = new Map<string, string[]>();
+    catalog.evidenceRelationships.forEach((relationship, index) => {
+      if (!opinionIdSet.has(relationship.opinionId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['evidenceRelationships', index, 'opinionId'],
+          message: `Evidence relationship references unknown opinion ${relationship.opinionId}.`,
+        });
+      }
+      relationshipsByOpinionId.set(relationship.opinionId, [
+        ...(relationshipsByOpinionId.get(relationship.opinionId) ?? []),
+        relationship.id,
+      ]);
+    });
+    catalog.opinions.forEach((opinion, index) => {
+      const declared = [...opinion.evidenceRelationshipIds].sort();
+      const actual = [...(relationshipsByOpinionId.get(opinion.id) ?? [])].sort();
+      if (new Set(declared).size !== declared.length || declared.join('|') !== actual.join('|')) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['opinions', index, 'evidenceRelationshipIds'],
+          message: 'A Developer opinion must name exactly its cataloged evidence relationships.',
+        });
+      }
+    });
+  });
+export type DeveloperOpinionCatalog = z.infer<typeof DeveloperOpinionCatalogSchema>;
 
 export const PersonalKnowledgeSemanticRunSchema = z
   .object({
@@ -4994,6 +5940,18 @@ export const PersonalKnowledgeWorkbenchCandidateSchema = z
     sourceDate: PartialPublicationDateSchema.nullable(),
     currentness: PersonalKnowledgeCurrentnessSchema,
     reviewStatus: PersonalKnowledgeCandidateReviewStatusSchema,
+    contributionTypes: z.array(EvidenceContributionTypeSchema).default([]),
+    resolvedTargets: z
+      .array(
+        z
+          .object({
+            targetKind: PersonalKnowledgeTargetKindSchema,
+            targetContentId: StableIdSchema,
+            role: PersonalKnowledgeTargetRoleSchema,
+          })
+          .strict(),
+      )
+      .default([]),
     unresolvedTargets: z.array(
       z
         .object({
@@ -5021,7 +5979,21 @@ export const PersonalKnowledgeWorkbenchCandidateSchema = z
         .strict(),
     ),
   })
-  .strict();
+  .strict()
+  .superRefine((candidate, context) => {
+    const resolvedTargetKeys = candidate.resolvedTargets.map(
+      (target) => `${target.targetKind}:${target.targetContentId}:${target.role}`,
+    );
+    if (
+      new Set(candidate.contributionTypes).size !== candidate.contributionTypes.length ||
+      new Set(resolvedTargetKeys).size !== resolvedTargetKeys.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Workbench candidate contribution types and resolved targets must be unique.',
+      });
+    }
+  });
 
 export const PersonalKnowledgeWorkbenchBibliographicCandidateSchema = z
   .object({
@@ -5118,6 +6090,1101 @@ export const PersonalKnowledgeWorkbenchProjectionSchema = z
   .strict();
 export type PersonalKnowledgeWorkbenchProjection = z.infer<
   typeof PersonalKnowledgeWorkbenchProjectionSchema
+>;
+
+export const PersonalKnowledgeAuthoringAliasCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    runtimeExcluded: z.literal(true),
+    entries: z.array(
+      z
+        .object({
+          id: StableIdSchema,
+          targetCategoryId: PublicClinicalCatalogCategoryIdSchema,
+          targetContentId: StableIdSchema,
+          aliases: z.array(z.string().min(2).max(300)).min(1),
+        })
+        .strict(),
+    ),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const entryIds = new Set<string>();
+    const targetIds = new Set<string>();
+    catalog.entries.forEach((entry, index) => {
+      if (entryIds.has(entry.id) || targetIds.has(entry.targetContentId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['entries', index],
+          message: 'Authoring alias entries require unique IDs and target content IDs.',
+        });
+      }
+      entryIds.add(entry.id);
+      targetIds.add(entry.targetContentId);
+      const normalizedAliases = entry.aliases.map((alias) =>
+        alias.normalize('NFKC').toLocaleLowerCase('en-US').trim(),
+      );
+      if (new Set(normalizedAliases).size !== normalizedAliases.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['entries', index, 'aliases'],
+          message: 'Authoring aliases must be unique after normalization.',
+        });
+      }
+    });
+  });
+export type PersonalKnowledgeAuthoringAliasCatalog = z.infer<
+  typeof PersonalKnowledgeAuthoringAliasCatalogSchema
+>;
+
+export const PersonalKnowledgePrivateSourceCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    runtimeExcluded: z.literal(true),
+    entries: z.array(
+      z
+        .object({
+          id: StableIdSchema,
+          expectedSha256: Sha256DigestSchema,
+          sourceKind: z.enum(['user_authored_archive', 'private_drive_notes']),
+          sourceRole: z.enum(['user_authored_article', 'private_notes']),
+          unitStrategy: z.enum(['parser_v5_section_instance', 'parser_v5_unsectioned_chunks']),
+          rightsState: z.literal('private_processing_only'),
+          semanticBoundaryReview: z
+            .object({
+              status: z.enum(['approved', 'pending']),
+              parserVersion: z.literal('psychsim-source-parser-5'),
+              extractedTextHash: Sha256DigestSchema,
+              decisionSummary: z.string().min(1).max(800),
+              reviewedBy: z.string().min(1).max(160).nullable(),
+              reviewedAt: z.string().datetime().nullable(),
+            })
+            .strict(),
+        })
+        .strict()
+        .superRefine((entry, context) => {
+          const reviewed = entry.semanticBoundaryReview.status === 'approved';
+          if (
+            reviewed !==
+            Boolean(
+              entry.semanticBoundaryReview.reviewedBy && entry.semanticBoundaryReview.reviewedAt,
+            )
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['semanticBoundaryReview'],
+              message: 'An approved private-source boundary requires reviewer identity and time.',
+            });
+          }
+        }),
+    ),
+  })
+  .strict();
+export type PersonalKnowledgePrivateSourceCatalog = z.infer<
+  typeof PersonalKnowledgePrivateSourceCatalogSchema
+>;
+
+export const PersonalKnowledgePrivateCorpusAcknowledgementSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentScope: z.literal('enrolled_private_corpus_source_unit'),
+    noIdentifiablePatientInformation: z.literal(true),
+    authorizedForExternalAiProcessing: z.literal(true),
+    sourceProcessingRightsAcknowledged: z.literal(true),
+    appropriateToTransmitToOpenAiCodex: z.literal(true),
+    provider: z.literal('openai_codex'),
+    modelIdentifier: z.string().min(1).max(200),
+    acknowledgedAt: z.string().datetime(),
+    acknowledgedBy: z.string().min(1).max(160),
+  })
+  .strict();
+
+export const PersonalKnowledgePrivateCorpusClassificationSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    classificationVersion: z.literal(1),
+    id: StableIdSchema,
+    sourceDescriptorId: StableIdSchema,
+    sourceDocumentId: StableIdSchema,
+    sourceDocumentSha256: Sha256DigestSchema,
+    parserVersion: z.literal('psychsim-source-parser-5'),
+    developerDatabaseUnitId: StableIdSchema.refine(
+      (value) => /^knowledge-unit\.[a-f0-9]{24}$/.test(value),
+      'Expected an opaque Developer database unit ID',
+    ),
+    unitFingerprint: Sha256DigestSchema,
+    classifiedAt: z.string().datetime(),
+    modelIdentifier: z.string().min(1).max(200),
+    promptVersion: z.string().min(1).max(120),
+    acknowledgement: PersonalKnowledgePrivateCorpusAcknowledgementSchema,
+    disposition: z.enum([
+      'candidate_material',
+      'secondary_context',
+      'irrelevant',
+      'duplicate',
+      'needs_more_context',
+    ]),
+    dispositionSummary: z.string().min(1).max(800),
+    sourceUnitCandidate: AuthoredSourceUnitCandidateSchema,
+    bibliographicCandidates: z.array(BibliographicCandidateSchema).max(40),
+    opinionCandidates: z.array(DeveloperOpinionCandidateSchema).max(8),
+  })
+  .strict()
+  .superRefine((classification, context) => {
+    const runMatches =
+      classification.sourceUnitCandidate.semanticRunId === classification.id &&
+      classification.bibliographicCandidates.every(
+        (candidate) => candidate.semanticRunId === classification.id,
+      ) &&
+      classification.opinionCandidates.every(
+        (candidate) => candidate.semanticRunId === classification.id,
+      );
+    const locators = classification.sourceUnitCandidate.sourceLocators;
+    const sourceLocatorsAreExact =
+      locators.length > 0 &&
+      locators.every(
+        (locator) =>
+          locator.kind === 'source_chunk' &&
+          locator.sourceDocumentId === classification.sourceDocumentId,
+      );
+    const sourceUnitCandidateId = classification.sourceUnitCandidate.id;
+    const candidatesLinkToSourceUnit =
+      classification.bibliographicCandidates.every(
+        (candidate) =>
+          candidate.sourceUnitCandidateIds.length === 1 &&
+          candidate.sourceUnitCandidateIds[0] === sourceUnitCandidateId &&
+          candidate.sourceUnitIds.length === 0,
+      ) &&
+      classification.opinionCandidates.every(
+        (candidate) =>
+          candidate.sourceUnitCandidateIds.length === 1 &&
+          candidate.sourceUnitCandidateIds[0] === sourceUnitCandidateId &&
+          candidate.sourceUnitIds.length === 0,
+      );
+    if (
+      !runMatches ||
+      !sourceLocatorsAreExact ||
+      !candidatesLinkToSourceUnit ||
+      classification.acknowledgement.modelIdentifier !== classification.modelIdentifier
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceUnitCandidate'],
+        message:
+          'Private-corpus classification provenance, model acknowledgement, and candidate relationships must remain exact.',
+      });
+    }
+    if (
+      classification.disposition === 'candidate_material' &&
+      classification.opinionCandidates.length === 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['opinionCandidates'],
+        message: 'Candidate-material classifications require at least one atomic opinion.',
+      });
+    }
+    if (
+      classification.disposition !== 'candidate_material' &&
+      classification.opinionCandidates.length > 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['opinionCandidates'],
+        message: 'Only candidate-material classifications may create opinion candidates.',
+      });
+    }
+  });
+export type PersonalKnowledgePrivateCorpusClassification = z.infer<
+  typeof PersonalKnowledgePrivateCorpusClassificationSchema
+>;
+
+export const DeveloperDatabaseSourceKindSchema = z.enum([
+  'apple_notes',
+  'user_authored_archive',
+  'private_drive_notes',
+]);
+export type DeveloperDatabaseSourceKind = z.infer<typeof DeveloperDatabaseSourceKindSchema>;
+
+export const DeveloperDatabaseSourceSurfaceSchema = z.enum([
+  'note_title',
+  'note_plaintext',
+  'attachment_ocr',
+  'structured_document',
+]);
+export type DeveloperDatabaseSourceSurface = z.infer<typeof DeveloperDatabaseSourceSurfaceSchema>;
+
+export const DeveloperDatabaseSemanticStateSchema = z.enum([
+  'not_semantically_reviewed',
+  'queued',
+  'partially_classified',
+  'classified_no_candidate',
+  'candidate_created',
+  'reviewed_no_change',
+  'incorporated',
+]);
+export type DeveloperDatabaseSemanticState = z.infer<typeof DeveloperDatabaseSemanticStateSchema>;
+
+export const DeveloperDatabaseCorpusUnitSchema = z
+  .object({
+    id: StableIdSchema,
+    sourceKind: DeveloperDatabaseSourceKindSchema,
+    sourceRole: z.enum(['personal_research_note', 'user_authored_article', 'private_notes']),
+    displayLabel: z.string().min(1).max(180),
+    sourceModifiedAt: z.string().min(1).max(200).nullable(),
+    surfaces: z.array(DeveloperDatabaseSourceSurfaceSchema).min(1),
+    boundaryState: z.enum(['complete', 'warning', 'unstructured']),
+    accessState: z.enum(['fully_indexed', 'partially_indexed', 'quarantined']),
+    semanticState: DeveloperDatabaseSemanticStateSchema,
+    semanticDisposition: z
+      .enum([
+        'candidate_material',
+        'secondary_context',
+        'irrelevant',
+        'duplicate',
+        'needs_more_context',
+      ])
+      .nullable(),
+    semanticSummary: z.string().min(1).max(800).nullable(),
+    targetEntryIds: z.array(StableIdSchema),
+    totalMatches: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((unit, context) => {
+    if ((unit.semanticDisposition === null) !== (unit.semanticSummary === null)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['semanticSummary'],
+        message: 'Semantic disposition and summary must be present or absent together.',
+      });
+    }
+    if (
+      unit.semanticState === 'not_semantically_reviewed' &&
+      (unit.semanticDisposition !== null || unit.semanticSummary !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['semanticState'],
+        message: 'An unreviewed corpus unit cannot claim a semantic classification.',
+      });
+    }
+  });
+export type DeveloperDatabaseCorpusUnit = z.infer<typeof DeveloperDatabaseCorpusUnitSchema>;
+
+export const DeveloperDatabaseLexicalSignalSchema = z
+  .object({
+    unitId: StableIdSchema,
+    sourceKind: DeveloperDatabaseSourceKindSchema,
+    sourceRole: z.enum(['personal_research_note', 'user_authored_article', 'private_notes']),
+    sourceModifiedAt: z.string().min(1).max(200).nullable(),
+    surfaces: z.array(DeveloperDatabaseSourceSurfaceSchema).min(1),
+    semanticState: DeveloperDatabaseSemanticStateSchema,
+    totalMatches: z.number().int().positive(),
+    matchedTerms: z
+      .array(
+        z
+          .object({
+            term: z.string().min(1).max(300),
+            count: z.number().int().positive(),
+            surfaces: z.array(DeveloperDatabaseSourceSurfaceSchema).min(1),
+          })
+          .strict(),
+      )
+      .min(1),
+  })
+  .strict();
+
+export const DeveloperDatabaseFormalSourceSchema = z
+  .object({
+    id: StableIdSchema,
+    title: z.string().min(1).max(600),
+    citation: z.string().min(1).max(1200),
+    url: z
+      .string()
+      .url()
+      .refine((value) => /^https:\/\//i.test(value), 'Formal-source URLs must use HTTPS.'),
+    sourceUseDecisionId: StableIdSchema.nullable(),
+    sourceUseStatus: z
+      .enum([
+        'permitted_with_conditions',
+        'metadata_only',
+        'blocked_pending_permission',
+        'not_reviewed',
+        'not_recorded',
+      ])
+      .default('not_recorded'),
+    derivedClinicalContentPermitted: z.boolean(),
+    runtimeRedistributionPermitted: z.boolean(),
+    attributionStatement: z.string().min(1).max(2000).nullable(),
+    requiredNotices: z.array(z.string().min(1).max(1200)),
+    sourceUseReviewedAt: z.string().datetime().nullable(),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict();
+
+export const DeveloperDatabaseFormalContributionSchema = z
+  .object({
+    id: StableIdSchema,
+    authority: EvidenceAuthoritySchema,
+    summary: z.string().min(1).max(800),
+    contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
+    evidenceSources: z.array(DeveloperDatabaseFormalSourceSchema),
+    generatedBy: z.enum(['human', 'ai']),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict();
+
+export const DeveloperDatabaseOpinionEvidenceRelationshipSchema = z
+  .object({
+    id: StableIdSchema,
+    relationType: z.enum([
+      'supports',
+      'partially_supports',
+      'contextualizes',
+      'challenges',
+      'limits',
+    ]),
+    relationshipSummary: z.string().min(1).max(800),
+    sourceLocation: z.string().min(1).max(500),
+    applicabilityLimitations: z.array(z.string().min(1).max(500)),
+    stillExpertBridge: z.boolean(),
+    evidenceSource: DeveloperDatabaseFormalSourceSchema,
+    reviewStatus: z.enum(['unreviewed', 'accepted', 'rejected', 'superseded']),
+  })
+  .strict();
+
+export const DeveloperDatabaseDeveloperOpinionSchema = z
+  .object({
+    id: StableIdSchema,
+    summary: z.string().min(1).max(800),
+    developerId: z.string().min(1).max(160),
+    contributionTypes: z.array(EvidenceContributionTypeSchema).min(1),
+    asOfDate: PartialPublicationDateSchema.nullable(),
+    currentness: PersonalKnowledgeCurrentnessSchema,
+    targetEntryIds: z.array(StableIdSchema).min(1),
+    reviewStatus: z.enum(['accepted', 'superseded', 'retired']),
+    reviewedBy: z.string().min(1).max(160),
+    reviewedAt: z.string().datetime(),
+    reviewNote: z.string().max(1200),
+    evidenceRelationships: z.array(DeveloperDatabaseOpinionEvidenceRelationshipSchema),
+    ruleEligibility: z.literal('opinion_only'),
+  })
+  .strict();
+
+export const DeveloperDatabaseRuleSummarySchema = z
+  .object({
+    id: StableIdSchema,
+    ruleKind: z.enum([
+      'active_medication_fit',
+      'inactive_author_override',
+      'diagnosis_recommendation',
+    ]),
+    summary: z.string().min(1).max(1200),
+    pointDelta: z.number().int().min(-100).max(100).nullable(),
+    stance: RecommendationStanceSchema.nullable(),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    sourceUseNoteIds: z.array(StableIdSchema),
+  })
+  .strict();
+
+export const DeveloperDatabaseCrossReferenceRecordSchema = z
+  .object({
+    entryId: StableIdSchema,
+    categoryId: PublicClinicalCatalogCategoryIdSchema,
+    label: z.string().min(1).max(600),
+    compilationState: z.enum([
+      'identity_only',
+      'no_personal_match',
+      'lexically_linked',
+      'candidate_material',
+      'reviewed_knowledge',
+    ]),
+    indexedTerms: z.array(z.string().min(1).max(300)).min(1),
+    personalSourceUnitCount: z.number().int().nonnegative(),
+    personalSourceTotalMatches: z.number().int().nonnegative(),
+    lexicalSignals: z.array(DeveloperDatabaseLexicalSignalSchema),
+    candidateSummaries: z.array(PersonalKnowledgeWorkbenchCandidateSchema),
+    unresolvedCandidateMentions: z.array(PersonalKnowledgeWorkbenchCandidateSchema).default([]),
+    bibliographicCandidates: z.array(PersonalKnowledgeWorkbenchBibliographicCandidateSchema),
+    formalContributions: z.array(DeveloperDatabaseFormalContributionSchema),
+    developerOpinions: z.array(DeveloperDatabaseDeveloperOpinionSchema).default([]),
+    ruleSummaries: z.array(DeveloperDatabaseRuleSummarySchema),
+    relatedEntryIds: z.array(StableIdSchema),
+  })
+  .strict();
+
+export const DeveloperDatabaseCatalogIdentityOccurrenceSchema = z
+  .object({
+    candidateId: StableIdSchema,
+    targetKindHint: PersonalKnowledgeTargetKindSchema.nullable(),
+    searchLabel: z.string().min(1).max(200),
+    role: PersonalKnowledgeTargetRoleSchema,
+    reason: z.string().min(1).max(500),
+  })
+  .strict();
+
+export const DeveloperDatabaseCatalogIdentityGapSchema = z
+  .object({
+    id: StableIdSchema,
+    normalizedSearchLabel: z.string().min(1).max(200),
+    displayLabel: z.string().min(1).max(200),
+    targetKindHint: PersonalKnowledgeTargetKindSchema.nullable(),
+    status: z.enum([
+      'likely_existing_entry',
+      'ambiguous_existing_entries',
+      'proposed_new_catalog_entry',
+      'non_catalog_target',
+      'needs_kind_review',
+    ]),
+    candidateEntryIds: z.array(StableIdSchema),
+    occurrences: z.array(DeveloperDatabaseCatalogIdentityOccurrenceSchema).min(1),
+    reviewRequired: z.literal(true),
+  })
+  .strict();
+
+export const DeveloperDatabaseCatalogTermOverlapSchema = z
+  .object({
+    id: StableIdSchema,
+    normalizedTerm: z.string().min(1).max(300),
+    entryIds: z.array(StableIdSchema).min(2),
+    reviewStatus: z.literal('needs_developer_review'),
+  })
+  .strict();
+
+export const DeveloperDatabaseCatalogIdentityAuditSchema = z
+  .object({
+    identityGaps: z.array(DeveloperDatabaseCatalogIdentityGapSchema),
+    overlappingTerms: z.array(DeveloperDatabaseCatalogTermOverlapSchema),
+  })
+  .strict();
+
+export const DeveloperDatabaseKnowledgeProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    projectionVersion: z.literal(2),
+    generatedAt: z.string().datetime(),
+    catalogContentVersion: ContentVersionSchema,
+    inputFingerprint: Sha256DigestSchema,
+    summary: z
+      .object({
+        personalSourceDocuments: z.number().int().nonnegative(),
+        appleNotesRevisions: z.number().int().nonnegative(),
+        appleNotesAttachmentRecords: z.number().int().nonnegative(),
+        appleNotesOcrCompleted: z.number().int().nonnegative(),
+        privateDriveDocuments: z.number().int().nonnegative(),
+        userAuthoredArchiveUnits: z.number().int().nonnegative(),
+        sourceUnits: z.number().int().nonnegative(),
+        fullyIndexedUnits: z.number().int().nonnegative(),
+        partiallyIndexedUnits: z.number().int().nonnegative(),
+        quarantinedUnits: z.number().int().nonnegative(),
+        unitsWithTargetMatches: z.number().int().nonnegative(),
+        unitsWithoutTargetMatches: z.number().int().nonnegative(),
+        targetEntries: z.number().int().nonnegative(),
+        matchedTargetEntries: z.number().int().nonnegative(),
+        totalLexicalMatches: z.number().int().nonnegative(),
+        semanticallyClassifiedUnits: z.number().int().nonnegative(),
+        candidateSummaries: z.number().int().nonnegative(),
+        acceptedOpinions: z.number().int().nonnegative(),
+        formalContributions: z.number().int().nonnegative(),
+        formalSources: z.number().int().nonnegative(),
+        registeredFormalSources: z.number().int().nonnegative(),
+      })
+      .strict(),
+    corpusUnits: z.array(DeveloperDatabaseCorpusUnitSchema),
+    records: z.array(DeveloperDatabaseCrossReferenceRecordSchema),
+    formalSourceRegistry: z.array(DeveloperDatabaseFormalSourceSchema),
+    unmappedCandidateSummaries: z.array(PersonalKnowledgeWorkbenchCandidateSchema),
+    unmappedBibliographicCandidates: z.array(
+      PersonalKnowledgeWorkbenchBibliographicCandidateSchema,
+    ),
+    catalogIdentityAudit: DeveloperDatabaseCatalogIdentityAuditSchema,
+    warnings: z.array(z.string().min(1).max(600)),
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    const entryIds = projection.records.map((record) => record.entryId);
+    const unitIds = projection.corpusUnits.map((unit) => unit.id);
+    const registeredFormalSourceIds = projection.formalSourceRegistry.map((source) => source.id);
+    if (
+      new Set(entryIds).size !== entryIds.length ||
+      new Set(unitIds).size !== unitIds.length ||
+      new Set(registeredFormalSourceIds).size !== registeredFormalSourceIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['records'],
+        message:
+          'Developer database records, corpus units, and registered formal sources require unique IDs.',
+      });
+    }
+    const entryIdSet = new Set(entryIds);
+    const recordByEntryId = new Map(
+      projection.records.map((record) => [record.entryId, record] as const),
+    );
+    const expectedCategoryForTargetKind = (
+      targetKind: z.infer<typeof PersonalKnowledgeTargetKindSchema>,
+    ): z.infer<typeof PublicClinicalCatalogCategoryIdSchema> | null =>
+      targetKind === 'medication'
+        ? 'medications'
+        : targetKind === 'diagnosis'
+          ? 'conditions'
+          : targetKind === 'intervention'
+            ? 'interventions'
+            : targetKind === 'test'
+              ? 'tests'
+              : null;
+    const catalogTargetKind = (
+      targetKind: z.infer<typeof PersonalKnowledgeTargetKindSchema> | null,
+    ): boolean =>
+      targetKind === null ||
+      ['medication', 'diagnosis', 'intervention', 'test'].includes(targetKind);
+    const unitIdSet = new Set(unitIds);
+    projection.corpusUnits.forEach((unit, index) => {
+      unit.targetEntryIds.forEach((entryId) => {
+        if (!entryIdSet.has(entryId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['corpusUnits', index, 'targetEntryIds'],
+            message: `Corpus unit references unknown database entry ${entryId}.`,
+          });
+        }
+      });
+    });
+    projection.records.forEach((record, index) => {
+      const candidateLanes = [
+        {
+          candidates: record.candidateSummaries,
+          path: 'candidateSummaries',
+        },
+        {
+          candidates: record.unresolvedCandidateMentions,
+          path: 'unresolvedCandidateMentions',
+        },
+      ] as const;
+      candidateLanes.forEach(({ candidates, path }) => {
+        candidates.forEach((candidate, candidateIndex) => {
+          candidate.resolvedTargets.forEach((target, targetIndex) => {
+            const expectedCategory = expectedCategoryForTargetKind(target.targetKind);
+            if (expectedCategory === null) return;
+            const targetRecord = recordByEntryId.get(target.targetContentId);
+            if (!targetRecord) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['records', index, path, candidateIndex, 'resolvedTargets', targetIndex],
+                message: `Candidate references unknown database entry ${target.targetContentId}.`,
+              });
+            } else if (targetRecord.categoryId !== expectedCategory) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['records', index, path, candidateIndex, 'resolvedTargets', targetIndex],
+                message: `Candidate target kind ${target.targetKind} does not match database category ${targetRecord.categoryId}.`,
+              });
+            }
+          });
+        });
+      });
+      record.lexicalSignals.forEach((signal) => {
+        if (!unitIdSet.has(signal.unitId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'lexicalSignals'],
+            message: `Database record references unknown corpus unit ${signal.unitId}.`,
+          });
+        }
+        const matchedTermKeys = signal.matchedTerms.map((match) =>
+          match.term.normalize('NFKC').toLocaleLowerCase('en-US').trim(),
+        );
+        const matchedSurfaces = [
+          ...new Set(signal.matchedTerms.flatMap((match) => match.surfaces)),
+        ].sort();
+        if (
+          new Set(matchedTermKeys).size !== matchedTermKeys.length ||
+          signal.totalMatches !==
+            signal.matchedTerms.reduce((total, match) => total + match.count, 0) ||
+          matchedSurfaces.join('|') !== [...signal.surfaces].sort().join('|')
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'lexicalSignals'],
+            message: 'Lexical-signal terms, surfaces, and totals must be internally consistent.',
+          });
+        }
+      });
+      record.relatedEntryIds.forEach((entryId) => {
+        if (!entryIdSet.has(entryId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'relatedEntryIds'],
+            message: `Database record references unknown related entry ${entryId}.`,
+          });
+        }
+      });
+      if (
+        record.personalSourceUnitCount !== record.lexicalSignals.length ||
+        record.personalSourceTotalMatches !==
+          record.lexicalSignals.reduce((total, signal) => total + signal.totalMatches, 0)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['records', index, 'personalSourceUnitCount'],
+          message: 'Database personal-source aggregates must match their lexical signals.',
+        });
+      }
+      const hasAcceptedCandidate =
+        record.candidateSummaries.some((candidate) => candidate.reviewStatus === 'accepted') ||
+        record.developerOpinions.some((opinion) => opinion.reviewStatus === 'accepted');
+      const directCandidateIds = new Set(
+        record.candidateSummaries.map((candidate) => candidate.id),
+      );
+      const unresolvedMentionIds = record.unresolvedCandidateMentions.map(
+        (candidate) => candidate.id,
+      );
+      const indexedTermKeys = new Set(
+        record.indexedTerms.map((term) => term.normalize('NFKC').toLocaleLowerCase('en-US').trim()),
+      );
+      if (
+        new Set(unresolvedMentionIds).size !== unresolvedMentionIds.length ||
+        unresolvedMentionIds.some((id) => directCandidateIds.has(id))
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['records', index, 'unresolvedCandidateMentions'],
+          message:
+            'Unresolved candidate mentions must be unique and separate from directly mapped candidates.',
+        });
+      }
+      record.unresolvedCandidateMentions.forEach((candidate, candidateIndex) => {
+        if (
+          !candidate.unresolvedTargets.some((target) =>
+            indexedTermKeys.has(
+              target.searchLabel.normalize('NFKC').toLocaleLowerCase('en-US').trim(),
+            ),
+          )
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'unresolvedCandidateMentions', candidateIndex],
+            message:
+              'An unresolved candidate mention must match an indexed term for the record where it appears.',
+          });
+        }
+      });
+      const expectedCompilationState = hasAcceptedCandidate
+        ? 'reviewed_knowledge'
+        : record.candidateSummaries.length > 0
+          ? 'candidate_material'
+          : record.lexicalSignals.length > 0
+            ? 'lexically_linked'
+            : null;
+      if (
+        (expectedCompilationState && record.compilationState !== expectedCompilationState) ||
+        (!expectedCompilationState &&
+          !['identity_only', 'no_personal_match'].includes(record.compilationState))
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['records', index, 'compilationState'],
+          message: 'Database compilation state does not match its semantic and lexical lanes.',
+        });
+      }
+      const contributionIds = record.formalContributions.map((contribution) => contribution.id);
+      if (new Set(contributionIds).size !== contributionIds.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['records', index, 'formalContributions'],
+          message: 'Formal contribution IDs must be unique within a database record.',
+        });
+      }
+      record.formalContributions.forEach((contribution, contributionIndex) => {
+        const sourceIds = contribution.evidenceSources.map((source) => source.id);
+        if (
+          new Set(sourceIds).size !== sourceIds.length ||
+          (contribution.authority === 'formal_publication' &&
+            (sourceIds.length === 0 ||
+              contribution.evidenceSources.some(
+                (source) =>
+                  !source.sourceUseDecisionId ||
+                  !source.derivedClinicalContentPermitted ||
+                  source.sourceUseStatus !== 'permitted_with_conditions',
+              ))) ||
+          (contribution.authority === 'expert_opinion' && sourceIds.length > 0)
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'formalContributions', contributionIndex],
+            message:
+              'Projected contribution authority must match unique, source-use-cleared evidence relationships.',
+          });
+        }
+      });
+      const developerOpinionIds = record.developerOpinions.map((opinion) => opinion.id);
+      if (new Set(developerOpinionIds).size !== developerOpinionIds.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['records', index, 'developerOpinions'],
+          message: 'Developer-opinion IDs must be unique within a database record.',
+        });
+      }
+      record.developerOpinions.forEach((opinion, opinionIndex) => {
+        if (
+          !opinion.targetEntryIds.includes(record.entryId) ||
+          opinion.targetEntryIds.some((targetEntryId) => !entryIdSet.has(targetEntryId))
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'developerOpinions', opinionIndex, 'targetEntryIds'],
+            message:
+              'A projected Developer opinion must name this record and only known database entries.',
+          });
+        }
+        const relationshipIds = opinion.evidenceRelationships.map(
+          (relationship) => relationship.id,
+        );
+        if (
+          new Set(relationshipIds).size !== relationshipIds.length ||
+          opinion.evidenceRelationships.some(
+            (relationship) =>
+              relationship.evidenceSource.sourceUseStatus !== 'permitted_with_conditions' ||
+              !relationship.evidenceSource.derivedClinicalContentPermitted,
+          )
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'developerOpinions', opinionIndex, 'evidenceRelationships'],
+            message:
+              'Developer-opinion evidence relationships require unique, derived-content-cleared sources.',
+          });
+        }
+      });
+      const contributionIdSet = new Set(contributionIds);
+      record.ruleSummaries.forEach((rule, ruleIndex) => {
+        if (
+          rule.sourceUseNoteIds.some((sourceUseNoteId) => !contributionIdSet.has(sourceUseNoteId))
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['records', index, 'ruleSummaries', ruleIndex, 'sourceUseNoteIds'],
+            message: 'Rule summaries must resolve every source-use note in the projected record.',
+          });
+        }
+      });
+    });
+    if (
+      projection.summary.sourceUnits !== projection.corpusUnits.length ||
+      projection.summary.targetEntries !== projection.records.length ||
+      projection.summary.unitsWithTargetMatches + projection.summary.unitsWithoutTargetMatches !==
+        projection.corpusUnits.length ||
+      projection.summary.fullyIndexedUnits +
+        projection.summary.partiallyIndexedUnits +
+        projection.summary.quarantinedUnits !==
+        projection.corpusUnits.length ||
+      projection.summary.personalSourceDocuments !==
+        projection.summary.appleNotesRevisions + projection.summary.privateDriveDocuments ||
+      projection.summary.appleNotesOcrCompleted > projection.summary.appleNotesAttachmentRecords
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['summary'],
+        message: 'Developer database coverage totals are inconsistent.',
+      });
+    }
+    const unitsWithMatches = projection.corpusUnits.filter(
+      (unit) => unit.targetEntryIds.length > 0,
+    ).length;
+    const matchedRecords = projection.records.filter(
+      (record) => record.personalSourceUnitCount > 0,
+    ).length;
+    const totalMatches = projection.records.reduce(
+      (total, record) => total + record.personalSourceTotalMatches,
+      0,
+    );
+    const mappedCandidateIds = new Set(
+      projection.records.flatMap((record) =>
+        record.candidateSummaries.map((candidate) => candidate.id),
+      ),
+    );
+    const unmappedCandidateIds = projection.unmappedCandidateSummaries.map(
+      (candidate) => candidate.id,
+    );
+    projection.unmappedCandidateSummaries.forEach((candidate, candidateIndex) => {
+      candidate.resolvedTargets.forEach((target, targetIndex) => {
+        const expectedCategory = expectedCategoryForTargetKind(target.targetKind);
+        if (expectedCategory === null) return;
+        const targetRecord = recordByEntryId.get(target.targetContentId);
+        if (!targetRecord) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['unmappedCandidateSummaries', candidateIndex, 'resolvedTargets', targetIndex],
+            message: `Candidate references unknown database entry ${target.targetContentId}.`,
+          });
+        } else if (targetRecord.categoryId !== expectedCategory) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['unmappedCandidateSummaries', candidateIndex, 'resolvedTargets', targetIndex],
+            message: `Candidate target kind ${target.targetKind} does not match database category ${targetRecord.categoryId}.`,
+          });
+        }
+      });
+    });
+    const candidateIds = new Set([...mappedCandidateIds, ...unmappedCandidateIds]);
+    const mappedBibliographyIds = new Set(
+      projection.records.flatMap((record) =>
+        record.bibliographicCandidates.map((candidate) => candidate.id),
+      ),
+    );
+    const unmappedBibliographyIds = projection.unmappedBibliographicCandidates.map(
+      (candidate) => candidate.id,
+    );
+    if (
+      new Set(unmappedCandidateIds).size !== unmappedCandidateIds.length ||
+      unmappedCandidateIds.some((id) => mappedCandidateIds.has(id)) ||
+      new Set(unmappedBibliographyIds).size !== unmappedBibliographyIds.length ||
+      unmappedBibliographyIds.some((id) => mappedBibliographyIds.has(id))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['unmappedCandidateSummaries'],
+        message: 'Mapped and unmapped semantic candidates require distinct stable IDs.',
+      });
+    }
+    const identityGapIds = projection.catalogIdentityAudit.identityGaps.map((gap) => gap.id);
+    const overlapIds = projection.catalogIdentityAudit.overlappingTerms.map(
+      (overlap) => overlap.id,
+    );
+    if (
+      new Set(identityGapIds).size !== identityGapIds.length ||
+      new Set(overlapIds).size !== overlapIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['catalogIdentityAudit'],
+        message: 'Catalog identity gaps and overlap groups require unique IDs.',
+      });
+    }
+    const uniqueCandidates = new Map<
+      string,
+      z.infer<typeof PersonalKnowledgeWorkbenchCandidateSchema>
+    >();
+    for (const candidate of [
+      ...projection.records.flatMap((record) => record.candidateSummaries),
+      ...projection.unmappedCandidateSummaries,
+    ]) {
+      const existing = uniqueCandidates.get(candidate.id);
+      if (existing && JSON.stringify(existing) !== JSON.stringify(candidate)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['catalogIdentityAudit', 'identityGaps'],
+          message: `Candidate ${candidate.id} has divergent projections across database entries.`,
+        });
+      }
+      uniqueCandidates.set(candidate.id, candidate);
+    }
+    const occurrenceKey = (
+      occurrence: z.infer<typeof DeveloperDatabaseCatalogIdentityOccurrenceSchema>,
+    ): string =>
+      JSON.stringify({
+        candidateId: occurrence.candidateId,
+        targetKindHint: occurrence.targetKindHint,
+        searchLabel: occurrence.searchLabel,
+        role: occurrence.role,
+        reason: occurrence.reason,
+      });
+    const expectedOccurrences = [...uniqueCandidates.values()]
+      .flatMap((candidate) =>
+        candidate.unresolvedTargets.map((target) => ({
+          candidateId: candidate.id,
+          targetKindHint: target.targetKindHint,
+          searchLabel: target.searchLabel,
+          role: target.role,
+          reason: target.reason,
+        })),
+      )
+      .map(occurrenceKey)
+      .sort();
+    const projectedOccurrences = projection.catalogIdentityAudit.identityGaps
+      .flatMap((gap) => gap.occurrences)
+      .map(occurrenceKey)
+      .sort();
+    if (
+      expectedOccurrences.length !== projectedOccurrences.length ||
+      expectedOccurrences.some((value, index) => value !== projectedOccurrences[index])
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['catalogIdentityAudit', 'identityGaps'],
+        message:
+          'Every unresolved semantic target must appear exactly once in the catalog identity audit.',
+      });
+    }
+    const termOwners = new Map<string, string[]>();
+    for (const record of projection.records) {
+      for (const term of record.indexedTerms) {
+        const normalizedTerm = term.normalize('NFKC').toLocaleLowerCase('en-US').trim();
+        termOwners.set(
+          normalizedTerm,
+          [...new Set([...(termOwners.get(normalizedTerm) ?? []), record.entryId])].sort(),
+        );
+      }
+    }
+    projection.catalogIdentityAudit.identityGaps.forEach((gap, gapIndex) => {
+      const occurrenceKinds = new Set(
+        gap.occurrences.map((occurrence) => occurrence.targetKindHint),
+      );
+      const occurrenceLabels = new Set(
+        gap.occurrences.map((occurrence) =>
+          occurrence.searchLabel.normalize('NFKC').toLocaleLowerCase('en-US').trim(),
+        ),
+      );
+      const expectedCategory = gap.targetKindHint
+        ? expectedCategoryForTargetKind(gap.targetKindHint)
+        : null;
+      const compatibleEntryIds = (termOwners.get(gap.normalizedSearchLabel) ?? []).filter(
+        (entryId) =>
+          gap.targetKindHint === null ||
+          (expectedCategory !== null &&
+            recordByEntryId.get(entryId)?.categoryId === expectedCategory),
+      );
+      const expectedStatus =
+        compatibleEntryIds.length === 1
+          ? 'likely_existing_entry'
+          : compatibleEntryIds.length > 1
+            ? 'ambiguous_existing_entries'
+            : gap.targetKindHint !== null && !catalogTargetKind(gap.targetKindHint)
+              ? 'non_catalog_target'
+              : gap.targetKindHint === null
+                ? 'needs_kind_review'
+                : 'proposed_new_catalog_entry';
+      if (
+        gap.normalizedSearchLabel !==
+          gap.normalizedSearchLabel.normalize('NFKC').toLocaleLowerCase('en-US').trim() ||
+        gap.displayLabel.normalize('NFKC').toLocaleLowerCase('en-US').trim() !==
+          gap.normalizedSearchLabel ||
+        occurrenceKinds.size !== 1 ||
+        !occurrenceKinds.has(gap.targetKindHint) ||
+        occurrenceLabels.size !== 1 ||
+        !occurrenceLabels.has(gap.normalizedSearchLabel) ||
+        gap.status !== expectedStatus ||
+        [...gap.candidateEntryIds].sort().join('|') !== compatibleEntryIds.join('|')
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['catalogIdentityAudit', 'identityGaps', gapIndex],
+          message:
+            'Catalog identity-gap grouping, candidate entries, and status must match normalized catalog terms.',
+        });
+      }
+    });
+    const expectedOverlaps = [...termOwners.entries()]
+      .filter(([, ownerIds]) => ownerIds.length > 1)
+      .sort(([left], [right]) => left.localeCompare(right));
+    const projectedOverlaps = [...projection.catalogIdentityAudit.overlappingTerms].sort(
+      (left, right) => left.normalizedTerm.localeCompare(right.normalizedTerm),
+    );
+    if (
+      expectedOverlaps.length !== projectedOverlaps.length ||
+      expectedOverlaps.some(
+        ([term, ownerIds], index) =>
+          projectedOverlaps[index]?.normalizedTerm !== term ||
+          [...(projectedOverlaps[index]?.entryIds ?? [])].sort().join('|') !== ownerIds.join('|'),
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['catalogIdentityAudit', 'overlappingTerms'],
+        message:
+          'The catalog overlap audit must enumerate every normalized term owned by multiple entries.',
+      });
+    }
+    const acceptedOpinionIds = new Set([
+      ...projection.records.flatMap((record) =>
+        record.candidateSummaries
+          .filter((candidate) => candidate.reviewStatus === 'accepted')
+          .map((candidate) => candidate.id),
+      ),
+      ...projection.records.flatMap((record) =>
+        record.developerOpinions
+          .filter((opinion) => opinion.reviewStatus === 'accepted')
+          .map((opinion) => opinion.id),
+      ),
+      ...projection.unmappedCandidateSummaries
+        .filter((candidate) => candidate.reviewStatus === 'accepted')
+        .map((candidate) => candidate.id),
+    ]);
+    const formalSourceIds = new Set(
+      projection.records.flatMap((record) => [
+        ...record.formalContributions.flatMap((contribution) =>
+          contribution.evidenceSources.map((source) => source.id),
+        ),
+        ...record.developerOpinions.flatMap((opinion) =>
+          opinion.evidenceRelationships.map((relationship) => relationship.evidenceSource.id),
+        ),
+      ]),
+    );
+    if (
+      projection.summary.unitsWithTargetMatches !== unitsWithMatches ||
+      projection.summary.matchedTargetEntries !== matchedRecords ||
+      projection.summary.totalLexicalMatches !== totalMatches ||
+      projection.summary.semanticallyClassifiedUnits !==
+        projection.corpusUnits.filter((unit) =>
+          [
+            'classified_no_candidate',
+            'candidate_created',
+            'reviewed_no_change',
+            'incorporated',
+          ].includes(unit.semanticState),
+        ).length ||
+      projection.summary.candidateSummaries !== candidateIds.size ||
+      projection.summary.acceptedOpinions !== acceptedOpinionIds.size ||
+      projection.summary.formalContributions !==
+        projection.records.reduce(
+          (total, record) => total + record.formalContributions.length,
+          0,
+        ) ||
+      projection.summary.formalSources !== formalSourceIds.size ||
+      projection.summary.registeredFormalSources !== projection.formalSourceRegistry.length ||
+      projection.summary.userAuthoredArchiveUnits !==
+        projection.corpusUnits.filter((unit) => unit.sourceKind === 'user_authored_archive')
+          .length ||
+      projection.summary.quarantinedUnits !==
+        projection.corpusUnits.filter((unit) => unit.accessState === 'quarantined').length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['summary'],
+        message: 'Developer database derived totals do not match their records.',
+      });
+    }
+    const signalsByUnitId = new Map<string, Array<{ entryId: string; totalMatches: number }>>();
+    projection.records.forEach((record) => {
+      record.lexicalSignals.forEach((signal) => {
+        signalsByUnitId.set(signal.unitId, [
+          ...(signalsByUnitId.get(signal.unitId) ?? []),
+          { entryId: record.entryId, totalMatches: signal.totalMatches },
+        ]);
+      });
+    });
+    projection.corpusUnits.forEach((unit, index) => {
+      const signals = signalsByUnitId.get(unit.id) ?? [];
+      const signalEntryIds = signals.map((signal) => signal.entryId).sort();
+      const targetEntryIds = [...unit.targetEntryIds].sort();
+      if (
+        signalEntryIds.join('|') !== targetEntryIds.join('|') ||
+        signals.reduce((total, signal) => total + signal.totalMatches, 0) !== unit.totalMatches
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['corpusUnits', index],
+          message: 'Corpus-unit targets and match totals must mirror record lexical signals.',
+        });
+      }
+    });
+  });
+export type DeveloperDatabaseKnowledgeProjection = z.infer<
+  typeof DeveloperDatabaseKnowledgeProjectionSchema
 >;
 
 export const SourceManifestEntrySchema = z
@@ -5425,6 +7492,23 @@ export const MedicationContinueSelectionSchema = z
   .strict();
 export type MedicationContinueSelection = z.infer<typeof MedicationContinueSelectionSchema>;
 
+/**
+ * Planned V2 current-regimen operation. It deliberately targets one regimen
+ * entry rather than a medication identity so duplicate prescriptions remain
+ * independently addressable. Runtime V1 treatment selections do not consume
+ * this schema yet.
+ */
+export const MedicationRegimenAdjustmentSelectionSchema = z
+  .object({
+    selectionVersion: z.literal(2),
+    regimenEntryId: StableIdSchema,
+    operation: z.enum(['continue', 'increase', 'reduce_or_limit', 'taper', 'stop']),
+  })
+  .strict();
+export type MedicationRegimenAdjustmentSelection = z.infer<
+  typeof MedicationRegimenAdjustmentSelectionSchema
+>;
+
 export const NonMedicationSelectionSchema = z
   .object({ interventionId: StableIdSchema, kind: z.literal('nonmedication') })
   .strict();
@@ -5496,6 +7580,12 @@ export type SatisfactionState = z.infer<typeof SatisfactionStateSchema>;
 
 export const EncounterCommandSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('PurchaseInformationAction'), actionId: StableIdSchema }).strict(),
+  z
+    .object({
+      type: z.literal('UpdateDiagnosisSelections'),
+      selections: PlayerDiagnosisSelectionsSchema,
+    })
+    .strict(),
   z
     .object({ type: z.literal('UpdateTreatmentSelections'), selections: TreatmentSelectionSchema })
     .strict(),

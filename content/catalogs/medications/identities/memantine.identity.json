@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.memantine",
+  "label": "Memantine",
+  "normalizedIngredientName": "memantine",
+  "aliases": [],
+  "authoringStatus": "identity_only",
+  "runtimeMedicationDefinitionId": null,
+  "rxnorm": {
+    "rxcui": "6719",
+    "termType": "IN",
+    "suppress": "N",
+    "releaseDate": "2026-07-06",
+    "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+    "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+    "verifiedAt": "2026-07-27T15:34:26.000Z"
+  },
+  "medicalReviewStatus": "unreviewed"
+}

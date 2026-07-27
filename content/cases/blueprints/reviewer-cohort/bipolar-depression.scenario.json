@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.4.0",
+  "contentVersion": "1.5.0",
   "id": "case.review-cohort.bipolar-depression",
   "internalTitle": "Reviewer cohort: bipolar depression",
   "difficultyTier": 3,
@@ -105,6 +105,10 @@
       "schemaVersion": 1,
       "id": "trial.review-bipolar-depression.lithium",
       "medicationId": "medication.lithium",
+      "exposure": {
+        "duration": null,
+        "maximumDose": null
+      },
       "adequacy": "unclear",
       "adherence": "unknown",
       "response": "unknown",

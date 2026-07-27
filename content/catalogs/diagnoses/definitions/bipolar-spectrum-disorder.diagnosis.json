@@ -3,6 +3,7 @@
   "contentVersion": "1.0.0",
   "id": "diagnosis.bipolar-spectrum-disorder",
   "label": "Bipolar-spectrum disorder",
+  "selectableInGameplay": true,
   "description": "Unreviewed diagnosis-family placeholder for patient composition, episode-state review, and later reviewed treatment rules.",
   "medicalReviewStatus": "unreviewed",
   "baseClinicalTagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"],

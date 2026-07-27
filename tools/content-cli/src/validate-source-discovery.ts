@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
 import {
@@ -10,6 +10,10 @@ import {
 } from '@psychsim/schemas';
 import { validateAppleNotesCodexReviewAudit } from './apple-notes-codex-review';
 import { validateAppleNotesManifest } from './apple-notes-provider';
+import {
+  DEFAULT_DEVELOPER_DATABASE_KNOWLEDGE_PATH,
+  validateCurrentDeveloperDatabaseKnowledge,
+} from './developer-database-knowledge';
 import { validatePersonalKnowledgePrivateState } from './personal-knowledge-workspace';
 import {
   calculateSourceChunkProvenanceHash,
@@ -170,6 +174,19 @@ try {
     );
   } else {
     console.log('PASS no private source-review packets');
+  }
+  try {
+    await access(DEFAULT_DEVELOPER_DATABASE_KNOWLEDGE_PATH);
+    const projection = await validateCurrentDeveloperDatabaseKnowledge();
+    console.log(
+      `PASS current Developer database cross-reference (${projection.summary.personalSourceDocuments} documents; ${projection.summary.sourceUnits} units; ${projection.summary.partiallyIndexedUnits} partial)`,
+    );
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      console.log('PASS no local Developer database cross-reference (clean checkout)');
+    } else {
+      throw error;
+    }
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Source discovery validation failed.');

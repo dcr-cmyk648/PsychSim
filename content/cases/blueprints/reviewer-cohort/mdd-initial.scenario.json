@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.5.0",
+  "contentVersion": "1.6.0",
   "id": "case.review-cohort.mdd-initial",
   "internalTitle": "Reviewer cohort: initial MDD",
   "difficultyTier": 1,
@@ -20,7 +20,11 @@
       "tagIds": ["diagnosis-tag.mood", "diagnosis-tag.bipolar"]
     }
   ],
-  "clinicalTagIds": ["clinical-tag.depressive-symptoms", "clinical-tag.outpatient-stable"],
+  "clinicalTagIds": [
+    "clinical-tag.depressive-symptoms",
+    "clinical-tag.outpatient-stable",
+    "decision.mdd-initial-treatment"
+  ],
   "criticalFacts": {
     "focusedDecision": "initial-treatment",
     "acuteSafetyConcern": false,

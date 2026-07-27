@@ -11,7 +11,9 @@ importer version, expected term count, and normalized-output hash. Its generated
 is gitignored local data under a narrow U.S. fair-use assessment. Terms contain only code,
 PsychSim-derived code-prefix parent, exact descriptions, billable/category state, and source order.
 They support authoring search and are excluded from `CatalogBundle`, Git distribution, and
-production output.
+production output. The local Developer Database can inspect this cache through a separate,
+loopback-only, lazily loaded projection. Those terms never join `PublicClinicalCatalogProjection`,
+its condition count, portable review snapshots, or gameplay content.
 
 A playable diagnosis can reference that background through `classificationBindings`. Each compact
 binding names the release, code, explicit semantic relation, reviewer note, and independent review
@@ -39,12 +41,63 @@ observational evidence for a rare harm or a direct pharmacokinetic study for an 
 Nondominated disagreement remains `contested` and routes to review; publication date, file order,
 source count, or a hidden numeric evidence score never selects a clinical winner.
 
-An `EvidenceContribution` records how knowledge entered content. It declares `formal_publication` or `expert_opinion`, every formal evidence ID used, optional private document/chunk provenance, exact target content IDs, contribution types, and a concise original contribution statement. Formal contributions require catalog IDs; expert opinion forbids them. A publication can be cataloged but unused. A rule can cite multiple relevant publications through separate or multi-source contributions. Unlinked prototype rules are rendered as Expert opinion, while approved rules require an explicit contribution.
+An `EvidenceContribution` records how knowledge entered content. It declares
+`formal_publication` or `expert_opinion`, every formal evidence ID used, optional private
+document/chunk provenance, exact target content IDs, contribution types, and a concise original
+contribution statement. Formal contributions require catalog IDs; generic expert-opinion
+contributions forbid them. A publication can be cataloged but unused. A rule can cite multiple
+relevant publications through separate or multi-source contributions. Unlinked prototype rules
+are rendered as Expert opinion, while approved rules require an explicit contribution.
 
 The compact Reviewer-policy model preserves that authority distinction per exact target rule.
 Broad guideline context cannot automatically absorb a separately authored safety or balance
 judgment. An explicit psychiatrist/developer contribution is compiled as Developer opinion with no
 formal evidence ID; unaffected source-linked rules keep their own publication contribution.
+
+Accepted psychiatrist interpretations additionally have a dedicated, nonruntime
+`DeveloperOpinionCatalog`. Each concise opinion owns explicit typed target IDs and separate
+evidence-relationship records that say whether a source supports, contextualizes, challenges, or
+limits it and whether an expert bridge remains. Linking a source never converts the opinion into a
+publication claim. The local Database compiler projects both formal contributions and accepted
+opinions onto every declared target entry; physical file ownership is only an authoring location,
+not the scope of the knowledge. The catalog and projection cannot activate a clinical rule or
+assign care points.
+
+## Personal knowledge database and game projection
+
+The private authoring database is a first-class learning system, not merely a staging area for
+playable content. A dossier should eventually let the developer reconstruct what they believe
+about an entry, which personal notes or authored materials informed it, which formal sources
+support or challenge it, what remains uncertain or stale, and which recent sources might efficiently
+close a knowledge gap. Review and repeated patient use support active retention in the same way
+that preparing to teach a topic does.
+
+Knowledge completeness and gameplay readiness are independent. A rich medication dossier may have
+no executable point rule; a narrowly reviewed rule may support a patient before the broader
+medication dossier is comprehensive. Missing coverage, conflicting evidence, source age, pending
+reading, unreviewed candidates, and absent gameplay mappings remain explicit states rather than
+being collapsed into “complete” or silently filled. Suggestions for reading are review proposals,
+not evidence contributions.
+
+The game is a focused projection over this database. Encounter compilation selects only rules and
+facts relevant to the authored decision horizon plus applicable global safety constraints. It does
+not expose the complete dossier, grade every background condition, or copy all available knowledge
+into the patient. Conversely, information excluded from an encounter remains available for
+database audit and future content work.
+
+A future `KnowledgeCoverageProjection` is derived, sparse, and noncanonical. It may summarize
+identity/regulatory baseline, personal knowledge, formal evidence, currentness,
+disagreement/uncertainty, reviewed interpretation, and gameplay mapping, but every displayed cell
+must point back to the exact records that caused it. It distinguishes `unknown`, `missing`,
+`present`, `stale`, `contested`, and `not_applicable` where those states are actually supported;
+it never infers absence from an unfinished source review.
+
+The projection is not required to create or preserve an entry, cannot reject or filter source
+units, cannot promote content, and has no aggregate completeness percentage. Unmatched material
+continues to appear in the identity-gap/landing audit. It is computed lazily for one local
+Developer dossier so expanding the private corpus does not enlarge or slow the gameplay bundle.
+Recent-reading suggestions are separate review proposals with search provenance, not coverage
+facts or evidence contributions.
 
 DrugCentral is cataloged as an authoring-only `structured_database` source. Its initial rights
 decision allows local deterministic indexing and unreviewed claim candidates but blocks runtime
@@ -63,9 +116,11 @@ that candidate.
 
 `SourceUseDecision` is the rights gate between bibliography and any processing or derived content.
 It records permission for local storage, extraction, local structured indexing, AI-assisted
-processing, derived clinical content, runtime redistribution, and commercial distribution, plus territory, attribution,
-third-party, and review obligations. A proposed fair-use exception must include a complete
-four-factor assessment. The canonical contract is
+processing, derived clinical content, runtime redistribution, and commercial distribution, plus
+territory, attribution, third-party, and review obligations. A decision that enables derived
+content must also enumerate its allowed contribution types; validation rejects a formal
+contribution whose lane is outside that allowlist. A proposed fair-use exception must include a
+complete four-factor assessment. The canonical contract is
 [SOURCE_USE_POLICY.md](SOURCE_USE_POLICY.md).
 
 The source-specific CC BY-NC-ND notice in the WHO CDDR PDF blocks adapting that publication into
@@ -100,11 +155,18 @@ identity-only versus runtime-compatible.
 
 Each medication identity has its own file under `content/catalogs/medications/identities/`. It owns
 the stable PsychSim ID, normalized ingredient name, explicit aliases, RxCUI, pinned RxNorm
-release/source/use-decision metadata, authoring scope, and unreviewed status. The first curated set
-contains 33 ingredients. Thirteen link a same-ID runtime compatibility definition; twenty are
+release/source/use-decision metadata, authoring scope, and unreviewed status. The current curated set
+contains 53 ingredients. Thirteen link a same-ID runtime compatibility definition; 40 are
 identity-only and cannot enter a formulary, case treatment menu, or score. The collection registry
 lists all member IDs, and validation cross-checks registry, static imports, disk files, source
 permissions, names, RxCUIs, and runtime parity.
+
+Supplement identities live separately under `content/catalogs/supplements/identities/`. A record
+may use an exact RxNorm ingredient, a MeSH concept, or both; it must describe preparation
+distinctions honestly and must never invent an RxCUI to fit the medication schema. Identity-only
+records support Database browsing and later regimen authoring. They are not runtime-selectable,
+carry no efficacy, safety, interaction, incidence, or point claim, and cannot enter patient
+generation until a separately reviewed generation profile references them.
 
 Each runtime-compatible medication separately has its existing definition file. It owns
 human-readable class labels and stable runtime tags plus separate arrays for active fit modifiers
@@ -123,6 +185,19 @@ medication reconciliation may establish the current list; the more expensive ful
 history can return an arbitrarily long structured set of medication trials, psychotherapy
 experiences, current treatment relationships, and prior levels of care. Psychotherapy is never
 misfiled as a medication trial.
+
+Prior-trial displays expose duration and highest reported dose rather than the conclusion
+“adequate trial.” Adherence, response, tolerability, and source remain structured beside those
+observations. A legacy adequacy category may remain in historical snapshots, while a future
+reviewed inference lives separately and never causes dose or duration to be invented during
+migration.
+
+The planned background-exposure record resolves nonpsychiatric medication entries and supplement
+entries against a saved reviewed age band and generation-profile ID. Every entry has a stable
+instance ID and impact class. The optional enthusiast pattern requires multiple distinct
+supplement identities and is derived from that resolved set. Age-based count distributions and
+allowlists remain proposed authoring data until source and clinician review; cosmetic presentation
+age is not a clinical-generation input.
 
 The current medication shape is a runtime compatibility layer, not the target background
 knowledge database. Future authoring separates stable ingredient/formulation identity, sourced
@@ -260,7 +335,31 @@ SOAP is an authoring boundary, not a note-writing mechanic. Patient/collateral h
 
 This boundary follows the conventional division summarized by [NCBI StatPearls](https://www.ncbi.nlm.nih.gov/books/NBK482263/) and [UMass Dartmouth nursing guidance](https://www.umassd.edu/nursing/resources/notes/): Subjective records reported experience/history; Objective records observations and test data; Assessment interprets them; Plan records actions. These references define note structure only and are not clinical authority for the prototype case.
 
-WorkupObjective uses a constrained predicate and can express alternative actions through `any`. It carries points, omission effect, importance, and explanations. Path-specific requirements point at objectives rather than duplicating action logic. Validation ensures an indicated single-action objective plus its relevant conditional award is worth more points than the cheapest accessible fulfillment cost.
+WorkupObjective uses a constrained predicate and can express alternative actions through `any`. It
+carries points, omission effect, importance, and explanations. `TreatmentWorkupRequirement`
+connects a reusable diagnosis-owned qualitative rule to one objective and a constrained submitted-
+treatment predicate. Trigger, concern, certainty, point mapping, and safety-critical status remain
+separate. This avoids hiding a medication prerequisite inside one authored treatment path and
+allows the same requirement to apply to engine-inferred alternatives. Legacy path-specific
+requirements still point at objectives rather than duplicating action logic. Validation ensures an
+indicated single-action objective plus its relevant conditional award is worth more points than
+the cheapest accessible fulfillment cost.
+
+## Diagnosis answers
+
+`PlayerDiagnosisSelection` is an optional submitted answer, never patient truth. An empty array is
+valid and does not prevent treatment submission. `CaseDiagnosisRubric` independently defines one
+or more answer groups, canonical/reasonable/partial options, an omission row, explicitly dangerous
+or major misclassifications, and a capped parsimony consequence for unsupported extras. The
+diagnosis trace is itemized separately and the worst row for one stable issue wins, so a wrong
+answer does not stack an equivalent omission penalty.
+
+Broad-category and unspecified answers require real catalog entries and explicit hierarchy. They
+are not inferred from label substrings, ICD prefixes, or diagnosis tags. The future hierarchy will
+connect broad categories, unspecified labels, diagnosis families, and supported specific
+diagnoses; case rubrics will still own the actual partial-credit magnitude and any safety
+consequence. Until that bounded catalog extension lands, a case may award family-level partial
+credit only by naming that accepted diagnosis ID explicitly.
 
 ## Treatment pathways and combination rules
 
@@ -268,7 +367,10 @@ Available treatment IDs determine the structured UI. Reusable nonmedication entr
 
 The patient treatment reference is deliberately hybrid. It prefers one broad primary authored pathway composed from reviewed option groups: for example, exactly one first-line antidepressant or exactly one first-line psychotherapy, plus proportionate outpatient disposition. A source-supported combination may add a bonus; a compatible source-silent combination may remain neutral. Medication- and therapy-specific fit modifiers supply swing room inside those families. Reusable redundancy groups and maximum cardinalities prevent multiple equivalent treatments from accumulating rewards. `additionalAuthoredPathwayIds` remains available for truly distinct care routes, while `safetyFallbackPathwayIds` keeps referral/transfer separate from the main plan. A deterministic catalog engine may evaluate a combination outside those authored routes using reviewed catalog rules, but the receipt labels it `engine_inferred`; it cannot masquerade as an authored patient pathway.
 
-Predicates are JSON-safe only: `actionPurchased`, `factKnown`, exact medication start/stop/continue, bounded `treatmentStartedWithTag`, `interventionSelected`, `dispositionSelected`, `serviceCapabilityAvailable`, `any`, `all`, and `not`. There is no arbitrary expression or embedded JavaScript.
+Predicates are JSON-safe only: `actionPurchased`, `factKnown`, exact medication
+start/stop/continue, `anyMedicationStarted`, bounded `treatmentStartedWithTag`,
+`interventionSelected`, `dispositionSelected`, `serviceCapabilityAvailable`, `any`, `all`, and
+`not`. There is no arbitrary expression or embedded JavaScript.
 
 ## Reference solutions and eligibility
 
@@ -310,6 +412,51 @@ citations, or grant medical approval.
 mode. The Vite development server may serve it only over loopback; Player and portable Reviewer
 builds forbid it. This preserves a rich private authoring surface while keeping runtime knowledge
 narrow and explicitly promoted.
+
+`DeveloperDatabaseKnowledgeProjection` is a separate whole-corpus audit projection. Its
+`corpusUnits` enumerate opaque, deterministic units from Apple Notes composites/available OCR and
+the explicitly enrolled private Drive sources. Each database record holds normalized indexed
+terms, lexical retrieval signals, existing semantic candidates, bibliographic leads, formal
+contributions with source-use notices, rule summaries, and safe structural relationships. The
+projection stores no raw private prose, heading, filename, provider ID, source-document/chunk ID,
+or filesystem path. Its aggregate `inputFingerprint` covers hashes of every indexed surface plus
+the alias catalog, public Database catalog, semantic workbench, formal evidence registry, and
+source-use decisions so stale output fails validation.
+
+Workbench candidates preserve their contribution-type labels and safe resolved target/role
+relationships. A record also projects atomized candidates whose unresolved target label matches
+that entry's reviewed name or alias into an `unresolvedCandidateMentions` lane. This makes
+cross-target omissions such as a medication comparator visible without claiming that the target
+was resolved. Direct candidates and unresolved mentions are disjoint and neither changes the
+record's rules or compilation state by itself.
+
+Projection version 2 also owns a complete `catalogIdentityAudit`. Every unresolved target
+occurrence must appear exactly once in a grouped identity gap. Exact normalized names and reviewed
+aliases produce either one likely entry or an explicit ambiguous-entry set; an unknown medication,
+diagnosis, intervention, or test becomes a proposed new catalog entry; rules, tags, and templates
+stay in a non-catalog lane; and a target with no kind stays queued for kind review. A second list
+enumerates every normalized indexed term owned by multiple current entries. These are review
+inventories, not automatic resolutions. Projection validation fails if an unresolved occurrence
+is omitted or the overlap inventory drifts from the current catalogs.
+
+`DeveloperDatabaseDossierBrief` is a deterministic, concise view over one record plus its coverage
+state. It may route a reviewer toward evidence/opinion, typed patient fact, generation constraint,
+fit, safety/interaction, or balance work, but it is not content ownership and has no runtime
+effect. A saved interpretation becomes a fingerprint-bound local `ClinicalReviewTicket`; the
+ordinary public `DatabaseEntryReview` schema remains unchanged.
+
+`PersonalKnowledgeAuthoringAliasCatalog` owns only reviewed retrieval aliases for existing public
+Database entries; cross-target ambiguity is invalid. `PersonalKnowledgePrivateSourceCatalog`
+enrolls exact private document hashes and parser-v5 unitization strategies without putting a
+private filename or provider locator into tracked content. Both catalogs are runtime excluded.
+Neither catalog nor the projection creates a claim, opinion, evidence relationship, clinical
+rule, point value, or approval.
+
+Formal resources use the same staged ownership rule. Each article, guideline, regulatory record,
+or correction first gets one stable evidence-source file and therefore one separately readable
+Database reference entry. Its later uses are ticketed, target-specific contributions. A registered
+source with zero contributions is intentionally visible as cataloged but unattached; registration
+never bulk-fills every medication or condition mentioned by the source.
 
 `LiteratureSynthesisProposal` is a Developer-only decision-packet record linked to exact ticket,
 source-request, and blueprint IDs. It separates source-cleared support from opposing, qualifying,

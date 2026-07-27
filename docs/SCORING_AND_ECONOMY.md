@@ -58,12 +58,44 @@ Each objective has a stable ID, importance, JSON-safe satisfaction predicate, po
 
 Necessary or treatment-required investigation points must exceed the cheapest available point cost at every compatible location. Validation rejects a case that violates this rule. Optional or unnecessary actions may cost points without earning care points. Unsupported expensive workups therefore reduce the payout even when the care subtotal changes little.
 
-The starter MDD database plan uses six focused histories costing 135 points total. The
+The starter MDD database plan uses seven focused histories costing 145 points total. The
 episode/timeline, depressive-symptom, suicide-safety, and substance-contribution objectives award
 35, 50, 50, and 30 points. Medication reconciliation establishes the previously unknown current
 list; its 35-point treatment-conditional award exceeds its 30-point cost. The mania screen is a
-treatment prerequisite: its 45-point conditional award exceeds its 25-point cost. Omitting a
-necessary item creates a `critical_omission` trace shown in red.
+treatment prerequisite: its 45-point conditional award exceeds its 25-point cost. Allergy and
+adverse-reaction history is a separate any-medication prerequisite whose 30-point award exceeds
+its 10-point cost. Omitting a necessary item creates a `critical_omission` trace shown in red.
+
+Treatment prerequisites retain their activation predicate, qualitative concern, qualitative
+certainty, point mapping, and safety consequence as separate fields. For example, the current
+mania-history rule has major concern and strong certainty, while its +45/−70 values remain
+provisional balance. Starting no medication activates neither medication reconciliation nor
+reaction history; starting a non-antidepressant activates those two but not the antidepressant
+mania rule. Staff automation may fulfill an activated investigation but never changes what the
+rule means.
+
+### Default provisional authoring bands
+
+New rule proposals use the following starting bands when no more specific reviewed balance exists:
+
+| Role                                     |                 Default provisional range |
+| ---------------------------------------- | ----------------------------------------: |
+| Dominant primary route                   |                        approximately +200 |
+| Minor fit or efficiency effect           |                                     ±5–10 |
+| Moderate fit, workup, or omission effect |                                    ±15–30 |
+| Major fit, workup, or omission effect    |                                   ±35–100 |
+| Critical safety effect                   | −150 to −500, often with a care-point cap |
+
+These bands improve consistency and reduce repetitive point-tuning work; they are not a hidden
+clinical formula. Every executable value remains explicit and can be overridden by a narrower
+medication, diagnosis, interaction, or patient rule. Necessary investigation reward must still
+exceed accessible cost. A critical contraindication is ineligible for positive goodness-of-fit
+bonuses, and a cap prevents accumulated small bonuses from rescuing a critical error.
+
+Certainty does not multiply point magnitude automatically. Concern describes potential clinical
+impact; certainty describes confidence and provenance. A high-impact but uncertain risk remains
+visible as such instead of becoming artificially trivial, while review and reuse gates prevent the
+uncertainty from being hidden.
 
 ## Treatment and modifier layers
 
@@ -78,7 +110,12 @@ The final combination is evaluated in named layers:
 7. Disposition.
 8. Efficiency.
 
-The itemized receipt keeps these layers separate. For example, a selected SSRI can show a +100 base award and a separate +0 patient-fit row. It did not “earn zero”; it simply had no additional patient-specific adjustment. The current medically unreviewed mirtazapine prototype has a +35 insomnia fit modifier and a −50 high-BMI-without-countervailing-reason modifier. Those values exercise architecture and remain reviewable clinical content, not authoritative guidance.
+The itemized receipt keeps these layers separate. In the current initial-MDD snapshot, one of the
+five reviewed first-line antidepressants receives the same provisional +200 primary-route award.
+A medication can then show a separate +0 fit row; it did not “earn zero,” it simply had no
+additional patient-specific adjustment. The current medically unreviewed mirtazapine prototype
+has a +35 insomnia fit modifier and a −50 high-BMI-without-countervailing-reason modifier. Those
+values exercise architecture and remain reviewable clinical content, not authoritative guidance.
 
 Every investigation remains a genuine point cost even when it reveals nothing useful. A purchase
 does not automatically earn care points; independent workup objectives reward only authored
@@ -89,6 +126,13 @@ whether revealed or not, representing the immediate downstream effects of the su
 Fit points stay on the treatment row, while workup cost/reward remains separate. The complete rule
 trace itemizes every applied modifier and its provenance so a player can inspect exactly why a
 choice gained or lost points.
+
+Resolved patient facts also remain separate from what the player purchased. A prior reaction to a
+selected medication therefore affects the submitted treatment even when the player did not reveal
+the allergy/reaction history. Revealing that history earns the treatment-prerequisite workup
+points; it does not create or erase the reaction. The current shared mild/moderate/severe/unknown
+reaction mapping is medically unreviewed provisional balance and must yield to a more specific
+reviewed medication/reaction rule when one exists.
 
 Exact complete matches are labeled `authored_pathway`. A nonexact programmed result is prominently labeled `engine_inferred`; the receipt says deterministic catalog rules estimated it. `unmatched` means no programmed route recognized the combination and invites a missing-alternative ticket.
 
@@ -112,7 +156,7 @@ contributors before applying reusable combination logic.
 
 Safety rules can deduct large point values, record named safety errors, and cap the care subtotal. They are not hidden duplicate financial penalties: the same signed care subtotal enters settlement once.
 
-Disposition is a material clinical decision. The stable outpatient patient earns +70 for close outpatient follow-up. Unnecessary emergency transfer receives −450 disposition points and a 200-point cap. Safe referral remains available for patients the location cannot treat, but disproportionate escalation is not a free answer.
+Disposition is a material clinical decision. The stable outpatient patient earns +70 for close outpatient follow-up. Unnecessary emergency transfer receives a provisional −500 disposition points and a 75-point cap. Safe referral remains available for patients the location cannot treat, but disproportionate escalation is not a free answer.
 
 ## Settlement formula
 
@@ -187,10 +231,10 @@ multiplier = min(1.15, 1 + (1.15 - 1) × diminishing value)
 
 The multiplier is rounded to three decimals for persisted/displayed state. The six-point plant produces 1.035×; plant plus ten-point artwork produces 1.067×, so the second item's per-point effect is smaller. The cap and half-saturation value live in the decor catalog rather than React. Only the positive reward subtotal is multiplied. A negative care subtotal remains a full unmultiplied penalty, and care-point traces, safety errors, treatment grades, and score caps are unchanged.
 
-For the 515-care-point starter database plan, the undecorated gross is 1,215 and the 135-point
-focused workup yields 1,080 banked points. With the plant, gross is
-`round(1,215 × 1.035) = 1,258`, yielding 1,123 points. With plant plus artwork, gross is
-`round(1,215 × 1.067) = 1,296`, yielding 1,161 points. The same decor leaves the unsafe reference
+For the 745-care-point starter database plan, the undecorated gross is 1,445 and the 145-point
+focused workup yields 1,300 banked points. With the plant, gross is
+`round(1,445 × 1.035) = 1,496`, yielding 1,351 points. With plant plus artwork, gross is
+`round(1,445 × 1.067) = 1,542`, yielding 1,397 points. The same decor leaves the unsafe reference
 run at a zero payout.
 
 ## Executable starter reference runs
@@ -202,10 +246,10 @@ deducted separately.
 
 | Policy             | Care points | Database plan | Workup cost | Base | Complexity | Gross | Calculated | Banked |
 | ------------------ | ----------: | ------------: | ----------: | ---: | ---------: | ----: | ---------: | -----: |
-| Database plan      |         515 |           515 |         135 |  650 |         50 | 1,215 |      1,080 |  1,080 |
-| Strong alternative |         515 |           515 |         135 |  650 |         50 | 1,215 |      1,080 |  1,080 |
-| Shotgun testing    |         495 |           515 |       7,745 |  650 |         50 | 1,195 |     −6,550 |      0 |
-| Unsafe treatment   |        −905 |           515 |         135 |  650 |         50 |     0 |       −135 |      0 |
+| Database plan      |         745 |           745 |         145 |  650 |         50 | 1,445 |      1,300 |  1,300 |
+| Equivalent example |         745 |           745 |         145 |  650 |         50 | 1,445 |      1,300 |  1,300 |
+| Shotgun testing    |         725 |           745 |       7,755 |  650 |         50 | 1,425 |     −6,330 |      0 |
+| Unsafe treatment   |        −695 |           745 |         145 |  650 |         50 |     5 |       −140 |      0 |
 
 Expected care-point ordering is database plan = strong alternative > shotgun > unsafe. The equal
 focused results intentionally reflect one broad first-line medication family rather than an

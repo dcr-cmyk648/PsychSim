@@ -84,14 +84,14 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await page.getByRole('button', { name: 'Database' }).click();
   await expect(page.getByRole('heading', { name: 'Database', level: 1 })).toBeFocused();
   await expectDocumentFitsViewport(page);
-  const conditionCategory = page.getByRole('button', { name: /Modeled conditions 8/ });
+  const conditionCategory = page.getByRole('button', { name: /Modeled conditions 9/ });
   await expect(conditionCategory).toHaveAttribute('aria-pressed', 'true');
   await expectWithinHorizontalViewport(conditionCategory);
   await page.getByRole('searchbox', { name: 'Search database' }).fill('major depressive');
   await expect(page.getByText('Major depressive disorder')).toBeVisible();
   await expectDocumentFitsViewport(page);
 
-  const medicationCategory = page.getByRole('button', { name: /Medications 33/ });
+  const medicationCategory = page.getByRole('button', { name: /Medications 53/ });
   await medicationCategory.click();
   await expectWithinHorizontalViewport(medicationCategory);
   await page.getByRole('searchbox', { name: 'Search database' }).fill('bupropion');
@@ -105,7 +105,9 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   ).toBeVisible();
   await expectWithinHorizontalViewport(page.locator('.database-reader-shell'));
   const databaseNote = 'Phone database review: verify bupropion identity and source metadata.';
-  await page.getByRole('textbox', { name: 'Comment for Codex' }).fill(databaseNote);
+  await page
+    .getByRole('textbox', { name: 'Your interpretation and instructions for Codex' })
+    .fill(databaseNote);
   await page.getByRole('button', { name: 'Save comment', exact: true }).click();
   await expect(page.getByRole('status')).toContainText(
     'Saved your comment on “Bupropion” in this browser.',
@@ -114,14 +116,16 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
 
   await page.reload();
   await page.getByRole('button', { name: 'Database' }).click();
-  await page.getByRole('button', { name: /Medications 33/ }).click();
+  await page.getByRole('button', { name: /Medications 53/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('bupropion');
   await expect(page.getByText('Comment saved')).toBeVisible();
   await page.getByRole('button', { name: 'Open full entry' }).click();
-  await expect(page.getByRole('textbox', { name: 'Comment for Codex' })).toHaveValue(databaseNote);
+  await expect(
+    page.getByRole('textbox', { name: 'Your interpretation and instructions for Codex' }),
+  ).toHaveValue(databaseNote);
   await page.getByRole('button', { name: 'Back to database' }).click();
 
-  const referencesCategory = page.getByRole('button', { name: /Formal references 18/ });
+  const referencesCategory = page.getByRole('button', { name: /Formal references 26/ });
   await referencesCategory.click();
   await expectWithinHorizontalViewport(referencesCategory);
   await page.getByRole('searchbox', { name: 'Search database' }).fill('CANMAT');
@@ -133,7 +137,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expectDocumentFitsViewport(page);
   await page.getByRole('button', { name: 'Back to database' }).click();
 
-  await page.getByRole('button', { name: /All 129/ }).click();
+  await page.getByRole('button', { name: /All \d+/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('ticket.reviewer-cohort');
   await expect(page.getByRole('status')).toContainText('0 matches');
   await expect(page.getByText(/No catalog records match/)).toBeVisible();
@@ -223,6 +227,28 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   );
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(page.locator('#patient-chart-title')).toBeFocused();
+  const inCaseNote =
+    'Phone in-case note: I want to remember why the mania-history result mattered here.';
+  const scratchpad = page.getByRole('complementary', {
+    name: 'Persistent case review notes',
+  });
+  await expect(scratchpad).toBeVisible();
+  await expectWithinHorizontalViewport(scratchpad);
+  expect(
+    await scratchpad.evaluate((element) => {
+      const rectangle = element.getBoundingClientRect();
+      return rectangle.bottom <= window.innerHeight + 1 && rectangle.height >= 56;
+    }),
+  ).toBe(true);
+  await scratchpad.getByRole('button', { name: /Case notes/ }).click();
+  const scratchpadTextarea = scratchpad.getByRole('textbox', {
+    name: 'Record clinical, scoring, content, or general app observations',
+  });
+  await expect(scratchpadTextarea).toBeFocused();
+  await scratchpadTextarea.fill(inCaseNote);
+  await expect(scratchpad.getByRole('status')).toHaveText('Saved locally');
+  await expectWithinHorizontalViewport(scratchpad);
+  await scratchpad.getByRole('button', { name: 'Close' }).click();
   expect(
     await page.evaluate(() => {
       const notice = document.querySelector('.prototype-notice')?.getBoundingClientRect();
@@ -240,9 +266,17 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   const firstDialog = page.getByRole('dialog');
   await expect(firstDialog).toBeVisible();
   await expect(firstDialog).toContainText('Fulfilled by');
+  const reopenedAction = page.getByRole('button', {
+    name: /Presenting problem and timeline, \d+ points, in house, revealed/,
+  });
   await page.keyboard.press('Escape');
   await expect(firstDialog).toBeHidden();
-  await expect(workspaceTabs.getByRole('tab', { name: 'Investigate' })).toBeFocused();
+  await expect(reopenedAction).toBeFocused();
+  await reopenedAction.click();
+  await expect(firstDialog).toBeVisible();
+  await firstDialog.getByRole('button', { name: 'Close' }).click();
+  await expect(firstDialog).toBeHidden();
+  await expect(reopenedAction).toBeFocused();
 
   await page
     .getByRole('button', { name: /Current and past mania or hypomania, \d+ points, in house/ })
@@ -255,7 +289,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
       .filter({ hasText: /Absent|Negative/ })
       .first(),
   ).toBeVisible();
-  await secondDialog.getByRole('button', { name: 'View revealed information' }).click();
+  await secondDialog.getByRole('button', { name: 'View in Revealed information' }).click();
   await expect(workspaceTabs.getByRole('tab', { name: 'Revealed' })).toHaveAttribute(
     'aria-selected',
     'true',
@@ -271,11 +305,15 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(revealedResults.nth(0)).toContainText('Presenting problem and timeline');
   await expect(revealedResults.nth(1)).toContainText('Current and past mania or hypomania');
 
-  await workspaceTabs.getByRole('tab', { name: 'Treatment' }).click();
+  await workspaceTabs.getByRole('tab', { name: 'Plan' }).click();
   await expectDocumentFitsViewport(page);
   await expectWithinHorizontalViewport(page.locator('#mobile-panel-treatment'));
+  await page
+    .getByRole('tablist', { name: 'Final answer section' })
+    .getByRole('tab', { name: 'Disposition' })
+    .click();
   await page.locator('.disposition-picker .picker-option').first().click();
-  await page.getByRole('button', { name: 'Lock in treatment' }).click();
+  await page.getByRole('button', { name: 'Lock in final answer' }).click();
 
   await expect(workspaceTabs.getByRole('tab', { name: 'Results / review' })).toHaveAttribute(
     'aria-selected',
@@ -286,6 +324,11 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   );
   await expectDocumentFitsViewport(page);
   await expectWithinHorizontalViewport(page.locator('#mobile-panel-results'));
+  await expect(page.locator('.mobile-receipt-item-list')).toBeVisible();
+  await expect(page.locator('.desktop-receipt-table')).toBeHidden();
+  await expectWithinHorizontalViewport(page.locator('.mobile-receipt-item-list'));
+  await expect(page.locator('.mobile-receipt-item-list > li').first()).toContainText(/care pts/);
+  await expect(page.locator('.mobile-receipt-item-list > li').first()).toContainText(/Cost/);
   await expect(page.locator('#score-comparison-title')).toBeFocused();
   await expect(page.locator('.point-seal')).toHaveCount(0);
   await expect(page.getByText(/points vs database plan/i)).toHaveCount(0);
@@ -295,6 +338,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(scoreMeter).toHaveCount(1);
   await expectWithinHorizontalViewport(scoreMeter);
   await expect(page.getByRole('heading', { name: 'Case and app experience notes' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Your feedback' })).toHaveValue(inCaseNote);
   await expect(
     page.getByText(/subjective comments about pacing, clarity, usability/i),
   ).toBeVisible();
@@ -327,9 +371,13 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await page.getByRole('button', { name: 'Save feedback and open next patient' }).click();
   await expect(page.locator('#patient-chart-title')).toBeFocused();
   await expect(page.getByRole('tab', { name: 'Patient' })).toHaveAttribute('aria-selected', 'true');
-  await page.getByRole('tab', { name: 'Treatment' }).click();
+  await page.getByRole('tab', { name: 'Plan' }).click();
+  await page
+    .getByRole('tablist', { name: 'Final answer section' })
+    .getByRole('tab', { name: 'Disposition' })
+    .click();
   await page.locator('.disposition-picker .picker-option').first().click();
-  await page.getByRole('button', { name: 'Lock in treatment' }).click();
+  await page.getByRole('button', { name: 'Lock in final answer' }).click();
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Export all saved feedback' })).toBeVisible();
   await page.getByRole('button', { name: 'Add feedback' }).click();
@@ -388,7 +436,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   };
   expect(bundle.exportVersion).toBe(7);
   expect(bundle.buildKind).toBe('portable_reviewer');
-  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07f');
+  expect(bundle.assignmentId).toBe('reviewer-assignment.common-psychiatry.2026-07g');
   expect(bundle.attemptReviews).toHaveLength(2);
   expect(bundle.completedAttempts).toHaveLength(2);
   expect(bundle.databaseEntryReviews).toHaveLength(1);

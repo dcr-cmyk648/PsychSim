@@ -1,17 +1,42 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 
 import type {
   DatabaseEntryReview,
+  DeveloperDatabaseCrossReferenceRecordSchema,
+  DeveloperDatabaseKnowledgeProjection,
   PublicClinicalCatalogCategoryId,
   PublicClinicalCatalogEntry,
   PublicClinicalCatalogProjection,
 } from '@psychsim/schemas';
+import type { z } from 'zod';
 
 type CategoryFilter = 'all' | PublicClinicalCatalogCategoryId;
+type DeveloperDatabaseRecord = z.infer<typeof DeveloperDatabaseCrossReferenceRecordSchema>;
+
+export interface DatabaseDossierReviewFeedback {
+  id: string;
+  entryId: string;
+  reviewerNote: string;
+  updatedAt: string;
+  kind: 'developer_dossier';
+}
 
 interface DatabaseBrowserProps {
   projection: PublicClinicalCatalogProjection;
+  developerKnowledge?: DeveloperDatabaseKnowledgeProjection | null;
+  developerDossierMode?: boolean;
+  developerDossierReady?: boolean;
+  DeveloperKnowledgePanel?: ComponentType<{
+    knowledge: DeveloperDatabaseKnowledgeProjection;
+    record: DeveloperDatabaseRecord;
+    onOpenRelated: (entryId: string) => void;
+  }>;
+  DeveloperKnowledgeScope?: ComponentType<{
+    knowledge: DeveloperDatabaseKnowledgeProjection;
+  }>;
+  DeveloperClassificationInspector?: ComponentType;
   reviews?: readonly DatabaseEntryReview[];
+  developerDossierReviews?: readonly DatabaseDossierReviewFeedback[];
   reviewToolsEnabled?: boolean;
   reviewStatusMessage?: string | null;
   exportAvailable?: boolean;
@@ -27,8 +52,13 @@ const medicalReviewLabel = (entry: PublicClinicalCatalogEntry): string =>
     ? `Medical review: ${humanize(entry.medicalReviewStatus)}`
     : 'Identity record · clinical review is rule-specific';
 
-const searchableEntryText = (entry: PublicClinicalCatalogEntry): string =>
-  JSON.stringify(entry).toLocaleLowerCase('en-US');
+const searchableEntryText = (
+  entry: PublicClinicalCatalogEntry,
+  developerRecord: DeveloperDatabaseRecord | undefined,
+): string =>
+  `${JSON.stringify(entry)} ${developerRecord ? JSON.stringify(developerRecord) : ''}`.toLocaleLowerCase(
+    'en-US',
+  );
 
 const entryButtonId = (entry: PublicClinicalCatalogEntry): string =>
   `database-open-${entry.categoryId}-${entry.id}`;
@@ -95,6 +125,46 @@ const EntryDetails = ({ entry }: { entry: PublicClinicalCatalogEntry }) => {
           <div>
             <dt>Identity snapshot</dt>
             <dd>{entry.identityScopeNotice}</dd>
+          </div>
+          <div>
+            <dt>Attribution</dt>
+            <dd>{entry.identityAttribution}</dd>
+          </div>
+        </dl>
+      );
+    case 'supplement':
+      return (
+        <dl className="database-record-fields">
+          <div>
+            <dt>Normalized identity</dt>
+            <dd>{entry.normalizedName}</dd>
+          </div>
+          <div>
+            <dt>Aliases</dt>
+            <dd>{entry.aliases.length > 0 ? entry.aliases.join(' · ') : 'None recorded'}</dd>
+          </div>
+          <div>
+            <dt>Identity category</dt>
+            <dd>
+              {humanize(entry.identityCategory)} · {humanize(entry.preparation)}
+            </dd>
+          </div>
+          <div>
+            <dt>Identifiers</dt>
+            <dd>
+              {entry.identifiers
+                .map(
+                  (identifier) =>
+                    `${identifier.system.toUpperCase()} ${identifier.value} (${humanize(
+                      identifier.relationship,
+                    )}; ${identifier.sourceRelease})`,
+                )
+                .join(' · ')}
+            </dd>
+          </div>
+          <div>
+            <dt>Authoring scope</dt>
+            <dd>{entry.identityScopeNote}</dd>
           </div>
           <div>
             <dt>Attribution</dt>
@@ -226,6 +296,8 @@ const DatabaseEntryReader = ({
   projection,
   review,
   reviewToolsEnabled,
+  developerDossierMode,
+  developerDossierReady,
   reviewStatusMessage,
   exportAvailable,
   position,
@@ -235,13 +307,19 @@ const DatabaseEntryReader = ({
   onBack,
   onPrevious,
   onAdvance,
+  developerKnowledge,
+  developerRecord,
+  DeveloperKnowledgePanel,
+  onOpenRelated,
   onSaveReview,
   onExportReviews,
 }: {
   entry: PublicClinicalCatalogEntry;
   projection: PublicClinicalCatalogProjection;
-  review: DatabaseEntryReview | undefined;
+  review: DatabaseEntryReview | DatabaseDossierReviewFeedback | undefined;
   reviewToolsEnabled: boolean;
+  developerDossierMode: boolean;
+  developerDossierReady: boolean;
   reviewStatusMessage: string | null;
   exportAvailable: boolean;
   position: number;
@@ -251,6 +329,16 @@ const DatabaseEntryReader = ({
   onBack: () => void;
   onPrevious: () => void;
   onAdvance: () => void;
+  developerKnowledge: DeveloperDatabaseKnowledgeProjection | null;
+  developerRecord: DeveloperDatabaseRecord | undefined;
+  DeveloperKnowledgePanel:
+    | ComponentType<{
+        knowledge: DeveloperDatabaseKnowledgeProjection;
+        record: DeveloperDatabaseRecord;
+        onOpenRelated: (entryId: string) => void;
+      }>
+    | undefined;
+  onOpenRelated: (entryId: string) => void;
   onSaveReview?: (entry: PublicClinicalCatalogEntry, reviewerNote: string) => Promise<boolean>;
   onExportReviews?: () => void;
 }) => {
@@ -270,12 +358,21 @@ const DatabaseEntryReader = ({
 
   const normalizedReviewerNote = reviewerNote.trim();
   const dirty = normalizedReviewerNote !== savedReviewerNote.trim();
+  const reviewNoun = developerDossierMode ? 'interpretation' : 'comment';
+  const reviewBlocked = developerDossierMode && !developerDossierReady;
+  const reviewStatusIsWarning =
+    reviewStatusMessage !== null &&
+    /could not|unavailable|quarantined|not saved|no validated record/i.test(reviewStatusMessage);
   const save = async (note: string): Promise<boolean> => {
-    if (!onSaveReview) return false;
+    if (!onSaveReview || reviewBlocked) return false;
     setSaving(true);
     setSaveError(null);
     try {
-      await onSaveReview(entry, note.trim());
+      const saved = await onSaveReview(entry, note.trim());
+      if (!saved) {
+        setSaveError('The comment was not saved. Navigation was canceled.');
+        return false;
+      }
       setSavedReviewerNote(note.trim());
       return true;
     } catch (caught) {
@@ -294,6 +391,14 @@ const DatabaseEntryReader = ({
     if (direction === 'previous') onPrevious();
     else onAdvance();
   };
+  const openRelated = async (entryId: string): Promise<void> => {
+    if (dirty && !(await save(reviewerNote))) return;
+    onOpenRelated(entryId);
+  };
+  const returnToDatabase = async (): Promise<void> => {
+    if (dirty && !(await save(reviewerNote))) return;
+    onBack();
+  };
   const progressionLabel = (direction: 'previous' | 'next', finalDestination: boolean): string => {
     const destination = finalDestination
       ? 'return to database'
@@ -308,15 +413,26 @@ const DatabaseEntryReader = ({
           : 'Next entry';
     }
     return normalizedReviewerNote
-      ? `Save comment and ${destination}`
-      : `Remove comment and ${destination}`;
+      ? `Save ${reviewNoun} and ${destination}`
+      : `Remove ${reviewNoun} and ${destination}`;
   };
 
   return (
     <main className="database-shell database-reader-shell" id="main-content">
       <header className="database-reader-header">
-        <button className="secondary-button" type="button" onClick={onBack}>
-          Back to database
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={saving || reviewBlocked}
+          onClick={() => void returnToDatabase()}
+        >
+          {saving
+            ? 'Saving…'
+            : dirty
+              ? normalizedReviewerNote
+                ? `Save ${reviewNoun} and return to database`
+                : `Remove ${reviewNoun} and return to database`
+              : 'Back to database'}
         </button>
         <div>
           <p className="eyebrow">Database entry · {humanize(entry.categoryId)}</p>
@@ -362,6 +478,14 @@ const DatabaseEntryReader = ({
           </div>
         </section>
 
+        {developerKnowledge && developerRecord && DeveloperKnowledgePanel ? (
+          <DeveloperKnowledgePanel
+            knowledge={developerKnowledge}
+            record={developerRecord}
+            onOpenRelated={(entryId) => void openRelated(entryId)}
+          />
+        ) : null}
+
         <details className="database-structured-record">
           <summary>Complete structured record</summary>
           <p>
@@ -375,37 +499,50 @@ const DatabaseEntryReader = ({
           <section className="database-review-panel" aria-labelledby="database-review-title">
             <div>
               <p className="eyebrow">Reviewer feedback</p>
-              <h2 id="database-review-title">Comment on this entry</h2>
+              <h2 id="database-review-title">
+                {developerDossierMode || (review && 'kind' in review)
+                  ? 'Interpret this knowledge dossier'
+                  : 'Comment on this entry'}
+              </h2>
               <p>
                 General, clinical, provenance, and data-structure comments are welcome. Saving a
-                comment does not edit this record or approve clinical content. The exact review-safe
-                entry snapshot is saved with your note.
+                comment does not edit this record, activate randomization, change points, or approve
+                clinical content. In local Developer mode, the exact concise dossier brief, its
+                entry revision fingerprint, and the source-projection fingerprint are preserved with
+                your opinion.
               </p>
             </div>
             <label htmlFor="database-review-note">
-              Comment for Codex
+              Your interpretation and instructions for Codex
               <textarea
                 id="database-review-note"
                 value={reviewerNote}
+                disabled={reviewBlocked}
                 maxLength={8000}
-                placeholder="What should be added, corrected, sourced, clarified, or reconsidered?"
+                placeholder="What is your overall interpretation? Include patient features that should affect fit, safety or interaction concerns, possible randomization inputs, and any point direction or magnitude to consider."
                 onChange={(event) => setReviewerNote(event.target.value)}
               />
             </label>
+            {reviewBlocked ? (
+              <p className="database-review-loading" role="status">
+                {reviewStatusMessage ??
+                  'Loading the current local knowledge dossier before accepting an interpretation…'}
+              </p>
+            ) : null}
             <div className="database-review-actions">
               <button
                 className="secondary-button"
                 type="button"
-                disabled={saving || !dirty}
+                disabled={saving || !dirty || reviewBlocked}
                 onClick={() => void save(reviewerNote)}
               >
                 {saving
                   ? 'Saving…'
                   : normalizedReviewerNote
                     ? review
-                      ? 'Update comment'
-                      : 'Save comment'
-                    : 'Remove saved comment'}
+                      ? `Update ${reviewNoun}`
+                      : `Save ${reviewNoun}`
+                    : `Remove saved ${reviewNoun}`}
               </button>
               <button
                 className="secondary-button"
@@ -420,7 +557,7 @@ const DatabaseEntryReader = ({
               <button
                 className="secondary-button"
                 type="button"
-                disabled={saving || !hasPrevious}
+                disabled={saving || !hasPrevious || reviewBlocked}
                 onClick={() => void advance('previous')}
               >
                 {progressionLabel('previous', false)}
@@ -428,7 +565,7 @@ const DatabaseEntryReader = ({
               <button
                 className="primary-button"
                 type="button"
-                disabled={saving}
+                disabled={saving || reviewBlocked}
                 onClick={() => void advance('next')}
               >
                 {saving ? 'Saving…' : progressionLabel('next', isLast)}
@@ -436,7 +573,9 @@ const DatabaseEntryReader = ({
             </div>
             {review ? (
               <p className="database-review-saved">
-                Saved locally · last updated {new Date(review.updatedAt).toLocaleString()}
+                Saved locally
+                {'kind' in review ? ' as a versioned dossier-review ticket' : ''} · last updated{' '}
+                {new Date(review.updatedAt).toLocaleString()}
               </p>
             ) : null}
             {saveError ? (
@@ -444,8 +583,11 @@ const DatabaseEntryReader = ({
                 {saveError}
               </p>
             ) : null}
-            {reviewStatusMessage ? (
-              <p className="success-message" role="status">
+            {reviewStatusMessage && !reviewBlocked ? (
+              <p
+                className={reviewStatusIsWarning ? 'global-error' : 'success-message'}
+                role={reviewStatusIsWarning ? 'alert' : 'status'}
+              >
                 {reviewStatusMessage}
               </p>
             ) : null}
@@ -458,7 +600,14 @@ const DatabaseEntryReader = ({
 
 export function DatabaseBrowser({
   projection,
+  developerKnowledge = null,
+  developerDossierMode = false,
+  developerDossierReady = true,
+  DeveloperKnowledgePanel,
+  DeveloperKnowledgeScope,
+  DeveloperClassificationInspector,
   reviews = [],
+  developerDossierReviews = [],
   reviewToolsEnabled = false,
   reviewStatusMessage = null,
   exportAvailable = false,
@@ -475,16 +624,32 @@ export function DatabaseBrowser({
     categoryFilter === 'all'
       ? null
       : (projection.categories.find((candidate) => candidate.id === categoryFilter) ?? null);
+  const developerRecordById = useMemo(
+    () => new Map(developerKnowledge?.records.map((record) => [record.entryId, record]) ?? []),
+    [developerKnowledge],
+  );
+  const searchableTextByEntryId = useMemo(
+    () =>
+      new Map(
+        projection.entries.map((entry) => [
+          entry.id,
+          searchableEntryText(entry, developerRecordById.get(entry.id)),
+        ]),
+      ),
+    [developerRecordById, projection.entries],
+  );
   const entries = useMemo(
     () =>
       projection.entries.filter(
         (entry) =>
           (categoryFilter === 'all' || entry.categoryId === categoryFilter) &&
-          (normalizedQuery.length === 0 || searchableEntryText(entry).includes(normalizedQuery)),
+          (normalizedQuery.length === 0 ||
+            searchableTextByEntryId.get(entry.id)?.includes(normalizedQuery)),
       ),
-    [categoryFilter, normalizedQuery, projection.entries],
+    [categoryFilter, normalizedQuery, projection.entries, searchableTextByEntryId],
   );
   const activeEntry = projection.entries.find((entry) => entry.id === activeEntryId) ?? null;
+  const activeDeveloperRecord = activeEntryId ? developerRecordById.get(activeEntryId) : undefined;
   const activeEntryIndex = entries.findIndex((entry) => entry.id === activeEntryId);
 
   const closeReader = (): void => {
@@ -500,8 +665,13 @@ export function DatabaseBrowser({
       <DatabaseEntryReader
         entry={activeEntry}
         projection={projection}
-        review={reviews.find((candidate) => candidate.entryId === activeEntry.id)}
+        review={
+          developerDossierReviews.find((candidate) => candidate.entryId === activeEntry.id) ??
+          reviews.find((candidate) => candidate.entryId === activeEntry.id)
+        }
         reviewToolsEnabled={reviewToolsEnabled}
+        developerDossierMode={developerDossierMode}
+        developerDossierReady={developerDossierReady}
         reviewStatusMessage={reviewStatusMessage}
         exportAvailable={exportAvailable}
         position={activeEntryIndex + 1}
@@ -521,6 +691,17 @@ export function DatabaseBrowser({
             return;
           }
           closeReader();
+        }}
+        developerKnowledge={developerKnowledge}
+        developerRecord={activeDeveloperRecord}
+        DeveloperKnowledgePanel={DeveloperKnowledgePanel}
+        onOpenRelated={(entryId) => {
+          setCategoryFilter('all');
+          setQuery('');
+          returnFocusId.current = entryButtonId(
+            projection.entries.find((entry) => entry.id === entryId) ?? activeEntry,
+          );
+          setActiveEntryId(entryId);
         }}
         onSaveReview={onSaveReview}
         onExportReviews={onExportReviews}
@@ -558,6 +739,10 @@ export function DatabaseBrowser({
         </div>
         <span className="count-badge">Catalog {projection.catalogContentVersion}</span>
       </section>
+      {developerKnowledge && DeveloperKnowledgeScope ? (
+        <DeveloperKnowledgeScope knowledge={developerKnowledge} />
+      ) : null}
+      {DeveloperClassificationInspector ? <DeveloperClassificationInspector /> : null}
 
       <nav className="database-category-strip" aria-label="Database categories">
         <button
@@ -621,7 +806,9 @@ export function DatabaseBrowser({
         {entries.length > 0 ? (
           <div className="database-record-list">
             {entries.map((entry) => {
-              const hasComment = reviews.some((candidate) => candidate.entryId === entry.id);
+              const hasComment =
+                developerDossierReviews.some((candidate) => candidate.entryId === entry.id) ||
+                reviews.some((candidate) => candidate.entryId === entry.id);
               return (
                 <article className="database-record database-record-launcher" key={entry.id}>
                   <div>

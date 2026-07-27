@@ -25,6 +25,17 @@ Thus “I missed suicide risk assessment and was not penalized” can be checked
 action was available, unpurchased, and absent or present in the trace. The review does not require
 the user to manually enumerate selections or reproduce a seed.
 
+Those same two review modes expose “Case notes” during the encounter. The in-progress draft is a
+separate browser-local scratchpad attached to the exact resolved patient, not part of the clinical
+event history or scoring engine. It autosaves locally, restores when that still-persisted patient
+is reopened, and flushes before the reviewer leaves or submits. On submission its current nonblank
+text prepopulates the ordinary “Case and app experience notes” review, which may still be revised
+on the receipt. The completed review retains the immutable attempt and option snapshots described
+above. Local Developer mode mirrors it to the fixed Codex handoff; portable Reviewer mode includes
+it in the next version-7 feedback export. An unfinished draft is not independently exportable and
+will be lost if that browser's site data is cleared. Standard and Endgame modes never expose this
+scratchpad.
+
 The receipt organizes the explanatory trace into stable domains and places point-changing rules
 before zero-point supporting rules. No trace row is discarded; zero-point rows remain available in
 an expandable section so a reviewer can still inspect provenance and predicate outcomes. Every
@@ -115,7 +126,7 @@ within the current filtered result order. Previous/next controls save any change
 navigating, focus the next entry heading, and return to the filtered Database list after the final
 entry.
 
-Assignment `reviewer-assignment.common-psychiatry.2026-07f` adds one narrow exception to the rule
+Assignment `reviewer-assignment.common-psychiatry.2026-07g` adds one narrow exception to the rule
 that portable Reviewer has no authoring queue: it statically imports one exact ticket packet with
 one patient-linked question for each of its ten allowlisted scenarios. This is an assignment
 artifact, not local Developer ticket discovery. Every ticket must name one of those exact
@@ -180,6 +191,14 @@ A scaffold can be played immediately to evaluate wording, variation, menus, and 
 ## Source-review ticket packets
 
 A tracked `*.tickets.json` file may decompose one formal source into proposed rule-level questions without attaching that publication to an executable rule. Developer mode loads these packets into the same local queue. The first example, `canmat-2023-mdd-source-review.tickets.json`, separates assessment/workup, severity and initial modality, broad antidepressant baseline/fit, psychotherapy, and disposition. Each ticket names exact candidate targets, source section routing, conflicts, dependencies, and resurfacing conditions. It paraphrases only the narrow candidate contribution and does not include private extracted text.
+
+Registering a source and applying it are deliberately separate review events. A new publication
+gets one stable evidence entry first; integration tickets then propose exact contributions to
+specific medications, diagnoses, tests, interventions, patients, or rules. It is acceptable for
+those tickets to remain unresolved while the source is still searchable in the bibliography.
+Neither registration nor a lexical match edits every related dossier. The local catalog landing
+audit separately retains unresolved target identities and possible duplicate/alias collisions so
+that missing destinations cannot disappear during incremental authoring.
 
 Creating or accepting a ticket is not source application. A formal `EvidenceContribution`, target rule review update, content-version change, impact scan, and affected reference policies are still required after the user adjudicates the question. This keeps “the paper exists,” “the source may support this claim,” and “this exact game rule has been clinically approved” as three separate states.
 
@@ -338,3 +357,28 @@ revision remains partially classified until every expected segment is imported. 
 may later accept, narrow, reject, split, or remap a candidate; formal citation and runtime promotion
 remain independent workflows. Process one bounded topic and one complete source at a time so a
 personal archive never becomes an opaque bulk authority.
+
+## Per-entry knowledge dossier review
+
+The local Database reader shows one concise decision brief before the detailed per-entry lanes.
+The brief reports coverage, direct candidates, unresolved cross-target candidates, bibliography,
+formal contributions, current rules/points, potential patient-fact material, related entries, and
+known gaps. Candidate contribution types and resolved target roles remain visible. The potential
+randomization lane accepts only semantically classified `patient_fact` candidates; lexical matches
+are never treated as facts.
+
+One prose field accepts the psychiatrist's interpretation. Saving creates a local
+`ClinicalReviewTicket` whose ID binds the response to a deterministic fingerprint of the exact
+concise entry brief the reviewer saw. Its resurfacing trigger also records the complete Developer
+projection fingerprint for provenance. A material change to that entry's displayed brief starts a
+new ticket and leaves the older review historical; an unrelated corpus change or regenerated
+timestamp does not. The detailed private projection, raw notes, private unit IDs, source labels,
+headings, matched terms, filenames, provider/document/chunk IDs, OCR, and paths are not copied into
+the ticket.
+
+Codex processes a ready dossier ticket by separating the prose into the smallest applicable
+evidence/Developer-opinion, patient fact or context-dimension, diagnosis compatibility, clinical
+fit, safety/interaction, and balance proposals. Saving is never an Apply command. It does not
+assign weights or points, activate content, make an identity selectable, or grant approval.
+Randomization proposals require explicit typed ownership, reveal paths, incompatibilities, and
+deterministic many-seed/invariance/safe-route tests before later activation.

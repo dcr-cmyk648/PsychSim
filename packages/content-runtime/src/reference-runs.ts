@@ -6,6 +6,7 @@ import {
   requireCompleted,
   purchaseUpgrade,
   startEncounterWithAutomaticIntake,
+  updateDiagnosisSelections,
   updateTreatmentSelections,
 } from '@psychsim/engine';
 
@@ -38,6 +39,9 @@ export const runReferenceSolution = (
     if (state.purchases.some((purchase) => purchase.actionId === actionId)) continue;
     state = requireCompleted(purchaseInformationAction(state, actionId, catalogs));
   }
+  state = requireCompleted(
+    updateDiagnosisSelections(state, solution.diagnosisSelections, catalogs),
+  );
   state = requireCompleted(updateTreatmentSelections(state, solution.selections, catalogs));
   const completed = requireCompleted(completeEncounter(state, catalogs));
   return {

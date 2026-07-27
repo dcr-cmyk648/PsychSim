@@ -84,21 +84,40 @@ submission.
 
 Medication IDs alone cannot represent realistic polypharmacy. A resolved patient needs a multiset
 of stable `MedicationRegimenEntry` records. Each entry has its own instance ID and references a
-catalog medication, so duplicate agents and duplicate classes remain representable. Stop and
-continue actions target the regimen-entry ID; a start action targets a catalog medication ID.
+catalog identity, so nonpsychiatric medications, duplicate agents, and duplicate classes remain
+representable without making every identity a treatment-menu option. Current-medication
+recommendations target the regimen-entry ID and use one categorical snapshot operation:
+`continue`, `increase`, `reduce_or_limit`, `taper`, or `stop`. A start action still targets a
+catalog treatment ID. These operations never imply a simulated taper schedule.
 
 Past treatment belongs in structured `MedicationTrialRecord` values rather than prose facts.
-Initially, adequacy can use reviewed categorical fields instead of real-world dosing:
+Player-facing history supplies the observations:
 
-- dose adequacy: adequate, inadequate, or unknown;
-- duration adequacy: adequate, inadequate, or unknown;
-- adherence: adequate, limited, absent, or unknown;
-- response: remission, response, partial response, no response, worsened, or unknown;
-- tolerability and reason stopped;
+- duration as a number and unit when known;
+- highest reported dose, unit, and frequency when known;
+- adherence or exposure consistency;
+- response;
+- tolerability, manifestations, and reason stopped;
 - information source and confidence.
 
-This is sufficient to distinguish nonresponse from an inadequate trial, intolerance, or
-nonadherence without turning PsychSim into a dosing or EHR simulator.
+The player decides whether that exposure seems sufficient for the immediate question. A reviewed
+backend inference may later classify the exposure for rule compilation, but it remains separate
+from the displayed observations. Legacy snapshots retain their categorical `adequacy` field for
+replay and are never retroactively assigned invented dose or duration values.
+
+Background nonpsychiatric medications and supplements use a reviewed deterministic exposure
+profile. The target profile owns saved age bands, game-weighted count distributions, allowlisted
+identities, stable per-slot random keys, and an impact classification (`neutral_background`,
+`fit_relevant`, `companion_safety`, or `case_defining`). It cannot consume the current cosmetic
+age variant. A supplement-enthusiast pattern is derived from the resolved set of multiple
+supplement entries rather than emitted as a free tag. No distribution is active until its
+source-to-game mapping is reviewed.
+
+Medication-associated sexual effects are structured tolerability findings tied to one current
+regimen entry or prior trial. Unknown is distinct from absent. Any medication-specific random
+generation retains the source estimate, population, outcome definition, time horizon, uncertainty,
+and a separately reviewed game-probability mapping; published incidence is never silently copied
+into the generator.
 
 ## Allergy and adverse-reaction history
 
@@ -125,6 +144,14 @@ safety/fit rules determine whether a resolved record affects the focused treatme
 mild background environmental entry may add texture without changing the rubric, while a
 decision-relevant medication reaction must remain visible through its own rule trace and
 provenance.
+
+Assessment credit and objective treatment consequences are separate. Purchasing reaction history
+can satisfy a treatment-triggered workup requirement, but failing to purchase it cannot erase a
+pre-resolved reaction to the selected medication. The current compatibility engine can apply one
+worst matching generic policy per selected medication using exact trigger identity, chart
+category, and reported severity. Those generic severity values are medically unreviewed
+provisional balance; they do not infer immune mechanism, absolute contraindication, or
+medication-specific retrial acceptability, and a reviewed specific policy must take precedence.
 
 ## Focused decision horizon
 
@@ -156,6 +183,11 @@ use a deterministic constrained pipeline:
 10. Retry from deterministic sub-seeds within a fixed limit, or quarantine with a reproducible
     reason.
 11. Save every resolved value in the `PatientInstance` and `EncounterInstance`.
+
+Compiled rules preserve at least: patient scope, submitted-selection trigger, target, consequence,
+clinical concern, confidence/certainty, provenance, review state, and the separately versioned
+point mapping. Points communicate relative gameplay weight but never become the only stored
+meaning of a clinical judgment.
 
 Incidental test abnormalities remain bounded, non-case-defining observations. A genuine additional
 condition is introduced only through an explicit reviewed condition/comorbidity module, never by a
@@ -266,8 +298,9 @@ The present checkpoint is adequate for two simple patients but is intentionally 
   rubric.
 - `PatientDiagnosis.role` expresses primary/contributing/excluded/reference-only, but cannot
   distinguish internal condition truth from an uncertain chart claim.
-- current medications and treatment selections are medication-ID sets, so duplicate regimen
-  entries cannot be targeted independently.
+- the current executable treatment selection still uses medication-ID sets; the planned
+  regimen-entry operation schema is not yet wired into encounters, so duplicate prescriptions
+  cannot yet be targeted independently in gameplay.
 - prior medication trials are revealed as findings rather than saved as reusable structured
   records.
 - broad per-case treatment grades remain more authoritative than the planned compiled rule system.

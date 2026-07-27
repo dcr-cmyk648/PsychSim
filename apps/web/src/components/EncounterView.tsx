@@ -4,6 +4,7 @@ import type {
   EncounterState,
   InformationActionCategory,
   InformationPurchase,
+  PlayerDiagnosisSelection,
   TreatmentSelection,
 } from '@psychsim/schemas';
 import {
@@ -12,6 +13,7 @@ import {
   purchaseInformationAction,
   quoteTreatmentOperatingCosts,
   quoteTreatmentService,
+  updateDiagnosisSelections,
   updateTreatmentSelections,
 } from '@psychsim/engine';
 import type { MobileWorkflowPane } from './MobileWorkflowTabs';
@@ -28,6 +30,7 @@ interface EncounterViewProps {
 }
 
 type MedicationMode = 'startMedicationIds' | 'stopMedicationIds' | 'continueMedicationIds';
+type PlanTab = 'diagnosis' | 'medication' | 'nonmedication' | 'disposition';
 
 const INFORMATION_CATEGORIES: ReadonlyArray<{
   id: InformationActionCategory;
@@ -45,8 +48,27 @@ const MEDICATION_MODES: ReadonlyArray<{ id: MedicationMode; label: string }> = [
   { id: 'continueMedicationIds', label: 'Continue' },
 ];
 
-const includesSearch = (search: string, ...values: Array<string | undefined>): boolean =>
-  values.join(' ').toLowerCase().includes(search.trim().toLowerCase());
+const PLAN_TABS: ReadonlyArray<{ id: PlanTab; label: string }> = [
+  { id: 'diagnosis', label: 'Diagnosis' },
+  { id: 'medication', label: 'Medication' },
+  { id: 'nonmedication', label: 'Non-medication' },
+  { id: 'disposition', label: 'Disposition' },
+];
+
+const normalizeSearch = (value: string): string =>
+  value
+    .normalize('NFKD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}]+/gu, ' ')
+    .trim();
+
+const includesSearch = (search: string, ...values: Array<string | undefined>): boolean => {
+  const tokens = normalizeSearch(search).split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return true;
+  const searchable = normalizeSearch(values.filter(Boolean).join(' '));
+  return tokens.every((token) => searchable.includes(token));
+};
 
 const findingOutcomeLabel = (
   outcome: EncounterState['purchases'][number]['result']['findings'][number]['outcome'],
@@ -152,11 +174,20 @@ function ResultCard({
                 ) : null}
                 <ul className="finding-list" aria-labelledby={headingId}>
                   {group.findings.map((finding) => (
-                    <li key={finding.id} className={`finding-row outcome-${finding.outcome}`}>
+                    <li
+                      key={finding.id}
+                      className={`finding-row ${
+                        finding.outcomeDisplay === 'value_only'
+                          ? 'outcome-value-only'
+                          : `outcome-${finding.outcome}`
+                      }`}
+                    >
                       <span className="finding-content">
-                        <span className={`finding-outcome-chip outcome-${finding.outcome}`}>
-                          {findingOutcomeLabel(finding.outcome)}
-                        </span>
+                        {finding.outcomeDisplay !== 'value_only' ? (
+                          <span className={`finding-outcome-chip outcome-${finding.outcome}`}>
+                            {findingOutcomeLabel(finding.outcome)}
+                          </span>
+                        ) : null}
                         <span>{finding.label}</span>
                         {finding.valueText ? <small>{finding.valueText}</small> : null}
                       </span>
@@ -187,6 +218,7 @@ export function EncounterView({
   const [informationCategory, setInformationCategory] =
     useState<InformationActionCategory>('history');
   const [treatmentSearch, setTreatmentSearch] = useState('');
+  const [planTab, setPlanTab] = useState<PlanTab>('diagnosis');
   const [medicationMode, setMedicationMode] = useState<MedicationMode>('startMedicationIds');
   const [message, setMessage] = useState<string | null>(null);
   const [newestResultsFirst, setNewestResultsFirst] = useState(true);
@@ -207,7 +239,12 @@ export function EncounterView({
         (action) =>
           caseActionIds.has(action.id) &&
           action.category === informationCategory &&
-          includesSearch(informationSearch, action.label, action.description),
+          includesSearch(
+            informationSearch,
+            action.label,
+            action.description,
+            ...action.searchAliases,
+          ),
       ),
     [caseActionIds, catalogs.informationActions, informationCategory, informationSearch],
   );
@@ -228,16 +265,40 @@ export function EncounterView({
     .map((id) => catalogs.medications.find((medication) => medication.id === id))
     .filter((medication) => medication !== undefined)
     .filter((medication) =>
-      includesSearch(treatmentSearch, medication.label, ...medication.classes),
+      includesSearch(
+        treatmentSearch,
+        medication.label,
+        ...medication.searchAliases,
+        ...medication.classes,
+      ),
+    );
+  const diagnoses = catalogs.diagnoses
+    .filter((diagnosis) => diagnosis.selectableInGameplay)
+    .filter((diagnosis) =>
+      includesSearch(treatmentSearch, diagnosis.label, ...diagnosis.searchAliases),
     );
   const interventions = state.caseInstance.availableTreatments.interventionIds
     .map((id) => catalogs.treatments.find((treatment) => treatment.id === id))
     .filter((treatment) => treatment !== undefined)
-    .filter((treatment) => includesSearch(treatmentSearch, treatment.label, treatment.category));
+    .filter((treatment) =>
+      includesSearch(
+        treatmentSearch,
+        treatment.label,
+        treatment.category,
+        ...treatment.searchAliases,
+      ),
+    );
   const dispositions = state.caseInstance.availableTreatments.dispositionIds
     .map((id) => catalogs.treatments.find((treatment) => treatment.id === id))
     .filter((treatment) => treatment !== undefined)
-    .filter((treatment) => includesSearch(treatmentSearch, treatment.label));
+    .filter((treatment) =>
+      includesSearch(
+        treatmentSearch,
+        treatment.label,
+        treatment.category,
+        ...treatment.searchAliases,
+      ),
+    );
 
   const buy = (actionId: string): void => {
     if (readOnly) return;
@@ -251,6 +312,14 @@ export function EncounterView({
     } else {
       setMessage(result.error.message);
     }
+  };
+
+  const reopenPurchase = (actionId: string): void => {
+    if (!state.purchases.some((purchase) => purchase.actionId === actionId)) return;
+    purchaseTriggerRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setLatestPurchaseActionId(actionId);
+    setMessage(null);
   };
 
   const dismissLatestPurchase = (restorePurchaseFocus = true): void => {
@@ -276,6 +345,28 @@ export function EncounterView({
     } else {
       setMessage(result.error.message);
     }
+  };
+
+  const updateDiagnoses = (next: readonly PlayerDiagnosisSelection[]): void => {
+    if (readOnly) return;
+    const result = updateDiagnosisSelections(state, next, catalogs);
+    if (result.ok) {
+      onStateChange(result.value);
+      setMessage(null);
+    } else {
+      setMessage(result.error.message);
+    }
+  };
+
+  const toggleDiagnosis = (diagnosisId: string): void => {
+    const selected = state.diagnosisSelections.some(
+      (selection) => selection.diagnosisId === diagnosisId,
+    );
+    updateDiagnoses(
+      selected
+        ? state.diagnosisSelections.filter((selection) => selection.diagnosisId !== diagnosisId)
+        : [...state.diagnosisSelections, { diagnosisId, severityId: null, specifierIds: [] }],
+    );
   };
 
   const toggle = (key: MedicationMode | 'interventionIds', id: string): void => {
@@ -306,6 +397,61 @@ export function EncounterView({
     state.selections.continueMedicationIds.length +
     state.selections.interventionIds.length +
     (state.selections.dispositionId ? 1 : 0);
+  const selectedPlanCount = state.diagnosisSelections.length + selectedTreatmentCount;
+  const planTabSelectedCount: Record<PlanTab, number> = {
+    diagnosis: state.diagnosisSelections.length,
+    medication:
+      state.selections.startMedicationIds.length +
+      state.selections.stopMedicationIds.length +
+      state.selections.continueMedicationIds.length,
+    nonmedication: state.selections.interventionIds.length,
+    disposition: state.selections.dispositionId ? 1 : 0,
+  };
+  const movePlanTabFocus = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    currentTab: PlanTab,
+  ): void => {
+    const currentIndex = PLAN_TABS.findIndex((tab) => tab.id === currentTab);
+    const nextIndex =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? PLAN_TABS.length - 1
+          : event.key === 'ArrowRight'
+            ? (currentIndex + 1) % PLAN_TABS.length
+            : event.key === 'ArrowLeft'
+              ? (currentIndex - 1 + PLAN_TABS.length) % PLAN_TABS.length
+              : -1;
+    if (nextIndex < 0) return;
+    event.preventDefault();
+    const nextTab = PLAN_TABS[nextIndex]!;
+    setPlanTab(nextTab.id);
+    setTreatmentSearch('');
+    document.getElementById(`plan-tab-${nextTab.id}`)?.focus();
+  };
+  const moveInformationCategoryFocus = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    currentCategory: InformationActionCategory,
+  ): void => {
+    const currentIndex = INFORMATION_CATEGORIES.findIndex(
+      (category) => category.id === currentCategory,
+    );
+    const nextIndex =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? INFORMATION_CATEGORIES.length - 1
+          : event.key === 'ArrowRight'
+            ? (currentIndex + 1) % INFORMATION_CATEGORIES.length
+            : event.key === 'ArrowLeft'
+              ? (currentIndex - 1 + INFORMATION_CATEGORIES.length) % INFORMATION_CATEGORIES.length
+              : -1;
+    if (nextIndex < 0) return;
+    event.preventDefault();
+    const nextCategory = INFORMATION_CATEGORIES[nextIndex]!;
+    setInformationCategory(nextCategory.id);
+    document.getElementById(`information-tab-${nextCategory.id}`)?.focus();
+  };
   const treatmentCostQuote = quoteTreatmentOperatingCosts(state, catalogs);
   const selectedTreatmentExpense = treatmentCostQuote.ok
     ? treatmentCostQuote.value.totalOperatingCost
@@ -516,12 +662,16 @@ export function EncounterView({
                 ).length;
                 return (
                   <button
+                    id={`information-tab-${item.id}`}
                     key={item.id}
                     type="button"
                     role="tab"
                     aria-selected={informationCategory === item.id}
+                    aria-controls="information-options-panel"
+                    tabIndex={informationCategory === item.id ? 0 : -1}
                     className={informationCategory === item.id ? 'active' : undefined}
                     onClick={() => setInformationCategory(item.id)}
+                    onKeyDown={(event) => moveInformationCategoryFocus(event, item.id)}
                   >
                     {item.label} <small>{count}</small>
                   </button>
@@ -529,7 +679,12 @@ export function EncounterView({
               })}
             </div>
           </div>
-          <div className="panel-scroll compact-option-list" role="tabpanel">
+          <div
+            id="information-options-panel"
+            className="panel-scroll compact-option-list"
+            role="tabpanel"
+            aria-labelledby={`information-tab-${informationCategory}`}
+          >
             {actions.map((action) => {
               const purchased = state.purchases.some((purchase) => purchase.actionId === action.id);
               const quote = getInformationActionQuote(state, action.id, catalogs);
@@ -540,8 +695,8 @@ export function EncounterView({
                   key={action.id}
                   type="button"
                   className="compact-option-row"
-                  onClick={() => buy(action.id)}
-                  disabled={readOnly || purchased || cost === null}
+                  onClick={() => (purchased ? reopenPurchase(action.id) : buy(action.id))}
+                  disabled={(!purchased && readOnly) || (!purchased && cost === null)}
                   aria-label={`${action.label}, ${cost ?? 'unavailable'} points${isSendout ? ', sendout' : ', in house'}${purchased ? ', revealed' : ''}`}
                 >
                   <span>
@@ -569,14 +724,14 @@ export function EncounterView({
           <div className="fixed-panel-heading treatment-compact-heading">
             <div className="panel-title-line">
               <div>
-                <p className="panel-kicker">Final combination</p>
-                <h2 id="treatment-title">Treatment</h2>
+                <p className="panel-kicker">Final answer</p>
+                <h2 id="treatment-title">Plan</h2>
               </div>
-              <span className="count-badge">{selectedTreatmentCount}</span>
+              <span className="count-badge">{selectedPlanCount}</span>
             </div>
             <p className="edit-note">Editable until submission. Scoring appears afterward.</p>
             <label className="visually-hidden" htmlFor="treatment-search">
-              Search medications, non-medication interventions, and dispositions
+              Search the active diagnosis or treatment section
             </label>
             <input
               id="treatment-search"
@@ -584,132 +739,228 @@ export function EncounterView({
               type="search"
               value={treatmentSearch}
               onChange={(event) => setTreatmentSearch(event.target.value)}
-              placeholder="Search all treatment options…"
+              placeholder={`Search ${PLAN_TABS.find((tab) => tab.id === planTab)?.label.toLowerCase()}…`}
             />
+            <div
+              className="segmented-tabs plan-tabs"
+              role="tablist"
+              aria-label="Final answer section"
+            >
+              {PLAN_TABS.map((tab) => (
+                <button
+                  id={`plan-tab-${tab.id}`}
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={planTab === tab.id}
+                  aria-controls={planTab === tab.id ? `plan-panel-${tab.id}` : undefined}
+                  tabIndex={planTab === tab.id ? 0 : -1}
+                  className={planTab === tab.id ? 'active' : undefined}
+                  onClick={() => {
+                    setPlanTab(tab.id);
+                    setTreatmentSearch('');
+                  }}
+                  onKeyDown={(event) => movePlanTabFocus(event, tab.id)}
+                >
+                  {tab.label} <small>{planTabSelectedCount[tab.id] || ''}</small>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="panel-scroll treatment-scroll">
-            <section className="treatment-picker" aria-labelledby="medication-picker-title">
-              <h3 id="medication-picker-title">Medication</h3>
-              <div className="segmented-tabs medication-tabs" aria-label="Medication action">
-                {MEDICATION_MODES.map((mode) => (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    className={medicationMode === mode.id ? 'active' : undefined}
-                    aria-pressed={medicationMode === mode.id}
-                    onClick={() => setMedicationMode(mode.id)}
-                  >
-                    {mode.label} <small>{state.selections[mode.id].length || ''}</small>
-                  </button>
-                ))}
-              </div>
-              <div className="picker-options">
-                {medications.map((medication) => {
-                  const selected = state.selections[medicationMode].includes(medication.id);
-                  return (
-                    <button
-                      key={medication.id}
-                      type="button"
-                      className={`picker-option${selected ? ' selected' : ''}`}
-                      aria-pressed={selected}
-                      disabled={readOnly}
-                      onClick={() => toggle(medicationMode, medication.id)}
-                    >
-                      <span>
-                        <strong>{medication.label}</strong>
-                        <small>{medication.classes.join(' · ')}</small>
-                      </span>
-                      <b>{selected ? '✓' : '+'}</b>
-                    </button>
-                  );
-                })}
-                {medications.length === 0 ? (
-                  <p className="no-results">No matching medications.</p>
-                ) : null}
-              </div>
-            </section>
+            {planTab === 'diagnosis' ? (
+              <section
+                id="plan-panel-diagnosis"
+                className="treatment-picker"
+                role="tabpanel"
+                aria-labelledby="plan-tab-diagnosis"
+              >
+                <p className="search-result-count" role="status">
+                  {diagnoses.length} matching {diagnoses.length === 1 ? 'diagnosis' : 'diagnoses'}
+                </p>
+                <div className="picker-options">
+                  {diagnoses.map((diagnosis) => {
+                    const selected = state.diagnosisSelections.some(
+                      (selection) => selection.diagnosisId === diagnosis.id,
+                    );
+                    return (
+                      <button
+                        key={diagnosis.id}
+                        type="button"
+                        className={`picker-option${selected ? ' selected' : ''}`}
+                        aria-pressed={selected}
+                        disabled={readOnly}
+                        onClick={() => toggleDiagnosis(diagnosis.id)}
+                      >
+                        <span>
+                          <strong>{diagnosis.label}</strong>
+                        </span>
+                        <b aria-hidden="true">{selected ? '✓' : '+'}</b>
+                      </button>
+                    );
+                  })}
+                  {diagnoses.length === 0 ? (
+                    <p className="no-results">No matching diagnoses.</p>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
 
-            <section className="treatment-picker" aria-labelledby="nonmedication-picker-title">
-              <h3 id="nonmedication-picker-title">Non-medication</h3>
-              <div className="picker-options">
-                {interventions.map((intervention) => {
-                  const selected = state.selections.interventionIds.includes(intervention.id);
-                  const quote = quoteTreatmentService(intervention.id, state, catalogs);
-                  const serviceQuote = quote.ok ? quote.value : null;
-                  const unavailable = !quote.ok;
-                  return (
+            {planTab === 'medication' ? (
+              <section
+                id="plan-panel-medication"
+                className="treatment-picker"
+                role="tabpanel"
+                aria-labelledby="plan-tab-medication"
+              >
+                <div className="segmented-tabs medication-tabs" aria-label="Medication action">
+                  {MEDICATION_MODES.map((mode) => (
                     <button
-                      key={intervention.id}
+                      key={mode.id}
                       type="button"
-                      className={`picker-option${selected ? ' selected' : ''}`}
-                      aria-pressed={selected}
-                      disabled={readOnly || unavailable}
-                      onClick={() => toggle('interventionIds', intervention.id)}
+                      className={medicationMode === mode.id ? 'active' : undefined}
+                      aria-pressed={medicationMode === mode.id}
+                      onClick={() => setMedicationMode(mode.id)}
                     >
-                      <span>
-                        <strong>{intervention.label}</strong>
-                        {serviceQuote ? (
-                          <small>
-                            {serviceQuote.operatingCost} pts · {serviceQuote.fulfillmentLabel}
-                          </small>
-                        ) : unavailable ? (
-                          <small>Unavailable in this setting</small>
-                        ) : null}
-                      </span>
-                      <b>{selected ? '✓' : '+'}</b>
+                      {mode.label} <small>{state.selections[mode.id].length || ''}</small>
                     </button>
-                  );
-                })}
-              </div>
-            </section>
+                  ))}
+                </div>
+                <p className="search-result-count" role="status">
+                  {medications.length} matching{' '}
+                  {medications.length === 1 ? 'medication' : 'medications'}
+                </p>
+                <div className="picker-options">
+                  {medications.map((medication) => {
+                    const selected = state.selections[medicationMode].includes(medication.id);
+                    return (
+                      <button
+                        key={medication.id}
+                        type="button"
+                        className={`picker-option${selected ? ' selected' : ''}`}
+                        aria-pressed={selected}
+                        disabled={readOnly}
+                        onClick={() => toggle(medicationMode, medication.id)}
+                      >
+                        <span>
+                          <strong>{medication.label}</strong>
+                          <small>{medication.classes.join(' · ')}</small>
+                        </span>
+                        <b aria-hidden="true">{selected ? '✓' : '+'}</b>
+                      </button>
+                    );
+                  })}
+                  {medications.length === 0 ? (
+                    <p className="no-results">No matching medications.</p>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
 
-            <section
-              className="treatment-picker disposition-picker"
-              aria-labelledby="disposition-picker-title"
-            >
-              <h3 id="disposition-picker-title">Disposition</h3>
-              <div className="picker-options">
-                {dispositions.map((disposition) => {
-                  const selected = state.selections.dispositionId === disposition.id;
-                  const quote = quoteTreatmentService(disposition.id, state, catalogs);
-                  const serviceQuote = quote.ok ? quote.value : null;
-                  const unavailable = !quote.ok;
-                  return (
-                    <button
-                      key={disposition.id}
-                      type="button"
-                      className={`picker-option${selected ? ' selected' : ''}`}
-                      aria-pressed={selected}
-                      disabled={readOnly || unavailable}
-                      onClick={() =>
-                        update({
-                          ...state.selections,
-                          dispositionId: selected ? null : disposition.id,
-                        })
-                      }
-                    >
-                      <span>
-                        <strong>{disposition.label}</strong>
-                        {serviceQuote ? (
-                          <small>
-                            {serviceQuote.operatingCost} pts · {serviceQuote.fulfillmentLabel}
-                          </small>
-                        ) : unavailable ? (
-                          <small>Unavailable in this setting</small>
-                        ) : null}
-                      </span>
-                      <b>{selected ? '●' : '○'}</b>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
+            {planTab === 'nonmedication' ? (
+              <section
+                id="plan-panel-nonmedication"
+                className="treatment-picker"
+                role="tabpanel"
+                aria-labelledby="plan-tab-nonmedication"
+              >
+                <p className="search-result-count" role="status">
+                  {interventions.length} matching{' '}
+                  {interventions.length === 1 ? 'intervention' : 'interventions'}
+                </p>
+                <div className="picker-options">
+                  {interventions.map((intervention) => {
+                    const selected = state.selections.interventionIds.includes(intervention.id);
+                    const quote = quoteTreatmentService(intervention.id, state, catalogs);
+                    const serviceQuote = quote.ok ? quote.value : null;
+                    const unavailable = !quote.ok;
+                    return (
+                      <button
+                        key={intervention.id}
+                        type="button"
+                        className={`picker-option${selected ? ' selected' : ''}`}
+                        aria-pressed={selected}
+                        disabled={readOnly || unavailable}
+                        onClick={() => toggle('interventionIds', intervention.id)}
+                      >
+                        <span>
+                          <strong>{intervention.label}</strong>
+                          {serviceQuote ? (
+                            <small>
+                              {serviceQuote.operatingCost} pts · {serviceQuote.fulfillmentLabel}
+                            </small>
+                          ) : unavailable ? (
+                            <small>Unavailable in this setting</small>
+                          ) : null}
+                        </span>
+                        <b aria-hidden="true">{selected ? '✓' : '+'}</b>
+                      </button>
+                    );
+                  })}
+                  {interventions.length === 0 ? (
+                    <p className="no-results">No matching interventions.</p>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
+
+            {planTab === 'disposition' ? (
+              <section
+                id="plan-panel-disposition"
+                className="treatment-picker disposition-picker"
+                role="tabpanel"
+                aria-labelledby="plan-tab-disposition"
+              >
+                <p className="search-result-count" role="status">
+                  {dispositions.length} matching{' '}
+                  {dispositions.length === 1 ? 'disposition' : 'dispositions'}
+                </p>
+                <div className="picker-options">
+                  {dispositions.map((disposition) => {
+                    const selected = state.selections.dispositionId === disposition.id;
+                    const quote = quoteTreatmentService(disposition.id, state, catalogs);
+                    const serviceQuote = quote.ok ? quote.value : null;
+                    const unavailable = !quote.ok;
+                    return (
+                      <button
+                        key={disposition.id}
+                        type="button"
+                        className={`picker-option${selected ? ' selected' : ''}`}
+                        aria-pressed={selected}
+                        disabled={readOnly || unavailable}
+                        onClick={() =>
+                          update({
+                            ...state.selections,
+                            dispositionId: selected ? null : disposition.id,
+                          })
+                        }
+                      >
+                        <span>
+                          <strong>{disposition.label}</strong>
+                          {serviceQuote ? (
+                            <small>
+                              {serviceQuote.operatingCost} pts · {serviceQuote.fulfillmentLabel}
+                            </small>
+                          ) : unavailable ? (
+                            <small>Unavailable in this setting</small>
+                          ) : null}
+                        </span>
+                        <b aria-hidden="true">{selected ? '●' : '○'}</b>
+                      </button>
+                    );
+                  })}
+                  {dispositions.length === 0 ? (
+                    <p className="no-results">No matching dispositions.</p>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
           </div>
 
           {readOnly ? (
             <div className="lock-row compact-lock-row locked-treatment-note">
-              Treatment locked · review context only
+              Final answer locked · review context only
             </div>
           ) : (
             <div className="lock-row compact-lock-row">
@@ -719,7 +970,7 @@ export function EncounterView({
                 onClick={onSubmit}
                 disabled={state.selections.dispositionId === null}
               >
-                Lock in treatment
+                Lock in final answer
               </button>
             </div>
           )}
@@ -745,11 +996,15 @@ export function EncounterView({
               <button
                 className="text-button"
                 type="button"
-                autoFocus
-                onClick={() => dismissLatestPurchase()}
-                aria-label="Dismiss purchased result"
+                onClick={() => {
+                  dismissLatestPurchase(false);
+                  onMobilePaneChange('revealed');
+                  window.requestAnimationFrame(() => {
+                    document.getElementById('mobile-tab-revealed')?.focus();
+                  });
+                }}
               >
-                Close
+                View in Revealed information
               </button>
             </div>
             <ResultCard
@@ -759,15 +1014,10 @@ export function EncounterView({
             <button
               className="primary-button"
               type="button"
-              onClick={() => {
-                dismissLatestPurchase(false);
-                onMobilePaneChange('revealed');
-                window.requestAnimationFrame(() => {
-                  document.getElementById('mobile-tab-revealed')?.focus();
-                });
-              }}
+              autoFocus
+              onClick={() => dismissLatestPurchase()}
             >
-              View revealed information
+              Close
             </button>
           </div>
         </dialog>

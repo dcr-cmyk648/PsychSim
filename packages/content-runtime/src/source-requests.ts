@@ -87,6 +87,15 @@ const collectReviewableContentIds = (
     blueprint.treatmentGrades.forEach((grade) => ids.add(grade.id));
     blueprint.treatmentPathways.forEach((pathway) => ids.add(pathway.id));
     blueprint.scoreRules.forEach((rule) => ids.add(rule.id));
+    if (blueprint.diagnosisRubric) {
+      blueprint.diagnosisRubric.groups.forEach((group) => {
+        ids.add(group.id);
+        ids.add(group.omission.id);
+        group.options.forEach((option) => ids.add(option.id));
+      });
+      blueprint.diagnosisRubric.misclassificationRules.forEach((rule) => ids.add(rule.id));
+      ids.add(blueprint.diagnosisRubric.additionalSelectionPolicy.id);
+    }
     blueprint.referenceSolutions.forEach((solution) => ids.add(solution.id));
     blueprint.variants.forEach((variant) => ids.add(variant.id));
   }

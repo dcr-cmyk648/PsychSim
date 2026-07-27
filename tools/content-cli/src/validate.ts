@@ -1,15 +1,19 @@
 import { access, readFile, readdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { isAbsolute, relative, resolve } from 'node:path';
 
 import {
   CaseBlueprintSchema,
   ClinicalReviewTicketSchema,
+  DeveloperOpinionCatalogSchema,
   DiagnosisClassificationReleaseSchema,
   EvidenceContributionSchema,
   EvidenceSourceDefinitionSchema,
   MedicationIdentityDefinitionSchema,
+  PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgePilotProfileSchema,
+  PersonalKnowledgePrivateSourceCatalogSchema,
   SourceUseDecisionCatalogSchema,
+  SupplementIdentityDefinitionSchema,
 } from '@psychsim/schemas';
 import {
   approvedCaseBlueprints,
@@ -20,10 +24,12 @@ import {
   validateCatalogs,
   validateContentRegistry,
   validateMedicationIdentities,
+  validateSupplementIdentities,
 } from '@psychsim/content-runtime';
 import { reviewerCaseBlueprints } from '@psychsim/content-runtime/reviewer';
 import { resolveClinicForProgressionMode } from '@psychsim/engine';
 import { contentRegistry } from '../../../packages/content-runtime/src/registry';
+import { supplementIdentities } from '../../../packages/content-runtime/src/supplement-identities';
 import {
   developerLiteratureSynthesisProposals,
   validateLiteratureSynthesisProposals,
@@ -43,6 +49,7 @@ import {
   validateDiagnosisClassification,
   validateDiagnosisClassificationBindings,
 } from './diagnosis-classification';
+import { validatePersonalKnowledgeAliasCatalog } from './developer-database-knowledge';
 import { validatePersonalKnowledgePilotProfile } from './personal-knowledge-workspace';
 
 const reviewCaseDirectory = resolve('content/cases/review');
@@ -400,6 +407,119 @@ if (
   );
 }
 
+const supplementIdentityIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+const supplementIdentityRegistryEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'supplement_identity_catalog',
+);
+if (
+  supplementIdentityRegistryEntries.length !== 1 ||
+  supplementIdentityRegistryEntries[0]?.runtimeIncluded !== true
+) {
+  supplementIdentityIssues.push({
+    severity: 'error',
+    code: 'INVALID_SUPPLEMENT_IDENTITY_CATALOG_REGISTRATION',
+    message: `Expected one runtime-included supplement identity catalog; found ${supplementIdentityRegistryEntries.length}.`,
+  });
+} else {
+  const entry = supplementIdentityRegistryEntries[0]!;
+  const registeredIds = [...entry.categoryIds].sort();
+  const importedIds = supplementIdentities.map((identity) => identity.id).sort();
+  if (JSON.stringify(registeredIds) !== JSON.stringify(importedIds)) {
+    supplementIdentityIssues.push({
+      severity: 'error',
+      code: 'SUPPLEMENT_IDENTITY_REGISTRY_MEMBER_MISMATCH',
+      message: 'The supplement identity registry member list must exactly match static imports.',
+    });
+  }
+  const identityFiles = (await readdir(resolve(entry.path)))
+    .filter((fileName) => fileName.endsWith('.identity.json'))
+    .sort();
+  const diskIdentities = await Promise.all(
+    identityFiles.map(async (fileName) =>
+      SupplementIdentityDefinitionSchema.parse(
+        JSON.parse(await readFile(resolve(entry.path, fileName), 'utf8')) as unknown,
+      ),
+    ),
+  );
+  const importedById = new Map(supplementIdentities.map((identity) => [identity.id, identity]));
+  const diskById = new Map(diskIdentities.map((identity) => [identity.id, identity]));
+  diskIdentities.forEach((identity, index) => {
+    const expectedFileName = `${identity.id.replace(/^supplement\./, '')}.identity.json`;
+    if (identityFiles[index] !== expectedFileName) {
+      supplementIdentityIssues.push({
+        severity: 'error',
+        code: 'SUPPLEMENT_IDENTITY_FILENAME_MISMATCH',
+        message: `${identityFiles[index]} resolves to ${identity.id}; expected ${expectedFileName}.`,
+      });
+    }
+    const imported = importedById.get(identity.id);
+    if (!imported) {
+      supplementIdentityIssues.push({
+        severity: 'error',
+        code: 'UNIMPORTED_SUPPLEMENT_IDENTITY_FILE',
+        message: identity.id,
+      });
+    } else if (JSON.stringify(imported) !== JSON.stringify(identity)) {
+      supplementIdentityIssues.push({
+        severity: 'error',
+        code: 'SUPPLEMENT_IDENTITY_IMPORT_MISMATCH',
+        message: identity.id,
+      });
+    }
+  });
+  for (const identity of supplementIdentities) {
+    if (!diskById.has(identity.id)) {
+      supplementIdentityIssues.push({
+        severity: 'error',
+        code: 'MISSING_SUPPLEMENT_IDENTITY_FILE',
+        message: identity.id,
+      });
+    }
+    for (const identifier of identity.identifiers) {
+      const decision = sourceUseDecisionCatalog.decisions.find(
+        (candidate) => candidate.id === identifier.sourceUseDecisionId,
+      );
+      if (
+        !decision ||
+        decision.evidenceSourceId !== identifier.evidenceSourceId ||
+        !decision.permissions.localStructuredIndexing ||
+        !decision.permissions.runtimeRedistribution ||
+        !decision.allowedContributionTypes.includes('classification_mapping')
+      ) {
+        supplementIdentityIssues.push({
+          severity: 'error',
+          code: 'INVALID_SUPPLEMENT_IDENTITY_SOURCE_USE',
+          message: `${identity.id}: ${identifier.sourceUseDecisionId}`,
+        });
+      }
+    }
+  }
+  supplementIdentityIssues.push(
+    ...validateSupplementIdentities(
+      diskIdentities,
+      [...catalogs.evidenceSources, ...authoringEvidenceSources],
+      medicationIdentities.map((identity) => identity.id),
+    ).issues.map((issue) => ({
+      severity: 'error' as const,
+      code: `DISK_${issue.code}`,
+      message: issue.message,
+    })),
+    ...validateSupplementIdentities(
+      supplementIdentities,
+      [...catalogs.evidenceSources, ...authoringEvidenceSources],
+      medicationIdentities.map((identity) => identity.id),
+    ).issues.map((issue) => ({
+      severity: 'error' as const,
+      code: issue.code,
+      message: issue.message,
+    })),
+  );
+}
+
 interface ContributionUse {
   contribution: ReturnType<typeof EvidenceContributionSchema.parse>;
   owner: string;
@@ -455,6 +575,16 @@ for (const use of contributionUses) {
         severity: 'error',
         code: 'SOURCE_USE_DISALLOWS_DERIVED_CONTRIBUTION',
         message: `${use.owner}: ${evidenceSourceId}`,
+      });
+    }
+    const disallowedContributionTypes = use.contribution.contributionTypes.filter(
+      (contributionType) => !decision.allowedContributionTypes.includes(contributionType),
+    );
+    if (disallowedContributionTypes.length > 0) {
+      sourceUseDecisionIssues.push({
+        severity: 'error',
+        code: 'SOURCE_USE_DISALLOWS_CONTRIBUTION_TYPE',
+        message: `${use.owner}: ${evidenceSourceId} does not allow ${disallowedContributionTypes.join(', ')}`,
       });
     }
     if (use.contribution.generatedBy === 'ai' && !decision.permissions.aiAssistedProcessing) {
@@ -584,6 +714,152 @@ if (personalKnowledgeProfileEntries.length !== 1) {
   }
 }
 
+const personalKnowledgeCatalogIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+const personalKnowledgeCatalogRoot = resolve('content/catalogs/authoring/personal-knowledge');
+const validatePersonalKnowledgeCatalogPath = (path: string): void => {
+  const relation = relative(personalKnowledgeCatalogRoot, resolve(path));
+  if (relation.startsWith('..') || isAbsolute(relation)) {
+    throw new Error(`${path} escapes the personal-knowledge authoring catalog.`);
+  }
+};
+const aliasCatalogEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'personal_knowledge_alias_catalog',
+);
+const privateSourceCatalogEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'personal_knowledge_source_catalog',
+);
+if (aliasCatalogEntries.length !== 1 || privateSourceCatalogEntries.length !== 1) {
+  personalKnowledgeCatalogIssues.push({
+    severity: 'error',
+    code: 'PERSONAL_KNOWLEDGE_CATALOG_COUNT',
+    message: `Expected one alias catalog and one private-source catalog; found ${aliasCatalogEntries.length} and ${privateSourceCatalogEntries.length}.`,
+  });
+} else {
+  try {
+    const aliasEntry = aliasCatalogEntries[0]!;
+    const privateSourceEntry = privateSourceCatalogEntries[0]!;
+    if (aliasEntry.runtimeIncluded || privateSourceEntry.runtimeIncluded) {
+      throw new Error('Personal-knowledge authoring catalogs must remain runtime excluded.');
+    }
+    validatePersonalKnowledgeCatalogPath(aliasEntry.path);
+    validatePersonalKnowledgeCatalogPath(privateSourceEntry.path);
+    const aliasCatalog = PersonalKnowledgeAuthoringAliasCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(aliasEntry.path), 'utf8')) as unknown,
+    );
+    const privateSourceCatalog = PersonalKnowledgePrivateSourceCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(privateSourceEntry.path), 'utf8')) as unknown,
+    );
+    if (aliasCatalog.id !== aliasEntry.id || privateSourceCatalog.id !== privateSourceEntry.id) {
+      throw new Error('Personal-knowledge registry IDs do not match their tracked catalogs.');
+    }
+    validatePersonalKnowledgeAliasCatalog(aliasCatalog);
+    const sourceIds = privateSourceCatalog.entries.map((entry) => entry.id);
+    const sourceHashes = privateSourceCatalog.entries.map((entry) => entry.expectedSha256);
+    if (
+      new Set(sourceIds).size !== sourceIds.length ||
+      new Set(sourceHashes).size !== sourceHashes.length
+    ) {
+      throw new Error('Private personal-source IDs and SHA-256 values must be unique.');
+    }
+  } catch (error) {
+    personalKnowledgeCatalogIssues.push({
+      severity: 'error',
+      code: 'INVALID_PERSONAL_KNOWLEDGE_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Personal-knowledge authoring catalog validation failed.',
+    });
+  }
+}
+
+const developerOpinionIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+const developerOpinionEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'developer_opinion_catalog',
+);
+if (developerOpinionEntries.length !== 1) {
+  developerOpinionIssues.push({
+    severity: 'error',
+    code: 'DEVELOPER_OPINION_CATALOG_COUNT',
+    message: `Expected one Developer-opinion catalog; found ${developerOpinionEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = developerOpinionEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error('Developer opinions must remain outside the gameplay runtime bundle.');
+    }
+    const catalog = DeveloperOpinionCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const targetKindById = new Map<string, string>([
+      ...catalogs.diagnoses.map((diagnosis) => [diagnosis.id, 'diagnosis'] as const),
+      ...medicationIdentities.map((medication) => [medication.id, 'medication'] as const),
+      ...catalogs.treatments
+        .filter((treatment) => treatment.kind === 'nonmedication')
+        .map((treatment) => [treatment.id, 'intervention'] as const),
+      ...catalogs.tests.map((test) => [test.id, 'test'] as const),
+    ]);
+    for (const opinion of catalog.opinions) {
+      for (const target of opinion.targets) {
+        const actualKind = targetKindById.get(target.targetContentId);
+        if (actualKind !== target.targetKind) {
+          throw new Error(
+            `${opinion.id} targets ${target.targetKind} ${target.targetContentId}, resolved as ${actualKind ?? 'unknown'}.`,
+          );
+        }
+      }
+    }
+    const developerOpinionIds = new Set(catalog.opinions.map((opinion) => opinion.id));
+    for (const policy of catalogs.reactionConcepts.medicationSelectionPolicies) {
+      if (!developerOpinionIds.has(policy.developerOpinionId)) {
+        throw new Error(
+          `${policy.id} references unknown Developer opinion ${policy.developerOpinionId}.`,
+        );
+      }
+    }
+    const sourceUseById = new Map(
+      sourceUseDecisionCatalog.decisions.map((decision) => [decision.id, decision]),
+    );
+    for (const relationship of catalog.evidenceRelationships) {
+      if (!allEvidenceSourceIds.has(relationship.evidenceSourceId)) {
+        throw new Error(
+          `${relationship.id} references unknown evidence ${relationship.evidenceSourceId}.`,
+        );
+      }
+      const decision = sourceUseById.get(relationship.sourceUseDecisionId);
+      if (
+        !decision ||
+        decision.evidenceSourceId !== relationship.evidenceSourceId ||
+        decision.decisionStatus !== 'permitted_with_conditions' ||
+        !decision.permissions.derivedClinicalContent
+      ) {
+        throw new Error(
+          `${relationship.id} lacks a matching derived-content-cleared source-use decision.`,
+        );
+      }
+    }
+  } catch (error) {
+    developerOpinionIssues.push({
+      severity: 'error',
+      code: 'INVALID_DEVELOPER_OPINION_CATALOG',
+      message:
+        error instanceof Error ? error.message : 'Developer-opinion catalog validation failed.',
+    });
+  }
+}
+
 const reports = [
   ['catalogs', validateCatalogs(catalogs)],
   [
@@ -615,6 +891,13 @@ const reports = [
     },
   ],
   [
+    'supplement-identities',
+    {
+      valid: supplementIdentityIssues.length === 0,
+      issues: supplementIdentityIssues,
+    },
+  ],
+  [
     diagnosisClassificationMaterialized
       ? 'diagnosis-classification'
       : 'diagnosis-classification-manifest (local cache not materialized)',
@@ -628,6 +911,20 @@ const reports = [
     {
       valid: personalKnowledgeProfileIssues.length === 0,
       issues: personalKnowledgeProfileIssues,
+    },
+  ],
+  [
+    'personal-knowledge-cross-reference-catalogs',
+    {
+      valid: personalKnowledgeCatalogIssues.length === 0,
+      issues: personalKnowledgeCatalogIssues,
+    },
+  ],
+  [
+    'developer-opinions',
+    {
+      valid: developerOpinionIssues.length === 0,
+      issues: developerOpinionIssues,
     },
   ],
   [

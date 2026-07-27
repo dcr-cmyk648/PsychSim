@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "authoring-sources.personal-knowledge.private",
+  "runtimeExcluded": true,
+  "entries": [
+    {
+      "id": "personal-source.user-authored-residency-archive",
+      "expectedSha256": "8fedf00c83190f6a3661bf820382b76d27a59ce3d425b02202a7fe8b797f03c1",
+      "sourceKind": "user_authored_archive",
+      "sourceRole": "user_authored_article",
+      "unitStrategy": "parser_v5_section_instance",
+      "rightsState": "private_processing_only",
+      "semanticBoundaryReview": {
+        "status": "approved",
+        "parserVersion": "psychsim-source-parser-5",
+        "extractedTextHash": "020f89786e1a65f0eb5bfab86000fc229555ab4c108e7efb6e9fb05e36328123",
+        "decisionSummary": "The 27 numbered section instances plus one short preamble are accepted as coarse, hash-bound classification units. The unrecognized Word Title style causes several section instances to contain multiple authored articles; those units must be marked uncertain and split before atomic opinion import. This is an engineering boundary decision, not clinical approval.",
+        "reviewedBy": "reviewer.codex-engineering",
+        "reviewedAt": "2026-07-26T23:00:00.000Z"
+      }
+    },
+    {
+      "id": "personal-source.additional-private-notes",
+      "expectedSha256": "804ac28de2b1e8a6836082b1f4f0c461baf3ad60c5478b2e51353bceab4378bf",
+      "sourceKind": "private_drive_notes",
+      "sourceRole": "private_notes",
+      "unitStrategy": "parser_v5_unsectioned_chunks",
+      "rightsState": "private_processing_only",
+      "semanticBoundaryReview": {
+        "status": "pending",
+        "parserVersion": "psychsim-source-parser-5",
+        "extractedTextHash": "948449b4ccf607aca9ed32d506ddb2cc020b4913d87eec1efbdba7e02b9aa584",
+        "decisionSummary": "The document currently has two unsectioned parser chunks rather than reviewed authored-unit boundaries. It remains lexically indexed but cannot enter semantic drafting until a whole-document or contiguous-unit boundary is explicitly accepted.",
+        "reviewedBy": null,
+        "reviewedAt": null
+      }
+    }
+  ]
+}

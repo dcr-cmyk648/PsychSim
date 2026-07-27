@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.0.2",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1109,6 +1109,99 @@
       "ticketId": "ticket.source.who-mhgap.dep4-treatment-modality",
       "profileIds": ["literature-profile.mdd.initial-modality"],
       "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.source.nlm-rxclass.relation-source-rights",
+      "profileIds": [],
+      "exemptionReason": "This is an upstream vocabulary and API rights decision. A clinical meta-analysis cannot determine which RxClass relation sources may be stored, transformed, or redistributed."
+    },
+    {
+      "ticketId": "ticket.source.nlm-dailymed.label-content-rights",
+      "profileIds": [],
+      "exemptionReason": "This is an item-level label-content rights and metadata-boundary decision. A clinical meta-analysis cannot grant permission to process company-submitted SPL content."
+    },
+    {
+      "ticketId": "ticket.source.contribution-assertion-and-material-scope",
+      "profileIds": [],
+      "exemptionReason": "This is a schema and source-rights enforcement decision about assertion granularity and third-party-material clearance. A clinical meta-analysis cannot define those provenance controls."
+    },
+    {
+      "ticketId": "ticket.feedback.drive-2026-07-27.mdd-nonresponse",
+      "profileIds": [
+        "literature-profile.mdd.antidepressant-baseline-fit",
+        "literature-profile.mdd.antidepressant-tolerability-adherence-fit"
+      ],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.feedback.drive-2026-07-27.palpitations-fit",
+      "profileIds": [],
+      "exemptionReason": "This exact historical review combines current-medication response-state modeling, insomnia-treatment fit, and hydration or regular-meal counseling. Existing antidepressant sleep and tolerability profiles do not answer the latter two claims; split them into bounded source questions before a new literature search."
+    },
+    {
+      "ticketId": "ticket.source.background-exposures.generation-calibration",
+      "profileIds": [],
+      "exemptionReason": "This requires representative utilization datasets and explicit game-calibration review; a clinical meta-analysis alone cannot determine age-banded count distributions, neutral-background allowlists, or an authored supplement-pattern frequency."
+    },
+    {
+      "ticketId": "ticket.source.supplements.effects-interactions",
+      "profileIds": [],
+      "exemptionReason": "This is an umbrella identity-to-claim boundary across six preparation-specific supplements. No single meta-analysis can answer it; each proposed clinical effect or interaction must first be decomposed into a bounded future claim and literature profile."
+    },
+    {
+      "ticketId": "ticket.source.medications.regimen-adjustment-operations",
+      "profileIds": [],
+      "exemptionReason": "This umbrella operation model spans medication-specific withdrawal, toxicity, dose limitation, duplication, and transition questions. Each active ingredient or defensible class rule must first become a bounded claim before a meta-analysis search can answer it."
+    },
+    {
+      "ticketId": "ticket.case-family.polypharmacy-cleanup",
+      "profileIds": ["literature-profile.medications.regimen-combination-boundaries"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.case-family.delirium-polypharmacy",
+      "profileIds": [],
+      "exemptionReason": "This is a patient-family scope and source-permission gate. A later bounded delirium medication question should receive its own literature profile after a legally processable source route is selected."
+    },
+    {
+      "ticketId": "ticket.catalog.diagnoses.persistent-depressive-disorder-boundary",
+      "profileIds": [],
+      "exemptionReason": "This is a diagnostic-standard, longitudinal-state, and diagnosis-family boundary. A treatment-effect meta-analysis cannot select the authoritative definition or decide how persistent depressive disorder relates to chronic MDD and partial remission."
+    },
+    {
+      "ticketId": "ticket.source.bpd-vs-bipolar.differential-and-private-review",
+      "profileIds": [],
+      "exemptionReason": "This umbrella ticket first requires private-packet boundary review, independent bibliographic verification, and decomposition of sociological context, latent-structure studies, and exact differential claims. No single meta-analysis can answer that combined source-governance question."
+    },
+    {
+      "ticketId": "ticket.catalog.diagnoses.alcohol-withdrawal-family-boundary",
+      "profileIds": [],
+      "exemptionReason": "This is a diagnosis-identity and internal-state granularity decision. A treatment meta-analysis cannot determine the authoritative classification boundary or whether separate withdrawal and withdrawal-delirium condition states are required."
+    },
+    {
+      "ticketId": "ticket.catalog.assessments.alcohol-withdrawal-instrument-identities",
+      "profileIds": [],
+      "exemptionReason": "This requires instrument identity, version, setting, scoring-semantics, and reproduction-rights review. A clinical meta-analysis cannot establish that CIWA-Ar, MAWS, MINDS, and modified MINDS are the same instrument or grant permission to reproduce them."
+    },
+    {
+      "ticketId": "ticket.case-family.ed-alcohol-withdrawal",
+      "profileIds": [],
+      "exemptionReason": "This is an umbrella patient-family and department-scope gate spanning diagnosis, instruments, acute medication, monitoring, and disposition. Split those into bounded clinical claims after a legally processable source route exists before running claim-specific meta-analysis searches."
+    },
+    {
+      "ticketId": "ticket.case-family.hypothyroidism-presenting-as-depression",
+      "profileIds": ["literature-profile.mdd.initial-assessment-targeted-labs"],
+      "exemptionReason": null
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.chief-complaint-pool-inheritance",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic content-composition, inheritance-provenance, and answer-hint validation work. A clinical meta-analysis cannot define the repository's chief-complaint pool architecture."
+    },
+    {
+      "ticketId": "ticket.engine.diagnosis-answer-hierarchy",
+      "profileIds": [],
+      "exemptionReason": "This is a diagnosis-identity, catalog-ancestry, and game-scoring architecture decision. A treatment-effect meta-analysis cannot define broad or unspecified catalog identities, establish their authoritative parentage, or choose case-specific partial-credit magnitudes."
     }
   ]
 }

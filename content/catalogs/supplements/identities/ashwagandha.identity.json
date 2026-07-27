@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "supplement.ashwagandha",
+  "label": "Ashwagandha",
+  "normalizedName": "Withania somnifera",
+  "aliases": ["Indian ginseng", "Winter cherry"],
+  "identityCategory": "botanical",
+  "preparation": "whole_botanical",
+  "identifiers": [
+    {
+      "system": "mesh",
+      "value": "C030693",
+      "relationship": "exact",
+      "sourceRelease": "MeSH 2026",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    }
+  ],
+  "identityScopeNote": "Identity-only botanical record. Root, leaf, and extract preparations remain distinct future authoring concepts; this record supplies no clinical claim.",
+  "runtimeSelectable": false,
+  "medicalReviewStatus": "unreviewed"
+}

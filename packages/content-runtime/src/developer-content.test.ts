@@ -31,15 +31,12 @@ describe('developer clinical audit queue', () => {
   it('loads unresolved CANMAT and ECG rule-review tickets with stable IDs', () => {
     const byId = new Map(developerClinicalAuditTickets.map((ticket) => [ticket.id, ticket]));
     for (const id of [
-      'ticket.source.canmat-mdd.assessment-workup',
-      'ticket.source.canmat-mdd.antidepressant-baseline',
       'ticket.source.canmat-mdd.psychotherapy-catalog',
       'ticket.source.canmat-mdd.disposition-severity',
       'ticket.source.mdd.severity-generator-policy',
       'ticket.source.mdd.antidepressant-sleep-fit',
       'ticket.source.mdd.tsh-workup-threshold',
       'ticket.source.mdd.antidepressant-weight-fit',
-      'ticket.source.mdd.antidepressant-sexual-adherence-fit',
       'ticket.source.canmat-mdd.regimen-intent-taxonomy',
       'ticket.source.canmat-mdd.inadequate-response-route',
       'ticket.source.canmat-mdd.switch-transition-state',
@@ -57,7 +54,28 @@ describe('developer clinical audit queue', () => {
         resolution: null,
       });
     }
+    expect(byId.get('ticket.source.canmat-mdd.antidepressant-baseline')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: true,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
+    expect(byId.get('ticket.source.canmat-mdd.assessment-workup')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: true,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
     expect(byId.get('ticket.source.canmat-mdd.initial-modality')).toMatchObject({
+      status: 'accepted_for_workflow',
+      requiresClinicalAcumen: true,
+      resolution: null,
+    });
+    expect(byId.get('ticket.source.mdd.antidepressant-sexual-adherence-fit')).toMatchObject({
       status: 'accepted_for_workflow',
       requiresClinicalAcumen: true,
       resolution: null,
@@ -206,11 +224,18 @@ describe('developer clinical audit queue', () => {
         }),
       ]),
     });
-    expect(developerTicketLiteratureScoutCatalog.attachments).toHaveLength(
-      developerClinicalAuditTickets.filter(
-        (ticket) => ticket.status !== 'resolved' && ticket.status !== 'rejected',
-      ).length,
+    const attachmentsByTicket = new Map(
+      developerTicketLiteratureScoutCatalog.attachments.map((attachment) => [
+        attachment.ticketId,
+        attachment,
+      ]),
     );
+    for (const ticket of developerClinicalAuditTickets.filter(
+      (candidate) => candidate.status !== 'resolved' && candidate.status !== 'rejected',
+    )) {
+      expect(attachmentsByTicket.has(ticket.id)).toBe(true);
+    }
+    expect(attachmentsByTicket.has('ticket.source.canmat-mdd.antidepressant-baseline')).toBe(true);
   });
 
   it('deduplicates unsourced clinical opinions and links exact existing source requests', () => {

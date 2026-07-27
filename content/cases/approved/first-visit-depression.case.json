@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "4.3.0",
+  "contentVersion": "4.6.0",
   "id": "case.first-visit-depression",
   "metadata": {
     "title": "Outpatient Intake 001",
@@ -49,7 +49,8 @@
       "symptom.low-mood",
       "symptom.anhedonia",
       "symptom.insomnia",
-      "safety.passive-death-wish-without-intent"
+      "safety.passive-death-wish-without-intent",
+      "decision.mdd-initial-treatment"
     ],
     "observations": [
       {
@@ -114,6 +115,23 @@
         "medicalReviewStatus": "unreviewed"
       },
       {
+        "id": "source-use.mdd.developer-treatment-preconditions",
+        "authority": "expert_opinion",
+        "evidenceSourceIds": [],
+        "sourceDocumentId": null,
+        "sourceChunkIds": [],
+        "targetContentIds": [
+          "treatment-requirement.mdd-antidepressant-mania-history",
+          "treatment-requirement.mdd-any-medication-reconciliation",
+          "treatment-requirement.mdd-any-medication-reaction-history",
+          "objective.mdd-allergy-reaction-history"
+        ],
+        "contributionTypes": ["workup", "safety", "scoring", "teaching_point"],
+        "contribution": "Developer opinion: workup relevance follows the submitted treatment. Starting an antidepressant activates mania history; starting any medication activates medication reconciliation and allergy/adverse-reaction history. A resolved prior reaction to the selected medication affects safety whether or not the player revealed that history. Exact point values and the generic reaction-severity mapping are provisional game balance.",
+        "generatedBy": "human",
+        "medicalReviewStatus": "unreviewed"
+      },
+      {
         "id": "source-use.mdd.canmat-initial-treatment",
         "authority": "formal_publication",
         "evidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
@@ -125,9 +143,7 @@
           "source-chunk.412aade56104fd394503.20"
         ],
         "targetContentIds": [
-          "grade.mdd-optimal-sertraline",
-          "grade.mdd-strong-escitalopram",
-          "grade.mdd-acceptable-other-antidepressant",
+          "grade.mdd-initial-first-line-antidepressant",
           "rule.mdd-psychotherapy",
           "rule.mdd-behavioral-activation"
         ],
@@ -143,14 +159,12 @@
         "sourceDocumentId": null,
         "sourceChunkIds": [],
         "targetContentIds": [
-          "grade.mdd-optimal-sertraline",
-          "grade.mdd-strong-escitalopram",
-          "grade.mdd-acceptable-other-antidepressant",
+          "grade.mdd-initial-first-line-antidepressant",
           "rule.mdd-psychotherapy",
           "rule.mdd-behavioral-activation"
         ],
         "contributionTypes": ["scoring", "treatment"],
-        "contribution": "Developer opinion and game balance translate broad first-line options into a dominant treatment baseline, with smaller patient-fit modifiers evaluated separately.",
+        "contribution": "Developer opinion and provisional game balance assign 200 base care points to one reviewed first-line antidepressant. Medication-specific fit remains separately itemized and smaller; patient review may retune the exact values.",
         "generatedBy": "human",
         "medicalReviewStatus": "unreviewed"
       },
@@ -168,6 +182,23 @@
         "contribution": "Developer opinion: for this initial outpatient snapshot, starting multiple antidepressants for one focal indication is a materially less parsimonious plan. The provisional game rule does not establish a universal combination-treatment or cross-titration rule.",
         "generatedBy": "human",
         "medicalReviewStatus": "unreviewed"
+      },
+      {
+        "id": "source-use.mdd.developer-diagnosis-answer",
+        "authority": "expert_opinion",
+        "evidenceSourceIds": [],
+        "sourceDocumentId": null,
+        "sourceChunkIds": [],
+        "targetContentIds": [
+          "diagnosis-option.mdd-initial.canonical",
+          "diagnosis-omission.mdd-initial",
+          "diagnosis-error.mdd-initial.bipolar",
+          "diagnosis-policy.mdd-initial.additional-selection"
+        ],
+        "contributionTypes": ["diagnosis_logic", "scoring"],
+        "contribution": "Developer opinion: this short initial-outpatient snapshot is authored as major depressive disorder. Selecting a bipolar-spectrum diagnosis despite the case-authored negative mania history is treated as a potentially dangerous case-specific diagnostic error for this prototype; exact point magnitudes are game-balance values.",
+        "generatedBy": "human",
+        "medicalReviewStatus": "unreviewed"
       }
     ],
     "treatmentReference": {
@@ -177,9 +208,9 @@
       "safetyFallbackPathwayIds": ["path.mdd-safe-referral"],
       "acceptedMedicationTagSets": [
         {
-          "id": "medication-tag-set.mdd-antidepressant",
-          "allOfTagIds": ["antidepressant"],
-          "baselineGrade": "acceptable"
+          "id": "medication-tag-set.mdd-initial-first-line",
+          "allOfTagIds": ["mdd-initial-first-line"],
+          "baselineGrade": "optimal"
         }
       ],
       "alternativeEvaluation": "engine_with_notice"
@@ -227,6 +258,92 @@
       "maximumSelectedModules": 1,
       "selectedModules": [],
       "targetEnvelope": null
+    }
+  },
+  "diagnosisRubric": {
+    "groups": [
+      {
+        "id": "diagnosis-group.mdd-initial.primary",
+        "label": "Primary diagnosis",
+        "canonicalSelection": {
+          "diagnosisId": "diagnosis.major-depressive-disorder",
+          "severityId": null,
+          "specifierIds": []
+        },
+        "options": [
+          {
+            "id": "diagnosis-option.mdd-initial.canonical",
+            "label": "Major depressive disorder",
+            "match": {
+              "diagnosisId": "diagnosis.major-depressive-disorder",
+              "qualifierMode": "family",
+              "severityId": null,
+              "specifierIds": []
+            },
+            "specificityPriority": 10,
+            "grade": "canonical",
+            "points": 100,
+            "issueId": "diagnostic-issue.mdd-initial.primary",
+            "explanation": "This matches the case-authored primary diagnosis for the focused encounter snapshot.",
+            "review": {
+              "status": "unreviewed",
+              "reviewerId": null,
+              "reviewedAt": null,
+              "sourceUseNoteIds": ["source-use.mdd.developer-diagnosis-answer"]
+            }
+          }
+        ],
+        "omission": {
+          "id": "diagnosis-omission.mdd-initial",
+          "label": "Primary diagnosis omitted",
+          "points": -100,
+          "issueId": "diagnostic-issue.mdd-initial.primary",
+          "explanation": "The final answer did not identify the case-authored primary diagnosis.",
+          "review": {
+            "status": "unreviewed",
+            "reviewerId": null,
+            "reviewedAt": null,
+            "sourceUseNoteIds": ["source-use.mdd.developer-diagnosis-answer"]
+          }
+        }
+      }
+    ],
+    "misclassificationRules": [
+      {
+        "id": "diagnosis-error.mdd-initial.bipolar",
+        "label": "Bipolar-spectrum misclassification",
+        "match": {
+          "diagnosisId": "diagnosis.bipolar-spectrum-disorder",
+          "qualifierMode": "family",
+          "severityId": null,
+          "specifierIds": []
+        },
+        "specificityPriority": 20,
+        "severity": "dangerous",
+        "points": -120,
+        "carePointCap": 250,
+        "issueId": "diagnostic-issue.mdd-initial.primary",
+        "explanation": "For this case-authored snapshot, a bipolar-spectrum label conflicts with the case-authored longitudinal history and can substantially redirect management.",
+        "review": {
+          "status": "unreviewed",
+          "reviewerId": null,
+          "reviewedAt": null,
+          "sourceUseNoteIds": ["source-use.mdd.developer-diagnosis-answer"]
+        }
+      }
+    ],
+    "additionalSelectionPolicy": {
+      "id": "diagnosis-policy.mdd-initial.additional-selection",
+      "label": "Unsupported additional diagnoses",
+      "pointsPerSelection": -15,
+      "maximumDeduction": 45,
+      "explanation": "Additional diagnosis labels that do not match an authored alternative add a capped parsimony deduction.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": ["source-use.mdd.developer-diagnosis-answer"]
+      }
     }
   },
   "criticalFacts": {
@@ -319,6 +436,7 @@
     "criticalFacts",
     "informationActions",
     "workupObjectives",
+    "treatmentWorkupRequirements",
     "treatmentPathways",
     "scoreRules"
   ],
@@ -1007,6 +1125,7 @@
             "id": "finding.weight-bmi.weight",
             "labelVariants": ["Measured weight"],
             "outcome": "present",
+            "outcomeDisplay": "value_only",
             "valueTextVariants": ["70.8 kg (156 lb)"]
           },
           {
@@ -1528,6 +1647,26 @@
       }
     },
     {
+      "id": "objective.mdd-allergy-reaction-history",
+      "label": "Review allergies and adverse reactions before prescribing",
+      "importance": "essential",
+      "requiredByDefault": false,
+      "satisfaction": {
+        "type": "actionPurchased",
+        "actionId": "info.history.allergies-adverse-reactions"
+      },
+      "points": 0,
+      "omissionPenalty": 0,
+      "explanationObtained": "Allergy and adverse-reaction history was reviewed.",
+      "explanationOmitted": "Allergy and adverse-reaction history was not reviewed.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": ["source-use.mdd.developer-treatment-preconditions"]
+      }
+    },
+    {
       "id": "objective.mdd-substance-contribution",
       "label": "Assess substance contribution",
       "importance": "high_yield",
@@ -1548,6 +1687,80 @@
           "source-use.mdd.canmat-assessment",
           "source-use.mdd.developer-assessment-balance"
         ]
+      }
+    }
+  ],
+  "treatmentWorkupRequirements": [
+    {
+      "id": "treatment-requirement.mdd-antidepressant-mania-history",
+      "sourceRuleIds": ["rule.diagnosis-mdd.antidepressant-mania-history"],
+      "objectiveId": "objective.mdd-bipolar-screen",
+      "appliesWhen": {
+        "type": "treatmentStartedWithTag",
+        "medicationTagId": "antidepressant",
+        "minimumCount": 1,
+        "maximumCount": 20
+      },
+      "pointsIfMet": 45,
+      "pointsIfMissing": -70,
+      "safetyCritical": true,
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "explanationMet": "Prior mania or hypomania was assessed before antidepressant treatment.",
+      "explanationMissing": "Prior mania or hypomania was not assessed before antidepressant treatment.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-treatment-preconditions"
+        ]
+      }
+    },
+    {
+      "id": "treatment-requirement.mdd-any-medication-reconciliation",
+      "sourceRuleIds": ["rule.diagnosis-mdd.any-medication-reconciliation"],
+      "objectiveId": "objective.mdd-medication-reconciliation",
+      "appliesWhen": {
+        "type": "anyMedicationStarted"
+      },
+      "pointsIfMet": 35,
+      "pointsIfMissing": -25,
+      "safetyCritical": false,
+      "concernLevel": "moderate",
+      "certaintyLevel": "strong",
+      "explanationMet": "The medication list was reconciled before a medication was started.",
+      "explanationMissing": "The medication list was not reconciled before a medication was started.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": [
+          "source-use.mdd.canmat-assessment",
+          "source-use.mdd.developer-treatment-preconditions"
+        ]
+      }
+    },
+    {
+      "id": "treatment-requirement.mdd-any-medication-reaction-history",
+      "sourceRuleIds": ["rule.diagnosis-mdd.any-medication-reaction-history"],
+      "objectiveId": "objective.mdd-allergy-reaction-history",
+      "appliesWhen": {
+        "type": "anyMedicationStarted"
+      },
+      "pointsIfMet": 30,
+      "pointsIfMissing": -40,
+      "safetyCritical": true,
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "explanationMet": "Allergies and adverse reactions were reviewed before a medication was started.",
+      "explanationMissing": "Allergies and adverse reactions were not reviewed before a medication was started.",
+      "review": {
+        "status": "unreviewed",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "sourceUseNoteIds": ["source-use.mdd.developer-treatment-preconditions"]
       }
     }
   ],
@@ -1635,153 +1848,18 @@
       "baseCarePoints": -40
     },
     {
-      "id": "grade.mdd-optimal-sertraline",
-      "label": "Starter-formulary SSRI",
+      "id": "grade.mdd-initial-first-line-antidepressant",
+      "label": "One reviewed first-line antidepressant",
       "grade": "optimal",
       "priority": 190,
       "predicate": {
-        "type": "all",
-        "predicates": [
-          {
-            "type": "treatmentStarted",
-            "medicationId": "medication.sertraline"
-          },
-          {
-            "type": "not",
-            "predicate": {
-              "type": "any",
-              "predicates": [
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.escitalopram"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.fluoxetine"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.bupropion"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.mirtazapine"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.buspirone"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.aripiprazole"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.haloperidol"
-                }
-              ]
-            }
-          }
-        ]
+        "type": "treatmentStartedWithTag",
+        "medicationTagId": "mdd-initial-first-line",
+        "minimumCount": 1,
+        "maximumCount": 1
       },
-      "explanation": "Optimal prototype path: one starter-formulary SSRI is a coherent first medication choice for this uncomplicated outpatient presentation.",
-      "baseCarePoints": 100,
-      "review": {
-        "status": "unreviewed",
-        "reviewerId": null,
-        "reviewedAt": null,
-        "sourceUseNoteIds": [
-          "source-use.mdd.canmat-initial-treatment",
-          "source-use.mdd.developer-treatment-balance"
-        ]
-      }
-    },
-    {
-      "id": "grade.mdd-strong-escitalopram",
-      "label": "Single starter-formulary SSRI",
-      "grade": "optimal",
-      "priority": 180,
-      "predicate": {
-        "type": "all",
-        "predicates": [
-          {
-            "type": "treatmentStarted",
-            "medicationId": "medication.escitalopram"
-          },
-          {
-            "type": "not",
-            "predicate": {
-              "type": "any",
-              "predicates": [
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.sertraline"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.fluoxetine"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.bupropion"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.mirtazapine"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.buspirone"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.aripiprazole"
-                },
-                {
-                  "type": "treatmentStarted",
-                  "medicationId": "medication.haloperidol"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "explanation": "First-line baseline: a single starter-formulary antidepressant is a coherent initial choice; patient-fit modifiers are evaluated separately.",
-      "baseCarePoints": 100,
-      "review": {
-        "status": "unreviewed",
-        "reviewerId": null,
-        "reviewedAt": null,
-        "sourceUseNoteIds": [
-          "source-use.mdd.canmat-initial-treatment",
-          "source-use.mdd.developer-treatment-balance"
-        ]
-      }
-    },
-    {
-      "id": "grade.mdd-acceptable-other-antidepressant",
-      "label": "Single starter-formulary antidepressant",
-      "grade": "optimal",
-      "priority": 170,
-      "predicate": {
-        "type": "any",
-        "predicates": [
-          {
-            "type": "treatmentStarted",
-            "medicationId": "medication.fluoxetine"
-          },
-          {
-            "type": "treatmentStarted",
-            "medicationId": "medication.bupropion"
-          },
-          {
-            "type": "treatmentStarted",
-            "medicationId": "medication.mirtazapine"
-          }
-        ]
-      },
-      "explanation": "First-line baseline: a single starter-formulary antidepressant is a coherent initial choice; patient-fit modifiers are evaluated separately.",
-      "baseCarePoints": 100,
+      "explanation": "Broad first-line baseline: one reviewed antidepressant satisfies the dominant initial-medication decision for this focused outpatient snapshot. Medication-specific fit and safety remain separate traceable layers.",
+      "baseCarePoints": 200,
       "review": {
         "status": "unreviewed",
         "reviewerId": null,
@@ -1796,7 +1874,7 @@
   "treatmentPathways": [
     {
       "id": "path.mdd-single-antidepressant-outpatient",
-      "label": "Single antidepressant plus outpatient care",
+      "label": "One first-line antidepressant plus outpatient care",
       "grade": "acceptable",
       "accepted": true,
       "priority": 200,
@@ -1805,7 +1883,7 @@
         "predicates": [
           {
             "type": "treatmentStartedWithTag",
-            "medicationTagId": "antidepressant",
+            "medicationTagId": "mdd-initial-first-line",
             "minimumCount": 1,
             "maximumCount": 1
           },
@@ -1818,49 +1896,12 @@
       "requiredWorkupObjectiveIds": [
         "objective.mdd-episode-course",
         "objective.mdd-depressive-syndrome",
-        "objective.mdd-bipolar-screen",
         "objective.mdd-safety",
-        "objective.mdd-medication-reconciliation",
         "objective.mdd-substance-contribution"
       ],
-      "conditionalRequirements": [
-        {
-          "objectiveId": "objective.mdd-bipolar-screen",
-          "pointsIfMet": 45,
-          "pointsIfMissing": -70,
-          "safetyCritical": true,
-          "explanationMet": "Prior mania or hypomania was screened before antidepressant treatment.",
-          "explanationMissing": "Prior mania or hypomania was not screened before antidepressant treatment.",
-          "review": {
-            "status": "unreviewed",
-            "reviewerId": null,
-            "reviewedAt": null,
-            "sourceUseNoteIds": [
-              "source-use.mdd.canmat-assessment",
-              "source-use.mdd.developer-assessment-balance"
-            ]
-          }
-        },
-        {
-          "objectiveId": "objective.mdd-medication-reconciliation",
-          "pointsIfMet": 35,
-          "pointsIfMissing": 0,
-          "safetyCritical": false,
-          "explanationMet": "The medication list was reconciled before a new antidepressant was selected.",
-          "explanationMissing": "The previously unreconciled medication list was not verified before prescribing; no omission penalty applies in this prototype case.",
-          "review": {
-            "status": "unreviewed",
-            "reviewerId": null,
-            "reviewedAt": null,
-            "sourceUseNoteIds": [
-              "source-use.mdd.canmat-assessment",
-              "source-use.mdd.developer-assessment-balance"
-            ]
-          }
-        }
-      ],
+      "conditionalRequirements": [],
       "explanation": "Focused history supports a single starter antidepressant with psychotherapy and outpatient care.",
-      "workupCostPar": 135,
+      "workupCostPar": 145,
       "review": {
         "status": "unreviewed",
         "reviewerId": null,
@@ -1987,13 +2028,13 @@
         "type": "dispositionSelected",
         "dispositionId": "disposition.emergency-transfer"
       },
-      "pointsIfTrue": -450,
+      "pointsIfTrue": -500,
       "pointsIfFalse": 0,
       "classificationIfTrue": "harmful",
       "classificationIfFalse": "disposition",
       "explanationIfTrue": "Emergency transfer is a major mismatch for the stable facts established in this encounter and consumes a much higher level of care without an identified indication.",
       "explanationIfFalse": "Emergency transfer was not selected.",
-      "carePointCapIfTrue": 200
+      "carePointCapIfTrue": 75
     },
     {
       "id": "rule.mdd-combination-safety",
@@ -2062,16 +2103,17 @@
   ],
   "scoring": {
     "componentPointCaps": {
-      "workup": 165,
-      "medication_selection": 220,
+      "diagnosis": 100,
+      "workup": 275,
+      "medication_selection": 340,
       "medication_discontinuation": 0,
       "safety": 30,
       "nonmedication": 70,
       "disposition": 70,
       "efficiency": 0
     },
-    "databasePlanWorkupCost": 135,
-    "databasePlanCarePoints": 515
+    "databasePlanWorkupCost": 145,
+    "databasePlanCarePoints": 745
   },
   "economy": {
     "baseReimbursement": 650,
@@ -2090,7 +2132,15 @@
         "info.history.mania",
         "info.history.suicide-safety",
         "info.history.medication-reconciliation",
+        "info.history.allergies-adverse-reactions",
         "info.history.substance-use"
+      ],
+      "diagnosisSelections": [
+        {
+          "diagnosisId": "diagnosis.major-depressive-disorder",
+          "severityId": null,
+          "specifierIds": []
+        }
       ],
       "selections": {
         "startMedicationIds": ["medication.sertraline"],
@@ -2099,11 +2149,11 @@
         "interventionIds": ["intervention.psychotherapy.cbt", "intervention.behavioral-activation"],
         "dispositionId": "disposition.outpatient-followup"
       },
-      "explanation": "Uses focused history, one starter SSRI, psychotherapy, behavioral activation, and outpatient follow-up."
+      "explanation": "Uses focused history, one reviewed first-line antidepressant, psychotherapy, behavioral activation, and outpatient follow-up."
     },
     {
       "id": "reference.mdd-strong-alternative",
-      "label": "Strong alternative",
+      "label": "Equivalent first-line example",
       "kind": "strong_alternative",
       "actionIds": [
         "info.history.presenting-problem",
@@ -2111,7 +2161,15 @@
         "info.history.mania",
         "info.history.suicide-safety",
         "info.history.medication-reconciliation",
+        "info.history.allergies-adverse-reactions",
         "info.history.substance-use"
+      ],
+      "diagnosisSelections": [
+        {
+          "diagnosisId": "diagnosis.major-depressive-disorder",
+          "severityId": null,
+          "specifierIds": []
+        }
       ],
       "selections": {
         "startMedicationIds": ["medication.escitalopram"],
@@ -2120,7 +2178,7 @@
         "interventionIds": ["intervention.psychotherapy.cbt", "intervention.behavioral-activation"],
         "dispositionId": "disposition.outpatient-followup"
       },
-      "explanation": "Uses the same focused workup and combined-care plan with an alternative starter SSRI."
+      "explanation": "Uses the same focused workup and combined-care plan with an equivalent first-line antidepressant example."
     },
     {
       "id": "reference.mdd-shotgun",
@@ -2135,6 +2193,7 @@
         "info.history.suicide-safety",
         "info.history.violence-risk",
         "info.history.medication-reconciliation",
+        "info.history.allergies-adverse-reactions",
         "info.history.adherence",
         "info.history.prior-trials",
         "info.history.treatment-history",
@@ -2166,6 +2225,13 @@
         "info.imaging.brain-mri",
         "info.imaging.eeg"
       ],
+      "diagnosisSelections": [
+        {
+          "diagnosisId": "diagnosis.major-depressive-disorder",
+          "severityId": null,
+          "specifierIds": []
+        }
+      ],
       "selections": {
         "startMedicationIds": ["medication.sertraline"],
         "stopMedicationIds": [],
@@ -2185,7 +2251,15 @@
         "info.history.mania",
         "info.history.suicide-safety",
         "info.history.medication-reconciliation",
+        "info.history.allergies-adverse-reactions",
         "info.history.substance-use"
+      ],
+      "diagnosisSelections": [
+        {
+          "diagnosisId": "diagnosis.major-depressive-disorder",
+          "severityId": null,
+          "specifierIds": []
+        }
       ],
       "selections": {
         "startMedicationIds": ["medication.sertraline", "medication.fluoxetine"],

@@ -1,0 +1,84 @@
+[
+  {
+    "schemaVersion": 1,
+    "id": "ticket.feedback.drive-2026-07-27.mdd-nonresponse",
+    "title": "Review medication breadth and assessment before MDD nonresponse routing",
+    "sourceKind": "receipt_guidance",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "treatment_pathway",
+    "priority": "high",
+    "status": "proposed",
+    "requiresClinicalAcumen": true,
+    "attemptId": null,
+    "blueprintId": "case.review-cohort.mdd-adequate-nonresponse",
+    "caseContentVersion": "1.4.0",
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "case.review-cohort.mdd-adequate-nonresponse",
+      "policy.review.mdd.nonresponse",
+      "info.history.medication-reconciliation",
+      "info.history.adherence",
+      "info.history.treatment-history",
+      "info.history.substance-use"
+    ],
+    "dependencyTicketIds": [
+      "ticket.source.canmat-mdd.inadequate-response-route",
+      "ticket.catalog.medications.psychiatry-allowlist",
+      "ticket.catalog.medications.current-rule-provenance"
+    ],
+    "conflictContentIds": ["policy.review.mdd.nonresponse"],
+    "proposedRouting": "Split the medication-catalog question from the patient-assessment question. Verify identity, formulary availability, and claim-level evidence before proposing vortioxetine; separately audit whether revealed history establishes substance use, co-medications, trial dose, duration, and adherence before interpreting SSRI nonresponse.",
+    "guidance": "Historical attempt-review capture from portable Reviewer bundle review-bundle.2026-07-27t02-48-08-432z (Drive file 1BS9NMW7M15p4anVN2F0vbmxb1db4MPX3; SHA-256 82994db37ac83babe7b6ec4dbd2406433bbca9024bff907c05719af9782980b3; exported 2026-07-27T02:48:08.432Z; profile player.local-profile; assignment reviewer-assignment.common-psychiatry.2026-07f), attempt review review.attempt.case.review-cohort.mdd-adequate-nonresponse.2. The reviewer identifies two separable proposals: consider vortioxetine/Trintellix among defensible treatment options, and explicitly review substance use, current co-medications, dose, and adherence before labeling an SSRI nonresponse. Exact reviewer wording is preserved below. The raw 908,644-byte bundle remains outside Git. This ticket changes no treatment menu, rule, point, source, or approval.",
+    "sourceReviewSnapshot": null,
+    "reviewerNotes": "Treatment options are limited. For instance I would have considered Trintellix for this patient. If an SSRI isn’t working then substance use and other medications should be reviewed as well as the dose and adherence to the medication.",
+    "reviewerNotesUpdatedAt": "2026-07-27T02:45:08.069Z",
+    "resurfacingTrigger": "Before changing the MDD nonresponse treatment catalog, policy, prior-trial display, or rewards for medication reconciliation, adherence, treatment history, or substance-use history.",
+    "resolution": null,
+    "createdAt": "2026-07-27T02:48:08.432Z",
+    "updatedAt": "2026-07-27T02:48:08.432Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.feedback.drive-2026-07-27.palpitations-fit",
+    "title": "Review current-medication benefit and optional fit-only counseling",
+    "sourceKind": "receipt_guidance",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "medication_fit",
+    "priority": "high",
+    "status": "proposed",
+    "requiresClinicalAcumen": true,
+    "attemptId": null,
+    "blueprintId": "case.medication-check-palpitations",
+    "caseContentVersion": "3.3.0",
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "case.medication-check-palpitations",
+      "info.history.medication-effects",
+      "info.history.sleep",
+      "intervention.sleep-routine",
+      "rule.ecg-mdd-current-medication-plan"
+    ],
+    "dependencyTicketIds": [
+      "ticket.audit.m2-ecg-treatment-path",
+      "ticket.source.canmat-mdd.inadequate-response-route",
+      "ticket.source.mdd.antidepressant-sleep-fit",
+      "ticket.catalog.interventions.identity-and-fidelity"
+    ],
+    "conflictContentIds": [
+      "grade.ecg-mdd-continue-after-monitoring",
+      "grade.ecg-mdd-strong-sertraline-switch",
+      "rule.ecg-mdd-current-medication-plan"
+    ],
+    "proposedRouting": "Keep three future questions independent: represent current-medication benefit as a structured four-state history; review whether unresolved poor sleep supports an optional treatment-fit bonus; and create separately sourced counseling identities before considering hydration or regular-meal bonuses. Preserve the reviewer’s explicit no-omission-penalty boundary for this historical case.",
+    "guidance": "Historical attempt-review capture from portable Reviewer bundle review-bundle.2026-07-27t02-48-08-432z (Drive file 1BS9NMW7M15p4anVN2F0vbmxb1db4MPX3; SHA-256 82994db37ac83babe7b6ec4dbd2406433bbca9024bff907c05719af9782980b3; exported 2026-07-27T02:48:08.432Z; profile player.local-profile; assignment reviewer-assignment.common-psychiatry.2026-07f), attempt review review.attempt.case.medication-check-palpitations.1. The reviewer proposes a four-state current-medication efficacy history plus possible positive-fit credit for an appropriate sleep intervention and hydration/regular-meal counseling, while explicitly requesting no omission penalty for these additions in the captured case. Exact reviewer wording is preserved below. The raw 908,644-byte bundle remains outside Git. This ticket changes no action, treatment, rule, point, source, or approval.",
+    "sourceReviewSnapshot": null,
+    "reviewerNotes": "Seems fine. In reality I probably would have given this depressed and anxious patient with poor sleep a sleep aid such as trazodone (although if we are strictly reading the AASM guidelines doxepin would be better) to see if improved sleep helps with their sx. I also would have recommended improved hydration / more regular meals which could probably go under their own counseling section - always good for anxiety in general & I know I have seen a paper for this. I also probably irl would have talked to the patient about the efficacy of the medication and if it wasn’t working or partially working would switch or augment. Current medication efficacy should be a history item with worsening - no effect - partial effect - very helpful as a 4 point scale (not those exact words but you get the idea). Often at a follow up or intake for a patient already on medication shared decision-making around that is the key decision. So I’d say no loss of points based on the current case for NOT doing those, but extra points for checking med efficacy and doing appropriate switch / augment per the guidelines, and extra points for sleep medication if patient has poor sleep still (could include melatonin although also not in AASM guidelines - but the downsides of the sedative hypnotics they recommend are high and orexin meds in my experience are not very beloved due to minimal help with sleep onset).",
+    "reviewerNotesUpdatedAt": "2026-07-26T02:50:34.804Z",
+    "resurfacingTrigger": "Before changing current-medication efficacy history, continue-versus-switch grading, sleep-related treatment fit, or adding hydration or meal counseling to a treatment catalog.",
+    "resolution": null,
+    "createdAt": "2026-07-27T02:48:08.432Z",
+    "updatedAt": "2026-07-27T02:48:08.432Z"
+  }
+]

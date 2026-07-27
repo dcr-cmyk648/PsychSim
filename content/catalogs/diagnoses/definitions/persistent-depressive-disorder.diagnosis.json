@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "diagnosis.persistent-depressive-disorder",
+  "label": "Persistent depressive disorder (dysthymia)",
+  "selectableInGameplay": true,
+  "searchAliases": ["dysthymic disorder", "chronic depression", "persistent depression"],
+  "description": "Unreviewed diagnosis-family identity placeholder for a later source-reviewed persistent-depression boundary.",
+  "medicalReviewStatus": "unreviewed",
+  "baseClinicalTagIds": [],
+  "baseRules": [],
+  "severityAxis": null,
+  "specifiers": [],
+  "comorbidityRelationships": [],
+  "complexityContributions": [],
+  "sourceUseNotes": []
+}

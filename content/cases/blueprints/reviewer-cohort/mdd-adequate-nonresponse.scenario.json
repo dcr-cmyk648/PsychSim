@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.4.0",
+  "contentVersion": "1.5.0",
   "id": "case.review-cohort.mdd-adequate-nonresponse",
-  "internalTitle": "Reviewer cohort: MDD after adequate nonresponse",
+  "internalTitle": "Reviewer cohort: MDD after prior medication nonresponse",
   "difficultyTier": 2,
   "patientPool": "transitional",
   "tags": ["reviewer-cohort", "mdd", "prior-trial", "nonresponse"],
@@ -116,12 +116,16 @@
       "schemaVersion": 1,
       "id": "trial.review-mdd-nonresponse.sertraline",
       "medicationId": "medication.sertraline",
+      "exposure": {
+        "duration": { "value": 10, "unit": "week" },
+        "maximumDose": { "amount": 200, "unit": "mg", "frequency": "daily" }
+      },
       "adequacy": "adequate",
       "adherence": "consistent",
       "response": "none",
       "tolerability": "tolerated",
       "source": "prescriber_record",
-      "summary": "Adequate, consistently taken trial; tolerated without meaningful improvement."
+      "summary": "Consistently taken and tolerated without meaningful improvement."
     }
   ],
   "reactionHistory": {

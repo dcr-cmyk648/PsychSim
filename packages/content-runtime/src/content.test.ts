@@ -12,6 +12,7 @@ import {
   PatientObservationSchema,
   PatientReactionHistorySchema,
   SourceUseNoteSchema,
+  SupplementIdentityDefinitionSchema,
   WorkupObjectiveSchema,
 } from '@psychsim/schemas';
 
@@ -24,6 +25,7 @@ import {
 } from './content';
 import { findAffectedContentIds } from './impact';
 import { medicationIdentities } from './medication-identities';
+import { supplementIdentities } from './supplement-identities';
 import { contentRegistry } from './registry';
 import {
   validateCaseBlueprint,
@@ -83,7 +85,7 @@ describe('prototype content', () => {
       valid: true,
       issues: [],
     });
-    expect(medicationIdentities).toHaveLength(33);
+    expect(medicationIdentities).toHaveLength(53);
     const runtimeCompatible = medicationIdentities.filter(
       (identity) => identity.authoringStatus === 'runtime_compatibility',
     );
@@ -91,7 +93,8 @@ describe('prototype content', () => {
       (identity) => identity.authoringStatus === 'identity_only',
     );
     expect(runtimeCompatible).toHaveLength(13);
-    expect(identityOnly).toHaveLength(20);
+    expect(identityOnly).toHaveLength(40);
+    expect(identityOnly.map((identity) => identity.id)).toContain('medication.memantine');
     expect(runtimeCompatible.map((identity) => identity.id).sort()).toEqual(
       catalogs.medications.map((medication) => medication.id).sort(),
     );
@@ -129,6 +132,23 @@ describe('prototype content', () => {
         (issue) => issue.code === 'IDENTITY_ONLY_MEDICATION_LEAKED_TO_GAMEPLAY',
       ),
     ).toBe(true);
+  });
+
+  it('keeps supplement identities auditable and unavailable as treatment choices', () => {
+    expect(supplementIdentities).toHaveLength(6);
+    expect(
+      SupplementIdentityDefinitionSchema.array().parse(structuredClone(supplementIdentities)),
+    ).toEqual(supplementIdentities);
+    expect(supplementIdentities.every((identity) => !identity.runtimeSelectable)).toBe(true);
+    expect(supplementIdentities.some((identity) => identity.id === 'supplement.ashwagandha')).toBe(
+      true,
+    );
+    const gameplayIds = new Set([
+      ...catalogs.medications.map((medication) => medication.id),
+      ...catalogs.formularies.flatMap((formulary) => formulary.medicationIds),
+      ...catalogs.treatments.map((treatment) => treatment.id),
+    ]);
+    expect(supplementIdentities.every((identity) => !gameplayIds.has(identity.id))).toBe(true);
   });
 
   it('rejects authoring-only records from the strict runtime catalog while diagnoses parse', () => {
@@ -430,6 +450,34 @@ describe('prototype content', () => {
     ).toBe(true);
   });
 
+  it('allows one evidence contribution to enrich other catalog entries but rejects unknown targets', () => {
+    const aripiprazole = catalogs.medications.find(
+      (medication) => medication.id === 'medication.aripiprazole',
+    )!;
+    expect(
+      aripiprazole.sourceUseNotes.find(
+        (note) =>
+          note.id === 'source-use.medication-aripiprazole.tiihonen-2019-clozapine-combination',
+      )?.targetContentIds,
+    ).toEqual(
+      expect.arrayContaining([
+        'medication.aripiprazole',
+        'medication.clozapine',
+        'diagnosis.schizophrenia-spectrum-disorder',
+      ]),
+    );
+
+    const invalid = structuredClone(catalogs);
+    invalid.medications
+      .find((medication) => medication.id === 'medication.aripiprazole')!
+      .sourceUseNotes[0]!.targetContentIds.push('medication.not-cataloged');
+    expect(
+      validateCatalogs(invalid).issues.some(
+        (issue) => issue.code === 'INVALID_MEDICATION_EVIDENCE_TARGET',
+      ),
+    ).toBe(true);
+  });
+
   it('does not let expert opinion borrow a formal citation', () => {
     expect(
       SourceUseNoteSchema.safeParse({
@@ -465,8 +513,9 @@ describe('prototype content', () => {
           .sort((left, right) => left.id.localeCompare(right.id)),
       };
     };
+    const baseline = ecgResult('ecg-protected-baseline');
     for (let index = 0; index < 50; index += 1) {
-      expect(ecgResult(`ecg-protected-${index}`)).toEqual(ecgResult('ecg-protected-baseline'));
+      expect(ecgResult(`ecg-protected-${index}`)).toEqual(baseline);
     }
   });
 
@@ -502,7 +551,7 @@ describe('prototype content', () => {
       (pathway) => pathway.id === reference.primaryAuthoredPathwayId,
     )!;
     expect(JSON.stringify(primary.match)).toContain('treatmentStartedWithTag');
-    expect(JSON.stringify(primary.match)).toContain('antidepressant');
+    expect(JSON.stringify(primary.match)).toContain('mdd-initial-first-line');
   });
 
   it('loads one top-down MDD family file while keeping unsourced severity disabled', () => {
@@ -520,15 +569,77 @@ describe('prototype content', () => {
         (level) => level.generationStatus === 'disabled_pending_source' && level.rules.length === 0,
       ),
     ).toBe(true);
-    expect(mdd.sourceUseNotes).toEqual([
-      expect.objectContaining({
-        id: 'source-use.diagnosis-mdd.who-mhgap-dep1-4-context',
-        evidenceSourceIds: ['evidence.who.mhgap-mns.2023'],
-        contributionTypes: ['context_only'],
-        medicalReviewStatus: 'unreviewed',
-      }),
-    ]);
-    expect(mdd.baseRules).toEqual([]);
+    expect(mdd.sourceUseNotes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'source-use.diagnosis-mdd.canmat-initial-first-line-antidepressants',
+          evidenceSourceIds: ['evidence.canmat.mdd-adults.2023-update'],
+          contributionTypes: ['treatment', 'medication_fit'],
+          medicalReviewStatus: 'approved',
+        }),
+        expect.objectContaining({
+          id: 'source-use.diagnosis-mdd.developer-initial-first-line-antidepressants',
+          authority: 'expert_opinion',
+          evidenceSourceIds: [],
+          medicalReviewStatus: 'approved',
+        }),
+        expect.objectContaining({
+          id: 'source-use.diagnosis-mdd.who-mhgap-dep1-4-context',
+          evidenceSourceIds: ['evidence.who.mhgap-mns.2023'],
+          contributionTypes: ['context_only'],
+          medicalReviewStatus: 'unreviewed',
+        }),
+      ]),
+    );
+    expect(mdd.baseRules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'rule.diagnosis-mdd.initial-first-line-antidepressant',
+          target: {
+            kind: 'medication_tag',
+            id: 'mdd-initial-first-line',
+          },
+          stance: 'acceptable',
+          review: expect.objectContaining({
+            status: 'approved',
+            reviewerId: 'reviewer.dustin-rowland',
+          }),
+        }),
+        expect.objectContaining({
+          id: 'rule.diagnosis-mdd.antidepressant-mania-history',
+          concernLevel: 'major',
+          certaintyLevel: 'strong',
+          target: {
+            kind: 'information_action',
+            id: 'info.history.mania',
+          },
+          selectionWhen: expect.objectContaining({
+            type: 'treatmentStartedWithTag',
+            medicationTagId: 'antidepressant',
+          }),
+        }),
+        expect.objectContaining({
+          id: 'rule.diagnosis-mdd.any-medication-reaction-history',
+          selectionWhen: { type: 'anyMedicationStarted' },
+        }),
+      ]),
+    );
+  });
+
+  it('loads persistent depressive disorder as identity-only unreviewed scaffolding', () => {
+    const persistentDepression = catalogs.diagnoses.find(
+      (diagnosis) => diagnosis.id === 'diagnosis.persistent-depressive-disorder',
+    )!;
+    expect(persistentDepression).toMatchObject({
+      label: 'Persistent depressive disorder (dysthymia)',
+      medicalReviewStatus: 'unreviewed',
+      baseClinicalTagIds: [],
+      baseRules: [],
+      severityAxis: null,
+      specifiers: [],
+      comorbidityRelationships: [],
+      sourceUseNotes: [],
+    });
   });
 
   it('rejects missing diagnosis files and invalid patient diagnosis qualifiers', () => {
@@ -557,6 +668,8 @@ describe('prototype content', () => {
       domain: 'medication_selection',
       target: { kind: 'medication', id: 'medication.missing' },
       stance: 'preferred',
+      concernLevel: 'moderate',
+      certaintyLevel: 'tentative',
       patientWhen: null,
       selectionWhen: null,
       rationale: 'Synthetic invalid-reference fixture.',
@@ -570,6 +683,26 @@ describe('prototype content', () => {
     expect(
       validateCatalogs(invalid).issues.some(
         (issue) => issue.code === 'INVALID_DIAGNOSIS_RULE_TARGET',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects a treatment-workup bridge that drifts from its qualitative source rule', () => {
+    const invalidTrigger = structuredClone(prototypeCaseBlueprint);
+    invalidTrigger.treatmentWorkupRequirements[0]!.appliesWhen = {
+      type: 'anyMedicationStarted',
+    };
+    expect(
+      validateCaseBlueprint(invalidTrigger, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'TREATMENT_WORKUP_SOURCE_TRIGGER_MISMATCH',
+      ),
+    ).toBe(true);
+
+    const invalidConcern = structuredClone(prototypeCaseBlueprint);
+    invalidConcern.treatmentWorkupRequirements[0]!.concernLevel = 'minor';
+    expect(
+      validateCaseBlueprint(invalidConcern, catalogs, startingClinic).issues.some(
+        (issue) => issue.code === 'TREATMENT_WORKUP_SOURCE_WEIGHT_MISMATCH',
       ),
     ).toBe(true);
   });
@@ -850,11 +983,46 @@ describe('prototype content', () => {
     ).toBe(true);
   });
 
+  it('keeps the reviewed initial-MDD medication family explicit and bounded', () => {
+    expect(
+      catalogs.medications
+        .filter((medication) => medication.tags.includes('mdd-initial-first-line'))
+        .map((medication) => medication.id)
+        .sort(),
+    ).toEqual(
+      [
+        'medication.bupropion',
+        'medication.escitalopram',
+        'medication.fluoxetine',
+        'medication.mirtazapine',
+        'medication.sertraline',
+      ].sort(),
+    );
+    expect(
+      catalogs.medications
+        .find((medication) => medication.id === 'medication.buspirone')
+        ?.tags.includes('mdd-initial-first-line'),
+    ).toBe(false);
+    expect(prototypeCaseBlueprint.treatmentGrades.map((grade) => grade.id)).toContain(
+      'grade.mdd-initial-first-line-antidepressant',
+    );
+    expect(prototypeCaseBlueprint.treatmentGrades.map((grade) => grade.id)).not.toEqual(
+      expect.arrayContaining([
+        'grade.mdd-optimal-sertraline',
+        'grade.mdd-strong-escitalopram',
+        'grade.mdd-acceptable-other-antidepressant',
+      ]),
+    );
+  });
+
   it('keeps every runtime medication and approved patient in the content registry', () => {
     expect(validateContentRegistry(contentRegistry, catalogs, approvedCaseBlueprints)).toEqual({
       valid: true,
       issues: [],
     });
+    expect(
+      contentRegistry.entries.find((entry) => entry.kind === 'diagnosis_catalog')?.categoryIds,
+    ).toEqual(catalogs.diagnoses.map((diagnosis) => diagnosis.id));
   });
 
   it('rejects a broken registry relationship and reports shared impact', () => {

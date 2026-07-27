@@ -1,6 +1,7 @@
 import type {
   CatalogBundle,
   CompletedAttempt,
+  PlayerDiagnosisSelection,
   ReferenceSolution,
   TreatmentSelection,
 } from '@psychsim/schemas';
@@ -9,6 +10,7 @@ import {
   completeEncounter,
   purchaseInformationAction,
   startEncounterWithAutomaticIntake,
+  updateDiagnosisSelections,
   updateTreatmentSelections,
 } from '@psychsim/engine';
 
@@ -20,6 +22,7 @@ export interface AuditedReferenceInformationAction {
 }
 
 export interface AuditedReferenceTreatmentSelections {
+  diagnoses: ReadonlyArray<{ id: string; label: string }>;
   startMedications: ReadonlyArray<{ id: string; label: string }>;
   stopMedications: ReadonlyArray<{ id: string; label: string }>;
   continueMedications: ReadonlyArray<{ id: string; label: string }>;
@@ -80,6 +83,7 @@ const catalogLabel = (entries: ReadonlyArray<{ id: string; label: string }>, id:
 
 const treatmentSelections = (
   selections: TreatmentSelection,
+  diagnosisSelections: readonly PlayerDiagnosisSelection[],
   catalogs: CatalogBundle,
 ): AuditedReferenceTreatmentSelections => {
   const medication = (id: string) => ({
@@ -91,6 +95,10 @@ const treatmentSelections = (
     label: catalogLabel(catalogs.treatments, id),
   });
   return {
+    diagnoses: diagnosisSelections.map((selection) => ({
+      id: selection.diagnosisId,
+      label: catalogLabel(catalogs.diagnoses, selection.diagnosisId),
+    })),
     startMedications: selections.startMedicationIds.map(medication),
     stopMedications: selections.stopMedicationIds.map(medication),
     continueMedications: selections.continueMedicationIds.map(medication),
@@ -120,6 +128,9 @@ const auditReferenceRun = (
       if (!purchase.ok) throw new Error(`${purchase.error.code}: ${purchase.error.message}`);
       state = purchase.value;
     }
+    const diagnoses = updateDiagnosisSelections(state, solution.diagnosisSelections, catalogs);
+    if (!diagnoses.ok) throw new Error(`${diagnoses.error.code}: ${diagnoses.error.message}`);
+    state = diagnoses.value;
     const selection = updateTreatmentSelections(state, solution.selections, catalogs);
     if (!selection.ok) throw new Error(`${selection.error.code}: ${selection.error.message}`);
     const completed = completeEncounter(selection.value, catalogs);
@@ -137,7 +148,7 @@ const auditReferenceRun = (
         operatingCost: purchase.operatingCost,
         fulfillmentLabel: purchase.fulfillmentLabel,
       })),
-      selections: treatmentSelections(solution.selections, catalogs),
+      selections: treatmentSelections(solution.selections, solution.diagnosisSelections, catalogs),
       carePoints: completed.value.receipt.pointReport.carePointsEarned,
       differenceFromDatabasePlan: completed.value.receipt.pointReport.differenceFromDatabasePlan,
       workupExpense: completed.value.receipt.pointReport.actualWorkupExpense,
@@ -168,7 +179,7 @@ const auditPlayerPlan = (
     operatingCost: purchase.operatingCost,
     fulfillmentLabel: purchase.fulfillmentLabel,
   })),
-  selections: treatmentSelections(attempt.submittedTreatment, catalogs),
+  selections: treatmentSelections(attempt.submittedTreatment, attempt.submittedDiagnoses, catalogs),
   carePoints: attempt.receipt.pointReport.carePointsEarned,
   differenceFromDatabasePlan: attempt.receipt.pointReport.differenceFromDatabasePlan,
   workupExpense: attempt.receipt.pointReport.actualWorkupExpense,

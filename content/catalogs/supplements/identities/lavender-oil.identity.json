@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "supplement.lavender-oil",
+  "label": "Lavender oil",
+  "normalizedName": "lavender oil",
+  "aliases": ["Lavender essential oil"],
+  "identityCategory": "botanical",
+  "preparation": "essential_oil",
+  "identifiers": [
+    {
+      "system": "mesh",
+      "value": "C045718",
+      "relationship": "exact",
+      "sourceRelease": "MeSH 2026",
+      "evidenceSourceId": "evidence.nlm.mesh.2026",
+      "sourceUseDecisionId": "source-use.nlm.mesh.2026",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    },
+    {
+      "system": "rxnorm",
+      "value": "28486",
+      "relationship": "exact",
+      "sourceRelease": "RxNorm CPC 2026-07-06",
+      "evidenceSourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "sourceUseDecisionId": "source-use.nlm.rxnorm-cpc.2026-07-06",
+      "verifiedAt": "2026-07-26T23:30:00.000Z"
+    }
+  ],
+  "identityScopeNote": "Identity-only essential-oil record. Oral oil, aromatherapy, topical use, whole lavender, and standardized preparations must not be treated as interchangeable.",
+  "runtimeSelectable": false,
+  "medicalReviewStatus": "unreviewed"
+}
