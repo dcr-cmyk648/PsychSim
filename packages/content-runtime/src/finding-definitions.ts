@@ -19,7 +19,10 @@ import currentPsychomotorSlowingJson from '../../../content/catalogs/findings/de
 import currentRacingThoughtsJson from '../../../content/catalogs/findings/definitions/current-racing-thoughts.finding.json';
 import currentReducedAppetiteJson from '../../../content/catalogs/findings/definitions/current-reduced-appetite.finding.json';
 import currentSelfReportedConcentrationDifficultyJson from '../../../content/catalogs/findings/definitions/current-self-reported-concentration-difficulty.finding.json';
+import currentSelfReportedIdeasOfReferenceJson from '../../../content/catalogs/findings/definitions/current-self-reported-ideas-of-reference.finding.json';
 import currentSelfReportedImpulsivityJson from '../../../content/catalogs/findings/definitions/current-self-reported-impulsivity.finding.json';
+import currentSelfReportedPersecutoryIdeationJson from '../../../content/catalogs/findings/definitions/current-self-reported-persecutory-ideation.finding.json';
+import currentSelfReportedSuspiciousnessJson from '../../../content/catalogs/findings/definitions/current-self-reported-suspiciousness.finding.json';
 import currentSelfReportedThoughtDisorganizationJson from '../../../content/catalogs/findings/definitions/current-self-reported-thought-disorganization.finding.json';
 import currentSelfReportedWeaponAccessJson from '../../../content/catalogs/findings/definitions/current-self-reported-weapon-access.finding.json';
 import currentSuicidePreparatoryBehaviorJson from '../../../content/catalogs/findings/definitions/current-suicide-preparatory-behavior.finding.json';
@@ -60,7 +63,10 @@ export const findingDefinitions: FindingDefinition[] = FindingDefinitionSchema.a
     currentRacingThoughtsJson,
     currentReducedAppetiteJson,
     currentSelfReportedConcentrationDifficultyJson,
+    currentSelfReportedIdeasOfReferenceJson,
     currentSelfReportedImpulsivityJson,
+    currentSelfReportedPersecutoryIdeationJson,
+    currentSelfReportedSuspiciousnessJson,
     currentSelfReportedThoughtDisorganizationJson,
     currentSelfReportedWeaponAccessJson,
     currentSuicidePreparatoryBehaviorJson,

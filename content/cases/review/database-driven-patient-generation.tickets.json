@@ -27,6 +27,7 @@
     "dependencyTicketIds": [
       "ticket.catalog.findings.canonical-definition-boundary",
       "ticket.catalog.findings.general-psychiatry-seed",
+      "ticket.schema.patient-state.latent-proposition-evidence-foundation",
       "ticket.catalog.findings.subjective-presentation-projection-foundation",
       "ticket.catalog.measurements.vitals-exam-foundation",
       "ticket.catalog.tests.structured-result-foundation",
@@ -40,12 +41,12 @@
     "proposedRouting": "Build and maintain a dependency-readiness map from general reusable owners through runtime composition. Create or route missing owner tickets before any generated-patient or cohort ticket can become actionable.",
     "guidance": "Audit stable identities/ownership/provenance first; then reusable history, symptom, function, safety, substance, MSE, physical, vital/measurement, condition/chart, reaction, regimen, prior-trial, treatment-history, demographic, and context records; then labs/panels/reference intervals and result generators, imaging/electrical studies/instruments, reveal actions/services, medications, therapies, and dispositions; then diagnosis/intervention dossiers and cross-topic relationships; then reviewed policies, prerequisites, fit/interactions, balance, and traces; then recipe/instance/resolver/replay/persistence/validation mechanics. A thin MDD, GAD, or other dossier may be used early to discover dependencies, but missing general owners must not be replaced by case-specific prose. The gate does not demand all of psychiatry. It requires the smallest coherent general slice for the intended encounter, with every deferred gap explicit and nonexecutable. Runtime patient generation and seed-cohort calibration stay last.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Reviewer approved MDD as the first deep database dependency vertical with no setting, difficulty, or treatment-intensity ceiling, and approved general dependencies before specific case work. The 2026-07-28 readiness audit found useful identity, service, test, medication, treatment, compatibility-state, replay, and persistence foundations, but no canonical finding catalog: five approved/review case files contain 621 nested finding occurrences, 186 IDs, and 112 IDs reused across files. The ordered missing-owner queue is recorded in docs/ENCOUNTER_GENERATION_DEPENDENCIES.md. Do not generate patients or hide a missing general owner in case prose.",
-    "reviewerNotesUpdatedAt": "2026-07-28T15:27:08.000Z",
+    "reviewerNotes": "Reviewer approved MDD as the first deep database dependency vertical with no setting, difficulty, or treatment-intensity ceiling, and approved general dependencies before specific case work. The 2026-07-28 readiness audit found useful identity, service, test, medication, treatment, compatibility-state, replay, and persistence foundations, but no canonical finding catalog: five approved/review case files contain 621 nested finding occurrences, 186 IDs, and 112 IDs reused across files. The ordered missing-owner queue is recorded in docs/ENCOUNTER_GENERATION_DEPENDENCIES.md. The reviewer subsequently approved a latent true/false proposition plus source-specific, dependency-aware patient-scene evidence layer before reveal projection. Do not generate patients or hide a missing general owner in case prose.",
+    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
     "resurfacingTrigger": "Before prioritizing a patient/case generator, generated cohort, or case-specific workaround over a missing reusable dependency owner.",
     "resolution": null,
     "createdAt": "2026-07-28T14:55:02.000Z",
-    "updatedAt": "2026-07-28T15:27:08.000Z"
+    "updatedAt": "2026-07-28T19:12:59.000Z"
   },
   {
     "schemaVersion": 1,
@@ -232,7 +233,8 @@
     ],
     "dependencyTicketIds": [
       "ticket.catalog.findings.canonical-definition-boundary",
-      "ticket.catalog.findings.fatigue-low-energy-boundary"
+      "ticket.catalog.findings.fatigue-low-energy-boundary",
+      "ticket.schema.patient-state.latent-proposition-evidence-foundation"
     ],
     "conflictContentIds": [
       "schema.finding-definition",
@@ -240,14 +242,14 @@
       "schema.resolved-finding"
     ],
     "proposedRouting": "Add a point-free, versioned projection boundary between resolved patient facts and player-facing assessment responses or wording. Keep identity aliases strict while allowing reviewed phrase banks to overlap across source facts.",
-    "guidance": "A FindingExpressionBank owns stable wording-variant IDs and lawful display channels, not clinical truth. A FindingRevealProjection explicitly names its source finding IDs, applicable action or instrument item, source outcomes, response mapping, and expression bank. A frozen resolved projection saves the projection version, response value, selected wording-variant ID, source action or instrument, and every contributing resolved-finding ID before play. Standardized instruments retain their own response scale, timeframe, respondent or observation modality, interpretation, and rights boundary. Unstructured wording may be deliberately ambiguous. Current report, historical report, collateral, record, observation, and instrument response may conflict and must remain reconstructable. Neither aliases nor phrase similarity may create a mapping, and neither displayed wording nor the number of contributors may affect scoring. The later explanation trace must reconstruct source fact → reviewed projection → displayed response without using the presentation or a discrepancy as a diagnostic inference.",
+    "guidance": "A FindingExpressionBank owns stable wording-variant IDs and lawful display channels, not clinical truth. A FindingRevealProjection explicitly names its source finding IDs, applicable action or instrument item, source outcomes, response mapping, and expression bank. A frozen resolved projection saves the projection version, response value, selected wording-variant ID, source action or instrument, and every contributing resolved-finding ID before play. Standardized instruments retain their own response scale, timeframe, respondent or observation modality, interpretation, and rights boundary. Unstructured wording may be deliberately ambiguous. Current report, historical report, collateral, record, observation, and instrument response may conflict and must remain reconstructable. When a response concerns an authored latent proposition, the projection preserves the proposition and patient-scene evidence IDs rather than collapsing them into displayed belief wording. Neither aliases nor phrase similarity may create a mapping, and neither displayed wording nor the number of contributors may affect scoring. The later explanation trace must reconstruct source fact or proposition → patient-scene evidence → reviewed projection → displayed response without using the presentation or a discrepancy as a diagnostic inference.",
     "sourceReviewSnapshot": null,
     "reviewerNotes": "Accepted architecture from Dustin Rowland's fatigue clarification and generalized symptom-source decision. The technical implementation must scale to many-to-many language and conflicting report/observation/time scopes while preserving the concise, question-bank-like player presentation and a fully separable backend audit.",
-    "reviewerNotesUpdatedAt": "2026-07-28T18:39:12.000Z",
+    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
     "resurfacingTrigger": "Before the shared-finding compiler projects one resolved fact into an action, a standardized item derives a response, or unstructured history reuses the same patient phrase for several possible facts.",
     "resolution": null,
     "createdAt": "2026-07-28T18:11:20.000Z",
-    "updatedAt": "2026-07-28T18:39:12.000Z"
+    "updatedAt": "2026-07-28T19:12:59.000Z"
   },
   {
     "schemaVersion": 1,
@@ -508,7 +510,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "case_construction",
     "priority": "blocking",
-    "status": "in_review",
+    "status": "resolved",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": null,
@@ -519,8 +521,7 @@
       "registry.catalog.findings",
       "finding.history.current-self-reported-suspiciousness",
       "finding.history.current-self-reported-ideas-of-reference",
-      "finding.history.current-self-reported-persecutory-ideation",
-      "schema.belief-appraisal"
+      "finding.history.current-self-reported-persecutory-ideation"
     ],
     "dependencyTicketIds": [
       "ticket.catalog.findings.grandiosity-time-scope-boundary",
@@ -530,15 +531,55 @@
       "finding.psychosis.paranoia",
       "finding.history.reported-delusional-beliefs"
     ],
-    "proposedRouting": "Use paranoia only as overlapping presentation/search vocabulary; separately resolve current suspiciousness or mistrust, ideas of reference, persecutory content, and the conviction/context needed for any later delusional interpretation.",
-    "guidance": "Proposed P1: `paranoia` is ordinary umbrella language, not one canonical Boolean truth. Proposed P2: current self-reported suspiciousness or mistrust, ideas of reference, and persecutory ideation are separate facts because any may occur without the others. Proposed P3: whether a belief is fixed, implausible, culturally/contextually unsupported, or clinically interpreted as delusional belongs in a separate typed belief appraisal rather than in the surface phrase or content fact alone. Proposed P4: patient report, collateral, record, and MSE behavior remain separately resolvable and may conflict. Proposed P5: this establishes identity/value ownership only—no psychosis criterion, diagnosis inference, probability, relevance, points, treatment behavior, migration, or approval. Review question Q4: approve this boundary?",
+    "proposedRouting": "Use paranoia only as overlapping presentation/search vocabulary; separately resolve current suspiciousness or mistrust, ideas of reference, and persecutory content. Route world-proposition truth, source claims, and conviction/context appraisal to the separate latent-proposition evidence foundation.",
+    "guidance": "Final P1: `paranoia` is ordinary umbrella language, not one canonical Boolean truth. Final P2: current self-reported suspiciousness or mistrust, ideas of reference, and persecutory ideation are separate facts because any may occur without the others. Final P3: whether a reported proposition is true or false, how firmly the patient believes it, and whether it is clinically interpreted as delusional are separate layers owned by the latent-proposition evidence foundation. Final P4: patient report, collateral, record, examination, and testing may conflict and must remain independently reconstructable. Final P5: this ticket establishes three identity/value shells only—no psychosis criterion, diagnosis inference, evidence reliability, probability, relevance, points, treatment behavior, migration, or medical approval.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Prepared as the next genuinely consequential semantic boundary after automatically applying the approved source/time rule elsewhere. A preliminary literature scout found a recent R-GPTS psychometric paper consistent with separately representing ideas of reference, persecutory ideation, severity, and likely delusional interpretation; it is advisory only until formal source intake and rights review.",
-    "reviewerNotesUpdatedAt": "2026-07-28T18:39:12.000Z",
-    "resurfacingTrigger": "Before migrating `finding.psychosis.paranoia`, adding a persecutory-belief identity, treating suspiciousness as delusion, or compiling a psychosis-related assessment or rule.",
-    "resolution": null,
+    "reviewerNotes": "Dustin Rowland approved the proposed separation. The reviewer further clarified that a patient may accurately or inaccurately report an encounter proposition, collateral or other sources may agree or disagree, and the backend must preserve the generated truth and every source report independently. The preliminary R-GPTS psychometric paper remains advisory only until formal source intake and rights review.",
+    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
+    "resurfacingTrigger": "Before migrating `finding.psychosis.paranoia`, using paranoia as an alias, treating suspiciousness or false content as delusion, or compiling a psychosis-related assessment or rule.",
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added three medically unreviewed identity-only definitions for current self-reported suspiciousness or mistrust, ideas of reference, and persecutory ideation. Kept paranoia out of canonical aliases and routed proposition truth, source disagreement, belief appraisal, and evidence reliability to a separate blocking foundation. No case migration, diagnosis criterion, inference, probability, point value, treatment behavior, or medical approval was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T19:12:59.000Z"
+    },
     "createdAt": "2026-07-28T18:39:12.000Z",
-    "updatedAt": "2026-07-28T18:39:12.000Z"
+    "updatedAt": "2026-07-28T19:12:59.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.schema.patient-state.latent-proposition-evidence-foundation",
+    "title": "Model latent encounter propositions and conflicting patient-scene evidence",
+    "sourceKind": "engine_audit",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "technical",
+    "priority": "blocking",
+    "status": "accepted_for_workflow",
+    "requiresClinicalAcumen": false,
+    "attemptId": null,
+    "blueprintId": null,
+    "caseContentVersion": null,
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "schema.latent-patient-proposition",
+      "schema.patient-proposition-evidence",
+      "schema.proposition-evidence-generation-profile",
+      "schema.evidence-dependency-group",
+      "schema.belief-appraisal",
+      "schema.resolved-patient-state"
+    ],
+    "dependencyTicketIds": ["ticket.catalog.findings.paranoia-persecution-boundary"],
+    "conflictContentIds": ["finding.history.reported-delusional-beliefs", "schema.patient-record"],
+    "proposedRouting": "Add a point-free patient-state layer that freezes an authored or deterministically generated Boolean encounter proposition, every source-specific claim or observation about it, and exact shared-origin or dependency links before play.",
+    "guidance": "A LatentPatientProposition represents only an explicitly modeled adjudicable statement and resolves true or false before play; typed symptoms, measurements, diagnoses, and subjective experiences retain their existing native owners rather than being flattened into propositions. PatientPropositionEvidence separately records patient, collateral, record, examination, or test support, opposition, uncertainty, or inability to assess; its deterministic claim-generation rule, source instance, time scope, stable draw, and dependency links are saved before any action is purchased. Exact copies share an origin and cannot become additional corroboration. Known correlated evidence remains grouped and cannot be naively multiplied or majority-voted as if independent. Conditional reliability values are reviewed game-calibration parameters with provenance, never global patient-credibility scores or authoritative clinical probabilities. A false proposition is not automatically a delusion: belief content, conviction/fixity/context appraisal, and any clinical interpretation remain separate. Conflicts never imply lying, malingering, secondary gain, poor insight, or another motive unless separately authored. Patient-scene evidence is distinct from the formal article/guideline evidence catalog. The later trace must preserve proposition → source evidence → dependency handling → revealed result → rule evaluation. This foundation adds no clinical association, probability value, diagnosis criterion, scoring, treatment behavior, compatibility migration, or runtime generator.",
+    "sourceReviewSnapshot": null,
+    "reviewerNotes": "Accepted architecture from Dustin Rowland. An encounter may establish a hidden true/false proposition while patient, collateral, records, examinations, and tests provide conditionally accurate or inaccurate reports. Conflicting evidence is desirable gameplay, and accumulated evidence should help the player narrow the likely truth without losing the ability to audit each source. Implementation must account for shared origins and correlation rather than treating every report as mathematically independent.",
+    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
+    "resurfacingTrigger": "Before implementing belief appraisal, source reliability, collateral corroboration, copied-record handling, evidence aggregation, or any generated encounter in which reports can differ from authored truth.",
+    "resolution": null,
+    "createdAt": "2026-07-28T19:12:59.000Z",
+    "updatedAt": "2026-07-28T19:12:59.000Z"
   },
   {
     "schemaVersion": 1,
@@ -644,18 +685,19 @@
     ],
     "dependencyTicketIds": [
       "ticket.catalog.findings.canonical-definition-boundary",
-      "ticket.catalog.measurements.vitals-exam-foundation"
+      "ticket.catalog.measurements.vitals-exam-foundation",
+      "ticket.schema.patient-state.latent-proposition-evidence-foundation"
     ],
     "conflictContentIds": ["schema.patient-record"],
     "proposedRouting": "Compose the existing reaction, regimen, trial, treatment-history, context, and diagnosis compatibility shapes into a point-free versioned patient-state boundary that separates internal condition truth from chart diagnosis claims.",
-    "guidance": "This schema slice owns resolved state only. Internal ConditionState records, uncertain or duplicated chart DiagnosisRecordEntry values, independently targetable regimen entries, structured prior trials, reaction assessment, treatment history, demographics/context, canonical findings, measurements, target-scoped duration, and target-scoped ordinal subjective burden must remain distinct and composable. Current report, historical report, collateral, records, observations, and instrument responses must not overwrite one another when their values can disagree. A chart label never activates an internal condition by itself, and no discrepancy may be assigned a motive or etiology without a separate fact. The boundary must scale to multiple diagnoses, long trial histories, duplicate medications, supplements, and nonpsychiatric medications. Do not add PatientTemplate generation, clinical inference, optional-comorbidity selection, scoring, or migration of historical attempts in this ticket.",
+    "guidance": "This schema slice owns resolved state only. Internal ConditionState records, uncertain or duplicated chart DiagnosisRecordEntry values, independently targetable regimen entries, structured prior trials, reaction assessment, treatment history, demographics/context, canonical findings, measurements, target-scoped duration, target-scoped ordinal subjective burden, latent propositions, proposition evidence, dependency groups, and belief appraisals must remain distinct and composable. Current report, historical report, collateral, records, observations, and instrument responses must not overwrite one another when their values can disagree. A chart label never activates an internal condition by itself, and no discrepancy may be assigned a motive or etiology without a separate fact. The boundary must scale to multiple diagnoses, long trial histories, duplicate medications, supplements, and nonpsychiatric medications. Do not add PatientTemplate generation, clinical inference, optional-comorbidity selection, scoring, or migration of historical attempts in this ticket.",
     "sourceReviewSnapshot": null,
     "reviewerNotes": "Approved direction: complex patients may have numerous uncertain chart diagnoses, many current medications and prior trials, while the focused encounter still asks only for the best next step. Preserve all state without grading an exhaustive plan. Duration and subjective burden are typed target-scoped values rather than Boolean findings; report and observation scopes remain independently resolvable.",
-    "reviewerNotesUpdatedAt": "2026-07-28T18:39:12.000Z",
+    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
     "resurfacingTrigger": "Before implementing PatientInstance, optional comorbidity selection, generated regimens/trials, or chart-versus-internal diagnosis behavior.",
     "resolution": null,
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T18:39:12.000Z"
+    "updatedAt": "2026-07-28T19:12:59.000Z"
   },
   {
     "schemaVersion": 1,
@@ -799,18 +841,19 @@
     ],
     "dependencyTicketIds": [
       "ticket.engine.patient-generation.general-dependency-gate",
+      "ticket.schema.patient-state.latent-proposition-evidence-foundation",
       "ticket.catalog.findings.subjective-presentation-projection-foundation"
     ],
     "conflictContentIds": [],
     "proposedRouting": "Implement a deterministic compiler pass that resolves each source fact once, retains every contributor and conflict outcome, and then creates separately saved assessment/wording projections for each relevant player-facing result.",
-    "guidance": "A concentration problem may contribute to both anxiety and depressive-symptom displays; several distinct facts may also contribute to one subjective energy response and share deliberately ambiguous wording. The backend must save every atomic source fact, the exact reviewed source-to-response projection, all contributing resolved-finding IDs, and the stable selected wording variant. Explicit critical constraints, syndrome/cardinality requirements, weighted tendencies, and background variation remain distinguishable. File order never chooses a winner. Hard contradictions retry deterministically or quarantine; they are not patched with prose. Alias or phrase similarity cannot create a projection. Purchasing information reveals an already frozen response, and wording cannot alter diagnosis, scoring, or treatment logic. The explanation system must reconstruct source fact → projection rule → displayed response while showing which diagnosis, medication, context, optional module, or patient override contributed to the underlying values.",
+    "guidance": "A concentration problem may contribute to both anxiety and depressive-symptom displays; several distinct facts may also contribute to one subjective energy response and share deliberately ambiguous wording. The backend must save every atomic source fact, any latent proposition and patient-scene evidence IDs it concerns, the exact reviewed source-to-response projection, all contributing resolved-finding IDs, and the stable selected wording variant. Explicit critical constraints, syndrome/cardinality requirements, weighted tendencies, background variation, and source-evidence dependency groups remain distinguishable. File order never chooses a winner. Hard contradictions retry deterministically or quarantine; conflicting source evidence remains valid state. Alias or phrase similarity cannot create a projection. Purchasing information reveals an already frozen response, and wording cannot alter diagnosis, scoring, or treatment logic. The explanation system must reconstruct source fact or proposition → source evidence and dependency handling → projection rule → displayed response while showing which diagnosis, medication, context, optional module, or patient override contributed to the underlying values.",
     "sourceReviewSnapshot": null,
     "reviewerNotes": "Approved architecture direction: influences may blend in the player presentation, but every fact and contributor must remain separable in the backend and post-submit explanation. Dustin Rowland further clarified that distinct underlying findings may produce the same standardized energy response or ordinary patient wording; this many-to-many projection must be explicit, deterministic, frozen before play, and auditable.",
-    "reviewerNotesUpdatedAt": "2026-07-28T18:11:20.000Z",
+    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
     "resurfacingTrigger": "Before one symptom or observation can appear in multiple screens, before optional comorbidities are enabled, or before diagnosis-owned constraints are compiled into patients.",
     "resolution": null,
     "createdAt": "2026-07-27T23:50:43.000Z",
-    "updatedAt": "2026-07-28T18:11:20.000Z"
+    "updatedAt": "2026-07-28T19:12:59.000Z"
   },
   {
     "schemaVersion": 1,

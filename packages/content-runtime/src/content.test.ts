@@ -158,7 +158,7 @@ describe('prototype content', () => {
     const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
     expect(parsedFindings).toEqual(runtimeCatalog.findings);
-    expect(parsedFindings).toHaveLength(38);
+    expect(parsedFindings).toHaveLength(41);
     expect(
       parsedFindings.find((finding) => finding.id === 'finding.depressive.depressed-mood'),
     ).toEqual(
@@ -200,7 +200,10 @@ describe('prototype content', () => {
       'finding.history.current-pressured-speech',
       'finding.history.current-psychomotor-slowing',
       'finding.history.current-racing-thoughts',
+      'finding.history.current-self-reported-ideas-of-reference',
       'finding.history.current-self-reported-impulsivity',
+      'finding.history.current-self-reported-persecutory-ideation',
+      'finding.history.current-self-reported-suspiciousness',
       'finding.history.current-self-reported-thought-disorganization',
       'finding.history.difficulty-controlling-worry',
       'finding.history.excessive-worry',
@@ -334,6 +337,50 @@ describe('prototype content', () => {
         semanticKind: 'history',
       }),
     );
+    expect(
+      catalogs.findings
+        .filter((finding) =>
+          [
+            'finding.history.current-self-reported-ideas-of-reference',
+            'finding.history.current-self-reported-persecutory-ideation',
+            'finding.history.current-self-reported-suspiciousness',
+          ].includes(finding.id),
+        )
+        .map(({ id, aliases, semanticKind, valueSpecification }) => ({
+          id,
+          aliases,
+          semanticKind,
+          valueSpecification,
+        })),
+    ).toEqual([
+      {
+        id: 'finding.history.current-self-reported-ideas-of-reference',
+        aliases: [],
+        semanticKind: 'history',
+        valueSpecification: {
+          kind: 'outcome',
+          allowedValues: ['present', 'absent', 'subthreshold'],
+        },
+      },
+      {
+        id: 'finding.history.current-self-reported-persecutory-ideation',
+        aliases: [],
+        semanticKind: 'history',
+        valueSpecification: {
+          kind: 'outcome',
+          allowedValues: ['present', 'absent', 'subthreshold'],
+        },
+      },
+      {
+        id: 'finding.history.current-self-reported-suspiciousness',
+        aliases: [],
+        semanticKind: 'history',
+        valueSpecification: {
+          kind: 'outcome',
+          allowedValues: ['present', 'absent', 'subthreshold'],
+        },
+      },
+    ]);
     expect(
       catalogs.findings
         .filter((finding) => finding.id.includes('thought-disorganization'))

@@ -93,7 +93,7 @@ describe('developer clinical audit queue', () => {
     });
   });
 
-  it('records mechanical finding-scope resolutions and leaves only paranoia for review', () => {
+  it('records finding-scope resolutions and queues the latent-proposition foundation', () => {
     const byId = new Map(developerClinicalAuditTickets.map((ticket) => [ticket.id, ticket]));
     expect(byId.get('ticket.catalog.findings.grandiosity-time-scope-boundary')).toMatchObject({
       status: 'resolved',
@@ -122,10 +122,45 @@ describe('developer clinical audit queue', () => {
       });
     }
     expect(byId.get('ticket.catalog.findings.paranoia-persecution-boundary')).toMatchObject({
-      status: 'in_review',
+      status: 'resolved',
       requiresClinicalAcumen: true,
+      targetContentIds: expect.arrayContaining([
+        'finding.history.current-self-reported-suspiciousness',
+        'finding.history.current-self-reported-ideas-of-reference',
+        'finding.history.current-self-reported-persecutory-ideation',
+      ]),
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
+    expect(
+      byId.get('ticket.catalog.findings.paranoia-persecution-boundary')?.targetContentIds,
+    ).not.toContain('schema.belief-appraisal');
+    expect(
+      byId.get('ticket.schema.patient-state.latent-proposition-evidence-foundation'),
+    ).toMatchObject({
+      status: 'accepted_for_workflow',
+      requiresClinicalAcumen: false,
+      targetContentIds: expect.arrayContaining([
+        'schema.latent-patient-proposition',
+        'schema.patient-proposition-evidence',
+        'schema.proposition-evidence-generation-profile',
+        'schema.evidence-dependency-group',
+        'schema.belief-appraisal',
+      ]),
       resolution: null,
     });
+    for (const id of [
+      'ticket.engine.patient-generation.general-dependency-gate',
+      'ticket.catalog.findings.subjective-presentation-projection-foundation',
+      'ticket.schema.patient-state.resolved-record-foundation',
+      'ticket.engine.patient-generation.shared-finding-compiler',
+    ]) {
+      expect(byId.get(id)?.dependencyTicketIds).toContain(
+        'ticket.schema.patient-state.latent-proposition-evidence-foundation',
+      );
+    }
   });
 
   it('loads a validated source-needed queue linked to exact tickets and content', () => {

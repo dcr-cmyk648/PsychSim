@@ -138,6 +138,14 @@ retains those values and their scopes; it neither chooses one by file order nor 
 patient and observation differ. A later reviewed diagnostic rule must name the exact facts or
 response identities it consumes.
 
+The same separation applies when reports concern an adjudicable world-state proposition. The
+latent true/false proposition, the patient's belief, each patient/collateral/record/exam/test
+claim, known evidence dependencies, and any clinical appraisal are distinct records. Diagnosis
+composition cannot infer truth by vote, count copied evidence twice, or equate factual falsity with
+delusion. A future reviewed rule must name the exact patient-state or evidence identities it
+consumes; unresolved or conflicting evidence may remain uncertain without invalidating the
+patient.
+
 The option field is named `gameSelectionWeight` intentionally. It is a game-generation distribution, not an epidemiologic prevalence claim. Any distribution that changes care requires its own review and provenance.
 
 Objective fit and player knowledge are separate concerns. The resolved patient fact affects actual

@@ -2799,3 +2799,64 @@ These identity and ownership decisions add no diagnostic criterion, clinical int
 generation probability, scoring, treatment behavior, compatibility migration, or medical
 approval. A genuinely consequential semantic boundary—rather than a mechanical scope
 application—still returns for psychiatrist review.
+
+## D-180 — Paranoia is presentation vocabulary, not one backend truth
+
+**Decision:** `Paranoia` may appear in search terms, ordinary patient language, and compact
+player-facing presentation, but it is not one canonical Boolean finding. The backend separately
+resolves current self-reported suspiciousness or mistrust, current self-reported ideas of
+reference, and current self-reported persecutory ideation because any one may occur without the
+others.
+
+Belief content does not determine whether a proposition is true, and falsity does not by itself
+make a belief delusional. A later typed belief appraisal must keep the patient's belief state,
+conviction or fixity, relevant context, and any clinical interpretation separate from both the
+reported content and the modeled world-state proposition. Patient report, collateral, records,
+examination, and testing may disagree without invalidating the patient or authorizing an inference
+about insight, deception, motive, or diagnosis.
+
+The first implementation adds only three medically unreviewed identity shells. `Paranoia` remains
+out of their canonical aliases so phrase overlap cannot silently merge them. World-state truth,
+source-specific evidence, appraisal, and conditional reliability route to D-181 and its blocking
+technical ticket. No compatibility case is migrated, and no criterion, generation probability,
+clinical relevance, point value, treatment implication, or medical approval is added.
+
+## D-181 — Encounter propositions and source evidence are separate, dependency-aware layers
+
+**Decision:** When an encounter explicitly models an adjudicable factual proposition, that latent
+proposition resolves deterministically to `true` or `false` before play and is saved with the
+patient instance. Buying information never creates or changes it. Typed symptoms, subjective
+experiences, diagnoses, measurements, and other state retain their native owners and are not
+flattened into Boolean propositions merely to use this mechanism.
+
+Patient, collateral, record, examination, and test evidence are separately resolved claims or
+observations about the proposition. Each one saves its source instance, time scope, assertion,
+claim-generation rule and version, deterministic draw when applicable, and relationship to the
+latent truth. A claim may support, oppose, be uncertain about, or be unable to assess the
+proposition. All claims are frozen before play; purchasing an action only reveals the relevant
+saved evidence.
+
+Evidence sources are not assumed independent. Exact copies retain one shared origin and cannot
+become extra corroboration. Known correlated reports, repeated observations, copied-forward
+records, related instrument items, or tests with a shared basis retain explicit dependency links.
+The engine may later apply narrowly reviewed conditional reliability or corroboration rules to
+independent evidence groups, but it must not use a global patient-credibility score, majority
+vote, raw claim count, or naïve multiplication that double-counts correlated evidence. The
+illustrative percentages discussed during design are game-calibration examples, not approved
+clinical frequencies.
+
+Conflict is expected educational state. It does not make a generated patient invalid and does not
+imply lying, malingering, secondary gain, poor insight, memory impairment, or another explanation
+unless that explanation is independently authored. A false world proposition is not automatically
+a delusion; belief state and clinical appraisal remain separate under D-180. Patient-scene
+evidence is also distinct from the formal article, guideline, regulatory, and Developer-opinion
+provenance system.
+
+The eventual post-submit trace must be able to reconstruct:
+
+`latent proposition → source evidence → shared-origin/dependency handling → revealed result →
+rule evaluation`.
+
+This decision authorizes the point-free schema and dependency ticket only. It does not implement a
+general Bayesian or causal inference engine, assign reliability probabilities, add diagnostic or
+treatment rules, change scoring, migrate compatibility snapshots, or enable patient generation.

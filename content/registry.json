@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.25.0",
+  "contentVersion": "3.26.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -54,7 +54,10 @@
         "finding.history.current-pressured-speech",
         "finding.history.current-psychomotor-slowing",
         "finding.history.current-racing-thoughts",
+        "finding.history.current-self-reported-ideas-of-reference",
         "finding.history.current-self-reported-impulsivity",
+        "finding.history.current-self-reported-persecutory-ideation",
+        "finding.history.current-self-reported-suspiciousness",
         "finding.history.current-self-reported-thought-disorganization",
         "finding.history.difficulty-controlling-worry",
         "finding.history.excessive-worry",

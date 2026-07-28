@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-179. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-181. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -74,16 +74,18 @@ Last updated: 2026-07-28
   tickets without adding clinical rules, probabilities, points, or runtime behavior.
   `ticket.catalog.findings.canonical-definition-boundary` and the unambiguous portion of
   `ticket.catalog.findings.general-psychiatry-seed` are now resolved. The strict runtime catalog
-  registers 38 medically unreviewed, identity-only findings. The 37-candidate audit plus subsequent
+  registers 41 medically unreviewed, identity-only findings. The 37-candidate audit plus subsequent
   reviewed defaults now route duration and subjective burden to typed owners and resolve
   grandiosity, impulsivity versus concrete behavior, preparatory-behavior timing, weapon access
   versus concern, and reported versus observed thought disorganization without forcing them into
-  unsafe aliases. Paranoia versus suspiciousness, ideas of reference, persecutory content, and
-  belief appraisal is the one remaining semantic collision. The accepted
+  unsafe aliases. Paranoia remains presentation/search vocabulary while suspiciousness, ideas of
+  reference, and persecutory ideation have distinct shells. The accepted
+  `ticket.schema.patient-state.latent-proposition-evidence-foundation` now owns latent proposition
+  truth, source-specific patient-scene evidence, dependency handling, and belief appraisal. The
+  accepted
   `ticket.catalog.findings.subjective-presentation-projection-foundation` owns the future typed
   projection boundary; current `FindingBlueprint`, `ResolvedFinding`, case instances, saves,
-  replay, generation, and scoring remain unchanged. The next single review item is the
-  paranoia/persecution boundary.
+  replay, generation, and scoring remain unchanged.
   D-178 makes the current database-foundation loop intentionally local and narrow: one decision or
   owner at a time, smallest relevant schema/content validation, and no routine GitHub push,
   Actions/Pages observation, browser suite, portable-app build, or app-server work. Full app and
@@ -95,12 +97,31 @@ Last updated: 2026-07-28
   group them. Discordance is valid and does not imply minimization, secondary gain, poor insight,
   or another explanation unless separately authored. Scope combinations remain input-driven rather
   than pre-enumerated.
+  D-180 keeps paranoia as overlapping presentation/search vocabulary while separately resolving
+  current self-reported suspiciousness or mistrust, ideas of reference, and persecutory ideation.
+  Belief content, world-state truth, belief appraisal, and clinical interpretation remain separate.
+  The strict runtime catalog now registers 41 medically unreviewed identity-only findings; the
+  initial 37-candidate semantic-collision tranche is resolved without migrating compatibility
+  cases.
+  D-181 establishes a fourth patient-state layer for explicitly modeled adjudicable encounter
+  propositions. A proposition resolves true or false before play; patient, collateral, record,
+  examination, and test claims resolve separately with exact source, shared-origin, and known
+  dependency links. Copied or correlated evidence cannot become independent corroboration through
+  counting or naïve multiplication. A false proposition is not automatically a delusion,
+  patient-scene evidence is distinct from formal literature provenance, and no reliability
+  probability, scoring rule, diagnosis inference, or runtime generator is activated. The next
+  technical owner is
+  `ticket.schema.patient-state.latent-proposition-evidence-foundation`, before the already accepted
+  subjective-presentation projection foundation.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after recording D-178: local `beta` may be ahead of `origin/beta` or carry a
+- Expected Git state after recording D-181: local `beta` may be ahead of `origin/beta` or carry a
   small documented database-design worktree while decisions are batched. Do not push or promote
   merely to make the refs equal. The last published checkpoint is `276534a`; inspect actual refs
   rather than assuming later local database work is remotely backed up.
+- Current local checkpoint message: `Model latent truth and conflicting evidence`. Local `beta` is
+  three commits ahead of `origin/beta`; none of those three database-foundation commits is remotely
+  backed up. Inspect `HEAD` for its exact hash.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
 
@@ -415,11 +436,26 @@ No application build, browser suite, app-server check, GitHub push, Actions obse
 check, reference-run replay, or complete repository gate was run; D-178 intentionally defers those
 until an affected surface or integration checkpoint.
 
+The D-180/D-181 paranoia and latent-proposition architecture batch passed its deliberately narrow
+local gate on 2026-07-28:
+
+- 75 focused canonical-finding, runtime-content, Developer-ticket, and literature-attachment tests;
+- direct content/catalog/registry validation;
+- Developer database cross-reference regeneration and validation: 206 documents, 234 source units,
+  89 retained identity gaps, and 16 overlapping terms; and
+- focused formatting plus `git diff --check`.
+
+The first sandboxed cross-reference rebuild failed only because the managed sandbox denied its
+local tsx IPC socket; the identical permissioned command passed. No proposition/evidence schema,
+conditional reliability value, scoring rule, case migration, patient generator, application build,
+browser suite, app-server check, GitHub push, Actions/Pages observation, reference-run replay, or
+complete repository gate was added or run.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-179
+- `docs/DECISIONS.md` through D-181
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -447,29 +483,28 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only `ticket.catalog.findings.paranoia-persecution-boundary` as the next
-   single review item. The prepared packet proposes that `paranoia` remain presentation/search
-   vocabulary while the backend separately resolves suspiciousness or mistrust, ideas of
-   reference, persecutory content, and belief conviction/context.
-   Keep this and subsequent database-foundation decisions local and run only focused validation;
-   do not perform an app/release checkpoint.
-2. If approved, add only the reviewed identity/value shells. Do not migrate compatibility cases or
-   add a diagnosis criterion, generation tendency, probability, relevance, points, treatment
-   behavior, or medical approval. Then proceed to the already accepted projection foundation.
+1. Implement only the point-free
+   `ticket.schema.patient-state.latent-proposition-evidence-foundation` schema boundary. Preserve
+   a modeled proposition's frozen Boolean truth separately from patient/collateral/record/exam/test
+   claims, explicit shared origins and dependency groups, and belief appraisal. Do not add a
+   generic Bayesian resolver, conditional probability values, source-credibility score, diagnosis
+   inference, points, case migration, or runtime generation. Keep the iteration local and run only
+   focused validation.
+2. Then implement `ticket.catalog.findings.subjective-presentation-projection-foundation` so
+   expression banks, item/action response mappings, and frozen resolved projections remain
+   point-free and retain proposition/evidence links where applicable. Never infer mappings from
+   aliases or phrase overlap.
 3. Continue through the authoritative ordered queue in
    `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
    general file.
-4. Implement `ticket.catalog.findings.subjective-presentation-projection-foundation` before the
-   shared-finding compiler. Keep expression banks, item/action response mappings, and frozen
-   resolved projections point-free; do not infer mappings from aliases or phrase overlap.
-5. Only after the complete general foundation is ready, implement
+4. Only after the complete general foundation is ready, implement
    `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
    conflict/replay/provenance tests.
-6. Only after the dependency gate and shared-finding work are complete may
+5. Only after the dependency gate and shared-finding work are complete may
    `ticket.engine.patient-generation.catalog-compiled-instances` add the versioned
    PatientTemplate/PatientInstance/EncounterInstance boundary while preserving historical
    CaseBlueprint snapshots. Generated cohorts and richness calibration remain later gates.
-7. DBQ-011 remains deferred until one complete vertical exposes real maintenance costs. Other later
+6. DBQ-011 remains deferred until one complete vertical exposes real maintenance costs. Other later
    bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;

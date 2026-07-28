@@ -335,6 +335,15 @@ response remain independently resolvable when they can disagree. Their discordan
 rather than treated as a generator conflict or assigned an inferred explanation. Add these scope
 combinations only when input content needs them; until the future typed scope boundary exists,
 consumers enumerate stable IDs and never parse scope from their spelling.
+An explicitly modeled adjudicable proposition adds a separate hidden-truth and patient-scene
+evidence path. The proposition resolves true or false before play. Patient, collateral, record,
+examination, and test claims then resolve separately from explicit conditional claim-generation
+profiles and retain shared-origin or dependency links. Exact copies cannot become independent
+corroboration, and correlated claims cannot be naively multiplied or majority-voted. A reported
+false proposition is not itself a delusion: belief state, belief appraisal, and clinical
+interpretation remain separate. The complete path is frozen before play and later reconstructs
+`proposition → evidence claim → dependency handling → reveal projection`; purchase only reveals
+it. This patient-scene evidence layer is unrelated to the formal literature-evidence catalog.
 This projection boundary is accepted architecture and a blocking compiler dependency; it is not
 yet part of the compatibility `CaseInstance` path.
 

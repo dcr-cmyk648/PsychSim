@@ -230,6 +230,14 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   gain, lack of insight, or another explanation unless that explanation is separately authored.
   Apply this boundary input-first rather than pre-enumerating every possible symptom × source ×
   time combination; generic overlapping language belongs in expression banks, never in rule logic.
+- An explicitly modeled adjudicable encounter proposition resolves deterministically to true or
+  false before play. Patient, collateral, record, examination, and test claims about it resolve
+  separately and retain exact source, generation rule, shared origin, and known dependency links.
+  Purchasing only reveals frozen evidence. Do not treat copied or correlated claims as independent,
+  infer truth by majority vote, assign a global source-credibility score, or equate a false
+  proposition with a delusion. Keep patient-scene evidence distinct from formal literature
+  provenance, and keep typed symptoms, subjective experience, measurements, diagnoses, belief
+  state, and clinical appraisal in their own owners.
 - Keep canonical patient facts, assessment/item responses, and player-facing wording as separate
   versioned layers. A broad subjective report may have several distinct contributing facts, and
   the same ordinary phrase may appear in several reviewed expression mappings. Canonical aliases

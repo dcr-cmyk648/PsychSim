@@ -745,16 +745,26 @@ for loss/reduction of interest or pleasure, then one broad self-reported fatigue
 identity while preserving its possible contributors as separate facts. The latter also exposed
 and resolved the three-layer architecture boundary between patient truth, assessment response, and
 surface wording. Its typed projection foundation is accepted technical work and generalized
-compilation remains disabled. The exact next review is
-`ticket.catalog.findings.paranoia-persecution-boundary`: decide whether `paranoia` should remain
-presentation/search vocabulary while the backend separately resolves suspiciousness or mistrust,
-ideas of reference, persecutory content, and the conviction/context required for any later
-delusional interpretation.
-The approved general source/time rule already resolved grandiosity, impulsivity versus concrete
-behavior, suicide-preparatory-behavior timing, weapon access versus concern, and reported versus
-observed thought disorganization without further clinical review. Duration and subjective burden
-route to typed values. No compatibility case migration, clinical association, probability, point
-value, or patient generation is authorized.
+compilation remains disabled. The approved general source/time rule resolved grandiosity,
+impulsivity versus concrete behavior, suicide-preparatory-behavior timing, weapon access versus
+concern, and reported versus observed thought disorganization without further clinical review.
+Duration and subjective burden route to typed values. The paranoia boundary is also resolved. The
+runtime catalog has separate medically unreviewed
+identity shells for current self-reported suspiciousness or mistrust, ideas of reference, and
+persecutory ideation; `paranoia` remains overlapping presentation/search vocabulary. The reviewer
+also approved the next four-layer backend contract:
+
+`latent true/false encounter proposition → source-specific patient-scene evidence → assessment or
+reveal projection → surface wording`.
+
+Claims from the patient, collateral, records, examination, and tests may disagree. Their exact
+sources, shared origins, and known dependency groups must remain auditable so copied or correlated
+claims cannot be naively multiplied or majority-voted. A false proposition is not automatically a
+delusion, and patient-scene evidence remains separate from formal literature provenance. The exact
+next implementation owner is
+`ticket.schema.patient-state.latent-proposition-evidence-foundation`; it adds no clinical
+probability, scoring, diagnosis rule, or runtime patient generation. The already accepted
+subjective-presentation projection follows it in the dependency queue.
 
 While this dependency queue is active, each accepted item remains a tight local database iteration:
 edit one bounded owner, run only its focused schema/content checks, and move to the next review.

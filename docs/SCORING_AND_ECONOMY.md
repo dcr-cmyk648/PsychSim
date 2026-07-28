@@ -181,6 +181,14 @@ reviewed source/time fact or response it requires; it cannot parse a generic phr
 choose between patient report, history, collateral, record, and MSE. A discrepancy has no automatic
 penalty or inferred meaning.
 
+For an explicitly modeled proposition, scoring also cannot infer truth from the number of agreeing
+claims. Exact copies and known correlated evidence retain shared-origin/dependency metadata and
+cannot stack as independent corroboration. Only a narrow reviewed rule may consume a named
+proposition, source claim, or allowed evidence group. The receipt must preserve the hidden
+proposition, each revealed or unrevealed source claim, dependency handling, and the exact rule that
+used them. Conditional claim-generation probabilities are separate game-calibration data; they are
+not care points, source authority, or general patient credibility.
+
 Resolved patient facts also remain separate from what the player purchased. A prior reaction to a
 selected medication therefore affects the submitted treatment even when the player did not reveal
 the allergy/reaction history. Revealing that history earns the treatment-prerequisite workup

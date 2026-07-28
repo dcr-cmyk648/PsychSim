@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.6",
+  "contentVersion": "1.0.7",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1242,6 +1242,11 @@
       "ticketId": "ticket.catalog.findings.paranoia-persecution-boundary",
       "profileIds": [],
       "exemptionReason": "This is a narrow symptom-content, appraisal, source, and presentation-vocabulary boundary. Psychometric and diagnostic literature may help distinguish suspiciousness, persecutory ideation, and likely delusional interpretation, but a treatment-effect meta-analysis cannot define the repository identity boundary or make the word paranoia diagnostic."
+    },
+    {
+      "ticketId": "ticket.schema.patient-state.latent-proposition-evidence-foundation",
+      "profileIds": [],
+      "exemptionReason": "This is point-free patient-state, provenance, deterministic-replay, dependency, and explanation architecture. Clinical sources may later inform individual appraisal dimensions or bounded conditional reliability profiles, but a treatment-effect meta-analysis cannot define patient-instance proposition/evidence ownership or infer truth from source disagreement."
     },
     {
       "ticketId": "ticket.catalog.measurements.vitals-exam-foundation",

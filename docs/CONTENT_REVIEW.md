@@ -44,7 +44,12 @@ contributing resolved-finding ID and value, the reviewed projection and version,
 instrument item, the response, and the stable wording variant. The compact pre-submit wording may
 be ambiguous, but the receipt must not blend the source facts or imply that the phrase itself drove
 a clinical rule. Several facts yielding one response remain one purchased action and cannot
-multiply workup credit. Every
+multiply workup credit. When a result concerns an explicitly modeled proposition, the same audit
+also preserves the frozen true/false proposition, every patient/collateral/record/exam/test claim,
+the claim-generation profile and draw, shared origin and dependency handling, and the exact reveal
+projection. It labels which claims supported, opposed, or did not resolve the proposition without
+inferring deception, credibility, motive, diagnosis, or delusion. Patient-scene evidence must not
+be displayed as if it were formal literature provenance. Every
 post-submit receipt also replays the declared reference solutions against the exact saved patient,
 starting clinic, encounter location, and service fulfillment costs. The player and the
 completed declared `database_plan` replay appear in parallel, with exact investigations,

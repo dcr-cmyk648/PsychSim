@@ -341,6 +341,35 @@ These target schemas remain gated by
 `ticket.catalog.findings.subjective-presentation-projection-foundation`; current compatibility
 `labelVariants` are not the reusable projection model.
 
+### Latent propositions and conflicting evidence
+
+An encounter may explicitly model one adjudicable world-state proposition, such as whether a
+specific reported event occurred. That proposition resolves deterministically to true or false
+when the patient instance is generated. It is not inferred from whichever report happens to be
+revealed, and purchasing information cannot reroll it. Symptoms, subjective experiences,
+measurements, diagnoses, and other nonpropositional state retain their existing typed owners.
+
+Every patient, collateral, record, examination, or test result concerning the proposition is a
+separate frozen evidence record. Its generator may condition on the latent truth and other reviewed
+patient context, producing support, opposition, uncertainty, or inability to assess. The record
+saves the source instance, timeframe, stable generator and draw, and exact relation to other
+claims. Exact copies share an origin. Known correlated claims use dependency groups; repeated or
+copied evidence cannot be counted as independent merely because it appears in several reveal
+actions.
+
+The initial foundation does not implement a generic Bayesian engine. Later focused policies may
+use reviewed conditional reliability or corroboration rules over explicit independent groups, but
+there is no global patient/collateral credibility weight, majority vote, or raw multiplication of
+all claims. Conflicting evidence remains valid generated texture. It does not imply deception,
+malingering, secondary gain, poor insight, or another explanation unless separately authored.
+
+Belief content has three separable layers: the modeled proposition's truth, the patient's belief
+state, and any clinical belief appraisal. A false proposition alone does not make a belief
+delusional, and a report labeled delusional does not establish that the proposition is false. The
+post-submit trace must be able to show `latent proposition → evidence claims → dependency handling
+→ revealed response → rule evaluation`. These schemas remain gated by
+`ticket.schema.patient-state.latent-proposition-evidence-foundation`.
+
 ### Test, action, and reveal boundary
 
 D-170 fixes the target ownership contract. A reusable finding definition owns identity and typed
