@@ -121,6 +121,11 @@ compile or activate. Clinical associations, generation tendencies, result probab
 reference intervals, treatment direction, and points require their own source/reviewer records;
 none is authorized by an identity or schema ticket.
 
+No gate requires patient-scene evidence to converge on a latent proposition or make an exact
+diagnosis inferable. Ambiguous or misleading evidence is valid resolved state. When certainty is
+not justified, the focused rubric may support blank, broad, unspecified, or conservative coverage
+responses; missing support is a nonblocking coverage diagnostic rather than a patient retry.
+
 ## Gate for one complete vertical
 
 Generalized generation is ready for a first bounded vertical only when:
@@ -134,8 +139,9 @@ Generalized generation is ready for a first bounded vertical only when:
    and any assessment response or surface wording preserves its explicit mapping, stable variant,
    and contributing source-finding IDs;
 5. every selected medication, intervention, and disposition references a stable reusable owner;
-6. one reviewed broad route plus relevant prerequisites, fit, interaction, safety, and disposition
-   contributors compile into a deterministic, explainable rubric;
+6. one reviewed broad or uncertainty-aware route plus relevant prerequisites, fit, interaction,
+   safety, and disposition contributors compile into a deterministic, explainable rubric without
+   requiring exact diagnostic precision;
 7. missing rule or route coverage becomes a nonblocking diagnostic and ticket rather than an
    invented default or patient deletion;
 8. literal same-scope contradictions retry deterministically or quarantine, while conflicting

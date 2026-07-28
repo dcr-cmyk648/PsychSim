@@ -2860,3 +2860,31 @@ rule evaluation`.
 This decision authorizes the point-free schema and dependency ticket only. It does not implement a
 general Bayesian or causal inference engine, assign reliability probabilities, add diagnostic or
 treatment rules, change scoring, migrate compatibility snapshots, or enable patient generation.
+
+## D-182 — Evidence realism does not require convergence or perfect case resolution
+
+**Decision:** Reject a generic fairness or “winnability” rule that requires the available evidence
+corpus to converge on a latent proposition, favor the hidden truth, or make one exact diagnosis
+inferable. Such a gate is too vague, risks excluding legitimately difficult psychiatric
+presentations, and would push the generator toward artificial epistemic neatness.
+
+Patient, collateral, records, examination, and testing may remain contradictory, incomplete,
+uninformative, or collectively misleading at realistic reviewed frequencies. That does not make
+the patient malformed and does not trigger deterministic retry, cleanup, or quarantine. Source
+accuracy and dependency patterns are calibrated through narrow, context-specific generation
+profiles and later play review, not through one global convergence target or credibility score.
+
+The focused question remains the best next step under the information available. When the exact
+diagnosis cannot reasonably be established, the player may leave diagnosis blank, choose an
+appropriate broad or unspecified diagnosis, select a conservative intervention that covers the
+live possibilities, avoid an unsafe commitment, or use another explicitly modeled general route.
+The rubric may award greater specificity when it is actually supported, but it must not require
+false precision. Multiple reasonable formulations and treatment routes may receive credit, and
+hidden truth does not by itself make an evidence-responsive choice irrational.
+
+This policy does not guarantee that every clinical uncertainty can be perfectly solved and does
+not add a per-case winnability audit. Under D-172, automatic generation rejection remains limited
+to literal structural impossibility or malformed state, including an explicitly incompatible
+same-scope pair. Missing broad diagnosis identities, uncertainty-aware treatment relationships, or
+rubric coverage remain nonblocking coverage gaps and review tickets; they are database work rather
+than reasons to delete or reroll a plausible patient.

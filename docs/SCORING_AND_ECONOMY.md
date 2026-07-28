@@ -189,6 +189,14 @@ proposition, each revealed or unrevealed source claim, dependency handling, and 
 used them. Conditional claim-generation probabilities are separate game-calibration data; they are
 not care points, source authority, or general patient credibility.
 
+Evidence does not have to converge on hidden truth for an encounter to remain scoreable. A focused
+rubric may reward a blank, broad, or unspecified diagnosis; a conservative intervention that
+reasonably covers multiple live possibilities; or several defensible routes when the resolved
+evidence does not justify greater precision. Hidden truth may still drive objective downstream fit
+and safety, but it cannot by itself erase credit for a reasonable uncertainty-aware decision.
+Missing support for such routes is a nonblocking coverage gap and review ticket, not a generator
+retry rule.
+
 Resolved patient facts also remain separate from what the player purchased. A prior reaction to a
 selected medication therefore affects the submitted treatment even when the player did not reveal
 the allergy/reaction history. Revealing that history earns the treatment-prerequisite workup

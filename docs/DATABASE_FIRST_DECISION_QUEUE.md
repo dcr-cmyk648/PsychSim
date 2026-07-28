@@ -760,8 +760,11 @@ reveal projection → surface wording`.
 Claims from the patient, collateral, records, examination, and tests may disagree. Their exact
 sources, shared origins, and known dependency groups must remain auditable so copied or correlated
 claims cannot be naively multiplied or majority-voted. A false proposition is not automatically a
-delusion, and patient-scene evidence remains separate from formal literature provenance. The exact
-next implementation owner is
+delusion, and patient-scene evidence remains separate from formal literature provenance. The
+reviewer rejected any additional requirement that these claims converge on hidden truth or make a
+case perfectly solvable. Realistic ambiguity and collectively misleading evidence remain valid;
+blank, broad, unspecified, and conservative coverage answers belong in the rubric rather than a
+generator winnability gate. The exact next implementation owner is
 `ticket.schema.patient-state.latent-proposition-evidence-foundation`; it adds no clinical
 probability, scoring, diagnosis rule, or runtime patient generation. The already accepted
 subjective-presentation projection follows it in the dependency queue.

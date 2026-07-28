@@ -362,6 +362,10 @@ use reviewed conditional reliability or corroboration rules over explicit indepe
 there is no global patient/collateral credibility weight, majority vote, or raw multiplication of
 all claims. Conflicting evidence remains valid generated texture. It does not imply deception,
 malingering, secondary gain, poor insight, or another explanation unless separately authored.
+The resolved claims are not required to converge on the hidden proposition. A plausible patient is
+not rerolled or quarantined merely because the complete evidence corpus remains ambiguous,
+uninformative, or misleading. Generation profiles later calibrate how often those patterns occur;
+they do not impose a universal inference-success target.
 
 Belief content has three separable layers: the modeled proposition's truth, the patient's belief
 state, and any clinical belief appraisal. A false proposition alone does not make a belief
@@ -369,6 +373,12 @@ delusional, and a report labeled delusional does not establish that the proposit
 post-submit trace must be able to show `latent proposition → evidence claims → dependency handling
 → revealed response → rule evaluation`. These schemas remain gated by
 `ticket.schema.patient-state.latent-proposition-evidence-foundation`.
+
+When ambiguity persists, the focused answer may appropriately be blank, broad, or unspecified
+diagnosis plus a conservative intervention that covers the live possibilities. That is a rubric
+and relationship-compilation concern, not a patient-generation validity check. Missing
+uncertainty-aware coverage becomes a nonblocking diagnostic under D-172 rather than causing
+evidence cleanup or patient regeneration.
 
 ### Test, action, and reveal boundary
 

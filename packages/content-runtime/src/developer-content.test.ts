@@ -151,6 +151,9 @@ describe('developer clinical audit queue', () => {
       ]),
       resolution: null,
     });
+    expect(
+      byId.get('ticket.schema.patient-state.latent-proposition-evidence-foundation')?.guidance,
+    ).toMatch(/not required to converge.*not a retry, cleanup, quarantine/s);
     for (const id of [
       'ticket.engine.patient-generation.general-dependency-gate',
       'ticket.catalog.findings.subjective-presentation-projection-foundation',

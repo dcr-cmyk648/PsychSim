@@ -477,6 +477,12 @@ A false proposition is not automatically a delusion; patient belief state, convi
 appraisal, and clinical interpretation remain separate. None of these layers is generated when an
 action is purchased.
 
+No content validator requires these claims to converge on the modeled truth. A realistic resolved
+corpus may remain ambiguous or even misleading without making the patient invalid. A focused
+rubric instead recognizes uncertainty through explicit blank, broad, unspecified, alternative, or
+conservative-coverage routes. Missing support for those routes is a nonblocking catalog/rubric
+coverage gap, not a reason to regenerate the patient.
+
 The target subjective-presentation layer is accepted but not implemented. A standardized
 instrument item will own an explicit reviewed mapping from applicable source findings to its
 yes/no/ordinal response, including its timeframe and respondent or observation modality. An

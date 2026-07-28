@@ -238,6 +238,13 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   proposition with a delusion. Keep patient-scene evidence distinct from formal literature
   provenance, and keep typed symptoms, subjective experience, measurements, diagnoses, belief
   state, and clinical appraisal in their own owners.
+- Do not require conflicting evidence to converge on hidden truth, reroll a plausible patient
+  because the evidence corpus remains ambiguous or misleading, or add a vague “winnability”
+  validator over psychiatric inference. Calibrate source/error patterns for realistic frequency
+  through separately reviewed generation profiles. When certainty is not justified, scoring must
+  support blank, broad, or unspecified diagnosis selections and conservative interventions that
+  reasonably cover the live possibilities with meaningful, case-appropriate credit; false
+  precision must not be required merely to avoid failure.
 - Keep canonical patient facts, assessment/item responses, and player-facing wording as separate
   versioned layers. A broad subjective report may have several distinct contributing facts, and
   the same ordinary phrase may appear in several reviewed expression mappings. Canonical aliases

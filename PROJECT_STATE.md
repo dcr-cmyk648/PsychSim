@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-181. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-182. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -113,15 +113,21 @@ Last updated: 2026-07-28
   technical owner is
   `ticket.schema.patient-state.latent-proposition-evidence-foundation`, before the already accepted
   subjective-presentation projection foundation.
+  D-182 explicitly rejects a generic evidence-convergence or case-winnability validator.
+  Realistically ambiguous, incomplete, or collectively misleading reports remain valid patient
+  state and do not trigger retry or quarantine. The later rubric supports blank, broad,
+  unspecified, multiple-defensible, and conservative coverage responses when exact certainty is
+  not justified; missing support remains a nonblocking coverage gap.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after recording D-181: local `beta` may be ahead of `origin/beta` or carry a
+- Expected Git state after recording D-182: local `beta` may be ahead of `origin/beta` or carry a
   small documented database-design worktree while decisions are batched. Do not push or promote
   merely to make the refs equal. The last published checkpoint is `276534a`; inspect actual refs
   rather than assuming later local database work is remotely backed up.
-- Current local checkpoint message: `Model latent truth and conflicting evidence`. Local `beta` is
-  three commits ahead of `origin/beta`; none of those three database-foundation commits is remotely
-  backed up. Inspect `HEAD` for its exact hash.
+- Current local checkpoint message after this bounded decision:
+  `Preserve realistic diagnostic ambiguity`. Local `beta` is four commits ahead of `origin/beta`;
+  none of those four database-foundation commits is remotely backed up. Inspect `HEAD` for its exact
+  hash.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
 
@@ -163,6 +169,9 @@ only the current operational state and should not grow into a second changelog.
 10. Knowledge coverage is a sparse local-Developer projection, not a completion percentage. It
     preserves `unknown` separately from `missing`, names exact supporting IDs, loads lazily per
     entry, never filters unmatched material, and cannot approve or activate a claim.
+11. Patient-scene evidence need not converge on hidden truth. Realistic diagnostic uncertainty,
+    broad or unspecified formulations, and conservative treatment coverage are valid focused
+    outcomes; only literal malformed state automatically invalidates generation.
 
 ## Current implementation checkpoint
 
@@ -451,11 +460,21 @@ conditional reliability value, scoring rule, case migration, patient generator, 
 browser suite, app-server check, GitHub push, Actions/Pages observation, reference-run replay, or
 complete repository gate was added or run.
 
+The D-182 realistic-ambiguity decision passed its deliberately narrow local gate on 2026-07-28:
+
+- 14 focused Developer-ticket and literature-scout tests;
+- direct content/catalog/registry validation; and
+- focused formatting plus `git diff --check`.
+
+No schema, runtime rule, scoring behavior, patient generator, application build, browser suite,
+app-server check, GitHub push, Actions/Pages observation, reference-run replay, cross-reference
+rebuild, or complete repository gate was added or run.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-181
+- `docs/DECISIONS.md` through D-182
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -488,8 +507,8 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
    a modeled proposition's frozen Boolean truth separately from patient/collateral/record/exam/test
    claims, explicit shared origins and dependency groups, and belief appraisal. Do not add a
    generic Bayesian resolver, conditional probability values, source-credibility score, diagnosis
-   inference, points, case migration, or runtime generation. Keep the iteration local and run only
-   focused validation.
+   inference, convergence/winnability gate, points, case migration, or runtime generation. Keep the
+   iteration local and run only focused validation.
 2. Then implement `ticket.catalog.findings.subjective-presentation-projection-foundation` so
    expression banks, item/action response mappings, and frozen resolved projections remain
    point-free and retain proposition/evidence links where applicable. Never infer mappings from

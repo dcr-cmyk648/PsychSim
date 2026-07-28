@@ -344,6 +344,10 @@ false proposition is not itself a delusion: belief state, belief appraisal, and 
 interpretation remain separate. The complete path is frozen before play and later reconstructs
 `proposition → evidence claim → dependency handling → reveal projection`; purchase only reveals
 it. This patient-scene evidence layer is unrelated to the formal literature-evidence catalog.
+The generator does not require the evidence corpus to converge on hidden truth. Persistently
+ambiguous or misleading evidence is valid state, not a retry condition; broad/unspecified
+diagnosis and conservative coverage routes belong in diagnosis and decision-policy scoring rather
+than a generic winnability validator.
 This projection boundary is accepted architecture and a blocking compiler dependency; it is not
 yet part of the compatibility `CaseInstance` path.
 

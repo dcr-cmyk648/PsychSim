@@ -146,6 +146,11 @@ delusion. A future reviewed rule must name the exact patient-state or evidence i
 consumes; unresolved or conflicting evidence may remain uncertain without invalidating the
 patient.
 
+The diagnosis engine does not require this evidence to converge. When uncertainty remains,
+explicit blank, broad-category, unspecified, and multiple reasonable diagnosis answers may receive
+case-appropriate credit under D-153. Greater specificity earns more only when supported; the
+engine must not force an exact latent diagnosis merely because the generated patient owns one.
+
 The option field is named `gameSelectionWeight` intentionally. It is a game-generation distribution, not an epidemiologic prevalence claim. Any distribution that changes care requires its own review and provenance.
 
 Objective fit and player knowledge are separate concerns. The resolved patient fact affects actual
