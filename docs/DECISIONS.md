@@ -819,6 +819,8 @@ avoids both duplicating shared claims and forcing the reviewer to browse a graph
 PsychSim stable IDs remain primary when external RxCUIs, UNIIs, product/application identifiers, or
 classification relationships change.
 
+The therapy delivery/fidelity distinction originally described below is narrowed by D-189.
+
 Medication definitions begin at ingredient level. Formulation/product entities are added only
 when route, release pattern, delivery program, formulary availability, or a reviewed clinical
 distinction affects gameplay. Therapy definitions distinguish generic modality, referral,
@@ -2380,6 +2382,10 @@ snapshot-relevant prerequisites. Psychotherapy and program modules own delivery,
 practitioner, setting, capability, and program-completeness distinctions rather than pretending
 they are medications.
 
+The psychotherapy delivery/fidelity portion of this paragraph is superseded by D-189. Stable
+identity, source relationships, clinical roles, combination/redundancy, capability, provenance,
+rule, and balance separation remain in force.
+
 Medication identity begins at ingredient level. A formulation or product becomes a distinct
 intervention only when route/formulation materially changes availability, safety, adherence,
 fulfillment, or the best-next-step decision. Regulatory records remain jurisdiction-, product-,
@@ -3053,3 +3059,28 @@ state, treatment, and points remain separate owners. For the future `ResolvedPat
 unified inventory supersedes D-187’s separate supplement array; the existing
 `SupplementUseEntry` and background-exposure schemas remain untouched compatibility records. No
 runtime generator, clinical inference, rate, or gameplay behavior is activated.
+
+## D-189 — Therapy source detail compiles to a simple modality recommendation
+
+**Decision:** A psychotherapy selected in a focused encounter means “recommend this modality now.”
+The complete submitted-treatment and scoring payload is the stable intervention ID, analogous to
+selecting a medication without claiming that a future adequate trial was delivered. Encounter
+state does not model session count, duration, practitioner, protocol fidelity, course completion,
+or a full-program guarantee.
+
+Source contributions, article records, Developer opinions, and diagnosis-family dossiers may
+preserve the source's more specific language, including statements about a full course or program.
+That authoring detail remains available for audit and provenance, but the encounter compiler
+projects it to the corresponding therapy-modality ID. Evidence-supported efficacy, combinations,
+redundancy, availability/capability, and point balance remain separate reviewable relationships;
+this simplification does not turn a source statement directly into a rule.
+
+Each current treatment or disposition now has one stable file-backed editing surface. The existing
+`TreatmentOption` ID is the canonical selectable identity; no parallel intervention-identity
+schema or fidelity layer is added. Prior psychotherapy attempts remain richer historical patient
+state under `PatientTreatmentHistory` and are revealed through
+`info.history.treatment-history`; their status, engagement, and response do not impose semantics on
+a new recommendation. This decision narrows the psychotherapy delivery/fidelity portions of
+D-105 and D-169 while preserving their identity, provenance, source-rights, combination, and
+balance boundaries. No clinical mapping, efficacy claim, point value, or encounter behavior
+changes.

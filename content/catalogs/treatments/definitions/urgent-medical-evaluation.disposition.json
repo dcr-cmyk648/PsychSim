@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "disposition.urgent-medical-evaluation",
+  "label": "Refer for urgent same-day medical evaluation",
+  "kind": "disposition",
+  "category": "disposition",
+  "safeReferral": true,
+  "requiredCapabilities": ["disposition.external-referral"]
+}

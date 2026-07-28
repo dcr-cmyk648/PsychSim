@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.psychotherapy.dbt",
+  "label": "Dialectical behavior therapy (DBT)",
+  "kind": "nonmedication",
+  "category": "psychotherapy",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"]
+}

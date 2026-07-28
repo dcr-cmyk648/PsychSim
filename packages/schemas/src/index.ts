@@ -907,6 +907,12 @@ export const FormularyDefinitionSchema = z
   .strict();
 export type FormularyDefinition = z.infer<typeof FormularyDefinitionSchema>;
 
+/**
+ * One stable, selectable intervention or disposition identity plus its current
+ * gameplay access metadata. Selecting a psychotherapy means recommending that
+ * modality in this encounter; it does not assert a delivered course, duration,
+ * protocol fidelity, or completion.
+ */
 export const TreatmentOptionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -4202,6 +4208,7 @@ export const TreatmentSelectionSchema = z
     startMedicationIds: z.array(StableIdSchema),
     stopMedicationIds: z.array(StableIdSchema),
     continueMedicationIds: z.array(StableIdSchema),
+    // The selected modality IDs are the complete psychotherapy recommendation payload.
     interventionIds: z.array(StableIdSchema),
     dispositionId: StableIdSchema.nullable(),
   })
@@ -5224,6 +5231,11 @@ export const MedicationTolerabilityFindingV2Schema = z
   });
 export type MedicationTolerabilityFindingV2 = z.infer<typeof MedicationTolerabilityFindingV2Schema>;
 
+/**
+ * Historical patient state is deliberately richer than a new recommendation.
+ * These fields describe what happened before the encounter and do not impose
+ * completion or fidelity semantics on TreatmentSelection.interventionIds.
+ */
 export const PsychotherapyTrialRecordSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,

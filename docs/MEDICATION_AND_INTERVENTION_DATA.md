@@ -92,15 +92,16 @@ PsychSim IDs remain primary. External identifiers can change, merge, or become o
 For a psychotherapy or other intervention it can contain:
 
 - one stable intervention ID;
-- generic family versus named/manualized program;
+- a neutral modality name and identity-equivalent search aliases;
 - neutral short description;
-- delivery modes, such as individual, group, family, or guided digital;
-- minimum capability and practitioner/fidelity requirements;
 - neutral focus tags; and
-- separately reviewed variants where setting or delivery changes the intervention materially.
+- separately reviewed access/capability relationships where availability matters to the focused
+  encounter.
 
 Identity records carry no points and do not imply that an intervention is effective for a
-particular patient.
+particular patient. Selecting a therapy sends only that stable ID into encounter treatment and
+scoring state; it means recommending the modality now, not asserting a delivered course, duration,
+protocol fidelity, practitioner, or completion.
 
 ### 2. Product and regulatory facts
 
@@ -438,7 +439,7 @@ content/catalogs/medications/
 
 content/catalogs/interventions/
     therapies/                one file per therapy or other reusable intervention
-    classes/                  shared modality/fidelity/delivery definitions
+    classes/                  shared modality/family vocabulary only when genuinely reusable
     rules/                    reviewed intervention and combination rules
 
 content/catalogs/evidence/
@@ -479,26 +480,28 @@ replaces those patient-specific records.
 
 ## Psychotherapy and other interventions
 
-Therapies should become one-file-per-intervention catalogs just like medications. The initial
-useful distinction is:
+Therapies use one-file-per-intervention catalogs just like medications. Each selectable record is
+the modality recommended at this snapshot:
 
-- **CBT:** a broad structured CBT model, with delivery variants only where reviewed;
+- **CBT:** cognitive behavioral therapy;
 - **behavioral activation:** a separate intervention/family, not merely a CBT synonym;
-- **IPT:** a distinct structured interpersonal therapy requiring therapy-specific competence;
+- **IPT:** a distinct interpersonal psychotherapy modality;
 - **non-directive/supportive therapy:** a lower-specificity supportive option, not a synonym for
   CBT, IPT, or DBT; and
-- **DBT:** a manualized program whose full label should require the modeled package and
-  capabilities; a smaller offering should use a separate label such as `DBT-informed skills`.
+- **DBT:** dialectical behavior therapy.
+
+An article, guideline contribution, Developer opinion, or condition dossier may still say that its
+source discusses a full course or program. That statement remains source-scoped authoring context.
+The encounter compiler projects it to the stable modality ID and does not model session count,
+duration, practitioner details, fidelity, or completion. A separate runtime identity is created
+only if a later focused best-next-step decision truly asks the player to distinguish two
+interventions, not merely because source prose is more detailed.
 
 VA/DoD and WHO are strong initial sources for the availability and relative role of several
 depression psychotherapies. NICE can be useful for human review and delivery distinctions, but its
 current international and AI-reuse terms require a separate decision or permission. SAMHSA can
 support selected implementation contexts. Exact therapy manuals, worksheets, session scripts,
 fidelity checklists, and training materials are not copied.
-
-The current flat runtime treatment entries are prototypes. In particular, the existing DBT menu
-label does not by itself claim that the clinic is delivering a complete, fidelity-concordant DBT
-program.
 
 ## Lawful source stack
 
@@ -606,9 +609,8 @@ future lane.
 The existence, broad purpose, and research question associated with a therapy are different from
 its protected manual text and training materials. PsychSim can store original neutral metadata
 and source-backed applicability relationships; it does not copy worksheets, scripts, diagrams,
-skills
-curricula, or fidelity tools. A branded or manualized name is used only when the modeled service
-meaningfully matches it.
+skills curricula, or fidelity tools. A therapy name in the encounter denotes a recommendation of
+that modality and does not claim that a complete manualized course was delivered.
 
 ## What automated imports must never infer
 
@@ -625,7 +627,7 @@ An importer must not infer:
 - that every labeled contraindication maps to an absolute game prohibition;
 - that absence of a recorded source contribution means a negative finding;
 - points, caps, treatment-path membership, or the focused workup horizon;
-- psychotherapy fidelity from a menu label; or
+- delivery, fidelity, duration, or completion from a therapy selection; or
 - source authority or current standard of care from public availability alone.
 
 ## Update and review workflow
@@ -676,9 +678,9 @@ To avoid building a comprehensive drug-reference product before proving the game
    source-update diffs, rights gates, and audit output.
 5. Add Cipriani 2018 as one comparative-evidence fixture for adult acute MDD, without converting
    rankings into points.
-6. Split CBT, behavioral activation, IPT, and non-directive supportive therapy into individual
-   intervention files with neutral metadata. Do not claim full DBT until program requirements are
-   modeled.
+6. Keep CBT, behavioral activation, IPT, supportive psychotherapy, DBT, and other selectable
+   modalities in individual files with neutral metadata; compile treatment and scoring to their
+   stable IDs only.
 7. Compile one existing MDD patient from the new records and compare its trace with current
    behavior.
 8. Only after the review workflow is legible, expand the medication and intervention allowlists.
@@ -700,8 +702,9 @@ The decisions should be presented and resolved in this order because each affect
    that preserves useful fit without pretending cross-label incidence is comparable.
 5. **Interaction representation:** choose the initial shared-mechanism families and the threshold
    for a specific pair rule.
-6. **Psychotherapy fidelity:** decide which menu items represent a generic family, a referral, a
-   protocol-based therapy, or a full program.
+6. **Psychotherapy encounter projection — resolved:** one stable modality ID means recommend that
+   therapy now. Source/dossier records may preserve course-specific wording, but encounter state
+   carries no delivery or fidelity model.
 7. **Update cadence:** decide which source changes require immediate tickets versus a scheduled
    authoring review.
 

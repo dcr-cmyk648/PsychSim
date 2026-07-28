@@ -697,7 +697,7 @@
       "relevanceNote": "Directly supports keeping several recognizable psychotherapy families available, with limited evidence for large differences among them.",
       "limitations": [
         "Network-level averages do not establish patient-specific matching.",
-        "Therapy identity, delivery fidelity, and gameplay availability remain separate catalog questions."
+        "The evidence does not itself determine encounter availability, combination rules, or point balance."
       ],
       "pointMagnitudeExcluded": true,
       "supportsExecutableRule": false,
@@ -998,7 +998,7 @@
     {
       "ticketId": "ticket.catalog.interventions.identity-and-fidelity",
       "profileIds": [],
-      "exemptionReason": "This ticket concerns schema, terminology, delivery fidelity, and manual rights. Disorder-specific efficacy belongs in separate bounded profiles."
+      "exemptionReason": "This resolved ticket concerns the authoring-to-encounter projection and manual rights. Disorder-specific efficacy belongs in separate bounded profiles."
     },
     {
       "ticketId": "ticket.catalog.diagnoses.common-outpatient-coverage",

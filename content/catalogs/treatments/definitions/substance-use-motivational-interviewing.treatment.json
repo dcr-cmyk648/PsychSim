@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.substance-use.motivational-interviewing",
+  "label": "Motivational interviewing for substance use",
+  "kind": "nonmedication",
+  "category": "coping",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"],
+  "fulfillmentServiceId": "service.intervention.substance-use-motivational-interviewing"
+}

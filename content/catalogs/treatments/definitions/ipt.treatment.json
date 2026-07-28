@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.psychotherapy.ipt",
+  "label": "Interpersonal psychotherapy (IPT)",
+  "kind": "nonmedication",
+  "category": "psychotherapy",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"]
+}

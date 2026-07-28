@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.psychotherapy.cbt",
+  "label": "Cognitive behavioral therapy (CBT)",
+  "kind": "nonmedication",
+  "category": "psychotherapy",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"]
+}

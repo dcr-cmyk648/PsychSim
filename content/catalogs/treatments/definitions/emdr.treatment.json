@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.psychotherapy.emdr",
+  "label": "Eye movement desensitization and reprocessing (EMDR)",
+  "kind": "nonmedication",
+  "category": "psychotherapy",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"]
+}

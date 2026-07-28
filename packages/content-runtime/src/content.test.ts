@@ -1321,6 +1321,9 @@ describe('prototype content', () => {
     expect(
       contentRegistry.entries.find((entry) => entry.kind === 'finding_catalog')?.categoryIds,
     ).toEqual(catalogs.findings.map((finding) => finding.id));
+    expect(
+      contentRegistry.entries.find((entry) => entry.kind === 'treatment_catalog')?.categoryIds,
+    ).toEqual(catalogs.treatments.map((treatment) => treatment.id));
   });
 
   it('rejects stale canonical finding registry membership', () => {
@@ -1329,6 +1332,16 @@ describe('prototype content', () => {
     expect(
       validateContentRegistry(invalid, catalogs, approvedCaseBlueprints).issues.some(
         (issue) => issue.code === 'FINDING_CATALOG_MEMBERSHIP_MISMATCH',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects stale reusable treatment registry membership', () => {
+    const invalid = structuredClone(contentRegistry);
+    invalid.entries.find((entry) => entry.kind === 'treatment_catalog')!.categoryIds = [];
+    expect(
+      validateContentRegistry(invalid, catalogs, approvedCaseBlueprints).issues.some(
+        (issue) => issue.code === 'TREATMENT_CATALOG_MEMBERSHIP_MISMATCH',
       ),
     ).toBe(true);
   });

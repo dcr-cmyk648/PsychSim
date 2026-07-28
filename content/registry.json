@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.30.0",
+  "contentVersion": "3.31.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -211,8 +211,26 @@
     {
       "id": "registry.catalog.treatments",
       "kind": "treatment_catalog",
-      "path": "content/catalogs/treatments/treatments.json",
-      "runtimeIncluded": true
+      "path": "content/catalogs/treatments/definitions",
+      "runtimeIncluded": true,
+      "categoryIds": [
+        "intervention.medication-safety-counseling",
+        "intervention.grounding-strategies",
+        "intervention.psychotherapy-referral",
+        "intervention.behavioral-activation",
+        "intervention.sleep-routine",
+        "intervention.psychotherapy.cbt",
+        "intervention.psychotherapy.ipt",
+        "intervention.psychotherapy.supportive",
+        "intervention.psychotherapy.dbt",
+        "intervention.psychotherapy.trauma-focused-cbt",
+        "intervention.psychotherapy.emdr",
+        "intervention.substance-use.brief-counseling",
+        "intervention.substance-use.motivational-interviewing",
+        "disposition.outpatient-followup",
+        "disposition.urgent-medical-evaluation",
+        "disposition.emergency-transfer"
+      ]
     },
     {
       "id": "registry.catalog.formularies",

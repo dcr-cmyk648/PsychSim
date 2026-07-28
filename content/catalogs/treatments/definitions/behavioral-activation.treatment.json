@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.behavioral-activation",
+  "label": "Collaborative behavioral activation plan",
+  "kind": "nonmedication",
+  "category": "behavioral",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"]
+}

@@ -300,11 +300,13 @@ per-medication audit view assembles everything relevant to one medication for re
 `docs/MEDICATION_AND_INTERVENTION_DATA.md`.
 
 Psychotherapies and other reusable interventions follow the same principle. One file identifies
-each therapy family or meaningfully distinct program, while shared evidence and fidelity
-requirements remain referenced rather than copied. A generic modality, protocol-based therapy,
-referral, and complete manualized program are distinct concepts. Exact manual text, worksheets,
-scripts, and training materials remain outside the database unless an item-specific permission
-allows them.
+each selectable therapy modality. Source contributions and condition dossiers may preserve
+delivery- or course-specific wording, but the focused encounter projection contains only the
+stable modality ID and means “recommend this intervention now.” It does not assert duration,
+protocol fidelity, practitioner details, or course completion. Referral remains a separate
+selectable intervention when the immediate action truly is referral. Exact manual text,
+worksheets, scripts, and training materials remain outside the database unless an item-specific
+permission allows them.
 
 Locations declare facility tier, capabilities, formulary, and dispositions. Facilities declare stable location IDs, one default location, minimum lifetime points, persistent patient-slot count, and permitted upgrade/decor IDs. A clinic's effective formulary is the stable union of its persisted formulary purchases and the active location's baseline formularies. Services declare one or more outside, partner, shared, or in-house methods. Cases provide patient-specific results; catalogs and ClinicState provide availability and cost. Equipment acquisition adds capability IDs and makes a cheaper catalog service method eligible; it never alters the result or rubric. Selected nonmedication interventions and dispositions may also reference a service. Their availability and least-cost fulfillment resolve before submission, and their costs settle separately from investigation costs without changing clinical correctness. A facility purchase swaps only the declarative facility/location baseline while preserving owned upgrades. A decor purchase adds raw satisfaction and a visual token; the pure engine derives the capped multiplier.
 

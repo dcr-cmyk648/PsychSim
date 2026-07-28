@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.grounding-strategies",
+  "label": "Brief grounding and coping strategies",
+  "kind": "nonmedication",
+  "category": "coping",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"]
+}

@@ -70,12 +70,12 @@
   {
     "schemaVersion": 1,
     "id": "ticket.catalog.interventions.identity-and-fidelity",
-    "title": "Separate therapy identity, fidelity, and gameplay availability",
+    "title": "Use stable therapy-modality identities without encounter fidelity mechanics",
     "sourceKind": "engine_audit",
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "high",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": null,
@@ -91,14 +91,19 @@
     ],
     "dependencyTicketIds": [],
     "conflictContentIds": [],
-    "proposedRouting": "Create one neutral file per reusable intervention and distinguish a generic family, referral, protocol-based therapy, informed-skills intervention, and full program before expanding the runtime menu.",
-    "guidance": "Migrate CBT, behavioral activation, IPT, and supportive psychotherapy to the planned identity layer without changing current behavior. Treat DBT-informed skills separately from a complete DBT program. Keep CBT-I, ERP, CPT, prolonged exposure, motivational interviewing, and contingency management as unscored authoring candidates until their condition mappings, delivery capabilities, evidence contributions, combination/redundancy rules, and point balance are independently reviewed. Do not copy manuals, worksheets, or scripts.",
-    "reviewerNotes": "",
-    "reviewerNotesUpdatedAt": null,
-    "resurfacingTrigger": "Before adding new therapy choices or treating a menu label as delivery of a full program.",
-    "resolution": null,
+    "proposedRouting": "Use one stable file and ID per selectable modality. Preserve delivery- or course-specific wording in source contributions and condition dossiers, but compile encounter treatment selection and scoring to the intervention ID only.",
+    "guidance": "A selected psychotherapy is a recommendation of that modality now, analogous to selecting a medication without simulating a future adequate trial. Do not add duration, session count, protocol fidelity, practitioner, completion, or full-program fields to encounter treatment state. Source and condition records may retain scoped statements such as a recommendation for a full course of DBT, but the focused encounter compiler projects that statement to intervention.psychotherapy.dbt. Keep efficacy, combination, redundancy, capability, provenance, and point balance independently reviewable. Do not copy manuals, worksheets, scripts, or training materials.",
+    "reviewerNotes": "Approved by Dustin Rowland. In the slice-of-life/question-bank model, selecting a specific therapy modality means recommending it now. The game does not benefit from simulating an adequate future trial, protocol, duration, or completion. Source/article and diagnosis records may still preserve language such as a full course of DBT, but encounter data and point rules need only the therapy type. Prior psychotherapy trials remain separate patient history and are revealed through the existing full psychiatric treatment-history action.",
+    "reviewerNotesUpdatedAt": "2026-07-28T23:34:48.000Z",
+    "resurfacingTrigger": "Only if a future focused encounter genuinely makes delivery form, course completion, or program fidelity part of the immediate best-next-step decision.",
+    "resolution": {
+      "disposition": "applied",
+      "note": "Preserved the existing stable TreatmentOption ID as the encounter modality identity, split the aggregate catalog into one file per reusable treatment or disposition, added exact registry membership validation, and documented that submitted treatment and scoring contain only intervention IDs. Historical psychotherapy trials remain independently structured under full treatment history. No delivery scope, fidelity, duration, completion, clinical mapping, point value, or runtime behavior was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T23:34:48.000Z"
+    },
     "createdAt": "2026-07-24T22:00:00.000Z",
-    "updatedAt": "2026-07-24T22:00:00.000Z"
+    "updatedAt": "2026-07-28T23:34:48.000Z"
   },
   {
     "schemaVersion": 1,

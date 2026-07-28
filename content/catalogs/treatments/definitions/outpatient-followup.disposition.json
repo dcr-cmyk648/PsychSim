@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "disposition.outpatient-followup",
+  "label": "Close outpatient follow-up",
+  "kind": "disposition",
+  "category": "disposition",
+  "safeReferral": false,
+  "requiredCapabilities": ["disposition.outpatient"]
+}

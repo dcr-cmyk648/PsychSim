@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.sleep-routine",
+  "label": "Sleep routine and circadian support",
+  "kind": "nonmedication",
+  "category": "sleep",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"]
+}

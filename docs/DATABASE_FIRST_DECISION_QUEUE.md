@@ -39,7 +39,8 @@ The following foundations are not being asked again:
   and
 - intervention dossiers share a common envelope with type-specific modules, while an exact
   reviewed FDA-label match may contribute one minor nonexclusive regulatory-alignment bonus
-  (D-169); and
+  (D-169), and therapy source/course detail compiles to a stable modality recommendation rather
+  than encounter fidelity mechanics (D-189); and
 - shared findings resolve once in the patient, while test definitions, reveal actions, generation
   tendencies, and post-submit scoring remain separate owners (D-170); and
 - focused psychiatric patients may remain highly textured and diagnostically muddy, while only
@@ -365,9 +366,11 @@ psychotherapy/other-intervention modules:
    dossier supplies reusable relationships needed to judge retention, replacement, augmentation,
    retrial, simplification, and duplicate therapy without simulating a schedule.
 7. Psychotherapy and other interventions share identity, evidence, role, fit, combination,
-   redundancy, and capability concepts, but use their own delivery, fidelity, practitioner,
-   setting, and program-completeness fields rather than being forced into medication structures.
-   A generic modality, protocol-based therapy, referral, and full program remain distinguishable.
+   redundancy, and capability concepts. A source or dossier may preserve course- or
+   program-specific wording, while the encounter compiler projects a psychotherapy to its stable
+   modality ID only. Selecting it means recommending that intervention now; it does not model
+   duration, fidelity, practitioner, or completion. Referral remains a separate action when the
+   focused decision is referral.
 8. The dossier is a derived one-entry audit over source units, Developer opinions, conflicting or
    speculative candidates, rules, balance, reverse links, current patients, and impact tickets.
    Detailed provenance remains collapsed. Speculative candidates follow D-168 and remain
@@ -770,8 +773,10 @@ exposure foundations are now implemented and validated. Exposure reuses medicati
 identities, adds only neutral other-substance identities, and permits one coarse misuse
 probability plus medication prescription-context multipliers; no rate is currently authored.
 Assessment/evidence, intoxication/withdrawal, diagnosis, scoring, migration, and runtime
-generation remain separate. The next unresolved review owner is
-`ticket.catalog.interventions.identity-and-fidelity`.
+generation remain separate. The intervention modality boundary is now resolved with one stable
+file and ID per current treatment/disposition, exact registry membership, and no delivery/fidelity
+schema. The next unresolved review owner is
+`ticket.catalog.medications.normalized-regimen-risk-benefit`.
 
 While this dependency queue is active, each accepted item remains a tight local database iteration:
 edit one bounded owner, run only its focused schema/content checks, and move to the next review.

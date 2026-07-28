@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "intervention.substance-use.brief-counseling",
+  "label": "Brief substance-use counseling",
+  "kind": "nonmedication",
+  "category": "education",
+  "safeReferral": false,
+  "requiredCapabilities": ["counseling.basic"],
+  "fulfillmentServiceId": "service.intervention.substance-use-counseling"
+}

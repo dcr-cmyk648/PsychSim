@@ -337,8 +337,10 @@ or redistribute its full text under the current metadata-only decision.
 
 Psychotherapy manuals, worksheets, scripts, fidelity instruments, and branded training materials
 are not copied. PsychSim may store original neutral intervention metadata and reviewed
-source-scoped contribution units and topical relationships while preserving the boundary between a
-broad therapy family, a referral, protocol-based delivery, and a complete manualized program.
+source-scoped contribution units and topical relationships, including a source's description of a
+course or program. Encounter treatment selection still projects that material to a stable
+therapy-modality ID and does not assert delivery, fidelity, duration, or completion. Referral
+remains its own immediate intervention when the player is choosing referral.
 
 ## Private user-authored article archives
 

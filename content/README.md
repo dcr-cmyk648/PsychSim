@@ -10,7 +10,10 @@
 - `catalogs/locations/facilities.json` owns lifetime thresholds, persistent slot counts, location membership/defaults, and permitted purchases. Facility upgrades reference target facility IDs; they do not duplicate location configuration in React.
 - `catalogs/decor/decor.json` owns visible environment items, raw satisfaction contributions, display tokens, and the diminishing-return multiplier configuration. Decor has no clinical-rule fields.
 - Each file under `catalogs/evidence/formal/` owns one formal publication's stable ID, full citation metadata, identifiers/link, known byte hashes, bibliographic status, and separate medical-review status. Presence in this catalog never means the source supports a particular rule.
-- `catalogs/treatments/treatments.json` owns reusable psychotherapy, behavioral, education, coping, sleep, and disposition choices.
+- Each file under `catalogs/treatments/definitions/` owns one reusable psychotherapy,
+  behavioral, education, coping, sleep, or disposition choice. Selecting a psychotherapy records
+  a recommendation of that modality now; it does not claim a delivered course, protocol fidelity,
+  duration, or completion.
 - `catalogs/medications/definitions/*.medication.json` gives each medication a stable file for class/tags and future medically reviewed fit modifiers or author overrides.
 - `catalogs/medications/formularies.json` owns baseline and additive medication-ID sets. A formulary purchase grants an additional set; it never edits a patient file.
 - `catalogs/demographics/variant-pools.json` owns curated nonclinical values such as fictional names, occupations, education, and locations.

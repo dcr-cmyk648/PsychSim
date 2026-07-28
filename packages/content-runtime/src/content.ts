@@ -55,7 +55,22 @@ import lithiumJson from '../../../content/catalogs/medications/definitions/lithi
 import olanzapineJson from '../../../content/catalogs/medications/definitions/olanzapine.medication.json';
 import quetiapineJson from '../../../content/catalogs/medications/definitions/quetiapine.medication.json';
 import formulariesJson from '../../../content/catalogs/medications/formularies.json';
-import treatmentsJson from '../../../content/catalogs/treatments/treatments.json';
+import behavioralActivationJson from '../../../content/catalogs/treatments/definitions/behavioral-activation.treatment.json';
+import cbtJson from '../../../content/catalogs/treatments/definitions/cbt.treatment.json';
+import dbtJson from '../../../content/catalogs/treatments/definitions/dbt.treatment.json';
+import emergencyTransferJson from '../../../content/catalogs/treatments/definitions/emergency-transfer.disposition.json';
+import emdrJson from '../../../content/catalogs/treatments/definitions/emdr.treatment.json';
+import groundingStrategiesJson from '../../../content/catalogs/treatments/definitions/grounding-strategies.treatment.json';
+import iptJson from '../../../content/catalogs/treatments/definitions/ipt.treatment.json';
+import medicationAdverseEffectEducationJson from '../../../content/catalogs/treatments/definitions/medication-adverse-effect-education.treatment.json';
+import outpatientFollowupJson from '../../../content/catalogs/treatments/definitions/outpatient-followup.disposition.json';
+import psychotherapyReferralJson from '../../../content/catalogs/treatments/definitions/psychotherapy-referral.treatment.json';
+import sleepRoutineJson from '../../../content/catalogs/treatments/definitions/sleep-routine.treatment.json';
+import substanceUseBriefCounselingJson from '../../../content/catalogs/treatments/definitions/substance-use-brief-counseling.treatment.json';
+import substanceUseMotivationalInterviewingJson from '../../../content/catalogs/treatments/definitions/substance-use-motivational-interviewing.treatment.json';
+import supportivePsychotherapyJson from '../../../content/catalogs/treatments/definitions/supportive-psychotherapy.treatment.json';
+import traumaFocusedCbtJson from '../../../content/catalogs/treatments/definitions/trauma-focused-cbt.treatment.json';
+import urgentMedicalEvaluationJson from '../../../content/catalogs/treatments/definitions/urgent-medical-evaluation.disposition.json';
 import locationsJson from '../../../content/catalogs/locations/locations.json';
 import facilitiesJson from '../../../content/catalogs/locations/facilities.json';
 import informationActionsJson from '../../../content/catalogs/actions/actions.json';
@@ -143,7 +158,24 @@ export const catalogs = CatalogBundleSchema.parse({
     quetiapineJson,
   ],
   formularies: formulariesJson,
-  treatments: treatmentsJson,
+  treatments: [
+    medicationAdverseEffectEducationJson,
+    groundingStrategiesJson,
+    psychotherapyReferralJson,
+    behavioralActivationJson,
+    sleepRoutineJson,
+    cbtJson,
+    iptJson,
+    supportivePsychotherapyJson,
+    dbtJson,
+    traumaFocusedCbtJson,
+    emdrJson,
+    substanceUseBriefCounselingJson,
+    substanceUseMotivationalInterviewingJson,
+    outpatientFollowupJson,
+    urgentMedicalEvaluationJson,
+    emergencyTransferJson,
+  ],
   locations: locationsJson,
   facilities: facilitiesJson,
   informationActions: informationActionsJson,

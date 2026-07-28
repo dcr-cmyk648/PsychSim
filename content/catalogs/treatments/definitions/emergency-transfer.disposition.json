@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "disposition.emergency-transfer",
+  "label": "Transfer to emergency care",
+  "kind": "disposition",
+  "category": "disposition",
+  "safeReferral": true,
+  "requiredCapabilities": ["disposition.emergency-transfer"]
+}

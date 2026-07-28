@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-188. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-189. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -132,15 +132,22 @@ Last updated: 2026-07-28
   prescribed/nonprescribed multipliers. The future patient snapshot stores only positive use
   entries and the frozen misuse Boolean; assessment evidence, intoxication, withdrawal, diagnosis,
   attribution, points, and runtime generation remain separate.
+  D-189 keeps psychotherapy encounter semantics deliberately small. Source contributions and
+  diagnosis dossiers may preserve language about a course or program, but submitted treatment and
+  scoring contain only the stable modality ID and mean “recommend this intervention now.” Current
+  treatments and dispositions now have one file-backed editing surface with exact registry
+  membership. No delivery, duration, practitioner, fidelity, completion, clinical mapping, point
+  value, or runtime behavior was added. Prior psychotherapy remains structured historical patient
+  state and is already revealed through the full psychiatric treatment-history action.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after recording D-188: local `beta` may be ahead of `origin/beta` or carry a
+- Expected Git state after recording D-189: local `beta` may be ahead of `origin/beta` or carry a
   small documented database-design worktree while decisions are batched. Do not push or promote
   merely to make the refs equal. The last published checkpoint is `276534a`; inspect actual refs
   rather than assuming later local database work is remotely backed up.
 - Current local checkpoint message after this bounded decision:
-  `Add objective exposure state foundation`. Local `beta` is eleven commits ahead of `origin/beta`;
-  none of those eleven database-foundation commits is remotely backed up. Inspect `HEAD` for its
+  `Simplify therapy modality identities`. Local `beta` is twelve commits ahead of `origin/beta`;
+  none of those twelve database-foundation commits is remotely backed up. Inspect `HEAD` for its
   exact hash.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
@@ -517,11 +524,26 @@ migration, application build, browser suite, app-server check, GitHub push, Acti
 observation, or reference-run replay was added or run. The next bounded review owner is
 `ticket.catalog.interventions.identity-and-fidelity`.
 
+The D-189 therapy-modality boundary passed its deliberately narrow local gate on 2026-07-28:
+
+- 71 focused strict-schema, runtime-content, registry, and Developer-ticket tests;
+- root `pnpm typecheck`, `pnpm lint`, and `pnpm format:check`;
+- direct content/catalog/registry validation, including exact treatment membership; and
+- `git diff --check`.
+
+The first sandboxed `pnpm content:validate` invocation failed only because the managed sandbox
+denied the local tsx IPC socket; the identical permissioned command passed. The aggregate
+treatment file was replaced by sixteen stable per-treatment/disposition files without changing
+their IDs, order, selections, source mappings, clinical rules, points, or runtime behavior. No
+application build, browser suite, app-server check, GitHub push, Actions/Pages observation,
+reference-run replay, or complete repository gate was run under D-178. The next bounded review
+owner is `ticket.catalog.medications.normalized-regimen-risk-benefit`.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-188
+- `docs/DECISIONS.md` through D-189
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -551,18 +573,17 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 ## Exact next action
 
 1. Present and resolve only
-   `ticket.catalog.exposures.substance-use-foundation`: decide whether one reusable exposure
-   instance should keep assessment completeness, use/recency, intoxication, withdrawal, source
-   evidence, and attribution as separate dimensions while reusing medication/supplement identities
-   and dedicated substance identities. Do not choose prevalence, age distributions, diagnostic
-   thresholds, symptom associations, treatment routes, or points in that packet.
-2. If approved, implement only that point-free exposure identity/state boundary, compose it into
-   `ResolvedPatientState`, and run focused validation. Keep contradictory reports and clinician
-   attribution separate; exposure alone never creates a substance-induced diagnosis.
+   `ticket.catalog.medications.normalized-regimen-risk-benefit`: choose the smallest normalized
+   owner model for medication role/indication, benefit, additive risk, interaction, duplication,
+   and reviewed exceptions that can score a simple first-line choice and a complex regimen
+   transition without deriving meaning from free-text class labels.
+2. If approved, implement only the point-free normalized medication/regimen relationship boundary
+   first. Keep clinical direction, evidence contribution, provisional balance, patient regimen
+   instances, and later combination compilation separate. Do not activate new clinical rules or
+   point values in that structural slice.
 3. Continue through the authoritative ordered queue in
-   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; intervention identity/fidelity and medication
-   regimen normalization precede the decision-policy compiler. Do not substitute an MDD-local owner
-   for a missing general file.
+   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; medication regimen normalization now precedes the
+   decision-policy compiler. Do not substitute an MDD-local owner for a missing general file.
 4. Only after the complete general foundation is ready, implement
    `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
    conflict/replay/provenance tests.

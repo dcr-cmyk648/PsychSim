@@ -470,8 +470,12 @@ describe('developer clinical audit queue', () => {
       ]),
     });
     expect(byId.get('ticket.catalog.interventions.identity-and-fidelity')).toMatchObject({
-      status: 'accepted_for_workflow',
+      status: 'resolved',
       requiresClinicalAcumen: true,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
     });
     expect(byId.get('ticket.catalog.diagnoses.common-outpatient-coverage')).toMatchObject({
       status: 'proposed',

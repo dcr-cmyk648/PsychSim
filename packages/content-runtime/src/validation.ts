@@ -2638,6 +2638,36 @@ export const validateContentRegistry = (
       });
     }
   }
+  const treatmentCatalogEntries = registry.entries.filter(
+    (entry) => entry.kind === 'treatment_catalog',
+  );
+  if (
+    treatmentCatalogEntries.length !== 1 ||
+    treatmentCatalogEntries[0]?.runtimeIncluded !== true
+  ) {
+    issues.push({
+      severity: 'error',
+      code: 'INVALID_TREATMENT_CATALOG_REGISTRATION',
+      message: 'Exactly one runtime treatment catalog must be registered.',
+    });
+  } else {
+    const registeredTreatmentIds = treatmentCatalogEntries[0].categoryIds;
+    const expectedTreatmentIds = catalogs.treatments.map((treatment) => treatment.id);
+    const registeredSorted = [...registeredTreatmentIds].sort();
+    const expectedSorted = [...expectedTreatmentIds].sort();
+    if (
+      new Set(registeredTreatmentIds).size !== registeredTreatmentIds.length ||
+      registeredSorted.length !== expectedSorted.length ||
+      registeredSorted.some((id, index) => id !== expectedSorted[index])
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'TREATMENT_CATALOG_MEMBERSHIP_MISMATCH',
+        message:
+          'The runtime treatment catalog registry membership must exactly match the catalog.',
+      });
+    }
+  }
   const medicationIdentityCatalogEntries = registry.entries.filter(
     (entry) => entry.kind === 'medication_identity_catalog',
   );
