@@ -11,7 +11,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-169. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-170. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -28,8 +28,10 @@ Last updated: 2026-07-28
   content. D-169 establishes a shared intervention-dossier envelope with type-specific medication
   and psychotherapy modules and complex regimen-transition support. A future reviewed, exact FDA
   on-label match may contribute one minor +10 regulatory-alignment modifier without defining the
-  primary route or penalizing off-label care. The remaining database architecture choices are
-  dependency-ordered in
+  primary route or penalizing off-label care. D-170 establishes one canonical resolved finding per
+  patient and keeps test definitions, reveal actions, generation tendencies, and post-submit
+  scoring as separate owners. It changes no schema, clinical association, probability, or points.
+  The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
   `origin/main` remain unchanged unless the user separately authorizes promotion.
@@ -243,12 +245,13 @@ local IPC socket or loopback listener; each passed when rerun with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
-The database-first decision-queue checkpoint passed on 2026-07-27:
+The database-first decision-queue checkpoint through D-170 passed on 2026-07-28:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
 - `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests;
 - `pnpm content:validate`, `pnpm content:sources:validate`, and
   `pnpm content:diagnoses:validate`;
+- `pnpm demo:reference-runs`, with existing finite policy results unchanged;
 - sequential `pnpm build` and `pnpm build:reviewer`, including both bundle-safety scans;
 - `pnpm test:e2e`: five Player/Developer browser tests; and
 - `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
@@ -263,7 +266,7 @@ local IPC/loopback permission and passed unchanged outside that restriction.
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-169
+- `docs/DECISIONS.md` through D-170
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -290,22 +293,22 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only DBQ-007: a shared finding/test/tendency contract that preserves one
-   resolved patient truth across History, Physical exam, Testing, diagnosis, treatment fit, and
-   receipt explanation while keeping source-supported associations separate from generation
-   weights. Do not implement or bulk-migrate the schema until that decision is accepted or revised.
-2. After DBQ-007, re-evaluate the remaining sequence and present DBQ-008 only. Do not shotgun the
-   queued questions.
-3. The first already-approved engineering prerequisite remains
+1. Present and resolve only DBQ-008: a bounded presentation-richness envelope that adds plausible
+   cross-domain texture without obscuring the focused question-bank decision. Use the saved GAD
+   review as an acceptance example, not a probability source. Do not implement probabilities,
+   module selection, or cohort migration until the decision is accepted or revised.
+2. Re-evaluate the remaining queue after DBQ-008. Do not detail DBQ-009 or shotgun the queued
+   questions before the reviewer answers.
+3. Once the architecture queue authorizes implementation, the first already-approved engineering
+   prerequisite remains
    `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned
    PatientTemplate/PatientInstance/EncounterInstance boundary and prove it with the initial-MDD
    family while preserving historical CaseBlueprint snapshots. Do not add clinical severity
    thresholds or migrate the full cohort.
 4. Then implement `ticket.engine.patient-generation.shared-finding-compiler` as a separate bounded
    change with deterministic conflict/replay/provenance tests.
-5. Before calibrating clinical tendencies or presentation richness, resolve DBQ-008 through one
-   concise packet tied to `ticket.engine.patient-generation.presentation-richness-envelope` and
-   the exact GAD attempt feedback. Do not infer probabilities from the reviewer note.
+5. After that compiler exists, implement only richness behavior accepted through DBQ-008 and
+   calibrate it against deterministic MDD/GAD cohorts before enabling optional comorbidities.
 6. Later bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;

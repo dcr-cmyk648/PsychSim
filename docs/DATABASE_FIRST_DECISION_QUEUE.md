@@ -39,7 +39,9 @@ The following foundations are not being asked again:
   and
 - intervention dossiers share a common envelope with type-specific modules, while an exact
   reviewed FDA-label match may contribute one minor nonexclusive regulatory-alignment bonus
-  (D-169).
+  (D-169); and
+- shared findings resolve once in the patient, while test definitions, reveal actions, generation
+  tendencies, and post-submit scoring remain separate owners (D-170).
 
 Two implementation prerequisites are also already approved:
 
@@ -371,15 +373,15 @@ and source-linked receipt explanations.
 
 ### DBQ-007 — Define the shared finding, test, and tendency contract
 
-**Status:** current.
+**Status:** accepted as D-170.
 
 Decide how symptoms, observations, measurements, laboratory values, instruments, and prior
 exposures are represented once and influenced by diagnoses, medications, age, context, and
 background variation. Separate source-supported clinical associations from game-generation
 weights and preserve unknown, absent, normal, incidental, and case-defining states.
 
-**Proposed default:** use one canonical resolved-finding layer, separate reusable test definitions,
-and separately reviewed generation tendencies:
+**Accepted decision:** use one canonical resolved-finding layer, separate reusable test
+definitions, and separately reviewed generation tendencies:
 
 1. Every reusable symptom, history element, exposure, examination finding, measurement, or
    observation encountered in admitted input or modeled content receives one stable concept ID
@@ -430,12 +432,75 @@ variation.
 
 ### DBQ-008 — Calibrate patient richness and randomization
 
-**Status:** queued after the compiler prerequisites and DBQ-005 through DBQ-007.
+**Status:** current.
 
 Decide a bounded presentation envelope across case-defining facts, expected-but-variable
 associated findings, ordinary background findings, prior exposure/treatment, optional
 comorbidity, and distractors. This is the clinical/product decision currently represented by
 `ticket.engine.patient-generation.presentation-richness-envelope` and the GAD attempt feedback.
+
+**Proposed default:** give each patient template a small, explicit
+`PresentationRichnessEnvelope`. It controls texture without becoming a scalar patient “level,” a
+prevalence model, or a second diagnosis engine:
+
+**P1 — Protect the question first.** The template's focused decision, required condition state,
+safety facts, and at least one safe route are fixed before optional texture is drawn. They do
+not consume the optional-richness budget. A texture module may influence treatment fit, but it
+cannot replace or obscure the focused decision unless the template explicitly authors that
+additional decision.
+
+**P2 — Use separate richness lanes.** A template declares independent minimum and maximum counts for
+(a) expected-but-variable associated findings, (b) ordinary subthreshold/background findings,
+(c) prior exposure, coping, or treatment-history details, (d) explicitly permitted optional
+condition modules, and (e) unrelated distractors. D-126's small optional-feature budget remains
+the ceiling for extra modules; raw diagnosis count and one global complexity number do not
+control generation.
+
+**P3 — Start with a restrained pilot envelope.** For the first MDD and GAD generator calibration,
+require two to four nondecisive positive texture findings across at least two finding families,
+allow zero to two prior-exposure/coping details, and allow at most one unrelated distractor. A
+prolonged or severe scenario may require at least one plausible prior exposure when the template
+reviewer judges an entirely treatment-naive history implausible. These are game-authoring
+defaults for playtesting, not claims about real-world prevalence. A template may narrow them
+when a cleaner stem is necessary.
+
+**P4 — Draw from explicit owners.** Active diagnosis families and medications supply reviewed
+associated-finding candidates; a separate common-human background pool supplies ordinary
+subthreshold experiences; and the patient family owns eligible prior-exposure and optional
+comorbidity pools. No diagnosis is globally random. Source association strength and
+`gameSelectionWeight` remain separate, reviewable fields.
+
+**P5 — Resolve in a stable order.** Generate core facts, required associated-texture slots,
+template-required prior history, optional modules within the D-126 budget, then bounded
+background findings and distractors. Save the seed, candidate-pool IDs, deterministic choices,
+and every contributor in the patient instance.
+
+**P6 — Guard syndrome coherence.** Shared findings resolve once. Subthreshold overlap is allowed,
+but a full additional condition can enter only through an eligible condition module. If
+disposable background facts accidentally cross an incompatible threshold, remove or redraw the
+lowest-priority optional facts deterministically within the existing small repair budget.
+Conflicts involving protected facts retry or quarantine; generation never silently adds a
+diagnosis.
+
+**P7 — Cap display burden, not learning value.** Richness should create short structured positives,
+not longer stems or memorable prose. Openings remain name plus brief chief complaint; purchased
+results reveal compact swappable findings. A per-action and per-domain presentation cap keeps
+all generated texture from appearing in one wall of text.
+
+**P8 — Keep scoring focused and auditable.** A resolved texture fact may affect treatment fit or
+safety only when a reviewed reusable rule exists, whether or not the player revealed it.
+Buying the relevant information is scored separately. Mere detail does not create points,
+reimbursement, or a difficulty bonus, and the primary database-plan decision retains most of
+the available care points.
+
+**P9 — Calibrate against generated cohorts.** Before enabling optional comorbidity generation,
+instantiate many MDD and GAD seeds and audit all-negative satellite domains, accidental
+syndromes, repeated stereotyped bundles, safe-route preservation, number of meaningful
+positives, prior-exposure plausibility, and reading burden. The saved GAD review is an
+acceptance example for avoiding implausible all-negative satellites, not a probability source.
+
+This provides enough cross-domain detail for a patient to feel three-dimensional and for fit rules
+to matter, while preserving a legible “what is the best next step now?” question.
 
 **Unlocks:** patients who feel plausible and varied without becoming unreadable, trivially
 diagnostic, or accidentally dominated by another syndrome.
@@ -479,11 +544,13 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-007 before detailing DBQ-008. Do not implement or bulk-migrate the shared
-finding/test/tendency schema until DBQ-007 is accepted or revised. D-169 permits a narrow verified
-FDA-alignment bonus but does not make regulatory status the treatment pathway or create an off-label
-penalty. D-168 permits traceable speculative candidates but does not authorize automatic
-completion of sparse sections, runtime AI, or speculative gameplay rules. D-167 still does not
-automatically apply scouted sources, revise the tracked packet schema, or authorize bulk scouting.
-DBQ-002 authorizes only a one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin
-architecture rather than immediate bulk catalog generation.
+Present and resolve DBQ-008 before detailing DBQ-009. Do not implement richness probabilities,
+module selection, or cohort migration until DBQ-008 is accepted or revised. D-170 fixes shared
+finding/test/reveal ownership but does not authorize its schema migration or any clinical
+association. D-169 permits a narrow verified FDA-alignment bonus but does not make regulatory
+status the treatment pathway or create an off-label penalty. D-168 permits traceable speculative
+candidates but does not authorize automatic completion of sparse sections, runtime AI, or
+speculative gameplay rules. D-167 still does not automatically apply scouted sources, revise the
+tracked packet schema, or authorize bulk scouting. DBQ-002 authorizes only a one-dossier readiness
+pilot, and DBQ-003 authorizes candidate-bin architecture rather than immediate bulk catalog
+generation.

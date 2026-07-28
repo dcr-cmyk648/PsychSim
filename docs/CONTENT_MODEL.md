@@ -385,7 +385,34 @@ the other.
 
 ## Information and workup
 
-Every information option has two layers. The shared `InformationActionDefinition` catalog owns the stable ID, neutral label and description, History/Physical/Labs/Imaging category, SOAP section, report source, service, and repeatability policy; that same presentation is used in every compatible case. Each patient blueprint supplies only the immediate patient-specific structured result, revealed fact IDs, and default post-submit classification. A result is a list of short finding atoms with swappable labels and explicit outcomes. Variable finding sets declare minimum/maximum positives and required present/absent IDs; they cannot contain arbitrary code. The browser never displays classification or point rationale before submission.
+The target model has four deliberately separate owners:
+
+1. A reusable finding definition owns neutral identity, aliases/search terms, value type, allowed
+   outcomes, and short presentation templates.
+2. The `PatientInstance` owns that patient's fully resolved value, uncertainty, origin, and
+   contributor trace. It is the canonical truth even before the player reveals it.
+3. A test or named-instrument definition owns components, result schema, generation profiles,
+   units/reference intervals, interpretation metadata, rights boundary, and display conventions.
+4. The shared `InformationActionDefinition` owns the stable player action ID, neutral label and
+   description, History/Physical/Testing category, SOAP section, report source, service,
+   fulfillment, and repeatability. Post-submit rules—not any of these definitions—own clinical
+   relevance and points.
+
+Every encounter-available result is resolved and frozen before play. `EncounterState` records only
+whether the result has been revealed; buying it cannot generate or change a clinical fact.
+`unknown` or truly unassessed, unrevealed, known absent, subthreshold, present, normal, high, low,
+positive, and negative remain distinct. Every compatible case uses the same neutral action
+presentation. A patient template supplies only constraints, narrow authored overrides, and reveal
+mappings rather than copying global menu or test knowledge. Current `CaseBlueprint` result fields
+remain a migration snapshot until the target compiler is implemented.
+
+A result is a list of short finding atoms with swappable labels and explicit outcomes. Variable
+finding sets declare minimum/maximum positives and required present/absent IDs; they cannot contain
+arbitrary code. Diagnosis, medication, context, and template records contribute typed constraints
+or separately reviewed game tendencies to the shared finding resolver. Source-supported
+associations do not automatically become game-generation weights. Contradictions retry or
+quarantine rather than selecting a file-order winner. The browser never displays classification
+or point rationale before submission.
 
 Resolved narrative findings expose their outcome directly. The interface renders a glyph and
 visible outcome chip such as `Present`, `Absent`, `Positive`, or `Negative`, with grouped row

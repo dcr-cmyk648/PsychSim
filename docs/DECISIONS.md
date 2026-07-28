@@ -2412,3 +2412,47 @@ therapy without encoding a dose schedule or longitudinal simulation. Speculative
 authoring inferences follow D-168 and remain nonexecutable. This decision defines dossier behavior
 and provisional balance direction; it does not activate the FDA modifier, migrate content, or
 clinically approve an intervention.
+
+## D-170 — Shared findings resolve once; tests and reveal actions remain separate owners
+
+**Decision:** Every reusable symptom, history element, exposure, examination finding,
+measurement, or observation has one stable finding identity with neutral labels, search terms,
+typed outcomes, and presentation templates. That identity never owns a particular patient's value
+or the points for asking about it. A generated `PatientInstance` owns the complete resolved value,
+source, uncertainty, and contributor trace; encounter state owns only whether the player has
+revealed it. `unknown` or truly unassessed, unrevealed, known absent, subthreshold, present, normal,
+high, low, positive, and negative therefore remain distinct states. Every History, Physical exam,
+Testing, diagnosis, fit, and receipt projection reads the same resolved truth.
+
+Diagnosis families, medications, age or context records, and patient templates contribute typed
+constraints or generation tendencies to that shared finding rather than creating duplicate facts.
+Source-supported clinical associations remain separate from game-generation weights. Explicit
+specificity combines compatible contributions; a hard contradiction deterministically retries or
+quarantines the candidate instead of selecting a load-order winner. Templates distinguish
+case-defining requirements, expected-but-variable associations, ordinary background variation,
+optional-comorbidity findings, and bounded distractors. Criteria groups use reviewed cardinality
+and required-finding constraints, while background variation may be subthreshold but cannot
+silently create an incompatible syndrome or change the focused question.
+
+An orderable study or named instrument has a test definition separate from its reveal action. The
+test definition owns study type, components, result schema, units and reference intervals,
+deterministic generation profiles, interpretation metadata, rights boundary, and display
+conventions. The shared `InformationActionDefinition` owns the neutral player-facing label,
+category, search aliases, service and fulfillment relationship, and repeatability. A patient may
+provide a more-specific authored result override. Neither the test nor action definition decides
+clinical correctness or points; post-submit rules do.
+
+Every encounter-available result is resolved and frozen before play. Purchasing information only
+records cost and reveals the already resolved result. Numeric results render value, unit,
+population-appropriate reference interval, and `N`/`H`/`L`. A test-specific incidental generator
+may produce at most one tightly bounded, non-case-defining abnormality per panel; it cannot alter
+the rubric. Named instruments preserve their identity, validation scope, administration effort,
+interpretation, and reuse permission, but protected item wording is not copied without permission.
+The player may see a lawful score or structured summary while the backend retains the auditable
+inputs.
+
+Global action labels and result prose must remain answer-neutral. Patient files supply resolved
+results and narrow reveal mappings, while post-submit workup, diagnosis, treatment, and fit traces
+explain how each finding mattered. This decision fixes the conceptual ownership and deterministic
+resolution contract only. It does not authorize a schema migration, add a clinical association,
+choose a generation probability, activate a score rule, or grant medical approval.

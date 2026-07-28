@@ -242,6 +242,22 @@ compact blended finding to the player, but the post-submission and developer vie
 disentangle why it was generated. Numerical calibration of combined soft tendencies remains a
 separate balance decision.
 
+### Test, action, and reveal boundary
+
+D-170 fixes the target ownership contract. A reusable finding definition owns identity and typed
+outcomes; a generated `PatientInstance` owns the resolved value; a test or named-instrument
+definition owns its result schema and deterministic generation; and an
+`InformationActionDefinition` owns the neutral action label, search/category metadata,
+fulfillment, and repeatability. Post-submit rules separately own clinical relevance and points.
+
+All encounter-available findings and test results are resolved and frozen before play. Encounter
+state records only whether the player revealed them. A truly unknown fact, an unrevealed fact, and
+a known negative fact are therefore different states. A patient-authored test result may override
+the reusable generator without changing the global test or action definition. Numeric panels keep
+their value, unit, reference interval, and `N`/`H`/`L` interpretation; a bounded incidental result
+remains non-case-defining and point-neutral. This is the accepted architecture, not authorization
+to migrate schemas or choose clinical generation weights.
+
 ## Syndrome generation and incompatibility validation
 
 Background variation may produce isolated, overlapping, and subthreshold symptoms. It is not a

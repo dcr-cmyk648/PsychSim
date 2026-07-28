@@ -221,6 +221,9 @@ Resolved:
 - objective clinical fit and the player's discovery/workup credit are traced separately;
 - reusable cross-file tags remain, but are derived from typed clinical facts or measurements rather
   than acting as free-string sources of truth;
+- a diagnosis family may contribute a constraint or tendency to a shared finding, but the
+  `PatientInstance` resolves that finding once; test definitions, player reveal actions, and
+  post-submit scoring remain separate owners;
 - one selected diagnostic standard owns criteria and severity representation; treatment guidelines
   consume those states without redefining them;
 - patient-specific exceptions require a versioned, provenance-bearing override record;
@@ -241,7 +244,8 @@ Resolved:
 - no permanent scalar patient level or unlock formula is committed until reference-patient testing
   makes that simplification useful.
 
-The current `composeDiagnosisGuidance` implementation predates these two decisions. It still treats
-every opposing active stance as a blocking `RULE_STANCE_CONFLICT` and does not consume a template
-complexity envelope. That conservative checkpoint remains safe, but it must be migrated before
-complex generated patients are enabled.
+The current `composeDiagnosisGuidance` implementation predates these compiler decisions. It still
+treats every opposing active stance as a blocking `RULE_STANCE_CONFLICT`, does not consume a
+template complexity envelope, and does not yet emit shared-finding contributions. That
+conservative checkpoint remains safe, but it must be migrated before complex generated patients
+are enabled.
