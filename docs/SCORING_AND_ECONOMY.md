@@ -102,13 +102,14 @@ uncertainty from being hidden.
 The final combination is evaluated in named layers:
 
 1. Base treatment grade for the complete intervention selection.
-2. Patient-fit modifiers from the selected medication and therapy files.
-3. Treatment-specific workup requirements.
-4. Medication discontinuation rules.
-5. Interaction and contraindication rules.
-6. Combination support, redundancy, and parsimony.
-7. Disposition.
-8. Efficiency.
+2. Regulatory-alignment modifiers when applicable.
+3. Patient-fit modifiers from the selected medication and therapy files.
+4. Treatment-specific workup requirements.
+5. Medication discontinuation rules.
+6. Interaction and contraindication rules.
+7. Combination support, redundancy, and parsimony.
+8. Disposition.
+9. Efficiency.
 
 The itemized receipt keeps these layers separate. In the current initial-MDD snapshot, one of the
 five reviewed first-line antidepressants receives the same provisional +200 primary-route award.
@@ -116,6 +117,14 @@ A medication can then show a separate +0 fit row; it did not “earn zero,” it
 additional patient-specific adjustment. The current medically unreviewed mirtazapine prototype
 has a +35 insomnia fit modifier and a −50 high-BMI-without-countervailing-reason modifier. Those
 values exercise architecture and remain reviewable clinical content, not authoritative guidance.
+
+A verified current FDA on-label match may eventually compile one minor
+`regulatory_alignment` row after the generic rule receives rule-level review. The provisional
+default is +10 when indication, population, jurisdiction, and selected formulation all match. The
+row is deliberately smaller than the primary route and most major fit/safety effects. Duplicate
+label records cannot stack it; a hard contraindication suppresses it; lack of FDA approval creates
+no automatic deduction. A case whose focused board-style question is FDA status may author a
+larger case-specific row instead.
 
 ### Rule combination and override semantics
 

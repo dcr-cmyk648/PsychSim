@@ -2365,3 +2365,50 @@ Developer-opinion workflow. No process auto-fills every empty section. Runtime g
 deterministic and AI-free; an engine-derived result is explained by its exact rule trace rather
 than being mislabeled as AI inference. This decision defines dossier behavior but does not
 authorize a schema migration, diagnosis-content import, or clinical rule.
+
+## D-169 — Intervention dossiers share a common envelope and FDA alignment may add modest points
+
+**Decision:** Medications, psychotherapies, and other interventions use one common dossier envelope
+for stable identity, aliases, classifications, source relationships, clinical roles, benefits,
+fit, safety, combinations, rules, balance, and impact links. Type-specific modules preserve the
+differences that matter. Medication modules own ingredient/formulation relationships, regulatory
+facts, pharmacology, adverse effects, interactions, discontinuation concerns, and
+snapshot-relevant prerequisites. Psychotherapy and program modules own delivery, fidelity,
+practitioner, setting, capability, and program-completeness distinctions rather than pretending
+they are medications.
+
+Medication identity begins at ingredient level. A formulation or product becomes a distinct
+intervention only when route/formulation materially changes availability, safety, adherence,
+fulfillment, or the best-next-step decision. Regulatory records remain jurisdiction-, product-,
+formulation-, version-, and population-specific. They do not automatically establish first-line
+status, comparative superiority, a broad treatment route, or a point magnitude.
+
+There is one narrow exception for educational FDA-label alignment. After the relevant generic
+rule receives rule-level review, a verified current FDA approval that exactly matches the resolved
+indication, population, and selected formulation may compile one separately itemized
+`regulatory_alignment` modifier. Its provisional default is a minor +10 points. It is a useful
+board-relevant fact, not the primary treatment award.
+
+The modifier never stacks because several FDA records, products, or approved indications describe
+the same selected treatment decision. A true contraindication suppresses it with the treatment's
+other positive fit rows. Absence of an approval creates no automatic penalty: a guideline-supported
+or otherwise reviewed off-label choice can still receive the complete broad-route and fit awards.
+Current nonresponse, prior failure, adverse effects, interactions, poor fit, a more appropriate
+treatment line, or a stronger specific rule may outweigh the small regulatory bonus. A patient
+explicitly designed to test FDA-approval knowledge may instead use a larger authored
+case-specific rule whose focus and points are visible in the trace.
+
+Clinical-use relationships preserve condition, population, setting, severity/phase, treatment
+line, target outcome, and role such as monotherapy, retained anchor, adjunct, replacement,
+symptom-targeted option, or discontinuation candidate. Benefits, adverse effects, feasibility,
+fit, safety severity, and evidence limitations remain separately traceable. Source estimates never
+become unexplained patient probabilities or points.
+
+Patient instances—not medication files—own distinct current-regimen entries and structured prior
+trials. A submitted snapshot may target entries with `continue`, `increase`, `reduce_or_limit`,
+`taper`, or `stop` and combine them with starts. Dossiers provide the reusable relationships
+needed to evaluate retention, replacement, augmentation, retrial, simplification, and duplicate
+therapy without encoding a dose schedule or longitudinal simulation. Speculative source leads and
+authoring inferences follow D-168 and remain nonexecutable. This decision defines dossier behavior
+and provisional balance direction; it does not activate the FDA modifier, migrate content, or
+clinically approve an intervention.

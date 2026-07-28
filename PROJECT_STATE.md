@@ -11,7 +11,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-168. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-169. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -25,7 +25,11 @@ Last updated: 2026-07-28
   can score complete best-next-step regimen transitions over complex current regimens and prior
   trials. It also permits clearly quarantined source leads and developer-side authoring inferences
   in sparse sections without treating them as evidence, opinion, rules, points, or runtime
-  content. The remaining database architecture choices are dependency-ordered in
+  content. D-169 establishes a shared intervention-dossier envelope with type-specific medication
+  and psychotherapy modules and complex regimen-transition support. A future reviewed, exact FDA
+  on-label match may contribute one minor +10 regulatory-alignment modifier without defining the
+  primary route or penalizing off-label care. The remaining database architecture choices are
+  dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
   `origin/main` remain unchanged unless the user separately authorizes promotion.
@@ -259,7 +263,7 @@ local IPC/loopback permission and passed unchanged outside that restriction.
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-168
+- `docs/DECISIONS.md` through D-169
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -286,12 +290,11 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only DBQ-006: a medication/intervention dossier contract covering shared
-   identity/evidence concepts, type-specific medication and psychotherapy modules, regulatory
-   scope, benefit/fit/safety relationships, and complex regimen-transition support without adding
-   dose-entry or longitudinal simulation. Do not implement or bulk-migrate the dossier schema until
-   that decision is accepted or revised.
-2. After DBQ-006, re-evaluate the remaining sequence and present DBQ-007 only. Do not shotgun the
+1. Present and resolve only DBQ-007: a shared finding/test/tendency contract that preserves one
+   resolved patient truth across History, Physical exam, Testing, diagnosis, treatment fit, and
+   receipt explanation while keeping source-supported associations separate from generation
+   weights. Do not implement or bulk-migrate the schema until that decision is accepted or revised.
+2. After DBQ-007, re-evaluate the remaining sequence and present DBQ-008 only. Do not shotgun the
    queued questions.
 3. The first already-approved engineering prerequisite remains
    `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned

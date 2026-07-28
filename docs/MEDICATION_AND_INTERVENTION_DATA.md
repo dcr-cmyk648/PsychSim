@@ -129,6 +129,14 @@ severity or game consequence is a separate reviewed interpretation.
 A product label does not establish first-line status, comparative superiority, a common off-label
 use, or the correct point value. Absence from a label is not evidence that a risk or use is absent.
 
+For gameplay, a separately reviewed generic `regulatory_alignment` rule may recognize an exact
+current FDA on-label match for the resolved indication, population, jurisdiction, and selected
+formulation. Its provisional default is a minor +10 points, shown separately from the broad
+treatment award. It is deduplicated per selected treatment decision and suppressed by a true
+contraindication. It does not penalize a reviewed off-label choice, overcome nonresponse or poor
+fit, or turn approval into comparative evidence. A patient whose focused educational question is
+the approval itself may own a larger explicit case-specific consequence.
+
 ### 3. Source-owned contribution units and topically owned relationships
 
 Each article, guideline, regulatory record, structured database release, or other formal source

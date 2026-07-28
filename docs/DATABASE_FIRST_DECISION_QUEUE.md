@@ -35,7 +35,11 @@ The following foundations are not being asked again:
 - one resolved finding may appear in several player-facing views while retaining one backend truth
   and complete contributor provenance (D-161); and
 - diagnosis dossiers support complete snapshot regimen transitions and separately quarantined
-  source-lead/authoring-inference speculation without automatic sparse-section completion (D-168).
+  source-lead/authoring-inference speculation without automatic sparse-section completion (D-168);
+  and
+- intervention dossiers share a common envelope with type-specific modules, while an exact
+  reviewed FDA-label match may contribute one minor nonexclusive regulatory-alignment bonus
+  (D-169).
 
 Two implementation prerequisites are also already approved:
 
@@ -309,7 +313,7 @@ texture, and reusable treatment pathways.
 
 ### DBQ-006 — Define the medication and intervention dossier contract
 
-**Status:** current.
+**Status:** accepted as D-169.
 
 Decide the reusable sections for medication ingredients/formulations, psychotherapy and other
 interventions: identity, regulatory status, evidence-supported uses, expected benefits, adverse
@@ -325,8 +329,13 @@ psychotherapy/other-intervention modules:
    separate entities only when route/formulation changes availability, safety, adherence,
    fulfillment, or the best-next-step decision. External IDs never replace PsychSim IDs.
 2. Regulatory status remains a separate jurisdiction-, product-, formulation-, and
-   version-specific lane. Approval, labeling, warnings, and contraindication wording are visible
-   facts, not automatic evidence of first-line status, comparative benefit, or game points.
+   version-specific lane. A verified current FDA on-label match for the resolved indication,
+   population, and formulation may compile one modest, separately itemized
+   `regulatory_alignment` bonus. The provisional default is +10 points. It neither defines the
+   broad treatment route nor proves comparative benefit, never stacks across duplicate label
+   records, is suppressed by a true contraindication, and does not penalize an otherwise supported
+   off-label treatment. A case explicitly testing approval knowledge may author a larger
+   case-specific consequence.
 3. Clinical-use relationships preserve condition, population, setting, severity/phase, treatment
    line, target outcome, and role such as monotherapy, retained anchor, adjunct, replacement,
    symptom-targeted option, or discontinuation candidate. Source-specific roles may disagree.
@@ -362,12 +371,59 @@ and source-linked receipt explanations.
 
 ### DBQ-007 — Define the shared finding, test, and tendency contract
 
-**Status:** queued after DBQ-005 and DBQ-006.
+**Status:** current.
 
 Decide how symptoms, observations, measurements, laboratory values, instruments, and prior
 exposures are represented once and influenced by diagnoses, medications, age, context, and
 background variation. Separate source-supported clinical associations from game-generation
 weights and preserve unknown, absent, normal, incidental, and case-defining states.
+
+**Proposed default:** use one canonical resolved-finding layer, separate reusable test definitions,
+and separately reviewed generation tendencies:
+
+1. Every reusable symptom, history element, exposure, examination finding, measurement, or
+   observation encountered in admitted input or modeled content receives one stable concept ID
+   with neutral labels, synonyms/search terms, value type, allowed outcomes, and presentation
+   templates. Its definition does not contain a patient's value or decide whether asking about it
+   is worth points.
+2. A `PatientInstance` owns the resolved clinical value, source, and uncertainty for each modeled
+   fact; `EncounterState` separately owns whether the player has revealed it. A truly
+   `unassessed`/`unknown` fact is different from a known `absent`, `subthreshold`, `present`,
+   `normal`, `high`, `low`, `positive`, or `negative` value, and an unrevealed fact does not become
+   unknown to the engine. Every History, Physical exam, Testing, diagnosis, treatment-fit, and
+   receipt view references that one truth.
+3. Diagnosis, medication, age/context, and other owners contribute constraints or tendencies to
+   shared findings rather than creating duplicate facts. Source-supported associations remain
+   separate from game-generation weights. Explicit specificity resolves compatible contributions;
+   hard contradictions retry deterministically or quarantine instead of using file order.
+4. A patient template distinguishes case-defining required facts, expected-but-variable findings,
+   ordinary background variation, optional comorbidity findings, and bounded distractors.
+   Criteria-driven groups use reviewed required/minimum/maximum constraints. Background variation
+   may be subthreshold but cannot silently create an incompatible full syndrome or change the
+   focused rubric.
+5. Every orderable study or instrument owns a separate test definition: study kind, components,
+   result schema, units/reference intervals, deterministic generation profiles, interpretation,
+   rights boundary, and result-display conventions. The linked shared
+   `InformationActionDefinition` separately owns the player-facing action ID, neutral label,
+   category/search metadata, and service/fulfillment relationship. The patient may provide a
+   more-specific authored result override. Neither owner decides clinical correctness or points.
+6. All results available in one encounter are resolved and frozen before play. Buying an action
+   only reveals them. Numeric results render value, unit, population-appropriate reference
+   interval, and `N`/`H`/`L`; at most one incidental abnormality per panel follows a reviewed
+   test-specific probability and narrow range, remains non-case-defining, and cannot alter
+   scoring.
+7. Named instruments and criteria lists retain their identity, validation scope, interpretation,
+   administration effort, and reuse permission. Protected item wording is not copied without
+   permission. The player-facing result can be a score or permitted structured summary while the
+   backend retains the exact derived inputs needed for audit.
+8. Information-action labels, neutral descriptions, categories, and search metadata are global.
+   Patient files supply only resolved results and narrow reveal mappings. Post-submit workup,
+   diagnosis, treatment, and fit rules separately explain how a finding mattered; no pre-submit
+   result or menu description exposes its value.
+
+This keeps a patient's state coherent across every screen while allowing the same symptom or test
+to behave differently across diagnoses, medications, ages, and patient templates without copying
+it into every file.
 
 **Unlocks:** coherent cross-domain information, reusable test generators, and explainable patient
 variation.
@@ -423,10 +479,11 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-006 before detailing DBQ-007. Do not implement or bulk-migrate the
-medication/intervention dossier schema until DBQ-006 is accepted or revised. D-168 permits
-traceable speculative candidates but does not authorize automatic completion of sparse sections,
-runtime AI, or speculative gameplay rules. D-167 still does not automatically apply scouted
-sources, revise the tracked packet schema, or authorize bulk scouting. DBQ-002 authorizes only a
-one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin architecture rather than
-immediate bulk catalog generation.
+Present and resolve DBQ-007 before detailing DBQ-008. Do not implement or bulk-migrate the shared
+finding/test/tendency schema until DBQ-007 is accepted or revised. D-169 permits a narrow verified
+FDA-alignment bonus but does not make regulatory status the treatment pathway or create an off-label
+penalty. D-168 permits traceable speculative candidates but does not authorize automatic
+completion of sparse sections, runtime AI, or speculative gameplay rules. D-167 still does not
+automatically apply scouted sources, revise the tracked packet schema, or authorize bulk scouting.
+DBQ-002 authorizes only a one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin
+architecture rather than immediate bulk catalog generation.

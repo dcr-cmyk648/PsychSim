@@ -168,6 +168,13 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   major effects near ±35–100; and critical safety effects near −150 to −500 with an optional cap.
   Exact values remain explicit, reviewable balance choices. Evidence certainty never
   automatically multiplies points; it governs provenance language, review, and reuse eligibility.
+- A verified, current FDA approval may contribute one minor, separately traced
+  `regulatory_alignment` bonus only when indication, population, jurisdiction, and selected
+  formulation match. The provisional default is +10 after the generic rule receives rule-level
+  review. It never defines the broad treatment route, proves comparative superiority, stacks
+  across duplicate label records, or creates an automatic penalty for off-label treatment. A true
+  contraindication suppresses it. A case explicitly focused on approval knowledge may instead own
+  a larger transparent case-specific rule.
 - A diagnosis submission may be empty. Broad categories, unspecified diagnoses, diagnosis
   families, and specific diagnoses require real catalog identities plus explicit reviewed
   parent/child relationships; never infer ancestry from labels, ICD prefixes, free tags, or file

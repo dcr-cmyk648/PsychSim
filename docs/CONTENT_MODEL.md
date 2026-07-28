@@ -234,6 +234,13 @@ insomnia tag and −50 for a matching high-BMI tag) to exercise the fit architec
 playtesting. The trace labels their unreviewed status. A modifier is not clinical authority merely
 because it is executable; later sourcing/review must version or reject it.
 
+A future reviewed generic policy may derive one minor `regulatory_alignment` modifier from a
+verified current FDA source unit when its indication, population, jurisdiction, and selected
+formulation exactly match the resolved patient and treatment. The provisional balance is +10.
+Regulatory records stay separate from treatment-route evidence, the modifier deduplicates per
+selected treatment, a true contraindication suppresses it, and no approval match produces zero
+rather than a penalty. The current identity and regulatory catalogs do not activate this policy.
+
 Executable workup, treatment-grade, treatment-prerequisite, score, and medication-fit records may
 declare `effectId`, `issueId`, and `specificityPriority`. These are relationship metadata, not
 clinical findings or provenance. Same-effect records are replacement candidates; same-issue
