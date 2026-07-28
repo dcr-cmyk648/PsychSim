@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-182. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-187. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -109,25 +109,33 @@ Last updated: 2026-07-28
   dependency links. Copied or correlated evidence cannot become independent corroboration through
   counting or naïve multiplication. A false proposition is not automatically a delusion,
   patient-scene evidence is distinct from formal literature provenance, and no reliability
-  probability, scoring rule, diagnosis inference, or runtime generator is activated. The next
-  technical owner is
-  `ticket.schema.patient-state.latent-proposition-evidence-foundation`, before the already accepted
-  subjective-presentation projection foundation.
+  probability, scoring rule, diagnosis inference, or runtime generator is activated.
   D-182 explicitly rejects a generic evidence-convergence or case-winnability validator.
   Realistically ambiguous, incomplete, or collectively misleading reports remain valid patient
   state and do not trigger retry or quarantine. The later rubric supports blank, broad,
   unspecified, multiple-defensible, and conservative coverage responses when exact certainty is
   not justified; missing support remains a nonblocking coverage gap.
+  D-183 implements the narrow point-free proposition/evidence envelope with exact authored or
+  deterministic provenance, shared-origin/correlation groups, belief appraisal, and no
+  convergence requirement. D-184 adds explicit versioned finding/reveal projections and
+  runtime-excluded expression banks; mappings are never inferred from aliases or phrase overlap.
+  D-185 adds neutral typed numeric-measurement and categorical-observation owners without medical
+  ranges or interpretation defaults. D-186 adds structured numeric, categorical, binary, imaging,
+  and electrical-study result contracts to all current test files while leaving critical values
+  patient-owned. D-187 composes the complete future `ResolvedPatientState` payload from distinct
+  internal conditions, chart claims, regimen/history/reactions, findings, measurements/tests,
+  duration, burden, context, and proposition evidence. It preserves repeated identities and
+  contradictory records without inference, points, generation, or compatibility migration.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after recording D-182: local `beta` may be ahead of `origin/beta` or carry a
+- Expected Git state after recording D-187: local `beta` may be ahead of `origin/beta` or carry a
   small documented database-design worktree while decisions are batched. Do not push or promote
   merely to make the refs equal. The last published checkpoint is `276534a`; inspect actual refs
   rather than assuming later local database work is remotely backed up.
 - Current local checkpoint message after this bounded decision:
-  `Preserve realistic diagnostic ambiguity`. Local `beta` is four commits ahead of `origin/beta`;
-  none of those four database-foundation commits is remotely backed up. Inspect `HEAD` for its exact
-  hash.
+  `Update patient state dependency handoff`. Local `beta` is ten commits ahead of `origin/beta`;
+  none of those ten database-foundation commits is remotely backed up. Inspect `HEAD` for its
+  exact hash.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
 
@@ -247,14 +255,14 @@ only the current operational state and should not grow into a second changelog.
   relevant investigation views. The GAD Reviewer feedback is preserved as a blocking historical
   attempt ticket; no probabilities or clinical rules changed.
 - The 2026-07-28 dependency audit found 621 nested finding occurrences and 186 finding IDs across
-  the five approved/review case files, with 112 IDs reused across files. The first canonical
-  finding-definition boundary and 28-definition wide/shallow seed are implemented and validated.
-  Nine value/semantic collisions and runtime compilation remain deliberately unresolved. Separate
-  queued owners cover typed vitals/MSE/physical measurements, structured results for patient-owned
-  tests, resolved condition/chart/regimen/trial/history state, substance/background exposure
-  state, and a focused decision-policy compiler. Existing medication and intervention
-  normalization tickets are explicit prerequisites. No patient, scoring rule, result probability,
-  or treatment guidance was generated.
+  the five approved/review case files, with 112 IDs reused across files. The canonical
+  finding-definition boundary and 41-definition wide/shallow seed are implemented and validated.
+  Point-free proposition/evidence, presentation-projection, measurement/exam, structured-test, and
+  complete resolved-patient-state owners are now present. Runtime compilation and compatibility
+  migration remain deliberately disabled. The first unresolved dependency is reusable
+  substance/background-exposure state; medication/intervention normalization and the focused
+  decision-policy compiler follow it. No patient, scoring rule, result probability, exposure
+  prevalence, or treatment guidance was generated.
 - The player-facing navigation target is History, Physical exam, Testing, Diagnosis, and Treatment.
   Testing will combine labs, imaging, electrical studies, and named instruments in one searchable
   presentation group while retaining their backend types.
@@ -470,11 +478,30 @@ No schema, runtime rule, scoring behavior, patient generator, application build,
 app-server check, GitHub push, Actions/Pages observation, reference-run replay, cross-reference
 rebuild, or complete repository gate was added or run.
 
+The D-183 through D-187 point-free patient-state foundation passed its deliberately narrow local
+gates on 2026-07-28:
+
+- proposition/evidence foundation: 30 focused schema/Developer/scout tests;
+- subjective-presentation projection foundation: 83 focused schema/runtime tests;
+- neutral measurement/exam foundation: 79 focused schema/runtime tests;
+- structured test-result foundation: 72 focused schema/runtime/Developer tests;
+- complete resolved patient-state foundation: 48 focused schema/Developer tests;
+- direct content/catalog/registry validation after every content-bearing slice;
+- root `pnpm typecheck` after the final composition; and
+- focused formatting plus `git diff --check`.
+
+All current test definitions now carry structured result contracts and the complete future patient
+snapshot parses complex polypharmacy, repeated chart claims, long treatment history, structured
+findings/tests, target-scoped duration/burden, and conflicting proposition evidence. No clinical
+probability, exposure vocabulary, diagnosis inference, point rule, patient generator,
+compatibility migration, application build, browser suite, app-server check, GitHub push,
+Actions/Pages observation, or reference-run replay was added or run.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-182
+- `docs/DECISIONS.md` through D-187
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -489,6 +516,7 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `packages/engine/src/scoring.ts`
 - `packages/engine/src/rule-combination.ts`
 - `packages/engine/src/diagnosis-scoring.ts`
+- `packages/schemas/src/index.ts`
 - `packages/content-runtime/src/reviewer-policies.ts`
 - `tools/content-cli/src/developer-database-knowledge.ts`
 - `tools/content-cli/src/google-drive-sync.ts`
@@ -502,20 +530,19 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Implement only the point-free
-   `ticket.schema.patient-state.latent-proposition-evidence-foundation` schema boundary. Preserve
-   a modeled proposition's frozen Boolean truth separately from patient/collateral/record/exam/test
-   claims, explicit shared origins and dependency groups, and belief appraisal. Do not add a
-   generic Bayesian resolver, conditional probability values, source-credibility score, diagnosis
-   inference, convergence/winnability gate, points, case migration, or runtime generation. Keep the
-   iteration local and run only focused validation.
-2. Then implement `ticket.catalog.findings.subjective-presentation-projection-foundation` so
-   expression banks, item/action response mappings, and frozen resolved projections remain
-   point-free and retain proposition/evidence links where applicable. Never infer mappings from
-   aliases or phrase overlap.
+1. Present and resolve only
+   `ticket.catalog.exposures.substance-use-foundation`: decide whether one reusable exposure
+   instance should keep assessment completeness, use/recency, intoxication, withdrawal, source
+   evidence, and attribution as separate dimensions while reusing medication/supplement identities
+   and dedicated substance identities. Do not choose prevalence, age distributions, diagnostic
+   thresholds, symptom associations, treatment routes, or points in that packet.
+2. If approved, implement only that point-free exposure identity/state boundary, compose it into
+   `ResolvedPatientState`, and run focused validation. Keep contradictory reports and clinician
+   attribution separate; exposure alone never creates a substance-induced diagnosis.
 3. Continue through the authoritative ordered queue in
-   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
-   general file.
+   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; intervention identity/fidelity and medication
+   regimen normalization precede the decision-policy compiler. Do not substitute an MDD-local owner
+   for a missing general file.
 4. Only after the complete general foundation is ready, implement
    `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
    conflict/replay/provenance tests.
