@@ -430,12 +430,14 @@ The first additive part of this target now exists without replacing compatibilit
 - `CanonicalFindingResolutionEnvelope` validates that a resolved outcome is admitted by the exact
   referenced definition version.
 
-The runtime catalog currently contains 27 identity-only, medically unreviewed definitions across
+The runtime catalog currently contains 28 identity-only, medically unreviewed definitions across
 function, depressive/anxiety/mania history, reported psychosis, sleep/appetite, and
 suicide/violence safety. They have no condition association, criteria role, prevalence, generation
 weight, treatment implication, or point value. The first 37-candidate audit intentionally did not
-force duration or ordinal burden into outcome values and did not guess at eight other semantic
-collisions. Those candidates remain explicit one-at-a-time review work.
+force duration or ordinal burden into outcome values. A subsequent reviewed game-granularity
+decision normalized loss/reduction of interest and loss/reduction of pleasure as aliases of one
+current anhedonia identity. Seven other semantic collisions remain explicit one-at-a-time review
+work.
 
 Existing `FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay
 remain the compatibility path and were not migrated. Numeric measurements, test-owned results,

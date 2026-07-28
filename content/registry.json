@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.22.0",
+  "contentVersion": "3.23.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -42,6 +42,7 @@
         "finding.appetite.current-reduced",
         "finding.depressive.depressed-mood",
         "finding.function.self-reported-current-impact",
+        "finding.history.current-anhedonia",
         "finding.history.current-concentration-difficulty",
         "finding.history.current-decreased-sleep-need",
         "finding.history.current-elevated-irritable-mood",

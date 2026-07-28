@@ -729,11 +729,12 @@ without repeatedly rereading every dossier.
 DBQ-010 is resolved. Work now proceeds through the ordered dependency gate in
 [ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md), one bounded owner at
 a time. The canonical finding boundary and the unambiguous portion of the 37-candidate
-general-psychiatry seed are complete. The exact next review is
-`ticket.catalog.findings.diminished-interest-pleasure-boundary`: decide whether diminished
-interest and diminished capacity for pleasure are two atomic backend facts while retaining a
-compact combined player presentation. No compatibility case migration, clinical association,
-probability, point value, or patient generation is authorized.
+general-psychiatry seed are complete. The reviewer chose one decision-relevant anhedonia identity
+for loss/reduction of interest or pleasure. The exact next review is
+`ticket.catalog.findings.fatigue-low-energy-boundary`: decide whether ordinary fatigue, low
+energy, and tiredness share one game identity while preserving sleepiness, weakness, psychomotor
+slowing, medication sedation, and exertional intolerance as separate facts. No compatibility case
+migration, clinical association, probability, point value, or patient generation is authorized.
 
 Do not detail DBQ-011 until one complete vertical exposes real maintenance costs. D-173 authorizes
 a two-stage promotion contract but not its schema migration or bulk rule activation. D-172 makes

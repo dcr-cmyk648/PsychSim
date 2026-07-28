@@ -5,8 +5,9 @@ Last updated: 2026-07-28
 ## Operational handoff
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
-- Canonical branch: `beta`, tracking `origin/beta`. Local work stays on `beta` until the user
-  explicitly asks to promote the whole branch to `main`.
+- Canonical branch: `beta`, tracking `origin/beta`. Local work stays on `beta`; validated
+  runtime-content/catalog checkpoints may promote the whole branch to `main` under the standing
+  release instruction recorded in `AGENTS.md`, after which the checkout returns to `beta`.
 - Current phase: Milestone 3 is complete. The bounded work is still the pre-Milestone-4
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
@@ -54,6 +55,10 @@ Last updated: 2026-07-28
   wording only; facts stay distinct when time, source, specificity, or value can differ; typed
   records and measurements keep their real owners; and ambiguous collisions remain one-at-a-time
   review items rather than automatic merges.
+  D-176 sets a decision-relevant granularity ceiling for the game: a psychiatrist reviewer may
+  approve one identity for adjacent descriptions that ordinarily do not change the focused
+  best-next-step decision, while source wording/provenance remains available for a later split.
+  The first application treats loss/reduction of interest or pleasure as one anhedonia identity.
   DBQ-010 was explicitly approved on 2026-07-28: MDD is the first deep knowledge/database
   dependency vertical, with no setting or difficulty ceiling, and generalized patient generation
   remains disabled. The first dependency-readiness audit is now recorded in
@@ -61,15 +66,14 @@ Last updated: 2026-07-28
   tickets without adding clinical rules, probabilities, points, or runtime behavior.
   `ticket.catalog.findings.canonical-definition-boundary` and the unambiguous portion of
   `ticket.catalog.findings.general-psychiatry-seed` are now resolved. The strict runtime catalog
-  registers 27 medically unreviewed, identity-only findings. The 37-candidate audit deferred ten
-  value/semantic collisions rather than forcing them into unsafe identities; current
+  registers 28 medically unreviewed, identity-only findings. The 37-candidate audit and anhedonia
+  resolution leave nine value/semantic collisions rather than forcing them into unsafe identities; current
   `FindingBlueprint`, `ResolvedFinding`, case instances, saves, replay, generation, and scoring
-  remain unchanged. The next single review item is diminished interest versus diminished
-  pleasure/anhedonia.
+  remain unchanged. The next single review item is fatigue/tiredness/low-energy granularity.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
-  `origin/main` remain unchanged unless the user separately authorizes promotion.
+- Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; this validated
+  runtime-catalog checkpoint is also promoted whole to `main`, so `main == origin/main == beta`.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
 
@@ -187,8 +191,8 @@ only the current operational state and should not grow into a second changelog.
   attempt ticket; no probabilities or clinical rules changed.
 - The 2026-07-28 dependency audit found 621 nested finding occurrences and 186 finding IDs across
   the five approved/review case files, with 112 IDs reused across files. The first canonical
-  finding-definition boundary and 27-definition wide/shallow seed are implemented and validated.
-  Ten value/semantic collisions and runtime compilation remain deliberately unresolved. Separate
+  finding-definition boundary and 28-definition wide/shallow seed are implemented and validated.
+  Nine value/semantic collisions and runtime compilation remain deliberately unresolved. Separate
   queued owners cover typed vitals/MSE/physical measurements, structured results for patient-owned
   tests, resolved condition/chart/regimen/trial/history state, substance/background exposure
   state, and a focused decision-policy compiler. Existing medication and intervention
@@ -331,8 +335,8 @@ sandbox denied their local IPC sockets; each passed unchanged with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
-The canonical finding-boundary plus general-psychiatry identity-seed checkpoint passed on
-2026-07-28:
+The canonical finding boundary, general-psychiatry identity seed, and first reviewed
+decision-granularity resolution passed on 2026-07-28:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
 - `pnpm test`: 55 Vitest files / 408 tests plus 10 Python handoff tests;
@@ -384,14 +388,13 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only
-   `ticket.catalog.findings.diminished-interest-pleasure-boundary` as the next single review item.
-   The prepared packet proposes two backend atoms—current diminished interest and current
-   diminished capacity for pleasure—while allowing one compact player-facing group and preserving
-   the legacy term `anhedonia` as an unresolved combined presentation term.
-2. If approved, add only those two identity shells. Do not migrate compatibility cases or add an
-   MDD criterion, generation tendency, probability, relevance, points, treatment behavior, or
-   medical approval. Then route the next deferred collision one at a time.
+1. Present and resolve only `ticket.catalog.findings.fatigue-low-energy-boundary` as the next
+   single review item. The prepared packet proposes one current self-reported fatigue/low-energy
+   identity for ordinary fatigue, low energy, and tiredness, while keeping sleepiness, weakness,
+   psychomotor slowing, medication sedation, and exertional intolerance separate.
+2. If approved, add only that identity shell. Do not migrate compatibility cases or add a
+   diagnosis criterion, generation tendency, probability, relevance, points, treatment behavior,
+   or medical approval. Then route the next deferred collision one at a time.
 3. Continue through the authoritative ordered queue in
    `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
    general file.

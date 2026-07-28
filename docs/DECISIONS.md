@@ -2695,3 +2695,24 @@ labels and aliases, semantic kind, admitted outcome values, and presentation pro
 decision adds no diagnosis association, criterion, generation tendency, prevalence, probability,
 clinical relevance, point value, treatment implication, case migration, or medical approval.
 Existing `FindingBlueprint`, case, save, and replay snapshots remain unchanged.
+
+## D-176 — Finding granularity stops at useful game decision boundaries
+
+**Decision:** Canonical finding identity is not required to reproduce every phenomenologic
+distinction that could be made in a comprehensive clinical model. PsychSim is a focused question
+bank and learning game. When two descriptions ordinarily lead to the same immediate psychiatric
+decision, the psychiatrist reviewer may deliberately approve one shared identity even if a more
+granular research or assessment model could separate them.
+
+The first approved application is anhedonia. Loss or reduction of interest and loss or reduction
+of pleasure are presentation aliases for one current self-reported anhedonia identity because
+that distinction usually does not change the focused best-next-step decision. Source records keep
+their original permitted wording and provenance, so a future decision-specific reason may reopen
+the boundary without discarding what each source actually stated.
+
+This is a reviewed simplification, not automatic semantic merging. Different time scopes, patient
+report versus observed examination, safety facts, treatment consequences, or distinctions that
+materially change workup, treatment, disposition, or explanation remain separate. The decision
+adds one medically unreviewed identity shell only; it adds no diagnostic criterion, generation
+tendency, probability, clinical relevance, point value, treatment implication, case migration, or
+medical approval.

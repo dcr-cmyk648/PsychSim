@@ -158,7 +158,7 @@ describe('prototype content', () => {
     const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
     expect(parsedFindings).toEqual(runtimeCatalog.findings);
-    expect(parsedFindings).toHaveLength(27);
+    expect(parsedFindings).toHaveLength(28);
     expect(
       parsedFindings.find((finding) => finding.id === 'finding.depressive.depressed-mood'),
     ).toEqual(
@@ -188,6 +188,7 @@ describe('prototype content', () => {
       'finding.appetite.current-reduced',
       'finding.depressive.depressed-mood',
       'finding.function.self-reported-current-impact',
+      'finding.history.current-anhedonia',
       'finding.history.current-concentration-difficulty',
       'finding.history.current-decreased-sleep-need',
       'finding.history.current-elevated-irritable-mood',
@@ -225,7 +226,6 @@ describe('prototype content', () => {
     ]);
     expect(canonicalTerms).not.toEqual(
       expect.arrayContaining([
-        'anhedonia',
         'grandiosity',
         'impulsivity',
         'low energy',
@@ -236,6 +236,20 @@ describe('prototype content', () => {
         'thought disorganization',
         'weapon-access concern',
       ]),
+    );
+    expect(
+      catalogs.findings.find((finding) => finding.id === 'finding.history.current-anhedonia'),
+    ).toEqual(
+      expect.objectContaining({
+        label: 'Current anhedonia',
+        aliases: [
+          'Loss of interest',
+          'Reduced interest',
+          'Loss of pleasure',
+          'Reduced pleasure',
+          'Reduced enjoyment',
+        ],
+      }),
     );
     const compatibilityFinding = prototypeCaseBlueprint.informationActions
       .flatMap((action) => action.result.findings)

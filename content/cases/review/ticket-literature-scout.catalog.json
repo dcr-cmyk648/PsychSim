@@ -1221,7 +1221,12 @@
     {
       "ticketId": "ticket.catalog.findings.diminished-interest-pleasure-boundary",
       "profileIds": [],
-      "exemptionReason": "This is a narrow identity-granularity and compatibility-provenance decision. Clinical sources may later govern diagnostic criteria or measurement, but a treatment-effect meta-analysis cannot decide whether two independently resolvable patient facts should share one backend identity."
+      "exemptionReason": "This is a narrow identity-granularity and compatibility-provenance decision. The reviewer selected one game-relevant anhedonia identity; clinical sources may later govern diagnostic criteria or measurement, but a treatment-effect meta-analysis cannot determine the database's useful granularity by itself."
+    },
+    {
+      "ticketId": "ticket.catalog.findings.fatigue-low-energy-boundary",
+      "profileIds": [],
+      "exemptionReason": "This is a narrow identity-granularity and compatibility-provenance decision. Clinical sources may later support distinct fatigue, sleepiness, weakness, or medication-sedation relationships, but a treatment-effect meta-analysis cannot determine whether ordinary fatigue/low-energy wording should share one game identity."
     },
     {
       "ticketId": "ticket.catalog.measurements.vitals-exam-foundation",

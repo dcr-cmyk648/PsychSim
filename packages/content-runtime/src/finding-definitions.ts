@@ -1,6 +1,7 @@
 import { FindingDefinitionSchema, type FindingDefinition } from '@psychsim/schemas';
 
 import currentActiveSuicidalIdeationJson from '../../../content/catalogs/findings/definitions/current-active-suicidal-ideation.finding.json';
+import currentAnhedoniaJson from '../../../content/catalogs/findings/definitions/current-anhedonia.finding.json';
 import currentDecreasedSleepNeedJson from '../../../content/catalogs/findings/definitions/current-decreased-sleep-need.finding.json';
 import currentElevatedIrritableMoodJson from '../../../content/catalogs/findings/definitions/current-elevated-irritable-mood.finding.json';
 import currentExcessiveGuiltJson from '../../../content/catalogs/findings/definitions/current-excessive-guilt.finding.json';
@@ -31,6 +32,7 @@ import suicideAttemptHistoryJson from '../../../content/catalogs/findings/defini
 export const findingDefinitions: FindingDefinition[] = FindingDefinitionSchema.array()
   .parse([
     currentActiveSuicidalIdeationJson,
+    currentAnhedoniaJson,
     currentDecreasedSleepNeedJson,
     currentElevatedIrritableMoodJson,
     currentExcessiveGuiltJson,
