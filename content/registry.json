@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.29.0",
+  "contentVersion": "3.30.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -302,6 +302,22 @@
         "evidence.nlm.mesh.2026",
         "evidence.nlm.rxnorm-cpc.2026-07-06",
         "registry.catalog.source-use-decisions"
+      ]
+    },
+    {
+      "id": "registry.catalog.exposures",
+      "kind": "exposure_catalog",
+      "path": "content/catalogs/exposures/definitions.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "substance.alcohol",
+        "substance.caffeine",
+        "substance.cannabis",
+        "substance.nicotine"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.medication-identities",
+        "registry.catalog.supplement-identities"
       ]
     },
     {

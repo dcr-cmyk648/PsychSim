@@ -8,6 +8,7 @@ import {
   DiagnosisClassificationReleaseSchema,
   EvidenceContributionSchema,
   EvidenceSourceDefinitionSchema,
+  ExposureCatalogSchema,
   FindingExpressionBankCatalogSchema,
   MeasurementCatalogSchema,
   MedicationIdentityDefinitionSchema,
@@ -620,6 +621,84 @@ if (
   );
 }
 
+const exposureCatalogIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let exposureCatalogForValidation: ReturnType<typeof ExposureCatalogSchema.parse> | null = null;
+const exposureCatalogEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'exposure_catalog',
+);
+if (exposureCatalogEntries.length !== 1) {
+  exposureCatalogIssues.push({
+    severity: 'error',
+    code: 'EXPOSURE_CATALOG_COUNT',
+    message: `Expected one exposure catalog; found ${exposureCatalogEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = exposureCatalogEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Exposure identities and generation priors remain outside the ordinary runtime until the patient compiler exists.',
+      );
+    }
+    const catalog = ExposureCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    exposureCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.otherSubstanceIdentities.map((identity) => identity.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error('Exposure registry membership must exactly match its owned identities.');
+    }
+
+    const identityVersionsByKind = {
+      medication: new Map(
+        medicationIdentities.map((identity) => [identity.id, identity.contentVersion]),
+      ),
+      supplement: new Map(
+        supplementIdentities.map((identity) => [identity.id, identity.contentVersion]),
+      ),
+      other_substance: new Map(
+        catalog.otherSubstanceIdentities.map((identity) => [identity.id, identity.contentVersion]),
+      ),
+    };
+    for (const prior of catalog.misuseGenerationPriors) {
+      const actualVersion = identityVersionsByKind[prior.agent.kind].get(prior.agent.identityId);
+      if (!actualVersion) {
+        throw new Error(
+          `${prior.id} references unknown ${prior.agent.kind} identity ${prior.agent.identityId}.`,
+        );
+      }
+      if (actualVersion !== prior.agent.identityContentVersion) {
+        throw new Error(
+          `${prior.id} pins ${prior.agent.identityId}@${prior.agent.identityContentVersion}; expected ${actualVersion}.`,
+        );
+      }
+    }
+    for (const sourceUse of catalog.sourceUseNotes) {
+      for (const evidenceSourceId of sourceUse.evidenceSourceIds) {
+        if (!allEvidenceSourceIds.has(evidenceSourceId)) {
+          throw new Error(
+            `${sourceUse.id} references unknown evidence source ${evidenceSourceId}.`,
+          );
+        }
+      }
+    }
+  } catch (error) {
+    exposureCatalogIssues.push({
+      severity: 'error',
+      code: 'INVALID_EXPOSURE_CATALOG',
+      message: error instanceof Error ? error.message : 'Exposure catalog validation failed.',
+    });
+  }
+}
+
 interface ContributionUse {
   contribution: ReturnType<typeof EvidenceContributionSchema.parse>;
   owner: string;
@@ -662,6 +741,14 @@ approvedCaseBlueprints.forEach((blueprint) =>
 allReviewBlueprints.forEach((blueprint) =>
   collectContributionUses(blueprint, blueprint.id, false, contributionUses),
 );
+if (exposureCatalogForValidation) {
+  collectContributionUses(
+    exposureCatalogForValidation,
+    exposureCatalogForValidation.id,
+    false,
+    contributionUses,
+  );
+}
 const sourceUseDecisionByEvidenceId = new Map(
   sourceUseDecisionCatalog.decisions.map((decision) => [decision.evidenceSourceId, decision]),
 );
@@ -910,6 +997,9 @@ if (developerOpinionEntries.length !== 1) {
         .filter((treatment) => treatment.kind === 'nonmedication')
         .map((treatment) => [treatment.id, 'intervention'] as const),
       ...catalogs.tests.map((test) => [test.id, 'test'] as const),
+      ...(exposureCatalogForValidation?.misuseGenerationPriors.map(
+        (prior) => [prior.id, 'clinical_rule'] as const,
+      ) ?? []),
     ]);
     for (const opinion of catalog.opinions) {
       for (const target of opinion.targets) {
@@ -927,6 +1017,27 @@ if (developerOpinionEntries.length !== 1) {
         throw new Error(
           `${policy.id} references unknown Developer opinion ${policy.developerOpinionId}.`,
         );
+      }
+    }
+    const developerOpinionById = new Map(catalog.opinions.map((opinion) => [opinion.id, opinion]));
+    for (const prior of exposureCatalogForValidation?.misuseGenerationPriors ?? []) {
+      for (const developerOpinionId of prior.developerOpinionIds) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${prior.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === prior.id,
+          )
+        ) {
+          throw new Error(
+            `${developerOpinionId} does not target misuse generation prior ${prior.id}.`,
+          );
+        }
       }
     }
     const sourceUseById = new Map(
@@ -1009,6 +1120,13 @@ const reports = [
     {
       valid: supplementIdentityIssues.length === 0,
       issues: supplementIdentityIssues,
+    },
+  ],
+  [
+    'exposures',
+    {
+      valid: exposureCatalogIssues.length === 0,
+      issues: exposureCatalogIssues,
     },
   ],
   [

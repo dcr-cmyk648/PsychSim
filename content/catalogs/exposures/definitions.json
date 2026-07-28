@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.exposures",
+  "otherSubstanceIdentities": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "substance.alcohol",
+      "label": "Alcohol",
+      "normalizedName": "alcohol",
+      "aliases": ["ethanol"],
+      "authoringStatus": "identity_only",
+      "runtimeSelectable": false,
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "substance.caffeine",
+      "label": "Caffeine",
+      "normalizedName": "caffeine",
+      "aliases": [],
+      "authoringStatus": "identity_only",
+      "runtimeSelectable": false,
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "substance.cannabis",
+      "label": "Cannabis",
+      "normalizedName": "cannabis",
+      "aliases": ["marijuana"],
+      "authoringStatus": "identity_only",
+      "runtimeSelectable": false,
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "substance.nicotine",
+      "label": "Nicotine",
+      "normalizedName": "nicotine",
+      "aliases": [],
+      "authoringStatus": "identity_only",
+      "runtimeSelectable": false,
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ],
+  "misuseGenerationPriors": [],
+  "sourceUseNotes": []
+}

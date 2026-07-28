@@ -273,12 +273,21 @@ observations. A legacy adequacy category may remain in historical snapshots, whi
 reviewed inference lives separately and never causes dose or duration to be invented during
 migration.
 
-The planned background-exposure record resolves nonpsychiatric medication entries and supplement
-entries against a saved reviewed age band and generation-profile ID. Every entry has a stable
-instance ID and impact class. The optional enthusiast pattern requires multiple distinct
-supplement identities and is derived from that resolved set. Age-based count distributions and
-allowlists remain proposed authoring data until source and clinician review; cosmetic presentation
-age is not a clinical-generation input.
+The target exposure model reuses medication and supplement identities and owns separate identities
+only for other substances. Its optional misuse prior is intentionally coarse: one approximate
+probability given use, plus prescribed-to-patient and not-prescribed-to-patient multipliers for
+medications. Every prior requires a formal contribution or Developer opinion; no recorded prior
+means uncharacterized rather than zero.
+
+`ResolvedExposureInventory` is objective positive-use state. Each entry preserves current or
+elapsed recency, a current amount when applicable, medication prescription relationship, the final
+misuse Boolean, and authored or deterministic resolution. Absence means the frozen patient did not
+use that agent, not that the player failed to assess it. Patient report, collateral, records,
+toxicology, intoxication, withdrawal, diagnosis, and causal attribution remain separate evidence
+or clinical owners. This unified target replaces a second supplement-use array in the future
+`ResolvedPatientState`; existing background-exposure and supplement schemas remain compatibility
+records. Age-based counts, allowlists, enthusiast patterns, clinical effects, and generation
+profiles remain proposed authoring work.
 
 The current medication shape is a runtime compatibility layer, not the target background
 knowledge database. Future authoring separates stable ingredient/formulation identity, sourced

@@ -400,13 +400,21 @@ defines the broad strategy; patient regimen/trial records and medication, advers
 interaction, and fit owners supply the discriminating details. This is still a snapshot judgment,
 not longitudinal treatment simulation.
 
-Nonpsychiatric medications and supplements use identity records plus patient-owned exposure
-entries. Six initial supplement identities—ashwagandha, lavender oil, L-theanine, magnesium,
-S-adenosylmethionine, and saffron extract—are browseable identity-only scaffolds. Their MeSH and,
-where exact, RxNorm identifiers establish identity and preparation distinctions only. They do not
-establish efficacy, interactions, adverse effects, prevalence, or scoring, and they remain
-unselectable. Age-banded counts and a supplement-enthusiast pattern require a separately reviewed
-generation profile.
+Medication and supplement exposure reuses those identity records rather than creating duplicate
+“substance” copies. Other agents have their own neutral exposure identities. The target patient
+state stores one positive-use entry per used agent with recency, current amount when applicable,
+prescription relationship for medications, and a final misuse yes/no. Reported history and test
+evidence remain separate.
+
+An optional source- or Developer-opinion-backed generation prior may later provide one approximate
+misuse probability given use. Medication priors add prescribed-to-patient and
+not-prescribed-to-patient multipliers; no seven-field epidemiologic model is required. Six initial
+supplement identities—ashwagandha, lavender oil, L-theanine, magnesium,
+S-adenosylmethionine, and saffron extract—remain browseable identity-only scaffolds. Four
+other-substance shells—alcohol, caffeine, cannabis, and nicotine—are runtime-excluded. None of
+these identities establishes efficacy, interaction, adverse effect, prevalence, diagnosis, or
+scoring. Age-banded counts, allowlists, and a supplement-enthusiast pattern still require a
+separately reviewed generation profile.
 
 Medication-associated sexual effects belong in tolerability facts tied to a specific current
 regimen entry or prior trial. `unknown`, `absent`, and `present` are not interchangeable. A source

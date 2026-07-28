@@ -136,19 +136,34 @@ const makeState = () => ({
       impactClassification: 'neutral_background',
     },
   ],
-  supplementUseEntries: [
-    {
-      recordVersion: 2,
-      id: 'supplement-entry.test.magnesium',
-      supplementIdentityId: 'supplement.magnesium',
-      status: 'current',
-      reportedPreparation: null,
-      frequencyLabel: 'Most evenings',
-      source: 'patient_report',
-      knownAtOpening: false,
-      impactClassification: 'neutral_background',
-    },
-  ],
+  exposureInventory: {
+    schemaVersion: 1,
+    id: 'resolved-exposure-inventory.test.complex',
+    useEntries: [
+      {
+        schemaVersion: 1,
+        id: 'exposure-use.test.magnesium',
+        agent: {
+          kind: 'supplement',
+          identityId: 'supplement.magnesium',
+          identityContentVersion: '1.0.0',
+        },
+        mostRecentUse: { kind: 'current' },
+        currentAmount: {
+          quantity: 1,
+          unitLabel: 'tablet',
+          frequencyLabel: 'most evenings',
+        },
+        prescriptionRelationship: 'not_applicable',
+        misuseTruth: false,
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.complex',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ],
+  },
   treatmentHistory: {
     medicationTrials: [
       {
@@ -471,6 +486,11 @@ describe('resolved patient-state foundation', () => {
       'ordinal-value.test.very',
       'ordinal-value.test.somewhat',
     ]);
+    expect(parsed.exposureInventory.useEntries[0]?.agent).toEqual({
+      kind: 'supplement',
+      identityId: 'supplement.magnesium',
+      identityContentVersion: '1.0.0',
+    });
   });
 
   it('does not require chart claims to activate conditions or conditions to create chart claims', () => {
@@ -481,6 +501,44 @@ describe('resolved patient-state foundation', () => {
     const internalOnly = makeState();
     internalOnly.diagnosisRecordEntries = [];
     expect(ResolvedPatientStateSchema.safeParse(internalOnly).success).toBe(true);
+  });
+
+  it('keeps prescription-list records separate from objective medication use', () => {
+    const state = makeState();
+    state.exposureInventory.useEntries.push({
+      schemaVersion: 1,
+      id: 'exposure-use.test.gabapentin',
+      agent: {
+        kind: 'medication',
+        identityId: 'medication.gabapentin',
+        identityContentVersion: '1.0.0',
+      },
+      mostRecentUse: { kind: 'current' },
+      currentAmount: {
+        quantity: 1,
+        unitLabel: 'capsule',
+        frequencyLabel: 'occasionally',
+      },
+      prescriptionRelationship: 'not_prescribed_to_patient',
+      misuseTruth: false,
+      resolution: {
+        origin: 'authored',
+        ownerId: 'patient-template.test.complex',
+        ownerContentVersion: '1.0.0',
+      },
+    });
+
+    const parsed = ResolvedPatientStateSchema.parse(state);
+    expect(
+      parsed.medicationRegimenEntries.some(
+        (entry) => entry.medicationIdentityId === 'medication.gabapentin',
+      ),
+    ).toBe(false);
+    expect(
+      parsed.exposureInventory.useEntries.some(
+        (entry) => entry.agent.identityId === 'medication.gabapentin',
+      ),
+    ).toBe(true);
   });
 
   it('allows repeated medication and diagnosis identities but rejects repeated record IDs', () => {

@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-187. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-188. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -126,15 +126,21 @@ Last updated: 2026-07-28
   internal conditions, chart claims, regimen/history/reactions, findings, measurements/tests,
   duration, burden, context, and proposition evidence. It preserves repeated identities and
   contradictory records without inference, points, generation, or compatibility migration.
+  D-188 adds a deliberately small objective exposure boundary: medication and supplement
+  identities are reused, only other substances receive new identity shells, and an optional
+  source/opinion-backed misuse prior contains one probability given use plus medication-only
+  prescribed/nonprescribed multipliers. The future patient snapshot stores only positive use
+  entries and the frozen misuse Boolean; assessment evidence, intoxication, withdrawal, diagnosis,
+  attribution, points, and runtime generation remain separate.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after recording D-187: local `beta` may be ahead of `origin/beta` or carry a
+- Expected Git state after recording D-188: local `beta` may be ahead of `origin/beta` or carry a
   small documented database-design worktree while decisions are batched. Do not push or promote
   merely to make the refs equal. The last published checkpoint is `276534a`; inspect actual refs
   rather than assuming later local database work is remotely backed up.
 - Current local checkpoint message after this bounded decision:
-  `Update patient state dependency handoff`. Local `beta` is ten commits ahead of `origin/beta`;
-  none of those ten database-foundation commits is remotely backed up. Inspect `HEAD` for its
+  `Add objective exposure state foundation`. Local `beta` is eleven commits ahead of `origin/beta`;
+  none of those eleven database-foundation commits is remotely backed up. Inspect `HEAD` for its
   exact hash.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
@@ -493,15 +499,29 @@ gates on 2026-07-28:
 All current test definitions now carry structured result contracts and the complete future patient
 snapshot parses complex polypharmacy, repeated chart claims, long treatment history, structured
 findings/tests, target-scoped duration/burden, and conflicting proposition evidence. No clinical
-probability, exposure vocabulary, diagnosis inference, point rule, patient generator,
+probability, diagnosis inference, point rule, patient generator,
 compatibility migration, application build, browser suite, app-server check, GitHub push,
 Actions/Pages observation, or reference-run replay was added or run.
+
+The D-188 objective-exposure foundation passed its deliberately narrow local gate on 2026-07-28:
+
+- 46 focused exposure, resolved-state, and Developer-ticket tests;
+- direct content/catalog/registry validation, including cross-catalog identity-version checks;
+- root `pnpm typecheck`; and
+- focused formatting plus `git diff --check`.
+
+The runtime-excluded catalog has four neutral other-substance identity shells and no authored
+misuse priors. No epidemiologic rate, age/count distribution, evidence-projection rule,
+intoxication/withdrawal record, diagnosis inference, point rule, patient generator, compatibility
+migration, application build, browser suite, app-server check, GitHub push, Actions/Pages
+observation, or reference-run replay was added or run. The next bounded review owner is
+`ticket.catalog.interventions.identity-and-fidelity`.
 
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-187
+- `docs/DECISIONS.md` through D-188
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`

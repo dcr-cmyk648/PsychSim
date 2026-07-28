@@ -765,10 +765,13 @@ reviewer rejected any additional requirement that these claims converge on hidde
 case perfectly solvable. Realistic ambiguity and collectively misleading evidence remain valid;
 blank, broad, unspecified, and conservative coverage answers belong in the rubric rather than a
 generator winnability gate. The point-free proposition/evidence, subjective-presentation,
-measurement, structured test-result, and complete resolved patient-state foundations are now
-implemented and validated without a probability, scoring, diagnosis verdict, reveal, migration,
-or runtime-generation change. The next unresolved review owner is
-`ticket.catalog.exposures.substance-use-foundation`.
+measurement, structured test-result, complete resolved patient-state, and compact objective
+exposure foundations are now implemented and validated. Exposure reuses medication/supplement
+identities, adds only neutral other-substance identities, and permits one coarse misuse
+probability plus medication prescription-context multipliers; no rate is currently authored.
+Assessment/evidence, intoxication/withdrawal, diagnosis, scoring, migration, and runtime
+generation remain separate. The next unresolved review owner is
+`ticket.catalog.interventions.identity-and-fidelity`.
 
 While this dependency queue is active, each accepted item remains a tight local database iteration:
 edit one bounded owner, run only its focused schema/content checks, and move to the next review.

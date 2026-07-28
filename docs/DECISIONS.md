@@ -3015,3 +3015,41 @@ comorbidities, assign source reliability, add a diagnosis or treatment recommend
 points, expose purchase/reveal state, or activate a generator. The next unresolved owner is the
 substance/background-exposure vocabulary; no exposure taxonomy or prevalence was smuggled into
 this record.
+
+## D-188 — Exposure generation stays coarse while patient use truth stays objective
+
+**Decision:** Reuse the existing medication and supplement identities for exposure state; add a
+separate identity only when an agent is neither. A medication does not receive a duplicate
+“substance” record merely because it can be misused. The initial other-substance catalog contains
+neutral, runtime-excluded identity shells only.
+
+One optional `AgentMisuseGenerationPrior` may describe each agent with a single approximate
+probability of misuse given use. A medication prior additionally carries one prescribed-to-this-
+patient multiplier and one not-prescribed-to-this-patient multiplier. Multipliers combine by
+multiplication followed by a 0–1 clamp; this is a global schema/engine rule rather than repeated
+metadata in every prior. Here misuse means a source- or reviewer-defined problematic or abusive
+use pattern. A medication’s prescribed/not-prescribed relationship is a separate modifier and does
+not decide that truth by itself. Every prior must point to a formal contribution or a Developer
+opinion; a missing prior means “not characterized,” never zero. Published population statistics
+are game-generation inputs rather than exact epidemiologic simulation, and no prior is authored in
+this decision.
+
+The resolved patient stores a compact positive-use inventory. Each used agent has one versioned
+identity reference, current or elapsed recency, a current amount only when current, medication
+prescription relationship when relevant, the final misuse Boolean, and one authored or
+deterministic resolution trace. Absence from the frozen inventory means the patient did not use
+that agent; it does not mean unassessed. History, collateral, records, toxicology, and other
+projections separately determine what evidence the player receives and how accurately it reflects
+the objective fact.
+
+Medication-regimen entries remain prescription/list records with source-stated adherence;
+medication exposure is the separate objective use fact. A prescribed medication can therefore be
+listed while not used, and a nonprescribed medication can be used without a regimen entry.
+Apparent disagreement remains auditable evidence rather than triggering automatic inference or
+cleanup.
+
+Intoxication, withdrawal, substance-use diagnosis, causal attribution, assessment status, reveal
+state, treatment, and points remain separate owners. For the future `ResolvedPatientState`, this
+unified inventory supersedes D-187’s separate supplement array; the existing
+`SupplementUseEntry` and background-exposure schemas remain untouched compatibility records. No
+runtime generator, clinical inference, rate, or gameplay behavior is activated.

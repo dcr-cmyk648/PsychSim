@@ -738,7 +738,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "case_construction",
     "priority": "high",
-    "status": "proposed",
+    "status": "resolved",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": null,
@@ -747,25 +747,35 @@
     "receiptItemSnapshot": null,
     "targetContentIds": [
       "registry.catalog.exposures",
-      "schema.substance-exposure-state",
-      "schema.background-exposure-state",
-      "info.history.substance-use",
-      "diagnosis.substance-induced-mood-disorder"
+      "schema.exposure-agent-reference",
+      "schema.agent-misuse-generation-prior",
+      "schema.resolved-exposure-use-entry",
+      "schema.resolved-exposure-inventory",
+      "schema.resolved-patient-state",
+      "info.history.substance-use"
     ],
     "dependencyTicketIds": [
       "ticket.catalog.findings.canonical-definition-boundary",
       "ticket.schema.patient-state.resolved-record-foundation"
     ],
-    "conflictContentIds": [],
-    "proposedRouting": "Create stable substance/background-exposure identities and a typed resolved-use state that can represent none, unknown, use pattern, recency, intoxication, withdrawal, and patient attribution without automatically assigning a diagnosis.",
-    "guidance": "The foundation must support prescription, nonprescription, supplement, nicotine, alcohol, caffeine, and other substance exposure without forcing all identities into the medication treatment menu. A positive use fact, intoxication state, withdrawal state, substance-induced diagnosis, and clinician attribution are separate concepts. This ticket does not set age distributions, prevalence, symptom associations, diagnostic thresholds, treatment routes, or points. Those become bounded source and psychiatrist-review tickets after the state vocabulary is accepted.",
+    "conflictContentIds": [
+      "schema.patient-background-exposure-resolution-v2",
+      "schema.supplement-use-entry"
+    ],
+    "proposedRouting": "Reuse medication and supplement identities, add identities only for other substances, and define one coarse misuse probability given use with prescribed-versus-not-prescribed modifiers for medications. The resolved patient stores only positive use entries, recency, current amount when applicable, prescription relationship, and the final misuse yes/no fact.",
+    "guidance": "The database supplies approximate population-level game-generation priors; later case and context profiles may modify those priors before deterministic resolution. Missing prior data means not characterized, never zero. Medication agents require separate prescribed-to-patient and not-prescribed-to-patient modifiers; other agent kinds do not. The patient truth layer contains no assessed/unassessed state, report accuracy, source claim, reveal state, intoxication, withdrawal, diagnosis, causal attribution, treatment route, or points. Those remain independently owned evidence or clinical concepts. This ticket activates no rate, profile, generator, clinical inference, or gameplay behavior.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Standing direction: substance use is commonly relevant and must support muddy attribution, but random texture alone must not silently diagnose a substance-induced disorder. The generator later reveals pre-resolved state; purchasing history never creates it.",
-    "reviewerNotesUpdatedAt": "2026-07-28T15:27:08.000Z",
+    "reviewerNotes": "Approved by Dustin Rowland. Every patient has objective use or non-use truth before play; the history or test used to investigate it separately determines what is reported and how accurately. Keep generation intentionally coarse: one general misuse percentage is enough to start, with a prescribed-versus-not-prescribed modifier for medication agents. Approximate population rates are acceptable because the goal is plausible, engaging psychiatry cases rather than a population simulator. The final patient fact is simply misuse yes or no. Do not mix assessment state, intoxication, withdrawal, diagnosis, or attribution into this record.",
+    "reviewerNotesUpdatedAt": "2026-07-28T23:07:05.000Z",
     "resurfacingTrigger": "After the resolved patient-state boundary exists and before substance exposure can be generated, influence a diagnosis, or change treatment scoring.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added one runtime-excluded exposure catalog that reuses medication and supplement identities and owns four neutral other-substance identity shells. Added a source- or Developer-opinion-backed coarse misuse-prior contract with one probability given use and medication-only prescribed/nonprescribed multipliers. Added a unified positive-use inventory to the future ResolvedPatientState with recency, current amount, prescription relationship, final misuse Boolean, and deterministic/authored resolution. Removed the redundant future supplement-use array from that target composition while retaining its compatibility schema. No rate, clinical association, diagnosis, intoxication/withdrawal state, evidence accuracy, reveal behavior, point rule, patient generation, or runtime behavior was authored.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T23:07:05.000Z"
+    },
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T15:27:08.000Z"
+    "updatedAt": "2026-07-28T23:07:05.000Z"
   },
   {
     "schemaVersion": 1,

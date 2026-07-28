@@ -714,6 +714,188 @@ export const SupplementIdentityDefinitionSchema = z
   });
 export type SupplementIdentityDefinition = z.infer<typeof SupplementIdentityDefinitionSchema>;
 
+export const ExposureAgentReferenceSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('medication'),
+      identityId: StableIdSchema,
+      identityContentVersion: ContentVersionSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('supplement'),
+      identityId: StableIdSchema,
+      identityContentVersion: ContentVersionSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('other_substance'),
+      identityId: StableIdSchema,
+      identityContentVersion: ContentVersionSchema,
+    })
+    .strict(),
+]);
+export type ExposureAgentReference = z.infer<typeof ExposureAgentReferenceSchema>;
+
+/**
+ * This catalog owns identities only for exposure agents that are neither an
+ * existing medication nor an existing supplement. A medication never receives
+ * a duplicate "substance" identity merely because misuse is modeled.
+ */
+export const OtherSubstanceIdentityDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(180),
+    normalizedName: z.string().trim().min(1).max(180),
+    aliases: z.array(z.string().trim().min(1).max(180)),
+    authoringStatus: z.literal('identity_only'),
+    runtimeSelectable: z.literal(false),
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: z.literal('unreviewed'),
+  })
+  .strict()
+  .superRefine((identity, context) => {
+    const normalizedTerms = [identity.normalizedName, ...identity.aliases].map((term) =>
+      term.normalize('NFKC').toLocaleLowerCase('en-US'),
+    );
+    if (new Set(normalizedTerms).size !== normalizedTerms.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['aliases'],
+        message: 'Other-substance identity names and aliases must be unique.',
+      });
+    }
+  });
+export type OtherSubstanceIdentityDefinition = z.infer<
+  typeof OtherSubstanceIdentityDefinitionSchema
+>;
+
+export const AgentMisuseGenerationPriorSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    agent: ExposureAgentReferenceSchema,
+    baseMisuseProbabilityGivenUse: z.number().gt(0).lt(1),
+    prescriptionContextMultipliers: z
+      .object({
+        prescribedToPatient: z.number().positive(),
+        notPrescribedToPatient: z.number().positive(),
+      })
+      .strict()
+      .nullable(),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((prior, context) => {
+    if (new Set(prior.developerOpinionIds).size !== prior.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Misuse-generation Developer-opinion references must be unique.',
+      });
+    }
+    if (new Set(prior.review.sourceUseNoteIds).size !== prior.review.sourceUseNoteIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review', 'sourceUseNoteIds'],
+        message: 'Misuse-generation source-use references must be unique.',
+      });
+    }
+    if (prior.agent.kind === 'medication' && prior.prescriptionContextMultipliers === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['prescriptionContextMultipliers'],
+        message: 'A medication misuse prior requires prescribed-versus-not-prescribed multipliers.',
+      });
+    }
+    if (prior.agent.kind !== 'medication' && prior.prescriptionContextMultipliers !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['prescriptionContextMultipliers'],
+        message:
+          'Only a medication identity may apply prescribed-versus-not-prescribed multipliers.',
+      });
+    }
+    if (prior.review.sourceUseNoteIds.length === 0 && prior.developerOpinionIds.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A coarse misuse-generation prior requires a formal contribution or Developer opinion.',
+      });
+    }
+  });
+export type AgentMisuseGenerationPrior = z.infer<typeof AgentMisuseGenerationPriorSchema>;
+
+export const ExposureCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    otherSubstanceIdentities: z.array(OtherSubstanceIdentityDefinitionSchema),
+    misuseGenerationPriors: z.array(AgentMisuseGenerationPriorSchema),
+    sourceUseNotes: z.array(EvidenceContributionSchema),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const contentIds = [
+      ...catalog.otherSubstanceIdentities.map((identity) => identity.id),
+      ...catalog.misuseGenerationPriors.map((prior) => prior.id),
+      ...catalog.sourceUseNotes.map((note) => note.id),
+    ];
+    if (new Set(contentIds).size !== contentIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Exposure-catalog content IDs must be unique.',
+      });
+    }
+    const priorAgentKeys = catalog.misuseGenerationPriors.map(
+      (prior) => `${prior.agent.kind}:${prior.agent.identityId}`,
+    );
+    if (new Set(priorAgentKeys).size !== priorAgentKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['misuseGenerationPriors'],
+        message: 'The simple exposure foundation permits one misuse prior per agent.',
+      });
+    }
+    const sourceUseById = new Map(catalog.sourceUseNotes.map((note) => [note.id, note]));
+    catalog.sourceUseNotes.forEach((note, noteIndex) => {
+      if (note.authority !== 'formal_publication') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['sourceUseNotes', noteIndex, 'authority'],
+          message:
+            'Exposure source-use notes contain formal contributions only; Developer opinions remain separate records.',
+        });
+      }
+    });
+    catalog.misuseGenerationPriors.forEach((prior, priorIndex) => {
+      prior.review.sourceUseNoteIds.forEach((sourceUseNoteId, sourceIndex) => {
+        const sourceUse = sourceUseById.get(sourceUseNoteId);
+        if (!sourceUse) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['misuseGenerationPriors', priorIndex, 'review', 'sourceUseNoteIds', sourceIndex],
+            message: `Misuse prior references unknown source-use note ${sourceUseNoteId}.`,
+          });
+        } else if (!sourceUse.targetContentIds.includes(prior.id)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['sourceUseNotes', catalog.sourceUseNotes.indexOf(sourceUse), 'targetContentIds'],
+            message: `Source-use note ${sourceUseNoteId} does not target misuse prior ${prior.id}.`,
+          });
+        }
+      });
+    });
+  });
+export type ExposureCatalog = z.infer<typeof ExposureCatalogSchema>;
+
 export const FormularyDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -1855,6 +2037,7 @@ export const ContentRegistryEntrySchema = z
       'finding_catalog',
       'finding_expression_bank_catalog',
       'measurement_catalog',
+      'exposure_catalog',
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
       'supplement_identity_catalog',
@@ -5120,6 +5303,111 @@ export type PatientReportedSafetyPlanningAbility = z.infer<
   typeof PatientReportedSafetyPlanningAbilitySchema
 >;
 
+export const ExposureRecencyUnitSchema = z.enum(['hour', 'day', 'week', 'month', 'year']);
+export type ExposureRecencyUnit = z.infer<typeof ExposureRecencyUnitSchema>;
+
+export const ResolvedExposureRecencySchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('current') }).strict(),
+  z
+    .object({
+      kind: z.literal('elapsed'),
+      value: z.number().int().positive(),
+      unit: ExposureRecencyUnitSchema,
+    })
+    .strict(),
+]);
+export type ResolvedExposureRecency = z.infer<typeof ResolvedExposureRecencySchema>;
+
+export const CurrentExposureAmountSchema = z
+  .object({
+    quantity: z.number().positive(),
+    unitLabel: z.string().trim().min(1).max(40),
+    frequencyLabel: z.string().trim().min(1).max(80),
+  })
+  .strict();
+export type CurrentExposureAmount = z.infer<typeof CurrentExposureAmountSchema>;
+
+export const ResolvedExposureUseEntrySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    agent: ExposureAgentReferenceSchema,
+    mostRecentUse: ResolvedExposureRecencySchema,
+    currentAmount: CurrentExposureAmountSchema.nullable(),
+    prescriptionRelationship: z.enum([
+      'prescribed_to_patient',
+      'not_prescribed_to_patient',
+      'not_applicable',
+    ]),
+    misuseTruth: z.boolean(),
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((entry, context) => {
+    if (entry.mostRecentUse.kind === 'current' && entry.currentAmount === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Current exposure requires current recency and a structured current amount.',
+      });
+    }
+    if (entry.mostRecentUse.kind === 'elapsed' && entry.currentAmount !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Past exposure requires elapsed recency and cannot carry a current amount.',
+      });
+    }
+    if (entry.agent.kind === 'medication' && entry.prescriptionRelationship === 'not_applicable') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['prescriptionRelationship'],
+        message: 'A medication exposure must state whether it was prescribed to this patient.',
+      });
+    }
+    if (entry.agent.kind !== 'medication' && entry.prescriptionRelationship !== 'not_applicable') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['prescriptionRelationship'],
+        message:
+          'Only a medication exposure may be classified as prescribed or not prescribed to the patient.',
+      });
+    }
+  });
+export type ResolvedExposureUseEntry = z.infer<typeof ResolvedExposureUseEntrySchema>;
+
+/**
+ * This is objective resolved patient truth, not an assessment or chart state.
+ * The inventory stores only positive use facts. Absence means not used in this
+ * frozen patient snapshot; it never means unassessed or inaccurately reported.
+ */
+export const ResolvedExposureInventorySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    useEntries: z.array(ResolvedExposureUseEntrySchema),
+  })
+  .strict()
+  .superRefine((inventory, context) => {
+    const agentKey = (agent: ExposureAgentReference) =>
+      `${agent.kind}:${agent.identityId}:${agent.identityContentVersion}`;
+    const useEntryIds = inventory.useEntries.map((entry) => entry.id);
+    if (new Set(useEntryIds).size !== useEntryIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['useEntries'],
+        message: 'Resolved exposure-use entry IDs must be unique.',
+      });
+    }
+    const usedAgentKeys = inventory.useEntries.map((entry) => agentKey(entry.agent));
+    if (new Set(usedAgentKeys).size !== usedAgentKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['useEntries'],
+        message: 'One resolved exposure inventory stores at most one summary per agent.',
+      });
+    }
+  });
+export type ResolvedExposureInventory = z.infer<typeof ResolvedExposureInventorySchema>;
+
 export const ConditionStateSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -5272,7 +5560,7 @@ export const ResolvedPatientStateSchema = z
     conditionStates: z.array(ConditionStateSchema),
     diagnosisRecordEntries: z.array(DiagnosisRecordEntrySchema),
     medicationRegimenEntries: z.array(MedicationRegimenEntryV2Schema),
-    supplementUseEntries: z.array(SupplementUseEntrySchema),
+    exposureInventory: ResolvedExposureInventorySchema,
     treatmentHistory: PatientTreatmentHistorySchema,
     medicationTolerabilityFindings: z.array(MedicationTolerabilityFindingV2Schema),
     reactionHistory: PatientReactionHistorySchema,
@@ -5309,10 +5597,6 @@ export const ResolvedPatientStateSchema = z
     assertUniqueIds(
       'medicationRegimenEntries',
       state.medicationRegimenEntries.map((entry) => entry.id),
-    );
-    assertUniqueIds(
-      'supplementUseEntries',
-      state.supplementUseEntries.map((entry) => entry.id),
     );
     assertUniqueIds(
       'medicationTrials',
@@ -5364,7 +5648,8 @@ export const ResolvedPatientStateSchema = z
       ...state.conditionStates.map((entry) => entry.id),
       ...state.diagnosisRecordEntries.map((entry) => entry.id),
       ...state.medicationRegimenEntries.map((entry) => entry.id),
-      ...state.supplementUseEntries.map((entry) => entry.id),
+      state.exposureInventory.id,
+      ...state.exposureInventory.useEntries.map((entry) => entry.id),
       ...state.treatmentHistory.medicationTrials.map((entry) => entry.id),
       ...state.treatmentHistory.psychotherapyTrials.map((entry) => entry.id),
       ...state.treatmentHistory.currentProviders.map((entry) => entry.id),

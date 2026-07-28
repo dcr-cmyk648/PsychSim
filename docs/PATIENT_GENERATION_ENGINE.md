@@ -163,13 +163,20 @@ backend inference may later classify the exposure for rule compilation, but it r
 from the displayed observations. Legacy snapshots retain their categorical `adequacy` field for
 replay and are never retroactively assigned invented dose or duration values.
 
-Background nonpsychiatric medications and supplements use a reviewed deterministic exposure
-profile. The target profile owns saved age bands, game-weighted count distributions, allowlisted
-identities, stable per-slot random keys, and an impact classification (`neutral_background`,
-`fit_relevant`, `companion_safety`, or `case_defining`). It cannot consume the current cosmetic
-age variant. A supplement-enthusiast pattern is derived from the resolved set of multiple
-supplement entries rather than emitted as a free tag. No distribution is active until its
-source-to-game mapping is reviewed.
+Background medication, supplement, and other-substance use resolves through one objective
+positive-use inventory. Medication and supplement identities are reused; only other agents receive
+new exposure identities. The database may eventually supply one coarse misuse probability given
+use, with prescribed-versus-not-prescribed multipliers for medications. Case/context generation
+profiles may modify that base before the deterministic final yes/no is saved, but the first
+foundation authors no rates or generator.
+
+Each used agent stores current or elapsed recency, current amount when applicable, prescription
+relationship for medications, final misuse truth, and one resolution trace. It does not store
+unassessed/documented-none states, patient-report accuracy, intoxication, withdrawal, diagnosis, or
+attribution. Those belong to separately generated evidence and clinical records, so a patient may
+have one objective fact while history, collateral, records, or toxicology provide concordant or
+conflicting views. No age distribution, allowlist, supplement-enthusiast pattern, or clinical
+effect is active until separately reviewed.
 
 Medication-associated sexual effects are structured tolerability findings tied to one current
 regimen entry or prior trial. Unknown is distinct from absent. Any medication-specific random

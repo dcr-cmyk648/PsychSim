@@ -204,6 +204,20 @@ describe('developer clinical audit queue', () => {
         resolvedBy: 'reviewer.dustin-rowland',
       },
     });
+    expect(byId.get('ticket.catalog.exposures.substance-use-foundation')).toMatchObject({
+      status: 'resolved',
+      targetContentIds: expect.arrayContaining([
+        'registry.catalog.exposures',
+        'schema.agent-misuse-generation-prior',
+        'schema.resolved-exposure-use-entry',
+        'schema.resolved-exposure-inventory',
+        'schema.resolved-patient-state',
+      ]),
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
     for (const id of [
       'ticket.engine.patient-generation.general-dependency-gate',
       'ticket.schema.patient-state.resolved-record-foundation',
