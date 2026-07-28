@@ -2490,12 +2490,12 @@ separate from raw symptom cardinality. Only a required or selected condition mod
 active internal condition. Post-submit audit must distinguish required conditions, selected
 comorbidities, chart labels, rule-outs, and coincidentally overlapping findings.
 
-Diagnostic ambiguity and clinically meaningful tension are valid generated states. Retry or
-quarantine is reserved for structural impossibility, an explicitly reviewed incompatible pair of
-internal states, inaccessible required care, or absence of a safe route—not for symptom overlap,
-multiple plausible formulations, or a threshold count alone. This supersedes D-090 and the
-threshold-cleanup portions of D-089 and D-170 while preserving their prohibition on automatic
-diagnosis promotion.
+Diagnostic ambiguity and clinically meaningful tension are valid generated states. As narrowed by
+D-172, retry or quarantine is reserved for literal structural impossibility, malformed state, or
+an explicitly reviewed incompatible pair of internal states in the same scope—not for symptom
+overlap, incomplete rule coverage, multiple plausible formulations, or a threshold count alone.
+This supersedes D-090 and the threshold-cleanup portions of D-089 and D-170 while preserving their
+prohibition on automatic diagnosis promotion.
 
 For PsychSim's psychiatry-referral population, prolonged, severe, or otherwise specialty-level
 presentations require multiple resolved prior efforts by default rather than zero or one generic
@@ -2515,3 +2515,32 @@ points are auditable game weights linked to formal sources and/or Developer opin
 that the engine makes clinical decisions or perfectly resolves diagnostic uncertainty. This
 decision changes the architecture contract only; it activates no diagnosis, generation
 probability, clinical rule, or point value.
+
+## D-172 — Patient generation is permissive; coverage gaps do not invalidate plausible patients
+
+**Decision:** Retire “no safe route” as a patient-generation rejection concept. Generation rejects
+only literal structural impossibility or malformed state: for example, one canonical fact holding
+two explicitly mutually exclusive values in the same defined time/context, an impossible typed
+measurement, an unknown required identity that prevents deterministic resolution, or two internal
+condition states with an explicitly reviewed same-scope incompatibility. Diagnostic ambiguity,
+overlapping symptoms, incomplete knowledge coverage, missing point rules, several plausible
+formulations, and an unmodeled treatment option do not make the patient invalid.
+
+A compiler may emit nonblocking `coverage_gap` diagnostics when it cannot find an applicable
+reviewed treatment route, disposition, investigation relationship, or sufficient rubric coverage.
+The generated patient remains available in Developer/Reviewer workflows, the diagnostic names the
+exact missing owners or relationships, and an individual encounter may be flagged after play.
+Coverage gaps never fabricate a penalty, silently classify an option as wrong, delete patient
+facts, or trigger regeneration.
+
+Human content review may still decline to promote a clearly broken encounter into an approved
+Player bundle. That is a lifecycle/release decision about the compiled encounter, not a claim that
+the underlying patient is clinically impossible. Future production eligibility can require an
+explicitly reviewed playable response only through a separate release policy; the generator itself
+remains permissive.
+
+This narrows D-091, D-160, D-168, D-171, and older “safe-route” language wherever those decisions
+described generation quarantine. It does not weaken schema conformance, deterministic replay,
+literal fact consistency, content-version preservation, or the ability to flag and correct
+individual encounters. No runtime validator or clinical rule changes in this architecture
+decision.

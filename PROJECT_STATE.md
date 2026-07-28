@@ -11,7 +11,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-171. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-172. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -34,7 +34,10 @@ Last updated: 2026-07-28
   D-171 clarifies that a focused psychiatry encounter may remain highly textured and
   diagnostically muddy: bounded template-owned comorbidity groups, extensive prior treatment,
   uncertain chart labels, and surface symptom overlap are valid, while symptom counts alone
-  neither create diagnoses nor trigger finding cleanup.
+  neither create diagnoses nor trigger finding cleanup. D-172 retires “no safe route” as a
+  patient-generation rejection concept: only malformed or literally contradictory same-scope
+  state invalidates generation, while missing clinical/rubric coverage creates a nonblocking
+  diagnostic and ticket.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
@@ -252,7 +255,7 @@ local IPC socket or loopback listener; each passed when rerun with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
-The database-first decision-queue checkpoint through D-171 passed on 2026-07-28:
+The database-first decision-queue checkpoint through D-172 passed on 2026-07-28:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
 - `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests;
@@ -273,7 +276,7 @@ local IPC/loopback permission and passed unchanged outside that restriction.
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-171
+- `docs/DECISIONS.md` through D-172
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -300,14 +303,13 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only the revised DBQ-008: a template-specific presentation envelope plus a
-   psychiatry-referral plausibility check. The revision removes global `2–4 finding / 0–2 prior
-effort` bounds, requires multiple structured prior efforts for prolonged/severe specialty
-   templates, permits bounded comorbidity selection groups, and preserves superficial
-   cross-diagnostic symptom overlap. Use the saved GAD review as an acceptance example, not a
-   probability source. Do not implement probabilities, module selection, or cohort migration until
-   the decision is accepted or revised.
-2. Re-evaluate the remaining queue after DBQ-008. Do not detail DBQ-009 or shotgun the queued
+1. Present and resolve only DBQ-009: the two-stage contract for promoting reviewed database
+   knowledge into a qualitative executable rule and then separately assigning provisional game
+   balance. The key proposed workflow lets the psychiatrist approve clinical/game direction once,
+   lets the system make an explicit D-156-band point estimate for Developer/Reviewer play, and
+   keeps both provenance and balance status auditable. Do not implement or bulk-activate rules
+   until the decision is accepted or revised.
+2. Re-evaluate the remaining queue after DBQ-009. Do not detail DBQ-010 or shotgun the queued
    questions before the reviewer answers.
 3. Once the architecture queue authorizes implementation, the first already-approved engineering
    prerequisite remains
@@ -318,7 +320,9 @@ effort` bounds, requires multiple structured prior efforts for prolonged/severe 
 4. Then implement `ticket.engine.patient-generation.shared-finding-compiler` as a separate bounded
    change with deterministic conflict/replay/provenance tests.
 5. After that compiler exists, implement only richness behavior accepted through DBQ-008 and
-   calibrate it against deterministic MDD/GAD cohorts before enabling optional comorbidities.
+   calibrate it against deterministic MDD/GAD and deliberately muddy cohorts before enabling
+   optional comorbidities. Patient generation rejects only malformed or literal same-scope
+   contradictions; rule/route coverage gaps remain nonblocking tickets.
 6. Later bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;

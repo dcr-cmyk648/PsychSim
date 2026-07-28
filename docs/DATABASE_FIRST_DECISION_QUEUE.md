@@ -41,7 +41,10 @@ The following foundations are not being asked again:
   reviewed FDA-label match may contribute one minor nonexclusive regulatory-alignment bonus
   (D-169); and
 - shared findings resolve once in the patient, while test definitions, reveal actions, generation
-  tendencies, and post-submit scoring remain separate owners (D-170).
+  tendencies, and post-submit scoring remain separate owners (D-170); and
+- focused psychiatric patients may remain highly textured and diagnostically muddy, while only
+  literal same-scope contradictions invalidate generation and coverage gaps remain nonblocking
+  tickets (D-171 and D-172).
 
 Two implementation prerequisites are also already approved:
 
@@ -433,7 +436,7 @@ variation.
 
 ### DBQ-008 — Calibrate patient richness and randomization
 
-**Status:** current.
+**Status:** accepted as D-171 and D-172.
 
 Decide a bounded presentation envelope across case-defining facts, expected-but-variable
 associated findings, ordinary background findings, prior exposure/treatment, optional
@@ -445,10 +448,10 @@ psychiatry-referral plausibility check. “Focused” limits what the player mus
 not require a simple, diagnostically clean patient:
 
 **P1 — Require a psychiatrist-level decision.** Before optional variation, the template fixes its
-focused decision, required condition state, safety facts, and at least one safe route. It also
-names at least one reason this is meaningfully psychiatric rather than a trivial primary-care
-prescription: diagnostic attribution, prior response or intolerance, regimen transition,
-comorbidity fit, adverse effects or interactions, safety, or disposition.
+focused decision, required condition state, and safety facts. It also names at least one reason
+this is meaningfully psychiatric rather than a trivial primary-care prescription: diagnostic
+attribution, prior response or intolerance, regimen transition, comorbidity fit, adverse effects
+or interactions, safety, or disposition. Missing rule coverage does not invalidate the patient.
 
 **P2 — Separate core complexity from optional texture.** Required diagnoses, current regimen,
 decision-relevant treatment history, and focused complications do not consume the D-126
@@ -482,10 +485,12 @@ auto-promote a new internal diagnosis. Etiology, timing, substance or medication
 functional relationship, and “not better explained” logic remain separate from raw symptom
 cardinality.
 
-**P7 — Quarantine only true structural failures.** Explicitly impossible internal-state
-combinations, inaccessible required care, or absence of a safe route still retry or quarantine.
-Diagnostic ambiguity, several plausible formulations, and benefit-versus-risk tension are valid
-patient states rather than generation defects.
+**P7 — Quarantine only literal structural failures.** Malformed typed state, unresolved required
+identity, or explicitly impossible same-scope facts/internal-state combinations may retry or
+quarantine. Inaccessible modeled actions or missing investigation, treatment, disposition, or
+rubric relationships create nonblocking coverage diagnostics and tickets. Diagnostic ambiguity,
+several plausible formulations, incomplete rule coverage, and benefit-versus-risk tension are
+valid patient states rather than generation defects.
 
 **P8 — Resolve deterministically and retain every contributor.** Generate required conditions and
 regimen, bounded condition selections, chart labels/rule-outs, structured prior history,
@@ -506,8 +511,8 @@ appeared; it is a game scoring explanation, not clinical decision support.
 **P11 — Calibrate with clean and muddy cohorts.** Before enabling broad generation, instantiate
 many MDD and GAD patients plus deliberately complex reference templates. Audit implausibly empty
 satellite domains, repetitive bundles, treatment-history plausibility, overlapping symptom
-patterns, diagnostic uncertainty, safe-route preservation, number of applicable rule
-contributors, and player reading burden. The saved GAD review is an acceptance example, not a
+patterns, diagnostic uncertainty, number of applicable rule contributors, coverage gaps, literal
+contradictions, and player reading burden. The saved GAD review is an acceptance example, not a
 probability source.
 
 This revised model removes the earlier global `2–4 findings / 0–2 prior efforts` suggestion.
@@ -519,13 +524,78 @@ immediate decision and complete explanatory trace remain legible.
 
 ### DBQ-009 — Define promotion from knowledge to executable game rules
 
-**Status:** queued after the core dossier contracts.
+**Status:** current.
 
 Decide the exact review gates for translating source units, a topical relationship, and/or a
-Developer opinion into a
-qualitative rule, then separately into provisional points. This includes inheritance,
-patient-specific overrides, interaction resolution, focused-decision relevance, source
-disagreement, and the rule trace that returns to the dossier.
+Developer opinion into a qualitative rule, then separately into provisional points. This includes
+inheritance, patient-specific overrides, interaction resolution, focused-decision relevance,
+source disagreement, and the rule trace that returns to the dossier.
+
+**Proposed default:** use a two-stage promotion contract—first approve a qualitative clinical/game
+relationship, then assign separately labeled provisional balance:
+
+**P1 — Knowledge never executes directly.** A source unit, topical relationship, source lead,
+authoring inference, or Developer opinion can propose a rule but cannot activate one. A proposal
+must name its canonical owner, target IDs, focused decision scope, typed trigger, qualitative
+direction, clinical concern, certainty, exceptions, rationale, provenance IDs, and receipt
+explanation. It has no points yet.
+
+**P2 — Preserve three support paths.** A qualitative rule may be supported by (a) a directly
+applicable formal contribution, (b) formal contribution plus an explicitly identified
+Developer-opinion bridge, or (c) Developer opinion alone. Each path remains visibly labeled.
+Speculative source leads and authoring inferences cannot promote until the reviewer converts them
+through the appropriate evidence or Developer-opinion workflow.
+
+**P3 — Require one explicit qualitative review.** The psychiatrist accepts, narrows, rejects, or
+defers the proposed direction and scope. Acceptance records reviewer identity, timestamp,
+reviewed version/fingerprint, exceptions, and unresolved disagreement. It approves only that
+atomic rule—not the dossier, source, medication, diagnosis, or neighboring rules.
+
+**P4 — Keep disagreement visible.** A corrected or superseding source creates impact review.
+Nondominated source disagreement remains attached and disabled unless the psychiatrist records a
+scoped Developer opinion governing the game transformation. File order, source count,
+publication date alone, point magnitude, or nominal evidence tier never chooses the winner.
+
+**P5 — Own and inherit explicitly.** The narrowest reusable decision-driving topic owns the rule.
+Diagnosis base/severity/specifier guidance, other active conditions, medication/formulation
+relationships, interactions, setting, and patient-template overrides compose only through typed
+scope plus explicit specificity. Case-specific overrides are narrow versioned exceptions; they
+do not silently weaken shared knowledge.
+
+**P6 — Compile permissively.** The encounter compiler collects every applicable reviewed rule
+within the focused decision horizon plus global interaction/safety contributors. Missing
+qualitative coverage creates a nonblocking coverage diagnostic and ticket. It never invents a
+default penalty, declares an unmodeled option wrong, or invalidates the patient.
+
+**P7 — Add points only after direction is accepted.** An accepted qualitative rule may receive an
+initial explicit value from the already approved D-156 impact bands. The mapping remains
+`provisional_balance`, separate from clinical concern and evidence certainty. It does not require
+a second psychiatrist review before Developer/Reviewer play, but it remains auditable and may be
+retuned from reference patients and encounter feedback.
+
+**P8 — Preserve deterministic combination.** Every promoted contributor receives stable rule,
+effect, and issue IDs plus explicit specificity. D-159 governs replacement, worst-only duplicate
+harm, stacking of distinct fit effects, hard-contraindication suppression, and score caps. No
+source or rule order has implicit precedence.
+
+**P9 — Make the receipt the audit surface.** Each row preserves the rule ID, qualitative
+classification, points, support path, exact formal contribution and/or Developer-opinion IDs,
+clinical review metadata, balance status, applicability scope, and applied/replaced/deduplicated/
+suppressed outcome. Engine-inferred matches remain labeled.
+
+**P10 — Gate release, not plausible patients.** Promotion requires schema/catalog validation,
+deterministic compile/replay, explicit reference-patient checks, and rule-combination tests.
+Unresolved clinical direction stays disabled; unresolved point tuning may remain provisional in
+Developer/Reviewer play. Coverage gaps create tickets rather than blocking generation. Human
+lifecycle review separately decides whether a compiled encounter is ready for the Player bundle.
+
+This creates an efficient loop: the reviewer decides the clinical/game meaning once, the system
+makes a transparent provisional point guess, play exposes bad calibration or missing coverage, and
+later source changes resurface only impacted rules.
+
+**Q9:** Approve this two-stage contract, including automatic provisional D-156-band points after
+one explicit qualitative-rule approval, without requiring a second psychiatrist review before
+Developer/Reviewer play?
 
 **Unlocks:** scalable database-driven scoring without treating source extraction as automatic
 clinical authority.
@@ -556,13 +626,15 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-008 before detailing DBQ-009. Do not implement richness probabilities,
-module selection, or cohort migration until DBQ-008 is accepted or revised. D-170 fixes shared
-finding/test/reveal ownership but does not authorize its schema migration or any clinical
-association. D-169 permits a narrow verified FDA-alignment bonus but does not make regulatory
-status the treatment pathway or create an off-label penalty. D-168 permits traceable speculative
-candidates but does not authorize automatic completion of sparse sections, runtime AI, or
-speculative gameplay rules. D-167 still does not automatically apply scouted sources, revise the
-tracked packet schema, or authorize bulk scouting. DBQ-002 authorizes only a one-dossier readiness
-pilot, and DBQ-003 authorizes candidate-bin architecture rather than immediate bulk catalog
-generation.
+Present and resolve DBQ-009 before choosing the first deep database vertical in DBQ-010. Do not
+implement the promotion pipeline or bulk-activate rules until DBQ-009 is accepted or revised.
+D-172 makes missing route/rubric coverage a nonblocking diagnostic rather than patient invalidity.
+D-171 permits complex, diagnostically muddy psychiatric patients but activates no randomization.
+D-170 fixes shared finding/test/reveal ownership but does not authorize its schema migration or any
+clinical association. D-169 permits a narrow verified FDA-alignment bonus but does not make
+regulatory status the treatment pathway or create an off-label penalty. D-168 permits traceable
+speculative candidates but does not authorize automatic completion of sparse sections, runtime AI,
+or speculative gameplay rules. D-167 still does not automatically apply scouted sources, revise
+the tracked packet schema, or authorize bulk scouting. DBQ-002 authorizes only a one-dossier
+readiness pilot, and DBQ-003 authorizes candidate-bin architecture rather than immediate bulk
+catalog generation.

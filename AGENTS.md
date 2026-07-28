@@ -146,15 +146,19 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   belongs in its catalog. Preserve human overrides separately from generated suggestions.
 - Diagnosis-family files own qualitative guidance shared across patients. Compose base rules, then a
   selected severity branch, then specifiers and other active diagnoses. Diagnosis files never own
-  unexplained point values. Missing definitions, source-disabled severity, mutually exclusive
-  selections, inaccessible required care, and no-safe-route states quarantine. A reviewed safety
-  rule may govern a valid benefit-versus-risk tension while both sides remain visible in the trace;
-  evidence disagreement stays disabled behind a ticket and point-magnitude disagreement routes to
-  balance review. Broad treatment routes must support complete snapshot regimen transitions, not
-  only static eligibility: a current regimen and a proposed regimen may both be broadly acceptable
-  while retained response, nonresponse, adverse effects, prior trials, interactions, and fit make
-  the proposed `continue`/`increase`/`reduce_or_limit`/`taper`/`stop` plus start/augment combination
-  better. Patient instances own regimen entries and trials; diagnosis/decision policies own broad
+  unexplained point values. Patient generation rejects only malformed state or literal,
+  same-scope contradictions such as mutually exclusive resolved values or explicitly incompatible
+  internal conditions. Missing definitions, source-disabled guidance, inaccessible modeled
+  actions, or incomplete treatment/disposition/rubric coverage create nonblocking coverage
+  diagnostics and review tickets; they do not delete or regenerate an otherwise plausible patient.
+  A reviewed safety rule may govern a valid benefit-versus-risk tension while both sides remain
+  visible in the trace; evidence disagreement stays disabled behind a ticket and point-magnitude
+  disagreement routes to balance review. Broad treatment routes must support complete snapshot
+  regimen transitions, not only static eligibility: a current regimen and a proposed regimen may
+  both be broadly acceptable while retained response, nonresponse, adverse effects, prior trials,
+  interactions, and fit make the proposed
+  `continue`/`increase`/`reduce_or_limit`/`taper`/`stop` plus start/augment combination better.
+  Patient instances own regimen entries and trials; diagnosis/decision policies own broad
   strategies; medication and other topical owners contribute specific effects; balance stays
   separate. Do not infer doses, taper schedules, longitudinal outcomes, or a clinical winner from
   file order.
@@ -181,7 +185,7 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   order. A focused case rubric owns omission consequences, partial-credit magnitudes, reasonable
   alternatives, and dangerous misclassifications. Catalog hierarchy supplies identity and
   ancestry only.
-- Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Clinically meaningful duration is also structured saved case state; a deliberately below-threshold duration must name the reviewed diagnosis criterion it misses and cannot infer that criterion from prose. Optional-comorbidity pools are patient-family-owned and may declare bounded minimum/maximum selections from explicit candidates; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, replay, and safe-route validation.
+- Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Clinically meaningful duration is also structured saved case state; a deliberately below-threshold duration must name the reviewed diagnosis criterion it misses and cannot infer that criterion from prose. Optional-comorbidity pools are patient-family-owned and may declare bounded minimum/maximum selections from explicit candidates; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, literal-contradiction, and replay validation. Missing rule or route coverage is a nonblocking diagnostic, not patient invalidity.
 - Treat typed clinical facts and measurements as sources of truth. Stable clinical tags are
   versioned derived relationship keys; never let a free tag contradict its originating fact.
 - Represent future current medications as regimen-entry instances rather than a medication-ID set,
@@ -207,9 +211,9 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   symptoms, uncertain or questionable chart labels, long treatment histories, polypharmacy, and
   multiple selected condition modules when the template calls for them. Never delete or redraw a
   finding merely because its raw symptom count resembles another diagnosis, and never promote
-  that resemblance to internal condition truth. Retry or quarantine only structural
-  impossibility, reviewed incompatible internal states, inaccessible required care, or no safe
-  route.
+  that resemblance to internal condition truth. Retry or quarantine only malformed state or
+  literal same-scope contradictions. Missing clinical, action, disposition, or rubric coverage is
+  a nonblocking diagnostic and ticket.
 - Compile only positive rules relevant to the encounter's focused decision horizon, while retaining
   global safety and interaction rules. Do not grade a complex patient against an exhaustive plan for
   every background problem.
@@ -375,8 +379,9 @@ guideline/source` creates a `source_gap` ticket; check existing evidence before 
   ready, split each note into the smallest evidence/Developer-opinion, typed patient fact or
   generation, diagnosis-compatibility, fit, safety/interaction, and balance proposals. Never infer
   a patient fact from a lexical match, never activate a randomizer option or point value directly
-  from reviewer prose, and require deterministic many-seed, invariant, diagnostic-threshold, reveal
-  path, compatibility, and safe-route validation for any later generation change.
+  from reviewer prose, and require deterministic many-seed, invariant, reveal-path,
+  literal-contradiction, and replay validation for any later generation change. Treat missing
+  clinical/rubric coverage as a reviewable warning rather than deleting the patient.
 - Private source review uses the same ticket queue only through an immutable
   `SourceReviewSnapshot`. Prepare exactly one review unit at a time: one complete parser-v5 heading
   unit or one fully classified personal-knowledge revision. Keep exact document/chunk or

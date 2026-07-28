@@ -309,12 +309,13 @@ Diagnosis files are composed separately from patient instantiation.
 `composeDiagnosisGuidance` applies base, severity, specifier, and other active-diagnosis rules,
 derives tags and a five-dimensional complexity vector, and returns stable blocking conflicts. It
 never assigns points or chooses a source winner. The next compiler narrows that conservative
-checkpoint: structural invalidity/no-safe-route states quarantine; a reviewed safety constraint may
-govern valid clinical tension while both rules remain traceable; evidence disagreement stays
-disabled behind a ticket; and balance disagreement remains outside qualitative guidance. That
-compiler consumes internal conditions rather than chart claims, addresses regimen entries
-independently, measures the resolved patient against a provisional template complexity envelope,
-and limits positive guidance to the focused decision horizon while retaining global
+checkpoint: only malformed or literally contradictory same-scope state quarantines; missing
+clinical/rubric/response coverage emits a nonblocking diagnostic and ticket. A reviewed safety
+constraint may govern valid clinical tension while both rules remain traceable; evidence
+disagreement stays disabled behind a ticket; and balance disagreement remains outside qualitative
+guidance. That compiler consumes internal conditions rather than chart claims, addresses regimen
+entries independently, measures the resolved patient against a provisional template complexity
+envelope, and limits positive guidance to the focused decision horizon while retaining global
 safety/interaction rules. See
 [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) and
 [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).

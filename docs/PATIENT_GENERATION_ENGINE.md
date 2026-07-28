@@ -187,8 +187,9 @@ use a deterministic constrained pipeline:
 6. Resolve typed clinical facts and derive stable tags from them.
 7. Generate presentation wording, findings, and noncritical observations.
 8. Compile only applicable clinical rules for the decision horizon.
-9. Validate consistency, action accessibility, at least one safe route, the target complexity
-   envelope, and absence of impossible combinations.
+9. Validate schema conformance, deterministic identity/reference integrity, literal fact
+   consistency, and explicitly reviewed same-scope incompatibilities. Emit nonblocking coverage
+   diagnostics for missing action/rubric relationships.
 10. Retry from deterministic sub-seeds within a fixed limit, or quarantine with a reproducible
     reason.
 11. Save every resolved value in the `PatientInstance` and `EncounterInstance`.
@@ -274,10 +275,11 @@ post-submission Developer audit separately identifies required conditions, selec
 comorbidities, chart diagnoses, rule-outs, and overlapping generated findings.
 
 Diagnosis definitions may still declare narrow reviewed incompatibilities between internal
-condition states. Only a structural impossibility, an explicitly incompatible selected pair,
-inaccessible required care, or absence of a safe route invalidates the generated candidate.
-Multiple plausible formulations, uncertain chart labels, symptom overlap, and benefit-versus-risk
-tension remain valid psychiatric patient states.
+condition states. Only malformed state, a literal same-scope fact contradiction, or an explicitly
+incompatible selected pair invalidates the generated candidate. Inaccessible modeled care or
+missing rule/rubric coverage creates a nonblocking coverage diagnostic and ticket rather than
+deleting the patient. Multiple plausible formulations, uncertain chart labels, symptom overlap,
+and benefit-versus-risk tension remain valid psychiatric patient states.
 
 ### Template diagnosis and comorbidity boundary
 
@@ -380,8 +382,11 @@ companion safety consideration; they may not silently replace the main decision 
 
 The next compiler should distinguish:
 
-- **structural invalidity**: impossible or malformed state, missing definition, mutually exclusive
-  internal states, inaccessible required action, or no safe route; quarantine;
+- **structural invalidity**: impossible or malformed typed state, unresolved required identity, or
+  explicitly mutually exclusive resolved facts/internal states in the same scope; quarantine;
+- **coverage gap**: missing clinical relationship, unavailable modeled action, incomplete rubric,
+  or no recognized response path; keep the patient, emit a nonblocking diagnostic, and create or
+  update a review ticket;
 - **clinical tension**: two valid conditions create competing benefits, harms, or priorities; retain
   as encounter data and let a reviewed safety rule govern while preserving both sides in the trace;
 - **evidence disagreement**: sources or reviewers disagree about the rule itself; create a ticket
@@ -389,9 +394,9 @@ The next compiler should distinguish:
 - **balance disagreement**: clinical direction is accepted but point magnitude is unsettled; keep
   it outside diagnosis/evidence files and route it to balance review.
 
-Only structural invalidity or the absence of a safe route automatically quarantines. A
-patient-specific override is still required when the reviewed shared rules cannot safely resolve a
-particular composition.
+Only structural invalidity automatically quarantines. A patient-specific override may later fill a
+real coverage gap, but the absence of that override does not invalidate or regenerate the
+underlying patient.
 
 ## Resolved decisions
 
@@ -401,9 +406,9 @@ decision set—often one primary decision plus required companion safety actions
 exhaustive complete plan.
 
 Reviewed safety constraints may resolve an otherwise valid clinical tension while preserving both
-rules in the trace. Structural invalidity and the absence of a safe route still quarantine; evidence
-disagreement remains disabled behind a ticket; balance disagreement does not change clinical
-direction.
+rules in the trace. Only literal structural invalidity quarantines. Coverage gaps remain
+nonblocking and ticketed; evidence disagreement remains disabled behind a ticket; balance
+disagreement does not change clinical direction.
 
 Future calibrated patient templates may declare target envelopes over the five-axis complexity trace. The compiler
 measures the resolved patient after composition and deterministic variation, then accepts,

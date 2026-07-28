@@ -240,7 +240,9 @@ Resolved:
   `authoring_inference` speculative candidates with exact provenance and follow-up questions, but
   never auto-fill sparse sections or treat speculation as evidence, opinion, fact, rule, points, or
   approval;
-- structural invalidity, inaccessible required care, and no-safe-route states quarantine;
+- only malformed state, unresolved required identities, and explicitly incompatible same-scope
+  resolved facts/internal states quarantine; missing care/rubric/response coverage stays
+  nonblocking and creates a review diagnostic;
 - valid benefit-versus-risk tension remains playable, with a reviewed safety rule allowed to govern
   while both sides remain visible in the trace;
 - evidence disagreement creates a ticket and leaves the disputed executable change disabled;

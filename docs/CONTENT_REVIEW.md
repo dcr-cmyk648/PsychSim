@@ -396,4 +396,6 @@ evidence/Developer-opinion, patient fact or context-dimension, diagnosis compati
 fit, safety/interaction, and balance proposals. Saving is never an Apply command. It does not
 assign weights or points, activate content, make an identity selectable, or grant approval.
 Randomization proposals require explicit typed ownership, reveal paths, incompatibilities, and
-deterministic many-seed/invariance/safe-route tests before later activation.
+deterministic many-seed/invariance/literal-contradiction/replay tests before later activation.
+Missing clinical or rubric coverage remains a nonblocking diagnostic and review ticket rather than
+a reason to delete the generated patient.
