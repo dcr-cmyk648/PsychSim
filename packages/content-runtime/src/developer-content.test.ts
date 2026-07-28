@@ -189,6 +189,21 @@ describe('developer clinical audit queue', () => {
         resolvedBy: 'reviewer.dustin-rowland',
       },
     });
+    expect(byId.get('ticket.schema.patient-state.resolved-record-foundation')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: false,
+      targetContentIds: expect.arrayContaining([
+        'schema.condition-state',
+        'schema.diagnosis-record-entry',
+        'schema.resolved-clinical-duration',
+        'schema.subjective-burden-record',
+        'schema.resolved-patient-state',
+      ]),
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
     for (const id of [
       'ticket.engine.patient-generation.general-dependency-gate',
       'ticket.schema.patient-state.resolved-record-foundation',

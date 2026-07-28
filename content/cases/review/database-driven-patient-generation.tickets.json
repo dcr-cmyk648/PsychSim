@@ -689,7 +689,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "blocking",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -705,23 +705,30 @@
       "schema.patient-reaction-history",
       "schema.patient-treatment-history",
       "schema.subjective-burden-record",
+      "schema.resolved-clinical-duration",
       "schema.resolved-patient-state"
     ],
     "dependencyTicketIds": [
       "ticket.catalog.findings.canonical-definition-boundary",
       "ticket.catalog.measurements.vitals-exam-foundation",
+      "ticket.catalog.tests.structured-result-foundation",
       "ticket.schema.patient-state.latent-proposition-evidence-foundation"
     ],
     "conflictContentIds": ["schema.patient-record"],
     "proposedRouting": "Compose the existing reaction, regimen, trial, treatment-history, context, and diagnosis compatibility shapes into a point-free versioned patient-state boundary that separates internal condition truth from chart diagnosis claims.",
     "guidance": "This schema slice owns resolved state only. Internal ConditionState records, uncertain or duplicated chart DiagnosisRecordEntry values, independently targetable regimen entries, structured prior trials, reaction assessment, treatment history, demographics/context, canonical findings, measurements, target-scoped duration, target-scoped ordinal subjective burden, latent propositions, proposition evidence, dependency groups, and belief appraisals must remain distinct and composable. Current report, historical report, collateral, records, observations, and instrument responses must not overwrite one another when their values can disagree. A chart label never activates an internal condition by itself, and no discrepancy may be assigned a motive or etiology without a separate fact. The boundary must scale to multiple diagnoses, long trial histories, duplicate medications, supplements, and nonpsychiatric medications. Do not add PatientTemplate generation, clinical inference, optional-comorbidity selection, scoring, or migration of historical attempts in this ticket.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Approved direction: complex patients may have numerous uncertain chart diagnoses, many current medications and prior trials, while the focused encounter still asks only for the best next step. Preserve all state without grading an exhaustive plan. Duration and subjective burden are typed target-scoped values rather than Boolean findings; report and observation scopes remain independently resolvable.",
-    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
+    "reviewerNotes": "Approved direction: complex patients may have numerous uncertain chart diagnoses, many current medications and prior trials, while the focused encounter still asks only for the best next step. Preserve all state without grading an exhaustive plan. Duration and subjective burden are typed target-scoped values rather than Boolean findings; report and observation scopes remain independently resolvable. Implemented as an additive point-free schema envelope without changing compatibility records or runtime behavior.",
+    "reviewerNotesUpdatedAt": "2026-07-28T21:34:04.000Z",
     "resurfacingTrigger": "Before implementing PatientInstance, optional comorbidity selection, generated regimens/trials, or chart-versus-internal diagnosis behavior.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added separate versioned ConditionState and DiagnosisRecordEntry records, typed target-scoped duration and ordinal burden records, and one complete ResolvedPatientState composition across demographics, conditions, chart claims, independent regimen/supplement entries, treatment and reaction history, tolerability, canonical findings, measurements, observations, structured tests, contexts, proposition evidence, clinical tags, and reported safety-planning ability. The envelope validates record identity, canonical finding uniqueness, target references, tolerability subjects, chart-mapping pairs, and derived context tags while allowing repeated medication identities, repeated chart diagnoses, unresolved or conflicting reports, and chart/internal disagreement. No template, inference, generation rate, diagnosis verdict, optional-comorbidity selection, scoring, reveal state, compatibility migration, or runtime compiler was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T21:34:04.000Z"
+    },
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T19:12:59.000Z"
+    "updatedAt": "2026-07-28T21:34:04.000Z"
   },
   {
     "schemaVersion": 1,

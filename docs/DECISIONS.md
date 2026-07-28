@@ -2983,3 +2983,35 @@ case-specific overrides remain patient-owned. Reveal actions still own neutral m
 and service cost; scoring separately owns relevance. Existing compatibility case results and
 runtime generation remain unchanged until the shared compiler and migration work are explicitly
 approved.
+
+## D-187 — Resolved patient state composes distinct records without inferring among them
+
+**Decision:** Add one complete, point-free `ResolvedPatientState` schema for the future catalog
+compiler while leaving `PatientRecord`, `CaseBlueprint`, `CaseInstance`, persistence, and runtime
+behavior unchanged. Its records remain independently addressable:
+
+- `ConditionState` owns an internal diagnosis-definition version, opaque clinical/time state,
+  severity/specifiers, encounter relevance, origin, and resolution trace.
+- `DiagnosisRecordEntry` owns what a patient, collateral source, record, or clinician source
+  labeled, including questioned or rule-out entries. Its catalog mapping may be absent. A chart
+  entry never creates an internal condition, and an internal condition does not require a chart
+  entry.
+- Current regimen entries, supplements, prior treatment history, reaction history, and
+  medication-tolerability records retain their existing typed owners. Repeated medication and
+  diagnosis identities are lawful because instance IDs remain independent.
+- Canonical findings, numeric measurements, categorical observations, structured test results,
+  clinical contexts, target-scoped duration, target-scoped ordinal burden, proposition/evidence
+  state, clinical tags, and reported safety-planning ability compose the rest of the frozen
+  patient snapshot.
+
+The envelope validates globally unique owned record IDs, one resolution per canonical finding
+definition, exact duration/burden targets, medication-tolerability subjects, paired chart mappings,
+and inclusion of tags produced by resolved clinical contexts. It preserves no-evidence,
+conflicting-evidence, chart/internal disagreement, repeated chart labels, long treatment
+histories, and duplicate medication identities as valid state.
+
+This composition does not judge chart accuracy, infer one record from another, choose optional
+comorbidities, assign source reliability, add a diagnosis or treatment recommendation, contain
+points, expose purchase/reveal state, or activate a generator. The next unresolved owner is the
+substance/background-exposure vocabulary; no exposure taxonomy or prevalence was smuggled into
+this record.

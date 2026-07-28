@@ -126,11 +126,12 @@ non-runtime projection over authoritative tickets, not a second status store.
 
 Complex psychiatric records require two different layers:
 
-1. Internal `ConditionState` records drive generation and scoring. They identify the modeled active
-   syndrome, severity/specifiers, temporal status, and encounter relevance.
+1. Internal `ConditionState` records identify the modeled condition-definition version, opaque
+   clinical/time state, severity/specifiers, encounter relevance, origin, and resolution trace.
+   Their clinical meaning remains catalog-owned rather than hard-coded into the patient envelope.
 2. `DiagnosisRecordEntry` records represent what a problem list, outside record, patient, or prior
-   clinician says. They carry source and assertion status and may be accurate, incomplete,
-   historical, duplicated, or questionable.
+   clinician says. They carry source and assertion status, may have no catalog mapping, and may be
+   accurate, incomplete, historical, duplicated, or questionable.
 
 A chart diagnosis must not automatically activate every treatment rule. This separation allows a
 patient to arrive with six recorded diagnoses while only some are modeled as active, and it allows

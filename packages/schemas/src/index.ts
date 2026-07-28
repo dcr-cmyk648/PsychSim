@@ -5120,6 +5120,356 @@ export type PatientReportedSafetyPlanningAbility = z.infer<
   typeof PatientReportedSafetyPlanningAbilitySchema
 >;
 
+export const ConditionStateSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    diagnosisDefinitionId: StableIdSchema,
+    diagnosisDefinitionContentVersion: ContentVersionSchema,
+    clinicalStateId: StableIdSchema,
+    timeScopeId: StableIdSchema,
+    encounterRelevance: z.enum(['focus', 'contributing', 'background']),
+    severityId: StableIdSchema.nullable(),
+    specifierIds: z.array(StableIdSchema),
+    origin: z.enum(['authored', 'generated_optional', 'derived_incidental']),
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((condition, context) => {
+    if (new Set(condition.specifierIds).size !== condition.specifierIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['specifierIds'],
+        message: 'Condition-state specifier IDs must be unique.',
+      });
+    }
+  });
+export type ConditionState = z.infer<typeof ConditionStateSchema>;
+
+export const DiagnosisRecordEntrySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    mappedDiagnosisDefinitionId: StableIdSchema.nullable(),
+    mappedDiagnosisDefinitionContentVersion: ContentVersionSchema.nullable(),
+    recordedLabel: z.string().trim().min(1).max(180),
+    assertion: z.enum(['asserted', 'historical', 'rule_out', 'questioned', 'unspecified']),
+    source: z
+      .object({
+        kind: PatientSceneEvidenceSourceKindSchema,
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+    timeScopeId: StableIdSchema,
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((entry, context) => {
+    if (
+      (entry.mappedDiagnosisDefinitionId === null) !==
+      (entry.mappedDiagnosisDefinitionContentVersion === null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['mappedDiagnosisDefinitionId'],
+        message:
+          'A chart diagnosis mapping must include both definition ID and content version, or neither.',
+      });
+    }
+  });
+export type DiagnosisRecordEntry = z.infer<typeof DiagnosisRecordEntrySchema>;
+
+export const PatientStateTargetReferenceSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('condition_state'),
+      conditionStateId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('canonical_finding'),
+      canonicalFindingId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('latent_proposition'),
+      propositionId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type PatientStateTargetReference = z.infer<typeof PatientStateTargetReferenceSchema>;
+
+export const PatientStateScopedSourceSchema = z
+  .object({
+    kind: PatientSceneEvidenceSourceKindSchema,
+    sourceInstanceId: StableIdSchema,
+  })
+  .strict();
+export type PatientStateScopedSource = z.infer<typeof PatientStateScopedSourceSchema>;
+
+export const ResolvedClinicalDurationSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    target: PatientStateTargetReferenceSchema,
+    value: z.number().int().positive(),
+    unit: ClinicalDurationUnitSchema,
+    durationProfileId: StableIdSchema,
+    durationOptionId: StableIdSchema,
+    relatedDiagnosisId: StableIdSchema.nullable(),
+    interpretation: z.enum(['supports_authored_state', 'designed_below_threshold', 'context_only']),
+    criterionId: StableIdSchema.nullable(),
+    source: PatientStateScopedSourceSchema,
+    timeScopeId: StableIdSchema,
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((duration, context) => {
+    if (duration.interpretation === 'designed_below_threshold' && duration.criterionId === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['criterionId'],
+        message: 'A below-threshold resolved duration must retain its reviewed criterion.',
+      });
+    }
+    if (duration.interpretation !== 'designed_below_threshold' && duration.criterionId !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['criterionId'],
+        message: 'Only a below-threshold resolved duration may name a criterion.',
+      });
+    }
+  });
+export type ResolvedClinicalDuration = z.infer<typeof ResolvedClinicalDurationSchema>;
+
+export const SubjectiveBurdenRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    target: PatientStateTargetReferenceSchema,
+    ordinalScaleId: StableIdSchema,
+    ordinalScaleContentVersion: ContentVersionSchema,
+    ordinalValueId: StableIdSchema,
+    source: PatientStateScopedSourceSchema,
+    timeScopeId: StableIdSchema,
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict();
+export type SubjectiveBurdenRecord = z.infer<typeof SubjectiveBurdenRecordSchema>;
+
+/**
+ * A complete, point-free patient snapshot for the future catalog compiler.
+ * It composes already resolved values without replacing the compatibility
+ * PatientRecord, CaseBlueprint, CaseInstance, or save schemas.
+ */
+export const ResolvedPatientStateSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    demographics: ResolvedPatientDemographicsV2Schema,
+    conditionStates: z.array(ConditionStateSchema),
+    diagnosisRecordEntries: z.array(DiagnosisRecordEntrySchema),
+    medicationRegimenEntries: z.array(MedicationRegimenEntryV2Schema),
+    supplementUseEntries: z.array(SupplementUseEntrySchema),
+    treatmentHistory: PatientTreatmentHistorySchema,
+    medicationTolerabilityFindings: z.array(MedicationTolerabilityFindingV2Schema),
+    reactionHistory: PatientReactionHistorySchema,
+    canonicalFindings: z.array(ResolvedCanonicalFindingSchema),
+    measurements: z.array(ResolvedMeasurementSchema),
+    categoricalObservations: z.array(ResolvedCategoricalObservationSchema),
+    structuredTestResults: z.array(StructuredTestResultSchema),
+    clinicalContexts: z.array(ResolvedPatientClinicalContextSchema),
+    clinicalDurations: z.array(ResolvedClinicalDurationSchema),
+    subjectiveBurdenRecords: z.array(SubjectiveBurdenRecordSchema),
+    propositionState: ResolvedPatientPropositionStateSchema,
+    clinicalTagIds: z.array(StableIdSchema),
+    reportedSafetyPlanningAbility: PatientReportedSafetyPlanningAbilitySchema,
+  })
+  .strict()
+  .superRefine((state, context) => {
+    const assertUniqueIds = (path: string, ids: string[]) => {
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message: `Resolved patient-state ${path} IDs must be unique.`,
+        });
+      }
+    };
+    assertUniqueIds(
+      'conditionStates',
+      state.conditionStates.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'diagnosisRecordEntries',
+      state.diagnosisRecordEntries.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'medicationRegimenEntries',
+      state.medicationRegimenEntries.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'supplementUseEntries',
+      state.supplementUseEntries.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'medicationTrials',
+      state.treatmentHistory.medicationTrials.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'psychotherapyTrials',
+      state.treatmentHistory.psychotherapyTrials.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'currentProviders',
+      state.treatmentHistory.currentProviders.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'priorLevelsOfCare',
+      state.treatmentHistory.priorLevelsOfCare.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'medicationTolerabilityFindings',
+      state.medicationTolerabilityFindings.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'canonicalFindings',
+      state.canonicalFindings.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'measurements',
+      state.measurements.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'categoricalObservations',
+      state.categoricalObservations.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'structuredTestResults',
+      state.structuredTestResults.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'clinicalDurations',
+      state.clinicalDurations.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'subjectiveBurdenRecords',
+      state.subjectiveBurdenRecords.map((entry) => entry.id),
+    );
+    assertUniqueIds('clinicalTagIds', state.clinicalTagIds);
+
+    const globallyOwnedRecordIds = [
+      ...state.conditionStates.map((entry) => entry.id),
+      ...state.diagnosisRecordEntries.map((entry) => entry.id),
+      ...state.medicationRegimenEntries.map((entry) => entry.id),
+      ...state.supplementUseEntries.map((entry) => entry.id),
+      ...state.treatmentHistory.medicationTrials.map((entry) => entry.id),
+      ...state.treatmentHistory.psychotherapyTrials.map((entry) => entry.id),
+      ...state.treatmentHistory.currentProviders.map((entry) => entry.id),
+      ...state.treatmentHistory.priorLevelsOfCare.map((entry) => entry.id),
+      ...state.medicationTolerabilityFindings.map((entry) => entry.id),
+      ...state.reactionHistory.records.map((entry) => entry.id),
+      ...state.canonicalFindings.map((entry) => entry.id),
+      ...state.measurements.map((entry) => entry.id),
+      ...state.categoricalObservations.map((entry) => entry.id),
+      ...state.structuredTestResults.map((entry) => entry.id),
+      ...state.clinicalDurations.map((entry) => entry.id),
+      ...state.subjectiveBurdenRecords.map((entry) => entry.id),
+      state.propositionState.id,
+      ...state.propositionState.propositions.map((entry) => entry.id),
+      ...state.propositionState.evidence.map((entry) => entry.id),
+      ...state.propositionState.dependencyGroups.map((entry) => entry.id),
+      ...state.propositionState.beliefAppraisals.map((entry) => entry.id),
+    ];
+    if (new Set(globallyOwnedRecordIds).size !== globallyOwnedRecordIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Resolved patient-state owned record IDs must be globally unique.',
+      });
+    }
+
+    const canonicalFindingDefinitionIds = state.canonicalFindings.map(
+      (finding) => finding.definitionId,
+    );
+    if (new Set(canonicalFindingDefinitionIds).size !== canonicalFindingDefinitionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['canonicalFindings'],
+        message: 'Each canonical finding definition may resolve only once per patient state.',
+      });
+    }
+
+    const contextDimensionIds = state.clinicalContexts.map((entry) => entry.dimensionId);
+    if (new Set(contextDimensionIds).size !== contextDimensionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['clinicalContexts'],
+        message: 'Resolved patient-state clinical-context dimensions must be unique.',
+      });
+    }
+
+    const clinicalTagIds = new Set(state.clinicalTagIds);
+    for (const tagId of state.clinicalContexts.flatMap(
+      (clinicalContext) => clinicalContext.addedClinicalTagIds,
+    )) {
+      if (!clinicalTagIds.has(tagId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['clinicalTagIds'],
+          message: `Resolved patient state is missing derived clinical tag ${tagId}.`,
+        });
+      }
+    }
+
+    const regimenEntryIds = new Set(state.medicationRegimenEntries.map((entry) => entry.id));
+    const medicationTrialIds = new Set(
+      state.treatmentHistory.medicationTrials.map((entry) => entry.id),
+    );
+    for (const [findingIndex, finding] of state.medicationTolerabilityFindings.entries()) {
+      const subjectExists =
+        finding.subject.kind === 'current_regimen_entry'
+          ? regimenEntryIds.has(finding.subject.regimenEntryId)
+          : medicationTrialIds.has(finding.subject.medicationTrialId);
+      if (!subjectExists) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationTolerabilityFindings', findingIndex, 'subject'],
+          message: 'Medication tolerability must reference an included regimen entry or trial.',
+        });
+      }
+    }
+
+    const conditionStateIds = new Set(state.conditionStates.map((entry) => entry.id));
+    const canonicalFindingIds = new Set(state.canonicalFindings.map((entry) => entry.id));
+    const propositionIds = new Set(state.propositionState.propositions.map((entry) => entry.id));
+    const targetExists = (target: PatientStateTargetReference) => {
+      if (target.kind === 'condition_state') {
+        return conditionStateIds.has(target.conditionStateId);
+      }
+      if (target.kind === 'canonical_finding') {
+        return canonicalFindingIds.has(target.canonicalFindingId);
+      }
+      return propositionIds.has(target.propositionId);
+    };
+    for (const [path, records] of [
+      ['clinicalDurations', state.clinicalDurations],
+      ['subjectiveBurdenRecords', state.subjectiveBurdenRecords],
+    ] as const) {
+      for (const [recordIndex, record] of records.entries()) {
+        if (!targetExists(record.target)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [path, recordIndex, 'target'],
+            message: 'Target-scoped patient state must reference an included resolved record.',
+          });
+        }
+      }
+    }
+  });
+export type ResolvedPatientState = z.infer<typeof ResolvedPatientStateSchema>;
+
 export const PatientRecordSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,

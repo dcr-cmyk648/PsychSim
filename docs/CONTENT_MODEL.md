@@ -343,6 +343,14 @@ The next schema split is:
   rubric;
 - an attempt saves player events against that frozen encounter.
 
+The point-free `ResolvedPatientState` foundation now supplies the future `PatientInstance`'s
+clinical-state payload without activating generation. Internal conditions and chart claims are
+separate; chart mappings may be absent; repeated chart diagnoses and medication identities are
+valid; target-scoped duration and burden reference exact resolved records; and canonical findings,
+measurements, structured tests, treatment/reaction history, context, and proposition evidence
+remain independently auditable. The envelope contains no template constraints, clinical
+inference, points, reveal state, or encounter rubric.
+
 The compiled rubric is derived from reviewed reusable rules plus explicit patient-specific
 overrides. A patient template should not copy a complete treatment plan from every diagnosis file.
 Current `CaseInstance` snapshots remain immutable and replayable during migration; no old save is

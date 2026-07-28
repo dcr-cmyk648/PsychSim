@@ -101,10 +101,12 @@ tickets/export bundles, developer source requests, clinic/save/flag data, upgrad
 definitions, source manifests/documents/chunks, generation provenance, and patient-scaffold
 requests. It also owns authoring-only diagnosis-classification releases and terms, compact reviewed
 diagnosis-classification bindings, and source-use decisions that separately gate storage,
-extraction, local indexing, AI processing, derived clinical content, redistribution, and commercial use. The next schema
-version adds typed facts/derivations, internal condition states, separate
-chart diagnosis entries, medication-regimen entries, structured prior trials, decision policies,
-patient templates, and frozen encounter instances without reinterpreting old snapshots. Upgrade
+extraction, local indexing, AI processing, derived clinical content, redistribution, and
+commercial use. The additive future-state boundary now includes typed findings, measurements and
+tests, internal condition states, separate chart diagnosis entries, independent medication
+regimen entries, structured prior trials, reactions, duration, burden, and proposition evidence
+without reinterpreting old snapshots. Decision policies, patient templates, frozen encounter
+instances, and runtime migration remain later owners. Upgrade
 definitions declare kind, point cost, lifetime/facility/department/prerequisite gates, granted
 capabilities/formularies, related services, per-use cost metadata, patient-category effects, and
 player-facing capability labels. Facility definitions own their locations, default location,
