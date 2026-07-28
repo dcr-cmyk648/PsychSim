@@ -348,8 +348,12 @@ The generator does not require the evidence corpus to converge on hidden truth. 
 ambiguous or misleading evidence is valid state, not a retry condition; broad/unspecified
 diagnosis and conservative coverage routes belong in diagnosis and decision-policy scoring rather
 than a generic winnability validator.
-This projection boundary is accepted architecture and a blocking compiler dependency; it is not
-yet part of the compatibility `CaseInstance` path.
+The additive schema foundation now implements strict latent propositions, source evidence,
+structural generation-profile ownership, shared-origin and correlation groups, belief appraisal,
+and one narrow `ResolvedPatientPropositionState` envelope. It has no probability, credibility,
+diagnosis, scoring, reveal, or runtime-generation behavior. The complete resolved-patient record
+and reveal-projection compiler remain later dependencies, and the compatibility `CaseInstance`
+path is unchanged.
 
 Diagnosis files are composed separately from patient instantiation.
 `composeDiagnosisGuidance` applies base, severity, specifier, and other active-diagnosis rules,

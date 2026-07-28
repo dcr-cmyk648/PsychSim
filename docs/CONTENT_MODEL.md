@@ -477,11 +477,18 @@ A false proposition is not automatically a delusion; patient belief state, convi
 appraisal, and clinical interpretation remain separate. None of these layers is generated when an
 action is purchased.
 
+The additive `ResolvedPatientPropositionState` envelope now validates the narrow proposition path:
+frozen Boolean truth, source-specific assertions, exact claim origins, bidirectional dependency
+groups, and separately identified belief-appraisal dimensions and interpretations. Authored and
+deterministic records have distinct strict traces. The structural generation-profile record
+contains no probability or credibility value. This envelope is deliberately narrower than the
+future complete `ResolvedPatientState`.
+
 No content validator requires these claims to converge on the modeled truth. A realistic resolved
-corpus may remain ambiguous or even misleading without making the patient invalid. A focused
-rubric instead recognizes uncertainty through explicit blank, broad, unspecified, alternative, or
-conservative-coverage routes. Missing support for those routes is a nonblocking catalog/rubric
-coverage gap, not a reason to regenerate the patient.
+corpus may contain no evidence, remain ambiguous, or even be collectively misleading without
+making the patient invalid. A focused rubric instead recognizes uncertainty through explicit
+blank, broad, unspecified, alternative, or conservative-coverage routes. Missing support for
+those routes is a nonblocking catalog/rubric coverage gap, not a reason to regenerate the patient.
 
 The target subjective-presentation layer is accepted but not implemented. A standardized
 instrument item will own an explicit reviewed mapping from applicable source findings to its
@@ -495,7 +502,7 @@ player-facing answer is compact or the report and observation conflict.
 
 Existing `FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay
 remain the compatibility path and were not migrated. Numeric measurements, test-owned results,
-latent proposition/evidence state, subjective-presentation projection, generalized finding
+subjective-presentation projection, full resolved-patient composition, generalized finding
 compilation, and compatibility mapping remain later dependency tickets.
 
 Every encounter-available result is resolved and frozen before play. `EncounterState` records only

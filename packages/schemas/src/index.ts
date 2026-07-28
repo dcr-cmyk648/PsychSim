@@ -2334,6 +2334,447 @@ export type CanonicalFindingResolutionEnvelope = z.infer<
   typeof CanonicalFindingResolutionEnvelopeSchema
 >;
 
+/**
+ * Patient-scene evidence is encounter state, not formal literature evidence.
+ * These source kinds identify who or what produced one frozen claim about an
+ * explicitly modeled proposition.
+ */
+export const PatientSceneEvidenceSourceKindSchema = z.enum([
+  'patient_report',
+  'collateral_report',
+  'record_review',
+  'clinician_observation',
+  'instrument_response',
+  'measurement',
+  'laboratory_result',
+  'diagnostic_study_result',
+]);
+export type PatientSceneEvidenceSourceKind = z.infer<typeof PatientSceneEvidenceSourceKindSchema>;
+
+export const PropositionEvidenceAssertionSchema = z.enum([
+  'supports',
+  'opposes',
+  'uncertain',
+  'unable_to_assess',
+]);
+export type PropositionEvidenceAssertion = z.infer<typeof PropositionEvidenceAssertionSchema>;
+
+export const PropositionEvidenceTruthRelationSchema = z.enum([
+  'aligned',
+  'misaligned',
+  'indeterminate',
+]);
+export type PropositionEvidenceTruthRelation = z.infer<
+  typeof PropositionEvidenceTruthRelationSchema
+>;
+
+export const PatientStateResolutionTraceSchema = z.discriminatedUnion('origin', [
+  z
+    .object({
+      origin: z.literal('authored'),
+      ownerId: StableIdSchema,
+      ownerContentVersion: ContentVersionSchema,
+    })
+    .strict(),
+  z
+    .object({
+      origin: z.literal('deterministic_generation'),
+      generationProfileId: StableIdSchema,
+      generationProfileContentVersion: ContentVersionSchema,
+      resolverVersion: ContentVersionSchema,
+      stableDrawId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type PatientStateResolutionTrace = z.infer<typeof PatientStateResolutionTraceSchema>;
+
+/**
+ * A latent proposition is reserved for an explicitly modeled adjudicable
+ * statement. Symptoms, diagnoses, measurements, and subjective experiences
+ * retain their native typed owners rather than being flattened to Booleans.
+ */
+export const LatentPatientPropositionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    auditStatement: z.string().trim().min(1).max(500),
+    truth: z.boolean(),
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict();
+export type LatentPatientProposition = z.infer<typeof LatentPatientPropositionSchema>;
+
+/**
+ * This profile establishes versioned ownership and lawful assertion kinds
+ * without encoding reliability probabilities or credibility scores. A later
+ * reviewed schema version may add calibrated conditional branches.
+ */
+export const PropositionEvidenceGenerationProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+    timeScopeId: StableIdSchema,
+    propositionDefinitionIds: z.array(StableIdSchema).min(1),
+    allowedAssertions: z.array(PropositionEvidenceAssertionSchema).min(1),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    if (
+      new Set(profile.propositionDefinitionIds).size !== profile.propositionDefinitionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['propositionDefinitionIds'],
+        message: 'Proposition evidence profile definition IDs must be unique.',
+      });
+    }
+    if (new Set(profile.allowedAssertions).size !== profile.allowedAssertions.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedAssertions'],
+        message: 'Proposition evidence profile assertion kinds must be unique.',
+      });
+    }
+  });
+export type PropositionEvidenceGenerationProfile = z.infer<
+  typeof PropositionEvidenceGenerationProfileSchema
+>;
+
+export const PatientPropositionEvidenceSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    propositionId: StableIdSchema,
+    assertion: PropositionEvidenceAssertionSchema,
+    relationshipToTruth: PropositionEvidenceTruthRelationSchema,
+    source: z
+      .object({
+        kind: PatientSceneEvidenceSourceKindSchema,
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+    timeScopeId: StableIdSchema,
+    claimOriginId: StableIdSchema,
+    dependencyGroupIds: z.array(StableIdSchema),
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((evidence, context) => {
+    if (new Set(evidence.dependencyGroupIds).size !== evidence.dependencyGroupIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['dependencyGroupIds'],
+        message: 'Patient-scene evidence dependency-group IDs must be unique.',
+      });
+    }
+  });
+export type PatientPropositionEvidence = z.infer<typeof PatientPropositionEvidenceSchema>;
+
+export const EvidenceDependencyGroupSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    kind: z.enum(['shared_origin', 'known_correlated']),
+    basisId: StableIdSchema,
+    evidenceIds: z.array(StableIdSchema).min(2),
+  })
+  .strict()
+  .superRefine((group, context) => {
+    if (new Set(group.evidenceIds).size !== group.evidenceIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidenceIds'],
+        message: 'Evidence dependency-group members must be unique.',
+      });
+    }
+  });
+export type EvidenceDependencyGroup = z.infer<typeof EvidenceDependencyGroupSchema>;
+
+export const BeliefAppraisalDimensionValueSchema = z
+  .object({
+    id: StableIdSchema,
+    dimensionId: StableIdSchema,
+    valueId: StableIdSchema,
+    evidenceIds: z.array(StableIdSchema),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (new Set(value.evidenceIds).size !== value.evidenceIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidenceIds'],
+        message: 'Belief-appraisal dimension evidence IDs must be unique.',
+      });
+    }
+  });
+export type BeliefAppraisalDimensionValue = z.infer<typeof BeliefAppraisalDimensionValueSchema>;
+
+export const BeliefClinicalInterpretationSchema = z
+  .object({
+    id: StableIdSchema,
+    interpretationId: StableIdSchema,
+    ruleId: StableIdSchema,
+    ruleContentVersion: ContentVersionSchema,
+    evidenceIds: z.array(StableIdSchema),
+  })
+  .strict()
+  .superRefine((interpretation, context) => {
+    if (new Set(interpretation.evidenceIds).size !== interpretation.evidenceIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidenceIds'],
+        message: 'Belief-appraisal interpretation evidence IDs must be unique.',
+      });
+    }
+  });
+export type BeliefClinicalInterpretation = z.infer<typeof BeliefClinicalInterpretationSchema>;
+
+/**
+ * Belief position, appraisal dimensions, and clinical interpretations remain
+ * separate from world-state truth. An empty interpretation list is valid.
+ */
+export const BeliefAppraisalSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    propositionId: StableIdSchema,
+    subjectId: StableIdSchema,
+    beliefPosition: z.enum(['unassessed', 'unknown', 'does_not_hold', 'holds']),
+    dimensionValues: z.array(BeliefAppraisalDimensionValueSchema),
+    clinicalInterpretations: z.array(BeliefClinicalInterpretationSchema),
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((appraisal, context) => {
+    for (const [path, ids] of [
+      ['dimensionValues', appraisal.dimensionValues.map((value) => value.id)],
+      [
+        'clinicalInterpretations',
+        appraisal.clinicalInterpretations.map((interpretation) => interpretation.id),
+      ],
+    ] as const) {
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message: 'Belief-appraisal child IDs must be unique.',
+        });
+      }
+    }
+  });
+export type BeliefAppraisal = z.infer<typeof BeliefAppraisalSchema>;
+
+const expectedTruthRelation = (
+  propositionTruth: boolean,
+  assertion: PropositionEvidenceAssertion,
+): PropositionEvidenceTruthRelation => {
+  if (assertion === 'uncertain' || assertion === 'unable_to_assess') return 'indeterminate';
+  if (
+    (propositionTruth && assertion === 'supports') ||
+    (!propositionTruth && assertion === 'opposes')
+  ) {
+    return 'aligned';
+  }
+  return 'misaligned';
+};
+
+/**
+ * A narrow resolved proposition/evidence envelope. The later resolved-record
+ * foundation embeds this alongside findings, conditions, measurements,
+ * regimens, and history; this is not a partial compatibility PatientRecord.
+ */
+export const ResolvedPatientPropositionStateSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    propositions: z.array(LatentPatientPropositionSchema),
+    evidence: z.array(PatientPropositionEvidenceSchema),
+    dependencyGroups: z.array(EvidenceDependencyGroupSchema),
+    beliefAppraisals: z.array(BeliefAppraisalSchema),
+  })
+  .strict()
+  .superRefine((state, context) => {
+    const assertUniqueIds = (path: string, ids: string[]) => {
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message: `Resolved proposition-state ${path} IDs must be unique.`,
+        });
+      }
+    };
+    assertUniqueIds(
+      'propositions',
+      state.propositions.map((proposition) => proposition.id),
+    );
+    assertUniqueIds(
+      'evidence',
+      state.evidence.map((evidence) => evidence.id),
+    );
+    assertUniqueIds(
+      'dependencyGroups',
+      state.dependencyGroups.map((group) => group.id),
+    );
+    assertUniqueIds(
+      'beliefAppraisals',
+      state.beliefAppraisals.map((appraisal) => appraisal.id),
+    );
+
+    const propositionById = new Map(
+      state.propositions.map((proposition) => [proposition.id, proposition]),
+    );
+    const evidenceById = new Map(state.evidence.map((evidence) => [evidence.id, evidence]));
+    const dependencyGroupById = new Map(state.dependencyGroups.map((group) => [group.id, group]));
+
+    for (const [evidenceIndex, evidence] of state.evidence.entries()) {
+      const proposition = propositionById.get(evidence.propositionId);
+      if (!proposition) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['evidence', evidenceIndex, 'propositionId'],
+          message: 'Patient-scene evidence must reference an included proposition.',
+        });
+      } else if (
+        evidence.relationshipToTruth !==
+        expectedTruthRelation(proposition.truth, evidence.assertion)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['evidence', evidenceIndex, 'relationshipToTruth'],
+          message: 'The saved evidence-to-truth relation does not match the proposition and claim.',
+        });
+      }
+      for (const groupId of evidence.dependencyGroupIds) {
+        const group = dependencyGroupById.get(groupId);
+        if (!group) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['evidence', evidenceIndex, 'dependencyGroupIds'],
+            message: `Evidence dependency group ${groupId} is not included in the state.`,
+          });
+        } else if (!group.evidenceIds.includes(evidence.id)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['evidence', evidenceIndex, 'dependencyGroupIds'],
+            message: `Evidence dependency group ${groupId} does not list this evidence record.`,
+          });
+        }
+      }
+    }
+
+    const evidenceByPropositionAndOrigin = new Map<string, PatientPropositionEvidence[]>();
+    for (const evidence of state.evidence) {
+      const key = `${evidence.propositionId}\u0000${evidence.claimOriginId}`;
+      const records = evidenceByPropositionAndOrigin.get(key) ?? [];
+      records.push(evidence);
+      evidenceByPropositionAndOrigin.set(key, records);
+    }
+    for (const records of evidenceByPropositionAndOrigin.values()) {
+      if (records.length < 2) continue;
+      if (
+        new Set(records.map((record) => record.assertion)).size > 1 ||
+        new Set(records.map((record) => record.timeScopeId)).size > 1
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['evidence'],
+          message:
+            'Evidence copied from one origin for one proposition must preserve its assertion and time scope.',
+        });
+      }
+      const memberIds = new Set(records.map((record) => record.id));
+      const sharedOriginGroup = state.dependencyGroups.find(
+        (group) =>
+          group.kind === 'shared_origin' &&
+          records.every((record) => group.evidenceIds.includes(record.id)) &&
+          group.evidenceIds.every((evidenceId) => memberIds.has(evidenceId)),
+      );
+      if (!sharedOriginGroup) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dependencyGroups'],
+          message:
+            'Repeated evidence from one origin must be represented by one exact shared-origin group.',
+        });
+      }
+    }
+
+    for (const [groupIndex, group] of state.dependencyGroups.entries()) {
+      const members = group.evidenceIds
+        .map((evidenceId) => evidenceById.get(evidenceId))
+        .filter((evidence): evidence is PatientPropositionEvidence => evidence !== undefined);
+      if (members.length !== group.evidenceIds.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dependencyGroups', groupIndex, 'evidenceIds'],
+          message: 'Every dependency-group member must be included patient-scene evidence.',
+        });
+        continue;
+      }
+      if (new Set(members.map((member) => member.propositionId)).size !== 1) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dependencyGroups', groupIndex, 'evidenceIds'],
+          message: 'One evidence dependency group may concern only one proposition.',
+        });
+      }
+      for (const member of members) {
+        if (!member.dependencyGroupIds.includes(group.id)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['dependencyGroups', groupIndex, 'evidenceIds'],
+            message: 'Evidence dependency-group membership must be bidirectional.',
+          });
+        }
+      }
+      if (
+        group.kind === 'shared_origin' &&
+        (new Set(members.map((member) => member.claimOriginId)).size !== 1 ||
+          members[0]?.claimOriginId !== group.basisId)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dependencyGroups', groupIndex, 'basisId'],
+          message:
+            'A shared-origin group basis must equal the one claim origin shared by all members.',
+        });
+      }
+    }
+
+    for (const [appraisalIndex, appraisal] of state.beliefAppraisals.entries()) {
+      if (!propositionById.has(appraisal.propositionId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['beliefAppraisals', appraisalIndex, 'propositionId'],
+          message: 'A belief appraisal must reference an included proposition.',
+        });
+      }
+      const referencedEvidenceIds = [
+        ...appraisal.dimensionValues.flatMap((value) => value.evidenceIds),
+        ...appraisal.clinicalInterpretations.flatMap(
+          (interpretation) => interpretation.evidenceIds,
+        ),
+      ];
+      for (const evidenceId of referencedEvidenceIds) {
+        const evidence = evidenceById.get(evidenceId);
+        if (!evidence || evidence.propositionId !== appraisal.propositionId) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['beliefAppraisals', appraisalIndex],
+            message:
+              'Belief-appraisal evidence must exist and concern the same latent proposition.',
+          });
+        }
+      }
+    }
+  });
+export type ResolvedPatientPropositionState = z.infer<typeof ResolvedPatientPropositionStateSchema>;
+
 export const ClinicalDurationOptionSchema = z
   .object({
     id: StableIdSchema,

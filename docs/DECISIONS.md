@@ -2888,3 +2888,29 @@ to literal structural impossibility or malformed state, including an explicitly 
 same-scope pair. Missing broad diagnosis identities, uncertainty-aware treatment relationships, or
 rubric coverage remain nonblocking coverage gaps and review tickets; they are database work rather
 than reasons to delete or reroll a plausible patient.
+
+## D-183 — Proposition evidence has a narrow point-free resolved-state envelope
+
+**Decision:** Implement the accepted D-181/D-182 boundary additively without changing the
+compatibility patient or case schemas. `LatentPatientProposition` freezes one explicitly modeled
+Boolean world-state statement. `PatientPropositionEvidence` freezes each source-specific claim,
+its assertion, mechanically derived relation to truth, source instance, opaque time-scope ID,
+claim origin, dependency links, and authored or deterministic resolution trace.
+
+`EvidenceDependencyGroup` distinguishes exact shared origins from known correlation. Membership is
+bidirectional; repeated records from one claim origin cannot remain ungrouped as independent
+corroboration. `BeliefAppraisal` stores belief position, independently identified appraisal
+dimensions, and separately rule-owned clinical interpretations. No truth value automatically
+creates an interpretation. `PropositionEvidenceGenerationProfile` currently owns only versioned
+scope, lawful assertion kinds, and rule review; it contains no probability or reliability value.
+
+The cross-record `ResolvedPatientPropositionState` envelope validates identity and reference
+integrity, saved truth relationships, and dependency membership. It deliberately accepts no
+evidence, conflicting evidence, and collectively misleading evidence. It does not require
+convergence, count votes, infer motive or diagnosis, expose reveal state, or contain points.
+
+The narrow name is intentional. The later resolved-record foundation still owns the complete
+`ResolvedPatientState` composition across internal conditions, chart claims, findings,
+measurements, regimens, reactions, treatment history, context, and this proposition-state
+envelope. Existing `PatientRecord`, `CaseBlueprint`, `CaseInstance`, persistence, and runtime
+generation remain unchanged.

@@ -554,7 +554,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "blocking",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -567,19 +567,24 @@
       "schema.proposition-evidence-generation-profile",
       "schema.evidence-dependency-group",
       "schema.belief-appraisal",
-      "schema.resolved-patient-state"
+      "schema.resolved-patient-proposition-state"
     ],
     "dependencyTicketIds": ["ticket.catalog.findings.paranoia-persecution-boundary"],
     "conflictContentIds": ["finding.history.reported-delusional-beliefs", "schema.patient-record"],
     "proposedRouting": "Add a point-free patient-state layer that freezes an authored or deterministically generated Boolean encounter proposition, every source-specific claim or observation about it, and exact shared-origin or dependency links before play.",
     "guidance": "A LatentPatientProposition represents only an explicitly modeled adjudicable statement and resolves true or false before play; typed symptoms, measurements, diagnoses, and subjective experiences retain their existing native owners rather than being flattened into propositions. PatientPropositionEvidence separately records patient, collateral, record, examination, or test support, opposition, uncertainty, or inability to assess; its deterministic claim-generation rule, source instance, time scope, stable draw, and dependency links are saved before any action is purchased. Exact copies share an origin and cannot become additional corroboration. Known correlated evidence remains grouped and cannot be naively multiplied or majority-voted as if independent. Conditional reliability values are reviewed game-calibration parameters with provenance, never global patient-credibility scores or authoritative clinical probabilities. A false proposition is not automatically a delusion: belief content, conviction/fixity/context appraisal, and any clinical interpretation remain separate. Conflicts never imply lying, malingering, secondary gain, poor insight, or another motive unless separately authored. Patient-scene evidence is distinct from the formal article/guideline evidence catalog. The evidence corpus is not required to converge on hidden truth and ambiguity or collectively misleading evidence is not a retry, cleanup, quarantine, or generic winnability condition. Blank, broad, unspecified, and conservative coverage responses belong to the later diagnosis and decision-policy rubric. The later trace must preserve proposition → source evidence → dependency handling → revealed result → rule evaluation. This foundation adds no clinical association, probability value, diagnosis criterion, scoring, treatment behavior, compatibility migration, or runtime generator.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Accepted architecture from Dustin Rowland. An encounter may establish a hidden true/false proposition while patient, collateral, records, examinations, and tests provide conditionally accurate or inaccurate reports. Conflicting evidence is desirable gameplay and must remain auditable with shared origins and correlation preserved. The reviewer explicitly rejected a generic convergence or winnability validator: realistic evidence may remain ambiguous or misleading, and the player should receive credit for recognizing uncertainty and choosing a broad diagnosis or reasonable treatment coverage rather than being forced into false precision.",
-    "reviewerNotesUpdatedAt": "2026-07-28T20:37:23.000Z",
+    "reviewerNotes": "Accepted architecture from Dustin Rowland. An encounter may establish a hidden true/false proposition while patient, collateral, records, examinations, and tests provide conditionally accurate or inaccurate reports. Conflicting evidence is desirable gameplay and must remain auditable with shared origins and correlation preserved. The reviewer explicitly rejected a generic convergence or winnability validator: realistic evidence may remain ambiguous or misleading, and the player should receive credit for recognizing uncertainty and choosing a broad diagnosis or reasonable treatment coverage rather than being forced into false precision. The implemented schema intentionally uses a narrow ResolvedPatientPropositionState envelope so the later resolved-record ticket continues to own the complete condition/chart/regimen/finding/measurement patient state.",
+    "reviewerNotesUpdatedAt": "2026-07-28T20:57:16.000Z",
     "resurfacingTrigger": "Before implementing belief appraisal, source reliability, collateral corroboration, copied-record handling, evidence aggregation, or any generated encounter in which reports can differ from authored truth.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added strict point-free schemas for frozen Boolean propositions, authored or deterministic resolution traces, source-specific evidence assertions, structural generation-profile ownership, shared-origin and known-correlation dependency groups, belief appraisal, and a narrow resolved proposition-state envelope. Cross-record validation preserves exact origins and bidirectional dependencies while allowing absent, conflicting, or collectively misleading evidence. No probability, credibility score, diagnosis inference, points, reveal state, case migration, runtime generation, or general resolved-patient record was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T20:57:16.000Z"
+    },
     "createdAt": "2026-07-28T19:12:59.000Z",
-    "updatedAt": "2026-07-28T20:37:23.000Z"
+    "updatedAt": "2026-07-28T20:57:16.000Z"
   },
   {
     "schemaVersion": 1,

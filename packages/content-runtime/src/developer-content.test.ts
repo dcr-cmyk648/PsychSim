@@ -140,7 +140,7 @@ describe('developer clinical audit queue', () => {
     expect(
       byId.get('ticket.schema.patient-state.latent-proposition-evidence-foundation'),
     ).toMatchObject({
-      status: 'accepted_for_workflow',
+      status: 'resolved',
       requiresClinicalAcumen: false,
       targetContentIds: expect.arrayContaining([
         'schema.latent-patient-proposition',
@@ -148,8 +148,12 @@ describe('developer clinical audit queue', () => {
         'schema.proposition-evidence-generation-profile',
         'schema.evidence-dependency-group',
         'schema.belief-appraisal',
+        'schema.resolved-patient-proposition-state',
       ]),
-      resolution: null,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
     });
     expect(
       byId.get('ticket.schema.patient-state.latent-proposition-evidence-foundation')?.guidance,

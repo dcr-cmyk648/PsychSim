@@ -371,8 +371,14 @@ Belief content has three separable layers: the modeled proposition's truth, the 
 state, and any clinical belief appraisal. A false proposition alone does not make a belief
 delusional, and a report labeled delusional does not establish that the proposition is false. The
 post-submit trace must be able to show `latent proposition → evidence claims → dependency handling
-→ revealed response → rule evaluation`. These schemas remain gated by
-`ticket.schema.patient-state.latent-proposition-evidence-foundation`.
+→ revealed response → rule evaluation`.
+
+The narrow point-free schema foundation is implemented. It freezes Boolean propositions, separate
+source assertions, opaque time-scope IDs, claim origins, shared-origin or correlation groups,
+belief appraisal, and authored/deterministic resolution traces inside
+`ResolvedPatientPropositionState`. It rejects probabilities, credibility scores, reveal state,
+diagnosis inference, and points. It is not yet embedded in the complete resolved patient,
+compatibility cases, or a runtime generator.
 
 When ambiguity persists, the focused answer may appropriately be blank, broad, or unspecified
 diagnosis plus a conservative intervention that covers the live possibilities. That is a rubric
