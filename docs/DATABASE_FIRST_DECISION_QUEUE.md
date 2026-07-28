@@ -58,19 +58,46 @@ accepted.
 
 ## Priority queue
 
-### DBQ-001 — Define the canonical structured clinical assertion
+### DBQ-001 — Define source, topic, and rule ownership
 
-**Status:** current.
+**Status:** current; revised after reviewer clarification.
 
-Decide how one independently reviewable clinical proposition is represented between raw
-source-specific findings and Developer interpretation. The current `EvidenceContribution` record
-preserves a concise statement, source IDs, targets, and contribution types, but it is not yet the
-structured claim/evidence-body model anticipated by D-108. This decision controls whether the
-database can answer exactly what is claimed, in whom, under what conditions, from which evidence,
-with which exceptions, and how it may later compile into game logic.
+Do not create one source file per proposition or make a new global “assertion database.” A
+foundational source such as CANMAT owns one durable source record containing its metadata, rights,
+version/update relationships, navigable section structure, many source-local contribution units,
+target cross-links, unresolved gaps, and typed Developer commentary. Stable nested IDs make
+individual recommendations, findings, tables, or sections linkable without splitting the
+guideline into hundreds of files or manually reconstructing it as a new manual. Exact retained
+detail remains constrained by the source-specific reuse decision.
 
-**Unlocks:** every later dossier contract, reliable cross-entry fan-out, conflict review,
-claim-specific scouting, and safe knowledge-to-rule compilation.
+Topical records—diagnoses, medications, findings such as weight or insomnia, tests, therapies, and
+other independently useful concepts—compile material from many source records under readable
+headers. They preserve accepted Developer interpretation separately from source-authored content
+and cross-reference related topical owners rather than copying their complete contents.
+
+Concrete game relationships and rules have one canonical topical owner plus source-contribution
+and/or Developer-opinion links. Other implicated dossiers receive generated reverse links. For
+example, a weight-status record may own a reviewed mirtazapine/high-BMI fit rule, while an insomnia
+record may own a separate mirtazapine/insomnia fit rule; the mirtazapine dossier assembles both.
+The patient inherits the relevant resolved facts, and the rule compiler applies the applicable
+relationships. Point magnitude remains a separate balance field.
+
+The remaining decision is the deterministic ownership rule for relationships involving several
+topics. The recommended default is:
+
+1. the most specific decision-driving topic owns the relationship;
+2. all other implicated topics receive derived reverse links; and
+3. a genuinely symmetric or multifactor relationship with no natural owner receives one dedicated
+   relationship/policy record rather than duplicated copies.
+
+This follows Fractured Fate's primary-owner plus related-file pattern and its rule against automatic
+entity explosion. “Assertion” should not be used as a separate architectural tier; where the word
+appears descriptively, it means a source contribution, topical interpretation, or concrete rule
+inside one of these owners.
+
+**Unlocks:** reliable cross-entry fan-out, source-oriented review, topical dossiers, conflict
+review, claim-specific scouting, and safe knowledge-to-rule compilation without rebuilding large
+guidelines by hand.
 
 ### DBQ-002 — Define dossier maturity states and minimum useful entry views
 
@@ -196,5 +223,6 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-001 before detailing DBQ-002. Do not implement a new assertion schema,
-bulk-atomize private sources, or migrate executable rules until DBQ-001 is accepted or revised.
+Resolve DBQ-001's cross-topic ownership rule before detailing DBQ-002. Do not implement a source
+record migration, bulk-atomize private sources, or migrate executable rules until that ownership
+rule is accepted or revised.

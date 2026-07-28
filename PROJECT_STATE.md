@@ -273,9 +273,10 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only DBQ-001, the canonical structured clinical-assertion contract. Do not
-   implement a new claim schema or bulk-atomize private sources until that decision is accepted or
-   revised.
+1. Resolve only DBQ-001's remaining cross-topic ownership question. The revised packet rejects one
+   source file per proposition: one source file may contain many stable section/contribution units,
+   typed Developer commentary, and topical cross-links. Do not implement the source/topic/rule
+   migration or bulk-atomize private sources until the ownership rule is accepted or revised.
 2. After DBQ-001, re-evaluate the remaining sequence and present DBQ-002 only. Do not shotgun the
    queued questions.
 3. The first already-approved engineering prerequisite remains
