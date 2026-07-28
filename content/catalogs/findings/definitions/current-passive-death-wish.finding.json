@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.safety.current-passive-death-wish",
+  "label": "Current passive wish for death",
+  "aliases": ["Wish not to wake up"],
+  "semanticKind": "safety",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

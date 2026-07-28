@@ -40,7 +40,6 @@ import substanceInducedMoodDiagnosisJson from '../../../content/catalogs/diagnos
 import generalizedAnxietyDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/generalized-anxiety-disorder.diagnosis.json';
 import posttraumaticStressDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/posttraumatic-stress-disorder.diagnosis.json';
 import schizophreniaSpectrumDisorderDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/schizophrenia-spectrum-disorder.diagnosis.json';
-import depressedMoodFindingJson from '../../../content/catalogs/findings/definitions/depressed-mood.finding.json';
 import servicesJson from '../../../content/catalogs/services/services.json';
 import fluoxetineJson from '../../../content/catalogs/medications/definitions/fluoxetine.medication.json';
 import aripiprazoleJson from '../../../content/catalogs/medications/definitions/aripiprazole.medication.json';
@@ -82,9 +81,11 @@ import decorJson from '../../../content/catalogs/decor/decor.json';
 import prototypeCaseJson from '../../../content/cases/approved/first-visit-depression.case.json';
 import medicationCheckPalpitationsJson from '../../../content/cases/approved/medication-check-palpitations.case.json';
 
+import { findingDefinitions } from './finding-definitions';
+
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.14.0',
+  contentVersion: '3.15.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,
@@ -124,7 +125,7 @@ export const catalogs = CatalogBundleSchema.parse({
     posttraumaticStressDisorderDiagnosisJson,
     schizophreniaSpectrumDisorderDiagnosisJson,
   ],
-  findings: [depressedMoodFindingJson],
+  findings: findingDefinitions,
   services: servicesJson,
   medications: [
     fluoxetineJson,

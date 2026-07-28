@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.function.self-reported-current-impact",
+  "label": "Self-reported current functional impact",
+  "aliases": [
+    "Usual routine disrupted",
+    "Daily functioning affected",
+    "Difficulty meeting usual responsibilities"
+  ],
+  "semanticKind": "functional_status",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent", "subthreshold"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

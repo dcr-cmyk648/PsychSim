@@ -157,16 +157,19 @@ describe('prototype content', () => {
     const parsedDiagnoses = DiagnosisDefinitionSchema.array().parse(runtimeCatalog.diagnoses);
     const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
-    expect(parsedFindings).toEqual([
+    expect(parsedFindings).toEqual(runtimeCatalog.findings);
+    expect(parsedFindings).toHaveLength(27);
+    expect(
+      parsedFindings.find((finding) => finding.id === 'finding.depressive.depressed-mood'),
+    ).toEqual(
       expect.objectContaining({
-        id: 'finding.depressive.depressed-mood',
         medicalReviewStatus: 'unreviewed',
         valueSpecification: {
           kind: 'outcome',
           allowedValues: ['present', 'absent', 'subthreshold'],
         },
       }),
-    ]);
+    );
     expect(parsedDiagnoses.map((diagnosis) => diagnosis.id)).toEqual(
       catalogs.diagnoses.map((diagnosis) => diagnosis.id),
     );
@@ -181,9 +184,58 @@ describe('prototype content', () => {
   });
 
   it('keeps the canonical finding seed identity-only and preserves case-local compatibility', () => {
-    expect(catalogs.findings).toHaveLength(1);
-    expect(JSON.stringify(catalogs.findings[0])).not.toMatch(
+    expect(catalogs.findings.map((finding) => finding.id)).toEqual([
+      'finding.appetite.current-reduced',
+      'finding.depressive.depressed-mood',
+      'finding.function.self-reported-current-impact',
+      'finding.history.current-concentration-difficulty',
+      'finding.history.current-decreased-sleep-need',
+      'finding.history.current-elevated-irritable-mood',
+      'finding.history.current-excessive-guilt',
+      'finding.history.current-high-risk-spending',
+      'finding.history.current-increased-goal-directed-activity',
+      'finding.history.current-pressured-speech',
+      'finding.history.current-psychomotor-slowing',
+      'finding.history.current-racing-thoughts',
+      'finding.history.difficulty-controlling-worry',
+      'finding.history.excessive-worry',
+      'finding.history.muscle-tension',
+      'finding.history.panic-attacks',
+      'finding.history.reported-delusional-beliefs',
+      'finding.history.reported-hallucinations',
+      'finding.history.restlessness',
+      'finding.safety.current-active-suicidal-ideation',
+      'finding.safety.current-passive-death-wish',
+      'finding.safety.current-violent-ideation',
+      'finding.safety.current-violent-intent',
+      'finding.safety.recent-violent-behavior',
+      'finding.safety.suicide-attempt-history',
+      'finding.sleep.current-hypersomnia',
+      'finding.sleep.current-insomnia',
+    ]);
+    expect(catalogs.findings.every((finding) => finding.medicalReviewStatus === 'unreviewed')).toBe(
+      true,
+    );
+    expect(JSON.stringify(catalogs.findings)).not.toMatch(
       /point|score|diagnosis|probability|prevalence|treatment/i,
+    );
+    const canonicalTerms = catalogs.findings.flatMap((finding) => [
+      finding.label.toLocaleLowerCase('en-US'),
+      ...finding.aliases.map((alias) => alias.toLocaleLowerCase('en-US')),
+    ]);
+    expect(canonicalTerms).not.toEqual(
+      expect.arrayContaining([
+        'anhedonia',
+        'grandiosity',
+        'impulsivity',
+        'low energy',
+        'paranoia',
+        'preparatory behavior',
+        'subjective burden',
+        'symptom duration',
+        'thought disorganization',
+        'weapon-access concern',
+      ]),
     );
     const compatibilityFinding = prototypeCaseBlueprint.informationActions
       .flatMap((action) => action.result.findings)

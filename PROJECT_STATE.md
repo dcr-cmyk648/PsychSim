@@ -30,9 +30,9 @@ Last updated: 2026-07-28
   on-label match may contribute one minor +10 regulatory-alignment modifier without defining the
   primary route or penalizing off-label care. D-170 establishes one canonical resolved finding per
   patient and keeps test definitions, reveal actions, generation tendencies, and post-submit
-  scoring as separate owners. Its first additive implementation now provides the canonical
-  identity/resolved-value/contributor schemas and one identity-only seed without changing any
-  clinical association, probability, point rule, patient, or compatibility snapshot.
+  scoring as separate owners. Its additive implementation provides the canonical
+  identity/resolved-value/contributor schemas without changing any clinical association,
+  probability, point rule, patient, or compatibility snapshot.
   D-171 clarifies that a focused psychiatry encounter may remain highly textured and
   diagnostically muddy: bounded template-owned comorbidity groups, extensive prior treatment,
   uncertain chart labels, and surface symptom overlap are valid, while symptom counts alone
@@ -50,15 +50,22 @@ Last updated: 2026-07-28
   intervention owners, dossier relationships, reviewed decision/scoring policies, compiler
   mechanics, and only then generated cohorts. Thin diagnosis dossiers may be used early to discover
   dependencies but cannot bypass the gate.
+  D-175 makes reusable finding identity atomic and conservative: aliases are interchangeable
+  wording only; facts stay distinct when time, source, specificity, or value can differ; typed
+  records and measurements keep their real owners; and ambiguous collisions remain one-at-a-time
+  review items rather than automatic merges.
   DBQ-010 was explicitly approved on 2026-07-28: MDD is the first deep knowledge/database
   dependency vertical, with no setting or difficulty ceiling, and generalized patient generation
   remains disabled. The first dependency-readiness audit is now recorded in
   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; it routes missing reusable owners to authoritative
   tickets without adding clinical rules, probabilities, points, or runtime behavior.
-  `ticket.catalog.findings.canonical-definition-boundary` is now resolved: the strict runtime
-  catalog registers medically unreviewed `finding.depressive.depressed-mood`, while current
-  `FindingBlueprint`, `ResolvedFinding`, case instances, saves, and replay remain unchanged. The
-  next single review item is the 37-candidate wide/shallow general-psychiatry finding seed.
+  `ticket.catalog.findings.canonical-definition-boundary` and the unambiguous portion of
+  `ticket.catalog.findings.general-psychiatry-seed` are now resolved. The strict runtime catalog
+  registers 27 medically unreviewed, identity-only findings. The 37-candidate audit deferred ten
+  value/semantic collisions rather than forcing them into unsafe identities; current
+  `FindingBlueprint`, `ResolvedFinding`, case instances, saves, replay, generation, and scoring
+  remain unchanged. The next single review item is diminished interest versus diminished
+  pleasure/anhedonia.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
@@ -180,14 +187,13 @@ only the current operational state and should not grow into a second changelog.
   attempt ticket; no probabilities or clinical rules changed.
 - The 2026-07-28 dependency audit found 621 nested finding occurrences and 186 finding IDs across
   the five approved/review case files, with 112 IDs reused across files. The first canonical
-  finding-definition boundary is now implemented and validated with one identity-only seed;
-  normalization and runtime compilation remain deliberately absent. Separate queued owners cover
-  the initial wide/shallow psychiatry finding seed, typed
-  vitals/MSE/physical measurements, structured results for patient-owned tests, resolved
-  condition/chart/regimen/trial/history state, substance/background exposure state, and a focused
-  decision-policy compiler. Existing medication and intervention normalization tickets are now
-  explicit prerequisites. No patient, scoring rule, result probability, or treatment guidance was
-  generated.
+  finding-definition boundary and 27-definition wide/shallow seed are implemented and validated.
+  Ten value/semantic collisions and runtime compilation remain deliberately unresolved. Separate
+  queued owners cover typed vitals/MSE/physical measurements, structured results for patient-owned
+  tests, resolved condition/chart/regimen/trial/history state, substance/background exposure
+  state, and a focused decision-policy compiler. Existing medication and intervention
+  normalization tickets are explicit prerequisites. No patient, scoring rule, result probability,
+  or treatment guidance was generated.
 - The player-facing navigation target is History, Physical exam, Testing, Diagnosis, and Treatment.
   Testing will combine labs, imaging, electrical studies, and named instruments in one searchable
   presentation group while retaining their backend types.
@@ -325,7 +331,8 @@ sandbox denied their local IPC sockets; each passed unchanged with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
-The canonical finding-boundary checkpoint passed on 2026-07-28:
+The canonical finding-boundary plus general-psychiatry identity-seed checkpoint passed on
+2026-07-28:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
 - `pnpm test`: 55 Vitest files / 408 tests plus 10 Python handoff tests;
@@ -338,11 +345,12 @@ The canonical finding-boundary checkpoint passed on 2026-07-28:
 - `pnpm test:e2e`: five Player/Developer browser tests; and
 - `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
 
-The first sandboxed content-validation invocation again failed only because the managed sandbox
-denied the local tsx IPC socket; the identical command passed with the required local permission.
-The source validator correctly detected and rejected the stale ignored private projection before
-it was regenerated, then passed. Existing large-chunk, PDF standard-font, npm environment, and
-Node `module.register()` warnings remain advisory.
+The first sandboxed content-validation and reference-run invocations again failed only because the
+managed sandbox denied the local tsx IPC socket; the identical direct local commands passed. The
+private cross-reference projection was regenerated after the catalog changed, then source
+validation passed. Both local servers returned HTTP 200. Existing large-chunk, PDF standard-font,
+npm environment, Vite chunk-size, color-environment, and Node `module.register()` warnings remain
+advisory.
 
 ## Files to read before continuing
 
@@ -377,15 +385,14 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 ## Exact next action
 
 1. Present and resolve only
-   `ticket.catalog.findings.general-psychiatry-seed` as the next single review item. The prepared
-   packet proposes one identity per independently resolvable truth, aliases for interchangeable
-   wording, distinct facts where time/source scope can disagree, routing structured records to
-   their real owners, and a 37-candidate history-focused first tranche. Do not add the tranche until
-   the reviewer answers its one approval question.
-2. If approved, add one small definition file per accepted identity without migrating current
-   cases or adding associations, probabilities, relevance, criteria, scoring, treatment behavior,
-   or medical approval. Route ambiguous collisions one at a time.
-3. Then continue through the authoritative ordered queue in
+   `ticket.catalog.findings.diminished-interest-pleasure-boundary` as the next single review item.
+   The prepared packet proposes two backend atoms—current diminished interest and current
+   diminished capacity for pleasure—while allowing one compact player-facing group and preserving
+   the legacy term `anhedonia` as an unresolved combined presentation term.
+2. If approved, add only those two identity shells. Do not migrate compatibility cases or add an
+   MDD criterion, generation tendency, probability, relevance, points, treatment behavior, or
+   medical approval. Then route the next deferred collision one at a time.
+3. Continue through the authoritative ordered queue in
    `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
    general file.
 4. Only after the complete general foundation is ready, implement

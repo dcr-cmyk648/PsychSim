@@ -1219,6 +1219,11 @@
       "exemptionReason": "This is a wide, shallow ontology and identity-granularity review over existing content. Claim-specific symptom associations and probabilities require separate bounded source tickets after identities are stable; one meta-analysis cannot validate the complete seed."
     },
     {
+      "ticketId": "ticket.catalog.findings.diminished-interest-pleasure-boundary",
+      "profileIds": [],
+      "exemptionReason": "This is a narrow identity-granularity and compatibility-provenance decision. Clinical sources may later govern diagnostic criteria or measurement, but a treatment-effect meta-analysis cannot decide whether two independently resolvable patient facts should share one backend identity."
+    },
+    {
       "ticketId": "ticket.catalog.measurements.vitals-exam-foundation",
       "profileIds": [],
       "exemptionReason": "This is typed observation, measurement, unit, presentation, and compatibility architecture. Medical reference ranges and clinical interpretations will require separate source-specific review rather than one general meta-analysis."

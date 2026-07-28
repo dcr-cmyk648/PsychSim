@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.history.current-high-risk-spending",
+  "label": "Current high-risk spending",
+  "aliases": [],
+  "semanticKind": "history",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

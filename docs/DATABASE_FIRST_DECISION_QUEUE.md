@@ -728,9 +728,12 @@ without repeatedly rereading every dossier.
 
 DBQ-010 is resolved. Work now proceeds through the ordered dependency gate in
 [ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md), one bounded owner at
-a time. The exact next ticket is
-`ticket.catalog.findings.canonical-definition-boundary`: define the point-free schema/catalog
-boundary only, preserve current case snapshots, and migrate no findings or patients yet.
+a time. The canonical finding boundary and the unambiguous portion of the 37-candidate
+general-psychiatry seed are complete. The exact next review is
+`ticket.catalog.findings.diminished-interest-pleasure-boundary`: decide whether diminished
+interest and diminished capacity for pleasure are two atomic backend facts while retaining a
+compact combined player presentation. No compatibility case migration, clinical association,
+probability, point value, or patient generation is authorized.
 
 Do not detail DBQ-011 until one complete vertical exposes real maintenance costs. D-173 authorizes
 a two-stage promotion contract but not its schema migration or bulk rule activation. D-172 makes

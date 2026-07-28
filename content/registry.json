@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.21.0",
+  "contentVersion": "3.22.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -38,7 +38,35 @@
       "kind": "finding_catalog",
       "path": "content/catalogs/findings/definitions",
       "runtimeIncluded": true,
-      "categoryIds": ["finding.depressive.depressed-mood"],
+      "categoryIds": [
+        "finding.appetite.current-reduced",
+        "finding.depressive.depressed-mood",
+        "finding.function.self-reported-current-impact",
+        "finding.history.current-concentration-difficulty",
+        "finding.history.current-decreased-sleep-need",
+        "finding.history.current-elevated-irritable-mood",
+        "finding.history.current-excessive-guilt",
+        "finding.history.current-high-risk-spending",
+        "finding.history.current-increased-goal-directed-activity",
+        "finding.history.current-pressured-speech",
+        "finding.history.current-psychomotor-slowing",
+        "finding.history.current-racing-thoughts",
+        "finding.history.difficulty-controlling-worry",
+        "finding.history.excessive-worry",
+        "finding.history.muscle-tension",
+        "finding.history.panic-attacks",
+        "finding.history.reported-delusional-beliefs",
+        "finding.history.reported-hallucinations",
+        "finding.history.restlessness",
+        "finding.safety.current-active-suicidal-ideation",
+        "finding.safety.current-passive-death-wish",
+        "finding.safety.current-violent-ideation",
+        "finding.safety.current-violent-intent",
+        "finding.safety.recent-violent-behavior",
+        "finding.safety.suicide-attempt-history",
+        "finding.sleep.current-hypersomnia",
+        "finding.sleep.current-insomnia"
+      ],
       "dependsOnIds": []
     },
     {

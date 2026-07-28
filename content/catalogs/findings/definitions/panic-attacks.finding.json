@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.history.panic-attacks",
+  "label": "Panic attacks",
+  "aliases": [],
+  "semanticKind": "history",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

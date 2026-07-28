@@ -430,12 +430,16 @@ The first additive part of this target now exists without replacing compatibilit
 - `CanonicalFindingResolutionEnvelope` validates that a resolved outcome is admitted by the exact
   referenced definition version.
 
-The runtime catalog currently contains one identity-only seed,
-`finding.depressive.depressed-mood`, marked medically unreviewed. It has no condition association,
-criteria role, prevalence, generation weight, treatment implication, or point value. Existing
-`FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay remain the
-compatibility path and were not migrated. Numeric measurements, test-owned results, generalized
-finding compilation, and the wider psychiatry seed remain later dependency tickets.
+The runtime catalog currently contains 27 identity-only, medically unreviewed definitions across
+function, depressive/anxiety/mania history, reported psychosis, sleep/appetite, and
+suicide/violence safety. They have no condition association, criteria role, prevalence, generation
+weight, treatment implication, or point value. The first 37-candidate audit intentionally did not
+force duration or ordinal burden into outcome values and did not guess at eight other semantic
+collisions. Those candidates remain explicit one-at-a-time review work.
+
+Existing `FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay
+remain the compatibility path and were not migrated. Numeric measurements, test-owned results,
+generalized finding compilation, and compatibility mapping remain later dependency tickets.
 
 Every encounter-available result is resolved and frozen before play. `EncounterState` records only
 whether the result has been revealed; buying it cannot generate or change a clinical fact.

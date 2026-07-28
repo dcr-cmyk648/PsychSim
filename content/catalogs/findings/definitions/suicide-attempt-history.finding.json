@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.safety.suicide-attempt-history",
+  "label": "History of suicide attempts",
+  "aliases": ["Prior suicide attempts"],
+  "semanticKind": "safety",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

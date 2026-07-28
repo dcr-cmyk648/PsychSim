@@ -2664,3 +2664,34 @@ This decision corrects DBQ-010 and any earlier wording that treated the first MD
 outpatient-only, placed duration or difficulty in the diagnosis dossier, or made generated
 patients the immediate acceptance gate. It changes architecture and work order only; it adds no
 schema, patient, clinical rule, generation probability, or point value.
+
+## D-175 — Canonical finding identities are atomic, source-aware, and normalized conservatively
+
+**Decision:** One reusable finding identity represents one independently resolvable patient truth.
+Interchangeable wording may be an alias, but lexical similarity, familiar clinical grouping, or a
+compact player-facing list does not make two truths identical. Facts remain separate whenever
+their values can coexist or disagree because of time scope, report source, observation source,
+specificity, or value semantics. Player-facing actions may group several atomic facts; the
+resolved patient and later explanation trace must keep every value and contributor separable.
+
+Structured medication regimens, prior trials, reactions, treatment history, numeric measurements,
+named instruments, laboratory values, imaging, and electrical studies retain their own typed
+owners. They are not flattened into outcome-valued pseudo-findings. In particular, a duration or
+ordinal burden value cannot be represented merely as `present`; its candidate remains unresolved
+until the appropriate typed owner exists.
+
+The first general-psychiatry audit examined 37 candidate concepts across current authored and
+finite Reviewer content. Twenty-seven identity-only definitions are unambiguous under the current
+schema, including the existing depressed-mood seed; 26 new definition files are registered.
+Ten candidates remain review work because their value type or semantic boundary is not yet safe:
+duration/course or ordinal burden, diminished interest versus diminished pleasure, fatigue versus
+low energy, grandiosity time scope, impulsivity versus high-risk behavior, preparatory-behavior
+time scope, weapon access versus weapon concern, paranoia versus persecutory belief, and reported
+versus observed thought disorganization. Each ambiguity is resolved through one bounded review
+packet rather than an automatic merge.
+
+Every definition in this tranche is medically unreviewed and owns only stable identity, neutral
+labels and aliases, semantic kind, admitted outcome values, and presentation projection. This
+decision adds no diagnosis association, criterion, generation tendency, prevalence, probability,
+clinical relevance, point value, treatment implication, case migration, or medical approval.
+Existing `FindingBlueprint`, case, save, and replay snapshots remain unchanged.
