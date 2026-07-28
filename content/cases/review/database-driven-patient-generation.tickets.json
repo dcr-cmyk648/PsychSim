@@ -642,7 +642,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "blocking",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -652,6 +652,8 @@
     "targetContentIds": [
       "registry.catalog.tests",
       "schema.test-definition",
+      "schema.structured-test-result-contract",
+      "schema.structured-test-reference-interval",
       "schema.structured-test-result",
       "test.diagnostic.ecg",
       "test.diagnostic.head-ct",
@@ -667,12 +669,17 @@
     "proposedRouting": "Extend the per-test-file model with JSON-safe structured result contracts for numeric panels and currently patient-owned studies, while preserving patient-authored critical overrides and immediate reveal/service behavior.",
     "guidance": "The current numeric laboratory generator remains a compatibility foundation. ECG, imaging, EEG, toxicology, medication levels, pregnancy testing, and pharmacogenomics need typed component or interpretation shapes so a patient owns resolved values rather than a memorable prose paragraph. Test definitions own result shape and lawful generation profiles; the patient or encounter recipe owns critical abnormalities and overrides; reveal actions own menu presentation and cost; scoring owns relevance. This ticket adds no result ranges, sensitivity, specificity, abnormal probability, case-defining value, or points.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Approved architecture: each test has its own reusable file and generates or renders a patient-specific structured value, with reference and abnormality details auditable after play.",
-    "reviewerNotesUpdatedAt": "2026-07-28T15:27:08.000Z",
+    "reviewerNotes": "Approved architecture: each test has its own reusable file and generates or renders a patient-specific structured value, with reference and abnormality details auditable after play. Implemented as a point-free contract only; critical components and results remain patient-owned.",
+    "reviewerNotesUpdatedAt": "2026-07-28T21:22:25.000Z",
     "resurfacingTrigger": "Before a patient-owned study is randomized, reused across generated patients, or consumed by the shared-finding compiler.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added strict structured result contracts to every current test definition plus versioned numeric-panel, categorical-panel, binary, imaging, and electrical-study resolved result envelopes. Numeric values retain unit, UCUM code, reference interval, and N/H/L interpretation; nonnumeric results retain typed components or findings. The patient remains the owner of critical abnormalities and overrides. No new clinical component, range, sensitivity, specificity, probability, interpretation, point rule, reveal behavior, or runtime generator was inferred.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T21:22:25.000Z"
+    },
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T15:27:08.000Z"
+    "updatedAt": "2026-07-28T21:22:25.000Z"
   },
   {
     "schemaVersion": 1,

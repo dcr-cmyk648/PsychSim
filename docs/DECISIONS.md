@@ -2962,3 +2962,24 @@ height, weight, and BMI. It contains no body-habitus categories or clinical rang
 `PatientOpening.basicVitals` strings and compatibility observations remain unchanged; no prose
 parser may silently migrate them. The target compiler will consume only explicitly authored typed
 records.
+
+## D-186 — Every reusable test declares a structured patient-result contract
+
+**Decision:** Add a point-free result contract to each current test definition. Numeric panels
+declare fixed or patient-defined component ownership; categorical panels declare the same boundary;
+binary tests declare their lawful outcomes; imaging and electrical studies declare
+patient-defined structured findings. The resolved result preserves the exact definition version,
+source and time scope, deterministic/authored resolution trace, and typed result kind.
+
+Numeric components preserve value, display value, unit, UCUM code, exact reference-interval
+metadata, and `normal`/`high`/`low` interpretation. Categorical, binary, imaging, and electrical
+results preserve typed components or findings rather than one memorable narrative paragraph. A
+fixed numeric contract must exactly match the component definitions already owned by its
+generation profiles.
+
+The contract does not invent test components, reference ranges, sensitivity, specificity,
+incidental probabilities, clinical interpretation, or points. Critical abnormalities and
+case-specific overrides remain patient-owned. Reveal actions still own neutral menu presentation
+and service cost; scoring separately owns relevance. Existing compatibility case results and
+runtime generation remain unchanged until the shared compiler and migration work are explicitly
+approved.

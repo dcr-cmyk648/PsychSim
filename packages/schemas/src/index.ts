@@ -848,6 +848,84 @@ export const TestGeneratorSchema = z.discriminatedUnion('type', [
     .strict(),
 ]);
 
+export const StructuredTestResultContractSchema = z.union([
+  z
+    .object({
+      kind: z.literal('numeric_panel'),
+      componentPolicy: z.enum(['fixed', 'patient_defined']),
+      componentDefinitionIds: z.array(StableIdSchema),
+    })
+    .strict()
+    .superRefine((contract, context) => {
+      if ((contract.componentPolicy === 'fixed') !== contract.componentDefinitionIds.length > 0) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['componentDefinitionIds'],
+          message:
+            'A fixed numeric panel requires components; a patient-defined panel defers them.',
+        });
+      }
+      if (
+        new Set(contract.componentDefinitionIds).size !== contract.componentDefinitionIds.length
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['componentDefinitionIds'],
+          message: 'Numeric test-result component IDs must be unique.',
+        });
+      }
+    }),
+  z
+    .object({
+      kind: z.literal('categorical_panel'),
+      componentPolicy: z.enum(['fixed', 'patient_defined']),
+      componentDefinitionIds: z.array(StableIdSchema),
+    })
+    .strict()
+    .superRefine((contract, context) => {
+      if ((contract.componentPolicy === 'fixed') !== contract.componentDefinitionIds.length > 0) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['componentDefinitionIds'],
+          message:
+            'A fixed categorical panel requires components; a patient-defined panel defers them.',
+        });
+      }
+      if (
+        new Set(contract.componentDefinitionIds).size !== contract.componentDefinitionIds.length
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['componentDefinitionIds'],
+          message: 'Categorical test-result component IDs must be unique.',
+        });
+      }
+    }),
+  z
+    .object({
+      kind: z.literal('binary'),
+      allowedOutcomes: z.array(z.enum(['positive', 'negative', 'indeterminate'])).min(2),
+    })
+    .strict()
+    .superRefine((contract, context) => {
+      if (new Set(contract.allowedOutcomes).size !== contract.allowedOutcomes.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['allowedOutcomes'],
+          message: 'Binary test-result outcomes must be unique.',
+        });
+      }
+    }),
+  z
+    .object({
+      kind: z.literal('structured_findings'),
+      resultDomain: z.enum(['imaging', 'electrical_study']),
+      findingPolicy: z.literal('patient_defined'),
+    })
+    .strict(),
+]);
+export type StructuredTestResultContract = z.infer<typeof StructuredTestResultContractSchema>;
+
 export const TestDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -861,10 +939,264 @@ export const TestDefinitionSchema = z
     ),
     medicalReviewStatus: MedicalReviewStatusSchema,
     sourceUseNoteIds: z.array(StableIdSchema),
+    resultContract: StructuredTestResultContractSchema,
     generator: TestGeneratorSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((definition, context) => {
+    if (
+      definition.generator.type === 'numeric_panel' &&
+      (definition.resultContract.kind !== 'numeric_panel' ||
+        definition.resultContract.componentPolicy !== 'fixed')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resultContract'],
+        message: 'A generated numeric panel requires a fixed numeric result contract.',
+      });
+      return;
+    }
+    if (
+      definition.generator.type === 'numeric_panel' &&
+      definition.resultContract.kind === 'numeric_panel'
+    ) {
+      const generatorComponentIds = [
+        ...new Set(
+          definition.generator.profiles.flatMap((profile) =>
+            profile.components.map((component) => component.id),
+          ),
+        ),
+      ].sort();
+      const contractComponentIds = [...definition.resultContract.componentDefinitionIds].sort();
+      if (JSON.stringify(generatorComponentIds) !== JSON.stringify(contractComponentIds)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['resultContract', 'componentDefinitionIds'],
+          message:
+            'A numeric result contract must exactly match the generated component definitions.',
+        });
+      }
+    }
+  });
 export type TestDefinition = z.infer<typeof TestDefinitionSchema>;
+
+export const StructuredTestReferenceIntervalSchema = z
+  .object({
+    low: z.number().finite().optional(),
+    high: z.number().finite().optional(),
+    unit: z.string().trim().min(1).max(40),
+    ucumCode: z.string().trim().min(1).max(40),
+    display: z.string().trim().min(1).max(120),
+    populationDefinitionId: StableIdSchema,
+    sourceUseNoteIds: z.array(StableIdSchema),
+  })
+  .strict()
+  .refine((interval) => interval.low !== undefined || interval.high !== undefined, {
+    message: 'A structured test reference interval requires at least one bound.',
+  })
+  .refine(
+    (interval) =>
+      interval.low === undefined || interval.high === undefined || interval.low <= interval.high,
+    { message: 'Reference interval low bound must not exceed its high bound.' },
+  );
+export type StructuredTestReferenceInterval = z.infer<typeof StructuredTestReferenceIntervalSchema>;
+
+export const NumericStructuredTestResultComponentSchema = z
+  .object({
+    componentDefinitionId: StableIdSchema,
+    value: z.number().finite(),
+    displayValue: z.string().trim().min(1).max(80),
+    unit: z.string().trim().min(1).max(40),
+    ucumCode: z.string().trim().min(1).max(40),
+    referenceInterval: StructuredTestReferenceIntervalSchema,
+    interpretation: z.enum(['normal', 'high', 'low']),
+  })
+  .strict();
+export type NumericStructuredTestResultComponent = z.infer<
+  typeof NumericStructuredTestResultComponentSchema
+>;
+
+export const CategoricalStructuredTestResultComponentSchema = z
+  .object({
+    componentDefinitionId: StableIdSchema,
+    valueId: StableIdSchema,
+    displayValue: z.string().trim().min(1).max(160),
+    interpretationIds: z.array(StableIdSchema),
+  })
+  .strict()
+  .superRefine((component, context) => {
+    if (new Set(component.interpretationIds).size !== component.interpretationIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['interpretationIds'],
+        message: 'Categorical test-result interpretation IDs must be unique.',
+      });
+    }
+  });
+export type CategoricalStructuredTestResultComponent = z.infer<
+  typeof CategoricalStructuredTestResultComponentSchema
+>;
+
+const StructuredTestResultCommonShape = {
+  schemaVersion: SchemaVersionSchema,
+  id: StableIdSchema,
+  testDefinitionId: StableIdSchema,
+  testDefinitionContentVersion: ContentVersionSchema,
+  sourceInstanceId: StableIdSchema,
+  timeScopeId: StableIdSchema,
+  resolution: z.lazy(() => PatientStateResolutionTraceSchema),
+};
+
+export const StructuredTestResultSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      ...StructuredTestResultCommonShape,
+      kind: z.literal('numeric_panel'),
+      components: z.array(NumericStructuredTestResultComponentSchema).min(1),
+    })
+    .strict(),
+  z
+    .object({
+      ...StructuredTestResultCommonShape,
+      kind: z.literal('categorical_panel'),
+      components: z.array(CategoricalStructuredTestResultComponentSchema).min(1),
+    })
+    .strict(),
+  z
+    .object({
+      ...StructuredTestResultCommonShape,
+      kind: z.literal('binary'),
+      outcome: z.enum(['positive', 'negative', 'indeterminate']),
+      displayValue: z.string().trim().min(1).max(120),
+      interpretationIds: z.array(StableIdSchema),
+    })
+    .strict(),
+  z
+    .object({
+      ...StructuredTestResultCommonShape,
+      kind: z.literal('structured_findings'),
+      resultDomain: z.enum(['imaging', 'electrical_study']),
+      findings: z
+        .array(
+          z
+            .object({
+              findingId: StableIdSchema,
+              outcome: z.enum([
+                'present',
+                'absent',
+                'normal',
+                'high',
+                'low',
+                'positive',
+                'negative',
+                'indeterminate',
+              ]),
+              displayValue: z.string().trim().min(1).max(180),
+            })
+            .strict(),
+        )
+        .min(1),
+      overallInterpretationId: StableIdSchema.nullable(),
+    })
+    .strict(),
+]);
+export type StructuredTestResult = z.infer<typeof StructuredTestResultSchema>;
+
+export const StructuredTestResultEnvelopeSchema = z
+  .object({
+    definition: TestDefinitionSchema,
+    result: StructuredTestResultSchema,
+  })
+  .strict()
+  .superRefine((envelope, context) => {
+    if (
+      envelope.result.testDefinitionId !== envelope.definition.id ||
+      envelope.result.testDefinitionContentVersion !== envelope.definition.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['result', 'testDefinitionId'],
+        message: 'A structured test result must reference the supplied test definition version.',
+      });
+    }
+    if (envelope.result.kind !== envelope.definition.resultContract.kind) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['result', 'kind'],
+        message: 'A structured test result must use its definition result kind.',
+      });
+      return;
+    }
+    const contract = envelope.definition.resultContract;
+    if (envelope.result.kind === 'numeric_panel' && contract.kind === 'numeric_panel') {
+      const actualIds = envelope.result.components
+        .map((component) => component.componentDefinitionId)
+        .sort();
+      if (new Set(actualIds).size !== actualIds.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['result', 'components'],
+          message: 'Numeric structured-result component IDs must be unique.',
+        });
+      }
+      if (
+        contract.componentPolicy === 'fixed' &&
+        JSON.stringify(actualIds) !== JSON.stringify([...contract.componentDefinitionIds].sort())
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['result', 'components'],
+          message: 'A fixed numeric result must contain every contracted component exactly once.',
+        });
+      }
+    }
+    if (envelope.result.kind === 'categorical_panel' && contract.kind === 'categorical_panel') {
+      const actualIds = envelope.result.components
+        .map((component) => component.componentDefinitionId)
+        .sort();
+      if (new Set(actualIds).size !== actualIds.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['result', 'components'],
+          message: 'Categorical structured-result component IDs must be unique.',
+        });
+      }
+      if (
+        contract.componentPolicy === 'fixed' &&
+        JSON.stringify(actualIds) !== JSON.stringify([...contract.componentDefinitionIds].sort())
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['result', 'components'],
+          message:
+            'A fixed categorical result must contain every contracted component exactly once.',
+        });
+      }
+    }
+    if (
+      envelope.result.kind === 'binary' &&
+      contract.kind === 'binary' &&
+      !contract.allowedOutcomes.includes(envelope.result.outcome)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['result', 'outcome'],
+        message: 'A binary result outcome must be allowed by its definition.',
+      });
+    }
+    if (
+      envelope.result.kind === 'structured_findings' &&
+      contract.kind === 'structured_findings' &&
+      envelope.result.resultDomain !== contract.resultDomain
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['result', 'resultDomain'],
+        message: 'A structured finding result must use its definition domain.',
+      });
+    }
+  });
+export type StructuredTestResultEnvelope = z.infer<typeof StructuredTestResultEnvelopeSchema>;
 
 export const ReferenceIntervalSetDefinitionSchema = z
   .object({

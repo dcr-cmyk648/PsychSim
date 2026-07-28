@@ -4,6 +4,14 @@
 
 Catalogs contain reusable, versioned definitions for diagnoses, investigations, services and fulfillment, individual tests, reference-interval sets, medications, reaction triggers/manifestations, formularies, treatments/dispositions, demographic variant pools, locations, facilities, upgrades, and decor. Each diagnosis family has one file under `content/catalogs/diagnoses/definitions/`; shared rules, its severity axis, specifiers, comorbidity relationships, complexity contributions, and source-use notes remain nested in that family. Each laboratory or diagnostic study has one file under `content/catalogs/tests/definitions/`; panel components remain nested only inside their owning test. `content/catalogs/tests/reference-interval-sets.json` owns reporting/unit conventions, jurisdiction, numeric-range authority, policy sources, and review state referenced by profiles. `content/catalogs/upgrades/upgrades.json` owns point cost, prerequisites, allowed facility tiers, optional department, granted capability/formulary IDs, affected services, in-house cost metadata, target facility where relevant, and unlock labels. `content/catalogs/decor/decor.json` separately owns decor items plus the versioned satisfaction curve/cap. IDs are lowercase, namespaced strings and are never inferred from labels. Case content and future authoring tools may select only existing permitted IDs.
 
+Each test file declares its reusable result shape independently of clinical relevance. Numeric and
+categorical panels declare fixed or patient-defined components, binary tests enumerate lawful
+outcomes, and imaging/electrical studies declare structured findings. A resolved numeric component
+retains value, unit, UCUM code, reference interval, and `normal`/`high`/`low` interpretation.
+Critical abnormalities and overrides belong to resolved patient state; information actions own
+menu presentation and fulfillment; scoring rules own whether ordering or interpreting the result
+matters in the focused encounter.
+
 Classification catalogs are a separate authoring layer, not reusable runtime knowledge.
 `content/catalogs/diagnoses/classifications/icd-10-cm/2026/` tracks an immutable release manifest
 for the official CDC/NCHS FY 2026 F01–F99 scope. The release pins source/member hashes, dates,

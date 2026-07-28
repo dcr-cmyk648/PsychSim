@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "test.lab.lipids",
   "actionId": "info.labs.lipids",
   "label": "Lipid panel",
@@ -8,6 +8,15 @@
   "contextInputs": ["age_years", "sex_for_reference", "diagnosis_ids", "clinical_tag_ids"],
   "medicalReviewStatus": "unreviewed",
   "sourceUseNoteIds": [],
+  "resultContract": {
+    "kind": "numeric_panel",
+    "componentPolicy": "fixed",
+    "componentDefinitionIds": [
+      "lab-component.ldl",
+      "lab-component.hdl",
+      "lab-component.triglycerides"
+    ]
+  },
   "generator": {
     "type": "numeric_panel",
     "profiles": [

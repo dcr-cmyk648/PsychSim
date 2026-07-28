@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "test.lab.cmp",
   "actionId": "info.labs.cmp",
   "label": "Comprehensive metabolic panel",
@@ -8,6 +8,18 @@
   "contextInputs": ["age_years", "sex_for_reference", "diagnosis_ids", "clinical_tag_ids"],
   "medicalReviewStatus": "unreviewed",
   "sourceUseNoteIds": [],
+  "resultContract": {
+    "kind": "numeric_panel",
+    "componentPolicy": "fixed",
+    "componentDefinitionIds": [
+      "lab-component.sodium",
+      "lab-component.potassium",
+      "lab-component.creatinine",
+      "lab-component.glucose",
+      "lab-component.calcium",
+      "lab-component.alt"
+    ]
+  },
   "generator": {
     "type": "numeric_panel",
     "profiles": [

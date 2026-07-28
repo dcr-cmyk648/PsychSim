@@ -93,8 +93,9 @@ missing data. Ticket priority follows the complete architecture:
 3. **General investigations and actions:** one owner per laboratory analyte or panel with units,
    population/reference intervals, precision, and bounded incidental behavior; imaging,
    electrical studies, toxicology, medication levels, and named instruments; neutral searchable
-   reveal actions; structured result projections; service access and fulfillment; and shared
-   medication, psychotherapy, other-intervention, and disposition identities.
+   reveal actions; fixed or patient-defined structured result contracts; patient-owned resolved
+   values and critical overrides; service access and fulfillment; and shared medication,
+   psychotherapy, other-intervention, and disposition identities.
 4. **Reusable knowledge:** diagnosis-family and intervention dossiers, severity/specifier
    branches, clinical associations, treatment roles, interactions, contraindications, monitoring
    or treatment prerequisites within the focused snapshot, and explicit cross-topic

@@ -764,10 +764,10 @@ delusion, and patient-scene evidence remains separate from formal literature pro
 reviewer rejected any additional requirement that these claims converge on hidden truth or make a
 case perfectly solvable. Realistic ambiguity and collectively misleading evidence remain valid;
 blank, broad, unspecified, and conservative coverage answers belong in the rubric rather than a
-generator winnability gate. The point-free proposition/evidence, subjective-presentation, and
-measurement foundations are now implemented and validated without a probability, scoring,
-diagnosis, reveal, migration, or runtime-generation change. The exact next implementation owner
-is `ticket.catalog.tests.structured-result-foundation`.
+generator winnability gate. The point-free proposition/evidence, subjective-presentation,
+measurement, and structured test-result foundations are now implemented and validated without a
+probability, scoring, diagnosis, reveal, migration, or runtime-generation change. The exact next
+implementation owner is `ticket.schema.patient-state.resolved-record-foundation`.
 
 While this dependency queue is active, each accepted item remains a tight local database iteration:
 edit one bounded owner, run only its focused schema/content checks, and move to the next review.

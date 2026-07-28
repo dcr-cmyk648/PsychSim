@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "test.lab.urine-toxicology",
   "actionId": "info.labs.urine-toxicology",
   "label": "Urine toxicology",
@@ -8,6 +8,11 @@
   "contextInputs": ["age_years", "diagnosis_ids", "clinical_tag_ids"],
   "medicalReviewStatus": "unreviewed",
   "sourceUseNoteIds": [],
+  "resultContract": {
+    "kind": "categorical_panel",
+    "componentPolicy": "patient_defined",
+    "componentDefinitionIds": []
+  },
   "generator": {
     "type": "patient_owned",
     "reason": "A positive categorical result could redefine the case and must be authored as a reviewed patient variant."

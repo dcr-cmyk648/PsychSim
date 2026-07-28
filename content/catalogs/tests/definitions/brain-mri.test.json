@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "test.diagnostic.brain-mri",
   "actionId": "info.imaging.brain-mri",
   "label": "Brain MRI",
@@ -8,6 +8,11 @@
   "contextInputs": ["age_years", "diagnosis_ids", "clinical_tag_ids"],
   "medicalReviewStatus": "unreviewed",
   "sourceUseNoteIds": [],
+  "resultContract": {
+    "kind": "structured_findings",
+    "resultDomain": "imaging",
+    "findingPolicy": "patient_defined"
+  },
   "generator": {
     "type": "patient_owned",
     "reason": "Clinically meaningful imaging findings require an authored reviewed patient variant."

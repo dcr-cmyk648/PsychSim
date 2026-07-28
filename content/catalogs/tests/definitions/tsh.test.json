@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "test.lab.tsh",
   "actionId": "info.labs.tsh",
   "label": "Thyroid-stimulating hormone",
@@ -8,6 +8,11 @@
   "contextInputs": ["age_years", "diagnosis_ids", "clinical_tag_ids"],
   "medicalReviewStatus": "unreviewed",
   "sourceUseNoteIds": [],
+  "resultContract": {
+    "kind": "numeric_panel",
+    "componentPolicy": "fixed",
+    "componentDefinitionIds": ["lab-component.tsh"]
+  },
   "generator": {
     "type": "numeric_panel",
     "profiles": [
