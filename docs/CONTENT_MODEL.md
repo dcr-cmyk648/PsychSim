@@ -118,6 +118,20 @@ Developer dossier so expanding the private corpus does not enlarge or slow the g
 Recent-reading suggestions are separate review proposals with search provenance, not coverage
 facts or evidence contributions.
 
+The cross-topic minimum dossier consists of an identity/alias header, a concise accepted synthesis
+when one exists, compact independent readiness lanes, open gaps/conflicts, linked source units and
+Developer opinions, topical forward/reverse relationships, and exact game/rule/patient mappings.
+These are views over existing owners, not required monograph sections. Readiness is never one
+entry-wide lifecycle or approval field. A stable identity is sufficient for database inclusion;
+each source unit, opinion, relationship, clinical rule, balance decision, and reference policy
+retains its own typed state. The projection should reuse those states and add no duplicated field
+when a result can be derived.
+
+The local authoring UI computes one dossier lazily and shows the compact summary before collapsed
+detail. Gameplay eligibility ignores this summary and validates the precise dependency set needed
+by that patient. If maintaining a readiness lane requires broad manual synchronization, harms
+performance, or does not support a concrete review decision, the lane is simplified or omitted.
+
 DrugCentral is cataloged as an authoring-only `structured_database` source. Its initial rights
 decision allows local deterministic indexing and unreviewed source-unit candidates but blocks runtime
 redistribution. Every candidate retains the database release, record origin, available upstream

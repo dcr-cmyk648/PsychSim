@@ -2226,3 +2226,33 @@ the relationship is independently reusable and lacks a natural topical owner. Ex
 bounded migration is designed after the adjacent dossier-readiness decisions. This decision
 changes architecture and terminology only; it does not bulk-reconstruct guidelines, activate a
 clinical rule, or migrate source content by itself.
+
+## D-165 — Dossier readiness is independent, derived, and deliberately compact
+
+**Decision:** A database entry does not receive one linear “draft,” “approved,” “complete,” or
+percentage-complete state. A stable identity shell is useful and browseable even when its clinical
+knowledge is sparse. Identity resolution, source/currentness coverage, accepted Developer
+interpretation, individual topical relationships/rules, and exact game mappings are independent
+readiness areas.
+
+The canonical records in each area retain their own typed lifecycle and review state. A local
+`KnowledgeCoverageProjection` derives a sparse readiness summary using supported distinctions such
+as `unknown`, `missing`, `present`, `stale`, `contested`, and `not_applicable`; it does not become a
+second database or require authors to maintain a parallel status matrix. The common dossier view
+contains an identity/alias header, a concise current synthesis when available, compact readiness
+lanes, open gaps/conflicts, linked source units and Developer opinions, topical forward/reverse
+relationships, and exact game/rule/patient mappings. Detailed provenance remains collapsed until
+requested.
+
+Gameplay never checks a whole-entry maturity badge. The compiler validates only the exact identity,
+relationship, generation, clinical-review, balance, and reference-policy dependencies required by
+the focused patient. One reviewed rule does not approve a monograph, while an incomplete monograph
+does not block an otherwise complete and reviewed focused route.
+
+Complexity is an explicit failure condition. Readiness must be derived from records that already
+own the relevant state, computed lazily for one local dossier, and excluded from Player and
+portable Reviewer bundles. Do not add a duplicate field when the answer can be derived. First
+pilot one dossier; if a lane creates substantial synchronization, performance, or reviewer burden
+without changing a concrete decision, combine or remove it rather than expanding the schema. This
+decision authorizes that bounded pilot and future exact dependency checks, not a broad readiness
+schema or content migration.

@@ -67,6 +67,15 @@ portable Reviewer builds receive neither the map nor private supporting records.
 means only that the projection cannot currently establish coverage—it never deletes, suppresses,
 or downgrades unmatched material.
 
+There is no linear dossier-wide maturity or approval state. A thin identity shell is useful
+database content even when its other lanes are unknown. The local projection derives a compact
+summary of identity resolution, source/currentness coverage, accepted Developer interpretation,
+individual relationships/rules, and exact game mappings from the canonical records that already
+own those facts. Full provenance remains expandable. The author should not manually keep a second
+matrix synchronized, and the runtime compiler never asks whether a whole dossier is “complete”; it
+validates only the exact reviewed dependencies required by the focused patient. This projection
+must first prove useful and inexpensive for one dossier before any broader schema or UI expansion.
+
 ## Package responsibilities
 
 `@psychsim/schemas` owns stable IDs, schema/content versions, catalogs, the content registry,

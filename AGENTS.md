@@ -205,6 +205,13 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   be co-located for review only when it remains a separately typed provenance object. A rule
   without a formal contribution is labeled `Expert opinion`; never invent a citation for notes,
   notebooks, or unsourced judgment. Bibliographic verification does not confer medical approval.
+- Dossier readiness is a sparse, derived authoring view, not a manually synchronized status matrix.
+  A stable identity may exist before its knowledge is deep. Derive compact independent readiness
+  lanes from canonical identity, source, opinion, relationship/rule, and game-validation records;
+  do not add an entry-wide approval state, completeness percentage, duplicate status field, or
+  runtime dependency. The compiler checks only the exact reviewed artifacts required by a patient.
+  Compute one local dossier lazily and keep details collapsed; if a proposed readiness feature
+  cannot be derived efficiently or does not change a concrete review decision, omit it.
 - Register a newly referenced publication as its own evidence entry before integrating it.
   Registration alone never propagates a claim. Target-specific source-use contributions and
   developer-review tickets may be completed incrementally. Preserve every unresolved semantic

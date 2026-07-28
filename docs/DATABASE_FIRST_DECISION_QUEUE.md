@@ -101,14 +101,14 @@ guidelines by hand.
 
 ### DBQ-002 — Define dossier maturity states and minimum useful entry views
 
-**Status:** current.
+**Status:** accepted as D-165.
 
 Decide which nonexclusive states distinguish an identity shell, source-indexed entry,
 clinician-interpreted entry, and game-mapped entry. This must label readiness without blocking
 early capture, inventing a completeness percentage, or implying that one reviewed rule makes an
 entire monograph complete.
 
-**Proposed default:** do not give the whole dossier one linear status such as “draft,” “approved,”
+**Accepted decision:** do not give the whole dossier one linear status such as “draft,” “approved,”
 or “complete.” A stable identity is sufficient for database inclusion and cross-linking. Readiness
 is then tracked independently for:
 
@@ -138,17 +138,55 @@ patient; it never treats the entire dossier badge as clinical approval. This add
 independent markers, but avoids the materially worse ambiguity of calling venlafaxine “approved”
 when only its identity—or only one fit rule—has been reviewed.
 
+The acceptance includes a strict simplicity constraint. The readiness profile is calculated from
+canonical records, not maintained as another status matrix. The local reader shows a compact
+summary with details collapsed, computes only the requested dossier, and never enters the gameplay
+bundle. Do not add a field when the state can already be derived. Pilot one dossier before
+expansion, and remove or combine a lane if it creates substantial maintenance cost without changing
+a concrete review decision.
+
 **Unlocks:** honest database browsing, gap reports, prioritized review, and measurable authoring
 progress.
 
 ### DBQ-003 — Set the catalog breadth and provisional-identity policy
 
-**Status:** queued after DBQ-002.
+**Status:** current.
 
 Decide how aggressively to create broad identity “bins” for common psychiatric diagnoses,
 medications, formulations, therapies, tests, scales, supplements, findings, and dispositions
 before their dossiers are deep. This includes the threshold for creating a provisional identity,
 alias and overlap handling, and when an ambiguous merge must return for review.
+
+**Proposed default:** use a wide-but-shallow psychiatry-first catalog with conservative semantic
+merging.
+
+1. Every unmatched named concept from an admitted source or private authored unit lands
+   immediately in a provenance-preserving identity queue; nothing is dropped because a dossier
+   does not exist.
+2. Create a provisional identity shell when the concept has an unambiguous recognized identifier,
+   is clearly named and independently useful to search/review, or is required by an active
+   patient/rule ticket. Repeated vague phrases remain unresolved mentions rather than generating
+   junk entities.
+3. A provisional shell contains identity, aliases, type, provenance, and open gaps only. It gains
+   no clinical relationship, gameplay availability, approval, or points merely by existing.
+4. Apply category-specific granularity:
+   - diagnosis families own severity variants and specifiers rather than spawning duplicate
+     disorders;
+   - medications begin at ingredient level, with separate formulations only for a meaningful
+     clinical/game distinction;
+   - named therapies, tests/scales, supplements, findings, and dispositions receive their own
+     identity when they are independently searchable or reusable;
+   - incidental phrases, one-off prose, and implementation tags do not become entities.
+5. Alias only verified synonyms. Never merge on label similarity alone. Ambiguous overlaps create
+   one review item; accepted merges preserve old IDs as redirects/superseded identities so sources
+   and historical attempts do not break.
+6. Run a deterministic duplicate/overlap and unresolved-landing audit whenever identities or
+   source units are added. Broad initial seeding is useful, but the landing queue—not an attempt to
+   pre-enumerate all psychiatry—is the durable protection against information loss.
+
+This produces many inexpensive identity shells without pretending they are completed records. It
+also avoids the opposite failure mode: automatically creating hundreds of nearly synonymous
+entities from every phrase in a large guideline or personal-note archive.
 
 **Unlocks:** comprehensive capture without losing new entities or creating silent duplicates.
 
@@ -254,5 +292,6 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-002 before detailing DBQ-003. Do not implement an entry-readiness schema,
-source-record migration, or bulk dossier migration until DBQ-002 is accepted or revised.
+Present and resolve DBQ-003 before detailing DBQ-004. Do not implement broad provisional-identity
+creation, automatic aliasing/merging, or a bulk catalog expansion until DBQ-003 is accepted or
+revised. DBQ-002 authorizes only a one-dossier readiness pilot, not a broad status migration.
