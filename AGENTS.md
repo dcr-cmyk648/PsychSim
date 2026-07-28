@@ -56,13 +56,24 @@ projection schema and boundary tests first.
 ## Branch and release workflow
 
 - `beta` is the normal local development branch after the portable Reviewer checkpoint. Start new
-  feature work there and push its validated checkpoints to `origin/beta`.
+  feature work there.
 - `main` is the stable distributed/GitHub Pages branch. Do not develop directly on it after the
   `beta` branch exists.
+- During the database-first dependency phase, keep bounded schema, catalog, evidence, ticket, and
+  engine-design iterations local on `beta`. Use the smallest focused validation that exercises the
+  changed boundary. Do not push each decision, watch GitHub Actions, run browser suites, rebuild
+  portable applications, verify Pages, or maintain app servers unless the change actually affects
+  that surface, the user explicitly requests an integration/release checkpoint, or the database is
+  ready to begin deterministic realistic-patient generation.
+- Batch those local iterations into deliberate integration checkpoints. At an integration
+  checkpoint, run the complete applicable gates, commit intentionally, push `beta`, and promote
+  only when authorized by the current release instruction. Keep `PROJECT_STATE.md` explicit about
+  any local commits or uncommitted work not yet backed up remotely.
 - Validated runtime content, declarative scoring/rules, catalog/provenance, and finite portable
-  Reviewer-ticket updates should normally be promoted promptly to `main` after the complete
-  Player/Reviewer gates. The user's standing instruction authorizes that release class; it does not
-  admit arbitrary Developer queues, private sources, drafts, or workspace writers to Pages.
+  Reviewer-ticket updates may be promoted together at an authorized integration checkpoint after
+  the complete applicable Player/Reviewer gates. The standing release class does not require
+  per-decision publication and does not admit arbitrary Developer queues, private sources, drafts,
+  or workspace writers to Pages.
 - Keep work beta-only only when it poses a material failure risk to app boot, navigation,
   persistence/migration, mobile review/export, install/update, or bundle isolation. A routine
   responsive or presentation change that passes all required phone gates need not remain
@@ -520,15 +531,22 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
 
 ## Definition of done for future changes
 
-A change is done only when it stays within the active milestone; preserves deterministic replay and
-versioned schemas; includes explanatory rule traces and itemized finances where behavior changes;
-adds/updates content validation and reference policies; preserves accessibility and keyboard use;
-keeps source material and AI SDKs out of production; updates relevant docs/decisions; and passes
-`lint`, `typecheck`, `test`, `content:validate`, `test:e2e`, and `build`. Reviewer-surface changes
-must additionally pass local 390 px and 320 px `test:e2e:reviewer` projects, the CI
-iPhone/WebKit project, `build:reviewer`, assignment allowlist validation, and both normal/Reviewer
-bundle-isolation checks. Do not begin the next roadmap milestone merely because the current change
-is complete. After work that changes a testable web surface, start or confirm a local server for the
-current branch and end the final response with its verified clickable URL and the build/mode being
-served. If the environment cannot keep a server running, state that limitation and give the exact
-command instead; never make the user reconstruct the test URL.
+A bounded database-first iteration is locally complete when it stays within the active dependency
+block, preserves versioned deterministic boundaries, updates the durable decision/ticket record,
+and passes the smallest focused schema/content tests needed to prove the edited contract. It does
+not require a push, GitHub Actions observation, application build, browser suite, Pages check, or
+local app server.
+
+An integration or release checkpoint is done only when it stays within the active milestone;
+preserves deterministic replay and versioned schemas; includes explanatory rule traces and
+itemized finances where behavior changes; adds/updates content validation and reference policies;
+preserves accessibility and keyboard use; keeps source material and AI SDKs out of production;
+updates relevant docs/decisions; and passes `lint`, `typecheck`, `test`, `content:validate`,
+`test:e2e`, and `build`. Reviewer-surface changes must additionally pass local 390 px and 320 px
+`test:e2e:reviewer` projects, the CI iPhone/WebKit project, `build:reviewer`, assignment allowlist
+validation, and both normal/Reviewer bundle-isolation checks. Do not begin the next roadmap
+milestone merely because the current change is complete. After integration work that changes a
+testable web surface, start or confirm a local server for the current branch and end the final
+response with its verified clickable URL and the build/mode being served. If the environment
+cannot keep a server running, state that limitation and give the exact command instead; never make
+the user reconstruct the test URL.

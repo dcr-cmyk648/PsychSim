@@ -2752,3 +2752,19 @@ This decision authorizes one medically unreviewed subjective energy-complaint id
 blocking technical projection contract. It does not implement that compiler, migrate compatibility
 cases, infer an etiology, define an instrument item, add a diagnostic criterion, choose a
 generation probability, assign points, change treatment behavior, or grant medical approval.
+
+## D-178 — Database-foundation decisions use a tight local loop
+
+**Decision:** While PsychSim is building the reusable database dependencies required for realistic
+patient generation, work proceeds one bounded identity, owner, or contract at a time on local
+`beta`. Each iteration runs only the smallest focused schema/content validation that proves the
+changed boundary. It does not routinely push to GitHub, observe Actions or Pages, run browser
+suites, build the Player or portable Reviewer, maintain app servers, or promote to `main`.
+
+Full application and release verification resumes when a change actually affects those surfaces,
+the user explicitly requests an integration/release checkpoint, or the database reaches the
+readiness gate for deterministic realistic-patient generation. Until then, local changes are
+batched, and `PROJECT_STATE.md` must state clearly what is and is not remotely backed up. This
+workflow changes iteration cadence only; it does not relax content validation, deterministic
+architecture, source/privacy boundaries, or the complete gates required for a later integration
+checkpoint.

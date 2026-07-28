@@ -751,6 +751,12 @@ past/lifetime episodic history require separate identities while allowing compac
 presentation wording. No compatibility case migration, clinical association, probability, point
 value, or patient generation is authorized.
 
+While this dependency queue is active, each accepted item remains a tight local database iteration:
+edit one bounded owner, run only its focused schema/content checks, and move to the next review.
+GitHub publication, Actions/Pages observation, application builds, browser suites, and app-server
+verification are batched until an explicit integration checkpoint or realistic-patient-generation
+readiness.
+
 Do not detail DBQ-011 until one complete vertical exposes real maintenance costs. D-173 authorizes
 a two-stage promotion contract but not its schema migration or bulk rule activation. D-172 makes
 missing route/rubric coverage a nonblocking diagnostic rather than patient invalidity. D-171

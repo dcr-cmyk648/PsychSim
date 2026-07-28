@@ -5,9 +5,10 @@ Last updated: 2026-07-28
 ## Operational handoff
 
 - Canonical Codex thread: `019f86e1-8867-7143-b2e9-e93d7f25db8b`, generation 1.
-- Canonical branch: `beta`, tracking `origin/beta`. Local work stays on `beta`; validated
-  runtime-content/catalog checkpoints may promote the whole branch to `main` under the standing
-  release instruction recorded in `AGENTS.md`, after which the checkout returns to `beta`.
+- Canonical branch: `beta`, tracking `origin/beta`. Local database-first dependency work stays on
+  `beta` and is intentionally batched without per-decision pushes, browser/app verification, or
+  Pages checks. Complete gates and remote promotion occur only at a deliberate integration
+  checkpoint or explicit user request, after which the checkout returns to `beta`.
 - Current phase: Milestone 3 is complete. The bounded work is still the pre-Milestone-4
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
@@ -80,10 +81,17 @@ Last updated: 2026-07-28
   projection boundary; current `FindingBlueprint`, `ResolvedFinding`, case instances, saves,
   replay, generation, and scoring remain unchanged. The next single review item is current versus
   past/lifetime episodic grandiosity.
+  D-178 makes the current database-foundation loop intentionally local and narrow: one decision or
+  owner at a time, smallest relevant schema/content validation, and no routine GitHub push,
+  Actions/Pages observation, browser suite, portable-app build, or app-server work. Full app and
+  release gates resume only for an affected surface, an explicit integration request, or the
+  realistic-patient-generation readiness checkpoint.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; this validated
-  runtime-catalog checkpoint is also promoted whole to `main`, so `main == origin/main == beta`.
+- Expected Git state after recording D-178: local `beta` may be ahead of `origin/beta` or carry a
+  small documented database-design worktree while decisions are batched. Do not push or promote
+  merely to make the refs equal. The last published checkpoint is `276534a`; inspect actual refs
+  rather than assuming later local database work is remotely backed up.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
 
@@ -422,6 +430,8 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
    single review item. The prepared packet proposes separate current and past/lifetime episodic
    grandiosity identities because they can disagree, while allowing compact overlapping
    presentation wording through the future projection layer.
+   Keep this and subsequent database-foundation decisions local and run only focused validation;
+   do not perform an app/release checkpoint.
 2. If approved, add only those identity shells. Do not migrate compatibility cases or add a
    diagnosis criterion, generation tendency, probability, relevance, points, treatment behavior,
    or medical approval. Then route the next deferred collision one at a time.
