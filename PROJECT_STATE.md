@@ -11,7 +11,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-172. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-173. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -37,7 +37,9 @@ Last updated: 2026-07-28
   neither create diagnoses nor trigger finding cleanup. D-172 retires “no safe route” as a
   patient-generation rejection concept: only malformed or literally contradictory same-scope
   state invalidates generation, while missing clinical/rubric coverage creates a nonblocking
-  diagnostic and ticket.
+  diagnostic and ticket. D-173 establishes two-stage rule promotion: one explicit qualitative
+  psychiatrist review, followed by separately labeled provisional D-156-band points for
+  Developer/Reviewer play without a second clinical review.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
@@ -255,7 +257,7 @@ local IPC socket or loopback listener; each passed when rerun with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
-The database-first decision-queue checkpoint through D-172 passed on 2026-07-28:
+The database-first decision-queue checkpoint through D-173 passed on 2026-07-28:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
 - `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests;
@@ -276,7 +278,7 @@ local IPC/loopback permission and passed unchanged outside that restriction.
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-172
+- `docs/DECISIONS.md` through D-173
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -303,14 +305,14 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only DBQ-009: the two-stage contract for promoting reviewed database
-   knowledge into a qualitative executable rule and then separately assigning provisional game
-   balance. The key proposed workflow lets the psychiatrist approve clinical/game direction once,
-   lets the system make an explicit D-156-band point estimate for Developer/Reviewer play, and
-   keeps both provenance and balance status auditable. Do not implement or bulk-activate rules
-   until the decision is accepted or revised.
-2. Re-evaluate the remaining queue after DBQ-009. Do not detail DBQ-010 or shotgun the queued
-   questions before the reviewer answers.
+1. Present and resolve only DBQ-010: use adult outpatient MDD from diagnostic attribution and
+   initial selection through the first inadequate-response regimen transition as the first deep
+   database vertical. The proposed boundary matures the MDD family, core medication/therapy
+   relationships, shared findings/tests, promoted rules, generated patient templates, and
+   reference cohorts while deferring psychotic/catatonic/perinatal depression, advanced TRD,
+   neuromodulation, and hospital care.
+2. Re-evaluate the remaining queue after DBQ-010. Do not detail DBQ-011 or begin the vertical
+   before the reviewer answers.
 3. Once the architecture queue authorizes implementation, the first already-approved engineering
    prerequisite remains
    `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned

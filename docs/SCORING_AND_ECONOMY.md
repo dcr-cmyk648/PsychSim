@@ -76,6 +76,13 @@ rule means.
 
 ### Default provisional authoring bands
 
+Rule promotion is two-stage under D-173. A psychiatrist first approves the atomic qualitative
+trigger, scope, direction, concern, certainty, exceptions, rationale, and provenance with no
+points attached. Tooling may then assign an explicit `provisional_balance` value from the bands
+below for Developer/Reviewer play without a second clinical review. Point retuning does not reopen
+the qualitative judgment; changing its meaning does. A missing rule remains a coverage ticket and
+never becomes an implicit zero-value or negative rule.
+
 New rule proposals use the following starting bands when no more specific reviewed balance exists:
 
 | Role                                     |                 Default provisional range |

@@ -321,6 +321,13 @@ the rest of a case.
 
 A newly discovered article is reviewed one at a time. Extraction first creates source/chunk provenance and concise source-local contribution candidates; it does not edit medications or patients. Each accepted source unit becomes a proposed topical relationship or change with target stable IDs, prior behavior, proposed behavior, author/evidence status, and an automatically computed impact set from registry dependencies, medication/patient tags, pathway references, and overrides.
 
+Executable promotion follows D-173. Source contributions and Developer opinions may propose an
+atomic qualitative rule, but only an explicit psychiatrist review can accept its trigger, scope,
+direction, concern, certainty, exceptions, rationale, and provenance. After that acceptance,
+tooling may attach an explicit `provisional_balance` estimate for Developer/Reviewer play without
+another clinical review. The receipt and impact graph keep qualitative review and point tuning
+separate; a clinical-meaning change reopens review, while a point-only adjustment does not.
+
 Before a formal publication can be cited, its bibliographic record must exist in `content/catalogs/evidence/formal/`. Bibliographic verification checks identity and citation metadata only. Each proposed application separately records the target rules and how the source contributed. If a note or judgment has no formal record, reviewers classify it as Expert opinion instead of attaching a nearby or guessed citation. `pnpm content:evidence` exposes formal sources with no linked use, every linked contribution, explicit expert notes, and the count of uncited rules that therefore display as Expert opinion.
 
 Changes to shared medication knowledge create impact tickets for every dependent patient; they do

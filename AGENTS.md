@@ -172,6 +172,12 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   major effects near ±35–100; and critical safety effects near −150 to −500 with an optional cap.
   Exact values remain explicit, reviewable balance choices. Evidence certainty never
   automatically multiplies points; it governs provenance language, review, and reuse eligibility.
+- Promote knowledge in two stages. First, an explicit psychiatrist review accepts one atomic
+  qualitative rule with typed scope, trigger, direction, concern, certainty, exceptions,
+  provenance, and explanation. Only then may tooling assign a separately labeled
+  `provisional_balance` value from the approved bands for Developer/Reviewer play without a second
+  clinical review. Retuning points does not reopen the qualitative rule; changing its clinical
+  meaning does. Missing rule coverage creates a ticket and never invents a default penalty.
 - A verified, current FDA approval may contribute one minor, separately traced
   `regulatory_alignment` bonus only when indication, population, jurisdiction, and selected
   formulation match. The provisional default is +10 after the generic rule receives rule-level

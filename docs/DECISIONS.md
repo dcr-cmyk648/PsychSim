@@ -2544,3 +2544,56 @@ described generation quarantine. It does not weaken schema conformance, determin
 literal fact consistency, content-version preservation, or the ability to flag and correct
 individual encounters. No runtime validator or clinical rule changes in this architecture
 decision.
+
+## D-173 — Qualitative rule approval precedes separately labeled provisional point balance
+
+**Decision:** Knowledge never executes directly. A formal source contribution, topical
+relationship, Developer opinion, source lead, or authoring inference may produce a rule proposal,
+but the proposal must first name one canonical owner, target IDs, focused decision scope, typed
+trigger, qualitative direction, clinical concern, certainty, exceptions, concise rationale,
+provenance IDs, and receipt explanation. It carries no point value and cannot enter gameplay.
+
+Three support paths are valid and remain visibly distinct: directly applicable formal
+contribution; formal contribution plus an explicitly identified Developer-opinion bridge; or
+Developer opinion alone. Speculative source leads and authoring inferences cannot promote until
+the reviewer deliberately converts them through the evidence or Developer-opinion workflow. A
+source never inherits the broader interpretive claim of an opinion, and an opinion never inherits
+the source's certainty.
+
+The psychiatrist performs one explicit qualitative review of the atomic direction and scope:
+accept, narrow, reject, or defer. Acceptance records reviewer identity, timestamp, reviewed
+version/fingerprint, exceptions, and unresolved disagreement. It approves only that rule, not the
+source, dossier, medication, diagnosis, neighboring rules, or any point magnitude. Corrected,
+superseded, or nondominated conflicting evidence remains visible and creates impact review. No
+file order, source count, publication date alone, nominal evidence tier, or point value chooses a
+clinical winner. A scoped Developer opinion may govern the game transformation while preserving
+the disagreement.
+
+The narrowest reusable decision-driving topic owns the rule. Diagnosis base/severity/specifier
+guidance, other active conditions, medication/formulation relationships, interactions, setting,
+and patient-template overrides compose only through typed scope and explicit specificity.
+Case-specific overrides are narrow versioned exceptions rather than silent edits to shared
+knowledge. The encounter compiler remains permissive: it collects applicable reviewed rules within
+the focused decision horizon plus global interaction/safety contributors, while missing
+qualitative coverage creates a nonblocking ticket and never invents a default penalty or labels an
+unmodeled option wrong.
+
+After qualitative acceptance, the system may assign one explicit provisional point mapping from
+the D-156 impact bands without requiring a second psychiatrist review before
+Developer/Reviewer play. The mapping is labeled `provisional_balance` and remains separate from
+clinical concern, certainty, and provenance. Reference patients and encounter feedback may retune
+it without reopening the qualitative decision; a change to clinical direction, trigger, scope, or
+exception does require new qualitative review.
+
+Every executable contributor receives stable rule, effect, and issue IDs plus explicit
+specificity. D-159 governs replacement, worst-only duplicate harm, stacking of distinct fit
+effects, hard-contraindication suppression, and score caps. The receipt preserves rule ID,
+qualitative classification, points, support path, exact contribution/opinion IDs, clinical-review
+metadata, balance status, applicability, and applied/replaced/deduplicated/suppressed outcome.
+Engine-inferred matches remain labeled.
+
+Promotion requires schema/catalog validation, deterministic compile/replay, reference-patient
+checks, and rule-combination tests. Unresolved clinical direction stays disabled. Provisional
+balance may run in Developer/Reviewer play, and human lifecycle review separately decides whether
+a compiled encounter enters the Player bundle. This decision authorizes the promotion contract,
+not a schema migration, bulk activation, clinical rule, or new point value.

@@ -44,7 +44,9 @@ The following foundations are not being asked again:
   tendencies, and post-submit scoring remain separate owners (D-170); and
 - focused psychiatric patients may remain highly textured and diagnostically muddy, while only
   literal same-scope contradictions invalidate generation and coverage gaps remain nonblocking
-  tickets (D-171 and D-172).
+  tickets (D-171 and D-172); and
+- qualitative rules require one explicit atomic psychiatrist review before tooling may attach
+  separately labeled provisional D-156-band points for Developer/Reviewer play (D-173).
 
 Two implementation prerequisites are also already approved:
 
@@ -524,7 +526,7 @@ immediate decision and complete explanatory trace remain legible.
 
 ### DBQ-009 — Define promotion from knowledge to executable game rules
 
-**Status:** current.
+**Status:** accepted as D-173.
 
 Decide the exact review gates for translating source units, a topical relationship, and/or a
 Developer opinion into a qualitative rule, then separately into provisional points. This includes
@@ -602,13 +604,89 @@ clinical authority.
 
 ### DBQ-010 — Choose the first deep database vertical
 
-**Status:** queued after DBQ-001 through DBQ-009 are sufficiently stable.
+**Status:** current.
 
 Choose the first topic to take from broad identity coverage through mature-enough dossiers, generated
 patient families, executable rules, reference patients, and reviewer audit. The current likely
 candidate is the MDD sequence—initial treatment, prior response/intolerance, and inadequate
 response—because it exercises shared findings, medication fit, psychotherapy, treatment history,
 safety, disposition, and common laboratory reasoning.
+
+**Proposed default:** make the first deep vertical adult outpatient MDD from diagnostic
+attribution through the first regimen transition after inadequate response. This is not one
+trivial “first visit, start an SSRI” patient:
+
+**P1 — Prove the database-to-game loop, not one case.** The deliverable is a reusable MDD
+diagnosis-family dossier, the necessary intervention/finding/test/policy owners, promoted rules,
+generated patient templates, reference patients, and receipt audit. Hand-authored
+`CaseBlueprint`s remain historical fixtures rather than becoming the new source of truth.
+
+**P2 — Cover three immediate-decision families.**
+
+1. Initial psychiatric evaluation with diagnostic attribution and treatment-fit decisions.
+2. Prior benefit or intolerance, where retrial, avoidance, or a different first-line option matters.
+3. Apparent inadequate response, where adherence, exposure, prior trials, current tolerability,
+   and a first switch/adjunct/regimen transition matter.
+
+Each encounter still ends after one best-next-step treatment/disposition snapshot; there is no
+follow-up simulation.
+
+**P3 — Make the patient psychiatry-worthy.** Every template includes a meaningful psychiatric
+driver such as diagnostic muddiness, previous exposure, adverse effects, comorbidity fit,
+substance contribution, safety/disposition nuance, or a current-regimen problem. Prolonged or
+severe patients own multiple structured prior efforts by default. Treatment-naive patients are
+explicit exceptions, not the whole vertical.
+
+**P4 — Mature the shared owners needed for those decisions.** The bounded scope includes the MDD
+family and reviewed episode/severity branches; broad medication and psychotherapy roles; core
+SSRI/SNRI/bupropion/mirtazapine relationships; adherence, prior trials, reactions,
+sleep/fatigue/appetite/weight/sexual/anxiety/substance findings; medication reconciliation;
+bipolarity, psychosis, and safety assessment relationships; BMI/physical findings; and only
+decision-relevant laboratory/testing relationships such as clue-driven thyroid testing. New
+cross-topic bins are created whenever admitted material names them, even when their deep review
+is deferred.
+
+**P5 — Use the strongest already-admitted source base.** CANMAT adult MDD is the principal
+condition-specific guideline; ACP contributes the bounded inadequate-response decision where its
+available source supports it; WHO remains broad context; current FDA records supply regulatory
+facts only; the Mayo/Bostwick psychotropic-fit guide and suitable formal literature or accepted
+Developer opinions supply individually reviewed fit candidates. Source-use, correction, and
+abstract/full-text limits remain explicit. A source's inclusion does not activate every statement.
+
+**P6 — Preserve broad treatment routes and small fit effects.** The main award recognizes an
+eligible broad medication, psychotherapy, or reviewed combination/transition route. Distinct
+sleep, energy, weight, sexual, anxiety, adherence, prior-response, tolerability, interaction, and
+patient-context relationships add smaller nontrivial modifiers. Several fit effects may stack,
+while duplicate therapy, serious interaction, or critical safety rules retain their existing
+dominance and suppression behavior.
+
+**P7 — Generate clean and muddy patients.** Required conditions, bounded optional comorbidities,
+questionable chart labels, rule-outs, subthreshold and surface-threshold symptom overlap, current
+regimens, and arbitrarily long prior-trial histories all remain representable. Only literal
+same-scope contradictions invalidate generation. Missing rule coverage creates a ticket and stays
+visible in the patient audit.
+
+**P8 — Keep the player experience compact.** Openings remain name plus chief complaint. History,
+Physical exam, Testing, Diagnosis, and Treatment remain searchable. Long trial/regimen histories
+use a concise summary with expandable detail. The immediate decision should remain playable in
+roughly two to five minutes even when the backend patient is rich.
+
+**P9 — Define acceptance by executable cohorts.** Many deterministic seeds must preserve template
+intent and replay while varying presentation, overlap, prior efforts, and fit. Reference patients
+must cover broad-route success, a good fit choice, an acceptable but poorer fit, unnecessary
+workup, duplicate/shotgun treatment, and a clearly unsafe selection. Receipts must expose every
+qualitative rule, provisional point mapping, provenance path, and coverage gap.
+
+**P10 — Keep the first vertical bounded.** Psychotic depression, catatonia, perinatal depression,
+ECT/neuromodulation, advanced treatment-resistant-depression algorithms, inpatient/ED care, and a
+complete bipolar or substance-use treatment engine remain later verticals. Bipolarity,
+substances, medical contributors, and safety still appear where needed for MDD attribution and
+treatment prerequisites; they simply do not trigger an exhaustive plan for every background
+problem.
+
+**Q10:** Approve adult outpatient MDD—from diagnostic attribution and initial selection through
+the first inadequate-response regimen transition—as the first deep database vertical, with the
+above exclusions?
 
 **Unlocks:** a genuinely textured playable cohort and a proof that the database-first workflow
 works end to end before scaling to GAD, bipolar disorder, psychosis, PTSD, substance-related
@@ -626,15 +704,15 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-009 before choosing the first deep database vertical in DBQ-010. Do not
-implement the promotion pipeline or bulk-activate rules until DBQ-009 is accepted or revised.
-D-172 makes missing route/rubric coverage a nonblocking diagnostic rather than patient invalidity.
-D-171 permits complex, diagnostically muddy psychiatric patients but activates no randomization.
-D-170 fixes shared finding/test/reveal ownership but does not authorize its schema migration or any
-clinical association. D-169 permits a narrow verified FDA-alignment bonus but does not make
-regulatory status the treatment pathway or create an off-label penalty. D-168 permits traceable
-speculative candidates but does not authorize automatic completion of sparse sections, runtime AI,
-or speculative gameplay rules. D-167 still does not automatically apply scouted sources, revise
-the tracked packet schema, or authorize bulk scouting. DBQ-002 authorizes only a one-dossier
-readiness pilot, and DBQ-003 authorizes candidate-bin architecture rather than immediate bulk
-catalog generation.
+Present and resolve DBQ-010 before detailing maintenance cadence in DBQ-011 or implementing the
+first deep vertical. D-173 authorizes a two-stage promotion contract but not its schema migration
+or bulk rule activation. D-172 makes missing route/rubric coverage a nonblocking diagnostic rather
+than patient invalidity. D-171 permits complex, diagnostically muddy psychiatric patients but
+activates no randomization. D-170 fixes shared finding/test/reveal ownership but does not authorize
+its schema migration or any clinical association. D-169 permits a narrow verified FDA-alignment
+bonus but does not make regulatory status the treatment pathway or create an off-label penalty.
+D-168 permits traceable speculative candidates but does not authorize automatic completion of
+sparse sections, runtime AI, or speculative gameplay rules. D-167 still does not automatically
+apply scouted sources, revise the tracked packet schema, or authorize bulk scouting. DBQ-002
+authorizes only a one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin architecture
+rather than immediate bulk catalog generation.

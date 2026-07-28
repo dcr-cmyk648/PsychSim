@@ -472,6 +472,14 @@ Available treatment IDs determine the structured UI. Reusable nonmedication entr
 
 The patient treatment reference is deliberately hybrid. It prefers one broad primary authored pathway composed from reviewed option groups: for example, exactly one first-line antidepressant or exactly one first-line psychotherapy, plus proportionate outpatient disposition. For a complex existing regimen, the same concept expands into one complete snapshot transition over entry-targeted operations and new starts: a reviewed route may retain a beneficial anchor, stop or reduce a poorly fitting entry, and add a replacement or adjunct. The baseline and submitted regimens can both meet the broad route while response, tolerability, prior trials, safety, and fit distinguish the better next move. A source-supported combination may add a bonus; a compatible source-silent combination may remain neutral. Medication- and therapy-specific fit modifiers supply swing room inside those families. Reusable redundancy groups and maximum cardinalities prevent multiple equivalent treatments from accumulating rewards. `additionalAuthoredPathwayIds` remains available for truly distinct care routes, while `safetyFallbackPathwayIds` keeps referral/transfer separate from the main plan. A deterministic catalog engine may evaluate a combination outside those authored routes using reviewed catalog rules, but the receipt labels it `engine_inferred`; it cannot masquerade as an authored patient pathway. No transition implies a dose, taper schedule, virtual time, or observed future outcome.
 
+Knowledge-to-rule promotion is two-stage. An atomic qualitative rule first receives explicit
+psychiatrist review of its typed trigger, scope, direction, concern, certainty, exceptions,
+rationale, provenance, and explanation with no points attached. Tooling may then attach a
+separately versioned `provisional_balance` value from the D-156 bands for Developer/Reviewer play.
+Point-only retuning does not change the qualitative review; changing clinical meaning does.
+Missing coverage creates a nonblocking diagnostic rather than an inferred rule or penalty. Every
+compiled receipt row retains both review layers and its D-159 combination outcome.
+
 Predicates are JSON-safe only: `actionPurchased`, `factKnown`, exact medication
 start/stop/continue, `anyMedicationStarted`, bounded `treatmentStartedWithTag`,
 `interventionSelected`, `dispositionSelected`, `serviceCapabilityAvailable`, `any`, `all`, and
@@ -480,6 +488,11 @@ start/stop/continue, `anyMedicationStarted`, bounded `treatmentStartedWithTag`,
 ## Reference solutions and eligibility
 
 Each case includes database-plan, strong/acceptable alternative, shotgun, and unsafe policies. They are executable and must use only available actions/treatments. “Database plan” is the authored comparison route, not a claim that no other plan could be better. Validators require at least one acceptable path, a safe referral/transfer, accessible required objectives, valid par, and a compatible location. Eligibility further considers lifetime points, facility/location, service fulfillment, every workup objective required by a candidate path, effective formulary/tag availability, intervention capabilities, and disposition capabilities. Validation constructs a baseline clinic for every declared compatible location. A start medication must be stocked, while an existing medication may still be stopped or explicitly continued. External services count as capabilities even when expensive, so the ECG patient is winnable before equipment ownership.
+
+That paragraph describes the current legacy `CaseBlueprint` Player-release gate. D-172 changes the
+target patient generator: missing treatment/rubric coverage emits a nonblocking authoring
+diagnostic and ticket rather than invalidating or regenerating the patient. Human lifecycle review
+may still decline to publish a clearly broken compiled encounter.
 
 Waiting-room queues store complete resolved CaseInstances after eligibility evaluation. The setting is visible on each slot; hidden diagnosis IDs, tags, and pool labels are never launcher text. Normal slots remain unchanged until the patient is completed, then avoid recently used chief complaints when generating a replacement. If the clinic moves, the exact resolved waiting instance is retained and assigned to a compatible location in the new facility before extra slots are filled. Slot count rises from one to two to three across the first implemented tiers. Endgame derives a refreshable six-slot highest-tier queue from the approved pool. Local Developer mode dynamically loads approved plus review patients, tracks which blueprint IDs have run, and supports reroll/reset; production does not contain that module.
 

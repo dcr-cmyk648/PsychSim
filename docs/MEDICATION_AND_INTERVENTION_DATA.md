@@ -335,6 +335,13 @@ generated reverse links. The rule records the game-specific transformation, whil
 profile records the point magnitude. A source update creates an impact ticket rather than silently
 rewriting the rule.
 
+D-173 makes this a two-stage promotion. One explicit psychiatrist review accepts the atomic
+qualitative rule; only then may tooling attach a separately labeled `provisional_balance` value
+from the D-156 bands for Developer/Reviewer play. Point-only tuning can proceed from patient
+reviews without reopening the qualitative decision. Changing the trigger, scope, clinical
+direction, concern, or exception requires a new qualitative review. Missing coverage creates a
+ticket rather than an inferred rule or penalty.
+
 This separation lets the receipt say, for example:
 
 - broad first-line treatment family: +300;
