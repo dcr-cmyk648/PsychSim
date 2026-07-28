@@ -145,6 +145,12 @@ active recommendation stances. That conservative rule is adequate for the simple
 must be divided into structural invalidity, valid clinical tension, evidence disagreement, and
 balance disagreement before complex poly-diagnosis generation.
 
+Validation applies to selected internal condition states, not to every surface symptom count.
+Under D-171, overlapping generated findings may resemble or superficially satisfy another
+diagnostic checklist without being removed, promoted, retried, or quarantined. The engine keeps
+required and selected conditions, chart diagnoses, rule-outs, and raw findings distinct so a
+focused best-next-step encounter may remain diagnostically muddy.
+
 ## Conflict detection
 
 The composer currently blocks:

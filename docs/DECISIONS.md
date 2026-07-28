@@ -511,7 +511,9 @@ uncontrolled syndrome generator.
 
 ## D-089 — Full syndromes come from condition modules, not coincidental background draws
 
-Status: accepted as the generation contract; runtime implementation remains pending. Ordinary
+Status: partially superseded by D-171 before runtime implementation. D-171 retains condition-level
+ownership and forbids automatic diagnosis promotion, but removes the symptom-count cleanup,
+retry, and quarantine behavior below. Ordinary
 background variation may produce isolated, overlapping, and subthreshold symptoms, but it must not
 independently assemble a complete coherent syndrome such as mania. A full additional condition
 enters the internal `ConditionState` only through a template-required condition or a deliberately
@@ -532,7 +534,8 @@ question-bank decision state.
 
 ## D-090 — Patient templates bound diagnoses and minimally repair random threshold crossings
 
-Status: accepted as the simpler generation policy; runtime implementation remains pending. A
+Status: superseded by D-171 before runtime implementation. Findings are no longer removed merely
+because their surface symptom count resembles another disorder. A
 patient template declares the diagnoses that a generated patient may contain: required conditions
 and a small explicit pool of eligible optional conditions. The generator does not discover
 additional diagnoses from arbitrary background facts.
@@ -2415,6 +2418,10 @@ clinically approve an intervention.
 
 ## D-170 — Shared findings resolve once; tests and reveal actions remain separate owners
 
+The surface-syndrome restriction in this decision is narrowed by D-171: overlapping findings may
+resemble or superficially satisfy another disorder's symptom list without being removed, promoted
+to an internal diagnosis, or treated as a generation failure.
+
 **Decision:** Every reusable symptom, history element, exposure, examination finding,
 measurement, or observation has one stable finding identity with neutral labels, search terms,
 typed outcomes, and presentation templates. That identity never owns a particular patient's value
@@ -2431,8 +2438,9 @@ specificity combines compatible contributions; a hard contradiction deterministi
 quarantines the candidate instead of selecting a load-order winner. Templates distinguish
 case-defining requirements, expected-but-variable associations, ordinary background variation,
 optional-comorbidity findings, and bounded distractors. Criteria groups use reviewed cardinality
-and required-finding constraints, while background variation may be subthreshold but cannot
-silently create an incompatible syndrome or change the focused question.
+and required-finding constraints. Under D-171, background variation may overlap enough to resemble
+another syndrome; it cannot silently create internal condition truth or change the focused
+question from symptom count alone.
 
 An orderable study or named instrument has a test definition separate from its reveal action. The
 test definition owns study type, components, result schema, units and reference intervals,
@@ -2456,3 +2464,54 @@ results and narrow reveal mappings, while post-submit workup, diagnosis, treatme
 explain how each finding mattered. This decision fixes the conceptual ownership and deterministic
 resolution contract only. It does not authorize a schema migration, add a clinical association,
 choose a generation probability, activate a score rule, or grant medical approval.
+
+## D-171 — Focused psychiatric snapshots may remain diagnostically muddy and highly textured
+
+**Decision:** A focused encounter limits the decision horizon, not the patient's diagnostic or
+treatment complexity. PsychSim should not normalize every patient into one certain diagnosis and
+one obvious treatment. Each playable template must contain a psychiatrist-relevant decision
+driver—such as diagnostic attribution, prior response or intolerance, regimen transition,
+comorbidity fit, interaction or adverse-effect reasoning, safety, or disposition—even when the
+setting and available tools remain “couch and clipboard.”
+
+A template owns required internal condition states and may also own one or more bounded condition
+selection groups with stable candidate IDs and explicit minimum and maximum selections, such as
+“select one to three from this reviewed comorbidity pool.” Those selections are deterministic and
+saved. There is no global random-diagnosis pool. Required and selected internal conditions remain
+separate from chart diagnoses, historical labels, and explicit rule-out or uncertain diagnostic
+records, which may be numerous, overlapping, inaccurate, or substance- and time-dependent.
+
+Resolved findings are not cleaned merely because their visible symptom count resembles or
+superficially satisfies another disorder's checklist. Such overlap is common and may be the
+intended learning texture. The generator neither deletes those findings nor automatically promotes
+the apparent disorder into internal condition truth. Etiology, time course, substance or
+medication context, attribution, functional relationship, and “not better explained” logic remain
+separate from raw symptom cardinality. Only a required or selected condition module creates an
+active internal condition. Post-submit audit must distinguish required conditions, selected
+comorbidities, chart labels, rule-outs, and coincidentally overlapping findings.
+
+Diagnostic ambiguity and clinically meaningful tension are valid generated states. Retry or
+quarantine is reserved for structural impossibility, an explicitly reviewed incompatible pair of
+internal states, inaccessible required care, or absence of a safe route—not for symptom overlap,
+multiple plausible formulations, or a threshold count alone. This supersedes D-090 and the
+threshold-cleanup portions of D-089 and D-170 while preserving their prohibition on automatic
+diagnosis promotion.
+
+For PsychSim's psychiatry-referral population, prolonged, severe, or otherwise specialty-level
+presentations require multiple resolved prior efforts by default rather than zero or one generic
+“adequate trial.” These may include medication, psychotherapy, prior clinical contact, OTC or
+supplement use, self-directed coping, substance-related coping, or higher levels of care.
+Decision-relevant treatment history does not consume the optional-texture budget and has no small
+global maximum; it uses structured records and a compact summary with expandable detail. A
+treatment-naive specialty patient is an explicit template exception with a reviewable reason. This
+frequency judgment is Developer opinion until a suitable source contribution is separately
+reviewed.
+
+The compiled rubric may apply distinct reviewed fit, safety, interaction, response, and
+tolerability contributors from every relevant resolved condition, finding, medication entry, and
+prior trial. One broad authored next-step route still carries most care points; smaller
+contributors may stack subject to the existing deduplication, cap, and hard-safety rules. Their
+points are auditable game weights linked to formal sources and/or Developer opinion, not a claim
+that the engine makes clinical decisions or perfectly resolves diagnostic uncertainty. This
+decision changes the architecture contract only; it activates no diagnosis, generation
+probability, clinical rule, or point value.

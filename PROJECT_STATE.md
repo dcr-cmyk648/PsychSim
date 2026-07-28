@@ -11,7 +11,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-170. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-171. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -31,6 +31,10 @@ Last updated: 2026-07-28
   primary route or penalizing off-label care. D-170 establishes one canonical resolved finding per
   patient and keeps test definitions, reveal actions, generation tendencies, and post-submit
   scoring as separate owners. It changes no schema, clinical association, probability, or points.
+  D-171 clarifies that a focused psychiatry encounter may remain highly textured and
+  diagnostically muddy: bounded template-owned comorbidity groups, extensive prior treatment,
+  uncertain chart labels, and surface symptom overlap are valid, while symptom counts alone
+  neither create diagnoses nor trigger finding cleanup.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
@@ -52,6 +56,9 @@ only the current operational state and should not grow into a second changelog.
 3. Patient definitions own focused encounter state and narrow overrides. Reusable diagnosis,
    medication, test, therapy, disposition, evidence, and decision-policy knowledge belongs in
    versioned catalogs. Case-specific rules outrank shared rules only within their stated scope.
+   “Focused” limits the immediate decision horizon, not patient complexity: a template may own
+   multiple required or bounded-selected conditions, long treatment histories, polypharmacy,
+   uncertain chart labels, and overlapping findings.
 4. Points are the only player-facing unit. The primary decision carries most points; distinct
    goodness-of-fit effects are smaller but meaningful; critical errors cannot be outweighed by
    stacked minor bonuses. Default authoring bands are recorded in D-156.
@@ -245,7 +252,7 @@ local IPC socket or loopback listener; each passed when rerun with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
-The database-first decision-queue checkpoint through D-170 passed on 2026-07-28:
+The database-first decision-queue checkpoint through D-171 passed on 2026-07-28:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
 - `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests;
@@ -266,7 +273,7 @@ local IPC/loopback permission and passed unchanged outside that restriction.
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-170
+- `docs/DECISIONS.md` through D-171
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -293,10 +300,13 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only DBQ-008: a bounded presentation-richness envelope that adds plausible
-   cross-domain texture without obscuring the focused question-bank decision. Use the saved GAD
-   review as an acceptance example, not a probability source. Do not implement probabilities,
-   module selection, or cohort migration until the decision is accepted or revised.
+1. Present and resolve only the revised DBQ-008: a template-specific presentation envelope plus a
+   psychiatry-referral plausibility check. The revision removes global `2–4 finding / 0–2 prior
+effort` bounds, requires multiple structured prior efforts for prolonged/severe specialty
+   templates, permits bounded comorbidity selection groups, and preserves superficial
+   cross-diagnostic symptom overlap. Use the saved GAD review as an acceptance example, not a
+   probability source. Do not implement probabilities, module selection, or cohort migration until
+   the decision is accepted or revised.
 2. Re-evaluate the remaining queue after DBQ-008. Do not detail DBQ-009 or shotgun the queued
    questions before the reviewer answers.
 3. Once the architecture queue authorizes implementation, the first already-approved engineering

@@ -27,9 +27,12 @@ letting a memorable anecdote become an answer key.
 
 Absence of a diagnosis does not require every related symptom to be negative. The finite Reviewer
 cohort pilots ordinary subthreshold variation by allowing zero or one background anxiety finding
-to be positive outside the primary GAD scenario. That bounded draw cannot compose a full syndrome,
-infer a new diagnosis, or change the focused rubric. New symptom families need reviewed bounds
-rather than one global probability.
+to be positive outside the primary GAD scenario. That is a deliberately narrow current fixture,
+not the target complexity ceiling. Future generated findings may overlap enough to superficially
+satisfy another symptom checklist; they remain visible and may affect reviewed fit rules but do not
+automatically create internal diagnosis truth or change the focused rubric. Attribution, timing,
+substance or medication context, and exclusion logic remain separate from symptom count. New
+symptom families need reviewed generation inputs rather than one global probability.
 
 Symptom duration is also structured when it can matter clinically. Reviewer scenarios choose
 deterministically among stable numeric value/unit options, save the exact resolved measurement for

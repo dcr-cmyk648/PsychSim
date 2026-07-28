@@ -420,8 +420,12 @@ styling, so a negative result is not conveyed only by muted color or an undiffer
 The finite Reviewer compiler also pilots bounded background anxiety variation outside the primary
 GAD scenario: all threshold-relevant atoms are variable and deterministic selection permits zero
 or one positive. The maximum is deliberately subthreshold, does not create an internal diagnosis,
-and does not alter the focused rubric. Additional symptom families require their own reviewed cap,
-required findings/absences, and consistency validation; there is no global unconstrained symptom
+and does not alter the focused rubric. This is current fixture behavior, not the target patient's
+complexity ceiling. Under D-171, future background and cross-condition findings may superficially
+satisfy another symptom list and remain intact. Symptom cardinality alone neither promotes an
+internal diagnosis nor triggers cleanup; attribution, time course, medication/substance context,
+required or selected condition modules, and chart uncertainty remain separate. Additional symptom
+families still require reviewed generation inputs; there is no global unconstrained symptom
 randomizer.
 
 Some actions may reveal a compact summary derived from a larger shared fact family without

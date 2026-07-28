@@ -260,35 +260,52 @@ to migrate schemas or choose clinical generation weights.
 
 ## Syndrome generation and incompatibility validation
 
-Background variation may produce isolated, overlapping, and subthreshold symptoms. It is not a
-syndrome composer. A full condition enters the internal state only because the patient template
-requires it or because the template's reviewed optional-comorbidity pool selects its condition
-module. The post-submission Developer audit distinguishes those origins.
+Background and cross-condition variation may produce isolated, overlapping, subthreshold, or
+surface-threshold symptom sets. Raw cardinality is not a diagnosis composer. A symptom cluster may
+look like it satisfies another disorder's list while timing, etiology, substance or medication
+context, functional relationship, or “not better explained” logic points elsewhere or remains
+uncertain.
 
-Reviewed operational criteria then validate the resolved findings. If independent background draws
-accidentally satisfy an unrequested complete syndrome, the candidate is treated as a generation
-defect and is deterministically retried or quarantined rather than silently assigned a new
-diagnosis. Likewise, diagnosis definitions declare reviewed incompatibilities, and an incompatible
-active-condition combination invalidates the generated candidate. Chart diagnosis entries remain
-separate and may still contain inaccurate, historical, or superseded labels.
+The generator retains those findings. It does not remove, redraw, retry, or quarantine a patient
+merely because an unrelated checklist count is reached, and it does not silently assign a new
+internal diagnosis. A full internal condition enters `ConditionState` only because the template
+requires it or a reviewed patient-family condition-selection group selects its module. The
+post-submission Developer audit separately identifies required conditions, selected
+comorbidities, chart diagnoses, rule-outs, and overlapping generated findings.
 
-This boundary preserves ordinary symptom variation and its treatment-fit effects while preventing
-random fact collisions from changing the authored question-bank decision state.
+Diagnosis definitions may still declare narrow reviewed incompatibilities between internal
+condition states. Only a structural impossibility, an explicitly incompatible selected pair,
+inaccessible required care, or absence of a safe route invalidates the generated candidate.
+Multiple plausible formulations, uncertain chart labels, symptom overlap, and benefit-versus-risk
+tension remain valid psychiatric patient states.
 
-### Template diagnosis boundary and minimal repair
+### Template diagnosis and comorbidity boundary
 
-Each patient template declares its required conditions and a small explicit pool of optional
-conditions. Together they form the allowed diagnosis set for generated patients from that
-template. Operational diagnostic criteria serve as a generation guardrail rather than a
-general-purpose diagnostic inference engine.
+Each patient template declares required conditions and may declare one or more condition-selection
+groups. A group owns stable candidate module IDs, explicit minimum and maximum selections,
+deterministic game weights, and applicable compatibility constraints. This supports instructions
+such as “select one to three of these comorbidities” without treating every diagnosis as globally
+mixable.
 
-If low-priority background findings accidentally cross the threshold for a diagnosis outside the
-allowed set, the generator deterministically removes the smallest set of those disposable findings
-needed to restore the intended state. It never removes authored critical facts,
-diagnosis-required findings, medication effects, or other protected facts. The initial cleanup
-budget is one or two findings; a candidate requiring broader repair is regenerated or quarantined
-as evidence that its randomization is poorly constrained. The Developer audit records every
-removed finding and its origin.
+Internal condition selections, chart diagnoses, historical labels, and rule-out or uncertain
+records are separate. Operational diagnostic criteria may validate that a selected condition
+module generated its required state, but they do not sweep every patient for every possible
+diagnosis and do not clean findings to preserve a single neat formulation. All resolved symptoms
+remain available to reviewed finding-level fit and safety rules whether or not they support the
+template's primary diagnosis.
+
+### Specialty treatment-history plausibility
+
+Decision-relevant prior history is core patient state, not optional texture. A prolonged, severe,
+or specialty-level psychiatry template requires multiple structured prior efforts by default,
+which may include medications, psychotherapy, prior clinical contact, OTC or supplement use,
+self-directed coping, substance-related coping, or higher levels of care. There is no small global
+maximum; a complex patient can own many medication trials and regimen entries. A treatment-naive
+specialty patient is an explicitly authored exception with a reviewable reason.
+
+The player-facing result summarizes long histories and allows expansion, while the frozen
+`PatientInstance` retains every structured record for rule matching and audit. The frequency
+assumption remains labeled Developer opinion until a suitable formal contribution is reviewed.
 
 ## Guideline-shaped scenario example
 

@@ -400,9 +400,10 @@ definitions, and separately reviewed generation tendencies:
    hard contradictions retry deterministically or quarantine instead of using file order.
 4. A patient template distinguishes case-defining required facts, expected-but-variable findings,
    ordinary background variation, optional comorbidity findings, and bounded distractors.
-   Criteria-driven groups use reviewed required/minimum/maximum constraints. Background variation
-   may be subthreshold but cannot silently create an incompatible full syndrome or change the
-   focused rubric.
+   Criteria-driven groups use reviewed required/minimum/maximum constraints. As clarified by
+   D-171, background and cross-condition findings may overlap or superficially satisfy another
+   symptom checklist; they are retained but do not automatically create an internal condition or
+   change the focused rubric.
 5. Every orderable study or instrument owns a separate test definition: study kind, components,
    result schema, units/reference intervals, deterministic generation profiles, interpretation,
    rights boundary, and result-display conventions. The linked shared
@@ -439,71 +440,82 @@ associated findings, ordinary background findings, prior exposure/treatment, opt
 comorbidity, and distractors. This is the clinical/product decision currently represented by
 `ticket.engine.patient-generation.presentation-richness-envelope` and the GAD attempt feedback.
 
-**Proposed default:** give each patient template a small, explicit
-`PresentationRichnessEnvelope`. It controls texture without becoming a scalar patient “level,” a
-prevalence model, or a second diagnosis engine:
+**Revised proposed default:** use a template-specific `PresentationRichnessEnvelope` plus a
+psychiatry-referral plausibility check. “Focused” limits what the player must decide now; it does
+not require a simple, diagnostically clean patient:
 
-**P1 — Protect the question first.** The template's focused decision, required condition state,
-safety facts, and at least one safe route are fixed before optional texture is drawn. They do
-not consume the optional-richness budget. A texture module may influence treatment fit, but it
-cannot replace or obscure the focused decision unless the template explicitly authors that
-additional decision.
+**P1 — Require a psychiatrist-level decision.** Before optional variation, the template fixes its
+focused decision, required condition state, safety facts, and at least one safe route. It also
+names at least one reason this is meaningfully psychiatric rather than a trivial primary-care
+prescription: diagnostic attribution, prior response or intolerance, regimen transition,
+comorbidity fit, adverse effects or interactions, safety, or disposition.
 
-**P2 — Use separate richness lanes.** A template declares independent minimum and maximum counts for
-(a) expected-but-variable associated findings, (b) ordinary subthreshold/background findings,
-(c) prior exposure, coping, or treatment-history details, (d) explicitly permitted optional
-condition modules, and (e) unrelated distractors. D-126's small optional-feature budget remains
-the ceiling for extra modules; raw diagnosis count and one global complexity number do not
-control generation.
+**P2 — Separate core complexity from optional texture.** Required diagnoses, current regimen,
+decision-relevant treatment history, and focused complications do not consume the D-126
+optional-feature budget. The richness envelope separately controls expected-but-variable
+associations, ordinary background findings, optional condition modules, and unrelated
+distractors. There is no scalar patient “level” or one global realism count.
 
-**P3 — Start with a restrained pilot envelope.** For the first MDD and GAD generator calibration,
-require two to four nondecisive positive texture findings across at least two finding families,
-allow zero to two prior-exposure/coping details, and allow at most one unrelated distractor. A
-prolonged or severe scenario may require at least one plausible prior exposure when the template
-reviewer judges an entirely treatment-naive history implausible. These are game-authoring
-defaults for playtesting, not claims about real-world prevalence. A template may narrow them
-when a cleaner stem is necessary.
+**P3 — Make prior history match the specialty population.** A prolonged, severe, or
+specialty-level template requires multiple structured prior efforts by default—medications,
+therapy, prior clinical contact, OTC or supplement use, coping attempts, substance-related
+coping, or higher levels of care. There is no small upper cap: a patient may own 15 prior trials
+when the template calls for it. A treatment-naive exception requires an explicit template reason.
+Long histories render as a concise summary with expandable detail.
 
-**P4 — Draw from explicit owners.** Active diagnosis families and medications supply reviewed
-associated-finding candidates; a separate common-human background pool supplies ordinary
-subthreshold experiences; and the patient family owns eligible prior-exposure and optional
-comorbidity pools. No diagnosis is globally random. Source association strength and
-`gameSelectionWeight` remain separate, reviewable fields.
+**P4 — Let cases select bounded comorbidity sets.** A template may declare groups such as “select
+one to three from these condition modules,” with stable candidate IDs, minimum and maximum
+selection counts, game weights, and reviewed incompatibilities. Selected conditions are saved
+internal state. The engine has no global random-diagnosis pool, and source association strength
+remains separate from `gameSelectionWeight`.
 
-**P5 — Resolve in a stable order.** Generate core facts, required associated-texture slots,
-template-required prior history, optional modules within the D-126 budget, then bounded
-background findings and distractors. Save the seed, candidate-pool IDs, deterministic choices,
-and every contributor in the patient instance.
+**P5 — Preserve chart uncertainty separately.** Required and selected internal conditions,
+historical or questionable chart diagnoses, and explicit rule-out/uncertain records remain
+distinct. A patient may therefore arrive with numerous overlapping labels while the encounter
+still asks for one best next step. Nothing player-facing reveals the internal answer before
+submission.
 
-**P6 — Guard syndrome coherence.** Shared findings resolve once. Subthreshold overlap is allowed,
-but a full additional condition can enter only through an eligible condition module. If
-disposable background facts accidentally cross an incompatible threshold, remove or redraw the
-lowest-priority optional facts deterministically within the existing small repair budget.
-Conflicts involving protected facts retry or quarantine; generation never silently adds a
-diagnosis.
+**P6 — Keep overlapping symptoms instead of cleaning them.** Shared findings resolve once and may
+legitimately resemble or superficially satisfy several disorders' symptom lists. The generator
+does not delete, redraw, retry, or quarantine them for a threshold count alone, and it does not
+auto-promote a new internal diagnosis. Etiology, timing, substance or medication context,
+functional relationship, and “not better explained” logic remain separate from raw symptom
+cardinality.
 
-**P7 — Cap display burden, not learning value.** Richness should create short structured positives,
-not longer stems or memorable prose. Openings remain name plus brief chief complaint; purchased
-results reveal compact swappable findings. A per-action and per-domain presentation cap keeps
-all generated texture from appearing in one wall of text.
+**P7 — Quarantine only true structural failures.** Explicitly impossible internal-state
+combinations, inaccessible required care, or absence of a safe route still retry or quarantine.
+Diagnostic ambiguity, several plausible formulations, and benefit-versus-risk tension are valid
+patient states rather than generation defects.
 
-**P8 — Keep scoring focused and auditable.** A resolved texture fact may affect treatment fit or
-safety only when a reviewed reusable rule exists, whether or not the player revealed it.
-Buying the relevant information is scored separately. Mere detail does not create points,
-reimbursement, or a difficulty bonus, and the primary database-plan decision retains most of
-the available care points.
+**P8 — Resolve deterministically and retain every contributor.** Generate required conditions and
+regimen, bounded condition selections, chart labels/rule-outs, structured prior history,
+associated findings, background findings, and distractors in a stable order. Save the seed,
+candidate pools, draws, attribution/uncertainty, and contributor trace.
 
-**P9 — Calibrate against generated cohorts.** Before enabling optional comorbidity generation,
-instantiate many MDD and GAD seeds and audit all-negative satellite domains, accidental
-syndromes, repeated stereotyped bundles, safe-route preservation, number of meaningful
-positives, prior-exposure plausibility, and reading burden. The saved GAD review is an
-acceptance example for avoiding implausible all-negative satellites, not a probability source.
+**P9 — Keep display compact while allowing backend depth.** Openings remain name plus brief chief
+complaint. Purchased results use concise structured findings, and large medication or treatment
+histories use summaries and expansion rather than walls of text. Display limits do not delete
+resolved patient state or block it from post-submit audit.
 
-This provides enough cross-domain detail for a patient to feel three-dimensional and for fit rules
-to matter, while preserving a legible “what is the best next step now?” question.
+**P10 — Score the immediate decision across the whole patient.** One broad authored route carries
+most care points. Smaller reviewed fit, safety, interaction, response, and tolerability rules may
+contribute from every relevant condition, finding, regimen entry, and prior trial, subject to
+existing deduplication, caps, and critical-safety behavior. The trace shows why each contribution
+appeared; it is a game scoring explanation, not clinical decision support.
 
-**Unlocks:** patients who feel plausible and varied without becoming unreadable, trivially
-diagnostic, or accidentally dominated by another syndrome.
+**P11 — Calibrate with clean and muddy cohorts.** Before enabling broad generation, instantiate
+many MDD and GAD patients plus deliberately complex reference templates. Audit implausibly empty
+satellite domains, repetitive bundles, treatment-history plausibility, overlapping symptom
+patterns, diagnostic uncertainty, safe-route preservation, number of applicable rule
+contributors, and player reading burden. The saved GAD review is an acceptance example, not a
+probability source.
+
+This revised model removes the earlier global `2–4 findings / 0–2 prior efforts` suggestion.
+Richness is template-specific, while specialty-setting plausibility, structured prior history,
+bounded comorbidity selection, deterministic replay, and compact display provide the guardrails.
+
+**Unlocks:** patients who feel plausibly psychiatric, diagnostically muddy, and varied while the
+immediate decision and complete explanatory trace remain legible.
 
 ### DBQ-009 — Define promotion from knowledge to executable game rules
 
