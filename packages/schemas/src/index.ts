@@ -1521,6 +1521,7 @@ export const ContentRegistryEntrySchema = z
       'decor_catalog',
       'diagnosis_catalog',
       'finding_catalog',
+      'finding_expression_bank_catalog',
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
       'supplement_identity_catalog',
@@ -2774,6 +2775,348 @@ export const ResolvedPatientPropositionStateSchema = z
     }
   });
 export type ResolvedPatientPropositionState = z.infer<typeof ResolvedPatientPropositionStateSchema>;
+
+export const FindingExpressionDisplayChannelSchema = z.enum([
+  'patient_history',
+  'collateral_history',
+  'record_summary',
+  'observation_summary',
+]);
+export type FindingExpressionDisplayChannel = z.infer<typeof FindingExpressionDisplayChannelSchema>;
+
+export const FindingExpressionVariantSchema = z
+  .object({
+    id: StableIdSchema,
+    text: z.string().trim().min(1).max(180),
+  })
+  .strict();
+export type FindingExpressionVariant = z.infer<typeof FindingExpressionVariantSchema>;
+
+/**
+ * Expression banks own display language only. They never own finding identity,
+ * aliases, diagnosis meaning, clinical mappings, or points.
+ */
+export const FindingExpressionBankSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(160),
+    displayChannels: z.array(FindingExpressionDisplayChannelSchema).min(1),
+    variants: z.array(FindingExpressionVariantSchema).min(2).max(120),
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((bank, context) => {
+    if (new Set(bank.displayChannels).size !== bank.displayChannels.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['displayChannels'],
+        message: 'Finding expression-bank display channels must be unique.',
+      });
+    }
+    if (new Set(bank.variants.map((variant) => variant.id)).size !== bank.variants.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['variants'],
+        message: 'Finding expression-bank variant IDs must be unique.',
+      });
+    }
+    const normalizedText = bank.variants.map((variant) =>
+      variant.text.normalize('NFKC').trim().toLocaleLowerCase('en-US'),
+    );
+    if (new Set(normalizedText).size !== normalizedText.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['variants'],
+        message: 'Finding expression-bank variant text must be unique within one bank.',
+      });
+    }
+  });
+export type FindingExpressionBank = z.infer<typeof FindingExpressionBankSchema>;
+
+export const FindingExpressionBankCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    banks: z.array(FindingExpressionBankSchema).min(1),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    if (new Set(catalog.banks.map((bank) => bank.id)).size !== catalog.banks.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['banks'],
+        message: 'Finding expression-bank catalog IDs must be unique.',
+      });
+    }
+  });
+export type FindingExpressionBankCatalog = z.infer<typeof FindingExpressionBankCatalogSchema>;
+
+export const FindingProjectionSourceStateSchema = z.union([
+  CanonicalFindingOutcomeSchema,
+  z.enum(['unknown', 'unassessed']),
+]);
+export type FindingProjectionSourceState = z.infer<typeof FindingProjectionSourceStateSchema>;
+
+export const FindingProjectionSourceBindingSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('canonical_finding'),
+      findingDefinitionId: StableIdSchema,
+      allowedStates: z.array(FindingProjectionSourceStateSchema).min(1),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('proposition_evidence'),
+      propositionDefinitionId: StableIdSchema,
+      allowedAssertions: z.array(PropositionEvidenceAssertionSchema).min(1),
+    })
+    .strict(),
+]);
+export type FindingProjectionSourceBinding = z.infer<typeof FindingProjectionSourceBindingSchema>;
+
+export const FindingProjectionTargetSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('information_action'),
+      actionId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('instrument_item'),
+      instrumentDefinitionId: StableIdSchema,
+      instrumentContentVersion: ContentVersionSchema,
+      itemId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type FindingProjectionTarget = z.infer<typeof FindingProjectionTargetSchema>;
+
+export const FindingProjectionResponseValueSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('finding_outcome'),
+      outcome: CanonicalFindingOutcomeSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('response_option'),
+      responseOptionId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type FindingProjectionResponseValue = z.infer<typeof FindingProjectionResponseValueSchema>;
+
+/**
+ * The mapping is explicit and many-to-many. Neither aliases nor phrase
+ * similarity can create a source binding.
+ */
+export const FindingRevealProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    sourceMatch: z.enum(['all', 'any']),
+    sourceBindings: z.array(FindingProjectionSourceBindingSchema).min(1),
+    target: FindingProjectionTargetSchema,
+    response: FindingProjectionResponseValueSchema,
+    expressionBankId: StableIdSchema.nullable(),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    const bindingKeys = projection.sourceBindings.map((binding) =>
+      binding.kind === 'canonical_finding'
+        ? `finding:${binding.findingDefinitionId}`
+        : `proposition:${binding.propositionDefinitionId}`,
+    );
+    if (new Set(bindingKeys).size !== bindingKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceBindings'],
+        message: 'A reveal projection may bind each source definition only once.',
+      });
+    }
+    for (const [index, binding] of projection.sourceBindings.entries()) {
+      const values =
+        binding.kind === 'canonical_finding' ? binding.allowedStates : binding.allowedAssertions;
+      if (new Set(values).size !== values.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['sourceBindings', index],
+          message: 'Projection source states or assertions must be unique.',
+        });
+      }
+    }
+  });
+export type FindingRevealProjection = z.infer<typeof FindingRevealProjectionSchema>;
+
+export const ResolvedFindingProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    projectionId: StableIdSchema,
+    projectionContentVersion: ContentVersionSchema,
+    target: FindingProjectionTargetSchema,
+    response: FindingProjectionResponseValueSchema,
+    selectedExpression: z
+      .object({
+        bankId: StableIdSchema,
+        bankContentVersion: ContentVersionSchema,
+        variantId: StableIdSchema,
+      })
+      .strict()
+      .nullable(),
+    contributingResolvedFindingIds: z.array(StableIdSchema),
+    propositionIds: z.array(StableIdSchema),
+    evidenceIds: z.array(StableIdSchema),
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    const groups = [
+      ['contributingResolvedFindingIds', projection.contributingResolvedFindingIds],
+      ['propositionIds', projection.propositionIds],
+      ['evidenceIds', projection.evidenceIds],
+    ] as const;
+    for (const [path, ids] of groups) {
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message: 'Resolved projection contributor IDs must be unique.',
+        });
+      }
+    }
+    if (groups.every(([, ids]) => ids.length === 0)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A resolved finding projection requires at least one explicit source record.',
+      });
+    }
+  });
+export type ResolvedFindingProjection = z.infer<typeof ResolvedFindingProjectionSchema>;
+
+export const InstrumentItemResponseSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    instrumentDefinitionId: StableIdSchema,
+    instrumentContentVersion: ContentVersionSchema,
+    itemId: StableIdSchema,
+    responseScaleId: StableIdSchema,
+    responseOptionId: StableIdSchema,
+    timeScopeId: StableIdSchema,
+    respondentSourceKind: z.enum(['patient_report', 'collateral_report', 'clinician_observation']),
+    rightsBoundaryId: StableIdSchema,
+    interpretationIds: z.array(StableIdSchema),
+    contributingResolvedFindingIds: z.array(StableIdSchema),
+    propositionIds: z.array(StableIdSchema),
+    evidenceIds: z.array(StableIdSchema),
+    projectionId: StableIdSchema,
+    projectionContentVersion: ContentVersionSchema,
+  })
+  .strict()
+  .superRefine((response, context) => {
+    for (const [path, ids] of [
+      ['interpretationIds', response.interpretationIds],
+      ['contributingResolvedFindingIds', response.contributingResolvedFindingIds],
+      ['propositionIds', response.propositionIds],
+      ['evidenceIds', response.evidenceIds],
+    ] as const) {
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message: 'Instrument response references must be unique.',
+        });
+      }
+    }
+    if (
+      response.contributingResolvedFindingIds.length === 0 &&
+      response.propositionIds.length === 0 &&
+      response.evidenceIds.length === 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'An instrument response requires at least one explicit source record.',
+      });
+    }
+  });
+export type InstrumentItemResponse = z.infer<typeof InstrumentItemResponseSchema>;
+
+export const FindingProjectionResolutionEnvelopeSchema = z
+  .object({
+    projection: FindingRevealProjectionSchema,
+    resolved: ResolvedFindingProjectionSchema,
+    expressionBank: FindingExpressionBankSchema.nullable(),
+  })
+  .strict()
+  .superRefine((envelope, context) => {
+    if (
+      envelope.resolved.projectionId !== envelope.projection.id ||
+      envelope.resolved.projectionContentVersion !== envelope.projection.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'projectionId'],
+        message: 'A resolved projection must reference the supplied projection version.',
+      });
+    }
+    if (JSON.stringify(envelope.resolved.target) !== JSON.stringify(envelope.projection.target)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'target'],
+        message: 'A resolved projection target must match its definition.',
+      });
+    }
+    if (
+      JSON.stringify(envelope.resolved.response) !== JSON.stringify(envelope.projection.response)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'response'],
+        message: 'A resolved projection response must match its definition.',
+      });
+    }
+    if (envelope.projection.expressionBankId === null) {
+      if (envelope.expressionBank || envelope.resolved.selectedExpression) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['expressionBank'],
+          message: 'A projection without a wording bank cannot select expression text.',
+        });
+      }
+      return;
+    }
+    if (
+      !envelope.expressionBank ||
+      envelope.expressionBank.id !== envelope.projection.expressionBankId ||
+      !envelope.resolved.selectedExpression ||
+      envelope.resolved.selectedExpression.bankId !== envelope.expressionBank.id ||
+      envelope.resolved.selectedExpression.bankContentVersion !==
+        envelope.expressionBank.contentVersion ||
+      !envelope.expressionBank.variants.some(
+        (variant) => variant.id === envelope.resolved.selectedExpression?.variantId,
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['expressionBank'],
+        message:
+          'A wording projection must resolve one variant from its exact expression-bank version.',
+      });
+    }
+  });
+export type FindingProjectionResolutionEnvelope = z.infer<
+  typeof FindingProjectionResolutionEnvelopeSchema
+>;
 
 export const ClinicalDurationOptionSchema = z
   .object({

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.finding-expression-banks",
+  "banks": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-expression-bank.history.common-energy-language",
+      "label": "Common patient language for low energy",
+      "displayChannels": ["patient_history"],
+      "variants": [
+        {
+          "id": "finding-expression.energy.tired",
+          "text": "Tired"
+        },
+        {
+          "id": "finding-expression.energy.fatigued",
+          "text": "Fatigued"
+        },
+        {
+          "id": "finding-expression.energy.low-energy",
+          "text": "Low energy"
+        },
+        {
+          "id": "finding-expression.energy.worn-out",
+          "text": "Worn out"
+        }
+      ],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
+}

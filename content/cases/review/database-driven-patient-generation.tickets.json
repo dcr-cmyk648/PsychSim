@@ -217,7 +217,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "blocking",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -244,12 +244,17 @@
     "proposedRouting": "Add a point-free, versioned projection boundary between resolved patient facts and player-facing assessment responses or wording. Keep identity aliases strict while allowing reviewed phrase banks to overlap across source facts.",
     "guidance": "A FindingExpressionBank owns stable wording-variant IDs and lawful display channels, not clinical truth. A FindingRevealProjection explicitly names its source finding IDs, applicable action or instrument item, source outcomes, response mapping, and expression bank. A frozen resolved projection saves the projection version, response value, selected wording-variant ID, source action or instrument, and every contributing resolved-finding ID before play. Standardized instruments retain their own response scale, timeframe, respondent or observation modality, interpretation, and rights boundary. Unstructured wording may be deliberately ambiguous. Current report, historical report, collateral, record, observation, and instrument response may conflict and must remain reconstructable. When a response concerns an authored latent proposition, the projection preserves the proposition and patient-scene evidence IDs rather than collapsing them into displayed belief wording. Neither aliases nor phrase similarity may create a mapping, and neither displayed wording nor the number of contributors may affect scoring. The later explanation trace must reconstruct source fact or proposition → patient-scene evidence → reviewed projection → displayed response without using the presentation or a discrepancy as a diagnostic inference.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Accepted architecture from Dustin Rowland's fatigue clarification and generalized symptom-source decision. The technical implementation must scale to many-to-many language and conflicting report/observation/time scopes while preserving the concise, question-bank-like player presentation and a fully separable backend audit.",
-    "reviewerNotesUpdatedAt": "2026-07-28T19:12:59.000Z",
+    "reviewerNotes": "Accepted architecture from Dustin Rowland's fatigue clarification and generalized symptom-source decision. The technical implementation must scale to many-to-many language and conflicting report/observation/time scopes while preserving the concise, question-bank-like player presentation and a fully separable backend audit. The first tracked expression bank contains only the already approved ordinary low-energy wording and remains medically unreviewed and runtime-excluded until the shared compiler exists.",
+    "reviewerNotesUpdatedAt": "2026-07-28T21:06:08.000Z",
     "resurfacingTrigger": "Before the shared-finding compiler projects one resolved fact into an action, a standardized item derives a response, or unstructured history reuses the same patient phrase for several possible facts.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added strict point-free schemas for versioned expression banks, explicit canonical-finding or proposition-evidence source bindings, action/instrument targets, frozen resolved projections, standardized item responses, and exact projection envelopes. Added one real runtime-excluded common-energy wording bank and registry membership validation. No alias, phrase inference, clinical association, score, reveal state, case migration, or runtime compiler was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T21:06:08.000Z"
+    },
     "createdAt": "2026-07-28T18:11:20.000Z",
-    "updatedAt": "2026-07-28T19:12:59.000Z"
+    "updatedAt": "2026-07-28T21:06:08.000Z"
   },
   {
     "schemaVersion": 1,

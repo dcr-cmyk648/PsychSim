@@ -355,6 +355,12 @@ diagnosis, scoring, reveal, or runtime-generation behavior. The complete resolve
 and reveal-projection compiler remain later dependencies, and the compatibility `CaseInstance`
 path is unchanged.
 
+The presentation layer is also an additive point-free boundary. Runtime-excluded expression banks
+hold wording variants; explicit reveal projections map typed finding states or
+proposition-evidence assertions to action/instrument responses; frozen projection records retain
+all contributing backend IDs and the selected wording version. No string matcher or alias resolver
+can create that mapping. The shared compiler and compatibility migration remain disabled.
+
 Diagnosis files are composed separately from patient instantiation.
 `composeDiagnosisGuidance` applies base, severity, specifier, and other active-diagnosis rules,
 derives tags and a five-dimensional complexity vector, and returns stable blocking conflicts. It

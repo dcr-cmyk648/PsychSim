@@ -8,6 +8,7 @@ import {
   DiagnosisClassificationReleaseSchema,
   EvidenceContributionSchema,
   EvidenceSourceDefinitionSchema,
+  FindingExpressionBankCatalogSchema,
   MedicationIdentityDefinitionSchema,
   PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgePilotProfileSchema,
@@ -106,6 +107,51 @@ const registryIssues = [
     message: path,
   })),
 ];
+
+const findingExpressionBankIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+const findingExpressionBankEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'finding_expression_bank_catalog',
+);
+if (findingExpressionBankEntries.length !== 1) {
+  findingExpressionBankIssues.push({
+    severity: 'error',
+    code: 'FINDING_EXPRESSION_BANK_CATALOG_COUNT',
+    message: `Expected one finding expression-bank catalog; found ${findingExpressionBankEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = findingExpressionBankEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Expression banks remain outside the ordinary runtime until the shared projection compiler exists.',
+      );
+    }
+    const catalog = FindingExpressionBankCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.banks.map((bank) => bank.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error('Expression-bank registry membership must exactly match its catalog.');
+    }
+  } catch (error) {
+    findingExpressionBankIssues.push({
+      severity: 'error',
+      code: 'INVALID_FINDING_EXPRESSION_BANK_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Finding expression-bank catalog validation failed.',
+    });
+  }
+}
 
 const authoringEvidenceEntries = contentRegistry.entries.filter(
   (entry) => entry.kind === 'evidence_source' && !entry.runtimeIncluded,
@@ -867,6 +913,13 @@ const reports = [
     {
       valid: registryIssues.length === 0,
       issues: registryIssues,
+    },
+  ],
+  [
+    'finding-expression-banks',
+    {
+      valid: findingExpressionBankIssues.length === 0,
+      issues: findingExpressionBankIssues,
     },
   ],
   [

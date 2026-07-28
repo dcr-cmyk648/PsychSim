@@ -2914,3 +2914,27 @@ The narrow name is intentional. The later resolved-record foundation still owns 
 measurements, regimens, reactions, treatment history, context, and this proposition-state
 envelope. Existing `PatientRecord`, `CaseBlueprint`, `CaseInstance`, persistence, and runtime
 generation remain unchanged.
+
+## D-184 — Finding presentation uses explicit versioned projections, never phrase inference
+
+**Decision:** Implement the accepted presentation boundary as a point-free catalog/schema layer.
+A `FindingExpressionBank` owns only stable wording variants and lawful display channels. It owns no
+finding identity, canonical aliases, clinical association, or points. The first real bank records
+the previously approved interchangeable ordinary low-energy phrases and remains medically
+unreviewed and excluded from the ordinary runtime until the shared compiler exists.
+
+A `FindingRevealProjection` explicitly names every canonical-finding state or proposition-evidence
+assertion it consumes, its `all`/`any` match behavior, its information-action or instrument-item
+target, its response, and any expression bank. A frozen `ResolvedFindingProjection` retains the
+exact definition version, target, response, selected wording variant, resolved-finding IDs,
+proposition IDs, evidence IDs, and deterministic resolution trace. An envelope validates the exact
+definition and wording-bank version.
+
+`InstrumentItemResponse` separately preserves instrument/item, response-scale option, time scope,
+respondent/observer source, rights boundary, interpretation IDs, and all contributing backend IDs.
+It does not assert that any instrument is valid or reusable; those are definition- and
+source-specific review questions.
+
+Aliases and phrase similarity cannot create mappings. Displayed wording, contributor count, and
+instrument response cannot create diagnosis, treatment, or score behavior. Compatibility
+`labelVariants`, current cases, reveal state, and runtime generation remain unchanged.

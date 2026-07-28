@@ -380,6 +380,12 @@ belief appraisal, and authored/deterministic resolution traces inside
 diagnosis inference, and points. It is not yet embedded in the complete resolved patient,
 compatibility cases, or a runtime generator.
 
+The adjacent point-free presentation foundation is implemented as versioned expression banks,
+explicit source-to-response mappings, frozen resolved projections, and standardized item-response
+records. It preserves resolved-finding, proposition, and patient-scene evidence IDs through to the
+display choice. No alias or surface phrase can create a mapping, and the shared compiler that would
+instantiate these records remains gated.
+
 When ambiguity persists, the focused answer may appropriately be blank, broad, or unspecified
 diagnosis plus a conservative intervention that covers the live possibilities. That is a rubric
 and relationship-compilation concern, not a patient-generation validity check. Missing

@@ -158,9 +158,18 @@ describe('developer clinical audit queue', () => {
     expect(
       byId.get('ticket.schema.patient-state.latent-proposition-evidence-foundation')?.guidance,
     ).toMatch(/not required to converge.*not a retry, cleanup, quarantine/s);
+    expect(
+      byId.get('ticket.catalog.findings.subjective-presentation-projection-foundation'),
+    ).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: false,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
     for (const id of [
       'ticket.engine.patient-generation.general-dependency-gate',
-      'ticket.catalog.findings.subjective-presentation-projection-foundation',
       'ticket.schema.patient-state.resolved-record-foundation',
       'ticket.engine.patient-generation.shared-finding-compiler',
     ]) {

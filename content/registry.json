@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.26.0",
+  "contentVersion": "3.27.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -82,6 +82,14 @@
         "finding.sleep.current-insomnia"
       ],
       "dependsOnIds": []
+    },
+    {
+      "id": "registry.catalog.finding-expression-banks",
+      "kind": "finding_expression_bank_catalog",
+      "path": "content/catalogs/findings/expression-banks.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["finding-expression-bank.history.common-energy-language"],
+      "dependsOnIds": ["registry.catalog.findings"]
     },
     {
       "id": "registry.catalog.diagnosis-classifications.icd10cm-2026",

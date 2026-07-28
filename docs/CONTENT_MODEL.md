@@ -490,20 +490,21 @@ making the patient invalid. A focused rubric instead recognizes uncertainty thro
 blank, broad, unspecified, alternative, or conservative-coverage routes. Missing support for
 those routes is a nonblocking catalog/rubric coverage gap, not a reason to regenerate the patient.
 
-The target subjective-presentation layer is accepted but not implemented. A standardized
-instrument item will own an explicit reviewed mapping from applicable source findings to its
-yes/no/ordinal response, including its timeframe and respondent or observation modality. An
-unstandardized history action will use a deterministic expression bank. The frozen projection will
-save its version, source action or item, response, stable wording variant, and all contributing
-resolved-finding IDs before play. The same phrase may appear in several expression banks;
-canonical aliases remain strict and cannot create that relationship. Post-submit audit can
-therefore disentangle patient truth, assessment response, and displayed wording even when the
-player-facing answer is compact or the report and observation conflict.
+The target subjective-presentation schemas and one real runtime-excluded wording bank now exist. A
+standardized instrument item uses an explicit reviewed mapping from applicable source findings to
+its response, including its timeframe, respondent or observation modality, rights boundary, and
+interpretation references. An unstandardized history action may instead use a deterministic
+expression bank. The frozen projection saves its version, source action or item, response, stable
+wording variant, and every contributing resolved-finding, proposition, and patient-scene evidence
+ID before play. The same phrase may appear in several expression banks; canonical aliases remain
+strict and cannot create that relationship. Post-submit audit can therefore disentangle patient
+truth, assessment response, and displayed wording even when the player-facing answer is compact
+or the report and observation conflict. The compiler that creates these records remains disabled.
 
 Existing `FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay
 remain the compatibility path and were not migrated. Numeric measurements, test-owned results,
-subjective-presentation projection, full resolved-patient composition, generalized finding
-compilation, and compatibility mapping remain later dependency tickets.
+full resolved-patient composition, generalized finding/projection compilation, and compatibility
+mapping remain later dependency tickets.
 
 Every encounter-available result is resolved and frozen before play. `EncounterState` records only
 whether the result has been revealed; buying it cannot generate or change a clinical fact.
