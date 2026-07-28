@@ -135,6 +135,11 @@ focused decision, condition branches, complexity envelope, and presentation limi
 MDD dossier can therefore serve later outpatient, hospital, polypharmacy, ECT, ketamine, and other
 contexts without duplicated diagnosis knowledge.
 
+Generalized composition is gated by the owner inventory and ordered topology in
+[ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md). It records current
+implementation gaps only; exact ticket state remains in the review catalogs and it is never loaded
+by the browser.
+
 `@psychsim/content-runtime` has three explicit entry boundaries. Its ordinary root entry imports
 approved JSON only, parses it at module load, supplies the starting clinic, cross-checks imports and
 dependency edges against `content/registry.json`, performs semantic reference validation, and

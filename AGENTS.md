@@ -43,7 +43,8 @@ The handoff command never stages, commits, pushes, resets, restores, or merges f
 - `content/source-docs/`: local-only future authoring boundary; raw files, extracted text, and manifests are ignored.
 - `tools/content-cli/`: developer-side deterministic validation and reference runners. Later ingestion/AI tools remain here, never in the web bundle.
 - `tests/`: cross-package and Playwright acceptance tests.
-- `docs/`: product, architecture, scoring, content, review, ingestion, roadmap, and decision contracts.
+- `docs/`: product, architecture, scoring, content, review, ingestion, roadmap, decision contracts,
+  and the non-runtime encounter-generation dependency audit.
 
 The Player and portable Reviewer Database screen may consume only the minimized public catalog
 projection from the ordinary `@psychsim/content-runtime` entry. It must not dynamically traverse
@@ -157,6 +158,10 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   the complete `PatientInstance` and `EncounterInstance` from approved static inputs plus an
   internal seed when a queue slot is filled or refreshed. It never calls AI or a network service
   and never rerolls a frozen slot during play.
+- `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md` is the current readiness inventory and ordered
+  missing-owner queue. Update it when a dependency owner is added, removed, split, or completed,
+  but keep live status and review history in the referenced tickets. Never replace it with a
+  completion percentage or use it as runtime data.
 - Diagnosis-family files own qualitative guidance shared across patients. Compose base rules, then a
   selected severity branch, then specifiers and other active diagnoses. Diagnosis files never own
   unexplained point values. Patient generation rejects only malformed state or literal,

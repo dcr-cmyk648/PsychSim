@@ -117,6 +117,10 @@ It is a requirement to build the smallest complete _general_ dependency slice ra
 missing owners in MDD-specific prose. MDD and GAD dossiers can serve as design probes, while every
 dependency they expose is routed back to its general owner before generation is enabled.
 
+The dated implementation audit, current owner inventory, and ordered missing-owner tickets live in
+[ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md). That document is a
+non-runtime projection over authoritative tickets, not a second status store.
+
 ## Diagnosis truth versus chart history
 
 Complex psychiatric records require two different layers:

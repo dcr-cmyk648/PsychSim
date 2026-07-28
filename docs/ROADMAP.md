@@ -28,6 +28,10 @@ Gate: unit/component/browser tests prove lifetime eligibility does not grant own
 
 ## Pre-Milestone 4 — Diagnosis/composition and generated-patient engine
 
+The current dependency-readiness inventory and ordered blocking queue are maintained in
+[ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md). Patient generation
+remains disabled until one complete general slice passes that gate.
+
 Delivered foundation: one file per diagnosis family; shared → severity → specifier composition;
 qualitative recommendation stances; constrained patient/treatment context predicates; deterministic
 gameplay-critical context dimensions that keep findings and fit tags aligned; bounded

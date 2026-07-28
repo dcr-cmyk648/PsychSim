@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.3",
+  "contentVersion": "1.0.4",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1207,6 +1207,41 @@
       "ticketId": "ticket.engine.patient-generation.catalog-compiled-instances",
       "profileIds": [],
       "exemptionReason": "This is a versioned schema, compiler, compatibility, and provenance-boundary implementation. A clinical meta-analysis cannot define the repository's PatientTemplate, PatientInstance, EncounterInstance, or historical migration architecture."
+    },
+    {
+      "ticketId": "ticket.catalog.findings.canonical-definition-boundary",
+      "profileIds": [],
+      "exemptionReason": "This is stable identity, typed-value, ownership, compatibility, and contributor-provenance architecture. Clinical literature may later support individual finding associations, but a meta-analysis cannot define the repository's canonical fact boundary."
+    },
+    {
+      "ticketId": "ticket.catalog.findings.general-psychiatry-seed",
+      "profileIds": [],
+      "exemptionReason": "This is a wide, shallow ontology and identity-granularity review over existing content. Claim-specific symptom associations and probabilities require separate bounded source tickets after identities are stable; one meta-analysis cannot validate the complete seed."
+    },
+    {
+      "ticketId": "ticket.catalog.measurements.vitals-exam-foundation",
+      "profileIds": [],
+      "exemptionReason": "This is typed observation, measurement, unit, presentation, and compatibility architecture. Medical reference ranges and clinical interpretations will require separate source-specific review rather than one general meta-analysis."
+    },
+    {
+      "ticketId": "ticket.catalog.tests.structured-result-foundation",
+      "profileIds": [],
+      "exemptionReason": "This is a JSON-safe result-shape and ownership boundary across laboratories, imaging, electrical studies, toxicology, levels, and instruments. Test-specific performance, ranges, generation tendencies, and clinical use must be scouted separately."
+    },
+    {
+      "ticketId": "ticket.schema.patient-state.resolved-record-foundation",
+      "profileIds": [],
+      "exemptionReason": "This is versioned patient-state, chart-versus-internal diagnosis, regimen, reaction, trial, context, and historical-compatibility architecture. A clinical meta-analysis cannot define these repository record boundaries."
+    },
+    {
+      "ticketId": "ticket.catalog.exposures.substance-use-foundation",
+      "profileIds": [],
+      "exemptionReason": "This first establishes neutral exposure identities and typed state semantics. Prevalence, attribution, withdrawal, diagnosis, and treatment claims will be decomposed into substance- and context-specific source questions after the state vocabulary is reviewed."
+    },
+    {
+      "ticketId": "ticket.engine.decision-policy.catalog-compiler",
+      "profileIds": [],
+      "exemptionReason": "This is constrained policy-schema, focused compilation, provenance-trace, compatibility, and coverage-diagnostic architecture. Each clinical policy compiled through it still requires its own reviewed evidence or Developer-opinion path."
     },
     {
       "ticketId": "ticket.engine.patient-generation.general-dependency-gate",

@@ -604,7 +604,7 @@ clinical authority.
 
 ### DBQ-010 — Choose the first deep database vertical
 
-**Status:** current.
+**Status:** resolved — approved 2026-07-28.
 
 Choose the first topic whose knowledge dossier and dependency graph should move beyond thin
 identity coverage. This is a database-authoring decision, not authorization to generate patients.
@@ -704,6 +704,13 @@ disorder engines remain separate verticals even when their concepts cross-link t
 setting/difficulty ceiling on the diagnosis dossier, general dependencies ordered before specific
 case work, and no patient generation until the required files and compiler passes are ready?
 
+**Resolution:** approved. MDD is the first deep knowledge/database dependency vertical. Its
+reusable dossier has no setting, difficulty, time, or treatment-intensity ceiling. General
+reusable dependencies precede diagnosis-specific case work, and patient generation remains
+disabled until those files and compiler passes are ready. The first readiness audit and ordered
+missing-owner queue are recorded in
+[ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md).
+
 **Unlocks:** a well-owned MDD knowledge graph and an explicit dependency backlog that can later
 feed deterministic in-browser encounter construction without multiplying hand-authored patients.
 
@@ -719,12 +726,18 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-010 before detailing maintenance cadence in DBQ-011 or implementing the
-first deep vertical. D-173 authorizes a two-stage promotion contract but not its schema migration
-or bulk rule activation. D-172 makes missing route/rubric coverage a nonblocking diagnostic rather
-than patient invalidity. D-171 permits complex, diagnostically muddy psychiatric patients but
-activates no randomization. D-170 fixes shared finding/test/reveal ownership but does not authorize
-its schema migration or any clinical association. D-169 permits a narrow verified FDA-alignment
+DBQ-010 is resolved. Work now proceeds through the ordered dependency gate in
+[ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md), one bounded owner at
+a time. The exact next ticket is
+`ticket.catalog.findings.canonical-definition-boundary`: define the point-free schema/catalog
+boundary only, preserve current case snapshots, and migrate no findings or patients yet.
+
+Do not detail DBQ-011 until one complete vertical exposes real maintenance costs. D-173 authorizes
+a two-stage promotion contract but not its schema migration or bulk rule activation. D-172 makes
+missing route/rubric coverage a nonblocking diagnostic rather than patient invalidity. D-171
+permits complex, diagnostically muddy psychiatric patients but activates no randomization. D-170
+fixes shared finding/test/reveal ownership but does not authorize a clinical association,
+generation tendency, probability, or point value. D-169 permits a narrow verified FDA-alignment
 bonus but does not make regulatory status the treatment pathway or create an off-label penalty.
 D-168 permits traceable speculative candidates but does not authorize automatic completion of
 sparse sections, runtime AI, or speculative gameplay rules. D-167 still does not automatically

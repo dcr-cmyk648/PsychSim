@@ -355,6 +355,10 @@ The eventual deterministic browser engine resolves and persists `PatientInstance
 `EncounterInstance`, and rubric data from the approved bundle, clinic/location state, and an
 internal seed when a queue slot is filled or explicitly refreshed.
 
+[ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md) inventories which
+owners currently satisfy that boundary and routes each missing layer to one authoritative ticket.
+It does not add content status, clinical approval, or runtime behavior.
+
 Metadata explicitly classifies a template as `starter`, `transitional`, or `advanced`; this is an
 internal pool selector, never launcher copy, and does not bypass
 lifetime/location/capability eligibility. Seeds are never player-facing because recognizable seeds

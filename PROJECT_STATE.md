@@ -48,6 +48,11 @@ Last updated: 2026-07-28
   intervention owners, dossier relationships, reviewed decision/scoring policies, compiler
   mechanics, and only then generated cohorts. Thin diagnosis dossiers may be used early to discover
   dependencies but cannot bypass the gate.
+  DBQ-010 was explicitly approved on 2026-07-28: MDD is the first deep knowledge/database
+  dependency vertical, with no setting or difficulty ceiling, and generalized patient generation
+  remains disabled. The first dependency-readiness audit is now recorded in
+  `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; it routes missing reusable owners to authoritative
+  tickets without adding clinical rules, probabilities, points, or runtime behavior.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
@@ -167,6 +172,15 @@ only the current operational state and should not grow into a second changelog.
 - A shared finding must resolve once with every contributing owner and then project into all
   relevant investigation views. The GAD Reviewer feedback is preserved as a blocking historical
   attempt ticket; no probabilities or clinical rules changed.
+- The 2026-07-28 dependency audit found 621 nested finding occurrences and 186 finding IDs across
+  the five approved/review case files, with 112 IDs reused across files but no canonical
+  finding-definition catalog. That technical ownership boundary is the first blocker. Separate
+  queued owners cover the initial wide/shallow psychiatry finding seed, typed
+  vitals/MSE/physical measurements, structured results for patient-owned tests, resolved
+  condition/chart/regimen/trial/history state, substance/background exposure state, and a focused
+  decision-policy compiler. Existing medication and intervention normalization tickets are now
+  explicit prerequisites. No patient, scoring rule, result probability, or treatment guidance was
+  generated.
 - The player-facing navigation target is History, Physical exam, Testing, Diagnosis, and Treatment.
   Testing will combine labs, imaging, electrical studies, and named instruments in one searchable
   presentation group while retaining their backend types.
@@ -288,15 +302,32 @@ content-validation pass correctly rejected the new general-dependency ticket unt
 required explicit architecture exemption from clinical literature scouting; the repaired ticket
 catalog then passed.
 
+The DBQ-010 dependency-readiness audit checkpoint passed on 2026-07-28:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
+- `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests;
+- `pnpm content:validate`, `pnpm content:sources:validate`, and
+  `pnpm content:diagnoses:validate`;
+- `pnpm demo:reference-runs`, with both existing finite policy sets unchanged;
+- sequential `pnpm build` and `pnpm build:reviewer`, including both bundle-safety scans;
+- `pnpm test:e2e`: five Player/Developer browser tests; and
+- `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
+
+The first sandboxed invocations of the three tsx validators failed only because the managed
+sandbox denied their local IPC sockets; each passed unchanged with the required local permission.
+The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
+warnings remain advisory.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-173
+- `docs/DECISIONS.md` through D-174
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
 - `docs/DATABASE_FIRST_DECISION_QUEUE.md`
+- `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`
 - `docs/DOCUMENT_INGESTION.md`
 - `docs/DIAGNOSIS_ENGINE.md`
 - `docs/MEDICATION_AND_INTERVENTION_DATA.md`
@@ -319,29 +350,27 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only revised DBQ-010: use MDD as the first deep knowledge/database
-   dependency vertical without making the dossier outpatient-, difficulty-, or
-   treatment-intensity-limited. Current review may emphasize attribution, initial selection, prior
-   response/intolerance, and first inadequate-response transitions, but advanced/hospital
-   relationships remain sparse future branches rather than dossier exclusions.
-2. Re-evaluate the remaining queue after DBQ-010. Do not detail DBQ-011 or begin the vertical
-   before the reviewer answers.
-3. If DBQ-010 is approved, perform
-   `ticket.engine.patient-generation.general-dependency-gate` first. Audit the existing database
-   against the complete general dependency order; identify reusable owners already present; and
-   create or route the smallest missing-owner tickets for findings/history, MSE/physical/vitals,
-   labs/tests/results, medication and substance exposure, reactions, regimen/trials/treatment
-   history, condition/chart/comorbidity state, interventions/dispositions, policies, provenance,
-   replay, and persistence. Diagnosis dossiers may be used as discovery probes, but do not
-   generate a patient or hide a gap in case-specific prose.
-4. After that general foundation is ready, implement
+1. Implement only
+   `ticket.catalog.findings.canonical-definition-boundary`: add the smallest versioned,
+   point-free Zod/catalog boundary for one canonical finding definition, one resolved value, and
+   contributor provenance. Preserve `FindingBlueprint`/`CaseInstance` compatibility; do not
+   migrate the 186 current finding IDs, generate patients, or add associations, probabilities,
+   relevance, scoring, or treatment behavior.
+2. After the technical boundary passes, present
+   `ticket.catalog.findings.general-psychiatry-seed` as the next single review item. Normalize the
+   existing repeated finding identities wide but shallow and route ambiguous merges one at a time.
+3. Continue through the authoritative ordered queue in
+   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
+   general file.
+4. Only after the complete general foundation is ready, implement
    `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
    conflict/replay/provenance tests.
 5. Only after the dependency gate and shared-finding work are complete may
    `ticket.engine.patient-generation.catalog-compiled-instances` add the versioned
    PatientTemplate/PatientInstance/EncounterInstance boundary while preserving historical
    CaseBlueprint snapshots. Generated cohorts and richness calibration remain later gates.
-6. Later bounded tasks, kept separate:
+6. DBQ-011 remains deferred until one complete vertical exposes real maintenance costs. Other later
+   bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;
    - verify DRS-R-98 identity, validation scope, and reuse rights before adding it to Testing;
