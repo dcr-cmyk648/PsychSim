@@ -2716,3 +2716,39 @@ materially change workup, treatment, disposition, or explanation remain separate
 adds one medically unreviewed identity shell only; it adds no diagnostic criterion, generation
 tendency, probability, clinical relevance, point value, treatment implication, case migration, or
 medical approval.
+
+## D-177 — Patient truth, assessment response, and surface wording are separate layers
+
+**Decision:** Ordinary patient language is a deliberately lossy presentation of clinical state,
+not a canonical identity resolver. PsychSim therefore keeps three versioned layers:
+
+1. independently resolvable patient facts, each with its own value and contributor provenance;
+2. an action- or instrument-owned assessment response derived through an explicit reviewed
+   projection from one or more applicable facts; and
+3. the deterministic wording variant shown to the player.
+
+The first application is the broad current self-reported fatigue/low-energy complaint. `Fatigue`,
+`Low energy`, and `Tiredness` are identity-equivalent terms for that nonspecific subjective
+report. They do not merge or identify daytime sleepiness/somnolence, muscular weakness,
+psychomotor slowing, medication sedation, exertional intolerance, or any later reviewed
+contributor. Those facts remain independently resolved and can coexist or disagree. A patient may
+use the same ordinary wording for any of them, and the same phrase may therefore appear in several
+reviewed expression mappings without becoming a shared rule key.
+
+A standardized assessment or instrument item owns its response scale and an explicit mapping from
+applicable resolved facts to a yes/no/ordinal response. An unstandardized history action uses a
+versioned expression bank with stable variant IDs. Both the response and wording are resolved and
+saved before play with the projection version, source action or item, chosen variant, and every
+contributing resolved-finding ID; purchasing the action only reveals the frozen result.
+Instrument wording, interpretation, and reuse permission remain instrument-owned.
+
+Canonical finding aliases remain globally unique identity terms. Phrase similarity never creates
+a clinical mapping, and the displayed response never drives diagnosis, treatment, or scoring.
+Several facts projecting to one response cannot double-award workup points. Post-submit and
+Developer traces reconstruct `source fact → reviewed projection → displayed response`, while the
+pre-submit presentation may remain compact and ambiguous.
+
+This decision authorizes one medically unreviewed subjective energy-complaint identity and a
+blocking technical projection contract. It does not implement that compiler, migrate compatibility
+cases, infer an etiology, define an instrument item, add a diagnostic criterion, choose a
+generation probability, assign points, change treatment behavior, or grant medical approval.

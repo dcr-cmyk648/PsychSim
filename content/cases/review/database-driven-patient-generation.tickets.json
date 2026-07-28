@@ -27,6 +27,7 @@
     "dependencyTicketIds": [
       "ticket.catalog.findings.canonical-definition-boundary",
       "ticket.catalog.findings.general-psychiatry-seed",
+      "ticket.catalog.findings.subjective-presentation-projection-foundation",
       "ticket.catalog.measurements.vitals-exam-foundation",
       "ticket.catalog.tests.structured-result-foundation",
       "ticket.schema.patient-state.resolved-record-foundation",
@@ -173,7 +174,85 @@
   {
     "schemaVersion": 1,
     "id": "ticket.catalog.findings.fatigue-low-energy-boundary",
-    "title": "Decide whether fatigue, tiredness, and low energy share one finding",
+    "title": "Separate subjective energy complaints from their contributors",
+    "sourceKind": "engine_audit",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "case_construction",
+    "priority": "blocking",
+    "status": "resolved",
+    "requiresClinicalAcumen": true,
+    "attemptId": null,
+    "blueprintId": null,
+    "caseContentVersion": null,
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": ["registry.catalog.findings", "finding.history.current-fatigue-low-energy"],
+    "dependencyTicketIds": ["ticket.catalog.findings.diminished-interest-pleasure-boundary"],
+    "conflictContentIds": [
+      "finding.depressive.fatigue",
+      "finding.sleep.daytime-fatigue",
+      "finding.history.current-psychomotor-slowing"
+    ],
+    "proposedRouting": "Create one broad current self-reported fatigue/low-energy identity without replacing the distinct facts that can produce that report. Route standardized responses and unstructured patient wording through a separate, contributor-preserving presentation projection.",
+    "guidance": "Final P1: `finding.history.current-fatigue-low-energy` represents only the broad subjective report that fatigue, low energy, or tiredness is present. Final P2: daytime sleepiness or somnolence, muscular weakness, psychomotor slowing, medication sedation, exertional intolerance, and later reviewed contributors remain separately resolved patient facts; the umbrella report neither identifies nor erases its cause. Final P3: a standardized instrument or item owns an explicit reviewed mapping from applicable resolved facts to its yes/no/ordinal response. Final P4: unstandardized history uses a deterministic response bank whose phrases may intentionally overlap across different source facts. Final P5: every projected response is resolved before play and saves the exact source-finding IDs, mapping version, and chosen wording variant so the post-submit audit can disentangle patient truth, assessment response, and surface wording. Final P6: aliases never create these mappings, purchasing only reveals the frozen response, and this decision adds no diagnosis criterion, generation probability, relevance, points, treatment behavior, compatibility migration, or medical approval.",
+    "sourceReviewSnapshot": null,
+    "reviewerNotes": "Dustin Rowland approved the broad fatigue/low-energy/tiredness grouping with an important scalability clarification: a patient may have any of several distinct underlying facts and describe any of them with the same ordinary energy language. Standardized assessments should record their defined response, while unstandardized history should draw from a shared wording bank. The backend and explanation system must retain the distinct source facts.",
+    "reviewerNotesUpdatedAt": "2026-07-28T18:11:20.000Z",
+    "resurfacingTrigger": "Before compiling a subjective energy response, adding a standardized energy item, or allowing any surface phrase or canonical alias to imply sleepiness, weakness, slowing, sedation, exertional intolerance, diagnosis, or points.",
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added one medically unreviewed identity shell for the broad current self-reported fatigue/low-energy complaint. Distinct possible contributors were not merged or added as aliases. Recorded the required three-layer architecture—resolved source facts, assessment response, and surface wording—and routed its typed many-to-many projection contract to a separate blocking technical ticket. No projection compiler, case migration, clinical association, probability, point value, treatment behavior, or medical approval was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T18:11:20.000Z"
+    },
+    "createdAt": "2026-07-28T17:42:45.000Z",
+    "updatedAt": "2026-07-28T18:11:20.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.catalog.findings.subjective-presentation-projection-foundation",
+    "title": "Model subjective assessment responses and overlapping patient wording",
+    "sourceKind": "engine_audit",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "technical",
+    "priority": "blocking",
+    "status": "accepted_for_workflow",
+    "requiresClinicalAcumen": false,
+    "attemptId": null,
+    "blueprintId": null,
+    "caseContentVersion": null,
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "registry.catalog.finding-expression-banks",
+      "schema.finding-expression-bank",
+      "schema.finding-reveal-projection",
+      "schema.resolved-finding-projection",
+      "schema.instrument-item-response"
+    ],
+    "dependencyTicketIds": [
+      "ticket.catalog.findings.canonical-definition-boundary",
+      "ticket.catalog.findings.fatigue-low-energy-boundary"
+    ],
+    "conflictContentIds": [
+      "schema.finding-definition",
+      "schema.finding-blueprint",
+      "schema.resolved-finding"
+    ],
+    "proposedRouting": "Add a point-free, versioned projection boundary between resolved patient facts and player-facing assessment responses or wording. Keep identity aliases strict while allowing reviewed phrase banks to overlap across source facts.",
+    "guidance": "A FindingExpressionBank owns stable wording-variant IDs and lawful display channels, not clinical truth. A FindingRevealProjection explicitly names its source finding IDs, applicable action or instrument item, source outcomes, response mapping, and expression bank. A frozen resolved projection saves the projection version, response value, selected wording-variant ID, source action or instrument, and every contributing resolved-finding ID before play. Standardized instruments retain their own response scale, interpretation, and rights boundary. Unstructured wording may be deliberately ambiguous. Neither aliases nor phrase similarity may create a mapping, and neither displayed wording nor the number of contributors may affect scoring. The later explanation trace must reconstruct source fact → reviewed projection → displayed response without using the presentation as a diagnostic inference.",
+    "sourceReviewSnapshot": null,
+    "reviewerNotes": "Accepted architecture from Dustin Rowland's fatigue clarification. The technical implementation must scale to many-to-many language while preserving the concise, question-bank-like player presentation and a fully separable backend audit.",
+    "reviewerNotesUpdatedAt": "2026-07-28T18:11:20.000Z",
+    "resurfacingTrigger": "Before the shared-finding compiler projects one resolved fact into an action, a standardized item derives a response, or unstructured history reuses the same patient phrase for several possible facts.",
+    "resolution": null,
+    "createdAt": "2026-07-28T18:11:20.000Z",
+    "updatedAt": "2026-07-28T18:11:20.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.catalog.findings.grandiosity-time-scope-boundary",
+    "title": "Separate current from historical grandiosity",
     "sourceKind": "engine_audit",
     "sourceAuthority": "developer_observation",
     "ticketType": "case_construction",
@@ -185,18 +264,22 @@
     "caseContentVersion": null,
     "receiptItemId": null,
     "receiptItemSnapshot": null,
-    "targetContentIds": ["registry.catalog.findings", "finding.history.current-fatigue-low-energy"],
-    "dependencyTicketIds": ["ticket.catalog.findings.diminished-interest-pleasure-boundary"],
-    "conflictContentIds": ["finding.depressive.fatigue", "finding.sleep.daytime-fatigue"],
-    "proposedRouting": "Create one current self-reported fatigue/low-energy identity with fatigue, low energy, and tiredness as interchangeable presentation terms. Keep daytime sleepiness, muscular weakness, psychomotor slowing, medication sedation, and exercise intolerance outside this identity.",
-    "guidance": "Current depression content cross-labels fatigue, low energy, and tiredness. For most focused psychiatric treatment decisions, splitting those ordinary descriptions would add backend burden without changing the answer. Proposed P1: create one `finding.history.current-fatigue-low-energy` identity with `Fatigue`, `Low energy`, and `Tiredness` as presentation terms. Proposed P2: do not merge clinically different facts that can change the decision—daytime sleepiness or somnolence, muscular weakness, psychomotor slowing, medication sedation, and exertional intolerance remain separate owners. Proposed P3: if a later focused encounter genuinely depends on distinguishing fatigue from low energy, reopen this boundary and preserve the old combined identity/provenance during migration. Proposed P4: add no diagnosis association, criterion, generation tendency, probability, points, treatment behavior, or medical approval. Review question Q2: approve this bounded one-identity default?",
+    "targetContentIds": [
+      "registry.catalog.findings",
+      "finding.history.current-grandiosity",
+      "finding.history.past-episodic-grandiosity"
+    ],
+    "dependencyTicketIds": ["ticket.catalog.findings.fatigue-low-energy-boundary"],
+    "conflictContentIds": ["finding.mania.grandiosity"],
+    "proposedRouting": "Create separate current and past/lifetime episodic grandiosity identities because their values can disagree. Let history actions present them together while preserving both values and their time scopes.",
+    "guidance": "Proposed P1: current grandiosity and a history of grandiosity during a prior possible mood episode are separate facts because either may be present without the other. Proposed P2: a Mania/Hypomania History action may reveal both in one compact section, but the backend and explanation trace retain their separate IDs, values, time scopes, and contributors. Proposed P3: phrases such as grandiosity or inflated self-esteem belong to the new presentation vocabulary and may be used within either time scope; wording alone never chooses the identity. Proposed P4: this establishes identity shells only—no mania criterion, episode inference, generation tendency, probability, points, treatment implication, compatibility migration, or medical approval. Review question Q3: approve separate current and past/lifetime episodic grandiosity identities?",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Prepared as the next one-at-a-time collision after the reviewer selected decision-relevant rather than maximally granular modeling for anhedonia.",
-    "reviewerNotesUpdatedAt": "2026-07-28T17:42:45.000Z",
-    "resurfacingTrigger": "Before migrating `finding.depressive.fatigue`, attaching fatigue-specific generation or fit rules, or merging sleepiness/sedation into a general fatigue fact.",
+    "reviewerNotes": "Prepared as the next one-at-a-time semantic boundary after the fatigue decision established that overlapping patient wording must not collapse distinct patient truths.",
+    "reviewerNotesUpdatedAt": "2026-07-28T18:11:20.000Z",
+    "resurfacingTrigger": "Before migrating `finding.mania.grandiosity`, attaching a mania-history criterion, or projecting grandiosity wording without an explicit current versus historical time scope.",
     "resolution": null,
-    "createdAt": "2026-07-28T17:42:45.000Z",
-    "updatedAt": "2026-07-28T17:42:45.000Z"
+    "createdAt": "2026-07-28T18:11:20.000Z",
+    "updatedAt": "2026-07-28T18:11:20.000Z"
   },
   {
     "schemaVersion": 1,
@@ -444,23 +527,29 @@
     "receiptItemSnapshot": null,
     "targetContentIds": [
       "schema.patient-instance",
+      "schema.finding-expression-bank",
+      "schema.finding-reveal-projection",
+      "schema.resolved-finding-projection",
       "registry.catalog.diagnoses",
       "info.history.depressive-symptoms",
       "info.history.anxiety-symptoms",
       "info.history.sleep",
       "info.physical.mental-status"
     ],
-    "dependencyTicketIds": ["ticket.engine.patient-generation.general-dependency-gate"],
+    "dependencyTicketIds": [
+      "ticket.engine.patient-generation.general-dependency-gate",
+      "ticket.catalog.findings.subjective-presentation-projection-foundation"
+    ],
     "conflictContentIds": [],
-    "proposedRouting": "Implement D-087 as a deterministic compiler pass: collect typed constraints from every active owner, resolve one saved fact value, retain each contributor and conflict outcome, and project that fact into every relevant player-facing result without creating duplicate truths.",
-    "guidance": "A concentration problem may contribute to both an anxiety and depressive-symptom display; restlessness may appear in history and mental-status views. Those screens may blend facts before submission, but the backend must save one atomic fact and a complete origin trace. Explicit critical constraints, syndrome/cardinality requirements, weighted tendencies, and background variation remain distinguishable. File order never chooses a winner. Hard contradictions retry deterministically or quarantine; they are not patched with prose. The explanation system must later show which diagnosis, medication, context, optional module, or patient override contributed to the resolved value.",
+    "proposedRouting": "Implement a deterministic compiler pass that resolves each source fact once, retains every contributor and conflict outcome, and then creates separately saved assessment/wording projections for each relevant player-facing result.",
+    "guidance": "A concentration problem may contribute to both anxiety and depressive-symptom displays; several distinct facts may also contribute to one subjective energy response and share deliberately ambiguous wording. The backend must save every atomic source fact, the exact reviewed source-to-response projection, all contributing resolved-finding IDs, and the stable selected wording variant. Explicit critical constraints, syndrome/cardinality requirements, weighted tendencies, and background variation remain distinguishable. File order never chooses a winner. Hard contradictions retry deterministically or quarantine; they are not patched with prose. Alias or phrase similarity cannot create a projection. Purchasing information reveals an already frozen response, and wording cannot alter diagnosis, scoring, or treatment logic. The explanation system must reconstruct source fact → projection rule → displayed response while showing which diagnosis, medication, context, optional module, or patient override contributed to the underlying values.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Approved architecture direction: influences may blend in the player presentation, but every fact and contributor must remain separable in the backend and post-submit explanation.",
-    "reviewerNotesUpdatedAt": "2026-07-27T23:50:43.000Z",
+    "reviewerNotes": "Approved architecture direction: influences may blend in the player presentation, but every fact and contributor must remain separable in the backend and post-submit explanation. Dustin Rowland further clarified that distinct underlying findings may produce the same standardized energy response or ordinary patient wording; this many-to-many projection must be explicit, deterministic, frozen before play, and auditable.",
+    "reviewerNotesUpdatedAt": "2026-07-28T18:11:20.000Z",
     "resurfacingTrigger": "Before one symptom or observation can appear in multiple screens, before optional comorbidities are enabled, or before diagnosis-owned constraints are compiled into patients.",
     "resolution": null,
     "createdAt": "2026-07-27T23:50:43.000Z",
-    "updatedAt": "2026-07-27T23:50:43.000Z"
+    "updatedAt": "2026-07-28T18:11:20.000Z"
   },
   {
     "schemaVersion": 1,

@@ -169,6 +169,13 @@ Fit points stay on the treatment row, while workup cost/reward remains separate.
 trace itemizes every applied or resolved modifier and its provenance so a player can inspect
 exactly why a choice gained, lost, or had points suppressed.
 
+A subjective assessment response may preserve several contributing patient facts, but purchasing
+that action and satisfying its workup objective still occur once. Contributor count cannot
+multiply the investigation reward. Display wording is never a scoring predicate; a clinical rule
+must reference a typed fact or an explicitly reviewed assessment-response identity. This permits
+ambiguous, natural patient language without allowing “tired” or another phrase to become a hidden
+diagnostic or point rule.
+
 Resolved patient facts also remain separate from what the player purchased. A prior reaction to a
 selected medication therefore affects the submitted treatment even when the player did not reveal
 the allergy/reaction history. Revealing that history earns the treatment-prerequisite workup

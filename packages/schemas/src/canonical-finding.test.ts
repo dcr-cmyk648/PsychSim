@@ -191,5 +191,17 @@ describe('canonical finding boundary', () => {
     expect(ResolvedCanonicalFindingSchema.safeParse({ ...resolved, revealed: true }).success).toBe(
       false,
     );
+    expect(
+      ResolvedCanonicalFindingSchema.safeParse({
+        ...resolved,
+        surfaceText: 'I feel tired.',
+      }).success,
+    ).toBe(false);
+    expect(
+      ResolvedCanonicalFindingSchema.safeParse({
+        ...resolved,
+        assessmentResponse: 'yes',
+      }).success,
+    ).toBe(false);
   });
 });

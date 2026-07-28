@@ -12,7 +12,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-174. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-177. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -59,6 +59,13 @@ Last updated: 2026-07-28
   approve one identity for adjacent descriptions that ordinarily do not change the focused
   best-next-step decision, while source wording/provenance remains available for a later split.
   The first application treats loss/reduction of interest or pleasure as one anhedonia identity.
+  D-177 separates patient truth, assessment/item response, and surface wording. The broad current
+  self-reported fatigue/low-energy complaint does not replace its possible contributors:
+  sleepiness, weakness, psychomotor slowing, medication sedation, exertional intolerance, and
+  later reviewed facts remain independently resolvable. Standardized responses require explicit
+  item-owned mappings; unstandardized history uses deterministic expression banks whose phrases
+  may overlap. Every projection must be frozen before play with all contributor IDs, while aliases
+  remain identity-equivalent and wording never drives rules or points.
   DBQ-010 was explicitly approved on 2026-07-28: MDD is the first deep knowledge/database
   dependency vertical, with no setting or difficulty ceiling, and generalized patient generation
   remains disabled. The first dependency-readiness audit is now recorded in
@@ -66,10 +73,13 @@ Last updated: 2026-07-28
   tickets without adding clinical rules, probabilities, points, or runtime behavior.
   `ticket.catalog.findings.canonical-definition-boundary` and the unambiguous portion of
   `ticket.catalog.findings.general-psychiatry-seed` are now resolved. The strict runtime catalog
-  registers 28 medically unreviewed, identity-only findings. The 37-candidate audit and anhedonia
-  resolution leave nine value/semantic collisions rather than forcing them into unsafe identities; current
-  `FindingBlueprint`, `ResolvedFinding`, case instances, saves, replay, generation, and scoring
-  remain unchanged. The next single review item is fatigue/tiredness/low-energy granularity.
+  registers 29 medically unreviewed, identity-only findings. The 37-candidate audit plus anhedonia
+  and fatigue/energy resolutions leave eight value/semantic collisions rather than forcing them
+  into unsafe identities. The accepted
+  `ticket.catalog.findings.subjective-presentation-projection-foundation` owns the future typed
+  projection boundary; current `FindingBlueprint`, `ResolvedFinding`, case instances, saves,
+  replay, generation, and scoring remain unchanged. The next single review item is current versus
+  past/lifetime episodic grandiosity.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; this validated
@@ -356,6 +366,26 @@ validation passed. Both local servers returned HTTP 200. Existing large-chunk, P
 npm environment, Vite chunk-size, color-environment, and Node `module.register()` warnings remain
 advisory.
 
+The fatigue/energy identity and subjective-presentation architecture checkpoint passed on
+2026-07-28:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
+- `pnpm test`: 55 Vitest files / 408 tests plus 10 Python handoff tests;
+- focused canonical-finding/content tests: 61 tests;
+- `pnpm content:validate`, `pnpm content:sources:validate`,
+  `pnpm content:diagnoses:validate`, and `pnpm content:knowledge:crossref:validate`;
+- `pnpm content:knowledge:crossref`, required once to refresh the private projection fingerprint
+  after the runtime catalog changed;
+- `pnpm demo:reference-runs`, with both existing finite policy sets unchanged;
+- sequential `pnpm build` and `pnpm build:reviewer`, including both bundle-safety scans;
+- `pnpm test:e2e`: five Player/Developer browser tests; and
+- `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
+
+The first sandboxed `pnpm content:validate` and Player browser-test invocations failed only because
+the managed sandbox denied their local IPC socket or loopback listener; the identical direct or
+permissioned commands passed. Existing large-chunk, PDF standard-font, npm environment, Vite
+chunk-size, color-environment, and Node `module.register()` warnings remain advisory.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
@@ -388,24 +418,27 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only `ticket.catalog.findings.fatigue-low-energy-boundary` as the next
-   single review item. The prepared packet proposes one current self-reported fatigue/low-energy
-   identity for ordinary fatigue, low energy, and tiredness, while keeping sleepiness, weakness,
-   psychomotor slowing, medication sedation, and exertional intolerance separate.
-2. If approved, add only that identity shell. Do not migrate compatibility cases or add a
+1. Present and resolve only `ticket.catalog.findings.grandiosity-time-scope-boundary` as the next
+   single review item. The prepared packet proposes separate current and past/lifetime episodic
+   grandiosity identities because they can disagree, while allowing compact overlapping
+   presentation wording through the future projection layer.
+2. If approved, add only those identity shells. Do not migrate compatibility cases or add a
    diagnosis criterion, generation tendency, probability, relevance, points, treatment behavior,
    or medical approval. Then route the next deferred collision one at a time.
 3. Continue through the authoritative ordered queue in
    `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
    general file.
-4. Only after the complete general foundation is ready, implement
+4. Implement `ticket.catalog.findings.subjective-presentation-projection-foundation` before the
+   shared-finding compiler. Keep expression banks, item/action response mappings, and frozen
+   resolved projections point-free; do not infer mappings from aliases or phrase overlap.
+5. Only after the complete general foundation is ready, implement
    `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
    conflict/replay/provenance tests.
-5. Only after the dependency gate and shared-finding work are complete may
+6. Only after the dependency gate and shared-finding work are complete may
    `ticket.engine.patient-generation.catalog-compiled-instances` add the versioned
    PatientTemplate/PatientInstance/EncounterInstance boundary while preserving historical
    CaseBlueprint snapshots. Generated cohorts and richness calibration remain later gates.
-6. DBQ-011 remains deferred until one complete vertical exposes real maintenance costs. Other later
+7. DBQ-011 remains deferred until one complete vertical exposes real maintenance costs. Other later
    bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;

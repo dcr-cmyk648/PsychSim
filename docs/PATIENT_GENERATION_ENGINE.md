@@ -297,9 +297,39 @@ remains visible in the audit.
 
 The saved resolution trace identifies every contributing owner and constraint, the deterministic
 draw when one was needed, the final value, and any conflict outcome. The encounter may present one
-compact blended finding to the player, but the post-submission and developer views can always
+compact blended response to the player, but the post-submission and developer views can always
 disentangle why it was generated. Numerical calibration of combined soft tendencies remains a
 separate balance decision.
+
+### Subjective assessment and wording projection
+
+Patient truth, assessment response, and surface wording compile in that order and remain separate.
+For example, daytime sleepiness, muscular weakness, psychomotor slowing, medication sedation, and
+exertional intolerance can remain distinct resolved findings while any applicable combination may
+contribute to a broad self-reported fatigue/low-energy response. The response does not diagnose or
+erase its contributors.
+
+A standardized assessment item owns an explicit reviewed source-finding-to-response mapping and
+its own yes/no/ordinal scale. An unstandardized history action instead uses a versioned expression
+bank with stable variant IDs. Phrase banks may intentionally overlap—a patient with different
+underlying facts may say “tired,” “fatigued,” or “low energy”—without making those facts aliases.
+No mapping is inferred from strings.
+
+The compiler resolves each applicable projection before play and saves:
+
+- projection ID and content version;
+- source action or named instrument/item;
+- response value;
+- selected expression-bank and wording-variant IDs when applicable; and
+- every contributing resolved-finding ID.
+
+Purchasing information reveals that frozen response; it never generates wording or changes a
+source fact. Multiple contributors yield one response without duplicate workup credit. Diagnosis,
+treatment, and point rules consume typed facts or explicitly reviewed response predicates, never
+the displayed phrase. The audit reconstructs `source fact → projection → displayed response`.
+These target schemas remain gated by
+`ticket.catalog.findings.subjective-presentation-projection-foundation`; current compatibility
+`labelVariants` are not the reusable projection model.
 
 ### Test, action, and reveal boundary
 

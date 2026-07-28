@@ -45,12 +45,13 @@ The most important duplication signal is in the current authored content. Across
 approved/review `*.case.json` files, 621 nested finding occurrences use 186 finding IDs; 112 IDs
 occur in more than one file. Depressive symptoms, anxiety, mania, psychosis, safety, adherence,
 substance use, sleep, prior trials, and similar concepts are repeatedly authored inside cases.
-The canonical finding-definition boundary now owns 28 identity-only, medically unreviewed
+The canonical finding-definition boundary now owns 29 identity-only, medically unreviewed
 definitions, typed outcome semantics, explicit unresolved states, and contributor provenance. The
 approved 37-candidate audit added only unambiguous identities, then the reviewer approved one
-combined anhedonia identity at a decision-relevant granularity. Duration/ordinal values and seven
-semantic collisions remain routed review work. It intentionally does not migrate or normalize
-case-local occurrences.
+combined anhedonia identity at a decision-relevant granularity and one broad self-reported
+fatigue/low-energy identity that does not replace its distinct possible contributors.
+Duration/ordinal values and six semantic collisions remain routed review work. It intentionally
+does not migrate or normalize case-local occurrences.
 
 Other material gaps:
 
@@ -71,22 +72,23 @@ invalid. Existing `CaseBlueprint` and `CaseInstance` snapshots remain the compat
 
 ## Readiness matrix
 
-| Layer                                    | Existing reusable owners                                                                                                     | Missing blocking boundary                                                                                                                       | Owning ticket                                                                                                          |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Identity and governance                  | Stable IDs, registry, Zod versions, lifecycle, formal evidence, source-use decisions, Developer opinions                     | Add registry kinds only when a real catalog is implemented; do not create empty parallel stores                                                 | Routed by each owner ticket                                                                                            |
-| Atomic findings                          | Case-local compatibility plus versioned canonical definition, resolved-value, contributor-provenance, and projection schemas | Technical boundary complete; runtime compilation remains in its separate row/ticket                                                             | `ticket.catalog.findings.canonical-definition-boundary` (resolved 2026-07-28)                                          |
-| General psychiatry findings              | 28 identity-only canonical definitions, many compatibility IDs, and 40 neutral reveal actions                                | Resolve the bounded semantic/value collisions one at a time; add substance, MSE, and physical owners without probabilities or scoring           | Seed and anhedonia boundary resolved 2026-07-28; next collision: `ticket.catalog.findings.fatigue-low-energy-boundary` |
-| Vitals, measurements, MSE, physical exam | Weight/BMI action, general/neurologic/movement/orthostatic exam actions, lab numeric primitives                              | Typed reusable measurement and observation definitions; remove string-only vitals from the target path                                          | `ticket.catalog.measurements.vitals-exam-foundation`                                                                   |
-| Tests and results                        | One file per test, numeric-panel generator, UCUM fields, immediate service fulfillment                                       | Structured reusable results for ECG, imaging, EEG, toxicology, levels, pregnancy, and pharmacogenomics; reviewed interval data remains separate | `ticket.catalog.tests.structured-result-foundation`                                                                    |
-| Resolved patient state                   | Compatibility reaction, regimen, trial, treatment-history, context, diagnosis, and record schemas                            | Separate internal conditions from chart claims and compose one versioned, point-free patient-state record                                       | `ticket.schema.patient-state.resolved-record-foundation`                                                               |
-| Substance/background exposure            | Substance-use reveal action plus general medication/supplement compatibility records                                         | Stable exposure identities and typed use/intoxication/withdrawal state; prevalence and clinical inference remain separate review work           | `ticket.catalog.exposures.substance-use-foundation`                                                                    |
-| Medication and intervention knowledge    | Medication identities, 13 compatibility definitions, treatment menu, reaction policies                                       | Normalize regimen benefit/risk/duplication and split reusable intervention identity/fidelity                                                    | `ticket.catalog.medications.normalized-regimen-risk-benefit`; `ticket.catalog.interventions.identity-and-fidelity`     |
-| Dispositions and service access          | Three dispositions, facility/capability/service catalogs, safe referral                                                      | Current identities are sufficient for the first foundation; split or expand only when a focused policy exposes a real missing owner             | Coverage ticket when encountered                                                                                       |
-| Diagnosis dossiers                       | Nine family files, MDD base rules, qualitative composition                                                                   | Deepen MDD and related dossiers only after shared concepts point to general owners                                                              | Database-first review queue and source-specific tickets                                                                |
-| Decision and scoring policy              | Pure predicate evaluation, rule combination, receipts, reference runs                                                        | A reusable policy catalog/compiler that selects only focused positive rules plus global safety rules and diagnoses missing coverage             | `ticket.engine.decision-policy.catalog-compiler`                                                                       |
-| Fact compilation                         | Deterministic case instantiation and case-local finding generation                                                           | Resolve each canonical finding once, retain contributors/conflicts, and project it to every reveal view                                         | `ticket.engine.patient-generation.shared-finding-compiler`                                                             |
-| Target instances and persistence         | Frozen `CaseInstance`, replay/events, versioned save data, IndexedDB abstraction                                             | `PatientTemplate → PatientInstance → EncounterInstance + CompiledRubric`, with migration and historical replay                                  | `ticket.engine.patient-generation.catalog-compiled-instances`                                                          |
-| Generated cohorts                        | Cosmetic variants and finite compatibility/reviewer cases                                                                    | Runtime composition, seed sweeps, richness calibration, and generated queues                                                                    | Intentionally deferred until every prior gate is coherent                                                              |
+| Layer                                    | Existing reusable owners                                                                                                             | Missing blocking boundary                                                                                                                       | Owning ticket                                                                                                      |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Identity and governance                  | Stable IDs, registry, Zod versions, lifecycle, formal evidence, source-use decisions, Developer opinions                             | Add registry kinds only when a real catalog is implemented; do not create empty parallel stores                                                 | Routed by each owner ticket                                                                                        |
+| Atomic findings                          | Case-local compatibility plus versioned canonical definition, resolved value, contributor provenance, and permitted projection modes | Technical identity boundary complete; runtime compilation remains in its separate row/ticket                                                    | `ticket.catalog.findings.canonical-definition-boundary` (resolved 2026-07-28)                                      |
+| General psychiatry findings              | 29 identity-only canonical definitions, many compatibility IDs, and 40 neutral reveal actions                                        | Resolve bounded semantic/value collisions one at a time; add substance, MSE, and physical owners without probabilities or scoring               | Anhedonia and fatigue/energy resolved 2026-07-28; next: `ticket.catalog.findings.grandiosity-time-scope-boundary`  |
+| Subjective response and wording          | Accepted three-layer ownership contract; compatibility case-local `labelVariants`                                                    | Versioned expression banks, explicit source-finding-to-response mappings, and frozen contributor-preserving resolved projections                | `ticket.catalog.findings.subjective-presentation-projection-foundation`                                            |
+| Vitals, measurements, MSE, physical exam | Weight/BMI action, general/neurologic/movement/orthostatic exam actions, lab numeric primitives                                      | Typed reusable measurement and observation definitions; remove string-only vitals from the target path                                          | `ticket.catalog.measurements.vitals-exam-foundation`                                                               |
+| Tests and results                        | One file per test, numeric-panel generator, UCUM fields, immediate service fulfillment                                               | Structured reusable results for ECG, imaging, EEG, toxicology, levels, pregnancy, and pharmacogenomics; reviewed interval data remains separate | `ticket.catalog.tests.structured-result-foundation`                                                                |
+| Resolved patient state                   | Compatibility reaction, regimen, trial, treatment-history, context, diagnosis, and record schemas                                    | Separate internal conditions from chart claims and compose one versioned, point-free patient-state record                                       | `ticket.schema.patient-state.resolved-record-foundation`                                                           |
+| Substance/background exposure            | Substance-use reveal action plus general medication/supplement compatibility records                                                 | Stable exposure identities and typed use/intoxication/withdrawal state; prevalence and clinical inference remain separate review work           | `ticket.catalog.exposures.substance-use-foundation`                                                                |
+| Medication and intervention knowledge    | Medication identities, 13 compatibility definitions, treatment menu, reaction policies                                               | Normalize regimen benefit/risk/duplication and split reusable intervention identity/fidelity                                                    | `ticket.catalog.medications.normalized-regimen-risk-benefit`; `ticket.catalog.interventions.identity-and-fidelity` |
+| Dispositions and service access          | Three dispositions, facility/capability/service catalogs, safe referral                                                              | Current identities are sufficient for the first foundation; split or expand only when a focused policy exposes a real missing owner             | Coverage ticket when encountered                                                                                   |
+| Diagnosis dossiers                       | Nine family files, MDD base rules, qualitative composition                                                                           | Deepen MDD and related dossiers only after shared concepts point to general owners                                                              | Database-first review queue and source-specific tickets                                                            |
+| Decision and scoring policy              | Pure predicate evaluation, rule combination, receipts, reference runs                                                                | A reusable policy catalog/compiler that selects only focused positive rules plus global safety rules and diagnoses missing coverage             | `ticket.engine.decision-policy.catalog-compiler`                                                                   |
+| Fact compilation                         | Deterministic case instantiation and case-local finding generation                                                                   | Resolve each canonical finding once, retain contributors/conflicts, and compile separately saved assessment/wording projections                 | `ticket.engine.patient-generation.shared-finding-compiler`                                                         |
+| Target instances and persistence         | Frozen `CaseInstance`, replay/events, versioned save data, IndexedDB abstraction                                                     | `PatientTemplate → PatientInstance → EncounterInstance + CompiledRubric`, with migration and historical replay                                  | `ticket.engine.patient-generation.catalog-compiled-instances`                                                      |
+| Generated cohorts                        | Cosmetic variants and finite compatibility/reviewer cases                                                                            | Runtime composition, seed sweeps, richness calibration, and generated queues                                                                    | Intentionally deferred until every prior gate is coherent                                                          |
 
 ## Ordered blocking queue
 
@@ -94,17 +96,18 @@ The general dependency gate depends on the following work in this order:
 
 1. `ticket.catalog.findings.canonical-definition-boundary` (resolved 2026-07-28)
 2. `ticket.catalog.findings.general-psychiatry-seed` (resolved 2026-07-28)
-   - anhedonia boundary resolved; 28 definitions
-   - next bounded review: `ticket.catalog.findings.fatigue-low-energy-boundary`
-3. `ticket.catalog.measurements.vitals-exam-foundation`
-4. `ticket.catalog.tests.structured-result-foundation`
-5. `ticket.schema.patient-state.resolved-record-foundation`
-6. `ticket.catalog.exposures.substance-use-foundation`
-7. `ticket.catalog.interventions.identity-and-fidelity`
-8. `ticket.catalog.medications.normalized-regimen-risk-benefit`
-9. `ticket.engine.decision-policy.catalog-compiler`
-10. `ticket.engine.patient-generation.shared-finding-compiler`
-11. `ticket.engine.patient-generation.catalog-compiled-instances`
+   - anhedonia and fatigue/energy boundaries resolved; 29 definitions
+   - next bounded review: `ticket.catalog.findings.grandiosity-time-scope-boundary`
+3. `ticket.catalog.findings.subjective-presentation-projection-foundation`
+4. `ticket.catalog.measurements.vitals-exam-foundation`
+5. `ticket.catalog.tests.structured-result-foundation`
+6. `ticket.schema.patient-state.resolved-record-foundation`
+7. `ticket.catalog.exposures.substance-use-foundation`
+8. `ticket.catalog.interventions.identity-and-fidelity`
+9. `ticket.catalog.medications.normalized-regimen-risk-benefit`
+10. `ticket.engine.decision-policy.catalog-compiler`
+11. `ticket.engine.patient-generation.shared-finding-compiler`
+12. `ticket.engine.patient-generation.catalog-compiled-instances`
 
 Some lanes can be implemented in parallel conceptually, but dependency edges determine what may
 compile or activate. Clinical associations, generation tendencies, result probabilities,
@@ -118,7 +121,9 @@ Generalized generation is ready for a first bounded vertical only when:
 1. every decision-relevant fact has one canonical ID and typed value;
 2. internal condition state, chart claims, regimen entries, reactions, prior trials, treatment
    history, and context resolve into a versioned patient record without free-prose truth;
-3. every available reveal action projects an immediate structured result from that frozen state;
+3. every available reveal action projects an immediate structured result from that frozen state,
+   and any assessment response or surface wording preserves its explicit mapping, stable variant,
+   and contributing source-finding IDs;
 4. every selected medication, intervention, and disposition references a stable reusable owner;
 5. one reviewed broad route plus relevant prerequisites, fit, interaction, safety, and disposition
    contributors compile into a deterministic, explainable rubric;

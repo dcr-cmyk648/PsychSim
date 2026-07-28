@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.4",
+  "contentVersion": "1.0.5",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1226,7 +1226,17 @@
     {
       "ticketId": "ticket.catalog.findings.fatigue-low-energy-boundary",
       "profileIds": [],
-      "exemptionReason": "This is a narrow identity-granularity and compatibility-provenance decision. Clinical sources may later support distinct fatigue, sleepiness, weakness, or medication-sedation relationships, but a treatment-effect meta-analysis cannot determine whether ordinary fatigue/low-energy wording should share one game identity."
+      "exemptionReason": "This is a narrow identity, subjective-response, and presentation-provenance decision. Clinical sources may later support distinct fatigue, sleepiness, weakness, or medication-sedation relationships, but a treatment-effect meta-analysis cannot define the database boundary between patient truth, assessment response, and deliberately overlapping ordinary language."
+    },
+    {
+      "ticketId": "ticket.catalog.findings.subjective-presentation-projection-foundation",
+      "profileIds": [],
+      "exemptionReason": "This is versioned schema, deterministic projection, replay, provenance, and instrument-rights architecture. Clinical literature may later support each source-finding-to-item mapping, but a meta-analysis cannot define the repository's expression-bank or resolved-projection contract."
+    },
+    {
+      "ticketId": "ticket.catalog.findings.grandiosity-time-scope-boundary",
+      "profileIds": [],
+      "exemptionReason": "This is a narrow time-scope and identity-granularity decision. Diagnostic sources may later support criteria and assessment semantics, but a treatment-effect meta-analysis cannot decide whether current and historical grandiosity require independently resolvable game facts."
     },
     {
       "ticketId": "ticket.catalog.measurements.vitals-exam-foundation",

@@ -212,6 +212,14 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Clinically meaningful duration is also structured saved case state; a deliberately below-threshold duration must name the reviewed diagnosis criterion it misses and cannot infer that criterion from prose. Optional-comorbidity pools are patient-family-owned and may declare bounded minimum/maximum selections from explicit candidates; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, literal-contradiction, and replay validation. Missing rule or route coverage is a nonblocking diagnostic, not patient invalidity.
 - Treat typed clinical facts and measurements as sources of truth. Stable clinical tags are
   versioned derived relationship keys; never let a free tag contradict its originating fact.
+- Keep canonical patient facts, assessment/item responses, and player-facing wording as separate
+  versioned layers. A broad subjective report may have several distinct contributing facts, and
+  the same ordinary phrase may appear in several reviewed expression mappings. Canonical aliases
+  remain identity-equivalent and globally unique; never infer a projection from lexical overlap.
+  Resolve and save every response/wording projection before play with its rule/version, stable
+  wording variant, source action or instrument item, and all contributing finding IDs. Purchasing
+  only reveals it, wording never drives clinical rules or points, and the audit must reconstruct
+  source fact → projection → displayed response.
 - Represent future current medications as regimen-entry instances rather than a medication-ID set,
   so duplicates can be targeted independently. Represent prior trials as structured records with
   categorical adequacy, adherence, response, tolerability, and source fields.

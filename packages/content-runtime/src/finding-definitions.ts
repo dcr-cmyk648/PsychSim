@@ -5,6 +5,7 @@ import currentAnhedoniaJson from '../../../content/catalogs/findings/definitions
 import currentDecreasedSleepNeedJson from '../../../content/catalogs/findings/definitions/current-decreased-sleep-need.finding.json';
 import currentElevatedIrritableMoodJson from '../../../content/catalogs/findings/definitions/current-elevated-irritable-mood.finding.json';
 import currentExcessiveGuiltJson from '../../../content/catalogs/findings/definitions/current-excessive-guilt.finding.json';
+import currentFatigueLowEnergyJson from '../../../content/catalogs/findings/definitions/current-fatigue-low-energy.finding.json';
 import currentHighRiskSpendingJson from '../../../content/catalogs/findings/definitions/current-high-risk-spending.finding.json';
 import currentHypersomniaJson from '../../../content/catalogs/findings/definitions/current-hypersomnia.finding.json';
 import currentIncreasedGoalDirectedActivityJson from '../../../content/catalogs/findings/definitions/current-increased-goal-directed-activity.finding.json';
@@ -36,6 +37,7 @@ export const findingDefinitions: FindingDefinition[] = FindingDefinitionSchema.a
     currentDecreasedSleepNeedJson,
     currentElevatedIrritableMoodJson,
     currentExcessiveGuiltJson,
+    currentFatigueLowEnergyJson,
     currentHighRiskSpendingJson,
     currentHypersomniaJson,
     currentIncreasedGoalDirectedActivityJson,

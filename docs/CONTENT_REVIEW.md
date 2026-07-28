@@ -39,6 +39,12 @@ scratchpad.
 The receipt organizes the explanatory trace into stable domains and places point-changing rules
 before zero-point supporting rules. No trace row is discarded; zero-point rows remain available in
 an expandable section so a reviewer can still inspect provenance and predicate outcomes. Every
+future subjective assessment projection must remain similarly auditable: its detail shows each
+contributing resolved-finding ID and value, the reviewed projection and version, the action or
+instrument item, the response, and the stable wording variant. The compact pre-submit wording may
+be ambiguous, but the receipt must not blend the source facts or imply that the phrase itself drove
+a clinical rule. Several facts yielding one response remain one purchased action and cannot
+multiply workup credit. Every
 post-submit receipt also replays the declared reference solutions against the exact saved patient,
 starting clinic, encounter location, and service fulfillment costs. The player and the
 completed declared `database_plan` replay appear in parallel, with exact investigations,

@@ -323,6 +323,16 @@ The initial prototype has a temporary distinction: its lifecycle placement is ap
 
 `instantiateCase(blueprint, seed, catalogs)` hashes `blueprint ID + seed + stable generator ID`. It resolves only declared choice, catalog-choice, weighted-choice, integer/decimal range, text-template, reviewed clinical-context options, constrained finding selection, and per-test generators. No arbitrary code and no `Math.random` are allowed. Clinical-context options are critical: the selected option and its tags are saved, and its present/absent bindings are materialized into the same structured findings a player can reveal. Cosmetic variants cannot change those rules. Criteria-bearing finding sets declare minimum/maximum positives and required present/absent IDs. A test definition chooses the highest-priority matching profile from declared age, sex-for-reference, diagnosis, and resolved clinical-tag context. Unspecified numeric values may vary only inside catalog-defined normal or mild incidental ranges and cannot change the rubric. Results retain UCUM units, structured low/high interval bounds, source/population labels, and derived normal/high/low interpretation. The saved CaseInstance stores the internal seed and every resolved value; the UI never displays the seed.
 
+The target generated-patient compiler also separates atomic patient facts, assessment responses,
+and surface wording. A versioned reveal projection explicitly maps one or more applicable resolved
+findings to an action- or instrument-owned response; a separate expression bank supplies stable
+wording variants for unstructured history. The resolved projection, contributor finding IDs, and
+selected variant are frozen in the encounter before play. Patient phrases may overlap across
+different source facts, but canonical aliases remain identity-equivalent and globally unique.
+Neither string matching nor displayed wording may activate diagnosis, treatment, or point logic.
+This projection boundary is accepted architecture and a blocking compiler dependency; it is not
+yet part of the compatibility `CaseInstance` path.
+
 Diagnosis files are composed separately from patient instantiation.
 `composeDiagnosisGuidance` applies base, severity, specifier, and other active-diagnosis rules,
 derives tags and a five-dimensional complexity vector, and returns stable blocking conflicts. It

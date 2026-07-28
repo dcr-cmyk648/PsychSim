@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.23.0",
+  "contentVersion": "3.24.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -47,6 +47,7 @@
         "finding.history.current-decreased-sleep-need",
         "finding.history.current-elevated-irritable-mood",
         "finding.history.current-excessive-guilt",
+        "finding.history.current-fatigue-low-energy",
         "finding.history.current-high-risk-spending",
         "finding.history.current-increased-goal-directed-activity",
         "finding.history.current-pressured-speech",

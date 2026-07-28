@@ -46,12 +46,16 @@ The following foundations are not being asked again:
   literal same-scope contradictions invalidate generation and coverage gaps remain nonblocking
   tickets (D-171 and D-172); and
 - qualitative rules require one explicit atomic psychiatrist review before tooling may attach
-  separately labeled provisional D-156-band points for Developer/Reviewer play (D-173).
+  separately labeled provisional D-156-band points for Developer/Reviewer play (D-173); and
+- canonical patient facts, assessment/item responses, and player-facing wording remain separate,
+  while reviewed expression banks may deliberately reuse the same ordinary phrase across distinct
+  facts (D-177).
 
-Two implementation prerequisites are also already approved:
+Three implementation prerequisites are also already approved:
 
-1. `ticket.engine.patient-generation.catalog-compiled-instances`
-2. `ticket.engine.patient-generation.shared-finding-compiler`
+1. `ticket.catalog.findings.subjective-presentation-projection-foundation`
+2. `ticket.engine.patient-generation.catalog-compiled-instances`
+3. `ticket.engine.patient-generation.shared-finding-compiler`
 
 They require engineering work and tests, not another product decision.
 
@@ -390,9 +394,9 @@ definitions, and separately reviewed generation tendencies:
 
 1. Every reusable symptom, history element, exposure, examination finding, measurement, or
    observation encountered in admitted input or modeled content receives one stable concept ID
-   with neutral labels, synonyms/search terms, value type, allowed outcomes, and presentation
-   templates. Its definition does not contain a patient's value or decide whether asking about it
-   is worth points.
+   with neutral labels, identity-equivalent aliases/search terms, value type, allowed outcomes, and
+   permitted projection modes. Its definition does not contain a patient's value or decide whether
+   asking about it is worth points.
 2. A `PatientInstance` owns the resolved clinical value, source, and uncertainty for each modeled
    fact; `EncounterState` separately owns whether the player has revealed it. A truly
    `unassessed`/`unknown` fact is different from a known `absent`, `subthreshold`, `present`,
@@ -428,6 +432,13 @@ definitions, and separately reviewed generation tendencies:
    Patient files supply only resolved results and narrow reveal mappings. Post-submit workup,
    diagnosis, treatment, and fit rules separately explain how a finding mattered; no pre-submit
    result or menu description exposes its value.
+9. A standardized assessment response is an instrument- or action-owned projection from explicitly
+   named applicable source findings, not another spelling of those findings. A frozen response
+   retains the projection version and every contributing resolved-finding ID.
+10. Unstandardized patient language comes from deterministic expression banks with stable variant
+    IDs. The same phrase may appear in several reviewed mappings, but canonical aliases remain
+    globally unique and wording never activates a rule. The audit reconstructs source fact →
+    assessment response → displayed wording.
 
 This keeps a patient's state coherent across every screen while allowing the same symptom or test
 to behave differently across diagnoses, medications, ages, and patient templates without copying
@@ -730,11 +741,15 @@ DBQ-010 is resolved. Work now proceeds through the ordered dependency gate in
 [ENCOUNTER_GENERATION_DEPENDENCIES.md](ENCOUNTER_GENERATION_DEPENDENCIES.md), one bounded owner at
 a time. The canonical finding boundary and the unambiguous portion of the 37-candidate
 general-psychiatry seed are complete. The reviewer chose one decision-relevant anhedonia identity
-for loss/reduction of interest or pleasure. The exact next review is
-`ticket.catalog.findings.fatigue-low-energy-boundary`: decide whether ordinary fatigue, low
-energy, and tiredness share one game identity while preserving sleepiness, weakness, psychomotor
-slowing, medication sedation, and exertional intolerance as separate facts. No compatibility case
-migration, clinical association, probability, point value, or patient generation is authorized.
+for loss/reduction of interest or pleasure, then one broad self-reported fatigue/low-energy
+identity while preserving its possible contributors as separate facts. The latter also exposed
+and resolved the three-layer architecture boundary between patient truth, assessment response, and
+surface wording. Its typed projection foundation is accepted technical work and generalized
+compilation remains disabled. The exact next review is
+`ticket.catalog.findings.grandiosity-time-scope-boundary`: decide whether current grandiosity and a
+past/lifetime episodic history require separate identities while allowing compact shared
+presentation wording. No compatibility case migration, clinical association, probability, point
+value, or patient generation is authorized.
 
 Do not detail DBQ-011 until one complete vertical exposes real maintenance costs. D-173 authorizes
 a two-stage promotion contract but not its schema migration or bulk rule activation. D-172 makes
@@ -749,4 +764,5 @@ apply scouted sources, revise the tracked packet schema, or authorize bulk scout
 authorizes only a one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin architecture
 rather than immediate bulk catalog generation. D-174 keeps diagnosis dossiers independent of
 setting, difficulty, and encounter complexity and explicitly defers patient generation until the
-reusable dependency files and compiler are ready.
+reusable dependency files and compiler are ready. D-177 accepts the presentation-projection
+boundary but does not implement it or permit string matching to stand in for reviewed mappings.

@@ -406,15 +406,20 @@ the other.
 
 ## Information and workup
 
-The target model has four deliberately separate owners:
+The target model has six deliberately separate boundaries:
 
 1. A reusable finding definition owns neutral identity, aliases/search terms, value type, allowed
-   outcomes, and short presentation templates.
+   outcomes, and permitted projection modes. Its aliases are identity-equivalent and globally
+   unique.
 2. The `PatientInstance` owns that patient's fully resolved value, uncertainty, origin, and
    contributor trace. It is the canonical truth even before the player reveals it.
-3. A test or named-instrument definition owns components, result schema, generation profiles,
+3. A `FindingExpressionBank` owns stable wording-variant IDs for a display channel. Its phrases may
+   intentionally overlap with another bank and never act as clinical rule keys.
+4. A `FindingRevealProjection` owns the explicit many-to-many mapping from resolved source facts
+   to one action or instrument response. Its frozen result retains every contributing finding ID.
+5. A test or named-instrument definition owns components, item/response schema, generation profiles,
    units/reference intervals, interpretation metadata, rights boundary, and display conventions.
-4. The shared `InformationActionDefinition` owns the stable player action ID, neutral label and
+6. The shared `InformationActionDefinition` owns the stable player action ID, neutral label and
    description, History/Physical/Testing category, SOAP section, report source, service,
    fulfillment, and repeatability. Post-submit rules—not any of these definitions—own clinical
    relevance and points.
@@ -430,18 +435,30 @@ The first additive part of this target now exists without replacing compatibilit
 - `CanonicalFindingResolutionEnvelope` validates that a resolved outcome is admitted by the exact
   referenced definition version.
 
-The runtime catalog currently contains 28 identity-only, medically unreviewed definitions across
+The runtime catalog currently contains 29 identity-only, medically unreviewed definitions across
 function, depressive/anxiety/mania history, reported psychosis, sleep/appetite, and
 suicide/violence safety. They have no condition association, criteria role, prevalence, generation
 weight, treatment implication, or point value. The first 37-candidate audit intentionally did not
 force duration or ordinal burden into outcome values. A subsequent reviewed game-granularity
 decision normalized loss/reduction of interest and loss/reduction of pleasure as aliases of one
-current anhedonia identity. Seven other semantic collisions remain explicit one-at-a-time review
-work.
+current anhedonia identity. The next decision added one broad current self-reported
+fatigue/low-energy identity while explicitly retaining sleepiness, weakness, psychomotor slowing,
+medication sedation, exertional intolerance, and other possible contributors as separate facts.
+Six other semantic collisions remain explicit one-at-a-time review work.
+
+The target subjective-presentation layer is accepted but not implemented. A standardized
+instrument item will own an explicit reviewed mapping from applicable source findings to its
+yes/no/ordinal response. An unstandardized history action will use a deterministic expression bank.
+The frozen projection will save its version, source action or item, response, stable wording
+variant, and all contributing resolved-finding IDs before play. The same phrase may appear in
+several expression banks; canonical aliases remain strict and cannot create that relationship.
+Post-submit audit can therefore disentangle patient truth, assessment response, and displayed
+wording even when the player-facing answer is compact.
 
 Existing `FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay
 remain the compatibility path and were not migrated. Numeric measurements, test-owned results,
-generalized finding compilation, and compatibility mapping remain later dependency tickets.
+subjective-presentation projection, generalized finding compilation, and compatibility mapping
+remain later dependency tickets.
 
 Every encounter-available result is resolved and frozen before play. `EncounterState` records only
 whether the result has been revealed; buying it cannot generate or change a clinical fact.

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.history.current-fatigue-low-energy",
+  "label": "Current self-reported fatigue or low energy",
+  "aliases": ["Fatigue", "Low energy", "Tiredness"],
+  "semanticKind": "history",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent", "subthreshold"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

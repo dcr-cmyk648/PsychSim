@@ -158,7 +158,7 @@ describe('prototype content', () => {
     const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
     expect(parsedFindings).toEqual(runtimeCatalog.findings);
-    expect(parsedFindings).toHaveLength(28);
+    expect(parsedFindings).toHaveLength(29);
     expect(
       parsedFindings.find((finding) => finding.id === 'finding.depressive.depressed-mood'),
     ).toEqual(
@@ -193,6 +193,7 @@ describe('prototype content', () => {
       'finding.history.current-decreased-sleep-need',
       'finding.history.current-elevated-irritable-mood',
       'finding.history.current-excessive-guilt',
+      'finding.history.current-fatigue-low-energy',
       'finding.history.current-high-risk-spending',
       'finding.history.current-increased-goal-directed-activity',
       'finding.history.current-pressured-speech',
@@ -228,7 +229,6 @@ describe('prototype content', () => {
       expect.arrayContaining([
         'grandiosity',
         'impulsivity',
-        'low energy',
         'paranoia',
         'preparatory behavior',
         'subjective burden',
@@ -250,6 +250,30 @@ describe('prototype content', () => {
           'Reduced enjoyment',
         ],
       }),
+    );
+    expect(
+      catalogs.findings.find(
+        (finding) => finding.id === 'finding.history.current-fatigue-low-energy',
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        label: 'Current self-reported fatigue or low energy',
+        aliases: ['Fatigue', 'Low energy', 'Tiredness'],
+      }),
+    );
+    expect(
+      catalogs.findings.find(
+        (finding) => finding.id === 'finding.history.current-fatigue-low-energy',
+      )?.aliases,
+    ).not.toEqual(
+      expect.arrayContaining([
+        'Daytime sleepiness',
+        'Somnolence',
+        'Muscular weakness',
+        'Psychomotor slowing',
+        'Medication sedation',
+        'Exertional intolerance',
+      ]),
     );
     const compatibilityFinding = prototypeCaseBlueprint.informationActions
       .flatMap((action) => action.result.findings)

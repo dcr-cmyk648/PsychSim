@@ -125,6 +125,13 @@ Every option:
 
 For example, an insomnia option can make the short depressive-symptom finding positive and add `symptom.insomnia`; the no-insomnia option makes that same finding negative and does not add the tag. A medication-fit rule then sees the resolved tag. This prevents a hidden fit modifier from disagreeing with the history the player can buy.
 
+Patient-facing wording is not another clinical-context tag or diagnostic input. Several distinct
+resolved findings may explicitly project to the same subjective response or ordinary phrase, and
+one finding may appear in several assessment views. The projection saves every source-finding ID
+and its rule version; diagnosis composition continues to consume the typed findings and reviewed
+condition logic rather than inferring meaning from “tired,” “low energy,” or another displayed
+string.
+
 The option field is named `gameSelectionWeight` intentionally. It is a game-generation distribution, not an epidemiologic prevalence claim. Any distribution that changes care requires its own review and provenance.
 
 Objective fit and player knowledge are separate concerns. The resolved patient fact affects actual
