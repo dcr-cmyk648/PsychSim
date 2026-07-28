@@ -47,7 +47,7 @@ private notes + authored material + formal sources
                        │
        source-owned, provenance-preserving units
                        │
- topic owners + generated dossiers + gaps + disagreements
+ candidate bins + topic owners + generated dossiers + gaps
                        │ psychiatrist review
  reviewed relationships + distinct Developer opinions
                        │ separate rule and balance review

@@ -150,14 +150,14 @@ progress.
 
 ### DBQ-003 — Set the catalog breadth and provisional-identity policy
 
-**Status:** current.
+**Status:** accepted as D-166.
 
 Decide how aggressively to create broad identity “bins” for common psychiatric diagnoses,
 medications, formulations, therapies, tests, scales, supplements, findings, and dispositions
 before their dossiers are deep. This includes the threshold for creating a provisional identity,
 alias and overlap handling, and when an ambiguous merge must return for review.
 
-**Proposed default:** use a wide-but-shallow psychiatry-first catalog with conservative semantic
+**Accepted decision:** use a wide-but-shallow psychiatry-first catalog with conservative semantic
 merging.
 
 1. Every unmatched named concept from an admitted source or private authored unit lands
@@ -188,17 +188,59 @@ This produces many inexpensive identity shells without pretending they are compl
 also avoids the opposite failure mode: automatically creating hundreds of nearly synonymous
 entities from every phrase in a large guideline or personal-note archive.
 
+The acceptance clarifies that every potentially relevant concept found while processing an
+admitted input receives a stable candidate bin, even when its category or canonical identity is
+uncertain. Review determines whether that bin becomes a canonical provisional identity, alias,
+merge, relationship-only concept, retained unresolved concept, or reviewed non-entity/out-of-scope
+item. A high bin count is expected and preferable to silent loss. Bins retain provenance and remain
+authoring-only until separately promoted.
+
 **Unlocks:** comprehensive capture without losing new entities or creating silent duplicates.
 
 ### DBQ-004 — Standardize the source-scouting and review packet
 
-**Status:** queued after DBQ-001 through DBQ-003.
+**Status:** current.
 
 Decide the default evidence packet for one relationship or small topic: regulatory/official facts,
 current guidelines, recent syntheses, pivotal or applicability-expanding studies, personal notes,
 contrary evidence, source rights, and currentness. Existing literature-scout tools remain
 discovery aids; this decision defines what a reviewer should normally receive before accepting an
 interpretation or relationship.
+
+**Proposed default:** use one compact, question-specific packet with a source-depth budget rather
+than an exhaustive literature dump.
+
+1. Lead with the exact decision, affected topical owners, current database behavior, and why review
+   is needed.
+2. Search the existing formal catalog and complete enrolled personal corpus first. Show the
+   relevant accepted Developer opinions, source units, rules, conflicts, and gaps.
+3. Scout the smallest appropriate formal-source stack:
+   - current official/regulatory material when the question concerns identity, approval, labeling,
+     warnings, or other regulatory facts;
+   - the most current applicable guideline;
+   - one clinically responsive systematic review or meta-analysis from the last ten years when that
+     design fits the question, using citation count only as a tie-breaker after relevance;
+   - a newer study or an older still-relevant landmark, head-to-head, pragmatic, or
+     special-population study only when the synthesis or guideline does not answer the actual
+     question; and
+   - the strongest material that opposes, limits, or materially qualifies the proposed answer.
+4. When meta-analysis is the wrong design—for example a rare harm, pharmacokinetic interaction,
+   diagnostic instrument, regulatory status, or excluded population—state that explicitly and use
+   the appropriate evidence type instead of forcing an irrelevant paper.
+5. Keep the primary synthesis to roughly one page: proposed answer, supporting material,
+   opposition/limitations, relevant Developer opinion, exact affected bins/relationships/rules,
+   uncertainty, source-use/currentness constraints, and the specific reviewer decision needed.
+   Give every selected source a concise original “what this contributes” summary, explicitly
+   labeled abstract-only when full text was not lawfully reviewed. Full citations, provenance, and
+   detailed notes remain expandable.
+6. Stop when the minimum stack answers the narrow question without a material conflict. Add depth
+   only for high-stakes safety, unresolved disagreement, important applicability gaps, or a source
+   that has been corrected/superseded.
+7. Approval of the packet records source units and interpretation relationships only. Executable
+   rules and point magnitudes still require their separate clinical and balance review.
+
+This preserves the desired one-topic-at-a-time workflow while avoiding both shallow unsupported
+summaries and enormous packets that shift the literature-review workload back to the psychiatrist.
 
 **Unlocks:** repeatable literature review, efficient psychiatrist review, and fair comparison of
 formal evidence with Developer opinion.
@@ -292,6 +334,7 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-003 before detailing DBQ-004. Do not implement broad provisional-identity
-creation, automatic aliasing/merging, or a bulk catalog expansion until DBQ-003 is accepted or
-revised. DBQ-002 authorizes only a one-dossier readiness pilot, not a broad status migration.
+Present and resolve DBQ-004 before detailing DBQ-005. Do not change the tracked packet schema,
+automatically apply scouted sources, or bulk-scout the queue until DBQ-004 is accepted or revised.
+DBQ-002 still authorizes only a one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin
+architecture rather than immediate bulk catalog generation.

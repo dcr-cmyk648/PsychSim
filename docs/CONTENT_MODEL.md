@@ -132,6 +132,20 @@ detail. Gameplay eligibility ignores this summary and validates the precise depe
 by that patient. If maintaining a readiness lane requires broad manual synchronization, harms
 performance, or does not support a concrete review decision, the lane is simplified or omitted.
 
+Catalog breadth is driven by admitted inputs rather than an attempt to enumerate psychiatry in
+advance. Semantic processing creates one stable candidate bin for every potentially relevant named
+concept and links it to the exact source/authored units that raised it. A bin may carry a proposed
+category and possible matches while remaining unresolved. Review may promote it to a canonical
+identity shell, attach a verified alias, merge it into an existing owner while preserving the old
+bin ID, classify it as a relationship-only concept, leave it unresolved, or mark it as a reviewed
+non-entity/out-of-scope item. Every outcome retains provenance and rationale.
+
+Candidate bins are authoring landing records, not runtime catalog identities. They do not create
+clinical facts, recommendations, rules, points, formulary availability, or approval. Many bins are
+expected because psychiatry has many reusable concepts. Deterministic overlap reports can group
+likely matches for review, but neither lexical similarity nor repeated occurrence performs a merge
+automatically.
+
 DrugCentral is cataloged as an authoring-only `structured_database` source. Its initial rights
 decision allows local deterministic indexing and unreviewed source-unit candidates but blocks runtime
 redistribution. Every candidate retains the database release, record origin, available upstream

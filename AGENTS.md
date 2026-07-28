@@ -212,6 +212,14 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   runtime dependency. The compiler checks only the exact reviewed artifacts required by a patient.
   Compute one local dossier lazily and keep details collapsed; if a proposed readiness feature
   cannot be derived efficiently or does not change a concrete review decision, omit it.
+- Catalog breadth is input-driven rather than pre-enumerated. During semantic processing of an
+  admitted source or private authored unit, every potentially relevant named concept receives a
+  stable provenance-preserving candidate bin even when its canonical identity or category is
+  uncertain. A bin may later resolve to a canonical identity, verified alias, reviewed merge,
+  relationship-only concept, retained unresolved concept, or reviewed non-entity/out-of-scope
+  outcome; never discard its source relationship. Candidate bins are authoring-only and confer no
+  clinical authority, gameplay availability, rule, point value, or approval. Create many bins when
+  the input warrants them, but never infer aliases or merges from label similarity alone.
 - Register a newly referenced publication as its own evidence entry before integrating it.
   Registration alone never propagates a claim. Target-specific source-use contributions and
   developer-review tickets may be completed incrementally. Preserve every unresolved semantic

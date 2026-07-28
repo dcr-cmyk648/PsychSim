@@ -11,13 +11,16 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-165. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-166. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
   derived dossier readiness with a strict simplicity ceiling: no entry-wide approval state,
-  percentage, duplicated status matrix, or runtime dependency. The remaining database architecture
-  choices are dependency-ordered in `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
+  percentage, duplicated status matrix, or runtime dependency. D-166 establishes input-driven
+  wide-but-shallow identity capture: every potentially relevant concept receives a stable candidate
+  bin and review determines its final identity/alias/merge/relationship/unresolved outcome. The
+  remaining database architecture choices are dependency-ordered in
+  `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
   `origin/main` remain unchanged unless the user separately authorizes promotion.
 - Local Developer server: `http://127.0.0.1:4318/`.
@@ -250,7 +253,7 @@ local IPC/loopback permission and passed unchanged outside that restriction.
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-165
+- `docs/DECISIONS.md` through D-166
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -277,11 +280,11 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only DBQ-003: a wide-but-shallow provisional identity policy with a durable
-   unresolved-landing queue, category-specific granularity, and conservative alias/merge rules. Do
-   not implement broad identity creation or a bulk catalog expansion until that decision is
-   accepted or revised.
-2. After DBQ-003, re-evaluate the remaining sequence and present DBQ-004 only. Do not shotgun the
+1. Present and resolve only DBQ-004: a compact, question-specific source-scouting and review packet
+   with an appropriate source-depth budget, complete personal-corpus routing, recent synthesis when
+   suitable, contrary/limiting evidence, and an explicit stop rule. Do not revise packet schemas or
+   bulk-scout the queue until that decision is accepted or revised.
+2. After DBQ-004, re-evaluate the remaining sequence and present DBQ-005 only. Do not shotgun the
    queued questions.
 3. The first already-approved engineering prerequisite remains
    `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned

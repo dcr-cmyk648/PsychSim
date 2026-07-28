@@ -2256,3 +2256,33 @@ pilot one dossier; if a lane creates substantial synchronization, performance, o
 without changing a concrete decision, combine or remove it rather than expanding the schema. This
 decision authorizes that bounded pilot and future exact dependency checks, not a broad readiness
 schema or content migration.
+
+## D-166 — Catalog breadth is input-driven, wide, shallow, and conservatively resolved
+
+**Decision:** PsychSim does not attempt to pre-enumerate all of psychiatry. Instead, semantic
+processing of each admitted formal source or private authored unit creates a stable,
+provenance-preserving candidate bin for every potentially relevant named concept. A large corpus is
+expected to produce many bins because the domain itself is broad; avoiding silent loss is more
+important than keeping the candidate count artificially small.
+
+A candidate bin may have an uncertain category and several possible catalog matches. Review gives
+it one explicit outcome: promote it to a canonical provisional identity shell, attach it as a
+verified alias, merge it into an existing owner while retaining the old bin ID and provenance,
+classify it as a relationship-only concept, retain it as unresolved, or mark it as a reviewed
+non-entity/out-of-scope item. No outcome deletes the source relationship. Raw restricted
+expressions remain inside their permitted private boundary; tracked bins retain only permitted
+labels, hashes, IDs, and concise original metadata.
+
+Canonical identities remain wide but shallow. A provisional shell contains identity, category,
+aliases, provenance, and open gaps only; it creates no clinical relationship, gameplay option,
+rule, point value, approval, formulary access, or patient availability. Diagnosis families own
+severity variants and specifiers; medications begin at ingredient level; named therapies,
+tests/scales, supplements, findings, and dispositions become identities when independently useful
+for search or reuse. One-off prose and implementation tags remain nonentities.
+
+Lexical similarity, repeated mention, or file order never aliases or merges concepts. Deterministic
+overlap and unresolved-landing audits group candidates for review. Verified synonyms may become
+aliases, while ambiguous overlap remains a review item. Accepted merges preserve superseded IDs or
+redirects so source links and historical attempts remain reproducible. This decision authorizes
+the candidate-bin architecture and later bounded pilot, not immediate bulk catalog creation or
+automatic semantic promotion.

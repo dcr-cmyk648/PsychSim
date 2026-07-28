@@ -67,6 +67,14 @@ remain in the generated catalog-identity audit even when no matching medication,
 therapy, or other catalog entry exists yet. A likely alias is not silently attached, and ambiguous
 or overlapping entries are not merged without developer review.
 
+Every potentially relevant named concept discovered during semantic processing receives a stable
+candidate bin with its exact permitted source/authored-unit provenance. This intentionally creates
+many bins. The processing review decides whether each bin is a canonical provisional identity,
+verified alias, reviewed merge, relationship-only concept, retained unresolved concept, or
+reviewed non-entity/out-of-scope item. Resolution may change how the bin is indexed, but it never
+deletes its source relationship or rewrites a restricted private expression into tracked content.
+Candidate bins remain authoring-only and cannot affect gameplay.
+
 ## Local workflow
 
 ```text
