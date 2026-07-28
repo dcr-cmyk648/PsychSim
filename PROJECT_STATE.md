@@ -11,8 +11,9 @@ Last updated: 2026-07-27
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-162. The current GitHub-safe tree is being prepared as the next
-  verified backup checkpoint for `origin/beta`.
+  Decisions D-160 through D-163. D-163 makes the private, sourced knowledge database the
+  foundation and the game a focused compiled projection. The unresolved database architecture
+  choices are dependency-ordered in `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
   `origin/main` remain unchanged unless the user separately authorizes promotion.
 - Local Developer server: `http://127.0.0.1:4318/`.
@@ -225,6 +226,22 @@ local IPC socket or loopback listener; each passed when rerun with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
+The database-first decision-queue checkpoint passed on 2026-07-27:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
+- `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests;
+- `pnpm content:validate`, `pnpm content:sources:validate`, and
+  `pnpm content:diagnoses:validate`;
+- sequential `pnpm build` and `pnpm build:reviewer`, including both bundle-safety scans;
+- `pnpm test:e2e`: five Player/Developer browser tests; and
+- `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
+
+An initial parallel Player/Reviewer build was invalid because both commands intentionally share the
+same `apps/web/dist` output and the Reviewer build replaced the Player artifact before its safety
+scan. Both builds passed when rerun in the required sequence; no code or bundle-boundary defect was
+found. The sandboxed content-validator and browser-test invocations again required their existing
+local IPC/loopback permission and passed unchanged outside that restriction.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
@@ -233,6 +250,7 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
+- `docs/DATABASE_FIRST_DECISION_QUEUE.md`
 - `docs/DOCUMENT_INGESTION.md`
 - `docs/DIAGNOSIS_ENGINE.md`
 - `docs/MEDICATION_AND_INTERVENTION_DATA.md`
@@ -255,17 +273,22 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. On the next explicit work request, implement only
+1. Present and resolve only DBQ-001, the canonical structured clinical-assertion contract. Do not
+   implement a new claim schema or bulk-atomize private sources until that decision is accepted or
+   revised.
+2. After DBQ-001, re-evaluate the remaining sequence and present DBQ-002 only. Do not shotgun the
+   queued questions.
+3. The first already-approved engineering prerequisite remains
    `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned
    PatientTemplate/PatientInstance/EncounterInstance boundary and prove it with the initial-MDD
    family while preserving historical CaseBlueprint snapshots. Do not add clinical severity
    thresholds or migrate the full cohort.
-2. Then implement `ticket.engine.patient-generation.shared-finding-compiler` as a separate bounded
+4. Then implement `ticket.engine.patient-generation.shared-finding-compiler` as a separate bounded
    change with deterministic conflict/replay/provenance tests.
-3. Before calibrating clinical tendencies or presentation richness, present one concise decision
-   packet tied to `ticket.engine.patient-generation.presentation-richness-envelope` and the exact
-   GAD attempt feedback. Do not infer probabilities from the reviewer note.
-4. Later bounded tasks, kept separate:
+5. Before calibrating clinical tendencies or presentation richness, resolve DBQ-008 through one
+   concise packet tied to `ticket.engine.patient-generation.presentation-richness-envelope` and
+   the exact GAD attempt feedback. Do not infer probabilities from the reviewer note.
+6. Later bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;
    - verify DRS-R-98 identity, validation scope, and reuse rights before adding it to Testing;

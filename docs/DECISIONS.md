@@ -2157,3 +2157,27 @@ Searchable availability is not clinical relevance. A named instrument such as BF
 DRS-R-98 entry may be visible globally while receiving points only when the resolved patient and
 focused decision make it appropriate. Instrument identity, exact wording, score interpretation,
 and reuse permission remain independently gated.
+
+## D-163 — PsychSim is database-first; gameplay is a compiled projection
+
+**Decision:** The private, sourced, auditable knowledge database is the architectural foundation
+and a useful product in its own right. The game is a downstream compiler and stress test over
+reviewed, focused portions of that database. Database structure is therefore designed to capture,
+relate, scout, review, and maintain reusable psychiatry knowledge before it is optimized around one
+current patient or UI.
+
+A case or playtest may reveal a missing identity, assertion, relationship, generation tendency, or
+rule, but the durable fix belongs in the narrowest reusable owner. Patient templates select and
+constrain shared knowledge; they do not become the primary storage location for diagnosis,
+medication, test, therapy, or evidence facts. React components never substitute for a missing
+database or engine relationship. Runtime bundles still receive only the explicitly reviewed,
+versioned, decision-relevant projection, so database breadth does not make an encounter exhaustive
+or turn the game into a comprehensive clinical simulator.
+
+Database-first is not raw-source-first or automation-first. A downloaded document is untrusted
+input, source registration is not claim incorporation, an extracted statement is not medical
+approval, and a reviewed assertion is not automatically an executable rule or point value. The
+preferred work order is stable identities and knowledge atoms, source and opinion relationships,
+assembled dossiers and gap audits, deterministic patient/rule compilation, and finally playable
+case/UI expansion. `docs/DATABASE_FIRST_DECISION_QUEUE.md` sequences the unresolved design choices;
+binding answers continue to live in this decision log.
