@@ -2,7 +2,7 @@
 
 ## Player fantasy
 
-The player starts as a careful solo psychiatric prescriber in a minimally equipped office and grows toward an integrated psychiatric-medical system. The fantasy is not “complete paperwork correctly”; it is “make sharp medication decisions, earn trust, and turn one room into an institution.” A routine encounter should take roughly two to five minutes.
+The player starts as a careful solo psychiatric prescriber in a minimally equipped office and grows toward an integrated psychiatric-medical system. The fantasy is not “complete paperwork correctly”; it is “make sharp medication decisions, earn trust, and turn one room into an institution.” A routine encounter should take roughly two to five minutes. That target belongs to each focused encounter and its presentation, not to a diagnosis dossier; the same MDD knowledge may later support a much more complex hospital snapshot while the player-facing decision remains bounded.
 
 The long arc is:
 

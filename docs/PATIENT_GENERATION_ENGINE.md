@@ -6,20 +6,24 @@ This document records the next clinical-data boundary before PsychSim adds more 
 guideline-derived rules. It is an architecture contract, not an executable clinical policy. Current
 runtime patients and point values are unchanged.
 
-The source-controlled unit should not be a single memorable fictional person. It should be a
-reviewed generator recipe capable of producing many resolved patients who share a clinical
-decision state without sharing giveaway wording or irrelevant details.
+The source-controlled inputs should not be a catalog of resolved fictional people. Authoring
+prepares reusable diagnosis, finding, test, intervention, policy, and context files plus a reviewed
+case/encounter recipe. Once the dependency gate is complete, the deterministic browser engine
+uses those static files and an internal seed to construct a resolved patient and frozen encounter
+when a queue slot is filled. No generalized patient generator is active yet.
 
 ## Proposed ownership model
 
 ```text
-diagnosis / medication / test / therapy catalogs
+approved diagnosis / finding / medication / test / therapy catalogs
                     +
         sourced clinical decision policies
                     +
-            one PatientTemplate
+    one case/encounter recipe (`PatientTemplate`)
+                    +
+            clinic/location state + seed
                     |
-          deterministic generation
+    deterministic browser-runtime composition
                     v
              PatientInstance
                     |
@@ -35,7 +39,8 @@ diagnosis / medication / test / therapy catalogs
 The intended records are:
 
 - `DiagnosisDefinition`: one logical family record with criteria, severity, specifiers,
-  compatibility metadata, and reusable qualitative guidance.
+  compatibility metadata, and reusable qualitative guidance across settings and treatment
+  intensity. It owns no encounter time, difficulty, complexity budget, facility, or location.
 - `MedicationDefinition`: medication identity, classes, interactions, monitoring, adverse-effect
   and fit rules. Patient regimens reference it; they do not copy its knowledge.
 - `TestDefinition`, `InformationActionDefinition`, and therapy/disposition definitions: shared
@@ -47,10 +52,11 @@ The intended records are:
   owning game-balance points. It may be nested under or registry-linked to the diagnosis family
   that logically owns it; the important boundary is that templates reference the policy rather
   than copy it.
-- `PatientTemplate`: the source-controlled patient-family recipe. It owns setting, required and
-  optional condition constraints, medication-regimen and prior-trial constraints, available
-  records, presentation modules, a focused encounter objective, and narrow patient-specific
-  adjustments.
+- `PatientTemplate`: the current technical name for the source-controlled case/encounter recipe,
+  not a pre-generated patient. It owns setting, required and optional condition constraints,
+  medication-regimen and prior-trial constraints, available records, presentation modules, a
+  focused encounter objective, an encounter complexity budget or envelope, presentation limits,
+  and narrow patient-specific adjustments.
 - `PatientInstance`: the fully resolved fictional person. It saves every generated condition,
   chart claim, medication-regimen entry, prior trial, fact, observation, demographic value, and
   seed-derived choice. It is never regenerated during replay.
@@ -64,6 +70,52 @@ The intended records are:
 “Case” can remain player-facing shorthand for an encounter. In source code and content, the
 specific record name should state whether it is a reusable template, a resolved patient, or a
 frozen encounter.
+
+The reusable MDD dossier is not an “outpatient MDD generator.” It must be able to supply shared
+knowledge to later outpatient, inpatient, polypharmacy, ECT, ketamine, and other MDD encounter
+recipes. Those recipes select the relevant branches and keep the immediate question legible;
+unsupported branches remain sparse rather than being invented.
+
+## Generation-readiness dependency order
+
+Runtime generation is the last integration step, not the mechanism used to discover or patch
+missing data. Ticket priority follows the complete architecture:
+
+1. **Identity and governance:** stable IDs, one canonical owner, aliases, registry relationships,
+   schema/content versions, lifecycle state, provenance, source-use decisions, and rule-level
+   review boundaries.
+2. **General resolved patient state:** demographics and neutral presentation pools; time course,
+   symptoms, function, safety, social and substance history; MSE and physical findings; vitals,
+   anthropometrics, and other measurements; internal conditions versus chart diagnoses and
+   rule-outs; allergies/adverse reactions; current prescription, nonpsychiatric medication, and
+   supplement regimen entries; prior medication and psychotherapy trials; prior levels of care;
+   adherence and tolerability; and reusable contextual dimensions.
+3. **General investigations and actions:** one owner per laboratory analyte or panel with units,
+   population/reference intervals, precision, and bounded incidental behavior; imaging,
+   electrical studies, toxicology, medication levels, and named instruments; neutral searchable
+   reveal actions; structured result projections; service access and fulfillment; and shared
+   medication, psychotherapy, other-intervention, and disposition identities.
+4. **Reusable knowledge:** diagnosis-family and intervention dossiers, severity/specifier
+   branches, clinical associations, treatment roles, interactions, contraindications, monitoring
+   or treatment prerequisites within the focused snapshot, and explicit cross-topic
+   relationships. A dossier may be drafted before all dependencies when doing so identifies the
+   missing owners, but it cannot silently contain local replacements for them.
+5. **Decision and scoring compilation:** broad best-next-step routes, conditional workup,
+   treatment-fit contributors, regimen-transition logic, parsimony and combination rules,
+   disposition consequences, qualitative rule review, provisional balance, provenance snapshots,
+   and deterministic combination/receipt traces.
+6. **Recipe and compiler mechanics:** the case/encounter-recipe schema, complexity budget or
+   envelope, typed constraint resolution, contributor provenance, `PatientInstance`,
+   `EncounterInstance`, `CompiledRubric`, coverage diagnostics, deterministic retry for literal
+   conflicts only, replay, persistence/migration, and bundle isolation.
+7. **Runtime cohorts and calibration:** only after the preceding slice is coherent may the browser
+   generate patients, run many seeds, calibrate complexity and presentation, or expand player
+   queues.
+
+This is not a requirement to encode all medicine or all psychiatry before one generated encounter.
+It is a requirement to build the smallest complete _general_ dependency slice rather than hiding
+missing owners in MDD-specific prose. MDD and GAD dossiers can serve as design probes, while every
+dependency they expose is routed back to its general owner before generation is enabled.
 
 ## Diagnosis truth versus chart history
 
@@ -177,7 +229,9 @@ enter the positive-treatment rubric. Global safety and interaction rules always 
 ## Deterministic constrained generation
 
 Independent random draws are not sufficient for clinically coherent patients. Generation should
-use a deterministic constrained pipeline:
+eventually use the deterministic constrained pipeline below. It remains an implementation gate,
+not current authorization to create patients before the reusable dependencies and compiler passes
+exist:
 
 1. Resolve the template, setting, and encounter objective.
 2. Resolve internal condition states and patient-family-owned optional comorbidities.
@@ -355,9 +409,10 @@ The present checkpoint is adequate for two simple patients but is intentionally 
 No existing save shape should be silently reinterpreted. A schema migration should preserve old
 case snapshots while new templates compile to the new records.
 
-## Optional-feature budget
+## Encounter-owned optional-feature budget
 
-`PatientComplexityProfile` provides a deliberately small authoring boundary for optional richness.
+`PatientComplexityProfile` is the current transitional schema name for a deliberately small
+case/encounter-recipe boundary for optional richness. It is not owned by a diagnosis dossier.
 An authored profile may spend at most six cost units across no more than three selected modules.
 Each selected module has a stable ID, a kind, a cost from one through three, an impact class, and
 traced contributions to the existing diagnostic, pharmacologic, workup, safety/disposition, and
@@ -374,9 +429,10 @@ reimbursement. `difficultyTier`, patient pool, facility eligibility, care points
 The current compatibility compiler only validates and carries an already-authored profile.
 Nonempty module selection is rejected until a stable module catalog and payload compiler exist. It
 does not choose modules, fill a budget, derive a scalar tier, or change scoring. A future deterministic
-selector must keep candidate pools patient-family-owned, preserve the focused question and a safe
-route, and retry or quarantine conflicts. Optional modules may enrich background, fit, or a
-companion safety consideration; they may not silently replace the main decision state.
+selector must keep candidate pools recipe-owned, preserve the focused question, retry or
+quarantine only literal structural conflicts, and emit nonblocking diagnostics for coverage gaps.
+Optional modules may enrich background, fit, or a companion safety consideration; they may not
+silently replace the main decision state.
 
 ## Conflict classes for complex generation
 
@@ -410,7 +466,8 @@ rules in the trace. Only literal structural invalidity quarantines. Coverage gap
 nonblocking and ticketed; evidence disagreement remains disabled behind a ticket; balance
 disagreement does not change clinical direction.
 
-Future calibrated patient templates may declare target envelopes over the five-axis complexity trace. The compiler
+Future calibrated case/encounter recipes may declare target envelopes over the five-axis
+complexity trace. The compiler
 measures the resolved patient after composition and deterministic variation, then accepts,
 deterministically retries, or quarantines it against that envelope. This is provisional and will be
 calibrated with reference patients before any single displayed patient level or progression formula
@@ -421,5 +478,8 @@ current `CaseBlueprint` compatibility path can carry typed reaction history and 
 budget-only `PatientComplexityProfile`, but it has neither the new conflict taxonomy nor
 deterministic optional-module selection. It does not claim that the current budget is a measured
 complexity envelope.
-The versioned compiler migration must add those behaviors without reinterpreting historical
-attempts.
+Before implementing that versioned compiler migration, authoring must prepare the reusable symptom
+and finding definitions, condition branches, medication/intervention and test relationships,
+regimen and prior-trial records, context modules, and qualitative policies it will resolve. The
+migration must then add runtime composition without reinterpreting historical attempts or checking
+in pre-resolved patient inventories.

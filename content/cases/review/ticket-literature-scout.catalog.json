@@ -1209,6 +1209,11 @@
       "exemptionReason": "This is a versioned schema, compiler, compatibility, and provenance-boundary implementation. A clinical meta-analysis cannot define the repository's PatientTemplate, PatientInstance, EncounterInstance, or historical migration architecture."
     },
     {
+      "ticketId": "ticket.engine.patient-generation.general-dependency-gate",
+      "profileIds": [],
+      "exemptionReason": "This is a repository architecture and dependency-order audit spanning many independently sourced clinical topics. It must route later claim-specific evidence questions rather than treating one meta-analysis as support for the compiler-readiness gate."
+    },
+    {
       "ticketId": "ticket.engine.patient-generation.shared-finding-compiler",
       "profileIds": [],
       "exemptionReason": "This is deterministic fact-resolution, conflict-handling, and explanation-provenance architecture. Clinical sources may later calibrate individual tendencies, but a meta-analysis cannot define the one-source-of-truth compiler."

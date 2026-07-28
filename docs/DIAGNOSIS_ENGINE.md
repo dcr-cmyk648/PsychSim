@@ -21,6 +21,12 @@ One diagnosis family lives in one file under `content/catalogs/diagnoses/definit
 
 MDD therefore has one family file containing the future mild, moderate, and severe branches. Its severity constraints are deliberately `disabled_pending_source`; the file does not guess symptom-count, impairment, psychosis, or safety thresholds while the source request remains open.
 
+That family file has no outpatient, inpatient, difficulty, play-time, facility, or treatment-
+intensity ceiling. The same reusable MDD dossier must be capable of supporting later encounter
+recipes involving hospital care, polypharmacy, ECT, ketamine, neuromodulation, or other advanced
+contexts. Those interventions retain their own dossier knowledge and cross-link to MDD. Sparse or
+unsupported MDD branches remain disabled or ticketed rather than being invented.
+
 A medically unreviewed severity-policy packet now asks whether a patient template should author
 intended severity while the generator validates separate bounded dimensions such as symptom
 burden, intensity, distress, and function. Psychosis and acute safety remain separate structured
@@ -37,6 +43,10 @@ A patient-template file continues to own:
 - gameplay-critical context dimensions such as sleep pattern or body-habitus category;
 - its focused decision state, narrow case-specific exceptions, and safe fallback;
 - source provenance and all presentation wording.
+
+`PatientTemplate` is the current technical name for that source-controlled case/encounter recipe;
+it is not a pre-generated person. It also owns any encounter complexity budget or target envelope
+and presentation-time constraint. Diagnosis files never own those values.
 
 Medication, investigation/test, therapy/disposition, service, and location knowledge remains in their respective catalogs. Diagnosis files reference those stable IDs; they do not copy their labels, operating costs, laboratory ranges, or medication properties.
 
@@ -257,3 +267,8 @@ treats every opposing active stance as a blocking `RULE_STANCE_CONFLICT`, does n
 template complexity envelope, and does not yet emit shared-finding contributions. That
 conservative checkpoint remains safe, but it must be migrated before complex generated patients
 are enabled.
+
+That migration is deliberately deferred until the reusable finding, test, intervention,
+regimen/trial, context, and policy dependencies can resolve a complete frozen patient state.
+Authoring those files does not pre-generate encounters; the eventual pure browser compiler creates
+and saves `PatientInstance` and `EncounterInstance` records from approved static inputs plus a seed.

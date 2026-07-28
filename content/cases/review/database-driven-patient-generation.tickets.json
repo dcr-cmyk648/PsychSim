@@ -1,8 +1,8 @@
 [
   {
     "schemaVersion": 1,
-    "id": "ticket.engine.patient-generation.catalog-compiled-instances",
-    "title": "Compile patient instances from reusable catalog owners",
+    "id": "ticket.engine.patient-generation.general-dependency-gate",
+    "title": "Inventory and order the general encounter-generation dependencies",
     "sourceKind": "engine_audit",
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
@@ -18,20 +18,56 @@
       "schema.patient-template",
       "schema.patient-instance",
       "schema.encounter-instance",
-      "diagnosis.major-depressive-disorder",
-      "case.review-cohort.mdd-initial"
+      "diagnosis.major-depressive-disorder"
     ],
     "dependencyTicketIds": [],
     "conflictContentIds": ["schema.case-blueprint"],
-    "proposedRouting": "Add the versioned PatientTemplate → PatientInstance → EncounterInstance and CompiledRubric boundary while preserving CaseBlueprint as a historical compatibility snapshot. Prove it first with the initial-MDD family rather than migrating every patient.",
-    "guidance": "The diagnosis family owns reusable disorder knowledge, including MDD mild, moderate, and severe branches. A patient template may request a state such as moderate MDD and add narrow encounter constraints or specifiers, but it must not copy generic MDD criteria, treatment guidance, or scoring. Compilation resolves reusable owners, validates a safe focused route, saves all resolved facts and provenance, and only then creates the encounter snapshot. The acceptance test is not a more detailed hand-authored first-visit case; it is whether multiple deterministic first-visit MDD patients can be produced from shared database content without case-specific clinical prose or duplicated rules. Historical attempts retain their original CaseBlueprint snapshots.",
+    "proposedRouting": "Build and maintain a dependency-readiness map from general reusable owners through runtime composition. Create or route missing owner tickets before any generated-patient or cohort ticket can become actionable.",
+    "guidance": "Audit stable identities/ownership/provenance first; then reusable history, symptom, function, safety, substance, MSE, physical, vital/measurement, condition/chart, reaction, regimen, prior-trial, treatment-history, demographic, and context records; then labs/panels/reference intervals and result generators, imaging/electrical studies/instruments, reveal actions/services, medications, therapies, and dispositions; then diagnosis/intervention dossiers and cross-topic relationships; then reviewed policies, prerequisites, fit/interactions, balance, and traces; then recipe/instance/resolver/replay/persistence/validation mechanics. A thin MDD, GAD, or other dossier may be used early to discover dependencies, but missing general owners must not be replaced by case-specific prose. The gate does not demand all of psychiatry. It requires the smallest coherent general slice for the intended encounter, with every deferred gap explicit and nonexecutable. Runtime patient generation and seed-cohort calibration stay last.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Approved architecture direction: variants of one underlying disorder remain in one diagnosis-family record. A patient template may select moderate MDD, for example, while the MDD record supplies the reusable mild/moderate/severe model and the patient supplies only its selected state and narrow specifics.",
-    "reviewerNotesUpdatedAt": "2026-07-27T23:50:43.000Z",
-    "resurfacingTrigger": "Before adding another case-authored diagnosis severity model, copying diagnosis rules into a patient file, or migrating the first patient family to the target compiler.",
+    "reviewerNotes": "Reviewer direction: understand and use the whole database-first, question-bank, deterministic, auditable game design when ordering work. Many general dependencies—including labs, vitals, test results, MSE, comorbidities, substances, and analogous patient-state owners—must exist before even basic MDD generation. Drafting a diagnosis dossier early is acceptable when it helps discover dependencies; it does not authorize generating cases.",
+    "reviewerNotesUpdatedAt": "2026-07-28T14:55:02.000Z",
+    "resurfacingTrigger": "Before prioritizing a patient/case generator, generated cohort, or case-specific workaround over a missing reusable dependency owner.",
+    "resolution": null,
+    "createdAt": "2026-07-28T14:55:02.000Z",
+    "updatedAt": "2026-07-28T14:55:02.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.engine.patient-generation.catalog-compiled-instances",
+    "title": "Compile patient instances from reusable catalog owners",
+    "sourceKind": "engine_audit",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "technical",
+    "priority": "high",
+    "status": "accepted_for_workflow",
+    "requiresClinicalAcumen": false,
+    "attemptId": null,
+    "blueprintId": null,
+    "caseContentVersion": null,
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "schema.patient-template",
+      "schema.patient-instance",
+      "schema.encounter-instance",
+      "diagnosis.major-depressive-disorder",
+      "case.review-cohort.mdd-initial"
+    ],
+    "dependencyTicketIds": [
+      "ticket.engine.patient-generation.general-dependency-gate",
+      "ticket.engine.patient-generation.shared-finding-compiler"
+    ],
+    "conflictContentIds": ["schema.case-blueprint"],
+    "proposedRouting": "Prepare the versioned PatientTemplate → PatientInstance → EncounterInstance and CompiledRubric boundary while preserving CaseBlueprint as a historical compatibility snapshot. Do not activate generation until the reusable finding, condition, intervention, test, regimen/trial, context, and policy dependencies can be resolved deterministically.",
+    "guidance": "The diagnosis family owns reusable disorder knowledge, including MDD mild, moderate, and severe branches across outpatient, hospital, polypharmacy, ECT, ketamine, and other later contexts. It owns no encounter difficulty, play time, setting ceiling, or complexity budget. PatientTemplate is the current technical name for a source-controlled case/encounter recipe: it selects setting, a focused next-step question, condition states, optional pools, regimen/history constraints, available actions, an encounter complexity envelope, and narrow overrides without copying generic diagnosis, intervention, or test knowledge. Authoring prepares all required static files rather than checking in resolved patients. After the dependency gate is complete, the pure browser engine will build and persist a complete PatientInstance and EncounterInstance from approved inputs plus a seed at queue-fill or explicit refresh time. Historical attempts retain their original CaseBlueprint snapshots.",
+    "sourceReviewSnapshot": null,
+    "reviewerNotes": "Approved architecture direction: variants of one underlying disorder remain in one diagnosis-family record. Reviewer correction: the reusable MDD dossier must not own P7-style encounter duration or difficulty and must scale to hospital, polypharmacy, ECT, ketamine, and other contexts. Do not generate patients yet. First prepare the dependency files; the deterministic in-game engine later constructs resolved encounters from those files and the encounter recipe's complexity budget.",
+    "reviewerNotesUpdatedAt": "2026-07-28T14:55:02.000Z",
+    "resurfacingTrigger": "Before adding another case-authored diagnosis severity model, assigning setting/difficulty/complexity to a diagnosis dossier, pre-generating a patient inventory, or activating the target runtime compiler before its reusable dependencies are ready.",
     "resolution": null,
     "createdAt": "2026-07-27T23:50:43.000Z",
-    "updatedAt": "2026-07-27T23:50:43.000Z"
+    "updatedAt": "2026-07-28T14:55:02.000Z"
   },
   {
     "schemaVersion": 1,
@@ -56,7 +92,7 @@
       "info.history.sleep",
       "info.physical.mental-status"
     ],
-    "dependencyTicketIds": ["ticket.engine.patient-generation.catalog-compiled-instances"],
+    "dependencyTicketIds": ["ticket.engine.patient-generation.general-dependency-gate"],
     "conflictContentIds": [],
     "proposedRouting": "Implement D-087 as a deterministic compiler pass: collect typed constraints from every active owner, resolve one saved fact value, retain each contributor and conflict outcome, and project that fact into every relevant player-facing result without creating duplicate truths.",
     "guidance": "A concentration problem may contribute to both an anxiety and depressive-symptom display; restlessness may appear in history and mental-status views. Those screens may blend facts before submission, but the backend must save one atomic fact and a complete origin trace. Explicit critical constraints, syndrome/cardinality requirements, weighted tendencies, and background variation remain distinguishable. File order never chooses a winner. Hard contradictions retry deterministically or quarantine; they are not patched with prose. The explanation system must later show which diagnosis, medication, context, optional module, or patient override contributed to the resolved value.",

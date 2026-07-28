@@ -11,7 +11,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-173. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-174. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -40,6 +40,14 @@ Last updated: 2026-07-28
   diagnostic and ticket. D-173 establishes two-stage rule promotion: one explicit qualitative
   psychiatrist review, followed by separately labeled provisional D-156-band points for
   Developer/Reviewer play without a second clinical review.
+  D-174 keeps diagnosis dossiers setting-, difficulty-, time-, and treatment-intensity-independent;
+  case/encounter recipes own the focused decision and complexity envelope; static authoring
+  prepares reusable files rather than resolved patients; and deterministic browser-runtime
+  composition remains deferred behind a general dependency-readiness gate. Ticket priority now
+  proceeds through identity/governance, general patient-state and finding owners, tests/actions and
+  intervention owners, dossier relationships, reviewed decision/scoring policies, compiler
+  mechanics, and only then generated cohorts. Thin diagnosis dossiers may be used early to discover
+  dependencies but cannot bypass the gate.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
@@ -152,7 +160,10 @@ only the current operational state and should not grow into a second changelog.
   `PatientTemplate → PatientInstance → EncounterInstance + CompiledRubric`. Diagnosis families own
   reusable disorder variants, so the MDD record owns mild/moderate/severe while a template selects
   one state and adds only narrow constraints. `CaseBlueprint` remains the historical compatibility
-  snapshot until one MDD family proves the migration.
+  snapshot. `PatientTemplate` is the current technical name for a source-controlled case/encounter
+  recipe, not a pre-generated person. Its setting, focused decision, complexity envelope, and
+  presentation limits never belong to MDD. Runtime migration is not the next task: it remains
+  blocked until the general dependency-readiness audit and shared-finding foundation are complete.
 - A shared finding must resolve once with every contributing owner and then project into all
   relevant investigation views. The GAD Reviewer feedback is preserved as a blocking historical
   attempt ticket; no probabilities or clinical rules changed.
@@ -257,7 +268,7 @@ local IPC socket or loopback listener; each passed when rerun with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
-The database-first decision-queue checkpoint through D-173 passed on 2026-07-28:
+The database-first decision-queue checkpoint through D-174 passed on 2026-07-28:
 
 - `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
 - `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests;
@@ -272,7 +283,10 @@ An initial parallel Player/Reviewer build was invalid because both commands inte
 same `apps/web/dist` output and the Reviewer build replaced the Player artifact before its safety
 scan. Both builds passed when rerun in the required sequence; no code or bundle-boundary defect was
 found. The sandboxed content-validator and browser-test invocations again required their existing
-local IPC/loopback permission and passed unchanged outside that restriction.
+local IPC/loopback permission and passed unchanged outside that restriction. The first D-174
+content-validation pass correctly rejected the new general-dependency ticket until it received the
+required explicit architecture exemption from clinical literature scouting; the repaired ticket
+catalog then passed.
 
 ## Files to read before continuing
 
@@ -305,26 +319,28 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only DBQ-010: use adult outpatient MDD from diagnostic attribution and
-   initial selection through the first inadequate-response regimen transition as the first deep
-   database vertical. The proposed boundary matures the MDD family, core medication/therapy
-   relationships, shared findings/tests, promoted rules, generated patient templates, and
-   reference cohorts while deferring psychotic/catatonic/perinatal depression, advanced TRD,
-   neuromodulation, and hospital care.
+1. Present and resolve only revised DBQ-010: use MDD as the first deep knowledge/database
+   dependency vertical without making the dossier outpatient-, difficulty-, or
+   treatment-intensity-limited. Current review may emphasize attribution, initial selection, prior
+   response/intolerance, and first inadequate-response transitions, but advanced/hospital
+   relationships remain sparse future branches rather than dossier exclusions.
 2. Re-evaluate the remaining queue after DBQ-010. Do not detail DBQ-011 or begin the vertical
    before the reviewer answers.
-3. Once the architecture queue authorizes implementation, the first already-approved engineering
-   prerequisite remains
-   `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned
-   PatientTemplate/PatientInstance/EncounterInstance boundary and prove it with the initial-MDD
-   family while preserving historical CaseBlueprint snapshots. Do not add clinical severity
-   thresholds or migrate the full cohort.
-4. Then implement `ticket.engine.patient-generation.shared-finding-compiler` as a separate bounded
-   change with deterministic conflict/replay/provenance tests.
-5. After that compiler exists, implement only richness behavior accepted through DBQ-008 and
-   calibrate it against deterministic MDD/GAD and deliberately muddy cohorts before enabling
-   optional comorbidities. Patient generation rejects only malformed or literal same-scope
-   contradictions; rule/route coverage gaps remain nonblocking tickets.
+3. If DBQ-010 is approved, perform
+   `ticket.engine.patient-generation.general-dependency-gate` first. Audit the existing database
+   against the complete general dependency order; identify reusable owners already present; and
+   create or route the smallest missing-owner tickets for findings/history, MSE/physical/vitals,
+   labs/tests/results, medication and substance exposure, reactions, regimen/trials/treatment
+   history, condition/chart/comorbidity state, interventions/dispositions, policies, provenance,
+   replay, and persistence. Diagnosis dossiers may be used as discovery probes, but do not
+   generate a patient or hide a gap in case-specific prose.
+4. After that general foundation is ready, implement
+   `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
+   conflict/replay/provenance tests.
+5. Only after the dependency gate and shared-finding work are complete may
+   `ticket.engine.patient-generation.catalog-compiled-instances` add the versioned
+   PatientTemplate/PatientInstance/EncounterInstance boundary while preserving historical
+   CaseBlueprint snapshots. Generated cohorts and richness calibration remain later gates.
 6. Later bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;

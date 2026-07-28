@@ -17,16 +17,17 @@ backend. Offline service-worker caching remains deferred; see
 [INSTALL_AND_UPDATES.md](INSTALL_AND_UPDATES.md).
 
 ```text
-approved JSON catalogs + patient template
+approved JSON catalogs + case/encounter recipe
                  │ Zod parse + reference validation
                  ▼
         content-runtime static bundle
                  │
+                 │ clinic/location state + internal seed
                  ▼
- diagnosis/decision composition + deterministic constraints
-                 │
-                 ▼
- patient instance → encounter compilation → pure encounter engine
+ browser-runtime patient composition → frozen encounter + rubric
+                                           │
+                                           ▼
+                               pure encounter engine
                                            │
                                            ▼
                               care points → settlement → receipt
@@ -39,6 +40,12 @@ approved JSON catalogs + patient template
 The current prototype still feeds `CaseBlueprint` directly into `CaseInstance`; that is a
 versioned compatibility path, not the target authoring boundary. The generated-patient migration is
 specified in [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).
+
+Authoring prepares the reusable files and recipes consumed by this graph; it does not check in a
+finite catalog of resolved encounters. Generalized generation remains deferred until the
+finding/condition/intervention/test/regimen/context/policy dependencies and compiler passes exist.
+Once enabled, composition occurs deterministically in the browser when a queue slot is filled or
+explicitly refreshed, and the complete resolved patient and encounter are persisted before play.
 
 The private authoring database is deliberately richer than the runtime graph:
 
@@ -110,8 +117,8 @@ from schemas except the recursive predicate unions.
 The schema package also owns the small reaction-concept catalog, explicit
 `PatientReactionHistory`, and versioned `PatientComplexityProfile`. Reaction records keep the
 patient/chart `recordedAs` label separate from a nullable reviewed interpretation. The complexity
-profile validates only optional-feature richness and a five-axis envelope; it is not a score, tier,
-progression gate, or economy configuration.
+profile is a transitional encounter-recipe-owned optional-richness envelope, never diagnosis-owned.
+It is not a score, tier, progression gate, or economy configuration.
 
 `@psychsim/engine` owns top-down diagnosis and decision-policy composition, typed-fact derivation,
 conflict reports, constrained patient generation, focused encounter compilation, deterministic
@@ -121,6 +128,12 @@ calculation, persistent queue construction/relocation, encounter commands, predi
 points-only progression overlays, care-point evaluation, economy, receipts, replay, and
 eligibility. Diagnosis composition is qualitative and point-free. It has no React import, browser
 global, network call, wall-clock decision, mutable singleton, or runtime AI.
+
+Diagnosis dossiers consumed by the engine remain setting-, difficulty-, and treatment-intensity
+independent. A case/encounter recipe (currently planned as `PatientTemplate`) selects setting,
+focused decision, condition branches, complexity envelope, and presentation limits. The reusable
+MDD dossier can therefore serve later outpatient, hospital, polypharmacy, ECT, ketamine, and other
+contexts without duplicated diagnosis knowledge.
 
 `@psychsim/content-runtime` has three explicit entry boundaries. Its ordinary root entry imports
 approved JSON only, parses it at module load, supplies the starting clinic, cross-checks imports and

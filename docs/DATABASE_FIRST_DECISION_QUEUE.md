@@ -606,91 +606,106 @@ clinical authority.
 
 **Status:** current.
 
-Choose the first topic to take from broad identity coverage through mature-enough dossiers, generated
-patient families, executable rules, reference patients, and reviewer audit. The current likely
-candidate is the MDD sequence—initial treatment, prior response/intolerance, and inadequate
-response—because it exercises shared findings, medication fit, psychotherapy, treatment history,
-safety, disposition, and common laboratory reasoning.
+Choose the first topic whose knowledge dossier and dependency graph should move beyond thin
+identity coverage. This is a database-authoring decision, not authorization to generate patients.
+MDD remains the likely first topic because it touches common findings, medication fit,
+psychotherapy, treatment history, safety, disposition, and clue-driven testing while still being
+foundational for later, more complex encounters.
 
-**Proposed default:** make the first deep vertical adult outpatient MDD from diagnostic
-attribution through the first regimen transition after inadequate response. This is not one
-trivial “first visit, start an SSRI” patient:
+**Proposed default:** make MDD the first deep knowledge/database dependency vertical without an
+outpatient, difficulty, or treatment-intensity ceiling on the reusable dossier:
 
-**P1 — Prove the database-to-game loop, not one case.** The deliverable is a reusable MDD
-diagnosis-family dossier, the necessary intervention/finding/test/policy owners, promoted rules,
-generated patient templates, reference patients, and receipt audit. Hand-authored
-`CaseBlueprint`s remain historical fixtures rather than becoming the new source of truth.
+**P1 — Deepen reusable knowledge, not one case.** The deliverable is a sparse but coherent MDD
+diagnosis-family dossier plus explicit dependency and coverage maps to the finding, test,
+medication, therapy, disposition, evidence, and decision-policy owners it needs. Hand-authored
+`CaseBlueprint`s remain historical compatibility fixtures rather than becoming the new source of
+truth.
 
-**P2 — Cover three immediate-decision families.**
+**P2 — Keep the MDD dossier setting- and complexity-independent.** One MDD owner contains shared
+state, mild/moderate/severe branches, specifier relationships, broad treatment roles, attribution
+boundaries, and source-linked policies that can later be selected by outpatient, inpatient,
+polypharmacy, ECT, ketamine, neuromodulation, and other encounter recipes. Sparse advanced
+sections may remain disabled or ticketed, but the dossier structure must not exclude them.
 
-1. Initial psychiatric evaluation with diagnostic attribution and treatment-fit decisions.
-2. Prior benefit or intolerance, where retrial, avoidance, or a different first-line option matters.
-3. Apparent inadequate response, where adherence, exposure, prior trials, current tolerability,
-   and a first switch/adjunct/regimen transition matter.
+**P3 — Treat current review depth as a tranche, not a dossier ceiling.** The first detailed review
+may emphasize diagnostic attribution, initial treatment selection, prior response or intolerance,
+and the first inadequate-response regimen transition because those are high-yield dependencies.
+That sequencing does not define “adult outpatient MDD” as a separate diagnosis record or imply
+that hospital and advanced-treatment MDD require duplicated files.
 
-Each encounter still ends after one best-next-step treatment/disposition snapshot; there is no
-follow-up simulation.
+**P4 — Prepare dependency owners before composition.** Required reusable owners include
+structured depressive and overlapping findings; severity/specifier state; adherence, prior-trial,
+reaction, sleep, fatigue, appetite, weight, sexual, anxiety, substance, bipolarity, psychosis, and
+safety concepts; current regimen and treatment-history records; BMI/physical findings; shared
+tests such as clue-driven thyroid testing; broad medication and psychotherapy roles; and the
+qualitative policies that connect them. New relevant concepts receive candidate bins even when
+their deep review is deferred. Ticket triage works from general to specific:
 
-**P3 — Make the patient psychiatry-worthy.** Every template includes a meaningful psychiatric
-driver such as diagnostic muddiness, previous exposure, adverse effects, comorbidity fit,
-substance contribution, safety/disposition nuance, or a current-regimen problem. Prolonged or
-severe patients own multiple structured prior efforts by default. Treatment-naive patients are
-explicit exceptions, not the whole vertical.
+1. identity, ownership, provenance, versions, aliases, and lifecycle;
+2. canonical history/symptom/function/safety/substance findings, MSE, physical findings, vitals,
+   measurements, demographics/context, conditions versus chart labels, reactions, regimen
+   entries, prior trials, and treatment history;
+3. laboratory analytes and panels, reference intervals and bounded result generation, named
+   instruments, imaging/electrical studies, reveal actions, services, medications, therapies, and
+   dispositions;
+4. diagnosis and intervention dossiers plus their cross-topic relationships;
+5. reviewed qualitative policies, prerequisites, fit, interactions, combination behavior,
+   provenance traces, and provisional balance;
+6. recipe/instance schemas, deterministic resolution, replay, persistence, diagnostics, and
+   validation; and
+7. generated patients and cohort calibration only after the preceding gate is coherent.
 
-**P4 — Mature the shared owners needed for those decisions.** The bounded scope includes the MDD
-family and reviewed episode/severity branches; broad medication and psychotherapy roles; core
-SSRI/SNRI/bupropion/mirtazapine relationships; adherence, prior trials, reactions,
-sleep/fatigue/appetite/weight/sexual/anxiety/substance findings; medication reconciliation;
-bipolarity, psychosis, and safety assessment relationships; BMI/physical findings; and only
-decision-relevant laboratory/testing relationships such as clue-driven thyroid testing. New
-cross-topic bins are created whenever admitted material names them, even when their deep review
-is deferred.
+A thin MDD, GAD, or other dossier may be drafted earlier as a dependency-discovery probe. It does
+not outrank missing general owners or authorize patient generation.
 
-**P5 — Use the strongest already-admitted source base.** CANMAT adult MDD is the principal
-condition-specific guideline; ACP contributes the bounded inadequate-response decision where its
-available source supports it; WHO remains broad context; current FDA records supply regulatory
-facts only; the Mayo/Bostwick psychotropic-fit guide and suitable formal literature or accepted
-Developer opinions supply individually reviewed fit candidates. Source-use, correction, and
-abstract/full-text limits remain explicit. A source's inclusion does not activate every statement.
+**P5 — Preserve source and ownership boundaries.** CANMAT adult MDD is an important
+condition-specific source; ACP, WHO, current FDA records, the Mayo/Bostwick psychotropic-fit guide,
+formal literature, and accepted Developer opinions contribute only within their reviewed scope.
+Intervention, test, and finding owners keep their own knowledge and cross-link back to MDD; the
+diagnosis dossier does not copy complete medication, procedure, or test files. Source-use,
+correction, access-depth, and review limits remain explicit.
 
-**P6 — Preserve broad treatment routes and small fit effects.** The main award recognizes an
-eligible broad medication, psychotherapy, or reviewed combination/transition route. Distinct
-sleep, energy, weight, sexual, anxiety, adherence, prior-response, tolerability, interaction, and
-patient-context relationships add smaller nontrivial modifiers. Several fit effects may stack,
-while duplicate therapy, serious interaction, or critical safety rules retain their existing
-dominance and suppression behavior.
+**P6 — Do not generate patients in this tranche.** Patient generation depends on stable,
+versioned symptom/finding owners, context and weight models, regimen and prior-trial structures,
+medication/intervention relationships, tests, comorbidity composition, qualitative policies, and
+compiler passes. Deepening MDD should expose and queue those dependencies, not bypass them by
+creating another authored patient or partially generated cohort. The generation-readiness ticket
+remains blocked until an audit confirms that these general owners are represented and that any
+intentional gaps are explicit, nonexecutable coverage tickets rather than silent case-specific
+prose.
 
-**P7 — Generate clean and muddy patients.** Required conditions, bounded optional comorbidities,
-questionable chart labels, rule-outs, subthreshold and surface-threshold symptom overlap, current
-regimens, and arbitrarily long prior-trial histories all remain representable. Only literal
-same-scope contradictions invalidate generation. Missing rule coverage creates a ticket and stays
-visible in the patient audit.
+**P7 — Let encounter recipes own play time and difficulty.** A source-controlled case/encounter
+recipe owns setting, focused best-next-step question, selected condition states, complexity budget
+or envelope, available actions, presentation limits, and narrow overrides. The two-to-five-minute
+target and any difficulty classification apply to the resulting encounter, never to the reusable
+MDD dossier.
 
-**P8 — Keep the player experience compact.** Openings remain name plus chief complaint. History,
-Physical exam, Testing, Diagnosis, and Treatment remain searchable. Long trial/regimen histories
-use a concise summary with expandable detail. The immediate decision should remain playable in
-roughly two to five minutes even when the backend patient is rich.
+**P8 — Compose resolved encounters in the browser later.** After the dependency gate is met, the
+deterministic engine should construct a complete `PatientInstance`, frozen `EncounterInstance`,
+and `CompiledRubric` from approved static database files, one encounter recipe, clinic/location
+state, and an internal seed when a patient slot is filled or explicitly refreshed. It saves every
+resolved value and contributor; authoring does not check in a finite list of pre-generated
+encounters.
 
-**P9 — Define acceptance by executable cohorts.** Many deterministic seeds must preserve template
-intent and replay while varying presentation, overlap, prior efforts, and fit. Reference patients
-must cover broad-route success, a good fit choice, an acceptable but poorer fit, unnecessary
-workup, duplicate/shotgun treatment, and a clearly unsafe selection. Receipts must expose every
-qualitative rule, provisional point mapping, provenance path, and coverage gap.
+**P9 — Define the current acceptance gate around database integrity.** The MDD dossier and every
+prepared dependency must parse, retain stable IDs and provenance, distinguish unknown from
+unsupported, expose coverage gaps without inventing rules, preserve diagnosis/intervention/test
+ownership, and support reviewed qualitative-rule promotion. No generated-cohort, seed-distribution,
+play-duration, or reference-patient gate applies until runtime composition is separately
+authorized.
 
-**P10 — Keep the first vertical bounded.** Psychotic depression, catatonia, perinatal depression,
-ECT/neuromodulation, advanced treatment-resistant-depression algorithms, inpatient/ED care, and a
-complete bipolar or substance-use treatment engine remain later verticals. Bipolarity,
-substances, medical contributors, and safety still appear where needed for MDD attribution and
-treatment prerequisites; they simply do not trigger an exhaustive plan for every background
-problem.
+**P10 — Bound what is populated, not what MDD can represent.** This tranche need not author
+psychotic, catatonic, perinatal, ECT, ketamine, advanced treatment-resistant, or hospital policies
+without adequate sources and review. Those remain visible dependency bins and future review
+packets rather than dossier exclusions. Complete bipolar, substance-use, delirium, and eating-
+disorder engines remain separate verticals even when their concepts cross-link to MDD.
 
-**Q10:** Approve adult outpatient MDD—from diagnostic attribution and initial selection through
-the first inadequate-response regimen transition—as the first deep database vertical, with the
-above exclusions?
+**Q10:** Approve MDD as the first deep knowledge/database dependency vertical, with no
+setting/difficulty ceiling on the diagnosis dossier, general dependencies ordered before specific
+case work, and no patient generation until the required files and compiler passes are ready?
 
-**Unlocks:** a genuinely textured playable cohort and a proof that the database-first workflow
-works end to end before scaling to GAD, bipolar disorder, psychosis, PTSD, substance-related
-conditions, delirium, and eating disorders.
+**Unlocks:** a well-owned MDD knowledge graph and an explicit dependency backlog that can later
+feed deterministic in-browser encounter construction without multiplying hand-authored patients.
 
 ### DBQ-011 — Define ongoing currentness, conflict, and maintenance cadence
 
@@ -715,4 +730,6 @@ D-168 permits traceable speculative candidates but does not authorize automatic 
 sparse sections, runtime AI, or speculative gameplay rules. D-167 still does not automatically
 apply scouted sources, revise the tracked packet schema, or authorize bulk scouting. DBQ-002
 authorizes only a one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin architecture
-rather than immediate bulk catalog generation.
+rather than immediate bulk catalog generation. D-174 keeps diagnosis dossiers independent of
+setting, difficulty, and encounter complexity and explicitly defers patient generation until the
+reusable dependency files and compiler are ready.

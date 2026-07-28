@@ -2597,3 +2597,70 @@ checks, and rule-combination tests. Unresolved clinical direction stays disabled
 balance may run in Developer/Reviewer play, and human lifecycle review separately decides whether
 a compiled encounter enters the Player bundle. This decision authorizes the promotion contract,
 not a schema migration, bulk activation, clinical rule, or new point value.
+
+## D-174 — Diagnosis dossiers remain setting-independent; encounter recipes own runtime complexity
+
+**Decision:** A diagnosis-family dossier is reusable clinical knowledge, not a patient tier, one
+care setting, or a prebuilt encounter family. It owns the condition's stable identity, shared
+state model, severity and specifier branches, presentation relationships, broad treatment roles,
+decision policies, boundaries, provenance, and links to other topical owners. It never owns a
+target play time, difficulty level, complexity budget, facility, location, player progression
+gate, or an outpatient/inpatient treatment ceiling.
+
+The MDD dossier must therefore be structurally capable of supporting a straightforward outpatient
+decision, a hospital patient with polypharmacy, advanced treatment-resistant presentations, ECT,
+ketamine, neuromodulation, and other later contexts without creating separate copies of generic
+MDD knowledge. This does not require every branch to be populated now. Unreviewed or unsupported
+sections remain sparse, disabled, or ticketed under D-165 and D-172; the engine must not invent
+guidance merely to make the dossier appear complete.
+
+A source-controlled case/encounter recipe—currently planned under the technical
+`PatientTemplate` boundary—owns the setting, focused best-next-step question, selected diagnosis
+states, eligible comorbidity pools, regimen and prior-history constraints, available actions,
+presentation limits, complexity budget or envelope, and any narrow reviewed override. The
+two-to-five-minute design target and any displayed difficulty are properties of the compiled
+encounter and its presentation, not of MDD or another diagnosis.
+
+Authoring prepares the versioned diagnosis, finding, test, medication, therapy, disposition,
+regimen/trial, context, policy, and encounter-recipe files required for composition. It does not
+pre-resolve or check in a finite catalog of fictional patients. Once those dependencies and the
+versioned compiler are ready, the deterministic browser engine constructs a complete
+`PatientInstance`, then freezes an `EncounterInstance` and `CompiledRubric`, from approved static
+inputs plus an internal seed at queue-fill or explicit refresh time. It saves the seed, every
+resolved value, contributors, and compiled versions; a waiting slot does not reroll during play.
+There is no runtime AI, network dependency, `Math.random`, or regeneration on information
+purchase.
+
+Generalized runtime generation remains deferred until the required reusable owners and compiler
+passes exist. The initial MDD work may deepen the dossier and its dependency graph without
+generating a cohort. Current hand-authored `CaseBlueprint` and `CaseInstance` records remain
+immutable compatibility fixtures until a separately validated migration.
+
+Ticket order follows the complete database-to-game dependency graph, not the quickest path to a
+visible case. The default order is:
+
+1. stable identities, ownership, registry/versioning, provenance, and lifecycle boundaries;
+2. general reusable patient-state primitives: findings/symptoms, time course, function, history,
+   MSE, physical findings, vitals/measurements, medication and substance exposure, reactions,
+   regimens, prior trials, comorbidity/chart state, and contextual variation;
+3. general test and action owners: laboratory analytes/panels and reference intervals, bounded
+   result generation, imaging/electrical studies/instruments, reveal actions, service
+   fulfillment, therapies, medications, and dispositions;
+4. diagnosis/intervention dossiers and cross-topic relationships, which may be opened earlier as
+   discovery probes to expose missing dependencies but cannot make those dependencies executable;
+5. reviewed qualitative decision policies, treatment prerequisites, interactions, fit, rule
+   promotion, provisional balance, and audit trace;
+6. encounter-recipe, instance, resolver, deterministic replay, persistence, coverage-diagnostic,
+   and validation compiler passes; and
+7. only then generated encounter cohorts, calibration, and player-facing expansion.
+
+This order is a readiness topology rather than a demand to finish all of psychiatry before one
+case. Each layer needs the smallest coherent, extensible general foundation required by the next
+layer. A diagnosis dossier such as GAD may be sketched early when it helps discover shared
+findings or test dependencies, but its existence cannot be used as evidence that runtime
+generation is ready.
+
+This decision corrects DBQ-010 and any earlier wording that treated the first MDD vertical as
+outpatient-only, placed duration or difficulty in the diagnosis dossier, or made generated
+patients the immediate acceptance gate. It changes architecture and work order only; it adds no
+schema, patient, clinical rule, generation probability, or point value.

@@ -321,10 +321,11 @@ they are not promoted shared clinical guidance.
 
 The next schema split is:
 
-- a source-controlled `PatientTemplate` owns setting, condition and chart-record constraints,
+- a source-controlled `PatientTemplate`—the current technical name for a case/encounter
+  recipe—owns setting, condition and chart-record constraints,
   patient-family optional-comorbidity pools, regimen/prior-trial constraints, clinical-context
-  dimensions, presentation generators, specific observations, encounter focus, narrow overrides,
-  and provenance;
+  dimensions, presentation generators, specific observations, encounter focus, an encounter
+  complexity budget or envelope, presentation limits, narrow overrides, and provenance;
 - reusable diagnosis, medication, investigation, therapy, disposition, and clinical-decision
   policy files own knowledge shared across templates;
 - a `PatientInstance` saves the fully resolved fictional person, including every internal
@@ -339,6 +340,20 @@ overrides. A patient template should not copy a complete treatment plan from eve
 Current `CaseInstance` snapshots remain immutable and replayable during migration; no old save is
 silently reinterpreted. [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md) specifies the
 target boundary.
+
+A diagnosis dossier never owns encounter duration, difficulty, facility, location, complexity
+budget, or a treatment-intensity ceiling. The MDD dossier therefore remains one reusable family
+across outpatient, hospital, polypharmacy, ECT, ketamine, and other later contexts; encounter
+recipes select only the branches needed for one focused decision. Unsupported advanced sections
+remain sparse and ticketed instead of being split into separate diagnosis files or filled by
+inference.
+
+Static authoring prepares these reusable files and recipes, not a finite inventory of resolved
+patients. Generalized composition remains disabled until the required finding, test,
+medication/intervention, regimen/trial, context, and policy owners plus compiler passes are ready.
+The eventual deterministic browser engine resolves and persists `PatientInstance`,
+`EncounterInstance`, and rubric data from the approved bundle, clinic/location state, and an
+internal seed when a queue slot is filled or explicitly refreshed.
 
 Metadata explicitly classifies a template as `starter`, `transitional`, or `advanced`; this is an
 internal pool selector, never launcher copy, and does not bypass
@@ -357,7 +372,9 @@ multi-diagnosis composition is separately bounded; its candidates and game weigh
 owned by the patient family rather than globally drawn from diagnosis relationships.
 [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) defines the current boundary.
 
-All modeled gameplay-relevant values are resolved before the encounter begins. Applicable
+All modeled gameplay-relevant values are resolved before the encounter begins. On the target path,
+that resolution occurs in the deterministic browser engine at queue-fill or explicit refresh time,
+not as a checked-in pre-generated encounter. Applicable
 treatment-fit and safety rules evaluate that saved patient truth even when the supporting detail
 remains unknown to the player. Purchasing information changes what the player can reason from and
 may independently satisfy workup objectives; it does not reroll the patient or activate an

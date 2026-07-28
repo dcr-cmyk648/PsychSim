@@ -129,26 +129,29 @@ and selected service-backed interventions can incur separately itemized treatmen
 without changing clinical correctness. The starter MDD reference policies now intentionally tie
 the database and strong-alternative medication baselines, with patient fit evaluated separately.
 
-Remaining scope before complex generation: source-controlled patient templates that compile the
-existing typed facts, internal condition/chart, regimen, prior-trial, and treatment-history records
-into complete deterministic patient and encounter instances; sourced decision-policy nodes;
-focused decision horizons; patient-family-owned optional-comorbidity selection; a conflict taxonomy
-that preserves valid clinical tension; versioned patient-specific overrides; medication
-identity/source-unit/opinion schemas; derived question-specific evidence resolution; logical
-authored-source units and topically owned opinion/evidence relationships; and one source-cleared,
-tightly scoped medication import proof before broad catalog expansion.
+Remaining scope before complex generation is dependency-first. Author the smallest coherent
+general foundation for stable identity/ownership/provenance; reusable history, symptom, function,
+safety, substance, MSE, physical, vital/measurement, reaction, regimen, prior-trial,
+treatment-history, demographic/context, internal-condition, and chart-diagnosis state; laboratory,
+panel, reference-interval, imaging/electrical/instrument, reveal-action, service, medication,
+therapy, and disposition owners; diagnosis/intervention relationships; sourced decision policies;
+focused rule and balance compilation; and only then source-controlled encounter recipes,
+deterministic patient/encounter instances, optional-comorbidity selection, replay, persistence, and
+cohort calibration. A diagnosis dossier may be drafted early to discover missing dependencies, but
+it does not bypass this gate or own encounter setting, difficulty, time, or complexity.
 
-Gate: the runtime behavior and reference baselines recorded at this checkpoint remain stable through
-the next schema split; old snapshots replay through a versioned migration; unsourced severity
-cannot generate; the same template and seed reproduce the
-same complete patient/regimen/trial state; duplicate medications are independently addressable;
-chart claims do not automatically activate internal-condition rules; only decision-relevant
-positive rules plus global safety rules enter a focused encounter; every generated encounter has
-accessible questioning/workup and a safe best-next-step route; structural invalidity quarantines
-while clinical/evidence/balance conflicts remain distinguishable; no point mapping, department
-work, or new clinical recommendation is invented. Templates may use a provisional multidimensional
-target envelope, but complexity-to-level display and progression mapping remain disabled until
-reference-patient testing supports them.
+Gate: do not activate generalized generation until the dependency-readiness audit is satisfied for
+one complete general slice. The runtime behavior and reference baselines recorded at this
+checkpoint remain stable through the later schema split; old snapshots replay through a versioned
+migration; unsourced severity cannot generate; the same recipe and seed reproduce the same
+complete patient/regimen/trial state; duplicate medications are independently addressable; chart
+claims do not automatically activate internal-condition rules; and only decision-relevant positive
+rules plus global safety rules enter a focused encounter. Structural invalidity quarantines while
+coverage gaps remain nonblocking and clinical/evidence/balance conflicts remain distinguishable.
+No point mapping, department work, or new clinical recommendation is invented. Encounter recipes
+may later use a provisional multidimensional target envelope, but diagnosis dossiers never own it
+and complexity-to-level display and progression mapping remain disabled until reference-patient
+testing supports them.
 
 ## Milestone 4 — Departments and broader services
 

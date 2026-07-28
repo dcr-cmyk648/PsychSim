@@ -144,6 +144,19 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   entries, medication-regimen entries, prior trials, typed facts, derived tags, and all generated
   values. Shared diagnosis, medication, test, therapy, disposition, and decision-policy knowledge
   belongs in its catalog. Preserve human overrides separately from generated suggestions.
+- A diagnosis-family dossier is reusable across settings, patient complexity, and treatment
+  intensity. It never owns encounter duration, difficulty, complexity budget, facility, location,
+  player tier, or an outpatient/inpatient ceiling. A case/encounter recipe (the currently planned
+  `PatientTemplate` boundary) owns those encounter constraints and selects the diagnosis branches
+  it needs. The MDD dossier must therefore remain capable of supporting later hospital,
+  polypharmacy, ECT, ketamine, and other advanced contexts without duplicating MDD knowledge.
+- Authoring prepares versioned reusable files and encounter recipes, not a finite inventory of
+  resolved patients. Do not enable generalized patient generation until the required finding,
+  condition, medication/intervention, test, regimen/trial, context, and policy dependencies can be
+  resolved deterministically. Once that gate is met, the pure browser engine constructs and saves
+  the complete `PatientInstance` and `EncounterInstance` from approved static inputs plus an
+  internal seed when a queue slot is filled or refreshed. It never calls AI or a network service
+  and never rerolls a frozen slot during play.
 - Diagnosis-family files own qualitative guidance shared across patients. Compose base rules, then a
   selected severity branch, then specifiers and other active diagnoses. Diagnosis files never own
   unexplained point values. Patient generation rejects only malformed state or literal,
@@ -203,7 +216,8 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   allergy, contraindication, or scoring from the label or manifestation alone. Non-null
   interpretations remain disabled until rule-level review/provenance exists. New scenarios must
   own reaction state explicitly, and validation must keep it consistent with the revealed result.
-- `PatientComplexityProfile` limits optional richness only. Its budget, selected modules, and
+- `PatientComplexityProfile` is a transitional name for an encounter-recipe-owned optional-richness
+  envelope; it is never diagnosis-owned. Its budget, selected modules, and
   eventual five-axis envelope never derive a scalar patient tier, `difficultyTier`, pool, facility gate,
   care points, reimbursement, or `economy.complexityBonus`. A feature that reframes the focused
   question belongs in required template/policy content, not an optional module. Current authored
