@@ -31,23 +31,40 @@ relationships are source-to-source edges validated against the same catalog. Mul
 medications cite the same entry rather than copying citation strings. Generation provenance also
 snapshots the selected evidence-source IDs alongside private source-document and chunk IDs.
 
-Source type is not a universal authority score. Future `EvidenceClaim`, `EvidenceContribution`,
-and `EvidenceBody` records will evaluate compatible propositions by question-specific design fit,
+One source file may own many stable source-local contribution units under readable headers. A unit
+preserves the exact source version and location, scoped proposition, population/setting/outcome
+context, target topic IDs, extraction/authoring method, currentness/correction state, and review
+state. Large guidelines therefore remain one navigable source record rather than being
+reconstructed as hundreds of files. A source-local unit has no care-point value and does not
+become a rule merely because it has been extracted.
+
+The current `EvidenceContribution` schema is the compatibility record for how knowledge entered
+content. It declares `formal_publication` or `expert_opinion`, every formal evidence ID used,
+optional private document/chunk provenance, exact target content IDs, contribution types, and a
+concise original contribution statement. Formal contributions require catalog IDs; generic
+expert-opinion contributions forbid them. A publication can be cataloged but unused. A rule can
+cite multiple relevant publications through separate or multi-source contributions. Unlinked
+prototype rules are rendered as Expert opinion, while approved rules require an explicit
+contribution. A bounded future migration may nest these source-derived units under their source
+owners without reinterpreting existing receipts.
+
+Independently useful topics own their reusable interpretations and concrete clinical/game
+relationships. The most specific decision-driving topic owns a relationship, every other
+implicated topic receives a generated reverse link, and only a genuinely symmetric or multifactor
+relationship with no natural owner receives a dedicated policy file. Generated dossiers assemble
+the forward and reverse links; they are not another truth store.
+
+Source type is not a universal authority score. A derived evidence-resolution view evaluates
+compatible source units and Developer interpretations by question-specific design fit,
 result-level bias or supplied certainty, directness/applicability, currency/search-through date,
 correction state, and provenance role. GRADE-style certainty belongs to a body of evidence, not to
 one article unless a source explicitly reports it. A verified direct source outranks an aggregate
 for the exact fact, but a conventional efficacy synthesis does not automatically outrank
 observational evidence for a rare harm or a direct pharmacokinetic study for an interaction.
 Nondominated disagreement remains `contested` and routes to review; publication date, file order,
-source count, or a hidden numeric evidence score never selects a clinical winner.
-
-An `EvidenceContribution` records how knowledge entered content. It declares
-`formal_publication` or `expert_opinion`, every formal evidence ID used, optional private
-document/chunk provenance, exact target content IDs, contribution types, and a concise original
-contribution statement. Formal contributions require catalog IDs; generic expert-opinion
-contributions forbid them. A publication can be cataloged but unused. A rule can cite multiple
-relevant publications through separate or multi-source contributions. Unlinked prototype rules
-are rendered as Expert opinion, while approved rules require an explicit contribution.
+source count, or a hidden numeric evidence score never selects a clinical winner. The assembled
+evidence-body view is reproducible from its owners rather than persisted as a global assertion
+database.
 
 The compact Reviewer-policy model preserves that authority distinction per exact target rule.
 Broad guideline context cannot automatically absorb a separately authored safety or balance
@@ -57,11 +74,13 @@ formal evidence ID; unaffected source-linked rules keep their own publication co
 Accepted psychiatrist interpretations additionally have a dedicated, nonruntime
 `DeveloperOpinionCatalog`. Each concise opinion owns explicit typed target IDs and separate
 evidence-relationship records that say whether a source supports, contextualizes, challenges, or
-limits it and whether an expert bridge remains. Linking a source never converts the opinion into a
-publication claim. The local Database compiler projects both formal contributions and accepted
-opinions onto every declared target entry; physical file ownership is only an authoring location,
-not the scope of the knowledge. The catalog and projection cannot activate a clinical rule or
-assign care points.
+limits it and whether an expert bridge remains. A later source-oriented authoring view may
+physically co-locate commentary with the source being discussed, but the opinion remains a
+separately typed provenance object. Linking a source never converts the opinion into
+source-authored content. The local Database compiler projects both formal contributions and
+accepted opinions onto every declared target entry; physical file ownership is only an authoring
+location, not the scope of the knowledge. The catalog and projection cannot activate a clinical
+rule or assign care points.
 
 ## Personal knowledge database and game projection
 
@@ -100,7 +119,7 @@ Recent-reading suggestions are separate review proposals with search provenance,
 facts or evidence contributions.
 
 DrugCentral is cataloged as an authoring-only `structured_database` source. Its initial rights
-decision allows local deterministic indexing and unreviewed claim candidates but blocks runtime
+decision allows local deterministic indexing and unreviewed source-unit candidates but blocks runtime
 redistribution. Every candidate retains the database release, record origin, available upstream
 source IDs, and `aggregator` role. Direct-source verification can refine or supersede its support
 without erasing that provenance.
@@ -211,12 +230,13 @@ age is not a clinical-generation input.
 
 The current medication shape is a runtime compatibility layer, not the target background
 knowledge database. Future authoring separates stable ingredient/formulation identity, sourced
-classification memberships, product/regulatory records, structured evidence claims, concise
-Developer opinions, executable clinical rules, and balance values. Source imports may populate
-only the factual/claim layers as medically unreviewed drafts. A reviewed transformation is required
-before a claim becomes a rule, and a separate balance decision supplies points. Shared class claims
-remain normalized while a generated per-medication audit view assembles everything relevant to one
-medication for review. See `docs/MEDICATION_AND_INTERVENTION_DATA.md`.
+classification memberships, product/regulatory records, source-local contribution units,
+topically owned relationships, concise Developer opinions, executable clinical rules, and balance
+values. Source imports may populate only source-owned factual units as medically unreviewed drafts.
+A reviewed transformation is required before a source unit informs a rule, and a separate balance
+decision supplies points. Shared class relationships remain normalized while a generated
+per-medication audit view assembles everything relevant to one medication for review. See
+`docs/MEDICATION_AND_INTERVENTION_DATA.md`.
 
 Psychotherapies and other reusable interventions follow the same principle. One file identifies
 each therapy family or meaningfully distinct program, while shared evidence and fidelity
@@ -406,7 +426,7 @@ evidence contribution, an executable rule, a point value, a citation, or medical
 `PersonalKnowledgePilotProfile` is a tracked, authoring-only definition for one bounded topic. It
 names allowed stable targets and deterministic literal term groups. A lexical match can place a
 current Apple Notes title/plaintext revision in `PersonalKnowledgePilotQueue`; it cannot create or
-support a clinical assertion. Queue entries preserve the exact source revision, expected segment
+support a clinical relationship or rule. Queue entries preserve the exact source revision, expected segment
 count, released packet IDs, and released/classified segment ordinals. A revision is only fully
 classified when every expected segment has a matching imported semantic run.
 
@@ -459,7 +479,7 @@ ordinary public `DatabaseEntryReview` schema remains unchanged.
 Database entries; cross-target ambiguity is invalid. `PersonalKnowledgePrivateSourceCatalog`
 enrolls exact private document hashes and parser-v5 unitization strategies without putting a
 private filename or provider locator into tracked content. Both catalogs are runtime excluded.
-Neither catalog nor the projection creates a claim, opinion, evidence relationship, clinical
+Neither catalog nor the projection creates a source unit, opinion, evidence relationship, clinical
 rule, point value, or approval.
 
 Formal resources use the same staged ownership rule. Each article, guideline, regulatory record,
@@ -519,7 +539,7 @@ evidence that a new patient is clinically correct.
 
 New studies and receipt feedback do not edit patient files directly. Ingestion produces
 source/chunk records; source-backed patient scaffolding adds exact provenance and blocking
-claim-application tickets rather than inferring a clinical change. Receipt guidance becomes a
+source-application tickets rather than inferring a clinical change. Receipt guidance becomes a
 `ClinicalReviewTicket` with an immutable item snapshot. A whole-playthrough
 `DeveloperAttemptReview` owns one editable note, the exact immutable `CompletedAttempt`, and a
 normalized snapshot of every option offered and whether it was chosen; information options also

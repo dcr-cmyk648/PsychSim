@@ -13,7 +13,7 @@ clinically unsuitable, or clinically authoritative but restricted to metadata an
 consultation. Neither bibliographic verification nor a source-use decision medically approves a
 rule.
 
-Evidence authority is also claim-specific. A systematic review can be the best anchor for average
+Evidence authority is also question-specific. A systematic review can be the best anchor for average
 efficacy while an applicable cohort is more informative for a rare harm, a controlled human study
 is more direct for a pharmacokinetic interaction, and a regulator is authoritative only for the
 current regulatory proposition. PsychSim records design, directness/applicability, bias/certainty,
@@ -26,6 +26,8 @@ global numeric source rank. The resolution contract is in
 Every formal source has:
 
 - one `EvidenceSourceDefinition` under `content/catalogs/evidence/formal/`;
+- any number of stable source-local section, recommendation, finding, table, or contribution units
+  nested under that same source owner when a later schema supports them;
 - an access policy recording full-text, reuse, AI-assisted processing, and local-extraction status;
 - a separate `SourceUseDecision` when material will be ingested, transformed, redistributed, or
   deliberately held metadata-only;
@@ -57,7 +59,7 @@ The tracked catalog stores no copied abstract. It stores a short independently w
 whose scope is explicitly abstract-only; raw API responses and abstract text remain local and
 ignored. Abstract availability does not grant full-text reuse rights and does not make a record
 formal support. Any later clinical use still needs an `EvidenceSourceDefinition`, a source-use
-decision, exact-claim contribution, applicability review, and clinician approval.
+decision, exact source-unit/application contribution, applicability review, and clinician approval.
 
 Medication-fit scouting is divided by the actual decision dimension—broad efficacy/acceptability,
 weight and physiology, sexual function, sleep-related adverse effects, tolerability, and symptom
@@ -87,7 +89,7 @@ Current examples:
   prose remain separate.
 - FDA's CYP/transporter examples table can supply qualified metabolic-role candidates only when
   its formulation, metabolite, category, footnote, retrieval date, and noncomprehensive scope
-  travel with the assertion.
+  travel with the source unit.
 - openFDA's Structured Product Labeling dataset can supply concise authoring candidates under its
   Public Domain/CC0 statement when each record retains its SPL/version identity, retrieval
   metadata, formulation, labeler, disclaimer, and distinction between source SPL fields and
@@ -98,8 +100,9 @@ Current examples:
 These adjuncts begin as authoring-only source records and source-use decisions. Cataloging
 them does not ingest a bulk dataset, attach a fact to a medication, establish an interaction,
 create a recommendation, set points, or confer medical approval. Promotion remains:
-`source assertion → formal contribution and/or Developer opinion → clinical review → executable
-rule`.
+`source-local contribution → topical relationship and/or Developer opinion → clinical review →
+executable rule`. Large sources are not split into one file per proposition, and the promotion
+path does not create a second global assertion database.
 
 RxClass and DailyMed are separately cataloged but remain metadata-only at this checkpoint.
 RxClass mixes relation sources with independent terms, including SNOMED CT and WHO ATC; a later
@@ -159,8 +162,9 @@ fabricated citation, and it receives rule-level review like any other clinical c
 
 A user-authored teaching article or note is normally a dated Developer-opinion source, not a
 formal clinical study. Its embedded bibliography supplies candidate citations only. Each cited
-source must be independently verified, rights-cleared, and checked against the exact claim before
-it can become a formal contribution. A relationship can support, partially support, contextualize,
+source must be independently verified, rights-cleared, and checked against the exact proposed
+source use before it can become a formal contribution. A relationship can support, partially
+support, contextualize,
 challenge, or limit an opinion without converting the opinion's interpretive remainder into a
 publication claim.
 
@@ -252,9 +256,9 @@ unrestricted replacement for a commercial drug handbook:
 1. Source-cleared RxNorm Current Prescribable Content, FDA/GSRS identifiers, Drugs@FDA, and
    carefully scoped DailyMed/openFDA records can populate identity and regulatory-fact candidates.
 2. FDA safety communications, labeling changes, REMS, CYP/transporter examples, pharmacogenomic
-   tables, and NLM specialist records can create versioned safety claim candidates.
+   tables, and NLM specialist records can create versioned safety contribution candidates.
 3. Source-cleared guidelines, systematic reviews, comparative studies, and landmark-trial records
-   can support condition-, population-, and outcome-scoped clinical claims.
+   can support condition-, population-, and outcome-scoped source units and topical relationships.
 4. Developer opinion supplies the remaining interpretive delta and remains separately labeled.
 5. Only independently reviewed rules compiled from those records can affect gameplay or points.
 
@@ -273,7 +277,7 @@ none of the new records changes a formulary, case, clinical rule, or point value
 DrugCentral is accepted as a broad `structured_database` authoring seed under CC BY-SA 4.0. The
 source record pins the public 2023-11-01 dump version even though no bytes have yet been
 downloaded. Its initial source-use decision permits local deterministic extraction/indexing and
-original claim candidates but blocks AI-assisted processing, runtime redistribution, and
+original source-unit candidates but blocks AI-assisted processing, runtime redistribution, and
 commercial distribution. This is a project-safety boundary, not a statement that the open licence
 forbids every one of those uses.
 
@@ -293,8 +297,8 @@ is required before any DrugCentral-derived contribution can enter the browser ru
 
 An automated import never infers first-line status, comparative superiority, off-label usefulness,
 interaction severity, psychotherapy fidelity, patient-fit direction, or point magnitude from a
-nomenclature record or regulatory label. Ingredient, formulation/product, source claim, Developer
-opinion, executable rule, and balance value remain distinct.
+nomenclature record or regulatory label. Ingredient, formulation/product, source-local
+contribution, Developer opinion, executable rule, and balance value remain distinct.
 
 Commercial clinical references are not source-document inbox material by default. Carlat's
 current subscription agreement prohibits derivative works and AI/automated processing without
@@ -319,8 +323,8 @@ or redistribute its full text under the current metadata-only decision.
 
 Psychotherapy manuals, worksheets, scripts, fidelity instruments, and branded training materials
 are not copied. PsychSim may store original neutral intervention metadata and reviewed
-source-scoped claims while preserving the boundary between a broad therapy family, a referral,
-protocol-based delivery, and a complete manualized program.
+source-scoped contribution units and topical relationships while preserving the boundary between a
+broad therapy family, a referral, protocol-based delivery, and a complete manualized program.
 
 ## Private user-authored article archives
 
@@ -370,7 +374,8 @@ deduplication does not erase the separate note or attachment relationship.
 A note takeaway begins as dated Developer opinion. OCR of an article image does not create a formal
 source, grant reuse rights, establish bibliographic accuracy, or support every nearby statement.
 Embedded citations remain unverified candidates until independently checked. Any formal article
-use still requires its own evidence record, applicable `SourceUseDecision`, exact-claim review,
+use still requires its own evidence record, applicable `SourceUseDecision`, exact source-unit and
+application review,
 and rule-level contribution; any executable change additionally requires clinical review,
 validation, impact analysis, and balance review. Nothing in bulk intake automatically enters the
 browser bundle or gameplay database.

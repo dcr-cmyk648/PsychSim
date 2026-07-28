@@ -103,8 +103,9 @@ deliberately no offline service-worker cache, background sync, or automatic mid-
 PWA/offline/performance hardening remains Milestone 8.
 
 Medication/intervention authoring checkpoint: the target background database now separates
-normalized identity and regulatory facts, structured evidence claims, Developer opinions,
-executable clinical rules, and point balance. Public RxNorm/FDA/NLM sources form the preferred bulk
+normalized identity and regulatory facts, source-owned contribution units, topically owned
+relationships, Developer opinions, executable clinical rules, and point balance. Public
+RxNorm/FDA/NLM sources form the preferred bulk
 factual scaffold; comparative evidence and guidelines remain separately scoped. Proprietary
 references are human-only absent permission, and psychotherapy manuals are not copied. The current
 identity catalog has 52 pinned RxNorm ingredient records: 13 runtime-compatible and 39
@@ -115,7 +116,7 @@ the remaining knowledge layers are still open.
 DrugCentral is now registered as an authoring-only `structured_database` seed under a restrictive
 initial CC BY-SA gate: local deterministic indexing and unreviewed derived candidates are allowed,
 while AI-assisted processing and runtime/commercial redistribution remain blocked pending an
-isolated ShareAlike package. Evidence precedence is specified as claim- and question-specific
+isolated ShareAlike package. Evidence precedence is specified as proposition- and question-specific
 rather than one pyramid score. The user's private residency-article aggregate is one protected
 physical source containing many dated logical article units and potential atomic Developer
 opinions. Its exact bytes are downloaded, hashed, and structure-aware extracted; no semantic unit,
@@ -133,9 +134,9 @@ existing typed facts, internal condition/chart, regimen, prior-trial, and treatm
 into complete deterministic patient and encounter instances; sourced decision-policy nodes;
 focused decision horizons; patient-family-owned optional-comorbidity selection; a conflict taxonomy
 that preserves valid clinical tension; versioned patient-specific overrides; medication
-identity/evidence/opinion schemas; claim-specific evidence-body resolution; logical authored-source
-units and opinion/evidence relationships; and one source-cleared, tightly scoped medication import
-proof before broad catalog expansion.
+identity/source-unit/opinion schemas; derived question-specific evidence resolution; logical
+authored-source units and topically owned opinion/evidence relationships; and one source-cleared,
+tightly scoped medication import proof before broad catalog expansion.
 
 Gate: the runtime behavior and reference baselines recorded at this checkpoint remain stable through
 the next schema split; old snapshots replay through a versioned migration; unsourced severity
@@ -200,11 +201,11 @@ adds a metadata-only audit plus an explicitly acknowledged local sync for the ex
 `Psych research` folder. The sync uses the public Notes scripting boundary, protected private
 directories, local Vision/PDFKit OCR, per-note checkpoints, stable provider provenance, attachment
 hashing/deduplication, and the ordinary source queue. It never edits Notes or transmits content.
-Full source review, claim extraction, broader remote-file byte transfer, and completion of every
+Full source review, source-unit extraction, broader remote-file byte transfer, and completion of every
 Milestone 6 gate remain open. The first acknowledged private sync now preserves and extracts all
 204 note title/plaintext records, locally OCRs 116 accessible attachments, records one unsupported
 attachment, and quarantines seven attachment-save failures without discarding their note text.
-None of this creates evidence claims or executable content.
+None of this creates reviewed topical relationships or executable content.
 A bounded title/plaintext-only semantic queue now supports one tracked topic and one complete
 source revision at a time, with segment-complete coverage, strict private import, and aggregate
 status reporting. Lexical matching only queues candidates; HTML, OCR, attachments, composites, and
@@ -213,11 +214,11 @@ rules, points, or approval.
 An additional private lexical inventory now covers all 204 authorized title/plaintext revisions
 against 68 current safe identities. It stores only hashes, IDs, terms, and counts; 72 revisions
 matched at least one known target. Attachments, OCR, remote Drive sources, semantic interpretation,
-unknown-entity discovery, claims, and runtime changes remain outside that inventory.
+unknown-entity discovery, source-unit candidates, and runtime changes remain outside that inventory.
 The local source manifest now contains 210 extracted artifacts: 204 Apple Notes composites, four
 formal PDFs, and two private Drive DOCX files. All six non-Notes sources use parser v5. Four Drive
 discovery candidates still have no local bytes, hash, or extraction and must not be reported as
-processed. A safe/local packet plus private-locator bridge is delivered, but broad claim
+processed. A safe/local packet plus private-locator bridge is delivered, but broad source-unit
 extraction, source-unit supersession, and the remaining remote transfers are still open.
 
 Scope: SHA-256 scan/manifest/duplicates; PDF, DOCX, TXT, Markdown strategy; extraction/chunks; watch; processed/quarantine; provenance; privacy controls; source review.
@@ -230,7 +231,7 @@ Status: one non-AI precursor is delivered. An explicit scaffold request can crea
 medically unreviewed Developer patient from a named template, verified local source references,
 controlled presentation variants, and proposed shared impact IDs. It deduplicates provenance,
 resets inherited rule reviews, and emits blocking audit tickets. The WHO-linked MDD scaffold proves
-the local workflow. It does not infer clinical claims, call a provider, perform critic/repair, or
+the local workflow. It does not infer clinical relationships, call a provider, perform critic/repair, or
 approve content.
 
 Scope: provider abstraction and mock; optional explicit external provider; constrained structured single-case draft; critic and repair; provenance; external-send confirmation; deterministic validation and policy bots; human approval gate.

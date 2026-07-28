@@ -192,7 +192,19 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Compile only positive rules relevant to the encounter's focused decision horizon, while retaining
   global safety and interaction rules. Do not grade a complex patient against an exhaustive plan for
   every background problem.
-- Keep private extracted documents, formal bibliographic sources, and clinical contributions separate. Every formal article/guideline/regulatory source has one stable file under `content/catalogs/evidence/formal/`. Every use names the catalog IDs, target content IDs, contribution types, and a concise statement of what the source contributed. A rule without a formal contribution is labeled `Expert opinion`; never invent a citation for notes, notebooks, or unsourced judgment. Bibliographic verification does not confer medical approval.
+- Keep private extracted documents, formal bibliographic sources, and clinical contributions
+  separate. Every formal article/guideline/regulatory source has one stable file under
+  `content/catalogs/evidence/formal/`; a large source may own many stable, linkable source-local
+  contribution units rather than being split into one file per proposition. Independently useful
+  clinical topics own their reusable interpretations and rules. The most specific decision-driving
+  topic owns a relationship, other implicated topics receive generated reverse links, and only a
+  genuinely symmetric or multifactor relationship with no natural owner receives a dedicated
+  relationship/policy file. Do not build a separate global assertion database. Every use names the
+  source and target IDs, contribution types, a concise statement of what the source contributed,
+  and the stable source-unit ID when that source supports nested units. Developer commentary may
+  be co-located for review only when it remains a separately typed provenance object. A rule
+  without a formal contribution is labeled `Expert opinion`; never invent a citation for notes,
+  notebooks, or unsourced judgment. Bibliographic verification does not confer medical approval.
 - Register a newly referenced publication as its own evidence entry before integrating it.
   Registration alone never propagates a claim. Target-specific source-use contributions and
   developer-review tickets may be completed incrementally. Preserve every unresolved semantic

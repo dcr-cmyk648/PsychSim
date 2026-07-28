@@ -7,7 +7,7 @@ auditable patients without requiring the psychiatrist/developer to write a monog
 intervention. It must still preserve the distinction between:
 
 - a normalized identity or regulatory fact;
-- a claim made by one source in one population and setting;
+- a contribution made by one source in one population and setting;
 - a psychiatrist/developer interpretation;
 - an executable gameplay rule; and
 - the point magnitude used to balance the game.
@@ -63,8 +63,9 @@ The current identity slice is implemented separately. Fifty-three curated
 the pinned July 6, 2026 RxNorm CPC release, source/use-decision IDs, and unreviewed status.
 Thirteen link the existing same-ID runtime records; 40 are browseable authoring identities
 with no gameplay class, formulary membership, treatment availability, rule, or point effect.
-Validation locks that separation. Classification memberships, regulatory facts, evidence claims,
-and compilation into additional runtime treatments remain future work. A first nonruntime
+Validation locks that separation. Classification memberships, regulatory facts, source-local
+contribution units, topically owned relationships, and compilation into additional runtime
+treatments remain future work. A first nonruntime
 Developer-opinion catalog is implemented: it preserves accepted psychiatrist interpretations and
 their separately typed evidence relationships without creating a clinical rule or point value.
 
@@ -128,31 +129,42 @@ severity or game consequence is a separate reviewed interpretation.
 A product label does not establish first-line status, comparative superiority, a common off-label
 use, or the correct point value. Absence from a label is not evidence that a risk or use is absent.
 
-### 3. Structured evidence claims
+### 3. Source-owned contribution units and topically owned relationships
 
-Each reusable clinical proposition receives a stable claim ID rather than being buried in prose or
-copied into several medications.
+Each article, guideline, regulatory record, structured database release, or other formal source
+has one durable source file. A large source may own many stable nested section, recommendation,
+finding, table, and contribution-unit IDs under readable headers. It should not be reconstructed as
+one physical file per proposition, and its content should not be copied into every medication it
+touches.
 
-A future claim record should be able to answer:
+A source-local contribution unit should be able to answer:
 
-- What is the claim type: indication, treatment role, contraindication, warning, interaction,
-  adverse effect, monitoring need, metabolic role, discontinuation concern, population issue,
-  comparative effectiveness, comparative acceptability, or feasibility?
-- Which ingredient, formulation, class, therapy, diagnosis, population, setting, severity, and
-  treatment line does it cover?
+- What kind of contribution is this: indication, treatment role, contraindication, warning,
+  interaction, adverse effect, monitoring need, metabolic role, discontinuation concern,
+  population issue, comparative effectiveness, comparative acceptability, feasibility, or
+  evidence gap?
+- Which ingredient, formulation, class, therapy, diagnosis, population, setting, severity,
+  treatment line, comparator, outcome, and time horizon does it cover?
 - Is it a direct comparison, indirect network comparison, guideline recommendation, regulatory
-  statement, systematic-review conclusion, clinician-authored derivation, or evidence gap?
-- What outcome, comparator, time horizon, estimate, uncertainty, evidence certainty, and important
-  limitations apply?
-- Which exact source version and source location support it?
-- Was the text extracted locally, drafted with permitted AI assistance, or authored manually?
+  statement, systematic-review conclusion, or other source-derived finding?
+- What estimate, uncertainty, evidence certainty, and important limitations apply?
+- Which exact source version and source location own it?
+- Was it extracted locally, drafted with permitted AI assistance, or authored manually?
 - Is it current, corrected, superseded, disputed, or awaiting review?
 - Has a psychiatrist reviewed the transformation into this concise original statement?
 
-Claims do not contain care-point values. Conflicting claims coexist and retain their context.
-Neither file order nor a source count selects a winner.
+Independently useful topics—such as weight status, insomnia, MDD, mirtazapine, or a named
+test—have their own canonical files. A concrete clinical/game relationship belongs to the most
+specific decision-driving topic. Other implicated dossiers receive generated reverse links; a
+genuinely symmetric or multifactor relationship with no natural owner receives one dedicated
+relationship/policy file. This is the primary-owner plus related-file pattern, not a separate
+global assertion database.
 
-### Evidence hierarchy is claim-specific, not one global pyramid
+Source-local contribution units and topical relationships do not contain care-point values.
+Conflicting source units coexist and retain their context. Neither file order nor a source count
+selects a winner.
+
+### Evidence comparison is question-specific, not one global pyramid
 
 PsychSim uses tiered attribution, but it must not assign one permanent authority rank to an entire
 source. Evidence design is only one dimension, and the best design depends on the question. A
@@ -175,17 +187,20 @@ The authoring model follows four compatible ideas:
   treats narrow eligibility, excluded comorbidities, setting, and baseline risk as explicit
   applicability concerns rather than hiding them in one quality score.
 
-The future claim layer should therefore separate:
+The authoring layer should therefore retain:
 
-- `EvidenceClaim`: the proposition and exact population, exclusions, intervention, comparator,
-  outcome, time horizon, setting, and question type;
-- `EvidenceContribution`: one source's relationship to that claim, its source role, study design,
+- each source-local contribution's proposition, exact population, exclusions, intervention,
+  comparator, outcome, time horizon, setting, question type, source role, study design,
   question-design fit, result-specific risk of bias, directness/applicability, publication and
   search-through dates, correction/supersession state, upstream sources, and concise contribution;
-  and
-- `EvidenceBody`: the reviewed resolution across compatible contributions, any source-supplied or
-  explicitly performed formal certainty assessment, retained conflicts, applicability gap, and
-  review rationale.
+- each topically owned relationship's decision scope, source-unit and/or Developer-opinion links,
+  exceptions, conflicts, clinical review, and eventual rule transformation; and
+- a reproducible evidence-body view that resolves compatible contributions for review, including
+  any source-supplied or explicitly performed formal certainty assessment, retained conflicts,
+  applicability gap, and review rationale.
+
+The evidence-body view is generated from canonical source, topic, and opinion owners. It is not a
+separately persisted global truth store.
 
 Useful source roles include `primary_study`, `evidence_synthesis`, `guideline`, `regulatory`,
 `aggregator`, and `developer_opinion`. These describe provenance; they do not themselves activate
@@ -246,7 +261,8 @@ boundary for accepted opinions. Each relationship records its type, concise sour
 support, applicability limits, remaining interpretive bridge, source-use decision, and independent
 review. The local dossier compiler fans an opinion and each formal contribution out to all
 explicitly targeted medication, diagnosis, intervention, or test entries. It never copies the
-claim into those files, promotes an identity-only medication, or changes gameplay.
+contribution or opinion into those files, promotes an identity-only medication, or changes
+gameplay.
 
 ### User-authored residency archive
 
@@ -273,11 +289,12 @@ user confirms that the export has no identifiable patient information and is app
 process. Personal authorship does not by itself prove ownership of the residency website's exact
 expression. Article prose is not redistributed. Accepted concise judgments retain their original
 “as of” date and Developer-opinion authority. Embedded references become formal evidence only
-after independent bibliographic, source-use, and claim-support verification.
+after independent bibliographic, source-use, and source-support verification.
 
 The implemented first pilot operationalizes only a narrow slice of this design: initial MDD
 antidepressant selection and its allowlisted diagnosis/medication targets. Deterministic
-title/plaintext matching queues source revisions; it does not infer a medication claim. Complete
+title/plaintext matching queues source revisions; it does not infer a medication relationship.
+Complete
 segment review can produce private authored-unit, atomic opinion, and bibliographic candidates.
 The local dossier shows candidates beside existing runtime fit modifiers so differences are
 auditable, but it cannot edit those modifiers or assign points. No pilot candidate enters a
@@ -304,9 +321,11 @@ Only reviewed rules in this layer affect a player:
 - required stop/continue behavior; and
 - point magnitude, caps, and deduplication.
 
-Every rule links to the evidence claims and Developer opinions that informed it. The rule records
-the game-specific transformation; the balance profile records the point magnitude. A source
-update creates an impact ticket rather than silently rewriting the rule.
+Every rule links to the source-local contribution units and Developer opinions that informed it.
+The most specific decision-driving topic owns the rule; other implicated dossiers receive
+generated reverse links. The rule records the game-specific transformation, while the balance
+profile records the point magnitude. A source update creates an impact ticket rather than silently
+rewriting the rule.
 
 This separation lets the receipt say, for example:
 
@@ -333,7 +352,7 @@ as candidate antidepressant-fit dimensions. It does not supply PsychSim's exact 
 directions or point values. PMCID PMC2878258 is freely readable but the official PMC Open Access
 API reports that it is not in the Open Access subset; no reusable licence was identified.
 Accordingly, PsychSim stores verified bibliography and independently worded abstract-level
-discovery context only. Detailed medication claims require a current, legally processable source
+discovery context only. Detailed medication contributions require a current, legally processable source
 and separate psychiatrist review.
 
 ### Current fit and regimen review packets
@@ -392,18 +411,21 @@ content/catalogs/interventions/
     rules/                    reviewed intervention and combination rules
 
 content/catalogs/evidence/
-    formal/                   source bibliography and access policy
-    claims/                   concise source-scoped clinical propositions
-    opinions/                 separate Developer opinions
+    formal/                   one owner per source; later owns stable nested contribution units
+    opinions/                 separate typed Developer opinions (current compatibility catalog)
 
 content/generated/
     medication-audits/        disposable compiled “everything known about this medication” views
     intervention-audits/      disposable compiled therapy/intervention views
 ```
 
-The generated audit view resolves direct claims, class claims, source relationships, opinions,
-rules, and impacted patients into one readable dossier. It is not an independent source of truth
-and must be reproducible from tracked records. This preserves the desired one-file/one-page review
+Diagnosis, medication, finding, test, and intervention owners retain their reusable relationships
+beside the topic they most specifically govern. A dedicated relationship/policy file is created
+only when a symmetric or multifactor relationship has no natural topical owner.
+
+The generated audit view resolves direct and class relationships, source units, reverse links,
+opinions, rules, and impacted patients into one readable dossier. It is not an independent source
+of truth and must be reproducible from tracked records. This preserves the desired one-page review
 workflow while keeping shared information normalized.
 
 ## Medication granularity
@@ -421,8 +443,8 @@ Create a separate formulation or product entity only when one of these is true:
 
 Patient current medications remain regimen-entry instances, so two entries for the same ingredient
 can be addressed independently. Prior trials remain structured records with adequacy, adherence,
-response, tolerability, and source. Neither a medication definition nor an evidence claim replaces
-those patient-specific records.
+response, tolerability, and source. Neither a medication definition nor a source contribution
+replaces those patient-specific records.
 
 ## Psychotherapy and other interventions
 
@@ -461,8 +483,8 @@ These sources can eliminate substantial clerical work after exact source-use rev
 | [DailyMed services](https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm) and [openFDA labels](https://open.fda.gov/apis/drug/label/)                                                | Versioned structured label sections and identifiers                                        | Company-submitted labeling is not automatically the latest FDA-approved label; do not copy label prose/tables wholesale or assume every embedded item is public domain. |
 | [FDA pharmacologic classes](https://www.fda.gov/industry/structured-product-labeling-resources/pharmacologic-class) and [RxClass](https://lhncbc.nlm.nih.gov/RxNav/applications/RxClassIntro.html) | EPC, mechanism, physiologic-effect, pharmacokinetic, and selected VA/MED-RT relationships  | Preserve relation source/version. Do not ingest SNOMED CT or WHO ATC merely because RxClass exposes them. An EPC is not automatically a PsychSim treatment class.       |
 | [FDA CYP/transporter examples](https://www.fda.gov/drugs/drug-interactions-labeling/healthcare-professionals-fdas-examples-drugs-interact-cyp-enzymes-and-transporter-systems)                     | Reviewed substrate/inhibitor/inducer role candidates                                       | Explicitly nonexhaustive; roles do not generate a complete pairwise interaction rule by themselves.                                                                     |
-| FDA safety communications, safety-labeling changes, REMS, and pharmacogenomic tables                                                                                                               | Versioned safety overlays and source-update tickets                                        | They produce draft claims and impact reports, never silent scoring changes.                                                                                             |
-| NLM LiverTox and LactMed                                                                                                                                                                           | Specialist hepatotoxicity and lactation claim candidates                                   | Record per-record version/revision and the exact reuse terms; neither becomes a universal game rule automatically.                                                      |
+| FDA safety communications, safety-labeling changes, REMS, and pharmacogenomic tables                                                                                                               | Versioned safety overlays and source-update tickets                                        | They produce draft source units and impact reports, never silent scoring changes.                                                                                       |
+| NLM LiverTox and LactMed                                                                                                                                                                           | Specialist hepatotoxicity and lactation contribution candidates                            | Record per-record version/revision and the exact reuse terms; neither becomes a universal game rule automatically.                                                      |
 
 `DrugCentral` is accepted as a versioned, broad, low-authority authoring seed under CC BY-SA 4.0.
 The current public full dump is dated November 2023 and aggregates literature, labels, regulatory
@@ -471,7 +493,7 @@ the DrugCentral release plus available upstream identifiers. A verified direct s
 DrugCentral as support for the exact fact without deleting the discovery history.
 
 The initial `SourceUseDecision` permits local storage, deterministic extraction/indexing, and
-original derived claim candidates. It deliberately blocks AI-assisted processing, runtime
+original derived source-unit candidates. It deliberately blocks AI-assisted processing, runtime
 redistribution, and commercial distribution until an isolated attribution/ShareAlike data package
 and upstream-rights review are implemented. No dump bytes have been downloaded. The database
 cannot set first-line status, clinical authority, executable rules, or care points.
@@ -545,14 +567,15 @@ ingestable source data:
 Default treatment: bibliographic metadata plus private human consultation only. Do not upload
 these sources to PsychSim's source inbox or an AI provider. If the psychiatrist uses them to
 formulate an independent judgment, record the concise judgment as Developer opinion unless a
-separately reusable source supports the formal claim. Written permission could create a narrower
+separately reusable source supports a formal contribution. Written permission could create a narrower
 future lane.
 
 ### Therapy manuals and branded programs
 
 The existence, broad purpose, and research question associated with a therapy are different from
 its protected manual text and training materials. PsychSim can store original neutral metadata
-and source-backed applicability claims; it does not copy worksheets, scripts, diagrams, skills
+and source-backed applicability relationships; it does not copy worksheets, scripts, diagrams,
+skills
 curricula, or fidelity tools. A branded or manualized name is used only when the modeled service
 meaningfully matches it.
 
@@ -569,7 +592,7 @@ An importer must not infer:
 - that a regulatory class, chemical class, mechanism class, and gameplay treatment class are the
   same thing;
 - that every labeled contraindication maps to an absolute game prohibition;
-- that absence of a claim means a negative finding;
+- that absence of a recorded source contribution means a negative finding;
 - points, caps, treatment-path membership, or the focused workup horizon;
 - psychotherapy fidelity from a menu label; or
 - source authority or current standard of care from public availability alone.
@@ -581,12 +604,13 @@ A future deterministic medication/intervention authoring pipeline should:
 1. curate a psychiatric ingredient and intervention allowlist;
 2. import source-cleared identity and regulatory records into local authoring storage;
 3. pin source releases, exact snapshots, hashes, and acquisition times;
-4. generate concise structured claim candidates from permitted content only;
+4. generate concise source-local contribution candidates from permitted content only;
 5. label every candidate medically unreviewed;
 6. compare new snapshots with prior versions;
-7. create impact tickets for added, changed, removed, corrected, or superseded claims;
+7. create impact tickets for added, changed, removed, corrected, or superseded source units and
+   affected topical relationships;
 8. let the psychiatrist accept, narrow, reject, defer, or add a separate Developer opinion;
-9. compile reviewed claims and opinions into versioned runtime rules;
+9. compile reviewed topical relationships and opinions into versioned runtime rules;
 10. assign and balance care points separately;
 11. run affected patient/reference policies and deterministic replay tests; and
 12. produce a per-medication or per-therapy audit dossier for final review.
@@ -612,7 +636,8 @@ outside the production bundle unless an exact reviewed runtime use is separately
 
 To avoid building a comprehensive drug-reference product before proving the game:
 
-1. Define the identity, claim, classification-membership, and Developer-opinion schemas.
+1. Define the identity, source-unit, topical-relationship, classification-membership, and
+   Developer-opinion schemas after the adjacent dossier-readiness decision is settled.
 2. Migrate the ten current medication files without changing their clinical behavior.
 3. Extend the manually verified 33-ingredient RxNorm CPC identity checkpoint into a
    source-cleared, versioned refresh/import tool for only the curated psychiatric ingredient list.

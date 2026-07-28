@@ -11,7 +11,7 @@ protected authoring boundary as `source-document.90f1220536d6323b8d84`.
 The publication is a broad baseline for non-specialist care across varied resource settings. It is
 not automatically the final psychiatric-specialist authority, a diagnostic manual, or an answer
 key. Recommendation strength, certainty, intended population, availability assumptions, and
-implementation context must survive claim extraction. Formal cataloging verifies bibliographic
+implementation context must survive source-unit extraction. Formal cataloging verifies bibliographic
 identity; it does not confer medical approval.
 
 Raw PDF text, extracted chunks, and source manifests stay gitignored and out of the browser bundle.

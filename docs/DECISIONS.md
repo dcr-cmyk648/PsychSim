@@ -887,6 +887,11 @@ disagreement remains `contested` and creates a ticket. Developer opinion may bri
 applicability gap but never inherits a cited source's certainty, and evidence resolution never
 assigns points.
 
+D-164 later supersedes only the proposed physical ownership of separate global `EvidenceClaim` and
+`EvidenceBody` records. The question-specific comparison and disagreement rules above remain
+binding. A compatible evidence-body view may be generated from source-local contribution units,
+topical relationships, and Developer opinions without becoming another truth store.
+
 ## D-109 — The residency-article aggregate is a private container for dated Developer opinions
 
 Status: accepted as an intake design. At this decision's checkpoint no SharePoint bytes or
@@ -2181,3 +2186,43 @@ preferred work order is stable identities and knowledge atoms, source and opinio
 assembled dossiers and gap audits, deterministic patient/rule compilation, and finally playable
 case/UI expansion. `docs/DATABASE_FIRST_DECISION_QUEUE.md` sequences the unresolved design choices;
 binding answers continue to live in this decision log.
+
+## D-164 — Sources, topics, and rules use tiered primary ownership
+
+**Decision:** PsychSim follows the useful Fractured Fate ownership pattern rather than creating
+one physical file per proposition or a separate global “assertion database.”
+
+Each formal article, guideline, regulatory record, or other source has one durable source file. A
+large source file may contain many stable nested section, recommendation, finding, table, and
+source-contribution IDs under readable headers, together with metadata, rights, version and
+correction relationships, target cross-links, unresolved gaps, and typed Developer commentary.
+Developer commentary may be physically co-located with the source it discusses, but it remains a
+distinct provenance object and never becomes source-authored content. Source topology and concise
+derived material are retained only to the degree permitted by that source's reuse decision.
+
+Independently useful clinical topics—diagnoses, medications, formulations, symptoms/findings,
+measurements, tests, therapies, dispositions, and similar concepts—have canonical topical owner
+files. They assemble relevant source units and accepted Developer interpretation under useful
+headers and cross-reference other owners rather than duplicating their full contents. Generated
+dossier views resolve both forward and reverse links so one medication page can still display
+everything currently connected to it.
+
+A concrete clinical/game relationship has one canonical owner:
+
+1. the most specific decision-driving topic owns it;
+2. every other implicated topic receives a generated reverse link; and
+3. a genuinely symmetric or multifactor relationship with no natural owner receives one dedicated
+   relationship or policy file.
+
+For example, a weight-status owner may hold a reviewed mirtazapine/high-BMI fit rule, while an
+insomnia owner holds a separate mirtazapine/insomnia fit rule. The mirtazapine dossier assembles
+both. A resolved patient supplies the relevant BMI and sleep facts; the focused compiler selects
+the applicable rules. Each rule names its source-unit and/or Developer-opinion support, exact
+scope, exceptions, review state, and separately authored point magnitude.
+
+Do not create a new owner for every mention. Use a dedicated relationship/policy file only when
+the relationship is independently reusable and lacks a natural topical owner. Existing
+`EvidenceContribution` and `DeveloperOpinion` records remain compatibility structures until a
+bounded migration is designed after the adjacent dossier-readiness decisions. This decision
+changes architecture and terminology only; it does not bulk-reconstruct guidelines, activate a
+clinical rule, or migrate source content by itself.

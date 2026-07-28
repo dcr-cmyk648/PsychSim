@@ -45,11 +45,11 @@ The private authoring database is deliberately richer than the runtime graph:
 ```text
 private notes + authored material + formal sources
                        │
-          provenance-preserving source units
+       source-owned, provenance-preserving units
                        │
-      entry dossiers + gaps + disagreements + reading leads
+ topic owners + generated dossiers + gaps + disagreements
                        │ psychiatrist review
-          claims / contributions / Developer opinions
+ reviewed relationships + distinct Developer opinions
                        │ separate rule and balance review
              reusable qualitative rules
                        │ focused encounter compilation
@@ -144,16 +144,19 @@ contribution statement into the rule trace. If no contribution is linked, the en
 `Expert opinion`. This makes historical receipts auditable without bundling copyrighted source
 text or implying that bibliographic verification equals clinical approval.
 
-Evidence precedence belongs in the future claim-resolution layer, not in static source metadata.
-The resolver compares compatible claims by question-specific design fit, bias/certainty,
-directness/applicability, currency, and correction state. It retains unresolved disagreement and
-never turns a source type or publication date into a hidden universal authority score. Aggregate
-sources such as DrugCentral remain authoring-only until their source-use decision explicitly
-permits a separately licensed runtime contribution.
+Evidence precedence belongs in a derived authoring-resolution view, not in static source metadata
+or a second global assertion store. The resolver compares source-local contributions and
+Developer interpretations addressing compatible questions by question-specific design fit,
+bias/certainty, directness/applicability, currency, and correction state. It retains unresolved
+disagreement and never turns a source type or publication date into a hidden universal authority
+score. The resulting evidence-body view is disposable and traces back to its source and topical
+owners. Aggregate sources such as DrugCentral remain authoring-only until their source-use decision
+explicitly permits a separately licensed runtime contribution.
 
 The future medication/intervention authoring compiler is also outside the browser runtime. It
-combines source-cleared identity and regulatory imports, structured evidence claims, separate
-Developer opinions, and reviewed rule transformations into the small approved runtime subset.
+combines source-cleared identity and regulatory imports, stable source-local contribution units,
+topically owned relationships, separate Developer opinions, and reviewed rule transformations into
+the small approved runtime subset.
 PsychSim stable IDs remain primary over RxCUIs, UNIIs, application/product IDs, and external
 classification identifiers. A generated medication audit may assemble direct and class-level
 knowledge for one review page, but it is disposable output rather than a second source of truth.
@@ -162,10 +165,12 @@ value directly. See `docs/MEDICATION_AND_INTERVENTION_DATA.md`.
 
 The current local-only authoring projection resolves formal contributions and accepted
 `DeveloperOpinion` records by their explicit target IDs rather than by the tracked file that owns
-the record. One reviewed source statement can therefore appear in every relevant medication and
-diagnosis dossier without duplication. The projection is still a disposable, schema-minimized
-view: neither fan-out nor an accepted opinion compiles a treatment option, rule, dose mechanic, or
-point modifier.
+the record. This is the compatibility form of the source/topic ownership contract: one reviewed
+source unit can appear in every relevant medication and diagnosis dossier without duplication,
+while one concrete relationship remains owned by its most specific decision-driving topic and is
+reverse-linked elsewhere. The projection is still a disposable, schema-minimized view: neither
+fan-out nor an accepted opinion compiles a treatment option, rule, dose mechanic, or point
+modifier.
 
 `@psychsim/web` owns presentation, transient UI state, accessibility, local Developer tools, and the
 persistence boundary. It may add real timestamps when saving attempts, flags, reviewer notes,

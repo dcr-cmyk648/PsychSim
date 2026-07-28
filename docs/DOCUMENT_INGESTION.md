@@ -21,8 +21,9 @@ Every source report uses the following explicit stages:
 3. **Extracted** — a parser produced verified `SourceDocument` and `SourceChunk` records.
 4. **Semantically reviewed** — the report names the exact document units/chunks and review scope;
    unreviewed portions remain explicit.
-5. **Candidates created** — proposed identities, bibliography, Developer opinions, claims, or
-   content changes exist but remain non-executable and medically unreviewed.
+5. **Candidates created** — proposed identities, bibliography, source-local contribution units,
+   Developer opinions, topical relationships, or content changes exist but remain non-executable
+   and medically unreviewed.
 6. **Incorporated** — a human-accepted change names the resulting versioned catalog, rule, patient,
    or other content IDs and has passed its normal validators.
 
@@ -33,7 +34,7 @@ final handoff while unresolved. Discovery or extraction alone never implies sema
 semantic review alone never implies a gameplay change. If no versioned content IDs changed, say
 that runtime content is unchanged.
 
-Before downloading or processing third-party publication bytes for claim extraction, the authoring
+Before downloading or processing third-party publication bytes for source-unit extraction, the authoring
 workflow requires an applicable `SourceUseDecision`. D-120 is a narrower exception for acknowledged
 private preservation of the user's Apple Notes corpus: it permits local export, hashing, and OCR
 only, not formal-source status or clinical use. Public readability and bibliographic verification
@@ -52,14 +53,14 @@ source-to-source relations; they are never silently folded into an older record.
 
 The tracked developer-only queue at `content/cases/review/source-needed.requests.json` records clinical decisions that cannot yet be finalized from current provenance. A request names the exact research question, affected rules/tests/patients, originating clinical tickets, preferred formal-source types, and concrete acceptance criteria. It also records existing sources that provide context but leave the question open. This prevents “needs sourcing” from becoming an ambiguous comment or an accidental rule approval.
 
-The queue directs the user to `PsychSim documents`, but it contains no copyrighted text and performs no connector action. After the user asks Codex to check Drive, new bytes still pass through discovery, SHA-256 deduplication, the protected local inbox, extraction, and one-at-a-time claim review. Only then may the request link source-document/chunk IDs and move to source-received. Resolution additionally requires a concise resolution note and the normal rule-level content change/revalidation workflow. `pnpm content:validate` checks the tracked request graph; `pnpm content:sources:validate` checks the private discovery and extraction graph.
+The queue directs the user to `PsychSim documents`, but it contains no copyrighted text and performs no connector action. After the user asks Codex to check Drive, new bytes still pass through discovery, SHA-256 deduplication, the protected local inbox, extraction, and one-at-a-time source-unit review. Only then may the request link source-document/chunk IDs and move to source-received. Resolution additionally requires a concise resolution note and the normal rule-level content change/revalidation workflow. `pnpm content:validate` checks the tracked request graph; `pnpm content:sources:validate` checks the private discovery and extraction graph.
 
 When a new publication is referenced, the first durable public step is its own stable evidence
 record with verified bibliographic and rights metadata. The source does not need to be interpreted
 into every potentially related catalog entry immediately. Instead, one or more target-specific
 review tickets record the proposed uses, affected entries, unresolved questions, and source-use
 boundary. A registered source with no approved contribution remains visible bibliography, not an
-implemented claim. This prevents both silent propagation and silent loss.
+implemented topical relationship or rule. This prevents both silent propagation and silent loss.
 
 Private semantic extraction follows the same landing rule. Every unresolved target mention must
 remain in the generated catalog-identity audit even when no matching medication, diagnosis, test,
@@ -133,8 +134,8 @@ The user-designated folder is `PsychSim documents`. The folder ID and discovered
 8. Record exact duplicates without reprocessing them. Never use filename or modified time as the
    deduplication authority.
 9. Queue genuinely new hashes in stable discovery order and work through one source at a time.
-10. Create concise claim/change proposals with target catalog IDs and provenance. Do not modify
-    scoring, medication modifiers, or patients during discovery.
+10. Create concise source-unit, topical-relationship, or change proposals with target catalog IDs
+    and provenance. Do not modify scoring, medication modifiers, or patients during discovery.
 11. Require explicit human acceptance plus validators/reference runs before a proposal becomes
     reviewed content.
 
@@ -253,8 +254,9 @@ runs that validation alongside the Drive and ordinary source manifests.
 The output is an intake corpus, not a clinical database update. Note text and OCR are untrusted
 private source material. Personal takeaways begin as Developer opinion; article titles and embedded
 citations are bibliographic candidates only. Formal evidence still requires independent
-bibliographic verification, an applicable `SourceUseDecision`, exact claim review, and a tracked
-contribution. No note, OCR passage, or citation changes a case, rule, score, or review status.
+bibliographic verification, an applicable `SourceUseDecision`, exact source-unit/application
+review, and a tracked contribution. No note, OCR passage, or citation changes a case, rule, score,
+or review status.
 
 The Codex-review command is a second, separately acknowledged release boundary. One invocation
 prepares at most one note/segment under
@@ -290,7 +292,7 @@ remote Drive sources were explicitly excluded.
 
 This is physical-coverage and prioritization infrastructure, not semantic processing. A lexical
 match cannot create an authored source unit, bibliographic record, Developer opinion, clinical
-claim, rule, point, citation, approval, or runtime entry. Unknown medication/condition concepts
+relationship, rule, point, citation, approval, or runtime entry. Unknown medication/condition concepts
 remain outside this first dictionary and require the separately reviewed identity-expansion path.
 
 ## Whole-corpus Database cross-reference

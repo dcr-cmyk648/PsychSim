@@ -11,8 +11,10 @@ Last updated: 2026-07-27
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-163. D-163 makes the private, sourced knowledge database the
-  foundation and the game a focused compiled projection. The unresolved database architecture
+  Decisions D-160 through D-164. D-163 makes the private, sourced knowledge database the
+  foundation and the game a focused compiled projection. D-164 establishes one source file with
+  many linkable units, primary topical ownership, generated reverse links, and dedicated
+  relationship files only when no natural owner exists. The remaining database architecture
   choices are dependency-ordered in `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
   `origin/main` remain unchanged unless the user separately authorizes promotion.
@@ -273,11 +275,10 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Resolve only DBQ-001's remaining cross-topic ownership question. The revised packet rejects one
-   source file per proposition: one source file may contain many stable section/contribution units,
-   typed Developer commentary, and topical cross-links. Do not implement the source/topic/rule
-   migration or bulk-atomize private sources until the ownership rule is accepted or revised.
-2. After DBQ-001, re-evaluate the remaining sequence and present DBQ-002 only. Do not shotgun the
+1. Present and resolve only DBQ-002: whether dossiers use independent section/capability readiness
+   markers rather than one linear entry-wide approval state. Do not implement a readiness schema
+   or bulk dossier migration until that decision is accepted or revised.
+2. After DBQ-002, re-evaluate the remaining sequence and present DBQ-003 only. Do not shotgun the
    queued questions.
 3. The first already-approved engineering prerequisite remains
    `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned

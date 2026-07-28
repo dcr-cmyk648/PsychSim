@@ -49,7 +49,7 @@ results. The policies are a finite audit set rather than an exhaustive search; a
 remains visible as an audit failure.
 
 Developer mode also exposes a searchable “Opinions needing references” inventory. It derives
-uncited rule-level clinical claims from current patient, medication, diagnosis, workup,
+uncited rule-level clinical relationships from current patient, medication, diagnosis, workup,
 disposition, safety, and test definitions, then deduplicates copied rule IDs across owning files.
 It links existing `SourceRequest` records where targets overlap and distinguishes clinical
 direction requiring evidence from exact point magnitudes that remain game-balance judgment. This
@@ -177,7 +177,7 @@ This lightweight queue adopts the useful workflow invariants from the user's boo
 - one authoritative status lives on the ticket rather than being inferred from prose;
 - technical dependencies can be cleared before clinical adjudication;
 - accepted, rejected, deferred, and resolved outcomes are explicit;
-- deferred claims can declare when they should resurface;
+- deferred source units or relationships can declare when they should resurface;
 - durable changes create versioned content plus validation evidence.
 
 The current instruction editor and ticket bundle are review tools, not rubric editors. Saving prose does not claim that clinical JSON changed. The local writer can persist the queue file only; it cannot choose an arbitrary path or mutate patients, medications, tests, pathways, or scoring. Codex records the eventual internal disposition while implementing or deferring the request. Versioned rubric editing, dependency scans, and supersession links remain Milestone 5.
@@ -200,7 +200,7 @@ Neither registration nor a lexical match edits every related dossier. The local 
 audit separately retains unresolved target identities and possible duplicate/alias collisions so
 that missing destinations cannot disappear during incremental authoring.
 
-Creating or accepting a ticket is not source application. A formal `EvidenceContribution`, target rule review update, content-version change, impact scan, and affected reference policies are still required after the user adjudicates the question. This keeps “the paper exists,” “the source may support this claim,” and “this exact game rule has been clinically approved” as three separate states.
+Creating or accepting a ticket is not source application. A formal `EvidenceContribution`, target rule review update, content-version change, impact scan, and affected reference policies are still required after the user adjudicates the question. This keeps “the paper exists,” “a source-local unit may support this topical relationship,” and “this exact game rule has been clinically approved” as three separate states.
 
 The recommended-guideline intake adds a fourth gate: “the source is lawful to process in this
 workflow.” NICE, APA, ACE Singapore, and ASAM currently remain metadata-only under their published
@@ -236,8 +236,8 @@ Developer mode presents this as one concise decision at a time in the existing r
 reader on the local loopback device. The layout can be tested at phone widths, but private packets
 are not available to a separate physical phone or the portable Reviewer. Saving prose updates
 IndexedDB and the ordinary local Codex handoff bundle while preserving the exact original
-snapshot. It does not modify a source unit, create a claim, accept an opinion, attach evidence,
-edit a rule, change points, or grant medical approval.
+snapshot. It does not modify a source unit, create a topical relationship, accept an opinion,
+attach evidence, edit a rule, change points, or grant medical approval.
 
 The personal-knowledge branch may use `private_processing_only` only for local
 `developer_opinion` or `no_change` proposals. The user's bounded local-processing authorization is
@@ -314,7 +314,7 @@ the rest of a case.
 
 ## New-study impact workflow
 
-A newly discovered article is reviewed one at a time. Extraction first creates source/chunk provenance and concise candidate claims; it does not edit medications or patients. Each accepted claim becomes a proposed change with target stable IDs, prior behavior, proposed behavior, author/evidence status, and an automatically computed impact set from registry dependencies, medication/patient tags, pathway references, and overrides.
+A newly discovered article is reviewed one at a time. Extraction first creates source/chunk provenance and concise source-local contribution candidates; it does not edit medications or patients. Each accepted source unit becomes a proposed topical relationship or change with target stable IDs, prior behavior, proposed behavior, author/evidence status, and an automatically computed impact set from registry dependencies, medication/patient tags, pathway references, and overrides.
 
 Before a formal publication can be cited, its bibliographic record must exist in `content/catalogs/evidence/formal/`. Bibliographic verification checks identity and citation metadata only. Each proposed application separately records the target rules and how the source contributed. If a note or judgment has no formal record, reviewers classify it as Expert opinion instead of attaching a nearby or guessed citation. `pnpm content:evidence` exposes formal sources with no linked use, every linked contribution, explicit expert notes, and the count of uncited rules that therefore display as Expert opinion.
 
@@ -330,10 +330,10 @@ Evidence comparison first partitions by question, population, intervention, comp
 time horizon, and setting. It may prefer a contribution only when corrections/supersession and
 question-specific design fit, bias/certainty, directness/applicability, and currency make it
 unambiguously dominant. Otherwise conflicting guideline, review, trial, aggregate, or author-note
-claims remain linked and `contested`; the user accepts, narrows, rejects, defers, or supersedes
+contributions remain linked and `contested`; the user accepts, narrows, rejects, defers, or supersedes
 them. A newer publication or higher nominal source tier alone never resolves the ticket. Accepted
 changes create new content versions; old attempts retain their historical snapshots. Rejection
-records the rationale so the same source claim is not repeatedly re-proposed without new evidence.
+records the rationale so the same source unit is not repeatedly re-proposed without new evidence.
 
 A multi-article personal archive is reviewed one logical article or small topic cluster at a time.
 The review shows the original date/currentness, proposed atomic Developer opinions, target IDs,
