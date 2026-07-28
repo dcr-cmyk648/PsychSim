@@ -301,6 +301,15 @@ compact blended response to the player, but the post-submission and developer vi
 disentangle why it was generated. Numerical calibration of combined soft tendencies remains a
 separate balance decision.
 
+One clinical concept may have independently resolved source/time observations. Current
+self-report, past or lifetime report, collateral, chart evidence, MSE or physical observation, and
+instrument response do not overwrite each other when their values can disagree. Grandiosity, for
+example, currently has distinct current self-report, past episodic self-report, and current
+MSE-observed identity shells. Discordance is valid and does not make the patient contradictory.
+The compiler preserves it without guessing minimization, secondary gain, insight, or etiology.
+These combinations are added only when real input requires them; no symptom × source × time
+Cartesian catalog is pre-generated.
+
 ### Subjective assessment and wording projection
 
 Patient truth, assessment response, and surface wording compile in that order and remain separate.
@@ -309,11 +318,12 @@ exertional intolerance can remain distinct resolved findings while any applicabl
 contribute to a broad self-reported fatigue/low-energy response. The response does not diagnose or
 erase its contributors.
 
-A standardized assessment item owns an explicit reviewed source-finding-to-response mapping and
-its own yes/no/ordinal scale. An unstandardized history action instead uses a versioned expression
-bank with stable variant IDs. Phrase banks may intentionally overlap—a patient with different
-underlying facts may say “tired,” “fatigued,” or “low energy”—without making those facts aliases.
-No mapping is inferred from strings.
+A standardized assessment item owns an explicit reviewed source-finding-to-response mapping, its
+own yes/no/ordinal scale, timeframe, and respondent or observation modality. An unstandardized
+history action instead uses a versioned expression bank with stable variant IDs. Phrase banks may
+intentionally overlap—a patient with different underlying facts may say “tired,” “fatigued,” or
+“low energy,” and generic grandiosity wording may apply to different report/observation scopes—
+without making those facts aliases. No mapping or scope is inferred from strings.
 
 The compiler resolves each applicable projection before play and saves:
 

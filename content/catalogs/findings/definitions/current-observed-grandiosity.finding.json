@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.mse.current-observed-grandiosity",
+  "label": "Current observed grandiosity",
+  "aliases": [],
+  "semanticKind": "mental_status_exam",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent", "subthreshold"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

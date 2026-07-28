@@ -223,6 +223,13 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Clinically meaningful duration is also structured saved case state; a deliberately below-threshold duration must name the reviewed diagnosis criterion it misses and cannot infer that criterion from prose. Optional-comorbidity pools are patient-family-owned and may declare bounded minimum/maximum selections from explicit candidates; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, literal-contradiction, and replay validation. Missing rule or route coverage is a nonblocking diagnostic, not patient invalidity.
 - Treat typed clinical facts and measurements as sources of truth. Stable clinical tags are
   versioned derived relationship keys; never let a free tag contradict its originating fact.
+- Apply source, observation modality, and time scope across symptom clusters. Current self-report,
+  historical self-report, collateral, records, MSE/physical observation, and standardized-item
+  response remain independently resolvable whenever their values can disagree, even if one compact
+  player-facing action groups them. Preserve discordance without inferring minimization, secondary
+  gain, lack of insight, or another explanation unless that explanation is separately authored.
+  Apply this boundary input-first rather than pre-enumerating every possible symptom × source ×
+  time combination; generic overlapping language belongs in expression banks, never in rule logic.
 - Keep canonical patient facts, assessment/item responses, and player-facing wording as separate
   versioned layers. A broad subjective report may have several distinct contributing facts, and
   the same ordinary phrase may appear in several reviewed expression mappings. Canonical aliases

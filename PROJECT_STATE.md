@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-177. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-179. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -74,18 +74,27 @@ Last updated: 2026-07-28
   tickets without adding clinical rules, probabilities, points, or runtime behavior.
   `ticket.catalog.findings.canonical-definition-boundary` and the unambiguous portion of
   `ticket.catalog.findings.general-psychiatry-seed` are now resolved. The strict runtime catalog
-  registers 29 medically unreviewed, identity-only findings. The 37-candidate audit plus anhedonia
-  and fatigue/energy resolutions leave eight value/semantic collisions rather than forcing them
-  into unsafe identities. The accepted
+  registers 38 medically unreviewed, identity-only findings. The 37-candidate audit plus subsequent
+  reviewed defaults now route duration and subjective burden to typed owners and resolve
+  grandiosity, impulsivity versus concrete behavior, preparatory-behavior timing, weapon access
+  versus concern, and reported versus observed thought disorganization without forcing them into
+  unsafe aliases. Paranoia versus suspiciousness, ideas of reference, persecutory content, and
+  belief appraisal is the one remaining semantic collision. The accepted
   `ticket.catalog.findings.subjective-presentation-projection-foundation` owns the future typed
   projection boundary; current `FindingBlueprint`, `ResolvedFinding`, case instances, saves,
-  replay, generation, and scoring remain unchanged. The next single review item is current versus
-  past/lifetime episodic grandiosity.
+  replay, generation, and scoring remain unchanged. The next single review item is the
+  paranoia/persecution boundary.
   D-178 makes the current database-foundation loop intentionally local and narrow: one decision or
   owner at a time, smallest relevant schema/content validation, and no routine GitHub push,
   Actions/Pages observation, browser suite, portable-app build, or app-server work. Full app and
   release gates resume only for an affected surface, an explicit integration request, or the
   realistic-patient-generation readiness checkpoint.
+  D-179 generalizes source, observation modality, and time scope across symptom clusters. Current
+  report, historical report, collateral, records, MSE/physical observation, and instrument response
+  remain independently resolvable when they can disagree, while a compact player-facing action may
+  group them. Discordance is valid and does not imply minimization, secondary gain, poor insight,
+  or another explanation unless separately authored. Scope combinations remain input-driven rather
+  than pre-enumerated.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected Git state after recording D-178: local `beta` may be ahead of `origin/beta` or carry a
@@ -394,11 +403,23 @@ the managed sandbox denied their local IPC socket or loopback listener; the iden
 permissioned commands passed. Existing large-chunk, PDF standard-font, npm environment, Vite
 chunk-size, color-environment, and Node `module.register()` warnings remain advisory.
 
+The D-179 source/time-scope batch passed its deliberately narrow local gate on 2026-07-28:
+
+- 75 focused canonical-finding, runtime-content, Developer-ticket, and literature-attachment tests;
+- direct content/catalog/registry validation;
+- Developer database cross-reference regeneration and validation: 206 documents, 234 source units,
+  89 retained identity gaps, and 16 overlapping terms; and
+- focused formatting plus `git diff --check`.
+
+No application build, browser suite, app-server check, GitHub push, Actions observation, Pages
+check, reference-run replay, or complete repository gate was run; D-178 intentionally defers those
+until an affected surface or integration checkpoint.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-174
+- `docs/DECISIONS.md` through D-179
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -426,15 +447,15 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Present and resolve only `ticket.catalog.findings.grandiosity-time-scope-boundary` as the next
-   single review item. The prepared packet proposes separate current and past/lifetime episodic
-   grandiosity identities because they can disagree, while allowing compact overlapping
-   presentation wording through the future projection layer.
+1. Present and resolve only `ticket.catalog.findings.paranoia-persecution-boundary` as the next
+   single review item. The prepared packet proposes that `paranoia` remain presentation/search
+   vocabulary while the backend separately resolves suspiciousness or mistrust, ideas of
+   reference, persecutory content, and belief conviction/context.
    Keep this and subsequent database-foundation decisions local and run only focused validation;
    do not perform an app/release checkpoint.
-2. If approved, add only those identity shells. Do not migrate compatibility cases or add a
-   diagnosis criterion, generation tendency, probability, relevance, points, treatment behavior,
-   or medical approval. Then route the next deferred collision one at a time.
+2. If approved, add only the reviewed identity/value shells. Do not migrate compatibility cases or
+   add a diagnosis criterion, generation tendency, probability, relevance, points, treatment
+   behavior, or medical approval. Then proceed to the already accepted projection foundation.
 3. Continue through the authoritative ordered queue in
    `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
    general file.

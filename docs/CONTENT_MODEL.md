@@ -435,7 +435,7 @@ The first additive part of this target now exists without replacing compatibilit
 - `CanonicalFindingResolutionEnvelope` validates that a resolved outcome is admitted by the exact
   referenced definition version.
 
-The runtime catalog currently contains 29 identity-only, medically unreviewed definitions across
+The runtime catalog currently contains 38 identity-only, medically unreviewed definitions across
 function, depressive/anxiety/mania history, reported psychosis, sleep/appetite, and
 suicide/violence safety. They have no condition association, criteria role, prevalence, generation
 weight, treatment implication, or point value. The first 37-candidate audit intentionally did not
@@ -444,16 +444,30 @@ decision normalized loss/reduction of interest and loss/reduction of pleasure as
 current anhedonia identity. The next decision added one broad current self-reported
 fatigue/low-energy identity while explicitly retaining sleepiness, weakness, psychomotor slowing,
 medication sedation, exertional intolerance, and other possible contributors as separate facts.
-Six other semantic collisions remain explicit one-at-a-time review work.
+The next source/time pass added separate current, past episodic, and MSE-observed grandiosity;
+current self-reported impulsivity without replacing concrete high-risk behaviors; separate current
+and historical suicide preparatory behavior; current self-reported weapon access without inventing
+a patient-level `weapon concern`; and separate self-reported versus MSE-observed thought
+disorganization. Duration and subjective burden are routed to target-scoped typed values rather
+than Boolean findings. Paranoia versus suspiciousness, ideas of reference, persecutory content, and
+belief appraisal is the one remaining semantic boundary from that audit.
+
+Source, modality, and time are general axes even though the first additive schema does not yet
+encode them as independent typed fields. Add only combinations encountered by real content, and
+enumerate their stable IDs explicitly. Never infer scope by parsing an ID, label, alias, or phrase.
+Current report, historical report, collateral, records, MSE/physical observation, and instrument
+response may disagree without invalidating a patient. The explanation system preserves the
+discordance but cannot infer its reason without a separately authored fact.
 
 The target subjective-presentation layer is accepted but not implemented. A standardized
 instrument item will own an explicit reviewed mapping from applicable source findings to its
-yes/no/ordinal response. An unstandardized history action will use a deterministic expression bank.
-The frozen projection will save its version, source action or item, response, stable wording
-variant, and all contributing resolved-finding IDs before play. The same phrase may appear in
-several expression banks; canonical aliases remain strict and cannot create that relationship.
-Post-submit audit can therefore disentangle patient truth, assessment response, and displayed
-wording even when the player-facing answer is compact.
+yes/no/ordinal response, including its timeframe and respondent or observation modality. An
+unstandardized history action will use a deterministic expression bank. The frozen projection will
+save its version, source action or item, response, stable wording variant, and all contributing
+resolved-finding IDs before play. The same phrase may appear in several expression banks;
+canonical aliases remain strict and cannot create that relationship. Post-submit audit can
+therefore disentangle patient truth, assessment response, and displayed wording even when the
+player-facing answer is compact or the report and observation conflict.
 
 Existing `FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay
 remain the compatibility path and were not migrated. Numeric measurements, test-owned results,

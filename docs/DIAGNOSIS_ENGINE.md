@@ -132,6 +132,12 @@ and its rule version; diagnosis composition continues to consume the typed findi
 condition logic rather than inferring meaning from “tired,” “low energy,” or another displayed
 string.
 
+The same symptom concept may have current-report, historical-report, collateral, record,
+MSE/physical-observation, and instrument-response values that disagree. Diagnosis composition
+retains those values and their scopes; it neither chooses one by file order nor infers why the
+patient and observation differ. A later reviewed diagnostic rule must name the exact facts or
+response identities it consumes.
+
 The option field is named `gameSelectionWeight` intentionally. It is a game-generation distribution, not an epidemiologic prevalence claim. Any distribution that changes care requires its own review and provenance.
 
 Objective fit and player knowledge are separate concerns. The resolved patient fact affects actual

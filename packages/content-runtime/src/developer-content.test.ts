@@ -93,6 +93,41 @@ describe('developer clinical audit queue', () => {
     });
   });
 
+  it('records mechanical finding-scope resolutions and leaves only paranoia for review', () => {
+    const byId = new Map(developerClinicalAuditTickets.map((ticket) => [ticket.id, ticket]));
+    expect(byId.get('ticket.catalog.findings.grandiosity-time-scope-boundary')).toMatchObject({
+      status: 'resolved',
+      targetContentIds: expect.arrayContaining([
+        'finding.history.current-grandiosity',
+        'finding.history.past-episodic-grandiosity',
+        'finding.mse.current-observed-grandiosity',
+      ]),
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
+    for (const id of [
+      'ticket.catalog.findings.impulsivity-risk-behavior-boundary',
+      'ticket.catalog.findings.suicide-preparatory-behavior-time-scope',
+      'ticket.catalog.findings.weapon-access-concern-boundary',
+      'ticket.catalog.findings.thought-disorganization-source-boundary',
+      'ticket.catalog.findings.duration-value-owner-routing',
+      'ticket.catalog.findings.subjective-burden-value-owner-routing',
+    ]) {
+      expect(byId.get(id)).toMatchObject({
+        status: 'resolved',
+        requiresClinicalAcumen: false,
+        resolution: { disposition: 'applied' },
+      });
+    }
+    expect(byId.get('ticket.catalog.findings.paranoia-persecution-boundary')).toMatchObject({
+      status: 'in_review',
+      requiresClinicalAcumen: true,
+      resolution: null,
+    });
+  });
+
   it('loads a validated source-needed queue linked to exact tickets and content', () => {
     expect(
       validateSourceRequests(

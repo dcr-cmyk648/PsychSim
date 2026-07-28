@@ -330,6 +330,11 @@ wording variants for unstructured history. The resolved projection, contributor 
 selected variant are frozen in the encounter before play. Patient phrases may overlap across
 different source facts, but canonical aliases remain identity-equivalent and globally unique.
 Neither string matching nor displayed wording may activate diagnosis, treatment, or point logic.
+Current report, historical report, collateral, records, MSE/physical observation, and standardized
+response remain independently resolvable when they can disagree. Their discordance is retained
+rather than treated as a generator conflict or assigned an inferred explanation. Add these scope
+combinations only when input content needs them; until the future typed scope boundary exists,
+consumers enumerate stable IDs and never parse scope from their spelling.
 This projection boundary is accepted architecture and a blocking compiler dependency; it is not
 yet part of the compatibility `CaseInstance` path.
 

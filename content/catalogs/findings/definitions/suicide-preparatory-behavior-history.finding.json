@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.safety.suicide-preparatory-behavior-history",
+  "label": "History of suicide preparatory behavior",
+  "aliases": [],
+  "semanticKind": "safety",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

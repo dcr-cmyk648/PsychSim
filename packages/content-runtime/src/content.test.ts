@@ -158,7 +158,7 @@ describe('prototype content', () => {
     const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
     expect(parsedFindings).toEqual(runtimeCatalog.findings);
-    expect(parsedFindings).toHaveLength(29);
+    expect(parsedFindings).toHaveLength(38);
     expect(
       parsedFindings.find((finding) => finding.id === 'finding.depressive.depressed-mood'),
     ).toEqual(
@@ -194,24 +194,33 @@ describe('prototype content', () => {
       'finding.history.current-elevated-irritable-mood',
       'finding.history.current-excessive-guilt',
       'finding.history.current-fatigue-low-energy',
+      'finding.history.current-grandiosity',
       'finding.history.current-high-risk-spending',
       'finding.history.current-increased-goal-directed-activity',
       'finding.history.current-pressured-speech',
       'finding.history.current-psychomotor-slowing',
       'finding.history.current-racing-thoughts',
+      'finding.history.current-self-reported-impulsivity',
+      'finding.history.current-self-reported-thought-disorganization',
       'finding.history.difficulty-controlling-worry',
       'finding.history.excessive-worry',
       'finding.history.muscle-tension',
       'finding.history.panic-attacks',
+      'finding.history.past-episodic-grandiosity',
       'finding.history.reported-delusional-beliefs',
       'finding.history.reported-hallucinations',
       'finding.history.restlessness',
+      'finding.mse.current-observed-grandiosity',
+      'finding.mse.current-observed-thought-disorganization',
       'finding.safety.current-active-suicidal-ideation',
       'finding.safety.current-passive-death-wish',
+      'finding.safety.current-self-reported-weapon-access',
+      'finding.safety.current-suicide-preparatory-behavior',
       'finding.safety.current-violent-ideation',
       'finding.safety.current-violent-intent',
       'finding.safety.recent-violent-behavior',
       'finding.safety.suicide-attempt-history',
+      'finding.safety.suicide-preparatory-behavior-history',
       'finding.sleep.current-hypersomnia',
       'finding.sleep.current-insomnia',
     ]);
@@ -227,13 +236,9 @@ describe('prototype content', () => {
     ]);
     expect(canonicalTerms).not.toEqual(
       expect.arrayContaining([
-        'grandiosity',
-        'impulsivity',
         'paranoia',
-        'preparatory behavior',
         'subjective burden',
         'symptom duration',
-        'thought disorganization',
         'weapon-access concern',
       ]),
     );
@@ -275,6 +280,87 @@ describe('prototype content', () => {
         'Exertional intolerance',
       ]),
     );
+    expect(
+      catalogs.findings
+        .filter((finding) => finding.id.includes('grandiosity'))
+        .map(({ id, semanticKind, aliases, valueSpecification }) => ({
+          id,
+          semanticKind,
+          aliases,
+          valueSpecification,
+        })),
+    ).toEqual([
+      {
+        id: 'finding.history.current-grandiosity',
+        semanticKind: 'history',
+        aliases: [],
+        valueSpecification: {
+          kind: 'outcome',
+          allowedValues: ['present', 'absent', 'subthreshold'],
+        },
+      },
+      {
+        id: 'finding.history.past-episodic-grandiosity',
+        semanticKind: 'history',
+        aliases: [],
+        valueSpecification: {
+          kind: 'outcome',
+          allowedValues: ['present', 'absent', 'subthreshold'],
+        },
+      },
+      {
+        id: 'finding.mse.current-observed-grandiosity',
+        semanticKind: 'mental_status_exam',
+        aliases: [],
+        valueSpecification: {
+          kind: 'outcome',
+          allowedValues: ['present', 'absent', 'subthreshold'],
+        },
+      },
+    ]);
+    expect(
+      catalogs.findings
+        .flatMap((finding) => finding.aliases)
+        .map((alias) => alias.toLocaleLowerCase('en-US')),
+    ).not.toEqual(expect.arrayContaining(['grandiosity', 'inflated self-esteem']));
+    expect(
+      catalogs.findings.find(
+        (finding) => finding.id === 'finding.history.current-self-reported-impulsivity',
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        label: 'Current self-reported impulsivity',
+        aliases: [],
+        semanticKind: 'history',
+      }),
+    );
+    expect(
+      catalogs.findings
+        .filter((finding) => finding.id.includes('thought-disorganization'))
+        .map((finding) => [finding.id, finding.semanticKind]),
+    ).toEqual([
+      ['finding.history.current-self-reported-thought-disorganization', 'history'],
+      ['finding.mse.current-observed-thought-disorganization', 'mental_status_exam'],
+    ]);
+    expect(
+      catalogs.findings
+        .filter((finding) => finding.id.includes('suicide-preparatory-behavior'))
+        .map((finding) => finding.id),
+    ).toEqual([
+      'finding.safety.current-suicide-preparatory-behavior',
+      'finding.safety.suicide-preparatory-behavior-history',
+    ]);
+    expect(
+      catalogs.findings.find(
+        (finding) => finding.id === 'finding.safety.current-self-reported-weapon-access',
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        label: 'Current self-reported weapon access',
+        aliases: [],
+        semanticKind: 'safety',
+      }),
+    );
     const compatibilityFinding = prototypeCaseBlueprint.informationActions
       .flatMap((action) => action.result.findings)
       .find((finding) => finding.id === 'finding.depressive.depressed-mood');
@@ -282,6 +368,14 @@ describe('prototype content', () => {
       id: 'finding.depressive.depressed-mood',
       labelVariants: ['Depressed mood', 'Low mood', 'Feeling down'],
       outcome: 'variable',
+    });
+    const compatibilityGrandiosity = prototypeCaseBlueprint.informationActions
+      .flatMap((action) => action.result.findings)
+      .find((finding) => finding.id === 'finding.mania.grandiosity');
+    expect(compatibilityGrandiosity).toEqual({
+      id: 'finding.mania.grandiosity',
+      labelVariants: ['Grandiosity', 'Inflated self-esteem'],
+      outcome: 'absent',
     });
   });
 

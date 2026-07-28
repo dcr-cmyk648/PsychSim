@@ -45,13 +45,17 @@ The most important duplication signal is in the current authored content. Across
 approved/review `*.case.json` files, 621 nested finding occurrences use 186 finding IDs; 112 IDs
 occur in more than one file. Depressive symptoms, anxiety, mania, psychosis, safety, adherence,
 substance use, sleep, prior trials, and similar concepts are repeatedly authored inside cases.
-The canonical finding-definition boundary now owns 29 identity-only, medically unreviewed
+The canonical finding-definition boundary now owns 38 identity-only, medically unreviewed
 definitions, typed outcome semantics, explicit unresolved states, and contributor provenance. The
 approved 37-candidate audit added only unambiguous identities, then the reviewer approved one
 combined anhedonia identity at a decision-relevant granularity and one broad self-reported
-fatigue/low-energy identity that does not replace its distinct possible contributors.
-Duration/ordinal values and six semantic collisions remain routed review work. It intentionally
-does not migrate or normalize case-local occurrences.
+fatigue/low-energy identity that does not replace its distinct possible contributors. The approved
+source/time default then resolved grandiosity, impulsivity versus concrete behavior, preparatory
+behavior timing, weapon access versus clinical concern, and reported versus observed thought
+disorganization. Duration and subjective burden now route to target-scoped typed owners. Paranoia
+versus suspiciousness, ideas of reference, persecutory content, and belief appraisal is the one
+remaining semantic collision. These decisions intentionally do not migrate or normalize case-local
+occurrences.
 
 Other material gaps:
 
@@ -76,7 +80,7 @@ invalid. Existing `CaseBlueprint` and `CaseInstance` snapshots remain the compat
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Identity and governance                  | Stable IDs, registry, Zod versions, lifecycle, formal evidence, source-use decisions, Developer opinions                             | Add registry kinds only when a real catalog is implemented; do not create empty parallel stores                                                 | Routed by each owner ticket                                                                                        |
 | Atomic findings                          | Case-local compatibility plus versioned canonical definition, resolved value, contributor provenance, and permitted projection modes | Technical identity boundary complete; runtime compilation remains in its separate row/ticket                                                    | `ticket.catalog.findings.canonical-definition-boundary` (resolved 2026-07-28)                                      |
-| General psychiatry findings              | 29 identity-only canonical definitions, many compatibility IDs, and 40 neutral reveal actions                                        | Resolve bounded semantic/value collisions one at a time; add substance, MSE, and physical owners without probabilities or scoring               | Anhedonia and fatigue/energy resolved 2026-07-28; next: `ticket.catalog.findings.grandiosity-time-scope-boundary`  |
+| General psychiatry findings              | 38 identity-only canonical definitions, many compatibility IDs, and 40 neutral reveal actions                                        | Resolve the remaining paranoia/persecution/appraisal boundary; add substance, MSE, and physical owners without probabilities or scoring         | Source/time collisions resolved 2026-07-28; next: `ticket.catalog.findings.paranoia-persecution-boundary`          |
 | Subjective response and wording          | Accepted three-layer ownership contract; compatibility case-local `labelVariants`                                                    | Versioned expression banks, explicit source-finding-to-response mappings, and frozen contributor-preserving resolved projections                | `ticket.catalog.findings.subjective-presentation-projection-foundation`                                            |
 | Vitals, measurements, MSE, physical exam | Weight/BMI action, general/neurologic/movement/orthostatic exam actions, lab numeric primitives                                      | Typed reusable measurement and observation definitions; remove string-only vitals from the target path                                          | `ticket.catalog.measurements.vitals-exam-foundation`                                                               |
 | Tests and results                        | One file per test, numeric-panel generator, UCUM fields, immediate service fulfillment                                               | Structured reusable results for ECG, imaging, EEG, toxicology, levels, pregnancy, and pharmacogenomics; reviewed interval data remains separate | `ticket.catalog.tests.structured-result-foundation`                                                                |
@@ -96,8 +100,9 @@ The general dependency gate depends on the following work in this order:
 
 1. `ticket.catalog.findings.canonical-definition-boundary` (resolved 2026-07-28)
 2. `ticket.catalog.findings.general-psychiatry-seed` (resolved 2026-07-28)
-   - anhedonia and fatigue/energy boundaries resolved; 29 definitions
-   - next bounded review: `ticket.catalog.findings.grandiosity-time-scope-boundary`
+   - anhedonia, fatigue/energy, mechanical source/time, behavior/interpretation, and typed-value
+     owner boundaries resolved; 38 definitions
+   - next bounded review: `ticket.catalog.findings.paranoia-persecution-boundary`
 3. `ticket.catalog.findings.subjective-presentation-projection-foundation`
 4. `ticket.catalog.measurements.vitals-exam-foundation`
 5. `ticket.catalog.tests.structured-result-foundation`

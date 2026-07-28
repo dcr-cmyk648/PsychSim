@@ -746,9 +746,14 @@ identity while preserving its possible contributors as separate facts. The latte
 and resolved the three-layer architecture boundary between patient truth, assessment response, and
 surface wording. Its typed projection foundation is accepted technical work and generalized
 compilation remains disabled. The exact next review is
-`ticket.catalog.findings.grandiosity-time-scope-boundary`: decide whether current grandiosity and a
-past/lifetime episodic history require separate identities while allowing compact shared
-presentation wording. No compatibility case migration, clinical association, probability, point
+`ticket.catalog.findings.paranoia-persecution-boundary`: decide whether `paranoia` should remain
+presentation/search vocabulary while the backend separately resolves suspiciousness or mistrust,
+ideas of reference, persecutory content, and the conviction/context required for any later
+delusional interpretation.
+The approved general source/time rule already resolved grandiosity, impulsivity versus concrete
+behavior, suicide-preparatory-behavior timing, weapon access versus concern, and reported versus
+observed thought disorganization without further clinical review. Duration and subjective burden
+route to typed values. No compatibility case migration, clinical association, probability, point
 value, or patient generation is authorized.
 
 While this dependency queue is active, each accepted item remains a tight local database iteration:

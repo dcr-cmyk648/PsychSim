@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.5",
+  "contentVersion": "1.0.6",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1237,6 +1237,11 @@
       "ticketId": "ticket.catalog.findings.grandiosity-time-scope-boundary",
       "profileIds": [],
       "exemptionReason": "This is a narrow time-scope and identity-granularity decision. Diagnostic sources may later support criteria and assessment semantics, but a treatment-effect meta-analysis cannot decide whether current and historical grandiosity require independently resolvable game facts."
+    },
+    {
+      "ticketId": "ticket.catalog.findings.paranoia-persecution-boundary",
+      "profileIds": [],
+      "exemptionReason": "This is a narrow symptom-content, appraisal, source, and presentation-vocabulary boundary. Psychometric and diagnostic literature may help distinguish suspiciousness, persecutory ideation, and likely delusional interpretation, but a treatment-effect meta-analysis cannot define the repository identity boundary or make the word paranoia diagnostic."
     },
     {
       "ticketId": "ticket.catalog.measurements.vitals-exam-foundation",

@@ -2768,3 +2768,34 @@ batched, and `PROJECT_STATE.md` must state clearly what is and is not remotely b
 workflow changes iteration cadence only; it does not relax content validation, deterministic
 architecture, source/privacy boundaries, or the complete gates required for a later integration
 checkpoint.
+
+## D-179 — Symptom source, modality, and time scope remain independently resolvable
+
+**Decision:** The grandiosity boundary generalizes across symptom clusters. Current patient report,
+past or lifetime report, collateral report, chart or record evidence, current MSE or physical
+observation, and a standardized instrument response remain independently resolvable whenever their
+values can disagree. One History, Physical, or Testing action may present several of them compactly,
+and their ordinary wording may overlap, but the resolved backend and explanation trace preserve
+each value, scope, contributor, and projection.
+
+Discordance is valid patient state rather than a generation contradiction. The engine does not
+infer minimization, secondary gain, lack of insight, misunderstanding, cognition, or etiology from
+the discrepancy unless a separate reviewed fact represents that explanation. Scope is applied
+input-first: add the combinations encountered by actual content rather than pre-enumerating every
+possible symptom × source × time permutation. Until a typed scope schema is implemented, every
+consumer enumerates stable IDs explicitly and must never parse scope from an ID, label, alias, or
+surface phrase.
+
+This default automatically resolves mechanical source/time collisions. Current, past episodic, and
+MSE-observed grandiosity are separate identities. Current self-reported impulsivity remains
+separate from concrete behavior such as high-risk spending. Current and historical suicide
+preparatory behavior are separate; exact event timing remains a later typed record. Current
+self-reported weapon access is patient state, while whether it is clinically concerning belongs to
+a safety assessment or policy. Self-reported and MSE-observed thought disorganization are separate.
+Symptom duration and subjective burden route to target-scoped typed values rather than Boolean
+findings.
+
+These identity and ownership decisions add no diagnostic criterion, clinical interpretation,
+generation probability, scoring, treatment behavior, compatibility migration, or medical
+approval. A genuinely consequential semantic boundary—rather than a mechanical scope
+application—still returns for psychiatrist review.
