@@ -31,9 +31,11 @@ The following foundations are not being asked again:
 - coverage is a sparse, rebuildable audit rather than a completion percentage or parallel database
   (D-158);
 - diagnosis families own reusable variants, while patient templates select and narrowly constrain
-  them (D-160); and
+  them (D-160);
 - one resolved finding may appear in several player-facing views while retaining one backend truth
-  and complete contributor provenance (D-161).
+  and complete contributor provenance (D-161); and
+- diagnosis dossiers support complete snapshot regimen transitions and separately quarantined
+  source-lead/authoring-inference speculation without automatic sparse-section completion (D-168).
 
 Two implementation prerequisites are also already approved:
 
@@ -251,7 +253,7 @@ formal evidence with Developer opinion.
 
 ### DBQ-005 — Define the diagnosis-family dossier contract
 
-**Status:** current.
+**Status:** accepted as D-168.
 
 Decide the reusable sections a diagnosis family may own: identity and hierarchy, defining
 features, severity/specifier branches, common manifestations, expected associated findings,
@@ -280,14 +282,24 @@ reviewed material exists:
    Treatment-triggered prerequisites remain conditional. Shared findings, tests, scales, and
    dispositions keep their own topical owners and appear through cross-links.
 6. The family owns broad treatment routes by branch or line, such as a reviewed first-line
-   medication family or psychotherapy route. Individual medication monographs own medication
-   characteristics; other topical owners own fit relationships; point magnitudes remain separate.
-   A patient may add a narrow authored constraint or safe fallback without copying the whole
-   diagnosis plan.
+   medication family or psychotherapy route. A route may describe a complete snapshot regimen
+   transition rather than only static treatment eligibility: retain a beneficial anchor, act on a
+   poorly fitting or ineffective current regimen entry, and start an eligible replacement or
+   adjunct. Both the before and proposed states may satisfy the broad route while medication
+   response, tolerability, prior trials, interactions, and fit distinguish the better next step.
+   Individual medication and other topical owners supply those effects; regimen entries and prior
+   trials remain patient state; point magnitudes remain separate. No route implies a dose,
+   cross-taper schedule, virtual follow-up, or observed longitudinal outcome.
 7. Sources, Developer opinions, conflicts, gaps, generation mappings, patients, and executable
    rules appear through the derived dossier with detailed provenance collapsed by default. Sparse
-   or unreviewed sections stay explicitly unknown; dossier completeness is never required for
-   identity capture or unrelated focused gameplay.
+   or unreviewed sections stay explicitly unknown by default. A section may also show a short,
+   clearly separated speculative candidate when an admitted source contains a traceable lead or an
+   authorized developer-side authoring process makes a traceable inference. Source leads and
+   authoring inferences retain different labels, inputs, provenance, assumptions, uncertainty, and
+   follow-up questions. They cannot compile into gameplay or masquerade as a source contribution,
+   Developer opinion, fact, rule, point value, or approval. Empty sections are not automatically
+   filled, and dossier completeness is never required for identity capture or unrelated focused
+   gameplay.
 
 This should let one diagnosis family support varied first-visit, prior-response, and nonresponse
 patients without copying a fixed case solution or requiring the game to model all of psychiatry.
@@ -297,13 +309,53 @@ texture, and reusable treatment pathways.
 
 ### DBQ-006 — Define the medication and intervention dossier contract
 
-**Status:** queued after the common ownership and dossier decisions.
+**Status:** current.
 
 Decide the reusable sections for medication ingredients/formulations, psychotherapy and other
 interventions: identity, regulatory status, evidence-supported uses, expected benefits, adverse
 effects, interactions, fit dimensions, contraindication/risk severity, prior-response context,
 monitoring prerequisites relevant to a snapshot, and regimen relationships. Exact dose information
 may be retained for reference without adding dose-entry gameplay.
+
+**Proposed default:** use one shared intervention envelope with type-specific medication and
+psychotherapy/other-intervention modules:
+
+1. Every intervention owns stable identity, aliases, independently sourced classifications, and
+   relationships to broader families. Medications begin at ingredient level. Formulations become
+   separate entities only when route/formulation changes availability, safety, adherence,
+   fulfillment, or the best-next-step decision. External IDs never replace PsychSim IDs.
+2. Regulatory status remains a separate jurisdiction-, product-, formulation-, and
+   version-specific lane. Approval, labeling, warnings, and contraindication wording are visible
+   facts, not automatic evidence of first-line status, comparative benefit, or game points.
+3. Clinical-use relationships preserve condition, population, setting, severity/phase, treatment
+   line, target outcome, and role such as monotherapy, retained anchor, adjunct, replacement,
+   symptom-targeted option, or discontinuation candidate. Source-specific roles may disagree.
+4. Benefit, adverse-effect, feasibility, and patient-fit relationships are independently
+   traceable. Source estimates retain population/outcome/time-horizon limits. A separate reviewed
+   transformation decides whether a relationship becomes a qualitative rule, and balance supplies
+   points; aggregate rates never become unexplained patient probabilities.
+5. Safety keeps regulatory contraindications, reviewed hard contraindications, serious
+   nonabsolute concerns, withdrawal/discontinuation effects, organ-function constraints,
+   reproductive considerations, interactions, and snapshot-relevant prerequisites distinct.
+   Shared mechanism/class rules may coexist with more-specific formulation, pair, or patient rules.
+6. Medication files do not own a patient's regimen history. Each current medication is a distinct
+   regimen-entry instance with role, response, tolerability, and other resolved state; each prior
+   trial is a structured patient record. A complete submitted transition can target individual
+   entries with `continue`, `increase`, `reduce_or_limit`, `taper`, or `stop`, plus starts. The
+   dossier supplies reusable relationships needed to judge retention, replacement, augmentation,
+   retrial, simplification, and duplicate therapy without simulating a schedule.
+7. Psychotherapy and other interventions share identity, evidence, role, fit, combination,
+   redundancy, and capability concepts, but use their own delivery, fidelity, practitioner,
+   setting, and program-completeness fields rather than being forced into medication structures.
+   A generic modality, protocol-based therapy, referral, and full program remain distinguishable.
+8. The dossier is a derived one-entry audit over source units, Developer opinions, conflicting or
+   speculative candidates, rules, balance, reverse links, current patients, and impact tickets.
+   Detailed provenance remains collapsed. Speculative candidates follow D-168 and remain
+   nonexecutable.
+
+This structure should support a simple “start any first-line treatment” patient and a complex
+polypharmacy patient with many prior trials using the same reusable records, without turning the
+game into a dosing or longitudinal-care simulator.
 
 **Unlocks:** broad treatment menus, medication fit, adverse-effect puzzles, polypharmacy cleanup,
 and source-linked receipt explanations.
@@ -371,9 +423,10 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-005 before detailing DBQ-006. Do not implement a diagnosis-family schema,
-reconstruct diagnostic criteria, or bulk-migrate diagnosis content until DBQ-005 is accepted or
-revised. D-167 defines review-packet behavior but does not automatically apply scouted sources,
-revise the tracked packet schema, or authorize bulk scouting. DBQ-002 still authorizes only a
+Present and resolve DBQ-006 before detailing DBQ-007. Do not implement or bulk-migrate the
+medication/intervention dossier schema until DBQ-006 is accepted or revised. D-168 permits
+traceable speculative candidates but does not authorize automatic completion of sparse sections,
+runtime AI, or speculative gameplay rules. D-167 still does not automatically apply scouted
+sources, revise the tracked packet schema, or authorize bulk scouting. DBQ-002 authorizes only a
 one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin architecture rather than
 immediate bulk catalog generation.

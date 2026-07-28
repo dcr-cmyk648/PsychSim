@@ -119,6 +119,15 @@ generation retains the source estimate, population, outcome definition, time hor
 and a separately reviewed game-probability mapping; published incidence is never silently copied
 into the generator.
 
+A complex encounter compiles a regimen transition, not merely a replacement medication set. The
+submitted snapshot can preserve one beneficial entry, target another entry with
+`reduce_or_limit`, `taper`, or `stop`, and add a replacement or adjunct. The current and proposed
+regimens may both satisfy the diagnosis family's broad treatment route. Patient-owned response,
+tolerability, adverse-effect, adherence, and prior-trial records combine with reusable medication,
+interaction, and fit rules to distinguish the better next move. This supports many current
+medications and prior trials without asking the player for a complete longitudinal plan. It does
+not infer a dose, cross-taper schedule, future response, or follow-up interval.
+
 ## Allergy and adverse-reaction history
 
 A resolved patient carries an explicit reaction-history status rather than relying on an empty

@@ -48,6 +48,7 @@ private notes + authored material + formal sources
        source-owned, provenance-preserving units
                        │
  candidate bins + topic owners + generated dossiers + gaps
+                       │ optional quarantined leads/inferences
                        │ psychiatrist review
  reviewed relationships + distinct Developer opinions
                        │ separate rule and balance review
@@ -66,6 +67,12 @@ stored as a second clinical database. The local workbench requests one entry at 
 portable Reviewer builds receive neither the map nor private supporting records. An empty cell
 means only that the projection cannot currently establish coverage—it never deletes, suppresses,
 or downgrades unmatched material.
+
+The local projection may display short speculative source leads or developer-side authoring
+inferences when they reuse traceable admitted inputs. Those records sit beside—not inside—the
+source-contribution, Developer-opinion, and executable-rule lanes. They retain origin, assumptions,
+uncertainty, and a follow-up question, cannot satisfy coverage, and never enter the runtime
+compiler. The system does not spend processing merely to populate every empty cell.
 
 There is no linear dossier-wide maturity or approval state. A thin identity shell is useful
 database content even when its other lanes are unknown. The local projection derives a compact

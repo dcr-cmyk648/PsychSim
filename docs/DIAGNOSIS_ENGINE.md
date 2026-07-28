@@ -14,6 +14,8 @@ One diagnosis family lives in one file under `content/catalogs/diagnoses/definit
 - one optional severity axis, with ordered levels in the same file;
 - specifiers, including mutually exclusive groups;
 - compatibility, overlap, or exclusion relationships with other diagnoses;
+- broad condition-specific treatment routes, including complete best-next-step regimen
+  transitions when the focused decision requires them;
 - source-linked complexity contributions;
 - source-use notes that identify exactly which nested rules they informed.
 
@@ -37,6 +39,14 @@ A patient-template file continues to own:
 - source provenance and all presentation wording.
 
 Medication, investigation/test, therapy/disposition, service, and location knowledge remains in their respective catalogs. Diagnosis files reference those stable IDs; they do not copy their labels, operating costs, laboratory ranges, or medication properties.
+
+A broad treatment route may classify both a patient's current regimen and the submitted transition
+as generally compatible with condition guidance. It therefore cannot stop at “contains an allowed
+medication.” It may describe roles and cardinalities for a retained anchor, an entry to stop or
+reduce, and a replacement or adjunct. The resolved regimen and trial history supply response,
+tolerability, prior exposure, and role; medication, interaction, finding, and other topical rules
+supply specific fit and safety; balance supplies points. The encounter grades the complete
+snapshot recommendation without simulating doses, a cross-taper, follow-up, or future response.
 
 Standardized classification background lives separately under
 `content/catalogs/diagnoses/classifications/`. It is not another diagnosis-rule catalog. A
@@ -213,7 +223,14 @@ Resolved:
   than acting as free-string sources of truth;
 - one selected diagnostic standard owns criteria and severity representation; treatment guidelines
   consume those states without redefining them;
-- patient-specific exceptions require a versioned, provenance-bearing override record.
+- patient-specific exceptions require a versioned, provenance-bearing override record;
+- broad treatment guidance can compile a complete entry-targeted regimen transition, allowing both
+  the baseline and proposed states to be broadly acceptable while incremental fit, safety,
+  response, adverse effects, and prior trials distinguish the better next step;
+- diagnosis dossiers may display separately typed, nonexecutable `source_lead` or
+  `authoring_inference` speculative candidates with exact provenance and follow-up questions, but
+  never auto-fill sparse sections or treat speculation as evidence, opinion, fact, rule, points, or
+  approval;
 - structural invalidity, inaccessible required care, and no-safe-route states quarantine;
 - valid benefit-versus-risk tension remains playable, with a reviewed safety rule allowed to govern
   while both sides remain visible in the trace;

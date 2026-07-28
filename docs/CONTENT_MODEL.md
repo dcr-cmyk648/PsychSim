@@ -146,6 +146,15 @@ expected because psychiatry has many reusable concepts. Deterministic overlap re
 likely matches for review, but neither lexical similarity nor repeated occurrence performs a merge
 automatically.
 
+A sparse dossier may project short speculative candidates without pretending they fill a
+knowledge gap. A `source_lead` points to the exact admitted source unit that raised a question. An
+`authoring_inference` points to the exact structured inputs and developer-side tool, model, prompt,
+or generator version that produced a hypothesis. Both preserve assumptions, uncertainty, creation
+metadata, and a concrete follow-up question; both render as `Speculative`. They are quarantined
+authoring candidates, not evidence contributions, Developer opinions, clinical facts,
+relationships, rules, points, or approval, and the runtime compiler cannot consume them. Empty
+sections are never automatically populated merely to make a dossier look complete.
+
 DrugCentral is cataloged as an authoring-only `structured_database` source. Its initial rights
 decision allows local deterministic indexing and unreviewed source-unit candidates but blocks runtime
 redistribution. Every candidate retains the database release, record origin, available upstream
@@ -423,7 +432,7 @@ credit only by naming that accepted diagnosis ID explicitly.
 
 Available treatment IDs determine the structured UI. Reusable nonmedication entries distinguish modalities such as CBT, IPT, supportive psychotherapy, and DBT rather than collapsing every option into one prose choice. TreatmentGradeDefinition evaluates the complete intervention set with deterministic priority and an unbounded signed base-care-point award. TreatmentPathway represents an accepted complete route, required/alternative objectives, conditional prerequisites, workup-cost par, grade, and rationale. ScoreRules handle discontinuation, dangerous combinations, modality equivalence, combination bonuses, redundancy/cardinality, dispositions, efficiency, safety errors, and point caps.
 
-The patient treatment reference is deliberately hybrid. It prefers one broad primary authored pathway composed from reviewed option groups: for example, exactly one first-line antidepressant or exactly one first-line psychotherapy, plus proportionate outpatient disposition. A source-supported combination may add a bonus; a compatible source-silent combination may remain neutral. Medication- and therapy-specific fit modifiers supply swing room inside those families. Reusable redundancy groups and maximum cardinalities prevent multiple equivalent treatments from accumulating rewards. `additionalAuthoredPathwayIds` remains available for truly distinct care routes, while `safetyFallbackPathwayIds` keeps referral/transfer separate from the main plan. A deterministic catalog engine may evaluate a combination outside those authored routes using reviewed catalog rules, but the receipt labels it `engine_inferred`; it cannot masquerade as an authored patient pathway.
+The patient treatment reference is deliberately hybrid. It prefers one broad primary authored pathway composed from reviewed option groups: for example, exactly one first-line antidepressant or exactly one first-line psychotherapy, plus proportionate outpatient disposition. For a complex existing regimen, the same concept expands into one complete snapshot transition over entry-targeted operations and new starts: a reviewed route may retain a beneficial anchor, stop or reduce a poorly fitting entry, and add a replacement or adjunct. The baseline and submitted regimens can both meet the broad route while response, tolerability, prior trials, safety, and fit distinguish the better next move. A source-supported combination may add a bonus; a compatible source-silent combination may remain neutral. Medication- and therapy-specific fit modifiers supply swing room inside those families. Reusable redundancy groups and maximum cardinalities prevent multiple equivalent treatments from accumulating rewards. `additionalAuthoredPathwayIds` remains available for truly distinct care routes, while `safetyFallbackPathwayIds` keeps referral/transfer separate from the main plan. A deterministic catalog engine may evaluate a combination outside those authored routes using reviewed catalog rules, but the receipt labels it `engine_inferred`; it cannot masquerade as an authored patient pathway. No transition implies a dose, taper schedule, virtual time, or observed future outcome.
 
 Predicates are JSON-safe only: `actionPurchased`, `factKnown`, exact medication
 start/stop/continue, `anyMedicationStarted`, bounded `treatmentStartedWithTag`,

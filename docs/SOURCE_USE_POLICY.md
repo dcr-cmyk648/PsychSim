@@ -72,6 +72,16 @@ meta-analysis can nominate or constrain a fit dimension, but abstract-only conte
 point magnitude, establish deterministic patient-level prediction, or convert a treatment-emergent
 adverse effect into a therapeutic benefit.
 
+### Speculative source leads and authoring inferences
+
+A short speculative dossier candidate does not expand the permitted use of its source. A
+`source_lead` retains only the identifiers and concise original metadata or paraphrase allowed by
+the source-use decision, plus the exact locator kept inside the appropriate private boundary. An
+`authoring_inference` may use only inputs already permitted for that developer-side process and
+must retain its tool/model/generator identity, assumptions, and limitations. Neither candidate is
+evidence, a source contribution, Developer opinion, a clinical rule, or runtime content. Human
+review and the ordinary source-use workflow remain necessary before any promotion.
+
 ## Reuse lanes
 
 ### 1. U.S. public-domain government text and data

@@ -2318,3 +2318,50 @@ corrected/superseded material. Accepting a packet records reviewable source unit
 interpretations only; it never creates an executable rule, chooses a point magnitude, changes
 content, or grants medical approval. This decision defines the review contract but does not
 authorize bulk scouting or a packet-schema migration.
+
+## D-168 — Diagnosis dossiers are sparse, transition-capable, and may expose quarantined speculation
+
+**Decision:** A diagnosis-family dossier is a sparse reusable owner rather than a complete
+diagnostic manual or one fixed patient solution. One family owns its stable identity, aliases and
+classification links; shared condition-state envelope; severity/specifier branches; presentation
+tendencies and constraints; clinically useful boundaries and incompatibilities; focused
+assessment/safety/setting relationships; and broad treatment routes. Shared tests, findings,
+medications, therapies, dispositions, and point magnitudes retain their own owners and appear
+through cross-links. `unknown`, `absent`, `subthreshold`, and `present` remain distinct. Patient
+templates select and narrowly constrain family knowledge; resolved patients save exact facts.
+
+A broad treatment route is not limited to asking whether one static medication list is
+guideline-compatible. It can describe a complete best-next-step regimen transition over an already
+complex patient: retain a helpful anchor, act on a poorly fitting or ineffective current regimen
+entry, and add an eligible replacement or adjunct. The baseline and proposed regimens may both
+satisfy the broad diagnosis route while retained response, current nonresponse, adverse effects,
+prior trials, interaction safety, and goodness of fit distinguish the better next move.
+
+The patient instance owns distinct current-regimen entries and arbitrarily many structured prior
+trials. A diagnosis family or focused decision policy owns the broad strategy; medication,
+finding, interaction, and other topical owners supply reusable specific effects; the balance layer
+owns points. A submitted snapshot may combine entry-targeted `continue`, `increase`,
+`reduce_or_limit`, `taper`, or `stop` operations with one or more starts when the reviewed route
+allows them. It does not imply a dose, cross-taper schedule, virtual follow-up, or observed
+longitudinal outcome. For example, an eventual bipolar case could preserve lithium's reported
+benefit, stop poorly effective olanzapine with problematic metabolic fit, and add a previously
+untried eligible adjunct; the architecture does not approve that clinical example or its points.
+
+Sparse sections remain honestly unknown by default, but they may display short speculative
+candidates when doing so reuses already captured work rather than manufacturing completeness.
+There are two distinct candidate origins:
+
+1. A `source_lead` records a traceable brief mention from an admitted source that warrants
+   follow-up but is not yet an interpreted contribution.
+2. An `authoring_inference` records a developer-side generated hypothesis with exact input IDs,
+   tool/model/generator identity where applicable, assumptions, uncertainty, and a follow-up
+   question.
+
+Both render prominently as `Speculative` and remain structurally separate from source
+contributions, accepted Developer opinions, clinical facts, executable rules, point values, and
+medical approval. They cannot compile into gameplay. Human review may reject or defer them, route
+a source lead for verification, or explicitly move an interpretation into the separate
+Developer-opinion workflow. No process auto-fills every empty section. Runtime gameplay remains
+deterministic and AI-free; an engine-derived result is explained by its exact rule trace rather
+than being mislabeled as AI inference. This decision defines dossier behavior but does not
+authorize a schema migration, diagnosis-content import, or clinical rule.

@@ -150,7 +150,14 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   selections, inaccessible required care, and no-safe-route states quarantine. A reviewed safety
   rule may govern a valid benefit-versus-risk tension while both sides remain visible in the trace;
   evidence disagreement stays disabled behind a ticket and point-magnitude disagreement routes to
-  balance review. Never select a clinical winner from file order.
+  balance review. Broad treatment routes must support complete snapshot regimen transitions, not
+  only static eligibility: a current regimen and a proposed regimen may both be broadly acceptable
+  while retained response, nonresponse, adverse effects, prior trials, interactions, and fit make
+  the proposed `continue`/`increase`/`reduce_or_limit`/`taper`/`stop` plus start/augment combination
+  better. Patient instances own regimen entries and trials; diagnosis/decision policies own broad
+  strategies; medication and other topical owners contribute specific effects; balance stays
+  separate. Do not infer doses, taper schedules, longitudinal outcomes, or a clinical winner from
+  file order.
 - When presenting multiple review policies or decisions, label policy statements `P1`, `P2`, and
   so on, and label actual reviewer questions `Q1`, `Q2`, and so on. Preserve each executable
   clinical judgment as independently auditable trigger, scope, exception, consequence, concern,
@@ -220,6 +227,15 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   outcome; never discard its source relationship. Candidate bins are authoring-only and confer no
   clinical authority, gameplay availability, rule, point value, or approval. Create many bins when
   the input warrants them, but never infer aliases or merges from label similarity alone.
+- Sparse dossier sections may display short speculative candidates only when an admitted source
+  raised a traceable lead or an authorized developer-side authoring process produced a traceable
+  inference. Label `source_lead` and `authoring_inference` separately; retain exact source/input IDs,
+  tool/model/generator identity where applicable, assumptions, uncertainty, and the follow-up
+  question. Never auto-fill every empty section. A speculative candidate is not a source
+  contribution, Developer opinion, clinical fact, executable rule, point value, or approval and
+  cannot compile into gameplay. Human review may reject/defer it, route a source lead for
+  verification, or explicitly promote an interpretation into the separate Developer-opinion
+  workflow. Runtime engine explanations remain deterministic rule traces, never AI inference.
 - Register a newly referenced publication as its own evidence entry before integrating it.
   Registration alone never propagates a claim. Target-specific source-use contributions and
   developer-review tickets may be completed incrementally. Preserve every unresolved semantic

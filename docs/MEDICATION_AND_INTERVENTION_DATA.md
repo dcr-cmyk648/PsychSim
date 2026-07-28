@@ -377,6 +377,14 @@ they do not encode a schedule or virtual follow-up. Polypharmacy-cleanup and
 delirium-with-polypharmacy cases remain quarantined proposals until withdrawal, interaction, and
 focused-decision rules have exact provenance and at least one safe reference route.
 
+Diagnosis-owned broad routes must be able to consume those operations as one submitted
+transformation. A current regimen can already be broadly guideline-compatible while a retained
+beneficial anchor, removal of a poorly effective or poorly tolerated entry, and addition of an
+eligible untried adjunct make the proposed transition a better fit. The diagnosis/decision policy
+defines the broad strategy; patient regimen/trial records and medication, adverse-effect,
+interaction, and fit owners supply the discriminating details. This is still a snapshot judgment,
+not longitudinal treatment simulation.
+
 Nonpsychiatric medications and supplements use identity records plus patient-owned exposure
 entries. Six initial supplement identities—ashwagandha, lavender oil, L-theanine, magnesium,
 S-adenosylmethionine, and saffron extract—are browseable identity-only scaffolds. Their MeSH and,

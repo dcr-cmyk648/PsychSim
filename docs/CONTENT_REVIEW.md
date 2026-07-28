@@ -372,6 +372,16 @@ known gaps. Candidate contribution types and resolved target roles remain visibl
 randomization lane accepts only semantically classified `patient_fact` candidates; lexical matches
 are never treated as facts.
 
+A sparse dossier section may also show one or more concise `Speculative` candidates when an
+already admitted source contains a traceable lead or an authorized developer-side authoring
+process produces a traceable hypothesis. The UI distinguishes `source_lead` from
+`authoring_inference` and exposes the source/input IDs, tool/model/generator identity where
+applicable, assumptions, uncertainty, and follow-up question. These candidates are deliberately
+quarantined: they cannot fill a readiness lane, count as support, become Developer opinion,
+activate a relationship/rule, set points, or enter runtime. Review may reject/defer them, request
+source verification, or explicitly create a separate opinion proposal. The system does not
+generate speculative prose for every empty dossier section.
+
 One prose field accepts the psychiatrist's interpretation. Saving creates a local
 `ClinicalReviewTicket` whose ID binds the response to a deterministic fingerprint of the exact
 concise entry brief the reviewer saw. Its resurfacing trigger also records the complete Developer
