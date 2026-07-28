@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.2",
+  "contentVersion": "1.0.3",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1202,6 +1202,51 @@
       "ticketId": "ticket.engine.diagnosis-answer-hierarchy",
       "profileIds": [],
       "exemptionReason": "This is a diagnosis-identity, catalog-ancestry, and game-scoring architecture decision. A treatment-effect meta-analysis cannot define broad or unspecified catalog identities, establish their authoritative parentage, or choose case-specific partial-credit magnitudes."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.catalog-compiled-instances",
+      "profileIds": [],
+      "exemptionReason": "This is a versioned schema, compiler, compatibility, and provenance-boundary implementation. A clinical meta-analysis cannot define the repository's PatientTemplate, PatientInstance, EncounterInstance, or historical migration architecture."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.shared-finding-compiler",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic fact-resolution, conflict-handling, and explanation-provenance architecture. Clinical sources may later calibrate individual tendencies, but a meta-analysis cannot define the one-source-of-truth compiler."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.presentation-richness-envelope",
+      "profileIds": [],
+      "exemptionReason": "This umbrella game-generation policy spans associated symptoms, ordinary background findings, treatment exposure, optional comorbidity, and legibility. It must first be decomposed into diagnosis- or context-specific tendencies before bounded literature searches can support any clinical probabilities."
+    },
+    {
+      "ticketId": "ticket.ui.encounter.unified-testing-tab",
+      "profileIds": [],
+      "exemptionReason": "This is player-facing navigation and search architecture that intentionally preserves backend study types. A clinical meta-analysis cannot determine the UI grouping or saved-content compatibility boundary."
+    },
+    {
+      "ticketId": "ticket.catalog.assessments.drs-r-98-identity-and-reuse",
+      "profileIds": [],
+      "exemptionReason": "This first requires primary instrument identity, validation-population, scoring-version, and reproduction-rights review. A later performance or delirium-differential claim can receive a bounded literature profile after the lawful instrument boundary is established."
+    },
+    {
+      "ticketId": "ticket.source.eating-disorders.medical-instability-disposition",
+      "profileIds": [],
+      "exemptionReason": "This requires selection of a current authoritative level-of-care guideline and decomposition of BMI, vital-sign, laboratory, ECG, trajectory, safety, and support contributors. No single treatment-effect meta-analysis can define the complete disposition gate."
+    },
+    {
+      "ticketId": "ticket.case-family.anorexia-focused-disposition",
+      "profileIds": [],
+      "exemptionReason": "This is a patient-family scope gate that depends on the unresolved eating-disorder medical-instability policy. Claim-specific literature scouting should follow, not precede, the source and focused-decision boundary."
+    },
+    {
+      "ticketId": "ticket.source.canmat-bipolar.current-guideline-intake",
+      "profileIds": [],
+      "exemptionReason": "This is canonical guideline identity, update/corrigendum, rights, jurisdiction, phase, and recommendation-mapping work. A meta-analysis cannot determine which CANMAT/ISBD document is the controlling source or grant ingestion rights."
+    },
+    {
+      "ticketId": "ticket.feedback.drive-2026-07-27.gad-generation-richness",
+      "profileIds": [],
+      "exemptionReason": "This historical attempt review spans shared-symptom ownership, GAD-associated findings, subthreshold overlap, substance self-medication, prior OTC exposure, and game richness. Implement the fact compiler first, then split each proposed clinical tendency into a bounded source question rather than using one meta-analysis as a general realism prior."
     }
   ]
 }

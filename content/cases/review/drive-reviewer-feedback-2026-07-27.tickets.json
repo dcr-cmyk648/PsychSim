@@ -80,5 +80,50 @@
     "resolution": null,
     "createdAt": "2026-07-27T02:48:08.432Z",
     "updatedAt": "2026-07-27T02:48:08.432Z"
+  },
+  {
+    "schemaVersion": 1,
+    "id": "ticket.feedback.drive-2026-07-27.gad-generation-richness",
+    "title": "Make generated GAD patients coherent across shared findings",
+    "sourceKind": "receipt_guidance",
+    "sourceAuthority": "developer_observation",
+    "ticketType": "case_construction",
+    "priority": "blocking",
+    "status": "proposed",
+    "requiresClinicalAcumen": true,
+    "attemptId": null,
+    "blueprintId": "case.review-cohort.gad-initial",
+    "caseContentVersion": "1.4.0",
+    "receiptItemId": null,
+    "receiptItemSnapshot": null,
+    "targetContentIds": [
+      "case.review-cohort.gad-initial",
+      "diagnosis.generalized-anxiety-disorder",
+      "info.history.anxiety-symptoms",
+      "info.history.depressive-symptoms",
+      "info.history.sleep",
+      "info.history.substance-use",
+      "info.history.treatment-history",
+      "info.physical.general"
+    ],
+    "dependencyTicketIds": [
+      "ticket.engine.patient-generation.catalog-compiled-instances",
+      "ticket.engine.patient-generation.shared-finding-compiler",
+      "ticket.engine.patient-generation.presentation-richness-envelope",
+      "ticket.source.ace-gad.2025-access-and-scope"
+    ],
+    "conflictContentIds": [
+      "case.review-cohort.gad-initial",
+      "diagnosis.generalized-anxiety-disorder"
+    ],
+    "proposedRouting": "First implement one-source-of-truth shared findings and a bounded richness envelope. Then rebuild this GAD patient from diagnosis, context, prior-exposure, and optional-feature constraints so concentration, sleep, demeanor, safety, substance, and treatment-history facts remain coherent across every place they appear.",
+    "guidance": "Historical attempt-review capture from portable Reviewer bundle review-bundle.2026-07-27t20-33-17-221z (SHA-256 b4b1a62194e8c86cf48f11fcfc2b049a57e995a557404256ecaf70e1ec406295; 1,277,962 bytes; exported 2026-07-27T20:33:17.221Z; profile player.local-profile; assignment reviewer-assignment.common-psychiatry.2026-07f), attempt review review.attempt.case.review-cohort.gad-initial.3. The reviewer found the patient implausibly all-negative outside the answer-key domain despite months of severe anxiety. The required fix is architectural rather than a longer case-specific paragraph: shared symptom atoms may be supported by more than one condition and must resolve once, then render consistently in every relevant history or examination view. A bounded generator should permit plausible cross-domain positives, subthreshold overlap, self-medication context, and prior OTC or formal treatment exposure without forcing them into every patient or silently creating another case-defining diagnosis. This ticket changes no diagnosis, finding probability, treatment, rule, point, source, or approval.",
+    "sourceReviewSnapshot": null,
+    "reviewerNotes": "So what I noticed in this case is the lack of the engine doing any real work to make the patient feel “real”. For instance, in a patient with severe anxiety for months it’s not plausible there would be NO abnormalities across depressive symptoms or sleep symptoms, substance use, physical exam etc. I’d expect maybe problems with concentration (which are commonly noted with GAD but are in the MDD criteria too), problems falling asleep / unsatisfying sleep, possibly a restless or fidgety demeanor - or an exhausted one since this has been going on for 8 months. Passive death wish is common. Alcohol intake or other substance use for self-medication is fairly common. The point is that all of these comorbidities are well documented, and even though like in the database MDD and GAD shouldn’t have the same entry, the system needs to be smart or well-referenced enough that - as a super basic example - if GAD causes concentration problems, that should be noted in the depression criteria when they’re reviewed. Having those reasonable positives across many domains makes it feel like an actual rewarding interaction and a fun game rather than “I click hx of anxiety problems and become 100% sure that’s the dx because they’re all green.” I don’t remember the actual rule we talked about with this but it should probably be possible for patients to in aggregate hit enough criteria that a “dumb” reading could diagnose them with another disorder. For instance, hypothyroidism and anxiety and sleep issues could easily cause MDD criteria to be fulfilled - but the caveat is always “not better explained by another condition.” Again, patient didn’t have any med trials which is usually pretty implausible - like he’s never even taken Benadryl OTC for sleep? I am working on a lot of these systems right now but wanted to save this as a good example of a “bad” encounter due to lack of being interesting or feeling at all realistic.",
+    "reviewerNotesUpdatedAt": "2026-07-27T20:33:10.201Z",
+    "resurfacingTrigger": "Before regenerating the GAD reviewer patient, enabling optional richness modules, or letting one shared symptom render in more than one investigation result.",
+    "resolution": null,
+    "createdAt": "2026-07-27T20:33:17.221Z",
+    "updatedAt": "2026-07-27T20:33:17.221Z"
   }
 ]

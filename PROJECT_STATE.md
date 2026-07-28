@@ -10,8 +10,9 @@ Last updated: 2026-07-27
 - Current phase: Milestone 3 is complete. The bounded work is still the pre-Milestone-4
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
-- Current checkpoint implements Decisions D-151 through D-159. The current GitHub-safe tree is
-  the verified backup checkpoint for `origin/beta`.
+- Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
+  Decisions D-160 through D-162. The current GitHub-safe tree is being prepared as the next
+  verified backup checkpoint for `origin/beta`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
   `origin/main` remain unchanged unless the user separately authorizes promotion.
 - Local Developer server: `http://127.0.0.1:4318/`.
@@ -115,17 +116,30 @@ only the current operational state and should not grow into a second changelog.
 - The diagnosis-classification inspector lazily exposes the local official ICD-10-CM F01-F99 term
   cache for authoring lookup. It does not supply criteria or runtime diagnoses and remains outside
   production bundles.
+- The queued target compiler is now explicit:
+  `PatientTemplate → PatientInstance → EncounterInstance + CompiledRubric`. Diagnosis families own
+  reusable disorder variants, so the MDD record owns mild/moderate/severe while a template selects
+  one state and adds only narrow constraints. `CaseBlueprint` remains the historical compatibility
+  snapshot until one MDD family proves the migration.
+- A shared finding must resolve once with every contributing owner and then project into all
+  relevant investigation views. The GAD Reviewer feedback is preserved as a blocking historical
+  attempt ticket; no probabilities or clinical rules changed.
+- The player-facing navigation target is History, Physical exam, Testing, Diagnosis, and Treatment.
+  Testing will combine labs, imaging, electrical studies, and named instruments in one searchable
+  presentation group while retaining their backend types.
 
 ## Private source and local data state
 
-- The protected source manifest contains 210 entries, 210 unique SHA-256 hashes, zero duplicate
-  hash groups, and 210 `extracted` statuses. There are no quarantined source-document failures.
-- The protected source tree currently contains 1,324 non-placeholder files totaling 506,933,306
-  bytes. It includes 204 Apple Notes composites plus attachments/OCR history, four formal PDFs, two
-  private Drive DOCX sources, extracted records, and local manifests.
-- The ignored `content/generated/` tree currently contains 20 active authoring/review artifacts
-  totaling 2,159,539 bytes: provenance packets, literature-scout snapshots, the human review
-  handoff, private knowledge projections, and source-review state.
+- The protected source manifest contains 212 entries, 212 unique byte-level SHA-256 hashes, and 212
+  `extracted` statuses. There are no quarantined source-document failures. One semantic duplicate
+  group is intentional: two DOCX exports of the current SharePoint revision have different package
+  bytes but the same extracted-text hash, 39 chunks, and warning provenance.
+- The protected source tree currently contains 1,328 non-placeholder files totaling 507,441,148
+  bytes. It includes 204 Apple Notes composites plus attachments/OCR history, four formal PDFs,
+  Drive DOCX revisions, extracted records, and local manifests.
+- The ignored `content/generated/` tree currently contains 25 active authoring/review artifacts
+  totaling 4,875,646 bytes: provenance packets, literature-scout snapshots, Drive Reviewer bundles,
+  the human review handoff, private knowledge projections, and source-review state.
 - The cleanup audit found no exact duplicate or unreferenced GitHub-safe project files. It removed
   only two regenerable test artifacts: the previous Playwright `.last-run.json` marker and the
   E2E-only local ticket handoff. Dependencies and current build output remain because they are
@@ -142,6 +156,19 @@ only the current operational state and should not grow into a second changelog.
   Pink Book 2021, and Brief Therapy Vignettes. Eight prioritized Apple Notes revisions, six mixed
   SharePoint/residency units, and two other private Drive chunk boundaries remain queued for
   one-topic-at-a-time semantic review.
+- The official Google Drive plugin is installed and enabled, and project config requests its
+  read-only tools in future trusted sessions. This canonical session did not receive the app tool
+  attachment. A machine-local read-only rclone fallback now powers `pnpm content:drive:status` and
+  `pnpm content:drive:sync`; `pnpm content:drive:pull` admits exactly one discovered source after
+  its identity/rights gate, so the user no longer needs to download files manually. The latest
+  status sees 11 remote files, eight source candidates, three review bundles, zero new sources,
+  zero changed admitted sources, and zero missing local review bundles.
+- Two current export-version-7 review bundles are available privately. The older export-version-5
+  bundle is retained in quarantine because it lacks the current `databaseEntryReviews` field and
+  uses an incompatible export version; it was not discarded or treated as imported.
+- The rclone credential remains outside the repository and the remote has read-only Drive scope.
+  Its shared Google OAuth client is scheduled for retirement during 2026; replace it with a private
+  read-only OAuth client before that cutoff. This is the remaining durability risk.
 
 ## Source and review safeguards
 
@@ -178,17 +205,38 @@ sockets; each passed unchanged when rerun outside that filesystem sandbox. Build
 existing advisory large-chunk warning. Tests retain the existing PDF standard-font warning and
 Node `module.register()` deprecation notice; none is a product/test failure.
 
+The Drive/compiler-queue checkpoint passed on 2026-07-27:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
+- `pnpm test`: 54 Vitest files / 398 tests plus 10 Python handoff tests, including eight focused
+  Google Drive planner tests;
+- live `pnpm content:drive:sync`, followed by an idempotent status of zero missing bundles and zero
+  changed sources;
+- `pnpm content:validate`, `pnpm content:sources:validate`, and
+  `pnpm content:diagnoses:validate`;
+- `pnpm content:knowledge:crossref` plus its validator after the private corpus fingerprint changed;
+- `pnpm demo:reference-runs`, with existing finite policy results unchanged;
+- `pnpm build` and `pnpm build:reviewer`, including both bundle-safety scans;
+- `pnpm test:e2e`: five Player/Developer browser tests; and
+- `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
+
+The first sandboxed tsx/loopback invocations failed only because the managed sandbox denied their
+local IPC socket or loopback listener; each passed when rerun with the required local permission.
+The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
+warnings remain advisory.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-159
+- `docs/DECISIONS.md` through D-162
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
 - `docs/DOCUMENT_INGESTION.md`
 - `docs/DIAGNOSIS_ENGINE.md`
 - `docs/MEDICATION_AND_INTERVENTION_DATA.md`
+- `docs/PATIENT_GENERATION_ENGINE.md`
 - `docs/SCORING_AND_ECONOMY.md`
 - `docs/SOURCE_USE_POLICY.md`
 - `packages/engine/src/scoring.ts`
@@ -196,20 +244,31 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `packages/engine/src/diagnosis-scoring.ts`
 - `packages/content-runtime/src/reviewer-policies.ts`
 - `tools/content-cli/src/developer-database-knowledge.ts`
+- `tools/content-cli/src/google-drive-sync.ts`
 - `apps/web/src/components/DeveloperDatabaseKnowledge.tsx`
 - `apps/web/src/components/PersonalKnowledgeWorkbench.tsx`
 - `apps/web/src/components/ReceiptView.tsx`
 - `content/catalogs/authoring/personal-knowledge/cross-reference-aliases.json`
 - `content/catalogs/authoring/personal-knowledge/private-source-catalog.json`
+- `content/cases/review/database-driven-patient-generation.tickets.json`
+- `content/cases/review/drive-reviewer-feedback-2026-07-27.tickets.json`
 
 ## Exact next action
 
-1. Present the already queued initial-MDD severity/modality packet as the next one-at-a-time
-   clinical decision. Wait for the user's answer; do not implement its proposal implicitly.
-2. Atomize the answer into the smallest formal contribution, Developer opinion, source gap,
-   balance question, or no-change outcome. Any executable change still requires versioning,
-   rule-level review, validators, reference runs, and affected browser tests.
-3. Later bounded tasks, kept separate:
+1. On the next explicit work request, implement only
+   `ticket.engine.patient-generation.catalog-compiled-instances`: add the smallest versioned
+   PatientTemplate/PatientInstance/EncounterInstance boundary and prove it with the initial-MDD
+   family while preserving historical CaseBlueprint snapshots. Do not add clinical severity
+   thresholds or migrate the full cohort.
+2. Then implement `ticket.engine.patient-generation.shared-finding-compiler` as a separate bounded
+   change with deterministic conflict/replay/provenance tests.
+3. Before calibrating clinical tendencies or presentation richness, present one concise decision
+   packet tied to `ticket.engine.patient-generation.presentation-richness-envelope` and the exact
+   GAD attempt feedback. Do not infer probabilities from the reviewer note.
+4. Later bounded tasks, kept separate:
+   - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
+   - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;
+   - verify DRS-R-98 identity, validation scope, and reuse rights before adding it to Testing;
    - add real broad-category and unspecified diagnosis identities plus explicit reviewed ancestry;
    - harden medication-fit activation so unreviewed modifiers remain inert and true
      contraindications suppress positive fit;

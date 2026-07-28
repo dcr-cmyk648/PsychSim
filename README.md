@@ -66,6 +66,9 @@ pnpm test:e2e
 pnpm test:e2e:reviewer
 pnpm content:validate
 pnpm content:sources:validate
+pnpm content:drive:status
+pnpm content:drive:sync
+pnpm content:drive:pull
 pnpm content:scan
 pnpm content:extract
 # Explicitly refresh one known older-parser source; never bulk-migrate ordinal chunk IDs.

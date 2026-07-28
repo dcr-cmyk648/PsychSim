@@ -114,13 +114,29 @@ classification directory out of production.
 
 The user-designated folder is `PsychSim documents`. The folder ID and discovered file IDs live only in `content/source-docs/manifests/google-drive-discovery.json`, not tracked product content. On an explicit request to check the folder:
 
-1. Locate the folder through Drive rather than assuming a cached title match.
-2. List direct children and compare provider file ID, size, MIME type, and modified version/time with the local discovery manifest.
-3. Pull each new or changed file, compute SHA-256 over its bytes, and compare that hash with all prior sources.
-4. Record exact duplicates without reprocessing them. Never use filename or modified time as the deduplication authority.
-5. Queue genuinely new hashes in stable discovery order and work through one source at a time.
-6. Create concise claim/change proposals with target catalog IDs and provenance. Do not modify scoring, medication modifiers, or patients during discovery.
-7. Require explicit human acceptance plus validators/reference runs before a proposal becomes reviewed content.
+1. Use the attached Google Drive app when its tools are present. If the current Codex session lacks
+   those tools, report that limitation and use the configured read-only `psychsim-drive` rclone
+   fallback through `pnpm content:drive:status` or `pnpm content:drive:sync`.
+2. Locate the folder through Drive rather than assuming a cached title match.
+3. List direct children and compare provider file ID, size, MIME type, and modified version/time with
+   the local discovery manifest.
+4. Import portable `*.review-bundle.json` files into the protected local review inbox and validate
+   them against the current export schema. Preserve incompatible historical versions in quarantine
+   with an exact validation error.
+5. Record new clinical-source files as `discovered` without silently downloading or parsing them.
+   A changed revision may be re-pulled automatically only when the same provider file was already
+   admitted to local intake as `pulled`.
+6. After the source-identity and rights gate, use `pnpm content:drive:pull` to admit exactly the
+   next candidate in stable order, or name one stable candidate explicitly. The user never needs to
+   download and relay a source manually.
+7. Compute SHA-256 over every downloaded byte sequence and compare that hash with all prior sources.
+8. Record exact duplicates without reprocessing them. Never use filename or modified time as the
+   deduplication authority.
+9. Queue genuinely new hashes in stable discovery order and work through one source at a time.
+10. Create concise claim/change proposals with target catalog IDs and provenance. Do not modify
+    scoring, medication modifiers, or patients during discovery.
+11. Require explicit human acceptance plus validators/reference runs before a proposal becomes
+    reviewed content.
 
 The initial Drive check found the 2023 CANMAT adult-MDD update. A CC BY copy is now locally
 extracted as `source-document.412aade56104fd394503`; the private PDF and chunks remain ignored, and
@@ -134,13 +150,21 @@ catatonia article. NICE, APA, ACE Singapore, and ASAM records remain metadata-on
 current terms require permission or prohibit AI ingestion. See
 [the intake map](RECOMMENDED_GUIDELINE_SOURCE_MAP.md) for exact IDs and tickets.
 
-The current connected-folder verification found nine direct items: eight clinical/source
-candidates already represented by the private discovery manifest and one Reviewer-feedback JSON
-that is not a clinical source. No new candidate or changed remote timestamp was found. Four
-discovery candidates still have no downloaded bytes, SHA-256, local manifest record, or extraction:
-the psychotic-depression PDF, QTc/TdP Funk review PDF, Pink Book 2021 PDF, and Brief Therapy
-Vignettes Doc. They remain discovered only and must be transferred one at a time under the ordinary
-source-identity and rights checks.
+The current connected-folder verification found 11 direct items: eight clinical/source candidates
+and three portable Reviewer-feedback bundles. Two current-format review bundles are retained in the
+private review inbox. The oldest bundle uses export version 5 rather than the current version 7 and
+is quarantined with its missing-field/version errors; no reviewer data was silently discarded or
+treated as imported. Four discovery candidates still have no downloaded bytes, SHA-256, local
+manifest record, or extraction: the psychotic-depression PDF, QTc/TdP Funk review PDF, Pink Book
+2021 PDF, and Brief Therapy Vignettes Doc. They remain discovered only and must be transferred one
+at a time under the ordinary source-identity and rights checks.
+
+The fallback is intentionally read-only. Its refresh credential lives only in the operating-system
+user's rclone configuration; no OAuth token, Drive file ID, or private source manifest belongs in
+Git. Never print the rclone configuration. rclone's shared Google OAuth client is scheduled for
+retirement during 2026, so this machine must be moved to a private read-only OAuth client before
+that cutoff. The project-local `.codex/config.toml` also requests the official Google Drive app for
+future trusted Codex sessions, but host-side app attachment remains outside repository control.
 
 ## Apple Notes private research intake
 
@@ -346,11 +370,15 @@ Reviewer bundles exclude the projection and endpoint.
 
 The user's aggregate of previously authored residency-site articles can seed a large
 Developer-opinion catalog, but it requires a logical layer above the physical document pipeline.
-The official Google Drive connector exported the exact native document `Aggregate sharepoint
-notes` as a DOCX through the connected `PsychSim documents` folder. The protected local source has
-SHA-256
-`8fedf00c83190f6a3661bf820382b76d27a59ce3d425b02202a7fe8b797f03c1` and source-document ID
-`source-document.8fedf00c83190f6a3661`.
+The official Google Drive connector exported the native document `Aggregate sharepoint notes` as a
+DOCX through the connected `PsychSim documents` folder. The first protected local export has
+SHA-256 `8fedf00c83190f6a3661bf820382b76d27a59ce3d425b02202a7fe8b797f03c1` and source-document ID
+`source-document.8fedf00c83190f6a3661`. A later remote modification produced protected byte
+revisions `source-document.0298acdac4213dab2f79` and
+`source-document.4b009f3773e88b732a99`. Both current exports resolve to the same extracted-text
+SHA-256 `020f89786e1a65f0eb5bfab86000fc229555ab4c108e7efb6e9fb05e36328123`, the same 39
+chunks, and the same single parser warning. The pipeline therefore retains exact byte provenance
+while recognizing that no new semantic source text was introduced.
 
 Physical preservation and structure-aware extraction are complete. Parser version
 `psychsim-source-parser-5` found 24 top-level heading instances, three nested heading instances,
@@ -414,6 +442,9 @@ separable throughout.
 
 | Command                                                  | Behavior                                                                                                                                                                                                                        |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm content:drive:status`                              | Read the configured Drive folder through the read-only fallback and report new/changed source candidates plus missing Reviewer bundles without writing local state.                                                             |
+| `pnpm content:drive:sync`                                | Pull and validate missing Reviewer bundles, refresh already-admitted changed source revisions, update the ignored provider manifest, and pass downloaded source bytes through the ordinary SHA-256 scanner.                     |
+| `pnpm content:drive:pull [-- --candidate <stable-id>]`   | After the source/rights gate, admit exactly one discovered source (the next stable candidate by default), hash it, update the ignored provider manifest, and pass it to the scanner without extracting or applying content.     |
 | `pnpm content:scan`                                      | Hash direct inbox files, detect byte-identical duplicates, write the local manifest, and retain unsupported inputs in quarantine.                                                                                               |
 | `pnpm content:extract`                                   | Parse discovered inputs, verify the pre-extraction hash, write document/chunk records atomically, and retain originals under processed or quarantine.                                                                           |
 | `pnpm content:extract -- --refresh-entry <manifest-id>`  | Explicitly re-extract one older-parser source, archive its prior private artifact, and update only that entry. Already-current, missing, and non-extracted entries are rejected.                                                |
@@ -436,9 +467,9 @@ separable throughout.
 
 ## Current local extraction inventory
 
-The protected manifest currently contains 210 entries and 210 corresponding extracted artifacts:
-204 Apple Notes Markdown composites, four formal PDFs, and two private Drive DOCX files. All six
-non-Notes sources use parser v5 and every one of their 504 chunks has a locator/body
+The protected manifest currently contains 212 entries and 212 corresponding extracted artifacts:
+204 Apple Notes Markdown composites, four formal PDFs, and four private Drive DOCX revisions. All
+eight non-Notes sources use parser v5 and every one of their 582 chunks has a locator/body
 `provenanceHash`. The four PDF source chunk IDs and text hashes remained stable through refresh, so
 all 12 tracked provenance references continue to resolve. No duplicate or missing active artifact
 is known.

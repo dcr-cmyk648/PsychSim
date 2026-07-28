@@ -92,6 +92,9 @@ pnpm test:e2e
 pnpm test:e2e:reviewer
 pnpm content:validate
 pnpm content:sources:validate
+pnpm content:drive:status
+pnpm content:drive:sync
+pnpm content:drive:pull
 pnpm content:source-review:prepare
 pnpm content:knowledge:review-packet
 pnpm content:scan
@@ -380,7 +383,19 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
   externally. A note, screenshot, OCR result, embedded citation, or personal takeaway is not
   automatically a formal source, evidence contribution, clinical rule, point value, or medical
   approval.
-- The connected Google Drive folder named `PsychSim documents` is a remote source inbox. On an explicit check request, discover new/changed files, persist local-only provider metadata, pull and hash content, deduplicate by SHA-256, and queue sources one at a time. Never propagate a source directly into scoring; create reviewable claim/change proposals first.
+- The connected Google Drive folder named `PsychSim documents` is a remote source inbox. On an
+  explicit check request, use the attached Google Drive app first. If its tools are absent from the
+  current Codex session, use `pnpm content:drive:status` and `pnpm content:drive:sync` through the
+  configured read-only `psychsim-drive` rclone remote; report the missing app attachment instead of
+  pretending the connector was checked. The sync imports and validates portable review bundles,
+  discovers new clinical source files without pulling them, and automatically re-pulls only
+  changed revisions of source files that were already admitted to local intake. Persist provider
+  metadata locally, hash downloaded bytes, deduplicate by SHA-256, and queue sources one at a time.
+  After the identity/rights gate for the next discovered source, use `pnpm content:drive:pull`
+  (or `-- --candidate <stable-id>`) so the user never has to download and relay the file manually.
+  Never print or inspect rclone OAuth configuration (`rclone config show` is prohibited), never
+  create a remote with credential output enabled, and never give the remote write scope. Never
+  propagate a source directly into scoring; create reviewable claim/change proposals first.
 - Never collapse source progress into an ambiguous word such as “processed,” “ingested,” or
   “incorporated.” Report and persist these stages separately: metadata discovered; exact bytes
   downloaded and SHA-256 verified; text extracted; semantic scope reviewed; candidate changes

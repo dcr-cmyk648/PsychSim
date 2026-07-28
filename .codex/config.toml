@@ -1,0 +1,11 @@
+[features]
+apps = true
+remote_plugin = true
+
+[plugins."google-drive@openai-curated"]
+enabled = true
+
+[apps.google_drive]
+enabled = true
+destructive_enabled = false
+default_tools_enabled = true

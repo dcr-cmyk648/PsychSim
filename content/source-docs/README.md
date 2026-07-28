@@ -14,7 +14,28 @@ Folder contract:
   `extracted/apple-notes-private/`.
 - `manifests/`: local-only hash and provenance records, including `apple-notes-intake.json`.
 
-The user-designated Google Drive folder `PsychSim documents` is treated as a remote inbox. Its account-specific discovery manifest belongs in `manifests/google-drive-discovery.json` and remains ignored. An explicit folder check records new Drive candidates, then downloaded bytes must receive a SHA-256 hash before deduplication or extraction. Discovery alone never updates clinical scoring.
+The user-designated Google Drive folder `PsychSim documents` is treated as a remote inbox. Its
+account-specific discovery manifest belongs in `manifests/google-drive-discovery.json` and remains
+ignored. The connected Google Drive app is preferred; when a Codex session does not receive those
+tools, `pnpm content:drive:status` and `pnpm content:drive:sync` use the local read-only
+`psychsim-drive` rclone remote. The status command is non-mutating. Sync downloads and schema-checks
+new portable review bundles, discovers new clinical source candidates without downloading them,
+and re-pulls only changed revisions of clinical sources already admitted to intake. Downloaded
+source bytes then enter the ordinary SHA-256 scan/extraction boundary. Invalid historical review
+bundles are retained under the ignored review-inbox quarantine with a validation error. Discovery
+or reviewer feedback alone never updates clinical scoring.
+
+After checking the next candidate's identity and reuse/AI-processing boundary, run
+`pnpm content:drive:pull` to admit the next candidate in stable review order, or
+`pnpm content:drive:pull -- --candidate <source-candidate-id>` to admit one exact candidate. The
+command downloads exactly one file, hashes it, updates the ignored provider manifest, and passes it
+to the ordinary source scanner. It does not extract, interpret, cite, approve, or apply the source.
+
+The rclone credential is machine-local and must never enter this repository or terminal output.
+The remote must remain read-only. Never run `rclone config show`, and use non-output authorization
+when rotating credentials. rclone's shared Google OAuth client is scheduled for retirement during
+2026; replace it with a private read-only OAuth client before that cutoff. This fallback eliminates
+manual Drive downloads but does not replace rule-level source review.
 
 The macOS Apple Notes source is the folder named exactly `Psych research`. Start with
 `pnpm content:notes:audit -- --folder "Psych research"`; this records account, folder, note, and

@@ -136,7 +136,19 @@ Status: accepted. A visible debug/practice button toggles a derived highest-tier
 
 ## D-034 — Google Drive is a remote source inbox
 
-Status: accepted. The user-designated `PsychSim documents` Drive folder is discovered only on explicit requests. Account-specific metadata is saved in a local gitignored manifest. New/changed files are pulled, SHA-256 hashed, deduplicated by content, and queued one at a time. Discovery or extraction never edits clinical data directly: it produces provenance-backed claim/change proposals that require human review, affected-case validation, and new content versions.
+Status: accepted. The user-designated `PsychSim documents` Drive folder is discovered only on
+explicit requests. The attached Google Drive app is preferred; a machine-local, read-only rclone
+remote is the durable fallback when a Codex session does not receive app tools. Account-specific
+metadata is saved in a local gitignored manifest. Portable review bundles may be pulled and
+schema-validated automatically. New clinical sources are discovered but not silently downloaded;
+changed revisions of sources already admitted to local intake may be re-pulled, SHA-256 hashed, and
+scanned. One-at-a-time intake uses an explicit local pull command after the source identity and
+rights gate, so the user never has to download or relay the file manually. Exact duplicates are
+retained as provenance without reapplying content. Discovery, download, extraction, or
+reviewer-bundle import never edits clinical data directly: each can only produce provenance-backed
+claim/change proposals that require human review, affected-case validation, and new content
+versions. The fallback credential never enters Git, the remote never receives write scope, and its
+shared OAuth client must be replaced before its announced 2026 retirement.
 
 ## D-035 — Raw database-plan points replace ranks and 0–100 scoring
 
@@ -2094,3 +2106,54 @@ controlling rule ID, and plain-language explanation. Receipts surface these rows
 point-changing rules rather than hiding them among routine zero-point evaluations. This
 architecture does not approve any clinical rule or alter current point magnitudes by itself.
 Engine version `0.6.0` marks the new deterministic scoring behavior.
+
+## D-160 — Diagnosis families own variants; templates select and constrain them
+
+**Decision:** A reusable diagnosis-family record owns the base disorder plus its ordinary variants,
+severity branches, and specifier relationships. Major depressive disorder therefore owns mild,
+moderate, and severe MDD in one record. A patient template may request a state such as moderate MDD
+and add narrow encounter-specific constraints or specifiers, but it does not copy generic
+moderate-MDD criteria, treatment recommendations, or point rules.
+
+The target pipeline is `PatientTemplate → PatientInstance → EncounterInstance + CompiledRubric`.
+The compiler composes diagnosis, medication, assessment, therapy, disposition, evidence, and
+decision-policy owners; validates a coherent focused question and safe route; saves every resolved
+fact and contributor; then produces the immutable encounter snapshot. `CaseBlueprint` remains a
+versioned historical compatibility format until that compiler is proven with one family. The
+acceptance test for first-visit MDD is whether the database can generate varied, coherent patients
+without case-specific clinical prose or duplicated diagnosis rules—not whether one hand-authored
+case is sufficiently detailed.
+
+This ownership decision does not select the clinical boundaries of mild, moderate, or severe MDD.
+Those envelopes remain disabled behind
+`ticket.source.mdd.severity-generator-policy` until their provenance and clinical content are
+reviewed.
+
+## D-161 — One resolved fact may be projected into multiple investigation views
+
+**Decision:** A clinical fact is generated and saved once even when it is relevant to multiple
+player-facing screens. For example, one resolved concentration problem may appear in both anxiety
+and depressive-symptom reviews, and one resolved restless demeanor may contribute to history and
+mental-status displays. The player presentation may blend these influences, but the backend and
+post-submit explanation retain the fact ID, final value, every contributing owner, constraint role,
+deterministic draw, conflict outcome, and projection location.
+
+This extends D-084 and D-087; it does not create a parallel symptom store. File order never chooses
+a value. Hard contradictions retry deterministically or quarantine. Subthreshold cross-diagnostic
+symptoms are allowed, while complete additional syndromes still require an explicit eligible
+condition module under D-089. Presentation-richness calibration remains a separate review task so
+the compiler does not make every patient maximally complex or bury the question-bank decision.
+
+## D-162 — Testing is one player-facing group, not one backend test type
+
+**Decision:** The encounter navigation target is `History → Physical exam → Testing → Diagnosis →
+Treatment`. The Testing view is one searchable player-facing group containing laboratory assays,
+imaging, ECG/EEG, and named structured instruments. Backend definitions retain their distinct
+study kind, generator, result schema, service/fulfillment route, point cost, provenance, and rights
+boundary. This is a UI projection and does not flatten schemas or reinterpret historical action
+IDs.
+
+Searchable availability is not clinical relevance. A named instrument such as BFCRS or a future
+DRS-R-98 entry may be visible globally while receiving points only when the resolved patient and
+focused decision make it appropriate. Instrument identity, exact wording, score interpretation,
+and reuse permission remain independently gated.

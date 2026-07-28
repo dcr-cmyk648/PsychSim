@@ -117,7 +117,11 @@
       "medication.bupropion",
       "medication.mirtazapine"
     ],
-    "dependencyTicketIds": ["ticket.source.canmat-mdd.initial-modality"],
+    "dependencyTicketIds": [
+      "ticket.engine.patient-generation.catalog-compiled-instances",
+      "ticket.engine.patient-generation.shared-finding-compiler",
+      "ticket.source.canmat-mdd.initial-modality"
+    ],
     "conflictContentIds": [
       "grade.mdd-optimal-sertraline",
       "grade.mdd-strong-escitalopram",
@@ -255,14 +259,14 @@
     ],
     "dependencyTicketIds": ["ticket.source.canmat-mdd.initial-modality"],
     "conflictContentIds": [],
-    "proposedRouting": "Choose one compact question-bank severity policy while retaining symptom burden, intensity, distress, function, psychosis, and safety as separable structured facts. Keep all three severity branches disabled until the selected envelopes and provenance receive psychiatrist review.",
-    "guidance": "Current sources use non-equivalent schemes: treatment guidelines use qualitative mild/moderate/severe or less/more severe groupings, while PHQ-9 bands measure symptom burden and do not by themselves establish diagnosis or episode severity. Review whether patient templates should author an intended severity and the generator should validate separate dimensions against bounded envelopes, retrying or quarantining conflicts. Psychosis and acute safety must remain separately explainable and must not disappear inside one total score. This ticket authorizes no schema, generator, diagnosis, treatment, or point change.",
-    "reviewerNotes": "",
-    "reviewerNotesUpdatedAt": null,
+    "proposedRouting": "Keep mild, moderate, and severe MDD inside the single MDD diagnosis-family record. Patient templates select an intended branch and add narrow constraints; the generator validates separate symptom, function, psychosis, and safety dimensions against a reviewed envelope and retries or quarantines conflicts.",
+    "guidance": "The ownership question is resolved: MDD owns its reusable mild, moderate, and severe variants; a patient template may request moderate MDD but must not redefine generic moderate-MDD parameters. The remaining clinical question is the bounded content of each severity envelope. Current sources use non-equivalent schemes: treatment guidelines use qualitative mild/moderate/severe or less/more severe groupings, while PHQ-9 bands measure symptom burden and do not by themselves establish diagnosis or episode severity. Psychosis and acute safety remain separately explainable and cannot disappear inside one total score. All three severity branches stay disabled until the envelope and provenance receive psychiatrist review. This ticket authorizes no clinical threshold, treatment, or point change.",
+    "reviewerNotes": "Architecture direction accepted: variants of an underlying disorder belong to one diagnosis-family record. A patient template can select moderate MDD and add patient-specific specifiers or constraints, but the MDD record owns the reusable mild/moderate/severe parameters.",
+    "reviewerNotesUpdatedAt": "2026-07-27T23:50:43.000Z",
     "resurfacingTrigger": "Before enabling any MDD severity branch or generating severity-dependent MDD treatment pathways.",
     "resolution": null,
     "createdAt": "2026-07-26T17:00:00.000Z",
-    "updatedAt": "2026-07-26T17:00:00.000Z"
+    "updatedAt": "2026-07-27T23:50:43.000Z"
   },
   {
     "schemaVersion": 1,
