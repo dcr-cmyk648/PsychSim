@@ -1734,6 +1734,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
   for (const [name, ids] of [
     ['evidenceSources', catalogs.evidenceSources.map((item) => item.id)],
     ['diagnoses', catalogs.diagnoses.map((item) => item.id)],
+    ['findings', catalogs.findings.map((item) => item.id)],
     ['services', catalogs.services.map((item) => item.id)],
     ['medications', catalogs.medications.map((item) => item.id)],
     ['formularies', catalogs.formularies.map((item) => item.id)],
@@ -1758,6 +1759,51 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
         severity: 'error',
         code: 'DUPLICATE_CATALOG_ID',
         message: `${name}: ${duplicate}`,
+      });
+    }
+  }
+  const normalizedFindingTermOwners = new Map<string, string>();
+  for (const definition of catalogs.findings) {
+    if (definition.lifecycle !== 'approved') {
+      issues.push({
+        severity: 'error',
+        code: 'NON_APPROVED_RUNTIME_FINDING',
+        message: `${definition.id}: ${definition.lifecycle}`,
+      });
+    }
+    for (const term of [definition.label, ...definition.aliases]) {
+      const normalized = term.normalize('NFKC').trim().toLocaleLowerCase('en-US');
+      if (!normalized) {
+        issues.push({
+          severity: 'error',
+          code: 'EMPTY_FINDING_TERM',
+          message: definition.id,
+        });
+        continue;
+      }
+      const previousOwner = normalizedFindingTermOwners.get(normalized);
+      if (previousOwner) {
+        issues.push({
+          severity: 'error',
+          code: 'DUPLICATE_FINDING_TERM',
+          message: `${term}: ${previousOwner} and ${definition.id}`,
+        });
+      } else {
+        normalizedFindingTermOwners.set(normalized, definition.id);
+      }
+    }
+    for (const duplicate of duplicateIds(definition.valueSpecification.allowedValues)) {
+      issues.push({
+        severity: 'error',
+        code: 'DUPLICATE_FINDING_ALLOWED_VALUE',
+        message: `${definition.id}: ${duplicate}`,
+      });
+    }
+    for (const duplicate of duplicateIds(definition.allowedPresentationProjections)) {
+      issues.push({
+        severity: 'error',
+        code: 'DUPLICATE_FINDING_PRESENTATION_PROJECTION',
+        message: `${definition.id}: ${duplicate}`,
       });
     }
   }
@@ -1873,6 +1919,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       ...medication.authorOverrides.map((modifier) => modifier.id),
     ]),
     ...medicationIdentities.map((identity) => identity.id),
+    ...catalogs.findings.map((finding) => finding.id),
     ...catalogs.treatments.map((treatment) => treatment.id),
     ...catalogs.informationActions.map((action) => action.id),
     ...catalogs.tests.map((test) => test.id),
@@ -2564,6 +2611,32 @@ export const validateContentRegistry = (
       code: 'INVALID_DIAGNOSIS_CATALOG_REGISTRATION',
       message: 'Exactly one runtime diagnosis catalog must be registered.',
     });
+  }
+  const findingCatalogEntries = registry.entries.filter(
+    (entry) => entry.kind === 'finding_catalog',
+  );
+  if (findingCatalogEntries.length !== 1 || findingCatalogEntries[0]?.runtimeIncluded !== true) {
+    issues.push({
+      severity: 'error',
+      code: 'INVALID_FINDING_CATALOG_REGISTRATION',
+      message: 'Exactly one runtime finding catalog must be registered.',
+    });
+  } else {
+    const registeredFindingIds = findingCatalogEntries[0].categoryIds;
+    const expectedFindingIds = catalogs.findings.map((finding) => finding.id);
+    const registeredSorted = [...registeredFindingIds].sort();
+    const expectedSorted = [...expectedFindingIds].sort();
+    if (
+      new Set(registeredFindingIds).size !== registeredFindingIds.length ||
+      registeredSorted.length !== expectedSorted.length ||
+      registeredSorted.some((id, index) => id !== expectedSorted[index])
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'FINDING_CATALOG_MEMBERSHIP_MISMATCH',
+        message: 'The runtime finding catalog registry membership must exactly match the catalog.',
+      });
+    }
   }
   const medicationIdentityCatalogEntries = registry.entries.filter(
     (entry) => entry.kind === 'medication_identity_catalog',

@@ -419,6 +419,24 @@ The target model has four deliberately separate owners:
    fulfillment, and repeatability. Post-submit rules—not any of these definitions—own clinical
    relevance and points.
 
+The first additive part of this target now exists without replacing compatibility content:
+
+- `FindingDefinition` owns a stable identity, neutral label/aliases, semantic kind, admissible
+  canonical outcomes, and allowed presentation projection modes.
+- `ResolvedCanonicalFinding` owns one typed outcome or an explicit `unknown`/`unassessed` state,
+  the definition version, resolution origin/uncertainty, and the exact contributor trace.
+- `FindingContribution` identifies the contributing owner, its content version, contribution role,
+  and provenance IDs. It cannot contain points or clinical relevance.
+- `CanonicalFindingResolutionEnvelope` validates that a resolved outcome is admitted by the exact
+  referenced definition version.
+
+The runtime catalog currently contains one identity-only seed,
+`finding.depressive.depressed-mood`, marked medically unreviewed. It has no condition association,
+criteria role, prevalence, generation weight, treatment implication, or point value. Existing
+`FindingBlueprint`, `ResolvedFinding`, `CaseBlueprint`, `CaseInstance`, saves, and replay remain the
+compatibility path and were not migrated. Numeric measurements, test-owned results, generalized
+finding compilation, and the wider psychiatry seed remain later dependency tickets.
+
 Every encounter-available result is resolved and frozen before play. `EncounterState` records only
 whether the result has been revealed; buying it cannot generate or change a clinical fact.
 `unknown` or truly unassessed, unrevealed, known absent, subthreshold, present, normal, high, low,

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.20.0",
+  "contentVersion": "3.21.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -32,6 +32,14 @@
         "evidence.roerig.clozapine-augmentation-strategies.2019",
         "evidence.who.mhgap-mns.2023"
       ]
+    },
+    {
+      "id": "registry.catalog.findings",
+      "kind": "finding_catalog",
+      "path": "content/catalogs/findings/definitions",
+      "runtimeIncluded": true,
+      "categoryIds": ["finding.depressive.depressed-mood"],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.diagnosis-classifications.icd10cm-2026",

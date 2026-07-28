@@ -30,7 +30,9 @@ Last updated: 2026-07-28
   on-label match may contribute one minor +10 regulatory-alignment modifier without defining the
   primary route or penalizing off-label care. D-170 establishes one canonical resolved finding per
   patient and keeps test definitions, reveal actions, generation tendencies, and post-submit
-  scoring as separate owners. It changes no schema, clinical association, probability, or points.
+  scoring as separate owners. Its first additive implementation now provides the canonical
+  identity/resolved-value/contributor schemas and one identity-only seed without changing any
+  clinical association, probability, point rule, patient, or compatibility snapshot.
   D-171 clarifies that a focused psychiatry encounter may remain highly textured and
   diagnostically muddy: bounded template-owned comorbidity groups, extensive prior treatment,
   uncertain chart labels, and surface symptom overlap are valid, while symptom counts alone
@@ -53,6 +55,10 @@ Last updated: 2026-07-28
   remains disabled. The first dependency-readiness audit is now recorded in
   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; it routes missing reusable owners to authoritative
   tickets without adding clinical rules, probabilities, points, or runtime behavior.
+  `ticket.catalog.findings.canonical-definition-boundary` is now resolved: the strict runtime
+  catalog registers medically unreviewed `finding.depressive.depressed-mood`, while current
+  `FindingBlueprint`, `ResolvedFinding`, case instances, saves, and replay remain unchanged. The
+  next single review item is the 37-candidate wide/shallow general-psychiatry finding seed.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected post-checkpoint Git state: clean `beta`, with `HEAD == origin/beta`; `main` and
@@ -173,9 +179,10 @@ only the current operational state and should not grow into a second changelog.
   relevant investigation views. The GAD Reviewer feedback is preserved as a blocking historical
   attempt ticket; no probabilities or clinical rules changed.
 - The 2026-07-28 dependency audit found 621 nested finding occurrences and 186 finding IDs across
-  the five approved/review case files, with 112 IDs reused across files but no canonical
-  finding-definition catalog. That technical ownership boundary is the first blocker. Separate
-  queued owners cover the initial wide/shallow psychiatry finding seed, typed
+  the five approved/review case files, with 112 IDs reused across files. The first canonical
+  finding-definition boundary is now implemented and validated with one identity-only seed;
+  normalization and runtime compilation remain deliberately absent. Separate queued owners cover
+  the initial wide/shallow psychiatry finding seed, typed
   vitals/MSE/physical measurements, structured results for patient-owned tests, resolved
   condition/chart/regimen/trial/history state, substance/background exposure state, and a focused
   decision-policy compiler. Existing medication and intervention normalization tickets are now
@@ -318,6 +325,25 @@ sandbox denied their local IPC sockets; each passed unchanged with the required 
 The existing large-chunk, PDF standard-font, npm environment, and Node `module.register()`
 warnings remain advisory.
 
+The canonical finding-boundary checkpoint passed on 2026-07-28:
+
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, and `git diff --check`;
+- `pnpm test`: 55 Vitest files / 408 tests plus 10 Python handoff tests;
+- `pnpm content:validate`, `pnpm content:sources:validate`, and
+  `pnpm content:diagnoses:validate`;
+- `pnpm content:knowledge:crossref`, required once to refresh the private projection fingerprint
+  after the runtime catalog changed;
+- `pnpm demo:reference-runs`, with both existing finite policy sets unchanged;
+- sequential `pnpm build` and `pnpm build:reviewer`, including both bundle-safety scans;
+- `pnpm test:e2e`: five Player/Developer browser tests; and
+- `pnpm test:e2e:reviewer`: four portable Reviewer tests at 390-pixel and 320-pixel widths.
+
+The first sandboxed content-validation invocation again failed only because the managed sandbox
+denied the local tsx IPC socket; the identical command passed with the required local permission.
+The source validator correctly detected and rejected the stale ignored private projection before
+it was regenerated, then passed. Existing large-chunk, PDF standard-font, npm environment, and
+Node `module.register()` warnings remain advisory.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
@@ -350,16 +376,16 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Implement only
-   `ticket.catalog.findings.canonical-definition-boundary`: add the smallest versioned,
-   point-free Zod/catalog boundary for one canonical finding definition, one resolved value, and
-   contributor provenance. Preserve `FindingBlueprint`/`CaseInstance` compatibility; do not
-   migrate the 186 current finding IDs, generate patients, or add associations, probabilities,
-   relevance, scoring, or treatment behavior.
-2. After the technical boundary passes, present
-   `ticket.catalog.findings.general-psychiatry-seed` as the next single review item. Normalize the
-   existing repeated finding identities wide but shallow and route ambiguous merges one at a time.
-3. Continue through the authoritative ordered queue in
+1. Present and resolve only
+   `ticket.catalog.findings.general-psychiatry-seed` as the next single review item. The prepared
+   packet proposes one identity per independently resolvable truth, aliases for interchangeable
+   wording, distinct facts where time/source scope can disagree, routing structured records to
+   their real owners, and a 37-candidate history-focused first tranche. Do not add the tranche until
+   the reviewer answers its one approval question.
+2. If approved, add one small definition file per accepted identity without migrating current
+   cases or adding associations, probabilities, relevance, criteria, scoring, treatment behavior,
+   or medical approval. Route ambiguous collisions one at a time.
+3. Then continue through the authoritative ordered queue in
    `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; do not substitute an MDD-local owner for a missing
    general file.
 4. Only after the complete general foundation is ready, implement

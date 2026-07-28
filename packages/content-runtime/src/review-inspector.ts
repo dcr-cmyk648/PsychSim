@@ -197,6 +197,7 @@ const createLabelResolver = (catalogs: CatalogBundle) => {
   for (const item of [
     ...catalogs.informationActions,
     ...catalogs.diagnoses,
+    ...catalogs.findings,
     ...catalogs.medications,
     ...catalogs.treatments,
     ...catalogs.services,

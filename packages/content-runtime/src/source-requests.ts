@@ -34,6 +34,7 @@ const collectReviewableContentIds = (
   for (const collection of [
     catalogs.evidenceSources,
     catalogs.diagnoses,
+    catalogs.findings,
     catalogs.services,
     catalogs.medications,
     catalogs.formularies,

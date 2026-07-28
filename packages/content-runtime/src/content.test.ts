@@ -7,6 +7,7 @@ import {
   ClinicalDurationProfileSchema,
   DiagnosisDefinitionSchema,
   EvidenceSourceDefinitionSchema,
+  FindingDefinitionSchema,
   MedicationIdentityDefinitionSchema,
   PatientComplexityProfileSchema,
   PatientObservationSchema,
@@ -154,7 +155,18 @@ describe('prototype content', () => {
   it('rejects authoring-only records from the strict runtime catalog while diagnoses parse', () => {
     const runtimeCatalog = CatalogBundleSchema.parse(structuredClone(catalogs));
     const parsedDiagnoses = DiagnosisDefinitionSchema.array().parse(runtimeCatalog.diagnoses);
+    const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
+    expect(parsedFindings).toEqual([
+      expect.objectContaining({
+        id: 'finding.depressive.depressed-mood',
+        medicalReviewStatus: 'unreviewed',
+        valueSpecification: {
+          kind: 'outcome',
+          allowedValues: ['present', 'absent', 'subthreshold'],
+        },
+      }),
+    ]);
     expect(parsedDiagnoses.map((diagnosis) => diagnosis.id)).toEqual(
       catalogs.diagnoses.map((diagnosis) => diagnosis.id),
     );
@@ -166,6 +178,44 @@ describe('prototype content', () => {
         }).success,
       ).toBe(false);
     }
+  });
+
+  it('keeps the canonical finding seed identity-only and preserves case-local compatibility', () => {
+    expect(catalogs.findings).toHaveLength(1);
+    expect(JSON.stringify(catalogs.findings[0])).not.toMatch(
+      /point|score|diagnosis|probability|prevalence|treatment/i,
+    );
+    const compatibilityFinding = prototypeCaseBlueprint.informationActions
+      .flatMap((action) => action.result.findings)
+      .find((finding) => finding.id === 'finding.depressive.depressed-mood');
+    expect(compatibilityFinding).toEqual({
+      id: 'finding.depressive.depressed-mood',
+      labelVariants: ['Depressed mood', 'Low mood', 'Feeling down'],
+      outcome: 'variable',
+    });
+  });
+
+  it('rejects ambiguous canonical finding terms', () => {
+    const invalid = structuredClone(catalogs);
+    const duplicate = structuredClone(catalogs.findings[0]!);
+    duplicate.id = 'finding.test.ambiguous-depressed-mood';
+    duplicate.label = 'Sad mood';
+    duplicate.aliases = ['FEELING DOWN'];
+    invalid.findings.push(duplicate);
+
+    expect(
+      validateCatalogs(invalid).issues.some((issue) => issue.code === 'DUPLICATE_FINDING_TERM'),
+    ).toBe(true);
+  });
+
+  it('includes only approved-lifecycle finding identities in the runtime catalog', () => {
+    const invalid = structuredClone(catalogs);
+    invalid.findings[0]!.lifecycle = 'review';
+    expect(
+      validateCatalogs(invalid).issues.some(
+        (issue) => issue.code === 'NON_APPROVED_RUNTIME_FINDING',
+      ),
+    ).toBe(true);
   });
 
   it('defaults pre-pool saved case instances to the starter pool during parsing', () => {
@@ -1037,6 +1087,19 @@ describe('prototype content', () => {
     expect(
       contentRegistry.entries.find((entry) => entry.kind === 'diagnosis_catalog')?.categoryIds,
     ).toEqual(catalogs.diagnoses.map((diagnosis) => diagnosis.id));
+    expect(
+      contentRegistry.entries.find((entry) => entry.kind === 'finding_catalog')?.categoryIds,
+    ).toEqual(catalogs.findings.map((finding) => finding.id));
+  });
+
+  it('rejects stale canonical finding registry membership', () => {
+    const invalid = structuredClone(contentRegistry);
+    invalid.entries.find((entry) => entry.kind === 'finding_catalog')!.categoryIds = [];
+    expect(
+      validateContentRegistry(invalid, catalogs, approvedCaseBlueprints).issues.some(
+        (issue) => issue.code === 'FINDING_CATALOG_MEMBERSHIP_MISMATCH',
+      ),
+    ).toBe(true);
   });
 
   it('rejects a broken registry relationship and reports shared impact', () => {

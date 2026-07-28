@@ -54,7 +54,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "blocking",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -72,12 +72,17 @@
     "proposedRouting": "Add the smallest versioned catalog and Zod boundary for one canonical atomic finding, its admissible typed value, one resolved patient value, and contributor provenance. Keep reveal actions, tests, tendencies, and points in separate owners.",
     "guidance": "This ticket implements the identity/ownership half of D-170 only. A finding definition owns stable identity, neutral labels, aliases, semantic kind, value shape, and allowed presentation projections. A resolved finding owns one frozen value plus explicit contributing owner IDs and resolution metadata. It does not own prevalence, diagnosis criteria, medication fit, test cost, clinical relevance, or points. Preserve existing FindingBlueprint and CaseInstance snapshots as the compatibility path; do not migrate cases, generate a patient, or add clinical content in this slice.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Approved architecture: anything reused across files should have one canonical owner, while player-facing screens may blend projections and the backend must keep the atomic fact and contributors separable.",
-    "reviewerNotesUpdatedAt": "2026-07-28T15:27:08.000Z",
+    "reviewerNotes": "Approved architecture: anything reused across files should have one canonical owner, while player-facing screens may blend projections and the backend must keep the atomic fact and contributors separable. Implemented as an additive compatibility boundary with one identity-only, medically unreviewed depressed-mood seed. Existing case-local findings and saved snapshots remain unchanged.",
+    "reviewerNotesUpdatedAt": "2026-07-28T16:16:11.000Z",
     "resurfacingTrigger": "Before normalizing repeated finding IDs, implementing the shared-finding compiler, or adding a reusable clinical fact to another case.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added strict versioned schemas for canonical finding identity, admissible outcome values, unresolved versus known values, contributor provenance, and resolution trace; registered one identity-only depressed-mood definition; added exact registry/catalog validation and compatibility tests. No case migration, generation behavior, diagnosis association, probability, relevance, scoring, treatment implication, or medical approval was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T16:16:11.000Z"
+    },
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T15:27:08.000Z"
+    "updatedAt": "2026-07-28T16:16:11.000Z"
   },
   {
     "schemaVersion": 1,
@@ -87,7 +92,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "case_construction",
     "priority": "blocking",
-    "status": "proposed",
+    "status": "in_review",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": null,
@@ -109,12 +114,12 @@
     "proposedRouting": "Inventory the 186 current case-local finding IDs, normalize exact duplicates and aliases, then add only the wide, shallow reusable identity bins needed for general psychiatric history, symptoms, function, safety, substance use, MSE, and physical examination.",
     "guidance": "This is an identity and granularity review, not a diagnostic manual. Each accepted seed entry receives a stable definition file with concise swappable presentation metadata. It gains no prevalence, condition association, cardinality, randomization probability, scoring relevance, or treatment implication in this ticket. Preserve unknown separately from absent. Do not merge superficially similar concepts when their time scope, source, or value semantics differ; route ambiguous merges for psychiatrist review. A missing concept receives a candidate bin rather than being embedded in an MDD-specific file.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Standing reviewer direction: capture every potentially useful concept wide but shallow when encountered, deduplicate or merge unclear overlaps only with review, and favor short structured facts that can be reused and varied without creating memorable case prose.",
-    "reviewerNotesUpdatedAt": "2026-07-28T15:27:08.000Z",
+    "reviewerNotes": "Standing reviewer direction: capture every potentially useful concept wide but shallow when encountered, deduplicate or merge unclear overlaps only with review, and favor short structured facts that can be reused and varied without creating memorable case prose. Prepared review packet: the five approved/review cases contain 621 occurrences, 186 IDs, and 112 reused IDs; the ten compiled Reviewer cases add 1,170 case-generated IDs but only 152 normalized primary labels. Proposed policy P1-P6 is one identity per independently resolvable truth; wording variants become aliases; facts that can coexist or disagree remain distinct; structured records, measurements, and tests route to their real owners; and the first target tranche is 37 history-focused candidate identities, including the existing depressed-mood seed. Approval authorizes unambiguous definition files only; listed ambiguous collisions remain separate one-at-a-time reviews. The tranche remains identity-only with all clinical associations and runtime migration excluded.",
+    "reviewerNotesUpdatedAt": "2026-07-28T16:16:11.000Z",
     "resurfacingTrigger": "After the canonical finding schema exists and before migrating repeated case-local findings or authoring diagnosis-specific finding tendencies.",
     "resolution": null,
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T15:27:08.000Z"
+    "updatedAt": "2026-07-28T16:16:11.000Z"
   },
   {
     "schemaVersion": 1,

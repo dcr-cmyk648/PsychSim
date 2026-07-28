@@ -979,6 +979,7 @@ export const CatalogBundleSchema = z
     contentVersion: ContentVersionSchema,
     evidenceSources: z.array(EvidenceSourceDefinitionSchema),
     diagnoses: z.array(z.lazy(() => DiagnosisDefinitionSchema)),
+    findings: z.array(z.lazy(() => FindingDefinitionSchema)),
     services: z.array(ServiceDefinitionSchema),
     medications: z.array(MedicationDefinitionSchema),
     formularies: z.array(FormularyDefinitionSchema),
@@ -1519,6 +1520,7 @@ export const ContentRegistryEntrySchema = z
       'upgrade_catalog',
       'decor_catalog',
       'diagnosis_catalog',
+      'finding_catalog',
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
       'supplement_identity_catalog',
@@ -2070,6 +2072,267 @@ export type FindingOutcome = z.infer<typeof FindingOutcomeSchema>;
 
 export const ClinicalDurationUnitSchema = z.enum(['day', 'week', 'month', 'year']);
 export type ClinicalDurationUnit = z.infer<typeof ClinicalDurationUnitSchema>;
+
+/**
+ * Canonical finding outcomes are deliberately separate from the compatibility
+ * FindingOutcome schema. `subthreshold` is a resolved patient truth, while
+ * unknown/unassessed and encounter reveal state remain distinct concepts.
+ */
+export const CanonicalFindingOutcomeSchema = z.enum([
+  'present',
+  'absent',
+  'subthreshold',
+  'normal',
+  'high',
+  'low',
+  'positive',
+  'negative',
+  'not_applicable',
+]);
+export type CanonicalFindingOutcome = z.infer<typeof CanonicalFindingOutcomeSchema>;
+
+export const FindingSemanticKindSchema = z.enum([
+  'symptom',
+  'history',
+  'functional_status',
+  'safety',
+  'exposure',
+  'treatment_history',
+  'reaction',
+  'mental_status_exam',
+  'physical_exam',
+  'context',
+]);
+export type FindingSemanticKind = z.infer<typeof FindingSemanticKindSchema>;
+
+export const FindingValueSpecificationSchema = z
+  .object({
+    kind: z.literal('outcome'),
+    allowedValues: z.array(CanonicalFindingOutcomeSchema).min(1),
+  })
+  .strict()
+  .superRefine((specification, context) => {
+    if (new Set(specification.allowedValues).size !== specification.allowedValues.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedValues'],
+        message: 'Canonical finding outcomes must be unique.',
+      });
+    }
+  });
+export type FindingValueSpecification = z.infer<typeof FindingValueSpecificationSchema>;
+
+export const FindingPresentationProjectionSchema = z.enum([
+  'status',
+  'value_only',
+  'status_and_value',
+]);
+export type FindingPresentationProjection = z.infer<typeof FindingPresentationProjectionSchema>;
+
+export const FindingDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(120),
+    aliases: z.array(z.string().trim().min(1).max(120)),
+    semanticKind: FindingSemanticKindSchema,
+    valueSpecification: FindingValueSpecificationSchema,
+    allowedPresentationProjections: z.array(FindingPresentationProjectionSchema).min(1),
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((definition, context) => {
+    const normalizedTerms = [definition.label, ...definition.aliases].map((term) =>
+      term.normalize('NFKC').trim().toLocaleLowerCase('en-US'),
+    );
+    if (new Set(normalizedTerms).size !== normalizedTerms.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['aliases'],
+        message: 'A canonical finding label and its aliases must be distinct.',
+      });
+    }
+    if (
+      new Set(definition.allowedPresentationProjections).size !==
+      definition.allowedPresentationProjections.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedPresentationProjections'],
+        message: 'Canonical finding presentation projections must be unique.',
+      });
+    }
+  });
+export type FindingDefinition = z.infer<typeof FindingDefinitionSchema>;
+
+export const FindingContributionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    ownerKind: z.enum([
+      'catalog_definition',
+      'patient_template',
+      'patient_state',
+      'condition',
+      'medication',
+      'test_result',
+      'generation_profile',
+      'clinical_context',
+      'author_override',
+    ]),
+    ownerId: StableIdSchema,
+    ownerContentVersion: ContentVersionSchema.nullable(),
+    role: z.enum([
+      'identity',
+      'constraint',
+      'authored_value',
+      'generated_value',
+      'override',
+      'derivation',
+    ]),
+    provenanceIds: z.array(StableIdSchema),
+  })
+  .strict()
+  .superRefine((contribution, context) => {
+    if (new Set(contribution.provenanceIds).size !== contribution.provenanceIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['provenanceIds'],
+        message: 'Canonical finding provenance IDs must be unique.',
+      });
+    }
+    if (
+      [
+        'catalog_definition',
+        'patient_template',
+        'condition',
+        'medication',
+        'generation_profile',
+        'clinical_context',
+      ].includes(contribution.ownerKind) &&
+      contribution.ownerContentVersion === null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ownerContentVersion'],
+        message: 'A versioned canonical finding contributor requires its content version.',
+      });
+    }
+  });
+export type FindingContribution = z.infer<typeof FindingContributionSchema>;
+
+export const ResolvedCanonicalFindingValueSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('unresolved'),
+      state: z.enum(['unknown', 'unassessed']),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('outcome'),
+      value: CanonicalFindingOutcomeSchema,
+    })
+    .strict(),
+]);
+export type ResolvedCanonicalFindingValue = z.infer<typeof ResolvedCanonicalFindingValueSchema>;
+
+export const ResolvedCanonicalFindingSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    value: ResolvedCanonicalFindingValueSchema,
+    resolution: z
+      .object({
+        resolverVersion: ContentVersionSchema,
+        origin: z.enum(['authored', 'deterministic_generation', 'compiled']),
+        uncertainty: z.enum(['none', 'reported_uncertain', 'conflicting_sources']),
+        appliedContributionIds: z.array(StableIdSchema).min(1),
+      })
+      .strict(),
+    contributions: z.array(FindingContributionSchema).min(1),
+  })
+  .strict()
+  .superRefine((finding, context) => {
+    const contributionIds = finding.contributions.map((contribution) => contribution.id);
+    if (new Set(contributionIds).size !== contributionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['contributions'],
+        message: 'Canonical finding contribution IDs must be unique.',
+      });
+    }
+    if (
+      new Set(finding.resolution.appliedContributionIds).size !==
+      finding.resolution.appliedContributionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolution', 'appliedContributionIds'],
+        message: 'Applied canonical finding contribution IDs must be unique.',
+      });
+    }
+    const knownContributionIds = new Set(contributionIds);
+    for (const contributionId of finding.resolution.appliedContributionIds) {
+      if (!knownContributionIds.has(contributionId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['resolution', 'appliedContributionIds'],
+          message: `Applied contribution ${contributionId} is not present in the contributor trace.`,
+        });
+      }
+    }
+    const appliedContributionIds = new Set(finding.resolution.appliedContributionIds);
+    if (
+      !finding.contributions.some(
+        (contribution) =>
+          appliedContributionIds.has(contribution.id) && contribution.role !== 'identity',
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolution', 'appliedContributionIds'],
+        message: 'A resolved canonical finding requires an applied value-bearing contribution.',
+      });
+    }
+  });
+export type ResolvedCanonicalFinding = z.infer<typeof ResolvedCanonicalFindingSchema>;
+
+export const CanonicalFindingResolutionEnvelopeSchema = z
+  .object({
+    definition: FindingDefinitionSchema,
+    resolved: ResolvedCanonicalFindingSchema,
+  })
+  .strict()
+  .superRefine((envelope, context) => {
+    if (
+      envelope.resolved.definitionId !== envelope.definition.id ||
+      envelope.resolved.definitionContentVersion !== envelope.definition.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'definitionId'],
+        message: 'A resolved canonical finding must reference the supplied definition version.',
+      });
+    }
+    if (
+      envelope.resolved.value.kind === 'outcome' &&
+      !envelope.definition.valueSpecification.allowedValues.includes(envelope.resolved.value.value)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'value'],
+        message: 'The resolved canonical finding value is not allowed by its definition.',
+      });
+    }
+  });
+export type CanonicalFindingResolutionEnvelope = z.infer<
+  typeof CanonicalFindingResolutionEnvelopeSchema
+>;
 
 export const ClinicalDurationOptionSchema = z
   .object({
