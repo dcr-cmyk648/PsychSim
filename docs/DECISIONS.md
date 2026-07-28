@@ -2938,3 +2938,27 @@ source-specific review questions.
 Aliases and phrase similarity cannot create mappings. Displayed wording, contributor count, and
 instrument response cannot create diagnosis, treatment, or score behavior. Compatibility
 `labelVariants`, current cases, reveal state, and runtime generation remain unchanged.
+
+## D-185 — Measurements and categorical examinations are separate typed owners
+
+**Decision:** Add a point-free measurement catalog/schema boundary without parsing compatibility
+prose. `MeasurementDefinition` owns neutral identity, vital/anthropometric/physical domain, display
+and UCUM units, precision, applicable reveal actions, and lawful context dimensions.
+`ResolvedMeasurement` owns one finite value, display value, exact unit, context values such as body
+position, time scope, source instance, interpretation reference, and resolution trace.
+
+An interpretation may explicitly remain `not_interpreted`. Merely recording weight, BMI, a vital
+sign, or another measurement does not make it abnormal and does not choose a UI color, diagnosis,
+or point consequence. Reference intervals, abnormality thresholds, incidental distributions, and
+clinical associations remain source- and rule-specific work.
+
+`CategoricalObservationDefinition` and `ResolvedCategoricalObservation` separately support MSE and
+physical observations with explicit allowed values and optional interpretation references. Weight
+and BMI remain numeric measurements; body habitus remains a separate categorical observation.
+Neither may be inferred from the other.
+
+The first runtime-excluded catalog contains nine neutral identity/unit records for core vitals,
+height, weight, and BMI. It contains no body-habitus categories or clinical ranges. Existing
+`PatientOpening.basicVitals` strings and compatibility observations remain unchanged; no prose
+parser may silently migrate them. The target compiler will consume only explicitly authored typed
+records.

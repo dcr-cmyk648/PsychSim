@@ -361,6 +361,12 @@ proposition-evidence assertions to action/instrument responses; frozen projectio
 all contributing backend IDs and the selected wording version. No string matcher or alias resolver
 can create that mapping. The shared compiler and compatibility migration remain disabled.
 
+Typed measurements now have a separate runtime-excluded target catalog. Numeric definitions own
+identity, unit, precision, reveal-action access, and lawful context dimensions; categorical MSE or
+physical observations use their own definition/value records. Resolved measurements may remain
+uninterpreted. The architecture does not parse compatibility vital-sign prose or infer body
+habitus, ranges, diagnoses, or score behavior.
+
 Diagnosis files are composed separately from patient instantiation.
 `composeDiagnosisGuidance` applies base, severity, specifier, and other active-diagnosis rules,
 derives tags and a five-dimensional complexity vector, and returns stable blocking conflicts. It

@@ -404,6 +404,14 @@ the player distinguish an elevated BMI from an inference about adiposity or musc
 scenario compilation and saved attempts preserve both fields rather than reconstructing one from
 the other.
 
+The target measurement foundation now adds neutral, versioned numeric and categorical owners.
+Each resolved numeric value retains its exact definition/unit version, measurement context, time
+scope, source, interpretation reference, and resolution trace. `not_interpreted` is a first-class
+state, so a recorded value is not automatically displayed as abnormal. MSE and physical
+categorical observations remain distinct from numeric measurements. The first identity catalog
+contains no reference ranges, body-habitus categories, clinical associations, or generation
+probabilities, and it is not yet part of runtime patient compilation.
+
 ## Information and workup
 
 The target model has eight deliberately separate boundaries:

@@ -9,6 +9,7 @@ import {
   EvidenceContributionSchema,
   EvidenceSourceDefinitionSchema,
   FindingExpressionBankCatalogSchema,
+  MeasurementCatalogSchema,
   MedicationIdentityDefinitionSchema,
   PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgePilotProfileSchema,
@@ -149,6 +150,59 @@ if (findingExpressionBankEntries.length !== 1) {
         error instanceof Error
           ? error.message
           : 'Finding expression-bank catalog validation failed.',
+    });
+  }
+}
+
+const measurementCatalogIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+const measurementCatalogEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'measurement_catalog',
+);
+if (measurementCatalogEntries.length !== 1) {
+  measurementCatalogIssues.push({
+    severity: 'error',
+    code: 'MEASUREMENT_CATALOG_COUNT',
+    message: `Expected one measurement catalog; found ${measurementCatalogEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = measurementCatalogEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Target measurements remain outside the ordinary runtime until the patient compiler exists.',
+      );
+    }
+    const catalog = MeasurementCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = [
+      ...catalog.measurements.map((definition) => definition.id),
+      ...catalog.categoricalObservations.map((definition) => definition.id),
+    ].sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error('Measurement registry membership must exactly match its catalog.');
+    }
+    const informationActionIds = new Set(catalogs.informationActions.map((action) => action.id));
+    for (const definition of [...catalog.measurements, ...catalog.categoricalObservations]) {
+      for (const actionId of definition.availableThroughActionIds) {
+        if (!informationActionIds.has(actionId)) {
+          throw new Error(`${definition.id} references unknown information action ${actionId}.`);
+        }
+      }
+    }
+  } catch (error) {
+    measurementCatalogIssues.push({
+      severity: 'error',
+      code: 'INVALID_MEASUREMENT_CATALOG',
+      message: error instanceof Error ? error.message : 'Measurement catalog validation failed.',
     });
   }
 }
@@ -920,6 +974,13 @@ const reports = [
     {
       valid: findingExpressionBankIssues.length === 0,
       issues: findingExpressionBankIssues,
+    },
+  ],
+  [
+    'measurements',
+    {
+      valid: measurementCatalogIssues.length === 0,
+      issues: measurementCatalogIssues,
     },
   ],
   [

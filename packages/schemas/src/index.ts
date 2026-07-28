@@ -1522,6 +1522,7 @@ export const ContentRegistryEntrySchema = z
       'diagnosis_catalog',
       'finding_catalog',
       'finding_expression_bank_catalog',
+      'measurement_catalog',
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
       'supplement_identity_catalog',
@@ -3116,6 +3117,248 @@ export const FindingProjectionResolutionEnvelopeSchema = z
   });
 export type FindingProjectionResolutionEnvelope = z.infer<
   typeof FindingProjectionResolutionEnvelopeSchema
+>;
+
+export const MeasurementDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(160),
+    domain: z.enum(['vital_sign', 'anthropometric', 'physical_exam_measurement']),
+    unit: z
+      .object({
+        display: z.string().trim().min(1).max(40),
+        ucumCode: z.string().trim().min(1).max(40),
+        displayPrecision: z.number().int().min(0).max(6),
+      })
+      .strict(),
+    availableThroughActionIds: z.array(StableIdSchema),
+    allowedContextDimensionIds: z.array(StableIdSchema),
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((definition, context) => {
+    for (const [path, ids] of [
+      ['availableThroughActionIds', definition.availableThroughActionIds],
+      ['allowedContextDimensionIds', definition.allowedContextDimensionIds],
+    ] as const) {
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message: 'Measurement definition references must be unique.',
+        });
+      }
+    }
+  });
+export type MeasurementDefinition = z.infer<typeof MeasurementDefinitionSchema>;
+
+export const CategoricalObservationDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(160),
+    domain: z.enum(['mental_status_exam', 'physical_exam']),
+    allowedValueIds: z.array(StableIdSchema).min(1),
+    availableThroughActionIds: z.array(StableIdSchema).min(1),
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((definition, context) => {
+    if (new Set(definition.allowedValueIds).size !== definition.allowedValueIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedValueIds'],
+        message: 'Categorical observation values must be unique.',
+      });
+    }
+    if (
+      new Set(definition.availableThroughActionIds).size !==
+      definition.availableThroughActionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['availableThroughActionIds'],
+        message: 'Categorical observation action IDs must be unique.',
+      });
+    }
+  });
+export type CategoricalObservationDefinition = z.infer<
+  typeof CategoricalObservationDefinitionSchema
+>;
+
+export const MeasurementContextValueSchema = z
+  .object({
+    dimensionId: StableIdSchema,
+    valueId: StableIdSchema,
+  })
+  .strict();
+export type MeasurementContextValue = z.infer<typeof MeasurementContextValueSchema>;
+
+export const MeasurementInterpretationSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('not_interpreted') }).strict(),
+  z
+    .object({
+      kind: z.literal('interpreted'),
+      interpretationId: StableIdSchema,
+      referenceDefinitionId: StableIdSchema.nullable(),
+    })
+    .strict(),
+]);
+export type MeasurementInterpretation = z.infer<typeof MeasurementInterpretationSchema>;
+
+export const ResolvedMeasurementSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    value: z.number().finite(),
+    displayValue: z.string().trim().min(1).max(80),
+    unit: z
+      .object({
+        display: z.string().trim().min(1).max(40),
+        ucumCode: z.string().trim().min(1).max(40),
+      })
+      .strict(),
+    contextValues: z.array(MeasurementContextValueSchema),
+    timeScopeId: StableIdSchema,
+    sourceInstanceId: StableIdSchema,
+    interpretation: MeasurementInterpretationSchema,
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((measurement, context) => {
+    const dimensionIds = measurement.contextValues.map((value) => value.dimensionId);
+    if (new Set(dimensionIds).size !== dimensionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['contextValues'],
+        message: 'A resolved measurement may specify each context dimension only once.',
+      });
+    }
+  });
+export type ResolvedMeasurement = z.infer<typeof ResolvedMeasurementSchema>;
+
+export const ResolvedCategoricalObservationSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    valueId: StableIdSchema,
+    displayValue: z.string().trim().min(1).max(180),
+    timeScopeId: StableIdSchema,
+    sourceInstanceId: StableIdSchema,
+    interpretationIds: z.array(StableIdSchema),
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict()
+  .superRefine((observation, context) => {
+    if (new Set(observation.interpretationIds).size !== observation.interpretationIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['interpretationIds'],
+        message: 'Categorical observation interpretation IDs must be unique.',
+      });
+    }
+  });
+export type ResolvedCategoricalObservation = z.infer<typeof ResolvedCategoricalObservationSchema>;
+
+export const MeasurementCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    measurements: z.array(MeasurementDefinitionSchema).min(1),
+    categoricalObservations: z.array(CategoricalObservationDefinitionSchema),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const allIds = [
+      ...catalog.measurements.map((definition) => definition.id),
+      ...catalog.categoricalObservations.map((definition) => definition.id),
+    ];
+    if (new Set(allIds).size !== allIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Measurement and observation definition IDs must be unique across the catalog.',
+      });
+    }
+  });
+export type MeasurementCatalog = z.infer<typeof MeasurementCatalogSchema>;
+
+export const MeasurementResolutionEnvelopeSchema = z
+  .object({
+    definition: MeasurementDefinitionSchema,
+    resolved: ResolvedMeasurementSchema,
+  })
+  .strict()
+  .superRefine((envelope, context) => {
+    if (
+      envelope.resolved.definitionId !== envelope.definition.id ||
+      envelope.resolved.definitionContentVersion !== envelope.definition.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'definitionId'],
+        message: 'A resolved measurement must reference the supplied definition version.',
+      });
+    }
+    if (
+      envelope.resolved.unit.display !== envelope.definition.unit.display ||
+      envelope.resolved.unit.ucumCode !== envelope.definition.unit.ucumCode
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'unit'],
+        message: 'A resolved measurement must use its definition unit.',
+      });
+    }
+    const allowedDimensions = new Set(envelope.definition.allowedContextDimensionIds);
+    for (const [index, value] of envelope.resolved.contextValues.entries()) {
+      if (!allowedDimensions.has(value.dimensionId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['resolved', 'contextValues', index, 'dimensionId'],
+          message: 'A resolved measurement uses a context dimension not allowed by its definition.',
+        });
+      }
+    }
+  });
+export type MeasurementResolutionEnvelope = z.infer<typeof MeasurementResolutionEnvelopeSchema>;
+
+export const CategoricalObservationResolutionEnvelopeSchema = z
+  .object({
+    definition: CategoricalObservationDefinitionSchema,
+    resolved: ResolvedCategoricalObservationSchema,
+  })
+  .strict()
+  .superRefine((envelope, context) => {
+    if (
+      envelope.resolved.definitionId !== envelope.definition.id ||
+      envelope.resolved.definitionContentVersion !== envelope.definition.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'definitionId'],
+        message: 'A resolved observation must reference the supplied definition version.',
+      });
+    }
+    if (!envelope.definition.allowedValueIds.includes(envelope.resolved.valueId)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved', 'valueId'],
+        message: 'A resolved observation value must be allowed by its definition.',
+      });
+    }
+  });
+export type CategoricalObservationResolutionEnvelope = z.infer<
+  typeof CategoricalObservationResolutionEnvelopeSchema
 >;
 
 export const ClinicalDurationOptionSchema = z

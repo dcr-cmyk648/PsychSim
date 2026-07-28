@@ -168,6 +168,14 @@ describe('developer clinical audit queue', () => {
         resolvedBy: 'reviewer.dustin-rowland',
       },
     });
+    expect(byId.get('ticket.catalog.measurements.vitals-exam-foundation')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: false,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
     for (const id of [
       'ticket.engine.patient-generation.general-dependency-gate',
       'ticket.schema.patient-state.resolved-record-foundation',

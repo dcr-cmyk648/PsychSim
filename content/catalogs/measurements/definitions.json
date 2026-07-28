@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.measurements",
+  "measurements": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.vital.heart-rate",
+      "label": "Heart rate",
+      "domain": "vital_sign",
+      "unit": {
+        "display": "beats/min",
+        "ucumCode": "/min",
+        "displayPrecision": 0
+      },
+      "availableThroughActionIds": ["info.physical.orthostatic-vitals"],
+      "allowedContextDimensionIds": ["measurement-context.body-position"],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.vital.systolic-blood-pressure",
+      "label": "Systolic blood pressure",
+      "domain": "vital_sign",
+      "unit": {
+        "display": "mm Hg",
+        "ucumCode": "mm[Hg]",
+        "displayPrecision": 0
+      },
+      "availableThroughActionIds": ["info.physical.orthostatic-vitals"],
+      "allowedContextDimensionIds": ["measurement-context.body-position"],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.vital.diastolic-blood-pressure",
+      "label": "Diastolic blood pressure",
+      "domain": "vital_sign",
+      "unit": {
+        "display": "mm Hg",
+        "ucumCode": "mm[Hg]",
+        "displayPrecision": 0
+      },
+      "availableThroughActionIds": ["info.physical.orthostatic-vitals"],
+      "allowedContextDimensionIds": ["measurement-context.body-position"],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.vital.respiratory-rate",
+      "label": "Respiratory rate",
+      "domain": "vital_sign",
+      "unit": {
+        "display": "breaths/min",
+        "ucumCode": "/min",
+        "displayPrecision": 0
+      },
+      "availableThroughActionIds": [],
+      "allowedContextDimensionIds": [],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.vital.temperature",
+      "label": "Temperature",
+      "domain": "vital_sign",
+      "unit": {
+        "display": "°C",
+        "ucumCode": "Cel",
+        "displayPrecision": 1
+      },
+      "availableThroughActionIds": [],
+      "allowedContextDimensionIds": [],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.vital.oxygen-saturation",
+      "label": "Oxygen saturation",
+      "domain": "vital_sign",
+      "unit": {
+        "display": "%",
+        "ucumCode": "%",
+        "displayPrecision": 0
+      },
+      "availableThroughActionIds": [],
+      "allowedContextDimensionIds": [],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.anthropometric.height",
+      "label": "Height",
+      "domain": "anthropometric",
+      "unit": {
+        "display": "cm",
+        "ucumCode": "cm",
+        "displayPrecision": 1
+      },
+      "availableThroughActionIds": ["info.physical.weight-bmi"],
+      "allowedContextDimensionIds": [],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.anthropometric.weight",
+      "label": "Weight",
+      "domain": "anthropometric",
+      "unit": {
+        "display": "kg",
+        "ucumCode": "kg",
+        "displayPrecision": 1
+      },
+      "availableThroughActionIds": ["info.physical.weight-bmi"],
+      "allowedContextDimensionIds": [],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement.anthropometric.bmi",
+      "label": "Body mass index",
+      "domain": "anthropometric",
+      "unit": {
+        "display": "kg/m²",
+        "ucumCode": "kg/m2",
+        "displayPrecision": 1
+      },
+      "availableThroughActionIds": ["info.physical.weight-bmi"],
+      "allowedContextDimensionIds": [],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ],
+  "categoricalObservations": []
+}

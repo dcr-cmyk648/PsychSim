@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.27.0",
+  "contentVersion": "3.28.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -135,6 +135,24 @@
         "evidence.who.icd11-cddr.2024",
         "evidence.who.mhgap-mns.2023"
       ]
+    },
+    {
+      "id": "registry.catalog.measurements",
+      "kind": "measurement_catalog",
+      "path": "content/catalogs/measurements/definitions.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "measurement.anthropometric.bmi",
+        "measurement.anthropometric.height",
+        "measurement.anthropometric.weight",
+        "measurement.vital.diastolic-blood-pressure",
+        "measurement.vital.heart-rate",
+        "measurement.vital.oxygen-saturation",
+        "measurement.vital.respiratory-rate",
+        "measurement.vital.systolic-blood-pressure",
+        "measurement.vital.temperature"
+      ],
+      "dependsOnIds": ["registry.catalog.information-actions"]
     },
     {
       "id": "developer-opinions.psychsim",

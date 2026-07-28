@@ -599,7 +599,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "blocking",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -610,6 +610,8 @@
       "registry.catalog.measurements",
       "schema.measurement-definition",
       "schema.resolved-measurement",
+      "schema.categorical-observation-definition",
+      "schema.resolved-categorical-observation",
       "info.physical.mental-status",
       "info.physical.general",
       "info.physical.weight-bmi",
@@ -617,15 +619,20 @@
     ],
     "dependencyTicketIds": ["ticket.catalog.findings.canonical-definition-boundary"],
     "conflictContentIds": ["schema.patient-opening"],
-    "proposedRouting": "Create reusable typed observation and measurement definitions for basic vitals, anthropometrics, MSE, and physical findings, with a compatibility projection for current string-valued opening vitals.",
+    "proposedRouting": "Create reusable typed observation and measurement definitions for basic vitals, anthropometrics, MSE, and physical findings. Preserve current string-valued opening vitals as historical compatibility data; do not infer typed values by parsing their prose.",
     "guidance": "The technical boundary must distinguish categorical observations from numeric measurements and preserve unit, precision, reference or interpretation metadata, temporal/source scope, and one resolved value. Weight/BMI and body habitus remain distinct. A neutral finding such as recorded weight does not receive an abnormal color merely because it is present. This ticket does not choose medical reference ranges, incidental probabilities, diagnosis associations, or scoring. Those require source- and rule-specific review.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Approved direction: every reusable physical, MSE, vital, and anthropometric fact should be structured and auditable; player presentation may remain concise and should not imply that mere presence is abnormal.",
-    "reviewerNotesUpdatedAt": "2026-07-28T15:27:08.000Z",
+    "reviewerNotes": "Approved direction: every reusable physical, MSE, vital, and anthropometric fact should be structured and auditable; player presentation may remain concise and should not imply that mere presence is abnormal. The first catalog records neutral measurement identities and units only. No body-habitus categories, medical ranges, or interpretation rules were inferred.",
+    "reviewerNotesUpdatedAt": "2026-07-28T21:12:07.000Z",
     "resurfacingTrigger": "Before runtime-generated vitals, reusable MSE/physical results, or migration away from PatientOpening.basicVitals string arrays.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added strict point-free definitions and resolved records for numeric measurements and categorical MSE/physical observations, exact unit/context/version envelopes, one runtime-excluded catalog containing nine neutral vital and anthropometric identities, and registry/action-reference validation. Weight, BMI, and body habitus remain separate; uninterpreted measurements have no abnormal color or diagnosis meaning. No range, incidental probability, clinical association, point rule, prose parser, compatibility migration, or runtime generator was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-28T21:12:07.000Z"
+    },
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T15:27:08.000Z"
+    "updatedAt": "2026-07-28T21:12:07.000Z"
   },
   {
     "schemaVersion": 1,
