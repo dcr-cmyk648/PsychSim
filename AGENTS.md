@@ -323,7 +323,10 @@ guideline/source` creates a `source_gap` ticket; check existing evidence before 
   provider, metric scope, count/as-of time, exact query, selected rank, and result hashes. Citation
   count is mutable discovery metadata, not evidence quality. Track only a concise, independently
   worded abstract-only summary; raw API responses and abstract text remain ignored local
-  artifacts. Scouting never changes ticket/source-request status, rules, points, citations,
+  artifacts. Every selected source, including an abstract-only source, must retain a findable
+  bibliographic reference, DOI/PMID or stable locator when available, access status, and the exact
+  review limitation so the user can independently audit it. Never present abstract-only context as
+  full-text support. Scouting never changes ticket/source-request status, rules, points, citations,
   contributions, or approval. Formal use still requires bibliographic/source-use/exact-claim and
   clinician review. This catalog is local Developer-only and remains outside portable Reviewer.
 - A completed Developer-mode patient can also create one editable `DeveloperAttemptReview`.

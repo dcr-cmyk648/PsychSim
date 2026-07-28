@@ -57,9 +57,13 @@ publication; the second check matters because real API records do not always pop
 
 The tracked catalog stores no copied abstract. It stores a short independently worded summary
 whose scope is explicitly abstract-only; raw API responses and abstract text remain local and
-ignored. Abstract availability does not grant full-text reuse rights and does not make a record
-formal support. Any later clinical use still needs an `EvidenceSourceDefinition`, a source-use
-decision, exact source-unit/application contribution, applicability review, and clinician approval.
+ignored. Every selected item still carries a findable reference: title, authors or organization,
+year, journal/publisher, DOI/PMID or stable URL when available, retrieval/as-of date where relevant,
+and an explicit access/full-text limitation. This lets the reviewer retrieve and audit the paper
+or provide a better source without treating the abstract summary as a substitute for the article.
+Abstract availability does not grant full-text reuse rights and does not make a record formal
+support. Any later clinical use still needs an `EvidenceSourceDefinition`, a source-use decision,
+exact source-unit/application contribution, applicability review, and clinician approval.
 
 Medication-fit scouting is divided by the actual decision dimension—broad efficacy/acceptability,
 weight and physiology, sexual function, sleep-related adverse effects, tolerability, and symptom

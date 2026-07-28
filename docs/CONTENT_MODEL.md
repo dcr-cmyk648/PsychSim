@@ -525,8 +525,9 @@ point magnitude, and never mutate or approve content.
 
 `TicketLiteratureScoutCatalog` is a distinct Developer-only discovery sidecar:
 
-- `references` preserve PMID/DOI identity, publication date and synthesis type, a provider-specific
-  Europe PMC cited-by snapshot, and a concise original abstract-only summary;
+- `references` preserve a findable bibliographic identity, PMID/DOI or stable locator when
+  available, publication date and synthesis type, access/review-depth limitation, a
+  provider-specific Europe PMC cited-by snapshot, and a concise original abstract-only summary;
 - `profiles` preserve one bounded clinical question, exact ten-year search plan/run, selected or
   no-suitable outcome, relevance, limitations, and linked source requests; and
 - `attachments` link an exact ticket to one or more shared profiles, or to one explicit exemption

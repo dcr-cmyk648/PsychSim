@@ -84,6 +84,11 @@ tool automatically repeats the recorded Europe PMC search, ranks clinically rele
 meta-analyses by that provider's cited-by count, stores the dated metadata/hashes, and refuses to
 silently replace a selected paper. The tracked abstract summary is a short independently worded
 paraphrase prepared from the abstract; raw responses and abstract text remain local and ignored.
+Every selected paper remains independently auditable even when only its abstract was reviewed:
+the packet shows its stable evidence ID when cataloged, title, authors or issuing organization,
+publication year, journal/publisher, DOI/PMID or stable URL when available, retrieval/as-of date
+where relevant, access/full-text status, and the exact scope limitation. “Abstract-only” limits
+what the summary can support; it never means that the reference itself may be omitted.
 Valid outcomes are a selected recent meta-analysis, an explicit no-suitable result, or a
 different-evidence requirement. Nonclinical and umbrella tickets carry an explicit exemption
 instead of an irrelevant paper.

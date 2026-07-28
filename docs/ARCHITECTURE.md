@@ -241,10 +241,12 @@ The separate `TicketLiteratureScoutCatalog` is an earlier discovery layer. A dev
 queries Europe PMC for one bounded ticket question, records the exact ten-year query, provider
 citation snapshot, rank, and hashes, and keeps raw API responses under ignored
 `content/generated/literature-scout/`. Tracked references contain only concise original
-abstract-only paraphrases. Validation requires every active checked-in Developer ticket to have
-profiles or an explicit exemption. Only the dynamically loaded local Developer module imports the
-catalog; Player and portable Reviewer builds do not. No browser network call, runtime AI, rule
-mutation, or evidence approval results from scouting.
+abstract-only paraphrases plus enough bibliographic identity and a stable locator to audit the
+paper independently. The packet names the access/full-text limitation and never promotes
+abstract-only context to full-text support. Validation requires every active checked-in Developer
+ticket to have profiles or an explicit exemption. Only the dynamically loaded local Developer
+module imports the catalog; Player and portable Reviewer builds do not. No browser network call,
+runtime AI, rule mutation, or evidence approval results from scouting.
 
 ## Source-rights and diagnosis-classification boundary
 

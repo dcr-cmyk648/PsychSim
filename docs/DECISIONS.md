@@ -2286,3 +2286,35 @@ aliases, while ambiguous overlap remains a review item. Accepted merges preserve
 redirects so source links and historical attempts remain reproducible. This decision authorizes
 the candidate-bin architecture and later bounded pilot, not immediate bulk catalog creation or
 automatic semantic promotion.
+
+## D-167 — Source-review packets are compact, question-specific, and independently auditable
+
+**Decision:** Each source-scouting review addresses one narrow clinical or database question. Its
+primary synthesis stays near one page and shows the exact decision, affected owners and current
+behavior, relevant personal knowledge already enrolled, proposed answer, supporting evidence,
+opposition or important qualification, uncertainty, currentness/source-use limits, and the one
+reviewer decision needed. Detailed records remain available under collapsed audit sections.
+
+The default source-depth budget uses the smallest question-appropriate stack: current
+official/regulatory material when relevant, the most current applicable guideline, one responsive
+systematic review or meta-analysis from the last ten years when that design fits, and only the
+additional newer, landmark, head-to-head, pragmatic, special-population, or opposing evidence
+needed to answer a remaining issue. Clinical relevance is screened before citation count is used
+as a tie-breaker. A rare harm, interaction, instrument, regulatory fact, or excluded-population
+question uses the appropriate evidence type rather than forcing a meta-analysis.
+
+Every selected source receives a concise original statement of what it contributes. It also
+remains independently findable: show its stable evidence ID when cataloged, title, authors or
+issuing organization, year, journal/publisher or source, DOI/PMID or stable URL when available,
+retrieval/as-of date where relevant, access/full-text status, and the exact review limitation.
+When only an abstract was lawfully reviewed, label the summary `abstract-only`. That label limits
+the interpretation; it never permits omitting the reference or presenting the summary as full-text
+support. The reviewer may retrieve the article and supply feedback, a correction, or a
+better-accessible source.
+
+Stop when the minimum stack answers the narrow question without material conflict. Add depth only
+for high-stakes safety, unresolved disagreement, important applicability gaps, or
+corrected/superseded material. Accepting a packet records reviewable source units and
+interpretations only; it never creates an executable rule, chooses a point magnitude, changes
+content, or grants medical approval. This decision defines the review contract but does not
+authorize bulk scouting or a packet-schema migration.

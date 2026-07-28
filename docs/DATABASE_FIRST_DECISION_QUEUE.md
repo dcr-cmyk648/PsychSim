@@ -199,7 +199,7 @@ authoring-only until separately promoted.
 
 ### DBQ-004 — Standardize the source-scouting and review packet
 
-**Status:** current.
+**Status:** accepted as D-167.
 
 Decide the default evidence packet for one relationship or small topic: regulatory/official facts,
 current guidelines, recent syntheses, pivotal or applicability-expanding studies, personal notes,
@@ -207,7 +207,7 @@ contrary evidence, source rights, and currentness. Existing literature-scout too
 discovery aids; this decision defines what a reviewer should normally receive before accepting an
 interpretation or relationship.
 
-**Proposed default:** use one compact, question-specific packet with a source-depth budget rather
+**Accepted decision:** use one compact, question-specific packet with a source-depth budget rather
 than an exhaustive literature dump.
 
 1. Lead with the exact decision, affected topical owners, current database behavior, and why review
@@ -231,8 +231,12 @@ than an exhaustive literature dump.
    opposition/limitations, relevant Developer opinion, exact affected bins/relationships/rules,
    uncertainty, source-use/currentness constraints, and the specific reviewer decision needed.
    Give every selected source a concise original “what this contributes” summary, explicitly
-   labeled abstract-only when full text was not lawfully reviewed. Full citations, provenance, and
-   detailed notes remain expandable.
+   labeled abstract-only when full text was not lawfully reviewed. Every selected source remains
+   independently findable: show its stable evidence ID when cataloged, full bibliographic
+   identity, DOI/PMID or stable URL when available, access/full-text status, and the exact review
+   limitation. Full citations, provenance, and detailed notes remain expandable. The reviewer may
+   follow that reference and supply feedback or a better-accessible source without treating the
+   abstract summary as full-text support.
 6. Stop when the minimum stack answers the narrow question without a material conflict. Add depth
    only for high-stakes safety, unresolved disagreement, important applicability gaps, or a source
    that has been corrected/superseded.
@@ -247,13 +251,46 @@ formal evidence with Developer opinion.
 
 ### DBQ-005 — Define the diagnosis-family dossier contract
 
-**Status:** queued after the common ownership and dossier decisions.
+**Status:** current.
 
 Decide the reusable sections a diagnosis family may own: identity and hierarchy, defining
 features, severity/specifier branches, common manifestations, expected associated findings,
 mimics and exclusions, setting/safety considerations, broad treatment routes, and generation
 tendencies. The contract must remain useful without recreating a proprietary diagnostic manual or
 turning every encounter into a comprehensive assessment.
+
+**Proposed default:** use a sparse diagnosis-family dossier whose sections are populated only when
+reviewed material exists:
+
+1. The family owns identity, aliases, classification/hierarchy links, and its reusable
+   severity/specifier branches. MDD therefore owns mild, moderate, and severe variants; a related
+   but distinct disorder retains its own identity.
+2. The family owns a qualitative condition-state envelope: defining features, duration and
+   threshold relationships, branch-specific changes, and explicit `unknown`, `absent`,
+   `subthreshold`, and `present` distinctions. This must be independently paraphrased from
+   permitted sources or labeled Developer opinion; it must not reconstruct protected DSM prose.
+3. The family owns reusable presentation tendencies and constraints. Source-supported clinical
+   associations stay separate from game-generation weights. Patient templates select and narrowly
+   override these tendencies, while resolved patients save the exact generated findings.
+4. The family owns boundaries that matter to the focused game: mimics, exclusions, incompatible
+   states, and common comorbid or associated conditions. Chart diagnoses remain distinct from
+   internal condition truth. Inconsistency may quarantine or reroll a patient, but the engine does
+   not become a general free-text differential system.
+5. The family owns only condition-relevant focused assessment, safety, and setting relationships.
+   Treatment-triggered prerequisites remain conditional. Shared findings, tests, scales, and
+   dispositions keep their own topical owners and appear through cross-links.
+6. The family owns broad treatment routes by branch or line, such as a reviewed first-line
+   medication family or psychotherapy route. Individual medication monographs own medication
+   characteristics; other topical owners own fit relationships; point magnitudes remain separate.
+   A patient may add a narrow authored constraint or safe fallback without copying the whole
+   diagnosis plan.
+7. Sources, Developer opinions, conflicts, gaps, generation mappings, patients, and executable
+   rules appear through the derived dossier with detailed provenance collapsed by default. Sparse
+   or unreviewed sections stay explicitly unknown; dossier completeness is never required for
+   identity capture or unrelated focused gameplay.
+
+This should let one diagnosis family support varied first-visit, prior-response, and nonresponse
+patients without copying a fixed case solution or requiring the game to model all of psychiatry.
 
 **Unlocks:** diagnosis-driven findings, variants such as mild/moderate/severe MDD, differential
 texture, and reusable treatment pathways.
@@ -334,7 +371,9 @@ without repeatedly rereading every dossier.
 
 ## Current stopping point
 
-Present and resolve DBQ-004 before detailing DBQ-005. Do not change the tracked packet schema,
-automatically apply scouted sources, or bulk-scout the queue until DBQ-004 is accepted or revised.
-DBQ-002 still authorizes only a one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin
-architecture rather than immediate bulk catalog generation.
+Present and resolve DBQ-005 before detailing DBQ-006. Do not implement a diagnosis-family schema,
+reconstruct diagnostic criteria, or bulk-migrate diagnosis content until DBQ-005 is accepted or
+revised. D-167 defines review-packet behavior but does not automatically apply scouted sources,
+revise the tracked packet schema, or authorize bulk scouting. DBQ-002 still authorizes only a
+one-dossier readiness pilot, and DBQ-003 authorizes candidate-bin architecture rather than
+immediate bulk catalog generation.
