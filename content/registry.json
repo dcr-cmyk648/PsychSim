@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.31.0",
+  "contentVersion": "3.32.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -302,6 +302,14 @@
         "evidence.nlm.rxnorm-cpc.2026-07-06",
         "registry.catalog.source-use-decisions"
       ]
+    },
+    {
+      "id": "registry.catalog.medication-regimen-knowledge",
+      "kind": "medication_regimen_knowledge_catalog",
+      "path": "content/catalogs/medications/regimen-knowledge.json",
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": ["registry.catalog.medication-identities", "developer-opinions.psychsim"]
     },
     {
       "id": "registry.catalog.supplement-identities",

@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-189. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-190. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -139,16 +139,23 @@ Last updated: 2026-07-28
   membership. No delivery, duration, practitioner, fidelity, completion, clinical mapping, point
   value, or runtime behavior was added. Prior psychotherapy remains structured historical patient
   state and is already revealed through the full psychiatric treatment-history action.
+  D-190 keeps medication-change input concrete: starts plus entry-targeted continue, increase,
+  reduce/limit, taper, or stop operations. A focused reviewed diagnosis route or decision policy
+  owns explanatory meanings such as replacement, augmentation, or simplification. The new
+  runtime-excluded medication-regimen knowledge catalog provides empty, point-free bins for
+  explicit medication classes/memberships, focused routes, and independently traceable
+  contributors. Free-text classes, arbitrary tags, and medication count cannot create a class,
+  duplicate, interaction, or penalty; no clinical relationship, route, points, cross-taper rule,
+  compatibility score, or medical approval was activated.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after recording D-189: local `beta` may be ahead of `origin/beta` or carry a
-  small documented database-design worktree while decisions are batched. Do not push or promote
-  merely to make the refs equal. The last published checkpoint is `276534a`; inspect actual refs
-  rather than assuming later local database work is remotely backed up.
+- Expected Git state after recording D-190 and the user's explicit backup request: local `beta`
+  is clean and matches `origin/beta`. This backup does not promote the distribution branch;
+  `main` remains at its prior published checkpoint. Inspect actual refs rather than assuming
+  `main` contains the database-foundation commits.
 - Current local checkpoint message after this bounded decision:
-  `Simplify therapy modality identities`. Local `beta` is twelve commits ahead of `origin/beta`;
-  none of those twelve database-foundation commits is remotely backed up. Inspect `HEAD` for its
-  exact hash.
+  `Add route-owned medication regimen foundation`. Inspect `HEAD` for its exact hash and use that
+  committed base for read-only adjunct packet assignments.
 - Local Developer server: `http://127.0.0.1:4318/`.
 - Local portable Reviewer server: `http://127.0.0.1:4319/`.
 
@@ -539,11 +546,28 @@ application build, browser suite, app-server check, GitHub push, Actions/Pages o
 reference-run replay, or complete repository gate was run under D-178. The next bounded review
 owner is `ticket.catalog.medications.normalized-regimen-risk-benefit`.
 
+The D-190 medication-regimen ownership boundary passed its deliberately narrow local gate on
+2026-07-28:
+
+- 36 focused strict-schema, compatibility-scaffolding, Developer-ticket, and runtime-boundary
+  tests;
+- root `pnpm typecheck`, `pnpm lint`, and `pnpm format:check`;
+- direct content/catalog/registry validation, including runtime exclusion, exact registry
+  membership, medication/class version pins, regimen-entry references, and provenance links; and
+- `git diff --check`.
+
+The first sandboxed `pnpm content:validate` invocation again failed only because the managed
+sandbox denied the local tsx IPC socket; the identical permissioned command passed. The
+regimen-knowledge catalog is empty and authoring-only. No app build, browser suite, app-server
+check, Pages promotion, reference-run replay, medication class or relationship content, points,
+clinical rule, or compatibility-case behavior was added or run. The next bounded review owner is
+`ticket.engine.decision-policy.catalog-compiler`.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-189
+- `docs/DECISIONS.md` through D-190
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -573,17 +597,17 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 ## Exact next action
 
 1. Present and resolve only
-   `ticket.catalog.medications.normalized-regimen-risk-benefit`: choose the smallest normalized
-   owner model for medication role/indication, benefit, additive risk, interaction, duplication,
-   and reviewed exceptions that can score a simple first-line choice and a complex regimen
-   transition without deriving meaning from free-text class labels.
-2. If approved, implement only the point-free normalized medication/regimen relationship boundary
-   first. Keep clinical direction, evidence contribution, provisional balance, patient regimen
-   instances, and later combination compilation separate. Do not activate new clinical rules or
-   point values in that structural slice.
+   `ticket.engine.decision-policy.catalog-compiler`: decide whether each encounter compiles exactly
+   one primary decision policy, admits positive/supporting contributors only through explicit
+   stable-ID links, and automatically includes only matching reviewed safety/prerequisite
+   guardrails. Do not scan every active diagnosis or the whole database for positive points.
+2. If approved, implement only the point-free decision-policy catalog, compiled-rubric ownership,
+   frozen provenance/version references, and nonblocking coverage diagnostics. Keep current
+   case-local rubrics as compatibility fixtures; do not add clinical guidance, points, generated
+   patients, or a general-purpose expression language.
 3. Continue through the authoritative ordered queue in
-   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; medication regimen normalization now precedes the
-   decision-policy compiler. Do not substitute an MDD-local owner for a missing general file.
+   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; the decision-policy compiler now precedes
+   shared-finding compilation. Do not substitute an MDD-local owner for a missing general file.
 4. Only after the complete general foundation is ready, implement
    `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
    conflict/replay/provenance tests.
@@ -604,3 +628,15 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
    - continue private semantic processing one complete topic/source revision at a time;
    - split the private dossier loader into a compact index plus lazy per-entry payloads before it
      approaches the current 2 MB loader ceiling.
+
+The sibling PsychSimDataAdjunct remains read-only. Its first safe medication-regimen evidence
+assignment may pin the current committed `beta` HEAD and:
+
+- `source-request.medications.regimen-combination-boundaries`;
+- `ticket.source.canmat-mdd.inadequate-response-route`;
+- `ticket.source.canmat-mdd.switch-transition-state`; and
+- the exact target IDs already listed on that `SourceRequest`.
+
+The adjunct must return only a hashed medically unreviewed packet. This canonical thread retains
+stale-target/source-use validation, canonical IDs, database edits, review status, rules/points, and
+all runtime validation.

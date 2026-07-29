@@ -122,6 +122,14 @@ patient/chart `recordedAs` label separate from a nullable reviewed interpretatio
 profile is a transitional encounter-recipe-owned optional-richness envelope, never diagnosis-owned.
 It is not a score, tier, progression gate, or economy configuration.
 
+The authoring-only medication-regimen knowledge catalog provides explicit medication-class
+identities and memberships, a V2 transition payload made only of starts and entry-targeted
+operations, focused route-owned transition meanings, and separate qualitative contributor kinds.
+It is registered with `runtimeIncluded: false` until the decision-policy compiler is reviewed.
+Legacy class-label strings are never parsed. Patient state and player selections never own
+switch/augmentation/simplification intent, and recognizing a replacement shape never establishes
+safe overlap, washout, or cross-taper timing.
+
 `@psychsim/engine` owns top-down diagnosis and decision-policy composition, typed-fact derivation,
 conflict reports, constrained patient generation, focused encounter compilation, deterministic
 clinical-context/demographic/finding/test variation, service resolution, effective-formulary

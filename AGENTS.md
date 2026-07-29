@@ -256,6 +256,12 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Represent future current medications as regimen-entry instances rather than a medication-ID set,
   so duplicates can be targeted independently. Represent prior trials as structured records with
   categorical adequacy, adherence, response, tolerability, and source fields.
+- Medication-change selections contain starts plus entry-targeted `continue`, `increase`,
+  `reduce_or_limit`, `taper`, or `stop` only. Switch, augmentation, simplification, and similar
+  meanings belong to a focused reviewed diagnosis route or decision policy, never patient truth
+  or a player-entered intent field. Never parse free-text medication classes or arbitrary tags to
+  infer class membership, duplication, interaction, or a penalty; use explicit versioned
+  relationships.
 - Reaction history is explicit patient state: `unassessed`, documented none, and entries present
   are distinct, and medication-reaction assessment has its own completeness state. Preserve the
   chart/patient `recordedAs` label separately from any reviewed interpretation; never infer immune
@@ -533,6 +539,13 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
   Never print or inspect rclone OAuth configuration (`rclone config show` is prohibited), never
   create a remote with credential output enabled, and never give the remote write scope. Never
   propagate a source directly into scoring; create reviewable claim/change proposals first.
+- A sibling PsychSimDataAdjunct thread may act only as a read-only evidence-gap scanner and
+  literature-packet producer against an exact committed PsychSim base plus named
+  `SourceRequest`, ticket, and target IDs. It must not edit this repository, mint canonical IDs,
+  approve clinical content, create rules or points, or compete for the canonical write lease.
+  Adjunct packets are hashed and medically unreviewed. This canonical PsychSim thread alone
+  validates target freshness and source-use rights, translates reviewed proposals into candidate
+  database edits, and runs clinical/runtime validation.
 - Never collapse source progress into an ambiguous word such as “processed,” “ingested,” or
   “incorporated.” Report and persist these stages separately: metadata discovered; exact bytes
   downloaded and SHA-256 verified; text extracted; semantic scope reviewed; candidate changes

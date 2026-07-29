@@ -218,9 +218,11 @@ The current initial-outpatient MDD snapshots implement one deliberately bounded 
 or more options carrying the stable `antidepressant` tag in the same submitted plan triggers the
 existing harmful duplicate-start consequence. One medication plus psychotherapy does not. This is
 an explicitly unreviewed Developer-opinion game rule for those snapshots—not a universal
-polypharmacy claim. A future normalized regimen evaluator must represent indication or role,
-augmentation benefit, additive risk, interactions, and cross-titration as separate auditable
-contributors before applying reusable combination logic.
+polypharmacy claim. The authoring-only normalized regimen boundary now preserves explicit
+medication classes/memberships, route-owned transition meaning, and separate benefit, fit,
+duplication, interaction, withdrawal, contraindication, and prerequisite contributors. It
+activates no reusable consequence: same-class membership or medication count alone never creates
+a penalty, and replacement-shaped actions never imply safe overlap or cross-titration.
 
 ## Safety and disposition
 

@@ -350,7 +350,10 @@ psychotherapy/other-intervention modules:
    case-specific consequence.
 3. Clinical-use relationships preserve condition, population, setting, severity/phase, treatment
    line, target outcome, and role such as monotherapy, retained anchor, adjunct, replacement,
-   symptom-targeted option, or discontinuation candidate. Source-specific roles may disagree.
+   symptom-targeted option, or discontinuation candidate. Source-specific eligibility roles may
+   disagree. The selected submission's explanation as replacement, augmentation, or
+   simplification belongs to its focused reviewed route rather than the medication record,
+   patient state, or player payload.
 4. Benefit, adverse-effect, feasibility, and patient-fit relationships are independently
    traceable. Source estimates retain population/outcome/time-horizon limits. A separate reviewed
    transformation decides whether a relationship becomes a qualitative rule, and balance supplies
@@ -363,8 +366,10 @@ psychotherapy/other-intervention modules:
    regimen-entry instance with role, response, tolerability, and other resolved state; each prior
    trial is a structured patient record. A complete submitted transition can target individual
    entries with `continue`, `increase`, `reduce_or_limit`, `taper`, or `stop`, plus starts. The
-   dossier supplies reusable relationships needed to judge retention, replacement, augmentation,
-   retrial, simplification, and duplicate therapy without simulating a schedule.
+   dossier supplies reusable eligibility, benefit, fit, and safety relationships; the focused
+   route owns the matched transition meaning. This supports retention, replacement, augmentation,
+   retrial, simplification, and duplicate-therapy review without a player intent field or
+   simulated schedule.
 7. Psychotherapy and other interventions share identity, evidence, role, fit, combination,
    redundancy, and capability concepts. A source or dossier may preserve course- or
    program-specific wording, while the encounter compiler projects a psychotherapy to its stable
@@ -775,8 +780,10 @@ probability plus medication prescription-context multipliers; no rate is current
 Assessment/evidence, intoxication/withdrawal, diagnosis, scoring, migration, and runtime
 generation remain separate. The intervention modality boundary is now resolved with one stable
 file and ID per current treatment/disposition, exact registry membership, and no delivery/fidelity
-schema. The next unresolved review owner is
-`ticket.catalog.medications.normalized-regimen-risk-benefit`.
+schema. The medication-regimen boundary is also resolved as a runtime-excluded, point-free
+catalog: explicit classes/memberships, concrete transition actions, route-owned explanatory
+meaning, and separately typed contributors. It contains no clinical records yet. The next
+unresolved review owner is `ticket.engine.decision-policy.catalog-compiler`.
 
 While this dependency queue is active, each accepted item remains a tight local database iteration:
 edit one bounded owner, run only its focused schema/content checks, and move to the next review.
@@ -799,3 +806,5 @@ rather than immediate bulk catalog generation. D-174 keeps diagnosis dossiers in
 setting, difficulty, and encounter complexity and explicitly defers patient generation until the
 reusable dependency files and compiler are ready. D-177 accepts the presentation-projection
 boundary but does not implement it or permit string matching to stand in for reviewed mappings.
+D-190 supplies no class memberships, clinical contributors, route content, points, or runtime
+evaluator; those remain reviewed content/compiler work.

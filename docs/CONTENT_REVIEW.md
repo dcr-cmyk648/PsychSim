@@ -89,6 +89,22 @@ counted as support for the proposed direction. The psychiatrist's plain-language
 the decision. A proposal never sets point magnitudes, edits a rule, attaches a citation to runtime
 content, or grants medical approval.
 
+## Read-only evidence adjunct
+
+A sibling PsychSimDataAdjunct thread may scout a named evidence gap and produce a review packet,
+but it is not a second repository writer. Each assignment pins one committed PsychSim base and the
+exact `SourceRequest`, review-ticket, and target IDs in scope. The adjunct may return a hashed,
+medically unreviewed packet conforming to the existing schemas. It may not edit PsychSim, create
+canonical IDs, approve a source or clinical claim, translate evidence into rules or points, or
+infer a replacement target when the pinned IDs have changed.
+
+The canonical PsychSim writer checks the returned packet for base/target staleness, source identity
+and corrections, source-use permission, packet hash/schema validity, and the psychiatrist's
+comments. Only then may it propose versioned database edits. Clinical review, balance review,
+content validation, runtime compilation, and historical compatibility remain PsychSim
+responsibilities. An adjunct packet that targets a changed or missing record is quarantined for
+re-scouting rather than silently rebased.
+
 Every unresolved checked-in Developer ticket also has a `TicketLiteratureScoutCatalog`
 attachment. Related tickets may share a clinically bounded profile. The Developer-side refresh
 tool automatically repeats the recorded Europe PMC search, ranks clinically relevant

@@ -380,11 +380,13 @@ diabetes-specific outcome, individual medication ranking, adherence prediction, 
 magnitude. Existing modifiers remain provisional and unchanged.
 
 The regimen queue separately distinguishes simultaneous combination, later adjunctive treatment,
-indiscriminate multi-start prescribing, and a deliberate medication transition. A future switch
-may use categorical intent plus pair-specific compatibility; it must not introduce virtual time or
-infer a safe cross-taper from start/stop selections alone. These packets neither remove the current
-case-specific shotgun consequence nor generalize it into a universal interaction or
-contraindication. No runtime rule or point value changed.
+indiscriminate multi-start prescribing, and a deliberate medication transition. The player does
+not submit categorical intent. A focused reviewed route owns the transition shape and explains a
+matching start/entry-operation combination as replacement, augmentation, or simplification.
+Pair-specific compatibility remains a separate reviewed relationship; a matching replacement
+shape must not introduce virtual time or infer safe overlap, washout, or cross-taper timing. These
+packets neither remove the current case-specific shotgun consequence nor generalize it into a
+universal interaction or contraindication. No runtime rule or point value changed.
 
 The next regimen record targets one current entry—not merely its ingredient—so duplicate
 prescriptions can be distinguished. Its snapshot operations are `continue`, `increase`,
@@ -400,6 +402,14 @@ eligible untried adjunct make the proposed transition a better fit. The diagnosi
 defines the broad strategy; patient regimen/trial records and medication, adverse-effect,
 interaction, and fit owners supply the discriminating details. This is still a snapshot judgment,
 not longitudinal treatment simulation.
+
+The runtime-excluded `medication-regimen-knowledge` authoring catalog supplies normalized bins for
+this work. Medication classes and memberships are stable records; they are never inferred from
+the compatibility catalog's free-text `classes` strings or arbitrary tags. Focused route records
+own explanatory transition meaning. Qualitative benefit, response, tolerability, prior-trial,
+fit, duplication, interaction, withdrawal, contraindication, and prerequisite contributors
+remain separate records with provenance and review. The catalog begins empty: creating the schema
+does not approve a class, relationship, route, or point value.
 
 Medication and supplement exposure reuses those identity records rather than creating duplicate
 “substance” copies. Other agents have their own neutral exposure identities. The target patient

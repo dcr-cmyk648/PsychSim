@@ -191,7 +191,10 @@ regimens may both satisfy the diagnosis family's broad treatment route. Patient-
 tolerability, adverse-effect, adherence, and prior-trial records combine with reusable medication,
 interaction, and fit rules to distinguish the better next move. This supports many current
 medications and prior trials without asking the player for a complete longitudinal plan. It does
-not infer a dose, cross-taper schedule, future response, or follow-up interval.
+not infer a dose, cross-taper schedule, future response, or follow-up interval. Neither the
+resolved patient nor the submitted selection stores switch, augmentation, or simplification
+intent. A focused reviewed route owns that explanatory meaning after matching the concrete
+entry-targeted operations and starts.
 
 ## Allergy and adverse-reaction history
 

@@ -646,6 +646,67 @@ export const MedicationIdentityDefinitionSchema = z
   });
 export type MedicationIdentityDefinition = z.infer<typeof MedicationIdentityDefinitionSchema>;
 
+/**
+ * Medication classes are explicit authoring records. The compatibility
+ * `MedicationDefinition.classes` strings remain display metadata and must
+ * never be parsed to infer class membership, duplication, or safety.
+ */
+export const MedicationClassDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(180),
+    aliases: z.array(z.string().trim().min(1).max(180)),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((definition, context) => {
+    const normalizedTerms = [definition.label, ...definition.aliases].map((term) =>
+      term.normalize('NFKC').toLocaleLowerCase('en-US'),
+    );
+    if (new Set(normalizedTerms).size !== normalizedTerms.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['aliases'],
+        message: 'Medication-class labels and aliases must be unique.',
+      });
+    }
+    if (new Set(definition.developerOpinionIds).size !== definition.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Medication-class Developer-opinion references must be unique.',
+      });
+    }
+  });
+export type MedicationClassDefinition = z.infer<typeof MedicationClassDefinitionSchema>;
+
+export const MedicationClassMembershipSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    medicationIdentityId: StableIdSchema,
+    medicationIdentityContentVersion: ContentVersionSchema,
+    medicationClassId: StableIdSchema,
+    medicationClassContentVersion: ContentVersionSchema,
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((membership, context) => {
+    if (new Set(membership.developerOpinionIds).size !== membership.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Medication-class membership Developer-opinion references must be unique.',
+      });
+    }
+  });
+export type MedicationClassMembership = z.infer<typeof MedicationClassMembershipSchema>;
+
 export const SupplementIdentityDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -2046,6 +2107,7 @@ export const ContentRegistryEntrySchema = z
       'exposure_catalog',
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
+      'medication_regimen_knowledge_catalog',
       'supplement_identity_catalog',
       'personal_knowledge_pilot_profile',
       'personal_knowledge_alias_catalog',
@@ -9780,6 +9842,15 @@ export const MedicationContinueSelectionSchema = z
   .strict();
 export type MedicationContinueSelection = z.infer<typeof MedicationContinueSelectionSchema>;
 
+export const MedicationRegimenEntryOperationSchema = z.enum([
+  'continue',
+  'increase',
+  'reduce_or_limit',
+  'taper',
+  'stop',
+]);
+export type MedicationRegimenEntryOperation = z.infer<typeof MedicationRegimenEntryOperationSchema>;
+
 /**
  * Planned V2 current-regimen operation. It deliberately targets one regimen
  * entry rather than a medication identity so duplicate prescriptions remain
@@ -9790,11 +9861,434 @@ export const MedicationRegimenAdjustmentSelectionSchema = z
   .object({
     selectionVersion: z.literal(2),
     regimenEntryId: StableIdSchema,
-    operation: z.enum(['continue', 'increase', 'reduce_or_limit', 'taper', 'stop']),
+    operation: MedicationRegimenEntryOperationSchema,
   })
   .strict();
 export type MedicationRegimenAdjustmentSelection = z.infer<
   typeof MedicationRegimenAdjustmentSelectionSchema
+>;
+
+/**
+ * The complete planned V2 medication-change payload contains concrete player
+ * actions only. Transition meaning belongs to a reviewed route, never to this
+ * selection, and dose/schedule/timing/future-outcome fields are intentionally
+ * absent.
+ */
+export const MedicationRegimenTransitionSelectionSchema = z
+  .object({
+    selectionVersion: z.literal(2),
+    startMedicationIds: z.array(StableIdSchema),
+    adjustments: z.array(MedicationRegimenAdjustmentSelectionSchema),
+  })
+  .strict()
+  .superRefine((selection, context) => {
+    if (new Set(selection.startMedicationIds).size !== selection.startMedicationIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['startMedicationIds'],
+        message: 'A medication transition cannot start the same medication twice.',
+      });
+    }
+    const adjustmentEntryIds = selection.adjustments.map((adjustment) => adjustment.regimenEntryId);
+    if (new Set(adjustmentEntryIds).size !== adjustmentEntryIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['adjustments'],
+        message: 'A medication transition may recommend only one operation per regimen entry.',
+      });
+    }
+  });
+export type MedicationRegimenTransitionSelection = z.infer<
+  typeof MedicationRegimenTransitionSelectionSchema
+>;
+
+export const MedicationRegimenTargetSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('any_medication') }).strict(),
+  z
+    .object({
+      kind: z.literal('medication'),
+      medicationIdentityId: StableIdSchema,
+      medicationIdentityContentVersion: ContentVersionSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('class'),
+      medicationClassId: StableIdSchema,
+      medicationClassContentVersion: ContentVersionSchema,
+    })
+    .strict(),
+]);
+export type MedicationRegimenTarget = z.infer<typeof MedicationRegimenTargetSchema>;
+
+export type MedicationRegimenTransitionPredicate =
+  | {
+      type: 'currentRegimenCount';
+      target: MedicationRegimenTarget;
+      statuses: Array<'active' | 'prescribed_not_taking' | 'self_discontinued'>;
+      minimumCount: number;
+      maximumCount: number;
+    }
+  | {
+      type: 'startCount';
+      target: MedicationRegimenTarget;
+      minimumCount: number;
+      maximumCount: number;
+    }
+  | {
+      type: 'adjustmentCount';
+      target: MedicationRegimenTarget;
+      operations: MedicationRegimenEntryOperation[];
+      minimumCount: number;
+      maximumCount: number;
+    }
+  | { type: 'any'; predicates: MedicationRegimenTransitionPredicate[] }
+  | { type: 'all'; predicates: MedicationRegimenTransitionPredicate[] }
+  | { type: 'not'; predicate: MedicationRegimenTransitionPredicate };
+
+const MedicationRegimenCountBoundsShape = {
+  minimumCount: z.number().int().nonnegative(),
+  maximumCount: z.number().int().nonnegative(),
+};
+
+export const MedicationRegimenTransitionPredicateSchema: z.ZodType<MedicationRegimenTransitionPredicate> =
+  z.lazy(() =>
+    z
+      .discriminatedUnion('type', [
+        z
+          .object({
+            type: z.literal('currentRegimenCount'),
+            target: MedicationRegimenTargetSchema,
+            statuses: z
+              .array(z.enum(['active', 'prescribed_not_taking', 'self_discontinued']))
+              .min(1),
+            ...MedicationRegimenCountBoundsShape,
+          })
+          .strict(),
+        z
+          .object({
+            type: z.literal('startCount'),
+            target: MedicationRegimenTargetSchema,
+            ...MedicationRegimenCountBoundsShape,
+          })
+          .strict(),
+        z
+          .object({
+            type: z.literal('adjustmentCount'),
+            target: MedicationRegimenTargetSchema,
+            operations: z.array(MedicationRegimenEntryOperationSchema).min(1),
+            ...MedicationRegimenCountBoundsShape,
+          })
+          .strict(),
+        z
+          .object({
+            type: z.literal('any'),
+            predicates: z.array(MedicationRegimenTransitionPredicateSchema).min(1),
+          })
+          .strict(),
+        z
+          .object({
+            type: z.literal('all'),
+            predicates: z.array(MedicationRegimenTransitionPredicateSchema).min(1),
+          })
+          .strict(),
+        z
+          .object({
+            type: z.literal('not'),
+            predicate: MedicationRegimenTransitionPredicateSchema,
+          })
+          .strict(),
+      ])
+      .superRefine((predicate, context) => {
+        if (
+          'statuses' in predicate &&
+          new Set(predicate.statuses).size !== predicate.statuses.length
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['statuses'],
+            message: 'Current-regimen statuses must be unique.',
+          });
+        }
+        if (
+          'operations' in predicate &&
+          new Set(predicate.operations).size !== predicate.operations.length
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['operations'],
+            message: 'Regimen-adjustment operations must be unique.',
+          });
+        }
+        if ('minimumCount' in predicate && predicate.minimumCount > predicate.maximumCount) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['minimumCount'],
+            message: 'A regimen-count minimum cannot exceed its maximum.',
+          });
+        }
+        if (
+          'minimumCount' in predicate &&
+          predicate.minimumCount === 0 &&
+          predicate.maximumCount === 0
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['maximumCount'],
+            message: 'A zero-to-zero regimen predicate carries no transition meaning.',
+          });
+        }
+      }),
+  );
+
+export const MedicationRegimenRouteMeaningSchema = z.enum([
+  'initial_treatment',
+  'maintain_or_optimize',
+  'replacement',
+  'augmentation',
+  'simplification',
+]);
+export type MedicationRegimenRouteMeaning = z.infer<typeof MedicationRegimenRouteMeaningSchema>;
+
+/**
+ * A focused diagnosis route or decision policy interprets concrete medication
+ * actions. The route meaning is explanatory metadata, not patient truth and
+ * not a player-entered intent field.
+ */
+export const FocusedMedicationRegimenRouteSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(180),
+    owner: z
+      .object({
+        kind: z.enum(['diagnosis_route', 'decision_policy']),
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+      })
+      .strict(),
+    routeMeaning: MedicationRegimenRouteMeaningSchema,
+    patientWhen: PatientContextPredicateSchema.nullable(),
+    transitionMatch: MedicationRegimenTransitionPredicateSchema,
+    rationale: z.string().trim().min(1).max(1200),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((route, context) => {
+    if (new Set(route.developerOpinionIds).size !== route.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Medication-route Developer-opinion references must be unique.',
+      });
+    }
+  });
+export type FocusedMedicationRegimenRoute = z.infer<typeof FocusedMedicationRegimenRouteSchema>;
+
+export const MedicationRegimenContributorKindSchema = z.enum([
+  'benefit',
+  'prior_response',
+  'nonresponse',
+  'tolerability',
+  'prior_trial',
+  'goodness_of_fit',
+  'duplication',
+  'interaction',
+  'withdrawal_risk',
+  'contraindication',
+  'prerequisite',
+]);
+export type MedicationRegimenContributorKind = z.infer<
+  typeof MedicationRegimenContributorKindSchema
+>;
+
+/**
+ * Qualitative regimen contributors remain individually addressable. A later
+ * balance record may assign points, but this authoring record cannot.
+ */
+export const MedicationRegimenContributorSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(180),
+    kind: MedicationRegimenContributorKindSchema,
+    owner: z
+      .object({
+        kind: z.enum([
+          'medication',
+          'medication_interaction',
+          'reaction',
+          'finding',
+          'diagnosis',
+          'decision_policy',
+        ]),
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+      })
+      .strict(),
+    patientWhen: PatientContextPredicateSchema.nullable(),
+    transitionWhen: MedicationRegimenTransitionPredicateSchema,
+    stance: RecommendationStanceSchema,
+    concernLevel: ClinicalConcernLevelSchema,
+    certaintyLevel: ClinicalCertaintyLevelSchema,
+    ...RuleCombinationSourceShape,
+    rationale: z.string().trim().min(1).max(1200),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((contributor, context) => {
+    if (new Set(contributor.developerOpinionIds).size !== contributor.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Regimen-contributor Developer-opinion references must be unique.',
+      });
+    }
+  });
+export type MedicationRegimenContributor = z.infer<typeof MedicationRegimenContributorSchema>;
+
+export const MedicationRegimenKnowledgeCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    medicationClasses: z.array(MedicationClassDefinitionSchema),
+    classMemberships: z.array(MedicationClassMembershipSchema),
+    focusedRoutes: z.array(FocusedMedicationRegimenRouteSchema),
+    contributors: z.array(MedicationRegimenContributorSchema),
+    sourceUseNotes: z.array(EvidenceContributionSchema),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const ownedRecords = [
+      ...catalog.medicationClasses,
+      ...catalog.classMemberships,
+      ...catalog.focusedRoutes,
+      ...catalog.contributors,
+      ...catalog.sourceUseNotes,
+    ];
+    const ownedIds = ownedRecords.map((record) => record.id);
+    if (new Set(ownedIds).size !== ownedIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Medication-regimen knowledge IDs must be unique across the catalog.',
+      });
+    }
+
+    const classVersions = new Map(
+      catalog.medicationClasses.map((definition) => [definition.id, definition.contentVersion]),
+    );
+    const membershipKeys = new Set<string>();
+    catalog.classMemberships.forEach((membership, index) => {
+      const classVersion = classVersions.get(membership.medicationClassId);
+      if (!classVersion) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['classMemberships', index, 'medicationClassId'],
+          message: `Unknown medication class ${membership.medicationClassId}.`,
+        });
+      } else if (classVersion !== membership.medicationClassContentVersion) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['classMemberships', index, 'medicationClassContentVersion'],
+          message: `${membership.id} pins ${membership.medicationClassId}@${membership.medicationClassContentVersion}; expected ${classVersion}.`,
+        });
+      }
+      const membershipKey = `${membership.medicationIdentityId}:${membership.medicationClassId}`;
+      if (membershipKeys.has(membershipKey)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['classMemberships', index],
+          message: 'A medication can have only one explicit membership in a given class.',
+        });
+      }
+      membershipKeys.add(membershipKey);
+    });
+
+    const sourceUseById = new Map(catalog.sourceUseNotes.map((note) => [note.id, note]));
+    catalog.sourceUseNotes.forEach((note, index) => {
+      if (note.authority !== 'formal_publication') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['sourceUseNotes', index, 'authority'],
+          message:
+            'Medication-regimen source-use notes contain formal contributions only; Developer opinions remain separate records.',
+        });
+      }
+    });
+    const reviewableRecords = [
+      ...catalog.medicationClasses,
+      ...catalog.classMemberships,
+      ...catalog.focusedRoutes,
+      ...catalog.contributors,
+    ];
+    reviewableRecords.forEach((record) => {
+      record.review.sourceUseNoteIds.forEach((sourceUseNoteId) => {
+        const sourceUse = sourceUseById.get(sourceUseNoteId);
+        if (!sourceUse) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${record.id} references unknown source-use note ${sourceUseNoteId}.`,
+          });
+        } else if (!sourceUse.targetContentIds.includes(record.id)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${sourceUseNoteId} does not target medication-regimen record ${record.id}.`,
+          });
+        }
+      });
+      if (
+        record.review.status === 'approved' &&
+        record.review.sourceUseNoteIds.length === 0 &&
+        record.developerOpinionIds.length === 0
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${record.id} cannot be approved without a formal contribution or Developer opinion.`,
+        });
+      }
+    });
+  });
+export type MedicationRegimenKnowledgeCatalog = z.infer<
+  typeof MedicationRegimenKnowledgeCatalogSchema
+>;
+
+/**
+ * Authoring-only reference validation for the planned V2 transition payload.
+ * It does not run the current encounter engine.
+ */
+export const MedicationRegimenTransitionValidationEnvelopeSchema = z
+  .object({
+    regimenEntries: z.array(MedicationRegimenEntryV2Schema),
+    selection: MedicationRegimenTransitionSelectionSchema,
+  })
+  .strict()
+  .superRefine((envelope, context) => {
+    const regimenEntryIds = envelope.regimenEntries.map((entry) => entry.id);
+    if (new Set(regimenEntryIds).size !== regimenEntryIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['regimenEntries'],
+        message: 'Regimen-entry IDs must be unique before validating a transition.',
+      });
+    }
+    const knownEntryIds = new Set(regimenEntryIds);
+    envelope.selection.adjustments.forEach((adjustment, index) => {
+      if (!knownEntryIds.has(adjustment.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['selection', 'adjustments', index, 'regimenEntryId'],
+          message: `Unknown regimen entry ${adjustment.regimenEntryId}.`,
+        });
+      }
+    });
+  });
+export type MedicationRegimenTransitionValidationEnvelope = z.infer<
+  typeof MedicationRegimenTransitionValidationEnvelopeSchema
 >;
 
 export const NonMedicationSelectionSchema = z

@@ -615,6 +615,14 @@ Available treatment IDs determine the structured UI. Reusable nonmedication entr
 
 The patient treatment reference is deliberately hybrid. It prefers one broad primary authored pathway composed from reviewed option groups: for example, exactly one first-line antidepressant or exactly one first-line psychotherapy, plus proportionate outpatient disposition. For a complex existing regimen, the same concept expands into one complete snapshot transition over entry-targeted operations and new starts: a reviewed route may retain a beneficial anchor, stop or reduce a poorly fitting entry, and add a replacement or adjunct. The baseline and submitted regimens can both meet the broad route while response, tolerability, prior trials, safety, and fit distinguish the better next move. A source-supported combination may add a bonus; a compatible source-silent combination may remain neutral. Medication- and therapy-specific fit modifiers supply swing room inside those families. Reusable redundancy groups and maximum cardinalities prevent multiple equivalent treatments from accumulating rewards. `additionalAuthoredPathwayIds` remains available for truly distinct care routes, while `safetyFallbackPathwayIds` keeps referral/transfer separate from the main plan. A deterministic catalog engine may evaluate a combination outside those authored routes using reviewed catalog rules, but the receipt labels it `engine_inferred`; it cannot masquerade as an authored patient pathway. No transition implies a dose, taper schedule, virtual time, or observed future outcome.
 
+The V2 medication-change payload stores starts and entry-targeted operations only. A focused
+reviewed route—not the patient or player—owns explanatory meanings such as replacement,
+augmentation, and simplification. Medication classes and memberships are explicit versioned
+records. Medication count, a shared free-text class label, or an arbitrary tag never creates a
+duplicate-therapy, interaction, contraindication, or parsimony consequence by itself; an authored
+route or separately reviewed reusable contributor must support that row. The initial MDD
+duplicate-start behavior remains a case-specific compatibility rule until separately migrated.
+
 Knowledge-to-rule promotion is two-stage. An atomic qualitative rule first receives explicit
 psychiatrist review of its typed trigger, scope, direction, concern, certainty, exceptions,
 rationale, provenance, and explanation with no points attached. Tooling may then attach a

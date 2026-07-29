@@ -144,7 +144,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "treatment_pathway",
     "priority": "high",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": null,
@@ -152,6 +152,12 @@
     "receiptItemId": null,
     "receiptItemSnapshot": null,
     "targetContentIds": [
+      "registry.catalog.medication-regimen-knowledge",
+      "schema.medication-class-definition",
+      "schema.medication-class-membership",
+      "schema.medication-regimen-transition-selection",
+      "schema.focused-medication-regimen-route",
+      "schema.medication-regimen-contributor",
       "grade.mdd-harmful-antidepressant-combination",
       "rule.mdd-combination-safety",
       "grade.ecg-mdd-harmful-antidepressant-combination",
@@ -160,19 +166,21 @@
       "rule.review-mdd.multiple-antidepressant-starts.safety-cap",
       "case.restless-after-augmentation"
     ],
-    "dependencyTicketIds": [
-      "ticket.catalog.medications.current-rule-provenance",
-      "ticket.catalog.medications.psychiatry-allowlist"
-    ],
+    "dependencyTicketIds": [],
     "conflictContentIds": [],
-    "proposedRouting": "Add normalized medication class, indication or role, and regimen-contributor records before a reusable combination evaluator. Compile each benefit, additive risk, interaction, duplication warning, and future exception into a separate trace item; never derive class membership by parsing the current free-text class labels.",
-    "guidance": "Multiple new medications for the same indication should generally subtract from plan quality; same or overlapping class should create a strong duplicate warning. Benefits for distinct indications or evidence-supported augmentation may outweigh additive regimen risk, so the evaluator must not collapse all multi-medication plans into one penalty. Cross-titration is a future explicit exception and should remain disabled until its medication and timing state is modeled. Preserve clinical direction separately from provisional video-game point balance.",
-    "reviewerNotes": "Developer opinion: Multiple new medications for one indication are generally a subtractor, and same- or overlapping-class starts warrant a strong duplicate warning. Distinct-indication or augmentation benefits can outweigh additive risk. Cross-titration should later be an explicit exception. Keep every contributor separately traceable; point weights remain provisional game balance.",
-    "reviewerNotesUpdatedAt": "2026-07-25T16:44:31.463Z",
-    "resurfacingTrigger": "Before implementing reusable medication-combination scoring, normalized class or indication relationships, or cross-titration.",
-    "resolution": null,
+    "proposedRouting": "Create an authoring-only, point-free medication-regimen catalog with explicit class memberships, concrete start and entry-targeted operations, route-owned transition meaning, and separately typed qualitative contributors. Never derive a class, duplicate, interaction, or penalty from free-text class labels, tags, medication count, or file order.",
+    "guidance": "The player submits starts and entry-targeted continue, increase, reduce_or_limit, taper, or stop operations only. A focused reviewed diagnosis route or decision policy owns the acceptable transition shape and explains it as initial treatment, replacement, augmentation, simplification, or maintenance/optimization. Benefit, response, tolerability, prior-trial, fit, duplication, interaction, withdrawal, contraindication, and prerequisite contributors remain separately traceable and point-free. A replacement-shaped start plus taper/stop never implies safe overlap, washout, or cross-taper timing. No blanket same-class penalty or universal regimen-quality score is permitted.",
+    "reviewerNotes": "Approved by Dustin Rowland. Concrete regimen operations remain the player input; the focused reviewed route owns transition meaning. The model must scale from one initial first-line start to retaining a beneficial anchor, reducing or stopping a poor-fit entry, and adding an eligible adjunct. Unmatched but plausible plans remain engine-inferred. Do not add a player intent field, dose or schedule mechanics, predicted outcomes, automatic clinical winner, blanket class penalty, or points from this architecture decision.",
+    "reviewerNotesUpdatedAt": "2026-07-29T00:39:35.000Z",
+    "resurfacingTrigger": "When adding the first reviewed medication class, membership, focused route, qualitative regimen contributor, pair-specific transition safety rule, or balance mapping.",
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added a runtime-excluded, empty medication-regimen knowledge catalog and strict schemas for explicit classes/memberships, concrete V2 starts and entry-targeted adjustments, route-owned explanatory meaning, and separate qualitative contributors. Added reference validation for regimen entries, medication/class versions, provenance, and registry membership. No clinical relationship, class membership, route, point value, compatibility-case score, cross-taper rule, or medical approval was activated. Existing rule-provenance and medication-allowlist work remains separate.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-29T00:39:35.000Z"
+    },
     "createdAt": "2026-07-25T16:44:31.463Z",
-    "updatedAt": "2026-07-25T16:44:31.463Z"
+    "updatedAt": "2026-07-29T00:39:35.000Z"
   },
   {
     "schemaVersion": 1,

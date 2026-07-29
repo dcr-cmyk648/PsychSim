@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "0.1.0",
+  "id": "registry.catalog.medication-regimen-knowledge",
+  "medicationClasses": [],
+  "classMemberships": [],
+  "focusedRoutes": [],
+  "contributors": [],
+  "sourceUseNotes": []
+}

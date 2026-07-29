@@ -410,7 +410,7 @@
     "sourceAuthority": "source_document",
     "ticketType": "treatment_pathway",
     "priority": "high",
-    "status": "proposed",
+    "status": "resolved",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": null,
@@ -429,14 +429,19 @@
       "rule.mdd-combination-safety",
       "rule.review-mdd.multiple-antidepressant-starts.safety-cap"
     ],
-    "proposedRouting": "Decide whether the future regimen model must store treatment intent explicitly rather than inferring combination, adjunctive treatment, or shotgun prescribing from medication count alone.",
-    "guidance": "CANMAT defines combination as starting two treatments together and adjunctive treatment as adding to an existing treatment. Recent pooled evidence also prevents treating every antidepressant pair as intrinsically dangerous. The current prototype may retain a strong case-specific parsimony consequence for starting several same-role treatments, but a reusable safety finding should require an actual duplicate mechanism, interaction, contraindication, or case-supported hazard. Review this taxonomy separately from any point value.",
-    "reviewerNotes": "",
-    "reviewerNotesUpdatedAt": null,
-    "resurfacingTrigger": "Before a normalized regimen evaluator or another multi-medication patient uses medication count as a clinical predicate.",
-    "resolution": null,
+    "proposedRouting": "Distinguish simultaneous combination, adjunctive addition, deliberate replacement, and unsupported multi-start plans without adding intent to patient state or the player's treatment payload.",
+    "guidance": "CANMAT distinguishes simultaneous combination, adjunctive treatment, and switching, but that source vocabulary does not require a player-entered or patient-truth intent field. PsychSim stores concrete starts and entry-targeted operations; a focused reviewed route owns the matching explanatory meaning. Medication count or shared class membership alone never establishes danger. A reusable safety finding requires an actual reviewed duplication mechanism, interaction, contraindication, or case-supported hazard.",
+    "reviewerNotes": "Approved by Dustin Rowland. Store starts and entry-targeted operations only in the submitted plan. The focused reviewed route—not the player or patient—explains a matching transition as replacement, augmentation, simplification, or initial treatment. Preserve the current MDD multi-start rule only as case-specific compatibility behavior until separately migrated. No points were reviewed here.",
+    "reviewerNotesUpdatedAt": "2026-07-29T00:39:35.000Z",
+    "resurfacingTrigger": "If a future design proposes a player/patient intent field, infers regimen meaning from medication count, or generalizes the compatibility MDD multi-start consequence.",
+    "resolution": {
+      "disposition": "applied",
+      "note": "D-190 and the runtime-excluded regimen-knowledge schema place transition meaning on a focused reviewed route while keeping the submitted payload concrete. This narrows the historical unreviewed categorical-intent synthesis; it does not approve a CANMAT treatment branch, point value, duplicate hazard, switch strategy, or cross-taper behavior.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-29T00:39:35.000Z"
+    },
     "createdAt": "2026-07-26T17:00:00.000Z",
-    "updatedAt": "2026-07-26T17:00:00.000Z"
+    "updatedAt": "2026-07-29T00:39:35.000Z"
   },
   {
     "schemaVersion": 1,
@@ -473,7 +478,7 @@
   {
     "schemaVersion": 1,
     "id": "ticket.source.canmat-mdd.switch-transition-state",
-    "title": "Require an explicit medication transition state",
+    "title": "Keep medication-transition safety pair-specific",
     "sourceKind": "source_claim",
     "sourceAuthority": "source_document",
     "ticketType": "case_construction",
@@ -493,8 +498,8 @@
     ],
     "dependencyTicketIds": ["ticket.source.canmat-mdd.regimen-intent-taxonomy"],
     "conflictContentIds": [],
-    "proposedRouting": "Decide whether overlap may receive a transition exemption only when the source regimen entry, destination medication, switching strategy, and pair compatibility are explicit. A start-plus-stop checklist alone must not imply a safe cross-taper.",
-    "guidance": "CANMAT distinguishes crossover and washout strategies from simultaneous combination treatment and identifies pair-specific exceptions such as MAOI washout requirements. The current snapshot model has no dosing or time simulation, so the smallest future representation is a categorical transition intent plus pair-specific compatibility—not an inferred timeline. Review the boundary only; do not implement cross-titration or assign points from this ticket.",
+    "proposedRouting": "Decide whether a reviewed replacement route may receive an overlap or transition-safety allowance only when the source regimen entry, destination medication, and pair-specific compatibility rule are explicit. Start plus taper/stop operations alone must not imply a safe cross-taper.",
+    "guidance": "CANMAT distinguishes crossover and washout strategies from simultaneous combination treatment and identifies pair-specific exceptions such as MAOI washout requirements. The current snapshot model has no dosing or time simulation. Route-owned replacement meaning can recognize the decision shape, but pair-specific compatibility remains separate and must not create an inferred timeline. Review that later boundary only; do not implement cross-titration or assign points from this ticket.",
     "reviewerNotes": "",
     "reviewerNotesUpdatedAt": null,
     "resurfacingTrigger": "Before adding cross-titration, medication-overlap exemptions, or a patient whose immediate best step is a medication switch.",

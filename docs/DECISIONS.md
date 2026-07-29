@@ -3084,3 +3084,43 @@ a new recommendation. This decision narrows the psychotherapy delivery/fidelity 
 D-105 and D-169 while preserving their identity, provenance, source-rights, combination, and
 balance boundaries. No clinical mapping, efficacy claim, point value, or encounter behavior
 changes.
+
+## D-190 — Medication-change meaning belongs to the reviewed route, not the player payload
+
+**Decision:** The player submits concrete snapshot actions only: medication starts plus
+entry-targeted `continue`, `increase`, `reduce_or_limit`, `taper`, or `stop` operations. The
+selection contains no switch, augmentation, simplification, or other intent field; no dose,
+schedule, transition timing, follow-up instruction, or predicted outcome; and no points, grade,
+par, or score cap.
+
+A focused reviewed diagnosis route or decision policy owns the acceptable transition shape and
+its explanatory meaning. It may interpret a complete action combination as initial treatment,
+replacement, augmentation, simplification, or maintenance/optimization. This explanation is
+route metadata, not patient truth and not a player assertion. An initial MDD route can therefore
+require one eligible first-line start, while a complex route can retain one beneficial regimen
+entry, reduce/taper/stop another entry, and add an eligible adjunct. A replacement-shaped start
+plus taper/stop may match a reviewed route, but it never implies that overlap, washout, or a
+cross-taper schedule is safe.
+
+Medication classes and their memberships are explicit stable, versioned relationships. The
+legacy free-text `MedicationDefinition.classes` values and arbitrary tags are never parsed to
+infer class membership, duplication, or safety. Reusable benefit, prior-response, nonresponse,
+tolerability, prior-trial, goodness-of-fit, duplication, interaction, withdrawal,
+contraindication, and prerequisite contributors remain separately typed and traceable. A later
+balance layer may assign provisional points; the qualitative relationship does not own them. A
+true contraindication can later suppress positive fit rows under D-159, while a serious but
+nonabsolute risk remains a large independent negative rather than being mislabeled absolute.
+
+There is no universal regimen-quality score, blanket same-class penalty, automatic clinical
+winner, or inference of treatment meaning from medication count. A reviewed route or separately
+reviewed reusable hazard must support any consequence. An unmatched but structurally plausible
+plan remains eligible for the existing `engine_inferred` evaluation label rather than acquiring an
+invented penalty or citation.
+
+The new medication-regimen knowledge catalog is intentionally empty and runtime-excluded. It
+creates authoring bins and validation boundaries only. No medication class, membership, clinical
+relationship, route, point rule, compatibility-case score, or medical approval is activated by
+this decision. D-190 narrows the historical unreviewed categorical-intent proposal associated
+with the CANMAT source review: source material may distinguish combination, adjunctive treatment,
+and switching, but PsychSim stores the chosen explanation on a reviewed route rather than in
+patient state or the player payload.

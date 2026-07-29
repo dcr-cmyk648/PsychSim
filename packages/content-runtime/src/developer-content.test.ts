@@ -37,7 +37,6 @@ describe('developer clinical audit queue', () => {
       'ticket.source.mdd.antidepressant-sleep-fit',
       'ticket.source.mdd.tsh-workup-threshold',
       'ticket.source.mdd.antidepressant-weight-fit',
-      'ticket.source.canmat-mdd.regimen-intent-taxonomy',
       'ticket.source.canmat-mdd.inadequate-response-route',
       'ticket.source.canmat-mdd.switch-transition-state',
       'ticket.source.who-mhgap.dep1-antidepressant-baseline',
@@ -272,7 +271,6 @@ describe('developer clinical audit queue', () => {
           id: 'source-request.medications.regimen-combination-boundaries',
           status: 'needs_source',
           linkedTicketIds: [
-            'ticket.catalog.medications.normalized-regimen-risk-benefit',
             'ticket.source.canmat-mdd.regimen-intent-taxonomy',
             'ticket.source.canmat-mdd.inadequate-response-route',
             'ticket.source.canmat-mdd.switch-transition-state',
@@ -458,16 +456,26 @@ describe('developer clinical audit queue', () => {
       status: 'proposed',
     });
     expect(byId.get('ticket.catalog.medications.normalized-regimen-risk-benefit')).toMatchObject({
-      status: 'accepted_for_workflow',
+      status: 'resolved',
       requiresClinicalAcumen: true,
-      dependencyTicketIds: [
-        'ticket.catalog.medications.current-rule-provenance',
-        'ticket.catalog.medications.psychiatry-allowlist',
-      ],
+      dependencyTicketIds: [],
       targetContentIds: expect.arrayContaining([
-        'grade.review-mdd.multiple-antidepressant-starts',
-        'rule.review-mdd.multiple-antidepressant-starts.safety-cap',
+        'registry.catalog.medication-regimen-knowledge',
+        'schema.focused-medication-regimen-route',
+        'schema.medication-regimen-contributor',
       ]),
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
+    expect(byId.get('ticket.source.canmat-mdd.regimen-intent-taxonomy')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: true,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
     });
     expect(byId.get('ticket.catalog.interventions.identity-and-fidelity')).toMatchObject({
       status: 'resolved',

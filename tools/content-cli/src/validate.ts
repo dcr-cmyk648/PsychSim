@@ -12,6 +12,7 @@ import {
   FindingExpressionBankCatalogSchema,
   MeasurementCatalogSchema,
   MedicationIdentityDefinitionSchema,
+  MedicationRegimenKnowledgeCatalogSchema,
   PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgePilotProfileSchema,
   PersonalKnowledgePrivateSourceCatalogSchema,
@@ -508,6 +509,159 @@ if (
   );
 }
 
+const medicationRegimenKnowledgeIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let medicationRegimenKnowledgeCatalogForValidation: ReturnType<
+  typeof MedicationRegimenKnowledgeCatalogSchema.parse
+> | null = null;
+const medicationRegimenKnowledgeEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'medication_regimen_knowledge_catalog',
+);
+if (medicationRegimenKnowledgeEntries.length !== 1) {
+  medicationRegimenKnowledgeIssues.push({
+    severity: 'error',
+    code: 'MEDICATION_REGIMEN_KNOWLEDGE_CATALOG_COUNT',
+    message: `Expected one medication-regimen knowledge catalog; found ${medicationRegimenKnowledgeEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = medicationRegimenKnowledgeEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Medication-regimen knowledge remains outside the ordinary runtime until the decision-policy compiler exists.',
+      );
+    }
+    const catalog = MedicationRegimenKnowledgeCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    medicationRegimenKnowledgeCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = [
+      ...catalog.medicationClasses,
+      ...catalog.classMemberships,
+      ...catalog.focusedRoutes,
+      ...catalog.contributors,
+    ]
+      .map((record) => record.id)
+      .sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error(
+        'Medication-regimen registry membership must exactly match its owned records.',
+      );
+    }
+
+    const medicationIdentityVersions = new Map(
+      medicationIdentities.map((identity) => [identity.id, identity.contentVersion]),
+    );
+    const medicationClassVersions = new Map(
+      catalog.medicationClasses.map((definition) => [definition.id, definition.contentVersion]),
+    );
+    for (const membership of catalog.classMemberships) {
+      const identityVersion = medicationIdentityVersions.get(membership.medicationIdentityId);
+      if (!identityVersion) {
+        throw new Error(
+          `${membership.id} references unknown medication identity ${membership.medicationIdentityId}.`,
+        );
+      }
+      if (identityVersion !== membership.medicationIdentityContentVersion) {
+        throw new Error(
+          `${membership.id} pins ${membership.medicationIdentityId}@${membership.medicationIdentityContentVersion}; expected ${identityVersion}.`,
+        );
+      }
+      const medicationClassVersion = medicationClassVersions.get(membership.medicationClassId);
+      if (
+        !medicationClassVersion ||
+        medicationClassVersion !== membership.medicationClassContentVersion
+      ) {
+        throw new Error(
+          `${membership.id} references unknown or mismatched medication class ${membership.medicationClassId}@${membership.medicationClassContentVersion}.`,
+        );
+      }
+    }
+
+    const validateTarget = (
+      target:
+        | { kind: 'any_medication' }
+        | {
+            kind: 'medication';
+            medicationIdentityId: string;
+            medicationIdentityContentVersion: string;
+          }
+        | {
+            kind: 'class';
+            medicationClassId: string;
+            medicationClassContentVersion: string;
+          },
+      ownerId: string,
+    ): void => {
+      if (target.kind === 'any_medication') return;
+      if (target.kind === 'medication') {
+        const version = medicationIdentityVersions.get(target.medicationIdentityId);
+        if (!version || version !== target.medicationIdentityContentVersion) {
+          throw new Error(
+            `${ownerId} references unknown or mismatched medication ${target.medicationIdentityId}@${target.medicationIdentityContentVersion}.`,
+          );
+        }
+        return;
+      }
+      const version = medicationClassVersions.get(target.medicationClassId);
+      if (!version || version !== target.medicationClassContentVersion) {
+        throw new Error(
+          `${ownerId} references unknown or mismatched medication class ${target.medicationClassId}@${target.medicationClassContentVersion}.`,
+        );
+      }
+    };
+
+    const validateTransitionPredicateTargets = (
+      predicate: ReturnType<
+        typeof MedicationRegimenKnowledgeCatalogSchema.parse
+      >['focusedRoutes'][number]['transitionMatch'],
+      ownerId: string,
+    ): void => {
+      if (predicate.type === 'any' || predicate.type === 'all') {
+        predicate.predicates.forEach((child) => validateTransitionPredicateTargets(child, ownerId));
+        return;
+      }
+      if (predicate.type === 'not') {
+        validateTransitionPredicateTargets(predicate.predicate, ownerId);
+        return;
+      }
+      validateTarget(predicate.target, ownerId);
+    };
+
+    for (const route of catalog.focusedRoutes) {
+      validateTransitionPredicateTargets(route.transitionMatch, route.id);
+    }
+    for (const contributor of catalog.contributors) {
+      validateTransitionPredicateTargets(contributor.transitionWhen, contributor.id);
+    }
+    for (const sourceUse of catalog.sourceUseNotes) {
+      for (const evidenceSourceId of sourceUse.evidenceSourceIds) {
+        if (!allEvidenceSourceIds.has(evidenceSourceId)) {
+          throw new Error(
+            `${sourceUse.id} references unknown evidence source ${evidenceSourceId}.`,
+          );
+        }
+      }
+    }
+  } catch (error) {
+    medicationRegimenKnowledgeIssues.push({
+      severity: 'error',
+      code: 'INVALID_MEDICATION_REGIMEN_KNOWLEDGE_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Medication-regimen knowledge catalog validation failed.',
+    });
+  }
+}
+
 const supplementIdentityIssues: Array<{
   severity: 'error';
   code: string;
@@ -745,6 +899,14 @@ if (exposureCatalogForValidation) {
   collectContributionUses(
     exposureCatalogForValidation,
     exposureCatalogForValidation.id,
+    false,
+    contributionUses,
+  );
+}
+if (medicationRegimenKnowledgeCatalogForValidation) {
+  collectContributionUses(
+    medicationRegimenKnowledgeCatalogForValidation,
+    medicationRegimenKnowledgeCatalogForValidation.id,
     false,
     contributionUses,
   );
@@ -1000,6 +1162,14 @@ if (developerOpinionEntries.length !== 1) {
       ...(exposureCatalogForValidation?.misuseGenerationPriors.map(
         (prior) => [prior.id, 'clinical_rule'] as const,
       ) ?? []),
+      ...(medicationRegimenKnowledgeCatalogForValidation
+        ? [
+            ...medicationRegimenKnowledgeCatalogForValidation.medicationClasses,
+            ...medicationRegimenKnowledgeCatalogForValidation.classMemberships,
+            ...medicationRegimenKnowledgeCatalogForValidation.focusedRoutes,
+            ...medicationRegimenKnowledgeCatalogForValidation.contributors,
+          ].map((record) => [record.id, 'clinical_rule'] as const)
+        : []),
     ]);
     for (const opinion of catalog.opinions) {
       for (const target of opinion.targets) {
@@ -1036,6 +1206,33 @@ if (developerOpinionEntries.length !== 1) {
         ) {
           throw new Error(
             `${developerOpinionId} does not target misuse generation prior ${prior.id}.`,
+          );
+        }
+      }
+    }
+    for (const record of medicationRegimenKnowledgeCatalogForValidation
+      ? [
+          ...medicationRegimenKnowledgeCatalogForValidation.medicationClasses,
+          ...medicationRegimenKnowledgeCatalogForValidation.classMemberships,
+          ...medicationRegimenKnowledgeCatalogForValidation.focusedRoutes,
+          ...medicationRegimenKnowledgeCatalogForValidation.contributors,
+        ]
+      : []) {
+      for (const developerOpinionId of record.developerOpinionIds) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${record.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === record.id,
+          )
+        ) {
+          throw new Error(
+            `${developerOpinionId} does not target medication-regimen record ${record.id}.`,
           );
         }
       }
@@ -1113,6 +1310,13 @@ const reports = [
     {
       valid: medicationIdentityIssues.length === 0,
       issues: medicationIdentityIssues,
+    },
+  ],
+  [
+    'medication-regimen-knowledge',
+    {
+      valid: medicationRegimenKnowledgeIssues.length === 0,
+      issues: medicationRegimenKnowledgeIssues,
     },
   ],
   [

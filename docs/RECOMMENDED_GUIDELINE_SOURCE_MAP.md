@@ -47,9 +47,11 @@ copy BFCRS content or decide diagnosis, workup, treatment, disposition, or point
 
 A second bounded packet sweep prepares ten additional clinician decisions: MDD severity
 generation; an overall antidepressant-fit frame plus sleep, weight/metabolic, and
-sexual/adherence subdomains; TSH-testing thresholds; suicide-risk/disposition; and regimen intent,
-inadequate-response route, and switch-transition state. Every proposal is medically unreviewed and
-point-excluded. CANMAT supplies source-cleared support where applicable; newer abstract-only
+sexual/adherence subdomains; TSH-testing thresholds; suicide-risk/disposition; and regimen
+taxonomy, inadequate-response route, and switch-transition state. D-190 resolves only the
+ownership boundary—transition meaning belongs to a reviewed route, not player or patient state.
+The source-derived clinical proposals remain medically unreviewed and point-excluded. CANMAT
+supplies source-cleared support where applicable; newer abstract-only
 syntheses remain qualifying context until separate evidence and source-use intake. No diagnosis
 branch, investigation reward, treatment grade, safety/disposition rule, regimen rule, or point
 value changed.

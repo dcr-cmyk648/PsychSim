@@ -57,6 +57,8 @@ reduce, and a replacement or adjunct. The resolved regimen and trial history sup
 tolerability, prior exposure, and role; medication, interaction, finding, and other topical rules
 supply specific fit and safety; balance supplies points. The encounter grades the complete
 snapshot recommendation without simulating doses, a cross-taper, follow-up, or future response.
+Replacement, augmentation, and simplification are explanations owned by that reviewed route—not
+fields on patient state or the player's concrete start/entry-operation submission.
 
 Standardized classification background lives separately under
 `content/catalogs/diagnoses/classifications/`. It is not another diagnosis-rule catalog. A
