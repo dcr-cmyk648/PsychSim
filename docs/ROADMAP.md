@@ -149,8 +149,12 @@ one complete general slice. The runtime behavior and reference baselines recorde
 checkpoint remain stable through the later schema split; old snapshots replay through a versioned
 migration; unsourced severity cannot generate; the same recipe and seed reproduce the same
 complete patient/regimen/trial state; duplicate medications are independently addressable; chart
-claims do not automatically activate internal-condition rules; and only decision-relevant positive
-rules plus global safety rules enter a focused encounter. Structural invalidity quarantines while
+claims do not automatically activate internal-condition rules; exactly one primary policy anchors
+the dominant route; and reviewed secondary contributors from complete typed patient state enter
+only when their exact action targets intersect the focused horizon. Broad routes from background
+diagnoses remain inactive while matching global safety, interaction, and treatment-prerequisite
+guardrails remain eligible. Exhaustive scanning and an in-memory reverse index must produce the
+same candidates. Structural invalidity quarantines while
 coverage gaps remain nonblocking and clinical/evidence/balance conflicts remain distinguishable.
 No point mapping, department work, or new clinical recommendation is invented. Encounter recipes
 may later use a provisional multidimensional target envelope, but diagnosis dossiers never own it

@@ -3124,3 +3124,83 @@ this decision. D-190 narrows the historical unreviewed categorical-intent propos
 with the CANMAT source review: source material may distinguish combination, adjunctive treatment,
 and switching, but PsychSim stores the chosen explanation on a reviewed route rather than in
 patient state or the player payload.
+
+## D-191 — One primary policy anchors the encounter; typed full-state discovery supplies secondary contributors
+
+**Decision:** Each target encounter compiles exactly one version-pinned primary
+`DecisionPolicyDefinition`. It owns the focused question, one or more broad acceptable response
+branches, and the dominant qualitative route later eligible for the primary point band. It may
+name companion requirements and narrow overrides, but it is not required to hand-list every
+patient-specific bonus, harm, or prerequisite that could affect a submitted option.
+
+The complete frozen `ResolvedPatientState` remains eligible input. The compiler automatically
+discovers reviewed secondary contributors whose declared typed patient dependencies intersect
+that state and whose exact treatment, regimen-entry, intervention, investigation, or disposition
+targets intersect the encounter's action horizon. Selection-dependent predicates resolve when the
+player submits. This includes, when separately authored and reviewed, fit, response, tolerability,
+prior-trial, reaction, regulatory-alignment, discontinuation/withdrawal, duplication/parsimony,
+interaction, contraindication, treatment-triggered prerequisite, and disposition effects. A
+modifier can therefore arise from any relevant condition, finding, interpreted measurement,
+context, regimen entry, trial, reaction, or exposure without the primary policy copying or linking
+it individually.
+
+A patient predicate matches explicit typed values only. Closed-world `not` is deliberately absent:
+missing, unresolved, unassessed, and inapplicable state cannot be converted to a negative finding.
+An author who needs a negative condition names its explicit `absent`, `false`, `documented_none`,
+or other reviewed value. Ordinary `all` combines independent facts; `same_record_all` explicitly
+requires every named fact to bind to at least one common repeated record. The compiled trace keeps
+each matched fact attached to the exact record IDs that satisfied it.
+
+A semantic full scan and a deterministic reverse-index lookup are interchangeable
+implementations. Production may use a versioned derived index keyed only by exact typed
+dependencies and action targets. Given the same catalogs, frozen patient, action horizon, and
+versions, either method must return the identical ordered candidate set independent of source or
+file order. A caller-supplied index is copied and deterministically re-fingerprinted before use;
+one compile input may contain only one active version/owner for a logical rule ID. No labels,
+surface wording, arbitrary tags, lexical similarity, point magnitude, or nearby dossier may create
+a match.
+
+Full-state discovery does not make the encounter an exhaustive care plan. A background
+diagnosis's broad treatment route does not become another primary objective merely because it is
+present. Only the primary policy supplies the dominant route; automatically discovered positive
+contributors must be action-relative secondary effects within the focused snapshot. The engine
+does not require treating every condition, ordering every potentially relevant test, or reward
+unselected options. Matching global safety/interaction and selected-treatment prerequisite
+guardrails stay eligible. Missing reviewed coverage emits a nonblocking diagnostic and ticket and
+neither invents a penalty nor invalidates the patient.
+
+`CompiledRubric` freezes the primary policy and route versions, included rule versions, inclusion
+lane, normalized patient/action activation predicates, matched fact-to-record and action
+references, review/provenance/balance references, rule-combination identifiers, and
+compiler/index fingerprints. Unordered predicate branches, action targets, and provenance IDs are
+normalized before freezing; unrelated singleton owners cannot share same-record identity; the
+durable rubric ID uses the full 64-bit fingerprint suffix; patient-state and action-horizon IDs are
+part of the integrity payload; and a persisted artifact must pass strict semantic schema checks
+plus payload-integrity verification. Duration and burden retain source/time scope and scale
+version. Tolerability attached to a current regimen entry may affect an entry operation only when
+the normalized candidate binds that exact entry, preventing duplicate same-medication records from
+sharing a modifier. An approved policy/regimen record may rely only on an approved formal
+contribution or accepted Developer opinion. The active reference union
+admits only canonical rule-owner kinds that validation can resolve and expands atomically with a
+future owner. D-159 combination semantics still govern after separately reviewed
+balance records supply points. Current case-local rubrics and reference runs remain compatibility
+fixtures. This decision authorizes only the point-free policy/compiler ownership and tests; it
+adds no guidance, points, generated patients, runtime migration, general expression language, or
+medical approval.
+
+## D-192 — PsychSimDataAdjunct is an independent proposal producer, not a second writer
+
+**Decision:** PsychSimDataAdjunct may operate asynchronously as a separate clinical-learning and
+evidence-horizon process. PsychSim tickets are useful inputs but do not control its queue. The
+adjunct may maintain concept-first research records, preserve private-corpus leads without
+duplicating completed review, and return versioned, hashed, medically unreviewed proposal bundles.
+Any PsychSim mapping is a separate snapshot-bound layer so a proposal does not claim current
+canonical IDs or targets after the pinned snapshot changes.
+
+PsychSim remains the only canonical writer and authority for stable IDs, source-use decisions,
+clinical rules, balance/points, review state, and runtime content. This repository must validate
+the adjunct's pinned base and stale targets, decide whether each source may support the proposed
+use, and perform every candidate database edit and runtime validation. An adjunct packet can
+neither resolve a PsychSim ticket nor approve or activate content. The safe whole-corpus Developer
+Database projection may provide coverage signals after deterministic regeneration and validation;
+the adjunct does not reread or receive private source text merely to reconstruct those signals.

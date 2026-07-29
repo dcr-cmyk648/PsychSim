@@ -91,12 +91,23 @@ content, or grants medical approval.
 
 ## Read-only evidence adjunct
 
-A sibling PsychSimDataAdjunct thread may scout a named evidence gap and produce a review packet,
-but it is not a second repository writer. Each assignment pins one committed PsychSim base and the
-exact `SourceRequest`, review-ticket, and target IDs in scope. The adjunct may return a hashed,
-medically unreviewed packet conforming to the existing schemas. It may not edit PsychSim, create
-canonical IDs, approve a source or clinical claim, translate evidence into rules or points, or
-infer a replacement target when the pinned IDs have changed.
+PsychSimDataAdjunct may run asynchronously as an independent clinical-learning and
+evidence-horizon process, but it is not a second repository writer. PsychSim tickets are useful
+inputs, not the adjunct's queue authority. It may organize concept-first research records and
+preserve private-corpus leads without duplicating completed work. Every returned proposal bundle
+must be versioned, hashed, and medically unreviewed. A general evidence-horizon bundle may remain
+unmapped. Only a bundle submitted for PsychSim incorporation must include a separate mapping pinned
+to one committed PsychSim base plus the exact `SourceRequest`, review-ticket, and target IDs it
+proposes to inform.
+
+The adjunct may not edit PsychSim, create canonical IDs, approve a source or clinical claim,
+translate evidence into rules or points, resolve a PsychSim ticket, or infer a replacement target
+when pinned IDs have changed. It may use the deterministically regenerated, validated
+whole-corpus Developer Database projection as a safe coverage signal; it does not receive or
+reread private source text merely to reconstruct that projection. This collaboration boundary
+does not authorize transferring private source text. Safe projections and locators may cross the
+boundary; any source-text transfer still requires the ordinary explicit source-specific
+authorization and source-use review.
 
 The canonical PsychSim writer checks the returned packet for base/target staleness, source identity
 and corrections, source-use permission, packet hash/schema validity, and the psychiatrist's

@@ -49,6 +49,13 @@ export const ClinicalRuleReviewSchema = z
   })
   .strict()
   .superRefine((review, context) => {
+    if (new Set(review.sourceUseNoteIds).size !== review.sourceUseNoteIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceUseNoteIds'],
+        message: 'Clinical-rule source-use references must be unique.',
+      });
+    }
     if (review.status === 'approved' && (!review.reviewerId || !review.reviewedAt)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -2108,6 +2115,7 @@ export const ContentRegistryEntrySchema = z
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
       'medication_regimen_knowledge_catalog',
+      'decision_policy_catalog',
       'supplement_identity_catalog',
       'personal_knowledge_pilot_profile',
       'personal_knowledge_alias_catalog',
@@ -10051,6 +10059,250 @@ export const MedicationRegimenRouteMeaningSchema = z.enum([
 export type MedicationRegimenRouteMeaning = z.infer<typeof MedicationRegimenRouteMeaningSchema>;
 
 /**
+ * A normalized, exact patient-state dependency. Topical adapters create these
+ * keys from typed ResolvedPatientState records; authors never match labels,
+ * prose, aliases, arbitrary tags, or file position.
+ */
+export const DecisionPatientFactRecordKindSchema = z.enum([
+  'demographics',
+  'condition',
+  'chart_diagnosis',
+  'medication_regimen',
+  'exposure',
+  'medication_trial',
+  'psychotherapy_trial',
+  'current_provider',
+  'prior_level_of_care',
+  'medication_tolerability',
+  'reaction_history',
+  'reaction',
+  'canonical_finding',
+  'measurement',
+  'categorical_observation',
+  'structured_test_result',
+  'clinical_context',
+  'clinical_duration',
+  'subjective_burden',
+  'proposition',
+  'proposition_evidence',
+  'belief_appraisal',
+  'safety_planning',
+]);
+export type DecisionPatientFactRecordKind = z.infer<typeof DecisionPatientFactRecordKindSchema>;
+
+export const DecisionPatientFactKeySchema = z
+  .object({
+    recordKind: DecisionPatientFactRecordKindSchema,
+    identityId: StableIdSchema,
+    identityContentVersion: ContentVersionSchema.nullable(),
+    attributeId: StableIdSchema,
+    valueId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((fact, context) => {
+    const attributesByRecordKind: Record<DecisionPatientFactRecordKind, readonly string[]> = {
+      demographics: ['demographics.reviewed-age-band', 'demographics.sex-for-reference'],
+      condition: [
+        'condition.presence',
+        'condition.clinical-state',
+        'condition.time-scope',
+        'condition.encounter-relevance',
+        'condition.origin',
+        'condition.severity',
+        'condition.specifier',
+      ],
+      chart_diagnosis: [
+        'chart-diagnosis.presence',
+        'chart-diagnosis.assertion',
+        'chart-diagnosis.source-kind',
+        'chart-diagnosis.time-scope',
+      ],
+      medication_regimen: [
+        'medication-regimen.presence',
+        'medication-regimen.clinical-role',
+        'medication-regimen.status',
+        'medication-regimen.adherence',
+        'medication-regimen.known-at-opening',
+        'medication-regimen.impact-classification',
+        'medication-regimen.source',
+        'medication-regimen.prescribed-for-diagnosis',
+      ],
+      exposure: [
+        'exposure.use',
+        'exposure.agent-kind',
+        'exposure.recency-kind',
+        'exposure.recency-unit',
+        'exposure.prescription-relationship',
+        'exposure.misuse-truth',
+      ],
+      medication_trial: [
+        'medication-trial.presence',
+        'medication-trial.adequacy',
+        'medication-trial.adherence',
+        'medication-trial.response',
+        'medication-trial.tolerability',
+        'medication-trial.source',
+        'medication-trial.duration-unit',
+      ],
+      psychotherapy_trial: [
+        'psychotherapy-trial.presence',
+        'psychotherapy-trial.status',
+        'psychotherapy-trial.engagement',
+        'psychotherapy-trial.response',
+        'psychotherapy-trial.source',
+      ],
+      current_provider: [
+        'current-provider.presence',
+        'current-provider.active',
+        'current-provider.source',
+      ],
+      prior_level_of_care: ['prior-level-of-care.presence', 'prior-level-of-care.source'],
+      medication_tolerability: [
+        'medication-tolerability.domain',
+        'medication-tolerability.status',
+        'medication-tolerability.subject-kind',
+        'medication-tolerability.subject-regimen-entry',
+        'medication-tolerability.subject-medication-trial',
+        'medication-tolerability.source',
+        'medication-tolerability.source-rate-profile',
+        'medication-tolerability.manifestation',
+      ],
+      reaction_history: [
+        'reaction-history.status',
+        'reaction-history.medication-assessment-status',
+      ],
+      reaction: [
+        'reaction.presence',
+        'reaction.trigger-kind',
+        'reaction.recorded-as',
+        'reaction.reported-severity',
+        'reaction.source',
+        'reaction.status',
+        'reaction.manifestation',
+      ],
+      canonical_finding: ['finding.outcome', 'finding.uncertainty', 'finding.resolution-origin'],
+      measurement: [
+        'measurement.presence',
+        'measurement.time-scope',
+        'measurement.interpretation',
+        'measurement-context.',
+      ],
+      categorical_observation: [
+        'categorical-observation.value',
+        'categorical-observation.time-scope',
+        'categorical-observation.interpretation',
+      ],
+      structured_test_result: [
+        'test-result.kind',
+        'test-result.time-scope',
+        'test-result.outcome',
+        'test-result.interpretation',
+        'test-component.interpretation',
+        'test-component.value',
+        'test-finding.outcome',
+      ],
+      clinical_context: ['clinical-context.option'],
+      clinical_duration: [
+        'clinical-duration.interpretation',
+        'clinical-duration.unit',
+        'clinical-duration.option',
+        'clinical-duration.related-diagnosis',
+        'clinical-duration.source-kind',
+        'clinical-duration.time-scope',
+      ],
+      subjective_burden: [
+        'subjective-burden.ordinal-value',
+        'subjective-burden.time-scope',
+        'subjective-burden.source-kind',
+        'subjective-burden.scale-presence',
+      ],
+      proposition: ['proposition.truth'],
+      proposition_evidence: [
+        'proposition-evidence.assertion',
+        'proposition-evidence.truth-relationship',
+        'proposition-evidence.source-kind',
+      ],
+      belief_appraisal: [
+        'belief-appraisal.position',
+        'belief-appraisal.interpretation',
+        'belief-appraisal-dimension.',
+      ],
+      safety_planning: ['safety-planning.reported-ability'],
+    };
+    if (
+      !attributesByRecordKind[fact.recordKind].some(
+        (attribute) =>
+          fact.attributeId === attribute ||
+          (attribute.endsWith('.') && fact.attributeId.startsWith(attribute)),
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['attributeId'],
+        message: `${fact.attributeId} is not a supported ${fact.recordKind} decision attribute.`,
+      });
+    }
+  });
+export type DecisionPatientFactKey = z.infer<typeof DecisionPatientFactKeySchema>;
+
+export type DecisionPatientPredicate =
+  | { type: 'fact'; fact: DecisionPatientFactKey }
+  | { type: 'any'; predicates: DecisionPatientPredicate[] }
+  | { type: 'all'; predicates: DecisionPatientPredicate[] }
+  | { type: 'same_record_all'; facts: DecisionPatientFactKey[] };
+
+export const DecisionPatientPredicateSchema: z.ZodType<DecisionPatientPredicate> = z.lazy(() =>
+  z
+    .discriminatedUnion('type', [
+      z.object({ type: z.literal('fact'), fact: DecisionPatientFactKeySchema }).strict(),
+      z
+        .object({
+          type: z.literal('any'),
+          predicates: z.array(DecisionPatientPredicateSchema).min(1),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('all'),
+          predicates: z.array(DecisionPatientPredicateSchema).min(1),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('same_record_all'),
+          facts: z.array(DecisionPatientFactKeySchema).min(2),
+        })
+        .strict(),
+    ])
+    .superRefine((predicate, context) => {
+      if (predicate.type !== 'same_record_all') return;
+      const factKeys = predicate.facts.map((fact) =>
+        [
+          fact.recordKind,
+          fact.identityId,
+          fact.identityContentVersion ?? '',
+          fact.attributeId,
+          fact.valueId,
+        ].join('\0'),
+      );
+      if (new Set(factKeys).size !== factKeys.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['facts'],
+          message: 'A same-record predicate cannot repeat an identical fact.',
+        });
+      }
+      if (new Set(predicate.facts.map((fact) => fact.recordKind)).size !== 1) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['facts'],
+          message: 'A same-record predicate must compare facts from one record kind.',
+        });
+      }
+    }),
+);
+
+/**
  * A focused diagnosis route or decision policy interprets concrete medication
  * actions. The route meaning is explanatory metadata, not patient truth and
  * not a player-entered intent field.
@@ -10069,7 +10321,7 @@ export const FocusedMedicationRegimenRouteSchema = z
       })
       .strict(),
     routeMeaning: MedicationRegimenRouteMeaningSchema,
-    patientWhen: PatientContextPredicateSchema.nullable(),
+    patientWhen: DecisionPatientPredicateSchema.nullable(),
     transitionMatch: MedicationRegimenTransitionPredicateSchema,
     rationale: z.string().trim().min(1).max(1200),
     developerOpinionIds: z.array(StableIdSchema),
@@ -10117,19 +10369,12 @@ export const MedicationRegimenContributorSchema = z
     kind: MedicationRegimenContributorKindSchema,
     owner: z
       .object({
-        kind: z.enum([
-          'medication',
-          'medication_interaction',
-          'reaction',
-          'finding',
-          'diagnosis',
-          'decision_policy',
-        ]),
+        kind: z.enum(['medication', 'reaction', 'finding', 'diagnosis', 'decision_policy']),
         id: StableIdSchema,
         contentVersion: ContentVersionSchema,
       })
       .strict(),
-    patientWhen: PatientContextPredicateSchema.nullable(),
+    patientWhen: DecisionPatientPredicateSchema.nullable(),
     transitionWhen: MedicationRegimenTransitionPredicateSchema,
     stance: RecommendationStanceSchema,
     concernLevel: ClinicalConcernLevelSchema,
@@ -10239,6 +10484,14 @@ export const MedicationRegimenKnowledgeCatalogSchema = z
             code: z.ZodIssueCode.custom,
             message: `${sourceUseNoteId} does not target medication-regimen record ${record.id}.`,
           });
+        } else if (
+          record.review.status === 'approved' &&
+          sourceUse.medicalReviewStatus !== 'approved'
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${record.id} cannot rely on ${sourceUse.medicalReviewStatus} formal contribution ${sourceUseNoteId}.`,
+          });
         }
       });
       if (
@@ -10256,6 +10509,651 @@ export const MedicationRegimenKnowledgeCatalogSchema = z
 export type MedicationRegimenKnowledgeCatalog = z.infer<
   typeof MedicationRegimenKnowledgeCatalogSchema
 >;
+
+export const DecisionRuleReferenceKindSchema = z.enum([
+  'medication_regimen_route',
+  'diagnosis_rule',
+  'medication_regimen_contributor',
+]);
+export type DecisionRuleReferenceKind = z.infer<typeof DecisionRuleReferenceKindSchema>;
+
+export const DecisionRuleReferenceSchema = z
+  .object({
+    kind: DecisionRuleReferenceKindSchema,
+    id: StableIdSchema,
+    contentVersion: ContentVersionSchema,
+    ownerId: StableIdSchema,
+    ownerContentVersion: ContentVersionSchema,
+  })
+  .strict();
+export type DecisionRuleReference = z.infer<typeof DecisionRuleReferenceSchema>;
+
+export const PrimaryDecisionRouteReferenceSchema = DecisionRuleReferenceSchema.extend({
+  kind: z.literal('medication_regimen_route'),
+}).strict();
+export type PrimaryDecisionRouteReference = z.infer<typeof PrimaryDecisionRouteReferenceSchema>;
+
+export const SupportingDecisionRuleReferenceSchema = DecisionRuleReferenceSchema.extend({
+  kind: z.enum(['diagnosis_rule', 'medication_regimen_contributor']),
+}).strict();
+export type SupportingDecisionRuleReference = z.infer<typeof SupportingDecisionRuleReferenceSchema>;
+
+export const DecisionPolicyDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(180),
+    focusedDecisionId: StableIdSchema,
+    primaryRouteRef: PrimaryDecisionRouteReferenceSchema,
+    explicitSupportingRuleRefs: z.array(SupportingDecisionRuleReferenceSchema),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((policy, context) => {
+    const supportingKeys = policy.explicitSupportingRuleRefs.map(
+      (reference) => `${reference.kind}:${reference.id}@${reference.contentVersion}`,
+    );
+    if (new Set(supportingKeys).size !== supportingKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['explicitSupportingRuleRefs'],
+        message: 'Decision-policy supporting references must be unique.',
+      });
+    }
+    if (new Set(policy.developerOpinionIds).size !== policy.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Decision-policy Developer-opinion references must be unique.',
+      });
+    }
+    if (
+      policy.review.status === 'approved' &&
+      policy.review.sourceUseNoteIds.length === 0 &&
+      policy.developerOpinionIds.length === 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'An approved decision policy requires a formal contribution or Developer opinion.',
+      });
+    }
+  });
+export type DecisionPolicyDefinition = z.infer<typeof DecisionPolicyDefinitionSchema>;
+
+export const DecisionPolicyCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    policies: z.array(DecisionPolicyDefinitionSchema),
+    sourceUseNotes: z.array(EvidenceContributionSchema),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const ownedIds = [
+      ...catalog.policies.map((policy) => policy.id),
+      ...catalog.sourceUseNotes.map((note) => note.id),
+    ];
+    if (new Set(ownedIds).size !== ownedIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Decision-policy catalog IDs must be unique.',
+      });
+    }
+
+    const sourceUseById = new Map(catalog.sourceUseNotes.map((note) => [note.id, note]));
+    const policyIds = new Set(catalog.policies.map((policy) => policy.id));
+    catalog.sourceUseNotes.forEach((note, index) => {
+      if (note.authority !== 'formal_publication') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['sourceUseNotes', index, 'authority'],
+          message:
+            'Decision-policy source-use notes contain formal contributions only; Developer opinions remain separate records.',
+        });
+      }
+      note.targetContentIds.forEach((targetContentId) => {
+        if (!policyIds.has(targetContentId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['sourceUseNotes', index, 'targetContentIds'],
+            message: `${note.id} targets unknown decision policy ${targetContentId}.`,
+          });
+        }
+      });
+    });
+    catalog.policies.forEach((policy) => {
+      policy.review.sourceUseNoteIds.forEach((sourceUseNoteId) => {
+        const sourceUse = sourceUseById.get(sourceUseNoteId);
+        if (!sourceUse) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${policy.id} references unknown source-use note ${sourceUseNoteId}.`,
+          });
+        } else if (!sourceUse.targetContentIds.includes(policy.id)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${sourceUseNoteId} does not target decision policy ${policy.id}.`,
+          });
+        } else if (
+          policy.review.status === 'approved' &&
+          sourceUse.medicalReviewStatus !== 'approved'
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${policy.id} cannot rely on ${sourceUse.medicalReviewStatus} formal contribution ${sourceUseNoteId}.`,
+          });
+        }
+      });
+    });
+  });
+export type DecisionPolicyCatalog = z.infer<typeof DecisionPolicyCatalogSchema>;
+
+export const DecisionActionTargetSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('information_action'),
+      informationActionId: StableIdSchema,
+    })
+    .strict(),
+  z.object({ kind: z.literal('any_medication_start') }).strict(),
+  z
+    .object({
+      kind: z.literal('medication_start'),
+      medicationIdentityId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('any_regimen_operation'),
+      operation: MedicationRegimenEntryOperationSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('regimen_entry_operation'),
+      regimenEntryId: StableIdSchema,
+      operation: MedicationRegimenEntryOperationSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('regimen_medication_operation'),
+      medicationIdentityId: StableIdSchema,
+      operation: MedicationRegimenEntryOperationSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('intervention'),
+      interventionId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('disposition'),
+      dispositionId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type DecisionActionTarget = z.infer<typeof DecisionActionTargetSchema>;
+
+export const DecisionActionPredicateSchema = z
+  .object({
+    match: z.enum(['any', 'all']),
+    targets: z.array(DecisionActionTargetSchema).min(1),
+  })
+  .strict()
+  .superRefine((predicate, context) => {
+    const keys = predicate.targets.map((target) => JSON.stringify(target));
+    if (new Set(keys).size !== keys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['targets'],
+        message: 'Decision-action predicate targets must be unique.',
+      });
+    }
+  });
+export type DecisionActionPredicate = z.infer<typeof DecisionActionPredicateSchema>;
+
+export const DecisionActionHorizonSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    informationActionIds: z.array(StableIdSchema),
+    startMedicationIds: z.array(StableIdSchema),
+    regimenEntryOperations: z.array(
+      z
+        .object({
+          regimenEntryId: StableIdSchema,
+          medicationIdentityId: StableIdSchema,
+          operations: z.array(MedicationRegimenEntryOperationSchema).min(1),
+        })
+        .strict(),
+    ),
+    interventionIds: z.array(StableIdSchema),
+    dispositionIds: z.array(StableIdSchema),
+  })
+  .strict()
+  .superRefine((horizon, context) => {
+    for (const [path, ids] of [
+      ['informationActionIds', horizon.informationActionIds],
+      ['startMedicationIds', horizon.startMedicationIds],
+      ['interventionIds', horizon.interventionIds],
+      ['dispositionIds', horizon.dispositionIds],
+      [
+        'regimenEntryOperations',
+        horizon.regimenEntryOperations.map((entry) => entry.regimenEntryId),
+      ],
+    ] as const) {
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message: `Decision-action horizon ${path} must be unique.`,
+        });
+      }
+    }
+    horizon.regimenEntryOperations.forEach((entry, index) => {
+      if (new Set(entry.operations).size !== entry.operations.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['regimenEntryOperations', index, 'operations'],
+          message: 'Available regimen operations must be unique per entry.',
+        });
+      }
+    });
+  });
+export type DecisionActionHorizon = z.infer<typeof DecisionActionHorizonSchema>;
+
+export const DecisionRuleDiscoveryLaneSchema = z.enum([
+  'primary_policy_only',
+  'full_state_modifier',
+  'automatic_guardrail',
+]);
+export type DecisionRuleDiscoveryLane = z.infer<typeof DecisionRuleDiscoveryLaneSchema>;
+
+export const DecisionRuleKindSchema = z.enum([
+  'primary_route',
+  'fit',
+  'response',
+  'tolerability',
+  'prior_trial',
+  'reaction',
+  'regulatory_alignment',
+  'discontinuation',
+  'withdrawal',
+  'duplication',
+  'parsimony',
+  'interaction',
+  'contraindication',
+  'prerequisite',
+  'disposition',
+]);
+export type DecisionRuleKind = z.infer<typeof DecisionRuleKindSchema>;
+
+export const DecisionBalanceReferenceSchema = z
+  .object({
+    id: StableIdSchema,
+    contentVersion: ContentVersionSchema,
+  })
+  .strict();
+export type DecisionBalanceReference = z.infer<typeof DecisionBalanceReferenceSchema>;
+
+const decisionPredicateContainsRecordKind = (
+  predicate: DecisionPatientPredicate | null,
+  recordKind: DecisionPatientFactRecordKind,
+): boolean => {
+  if (predicate === null) return false;
+  if (predicate.type === 'fact') return predicate.fact.recordKind === recordKind;
+  if (predicate.type === 'same_record_all') {
+    return predicate.facts.some((fact) => fact.recordKind === recordKind);
+  }
+  return predicate.predicates.some((child) =>
+    decisionPredicateContainsRecordKind(child, recordKind),
+  );
+};
+
+/**
+ * Returns values that every successful branch must require for one exact fact.
+ * `null` means at least one possible branch can match without that fact.
+ */
+const requiredDecisionFactValues = (
+  predicate: DecisionPatientPredicate | null,
+  recordKind: DecisionPatientFactRecordKind,
+  attributeId: string,
+): ReadonlySet<string> | null => {
+  if (predicate === null) return null;
+  if (predicate.type === 'fact') {
+    return predicate.fact.recordKind === recordKind && predicate.fact.attributeId === attributeId
+      ? new Set([predicate.fact.valueId])
+      : null;
+  }
+  if (predicate.type === 'same_record_all') {
+    const values = predicate.facts
+      .filter((fact) => fact.recordKind === recordKind && fact.attributeId === attributeId)
+      .map((fact) => fact.valueId);
+    return values.length > 0 ? new Set(values) : null;
+  }
+  const childValues = predicate.predicates.map((child) =>
+    requiredDecisionFactValues(child, recordKind, attributeId),
+  );
+  if (predicate.type === 'all') {
+    const required = childValues.filter((values): values is ReadonlySet<string> => values !== null);
+    return required.length > 0 ? new Set(required.flatMap((values) => [...values])) : null;
+  }
+  if (childValues.some((values) => values === null)) return null;
+  const present = childValues.filter((values): values is ReadonlySet<string> => values !== null);
+  const [first, ...rest] = present;
+  if (!first) return null;
+  return new Set([...first].filter((value) => rest.every((values) => values.has(value))));
+};
+
+/**
+ * A normalized point-free adapter output from a topical knowledge owner.
+ * It is compiler input, not a second persistence home for that knowledge.
+ */
+export const DecisionRuleCandidateDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    ruleRef: DecisionRuleReferenceSchema,
+    label: z.string().trim().min(1).max(180),
+    ruleKind: DecisionRuleKindSchema,
+    discoveryLane: DecisionRuleDiscoveryLaneSchema,
+    patientWhen: DecisionPatientPredicateSchema.nullable(),
+    actionWhen: DecisionActionPredicateSchema.nullable(),
+    stance: RecommendationStanceSchema,
+    concernLevel: ClinicalConcernLevelSchema,
+    certaintyLevel: ClinicalCertaintyLevelSchema,
+    ...RuleCombinationSourceShape,
+    rationale: z.string().trim().min(1).max(1200),
+    balanceRef: DecisionBalanceReferenceSchema.nullable(),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((candidate, context) => {
+    if (
+      (candidate.discoveryLane === 'primary_policy_only') !==
+      (candidate.ruleKind === 'primary_route')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['discoveryLane'],
+        message:
+          'Only a primary route may use the primary-policy-only lane, and every primary route must use that lane.',
+      });
+    }
+    const routeReferenceKind = candidate.ruleRef.kind === 'medication_regimen_route';
+    if ((candidate.ruleKind === 'primary_route') !== routeReferenceKind) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ruleRef', 'kind'],
+        message:
+          'A primary route requires a route reference, and a route reference cannot masquerade as a secondary rule.',
+      });
+    }
+    if (
+      candidate.discoveryLane === 'automatic_guardrail' &&
+      ![
+        'reaction',
+        'discontinuation',
+        'withdrawal',
+        'duplication',
+        'parsimony',
+        'interaction',
+        'contraindication',
+        'prerequisite',
+        'disposition',
+      ].includes(candidate.ruleKind)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ruleKind'],
+        message: 'An automatic guardrail must use a safety, prerequisite, or parsimony rule kind.',
+      });
+    }
+    if (candidate.discoveryLane === 'full_state_modifier' && candidate.patientWhen === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['patientWhen'],
+        message: 'A full-state modifier requires an exact patient-state predicate.',
+      });
+    }
+    if (candidate.discoveryLane !== 'primary_policy_only' && candidate.actionWhen === null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['actionWhen'],
+        message: 'An automatically discovered rule requires an exact action anchor.',
+      });
+    }
+    if (new Set(candidate.developerOpinionIds).size !== candidate.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Decision-rule Developer-opinion references must be unique.',
+      });
+    }
+    const regimenOperationTargets =
+      candidate.actionWhen?.targets.filter((target) =>
+        [
+          'any_regimen_operation',
+          'regimen_entry_operation',
+          'regimen_medication_operation',
+        ].includes(target.kind),
+      ) ?? [];
+    if (
+      regimenOperationTargets.length > 0 &&
+      decisionPredicateContainsRecordKind(candidate.patientWhen, 'medication_tolerability')
+    ) {
+      const requiredSubjectIds = requiredDecisionFactValues(
+        candidate.patientWhen,
+        'medication_tolerability',
+        'medication-tolerability.subject-regimen-entry',
+      );
+      if (!requiredSubjectIds || requiredSubjectIds.size === 0) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['patientWhen'],
+          message:
+            'A tolerability rule targeting a current-regimen operation must require its exact regimen-entry subject.',
+        });
+      }
+      regimenOperationTargets.forEach((target, index) => {
+        if (
+          target.kind !== 'regimen_entry_operation' ||
+          !requiredSubjectIds?.has(target.regimenEntryId)
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['actionWhen', 'targets', index],
+            message:
+              'A tolerability-linked regimen operation must target the exact required subject entry.',
+          });
+        }
+      });
+    }
+    if (
+      candidate.review.status === 'approved' &&
+      candidate.review.sourceUseNoteIds.length === 0 &&
+      candidate.developerOpinionIds.length === 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'An approved decision rule requires a formal contribution or Developer opinion.',
+      });
+    }
+  });
+export type DecisionRuleCandidateDefinition = z.infer<typeof DecisionRuleCandidateDefinitionSchema>;
+
+export const DecisionCoverageDiagnosticSchema = z
+  .object({
+    id: StableIdSchema,
+    code: z.enum([
+      'missing_supporting_rule',
+      'stale_supporting_rule',
+      'unreviewed_supporting_rule',
+      'primary_route_outside_action_horizon',
+      'uncovered_action',
+      'unindexable_rule',
+    ]),
+    impact: z.literal('nonblocking'),
+    affectedContentIds: z.array(StableIdSchema).min(1),
+    expectedContentVersion: ContentVersionSchema.nullable(),
+    actualContentVersion: ContentVersionSchema.nullable(),
+    ticketTargetId: StableIdSchema,
+    explanation: z.string().trim().min(1).max(600),
+  })
+  .strict();
+export type DecisionCoverageDiagnostic = z.infer<typeof DecisionCoverageDiagnosticSchema>;
+
+export const DecisionCompilerFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.decision\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type DecisionCompilerFingerprint = z.infer<typeof DecisionCompilerFingerprintSchema>;
+
+export const DecisionMatchedPatientFactBindingSchema = z
+  .object({
+    fact: DecisionPatientFactKeySchema,
+    recordIds: z.array(StableIdSchema).min(1),
+  })
+  .strict()
+  .superRefine((binding, context) => {
+    if (new Set(binding.recordIds).size !== binding.recordIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['recordIds'],
+        message: 'Matched patient record IDs must be unique per fact.',
+      });
+    }
+  });
+export type DecisionMatchedPatientFactBinding = z.infer<
+  typeof DecisionMatchedPatientFactBindingSchema
+>;
+
+export const CompiledRubricRuleSchema = z
+  .object({
+    ruleRef: DecisionRuleReferenceSchema,
+    label: z.string().trim().min(1).max(180),
+    inclusionReason: z.enum([
+      'primary_route',
+      'explicit_support',
+      'discovered_full_state_modifier',
+      'automatic_safety',
+      'automatic_interaction',
+      'automatic_prerequisite',
+      'automatic_parsimony',
+      'automatic_disposition',
+    ]),
+    patientWhen: DecisionPatientPredicateSchema.nullable(),
+    actionWhen: DecisionActionPredicateSchema.nullable(),
+    matchedPatientFactBindings: z.array(DecisionMatchedPatientFactBindingSchema),
+    matchedActionTargets: z.array(DecisionActionTargetSchema),
+    ruleKind: DecisionRuleKindSchema,
+    stance: RecommendationStanceSchema,
+    concernLevel: ClinicalConcernLevelSchema,
+    certaintyLevel: ClinicalCertaintyLevelSchema,
+    effectId: StableIdSchema.nullable(),
+    issueId: StableIdSchema.nullable(),
+    specificityPriority: z.number().int().nonnegative(),
+    rationale: z.string().trim().min(1).max(1200),
+    review: ClinicalRuleReviewSchema,
+    developerOpinionIds: z.array(StableIdSchema),
+    balanceRef: DecisionBalanceReferenceSchema.nullable(),
+  })
+  .strict();
+export type CompiledRubricRule = z.infer<typeof CompiledRubricRuleSchema>;
+
+/**
+ * This authoring artifact freezes qualitative rule ownership and provenance.
+ * It deliberately contains no points, grades, par, payout, caps, or diagnosis
+ * inference.
+ */
+export const CompiledRubricSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    policyRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+      })
+      .strict(),
+    primaryRouteRef: PrimaryDecisionRouteReferenceSchema,
+    patientStateId: StableIdSchema,
+    patientStateFingerprint: DecisionCompilerFingerprintSchema,
+    actionHorizonId: StableIdSchema,
+    actionHorizonFingerprint: DecisionCompilerFingerprintSchema,
+    sourceCatalogFingerprint: DecisionCompilerFingerprintSchema,
+    ruleIndexFingerprint: DecisionCompilerFingerprintSchema,
+    compilerFingerprint: DecisionCompilerFingerprintSchema,
+    includedRules: z.array(CompiledRubricRuleSchema).min(1),
+    coverageDiagnostics: z.array(DecisionCoverageDiagnosticSchema),
+  })
+  .strict()
+  .superRefine((rubric, context) => {
+    const ruleKeys = rubric.includedRules.map(
+      (rule) => `${rule.ruleRef.kind}:${rule.ruleRef.id}@${rule.ruleRef.contentVersion}`,
+    );
+    if (new Set(ruleKeys).size !== ruleKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['includedRules'],
+        message: 'A compiled rubric may include each exact rule version only once.',
+      });
+    }
+    rubric.includedRules.forEach((rule, index) => {
+      if (rule.review.status !== 'approved') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['includedRules', index, 'review', 'status'],
+          message: 'A compiled rubric may contain only approved clinical rules.',
+        });
+      }
+      const isRouteReference = rule.ruleRef.kind === 'medication_regimen_route';
+      const isPrimaryRule = rule.ruleKind === 'primary_route';
+      const hasPrimaryReason = rule.inclusionReason === 'primary_route';
+      if (isRouteReference !== isPrimaryRule || isPrimaryRule !== hasPrimaryReason) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['includedRules', index],
+          message:
+            'A compiled primary route must align its reference kind, rule kind, and inclusion reason.',
+        });
+      }
+    });
+    const primaryRows = rubric.includedRules.filter(
+      (rule) => rule.inclusionReason === 'primary_route',
+    );
+    const primary = primaryRows[0];
+    if (
+      primaryRows.length !== 1 ||
+      !primary ||
+      primary.ruleRef.kind !== rubric.primaryRouteRef.kind ||
+      primary.ruleRef.id !== rubric.primaryRouteRef.id ||
+      primary.ruleRef.contentVersion !== rubric.primaryRouteRef.contentVersion ||
+      primary.ruleRef.ownerId !== rubric.primaryRouteRef.ownerId ||
+      primary.ruleRef.ownerContentVersion !== rubric.primaryRouteRef.ownerContentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['includedRules'],
+        message: 'A compiled rubric must contain its exact pinned primary route once.',
+      });
+    }
+    const expectedId = `compiled-rubric.${rubric.compilerFingerprint.slice(-16)}`;
+    if (rubric.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A compiled-rubric ID must use the full compiler fingerprint suffix ${expectedId}.`,
+      });
+    }
+  });
+export type CompiledRubric = z.infer<typeof CompiledRubricSchema>;
 
 /**
  * Authoring-only reference validation for the planned V2 transition payload.

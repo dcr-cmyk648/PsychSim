@@ -285,6 +285,13 @@ Resolved:
   while both sides remain visible in the trace;
 - evidence disagreement creates a ticket and leaves the disputed executable change disabled;
 - balance disagreement stays outside diagnosis/evidence files and routes to point review;
+- exactly one primary decision policy supplies the encounter's dominant broad route; a background
+  diagnosis does not activate its own broad treatment route merely by being present;
+- reviewed secondary contributors may be discovered from any exact typed fact in the complete
+  frozen patient only when their exact action target intersects the focused horizon; labels,
+  prose, arbitrary tags, lexical similarity, and file order never match;
+- semantic full scanning and a deterministic derived reverse index are required to return the same
+  ordered candidate set, while missing coverage remains nonblocking;
 - templates declare a five-dimensional target complexity envelope, while the compiler measures the
   resolved patient and accepts, retries, or quarantines it against that envelope;
 - no permanent scalar patient level or unlock formula is committed until reference-patient testing

@@ -27,7 +27,7 @@ deepening MDD return to their general owners.
 
 The repository already has useful foundations:
 
-- 94 stable registry entries;
+- 95 stable registry entries;
 - 40 universal information actions: 20 history, 6 physical, 10 laboratory, and 4 imaging/action
   identities;
 - 31 service definitions and least-cost fulfillment;
@@ -69,8 +69,9 @@ Other material gaps:
 - `PatientDiagnosis` does not yet separate internal condition truth from chart diagnosis claims;
 - `PatientRecord` still combines compatibility patient state with case-era generation/treatment
   references; and
-- `PatientTemplate`, `PatientInstance`, `EncounterInstance`, and `CompiledRubric` do not yet exist
-  as the target versioned boundary.
+- `PatientTemplate`, `PatientInstance`, and `EncounterInstance` do not yet exist as the target
+  versioned boundary; a point-free `CompiledRubric` now exists but is not yet attached to a
+  generated encounter.
 
 These are architecture facts, not claims that current prototype cases or saved attempts are
 invalid. Existing `CaseBlueprint` and `CaseInstance` snapshots remain the compatibility path.
@@ -91,7 +92,7 @@ invalid. Existing `CaseBlueprint` and `CaseInstance` snapshots remain the compat
 | Medication and intervention knowledge          | Medication identities, 13 compatibility definitions, stable treatment/disposition files, modality-only therapy selection, explicit point-free regimen classes/memberships/routes/contributor bins | Author reviewed medication relationships, pair safety, withdrawal, duplication, therapy efficacy/combination/redundancy/capability, and balance      | Medication/intervention structure resolved 2026-07-28; clinical content remains separately ticketed |
 | Dispositions and service access                | Three dispositions, facility/capability/service catalogs, safe referral                                                                                                                           | Current identities are sufficient for the first foundation; split or expand only when a focused policy exposes a real missing owner                  | Coverage ticket when encountered                                                                    |
 | Diagnosis dossiers                             | Nine family files, MDD base rules, qualitative composition                                                                                                                                        | Deepen MDD and related dossiers only after shared concepts point to general owners                                                                   | Database-first review queue and source-specific tickets                                             |
-| Decision and scoring policy                    | Pure predicate evaluation, rule combination, receipts, reference runs                                                                                                                             | A reusable policy catalog/compiler that selects only focused positive rules plus global safety rules and diagnoses missing coverage                  | `ticket.engine.decision-policy.catalog-compiler`                                                    |
+| Decision and scoring policy                    | Runtime-excluded point-free policy catalog; one pinned primary route; exact typed full-state/action matching; scan/index equivalence; frozen compiled-rubric provenance; nonblocking diagnostics  | Populate reviewed topical adapters/policies and later attach separately balanced candidates to generated encounters                                  | `ticket.engine.decision-policy.catalog-compiler` (resolved 2026-07-28)                              |
 | Fact compilation                               | Deterministic case instantiation and case-local finding generation                                                                                                                                | Resolve each canonical finding once, retain contributors/conflicts, and compile separately saved assessment/wording projections                      | `ticket.engine.patient-generation.shared-finding-compiler`                                          |
 | Target instances and persistence               | Frozen `CaseInstance`, replay/events, versioned save data, IndexedDB abstraction                                                                                                                  | `PatientTemplate → PatientInstance → EncounterInstance + CompiledRubric`, with migration and historical replay                                       | `ticket.engine.patient-generation.catalog-compiled-instances`                                       |
 | Generated cohorts                              | Cosmetic variants and finite compatibility/reviewer cases                                                                                                                                         | Runtime composition, seed sweeps, richness calibration, and generated queues                                                                         | Intentionally deferred until every prior gate is coherent                                           |
@@ -112,7 +113,7 @@ The general dependency gate depends on the following work in this order:
 8. `ticket.catalog.exposures.substance-use-foundation` (resolved 2026-07-28)
 9. `ticket.catalog.interventions.identity-and-fidelity` (resolved 2026-07-28)
 10. `ticket.catalog.medications.normalized-regimen-risk-benefit` (resolved 2026-07-28)
-11. `ticket.engine.decision-policy.catalog-compiler`
+11. `ticket.engine.decision-policy.catalog-compiler` (resolved 2026-07-28)
 12. `ticket.engine.patient-generation.shared-finding-compiler`
 13. `ticket.engine.patient-generation.catalog-compiled-instances`
 
@@ -139,9 +140,10 @@ Generalized generation is ready for a first bounded vertical only when:
    and any assessment response or surface wording preserves its explicit mapping, stable variant,
    and contributing source-finding IDs;
 5. every selected medication, intervention, and disposition references a stable reusable owner;
-6. one reviewed broad or uncertainty-aware route plus relevant prerequisites, fit, interaction,
-   safety, and disposition contributors compile into a deterministic, explainable rubric without
-   requiring exact diagnostic precision;
+6. one primary reviewed broad or uncertainty-aware route plus relevant action-relative
+   prerequisites, fit, interaction, safety, and disposition contributors discovered from complete
+   typed patient state compile into a deterministic, explainable rubric without requiring exact
+   diagnostic precision or turning background diagnoses into additional objectives;
 7. missing rule or route coverage becomes a nonblocking diagnostic and ticket rather than an
    invented default or patient deletion;
 8. literal same-scope contradictions retry deterministically or quarantine, while conflicting

@@ -4,6 +4,7 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import {
   CaseBlueprintSchema,
   ClinicalReviewTicketSchema,
+  DecisionPolicyCatalogSchema,
   DeveloperOpinionCatalogSchema,
   DiagnosisClassificationReleaseSchema,
   EvidenceContributionSchema,
@@ -662,6 +663,196 @@ if (medicationRegimenKnowledgeEntries.length !== 1) {
   }
 }
 
+const decisionPolicyIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let decisionPolicyCatalogForValidation: ReturnType<
+  typeof DecisionPolicyCatalogSchema.parse
+> | null = null;
+const decisionPolicyEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'decision_policy_catalog',
+);
+if (decisionPolicyEntries.length !== 1) {
+  decisionPolicyIssues.push({
+    severity: 'error',
+    code: 'DECISION_POLICY_CATALOG_COUNT',
+    message: `Expected one decision-policy catalog; found ${decisionPolicyEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = decisionPolicyEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Decision policies remain outside the ordinary runtime until generated encounters consume compiled rubrics.',
+      );
+    }
+    const catalog = DecisionPolicyCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    decisionPolicyCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.policies.map((policy) => policy.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error('Decision-policy registry membership must exactly match its policies.');
+    }
+
+    const referenceTargets = new Map<
+      string,
+      {
+        contentVersion: string;
+        ownerId: string;
+        ownerContentVersion: string;
+      }
+    >();
+    const registerReferenceTarget = (
+      kind: string,
+      id: string,
+      contentVersion: string,
+      ownerId: string,
+      ownerContentVersion: string,
+    ): void => {
+      const key = `${kind}:${id}`;
+      if (referenceTargets.has(key)) {
+        throw new Error(`More than one decision-rule owner claims ${key}.`);
+      }
+      referenceTargets.set(key, { contentVersion, ownerId, ownerContentVersion });
+    };
+    for (const diagnosis of catalogs.diagnoses) {
+      const diagnosisRules = [
+        ...diagnosis.baseRules,
+        ...(diagnosis.severityAxis?.levels.flatMap((level) => level.rules) ?? []),
+        ...diagnosis.specifiers.flatMap((specifier) => specifier.rules),
+      ];
+      for (const rule of diagnosisRules) {
+        registerReferenceTarget(
+          'diagnosis_rule',
+          rule.id,
+          diagnosis.contentVersion,
+          diagnosis.id,
+          diagnosis.contentVersion,
+        );
+      }
+    }
+    for (const route of medicationRegimenKnowledgeCatalogForValidation?.focusedRoutes ?? []) {
+      registerReferenceTarget(
+        'medication_regimen_route',
+        route.id,
+        route.contentVersion,
+        route.owner.id,
+        route.owner.contentVersion,
+      );
+    }
+    for (const contributor of medicationRegimenKnowledgeCatalogForValidation?.contributors ?? []) {
+      registerReferenceTarget(
+        'medication_regimen_contributor',
+        contributor.id,
+        contributor.contentVersion,
+        contributor.owner.id,
+        contributor.owner.contentVersion,
+      );
+    }
+
+    const policyVersions = new Map(
+      catalog.policies.map((policy) => [policy.id, policy.contentVersion] as const),
+    );
+    const diagnosisVersions = new Map(
+      catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis.contentVersion] as const),
+    );
+    const medicationIdentityVersions = new Map(
+      medicationIdentities.map((identity) => [identity.id, identity.contentVersion] as const),
+    );
+    const findingVersions = new Map(
+      catalogs.findings.map((finding) => [finding.id, finding.contentVersion] as const),
+    );
+    const reactionVersions = new Map(
+      [
+        ...catalogs.reactionConcepts.nonMedicationTriggers,
+        ...catalogs.reactionConcepts.manifestations,
+        ...catalogs.reactionConcepts.medicationSelectionPolicies,
+      ].map((record) => [record.id, record.contentVersion] as const),
+    );
+    const validateOwner = (
+      ownerKind:
+        | 'diagnosis_route'
+        | 'decision_policy'
+        | 'medication'
+        | 'reaction'
+        | 'finding'
+        | 'diagnosis',
+      ownerId: string,
+      ownerContentVersion: string,
+      recordId: string,
+    ): void => {
+      const version =
+        ownerKind === 'diagnosis_route' || ownerKind === 'diagnosis'
+          ? diagnosisVersions.get(ownerId)
+          : ownerKind === 'decision_policy'
+            ? policyVersions.get(ownerId)
+            : ownerKind === 'medication'
+              ? medicationIdentityVersions.get(ownerId)
+              : ownerKind === 'reaction'
+                ? reactionVersions.get(ownerId)
+                : ownerKind === 'finding'
+                  ? findingVersions.get(ownerId)
+                  : undefined;
+      if (!version || version !== ownerContentVersion) {
+        throw new Error(
+          `${recordId} pins unknown or mismatched ${ownerKind} owner ${ownerId}@${ownerContentVersion}.`,
+        );
+      }
+    };
+    for (const route of medicationRegimenKnowledgeCatalogForValidation?.focusedRoutes ?? []) {
+      validateOwner(route.owner.kind, route.owner.id, route.owner.contentVersion, route.id);
+    }
+    for (const contributor of medicationRegimenKnowledgeCatalogForValidation?.contributors ?? []) {
+      validateOwner(
+        contributor.owner.kind,
+        contributor.owner.id,
+        contributor.owner.contentVersion,
+        contributor.id,
+      );
+    }
+
+    for (const policy of catalog.policies) {
+      const references = [policy.primaryRouteRef, ...policy.explicitSupportingRuleRefs];
+      for (const reference of references) {
+        const target = referenceTargets.get(`${reference.kind}:${reference.id}`);
+        if (
+          !target ||
+          target.contentVersion !== reference.contentVersion ||
+          target.ownerId !== reference.ownerId ||
+          target.ownerContentVersion !== reference.ownerContentVersion
+        ) {
+          throw new Error(
+            `${policy.id} pins unknown or mismatched ${reference.kind} ${reference.id}@${reference.contentVersion} owned by ${reference.ownerId}@${reference.ownerContentVersion}.`,
+          );
+        }
+      }
+    }
+    for (const sourceUse of catalog.sourceUseNotes) {
+      for (const evidenceSourceId of sourceUse.evidenceSourceIds) {
+        if (!allEvidenceSourceIds.has(evidenceSourceId)) {
+          throw new Error(
+            `${sourceUse.id} references unknown evidence source ${evidenceSourceId}.`,
+          );
+        }
+      }
+    }
+  } catch (error) {
+    decisionPolicyIssues.push({
+      severity: 'error',
+      code: 'INVALID_DECISION_POLICY_CATALOG',
+      message:
+        error instanceof Error ? error.message : 'Decision-policy catalog validation failed.',
+    });
+  }
+}
+
 const supplementIdentityIssues: Array<{
   severity: 'error';
   code: string;
@@ -907,6 +1098,14 @@ if (medicationRegimenKnowledgeCatalogForValidation) {
   collectContributionUses(
     medicationRegimenKnowledgeCatalogForValidation,
     medicationRegimenKnowledgeCatalogForValidation.id,
+    false,
+    contributionUses,
+  );
+}
+if (decisionPolicyCatalogForValidation) {
+  collectContributionUses(
+    decisionPolicyCatalogForValidation,
+    decisionPolicyCatalogForValidation.id,
     false,
     contributionUses,
   );
@@ -1170,6 +1369,9 @@ if (developerOpinionEntries.length !== 1) {
             ...medicationRegimenKnowledgeCatalogForValidation.contributors,
           ].map((record) => [record.id, 'clinical_rule'] as const)
         : []),
+      ...(decisionPolicyCatalogForValidation?.policies.map(
+        (policy) => [policy.id, 'clinical_rule'] as const,
+      ) ?? []),
     ]);
     for (const opinion of catalog.opinions) {
       for (const target of opinion.targets) {
@@ -1233,6 +1435,34 @@ if (developerOpinionEntries.length !== 1) {
         ) {
           throw new Error(
             `${developerOpinionId} does not target medication-regimen record ${record.id}.`,
+          );
+        }
+        if (record.review.status === 'approved' && opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${record.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+          );
+        }
+      }
+    }
+    for (const policy of decisionPolicyCatalogForValidation?.policies ?? []) {
+      for (const developerOpinionId of policy.developerOpinionIds) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${policy.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === policy.id,
+          )
+        ) {
+          throw new Error(`${developerOpinionId} does not target decision policy ${policy.id}.`);
+        }
+        if (policy.review.status === 'approved' && opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${policy.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
           );
         }
       }
@@ -1317,6 +1547,13 @@ const reports = [
     {
       valid: medicationRegimenKnowledgeIssues.length === 0,
       issues: medicationRegimenKnowledgeIssues,
+    },
+  ],
+  [
+    'decision-policies',
+    {
+      valid: decisionPolicyIssues.length === 0,
+      issues: decisionPolicyIssues,
     },
   ],
   [

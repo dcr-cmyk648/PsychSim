@@ -469,6 +469,20 @@ describe('developer clinical audit queue', () => {
         resolvedBy: 'reviewer.dustin-rowland',
       },
     });
+    expect(byId.get('ticket.engine.decision-policy.catalog-compiler')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: false,
+      targetContentIds: expect.arrayContaining([
+        'registry.catalog.decision-policies',
+        'schema.decision-policy-definition',
+        'schema.compiled-rubric',
+        'engine.decision-policy-compiler',
+      ]),
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
     expect(byId.get('ticket.source.canmat-mdd.regimen-intent-taxonomy')).toMatchObject({
       status: 'resolved',
       requiresClinicalAcumen: true,

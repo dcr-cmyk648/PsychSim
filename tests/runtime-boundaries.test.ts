@@ -109,6 +109,36 @@ describe('runtime boundaries', () => {
     });
   });
 
+  it('keeps point-free decision-policy authoring outside Player and Reviewer runtimes', async () => {
+    const [runtimeEntry, runtimeIndex, reviewerEntry, registryText] = await Promise.all([
+      readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
+      readFile(resolve('content/registry.json'), 'utf8'),
+    ]);
+    const runtimeSource = `${runtimeEntry}\n${runtimeIndex}\n${reviewerEntry}`;
+    expect(runtimeSource).not.toContain('content/catalogs/decision-policies');
+    expect(runtimeSource).not.toContain('registry.catalog.decision-policies');
+
+    const registry = JSON.parse(registryText) as {
+      entries: Array<{
+        id: string;
+        kind: string;
+        path: string;
+        runtimeIncluded: boolean;
+        categoryIds?: string[];
+      }>;
+    };
+    expect(
+      registry.entries.find((entry) => entry.id === 'registry.catalog.decision-policies'),
+    ).toMatchObject({
+      kind: 'decision_policy_catalog',
+      path: 'content/catalogs/decision-policies/catalog.json',
+      runtimeIncluded: false,
+      categoryIds: [],
+    });
+  });
+
   it('keeps the personal-knowledge workbench behind a local serve-only boundary', async () => {
     const [plugin, app, browser, developerView, classificationView, runtimeRoot, reviewer] =
       await Promise.all([

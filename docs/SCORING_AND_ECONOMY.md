@@ -169,6 +169,20 @@ Fit points stay on the treatment row, while workup cost/reward remains separate.
 trace itemizes every applied or resolved modifier and its provenance so a player can inspect
 exactly why a choice gained, lost, or had points suppressed.
 
+The target compiler does not require the focused policy to link each modifier by hand. One primary
+policy supplies the dominant broad route. A reviewed secondary modifier becomes eligible when its
+exact typed patient dependency matches the complete frozen state and its exact treatment,
+regimen-operation, intervention, investigation, or disposition target intersects the focused
+action horizon. Only an actually submitted choice later earns or loses its points. Broad routes
+for background diagnoses do not become additional score objectives, and unselected actions do not
+collect fit bonuses. Matching safety/interaction and treatment-specific prerequisite guardrails
+remain eligible. Exhaustive scanning and the derived reverse index must produce the same
+qualitative candidates before balance is applied. The compiler freezes each candidate's
+patient/action activation logic and its exact fact-to-record bindings before balance is applied.
+When several attributes must describe one repeated trial, regimen entry, reaction, or other
+record, the rule uses an explicit same-record predicate; ordinary `all` may combine independent
+owners. A missing or unassessed value never satisfies a negative rule.
+
 A subjective assessment response may preserve several contributing patient facts, but purchasing
 that action and satisfying its workup objective still occur once. Contributor count cannot
 multiply the investigation reward. Display wording is never a scoring predicate; a clinical rule

@@ -583,10 +583,16 @@ relationships, interactions, setting, and patient-template overrides compose onl
 scope plus explicit specificity. Case-specific overrides are narrow versioned exceptions; they
 do not silently weaken shared knowledge.
 
-**P6 — Compile permissively.** The encounter compiler collects every applicable reviewed rule
-within the focused decision horizon plus global interaction/safety contributors. Missing
-qualitative coverage creates a nonblocking coverage diagnostic and ticket. It never invents a
-default penalty, declares an unmodeled option wrong, or invalidates the patient.
+**P6 — Compile permissively but remain focused.** Exactly one primary decision policy owns the
+dominant broad route. It need not hand-link every secondary effect. The encounter compiler may
+discover any reviewed secondary contributor whose exact typed patient dependency matches the
+complete frozen state and whose exact action target intersects the focused horizon. Matching
+global interaction/safety and treatment-prerequisite contributors stay eligible. A background
+diagnosis's broad route does not become another primary objective merely because the condition is
+present. Exhaustive semantic scanning and a deterministic derived reverse index must return the
+same ordered candidates. Missing qualitative coverage creates a nonblocking coverage diagnostic
+and ticket. It never invents a default penalty, declares an unmodeled option wrong, or invalidates
+the patient.
 
 **P7 — Add points only after direction is accepted.** An accepted qualitative rule may receive an
 initial explicit value from the already approved D-156 impact bands. The mapping remains
@@ -782,8 +788,11 @@ generation remain separate. The intervention modality boundary is now resolved w
 file and ID per current treatment/disposition, exact registry membership, and no delivery/fidelity
 schema. The medication-regimen boundary is also resolved as a runtime-excluded, point-free
 catalog: explicit classes/memberships, concrete transition actions, route-owned explanatory
-meaning, and separately typed contributors. It contains no clinical records yet. The next
-unresolved review owner is `ticket.engine.decision-policy.catalog-compiler`.
+meaning, and separately typed contributors. It contains no clinical records yet. D-191 now adds
+the runtime-excluded, point-free decision-policy catalog, exact typed patient/action dependency
+matching, scan/index equivalence, one primary route, frozen `CompiledRubric` provenance, and
+nonblocking coverage diagnostics. It adds no clinical rules or points. The next unresolved review
+owner is `ticket.engine.patient-generation.shared-finding-compiler`.
 
 While this dependency queue is active, each accepted item remains a tight local database iteration:
 edit one bounded owner, run only its focused schema/content checks, and move to the next review.
@@ -807,4 +816,6 @@ setting, difficulty, and encounter complexity and explicitly defers patient gene
 reusable dependency files and compiler are ready. D-177 accepts the presentation-projection
 boundary but does not implement it or permit string matching to stand in for reviewed mappings.
 D-190 supplies no class memberships, clinical contributors, route content, points, or runtime
-evaluator; those remain reviewed content/compiler work.
+evaluator; those remain reviewed content/compiler work. D-191 supplies the compiler boundary but
+does not populate the policy or regimen catalogs, map qualitative rules to balance, migrate
+compatibility cases, or enable generated patients.

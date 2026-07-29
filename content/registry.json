@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.32.0",
+  "contentVersion": "3.33.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -310,6 +310,26 @@
       "runtimeIncluded": false,
       "categoryIds": [],
       "dependsOnIds": ["registry.catalog.medication-identities", "developer-opinions.psychsim"]
+    },
+    {
+      "id": "registry.catalog.decision-policies",
+      "kind": "decision_policy_catalog",
+      "path": "content/catalogs/decision-policies/catalog.json",
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": [
+        "registry.catalog.information-actions",
+        "registry.catalog.diagnoses",
+        "registry.catalog.medication-regimen-knowledge",
+        "registry.catalog.treatments",
+        "registry.catalog.findings",
+        "registry.catalog.measurements",
+        "registry.catalog.tests",
+        "registry.catalog.reaction-concepts",
+        "registry.catalog.exposures",
+        "registry.catalog.source-use-decisions",
+        "developer-opinions.psychsim"
+      ]
     },
     {
       "id": "registry.catalog.supplement-identities",

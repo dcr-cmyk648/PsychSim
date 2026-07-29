@@ -362,11 +362,40 @@ measurements, structured tests, treatment/reaction history, context, and proposi
 remain independently auditable. The envelope contains no template constraints, clinical
 inference, points, reveal state, or encounter rubric.
 
-The compiled rubric is derived from reviewed reusable rules plus explicit patient-specific
-overrides. A patient template should not copy a complete treatment plan from every diagnosis file.
-Current `CaseInstance` snapshots remain immutable and replayable during migration; no old save is
-silently reinterpreted. [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md) specifies the
-target boundary.
+The compiled rubric is anchored by exactly one version-pinned `DecisionPolicyDefinition` and its
+one primary broad route. The policy may name narrow supporting overrides, but it does not copy or
+hand-list every patient-specific effect. The compiler may discover a reviewed secondary rule from
+any exact typed fact in the complete frozen `ResolvedPatientState` when that rule also names an
+exact action available in the focused horizon. Broad routes owned by background diagnoses stay
+inactive unless selected as the primary policy; matching safety, interaction, and
+treatment-prerequisite guardrails remain eligible. Labels, prose, arbitrary tags, lexical
+similarity, and file order never create a match.
+
+`CompiledRubric` freezes the policy, primary route, included rule versions, inclusion lane,
+normalized patient/action activation predicates, exact fact-to-record bindings, matched action
+targets, review/provenance/balance references, effect/issue/specificity metadata, coverage
+diagnostics, and compiler/index fingerprints. A reusable rule may explicitly require several facts
+from the same repeated regimen/trial/reaction record; those facts must be unique, share one record
+kind, and bind to a common record. Singleton patient-state owners and separate clinical-context
+dimensions have distinct deterministic binding IDs; ordinary conjunction remains cross-owner.
+Duration and burden facts preserve their source and time scope, burden preserves its scale version,
+and current-regimen tolerability preserves the exact subject entry. A tolerability-linked regimen
+operation is invalid unless its predicate requires and its action targets that same entry; a
+medication-level match cannot silently cross duplicate regimen entries.
+Negative facts must be explicit (`absent`, `false`, `documented_none`, and similar). Missing,
+unassessed, unresolved, and inapplicable state is never converted to false through closed-world
+negation. The compiler canonicalizes unordered branches/targets/provenance IDs before freezing the
+artifact, uses all 16 hexadecimal digits of its 64-bit compiler fingerprint in the rubric ID, and
+includes the exact patient-state and action-horizon IDs in the verified payload. It provides a
+payload-integrity verifier for persisted or untrusted data. The active rule-reference union is
+deliberately restricted to canonical owner kinds already validated by the content tool. An approved
+policy or medication-regimen record may depend only on medically approved formal contributions or
+accepted Developer opinions; a permitted but unreviewed source-use record cannot activate reviewed
+behavior.
+It is point-free in the current slice. A patient template still should not copy a
+complete treatment plan from every diagnosis file. Current `CaseInstance` snapshots remain
+immutable and replayable during migration; no old save is silently reinterpreted.
+[PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md) specifies the target boundary.
 
 A diagnosis dossier never owns encounter duration, difficulty, facility, location, complexity
 budget, or a treatment-intensity ceiling. The MDD dossier therefore remains one reusable family

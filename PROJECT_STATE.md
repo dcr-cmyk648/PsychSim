@@ -1,6 +1,6 @@
 # PsychSim project state
 
-Last updated: 2026-07-28
+Last updated: 2026-07-29
 
 ## Operational handoff
 
@@ -13,7 +13,7 @@ Last updated: 2026-07-28
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
 - Current checkpoint implements the D-159 rule-combination engine plus accepted architecture
-  Decisions D-160 through D-190. D-163 makes the private, sourced knowledge database the
+  Decisions D-160 through D-192. D-163 makes the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
   relationship files only when no natural owner exists. D-165 establishes sparse, independently
@@ -147,17 +147,46 @@ Last updated: 2026-07-28
   contributors. Free-text classes, arbitrary tags, and medication count cannot create a class,
   duplicate, interaction, or penalty; no clinical relationship, route, points, cross-taper rule,
   compatibility score, or medical approval was activated.
+  D-191 adds the point-free decision-policy compiler boundary. Each target compiled encounter uses
+  exactly one reviewed, version-pinned primary policy to own the focused dominant route, while
+  reviewed secondary contributors may be discovered from any exact typed fact in the complete
+  frozen patient when their exact action targets intersect the focused horizon. A semantic full
+  scan and copied/re-fingerprinted in-memory reverse index must return the same ordered candidate
+  set. The compiled trace freezes patient/action predicates and exact fact-to-record bindings;
+  explicit same-record matching prevents false joins across repeated trials or regimen records,
+  rejects cross-kind or unrelated singleton/context joins, and missing/unassessed state never
+  becomes a negative. Unordered rule fields are normalized before freezing; the durable rubric ID
+  uses the full 64-bit fingerprint suffix, and persisted data has a strict payload-integrity
+  verifier that covers the exact patient-state and action-horizon IDs. Duration/burden facts retain
+  source and time scope plus scale version, and tolerability-linked regimen operations must bind
+  the exact subject entry so duplicate same-medication entries do not exchange modifiers. Approved
+  policies/regimen records may use only approved formal contributions or accepted Developer
+  opinions. Only canonical rule-reference kinds that current validation can resolve are active.
+  Background diagnoses do not activate
+  additional broad routes; labels, prose, aliases, free tags, point values, and file order never
+  match. Matching safety/interaction and treatment prerequisites remain eligible; matching
+  unreviewed content and missing coverage produce nonblocking diagnostics. The catalog is empty
+  and runtime-excluded, so no clinical relationship, point, generated patient, compatibility
+  migration, or gameplay behavior changed.
+  D-192 records the independent PsychSimDataAdjunct boundary: its concept-first queue and hashed,
+  medically unreviewed proposal bundles are separate from PsychSim ticket authority, while a
+  snapshot-bound mapping may propose targets. PsychSim remains the only canonical writer and
+  authority for IDs, source use, clinical rules, balance, and runtime. The safe whole-corpus
+  Developer Database projection was deterministically refreshed and validated for adjunct coverage
+  signals without exposing private source text.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after recording D-190 and the user's explicit backup request: local `beta`
+- Expected Git state after recording D-191/D-192 and the user's explicit backup request: local `beta`
   is clean and matches `origin/beta`. This backup does not promote the distribution branch;
   `main` remains at its prior published checkpoint. Inspect actual refs rather than assuming
   `main` contains the database-foundation commits.
 - Current local checkpoint message after this bounded decision:
-  `Add route-owned medication regimen foundation`. Inspect `HEAD` for its exact hash and use that
+  `Add typed full-state decision policy compiler`. Inspect `HEAD` for its exact hash and use that
   committed base for read-only adjunct packet assignments.
-- Local Developer server: `http://127.0.0.1:4318/`.
-- Local portable Reviewer server: `http://127.0.0.1:4319/`.
+- Configured local Developer URL: `http://127.0.0.1:4318/` (not started for this backend-only
+  checkpoint).
+- Configured local portable Reviewer URL: `http://127.0.0.1:4319/` (not started for this
+  backend-only checkpoint).
 
 Repository history and `docs/DECISIONS.md` preserve completed checkpoint history. This file keeps
 only the current operational state and should not grow into a second changelog.
@@ -263,7 +292,7 @@ only the current operational state and should not grow into a second changelog.
 - The diagnosis-classification inspector lazily exposes the local official ICD-10-CM F01-F99 term
   cache for authoring lookup. It does not supply criteria or runtime diagnoses and remains outside
   production bundles.
-- The queued target compiler is now explicit:
+- The target generated-record pipeline is now explicit:
   `PatientTemplate → PatientInstance → EncounterInstance + CompiledRubric`. Diagnosis families own
   reusable disorder variants, so the MDD record owns mild/moderate/severe while a template selects
   one state and adds only narrow constraints. `CaseBlueprint` remains the historical compatibility
@@ -271,6 +300,11 @@ only the current operational state and should not grow into a second changelog.
   recipe, not a pre-generated person. Its setting, focused decision, complexity envelope, and
   presentation limits never belong to MDD. Runtime migration is not the next task: it remains
   blocked until the general dependency-readiness audit and shared-finding foundation are complete.
+- The point-free `DecisionPolicyDefinition → CompiledRubric` compiler boundary now exists before
+  that runtime pipeline. It freezes one primary route plus automatically discovered reviewed
+  secondary candidates from exact typed patient facts and exact action targets, with nonblocking
+  coverage diagnostics and deterministic scan/index equivalence. Its source catalog remains empty
+  and runtime-excluded; current case-local rubrics remain compatibility fixtures.
 - A shared finding must resolve once with every contributing owner and then project into all
   relevant investigation views. The GAD Reviewer feedback is preserved as a blocking historical
   attempt ticket; no probabilities or clinical rules changed.
@@ -278,11 +312,11 @@ only the current operational state and should not grow into a second changelog.
   the five approved/review case files, with 112 IDs reused across files. The canonical
   finding-definition boundary and 41-definition wide/shallow seed are implemented and validated.
   Point-free proposition/evidence, presentation-projection, measurement/exam, structured-test, and
-  complete resolved-patient-state owners are now present. Runtime compilation and compatibility
-  migration remain deliberately disabled. The first unresolved dependency is reusable
-  substance/background-exposure state; medication/intervention normalization and the focused
-  decision-policy compiler follow it. No patient, scoring rule, result probability, exposure
-  prevalence, or treatment guidance was generated.
+  complete resolved-patient-state owners are now present. Substance/background-exposure,
+  intervention-modality, medication-regimen, and point-free decision-policy/compiler boundaries
+  are also present. Runtime finding compilation and compatibility migration remain deliberately
+  disabled. The next unresolved dependency is the shared-finding compiler. No patient, scoring
+  rule, result probability, exposure prevalence, or treatment guidance was generated.
 - The player-facing navigation target is History, Physical exam, Testing, Diagnosis, and Treatment.
   Testing will combine labs, imaging, electrical studies, and named instruments in one searchable
   presentation group while retaining their backend types.
@@ -560,14 +594,34 @@ The first sandboxed `pnpm content:validate` invocation again failed only because
 sandbox denied the local tsx IPC socket; the identical permissioned command passed. The
 regimen-knowledge catalog is empty and authoring-only. No app build, browser suite, app-server
 check, Pages promotion, reference-run replay, medication class or relationship content, points,
-clinical rule, or compatibility-case behavior was added or run. The next bounded review owner is
-`ticket.engine.decision-policy.catalog-compiler`.
+clinical rule, or compatibility-case behavior was added or run. The decision-policy owner named
+by that checkpoint is now resolved by D-191.
+
+The D-191/D-192 decision-policy and evidence-adjunct checkpoint passed its bounded integration
+gate on 2026-07-29:
+
+- 52 focused compiler/schema/runtime-boundary tests, including 23 direct compiler tests;
+- root `pnpm typecheck`, `pnpm lint`, and `pnpm format:check`;
+- the complete unit/handoff gate: 64 Vitest files with 509 tests plus 10 Python handoff tests;
+- direct content/catalog/registry/source-use validation;
+- deterministic refresh and validation of the local whole-corpus Developer Database projection:
+  206 documents, 234 source units, 91 of 164 entries linked, 2,098 lexical matches, 51 semantic
+  candidates, 38 formal contributions, 89 identity gaps, 16 overlaps, and 8 partial units; and
+- `git diff --check`.
+
+The first sandboxed invocations of `pnpm content:validate` and
+`pnpm content:knowledge:crossref:validate` failed only because the managed sandbox denied the local
+tsx IPC socket; the identical permissioned commands passed. The catalog is empty,
+runtime-excluded, and point-free. No clinical relationship, policy, balance value, generated
+patient, compatibility migration, application build, browser suite, portable-app build,
+app-server check, or Pages observation was added or run. The exact next owner is
+`ticket.engine.patient-generation.shared-finding-compiler`.
 
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-190
+- `docs/DECISIONS.md` through D-192
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -581,6 +635,7 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `docs/SOURCE_USE_POLICY.md`
 - `packages/engine/src/scoring.ts`
 - `packages/engine/src/rule-combination.ts`
+- `packages/engine/src/decision-policy.ts`
 - `packages/engine/src/diagnosis-scoring.ts`
 - `packages/schemas/src/index.ts`
 - `packages/content-runtime/src/reviewer-policies.ts`
@@ -591,31 +646,26 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `apps/web/src/components/ReceiptView.tsx`
 - `content/catalogs/authoring/personal-knowledge/cross-reference-aliases.json`
 - `content/catalogs/authoring/personal-knowledge/private-source-catalog.json`
+- `content/catalogs/decision-policies/catalog.json`
 - `content/cases/review/database-driven-patient-generation.tickets.json`
 - `content/cases/review/drive-reviewer-feedback-2026-07-27.tickets.json`
 
 ## Exact next action
 
-1. Present and resolve only
-   `ticket.engine.decision-policy.catalog-compiler`: decide whether each encounter compiles exactly
-   one primary decision policy, admits positive/supporting contributors only through explicit
-   stable-ID links, and automatically includes only matching reviewed safety/prerequisite
-   guardrails. Do not scan every active diagnosis or the whole database for positive points.
-2. If approved, implement only the point-free decision-policy catalog, compiled-rubric ownership,
-   frozen provenance/version references, and nonblocking coverage diagnostics. Keep current
-   case-local rubrics as compatibility fixtures; do not add clinical guidance, points, generated
-   patients, or a general-purpose expression language.
-3. Continue through the authoritative ordered queue in
-   `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`; the decision-policy compiler now precedes
-   shared-finding compilation. Do not substitute an MDD-local owner for a missing general file.
-4. Only after the complete general foundation is ready, implement
-   `ticket.engine.patient-generation.shared-finding-compiler` with deterministic
-   conflict/replay/provenance tests.
-5. Only after the dependency gate and shared-finding work are complete may
+1. Continue only `ticket.engine.patient-generation.shared-finding-compiler`. Audit the already
+   approved finding, proposition/evidence, reveal-projection, expression-bank, and resolved-patient
+   owners, then implement the smallest deterministic point-free pass that resolves one canonical
+   finding once and freezes every action/instrument projection with complete contributor
+   provenance. Do not substitute an MDD-local owner for a missing general file.
+2. Preserve valid conflicting source evidence and many-to-many fact/response relationships.
+   Deterministic retry/quarantine remains limited to malformed or literally contradictory
+   same-scope state; do not add a winnability/convergence rule, clinical probability, diagnosis
+   inference, scoring, or patient cohort.
+3. Only after the dependency gate and shared-finding work are complete may
    `ticket.engine.patient-generation.catalog-compiled-instances` add the versioned
    PatientTemplate/PatientInstance/EncounterInstance boundary while preserving historical
    CaseBlueprint snapshots. Generated cohorts and richness calibration remain later gates.
-6. DBQ-011 remains deferred until one complete vertical exposes real maintenance costs. Other later
+4. DBQ-011 remains deferred until one complete vertical exposes real maintenance costs. Other later
    bounded tasks, kept separate:
    - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
    - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;
@@ -629,14 +679,19 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
    - split the private dossier loader into a compact index plus lazy per-entry payloads before it
      approaches the current 2 MB loader ceiling.
 
-The sibling PsychSimDataAdjunct remains read-only. Its first safe medication-regimen evidence
-assignment may pin the current committed `beta` HEAD and:
+The sibling PsychSimDataAdjunct remains read-only and operates its own concept-first evidence
+horizon; PsychSim tickets are inputs, not its queue authority. A general proposal may remain an
+unmapped, hashed, medically unreviewed bundle. A proposal submitted for PsychSim incorporation
+must add a separate mapping pinned to the current committed `beta` HEAD. The first safe
+medication-regimen evidence mapping may name:
 
 - `source-request.medications.regimen-combination-boundaries`;
 - `ticket.source.canmat-mdd.inadequate-response-route`;
 - `ticket.source.canmat-mdd.switch-transition-state`; and
 - the exact target IDs already listed on that `SourceRequest`.
 
-The adjunct must return only a hashed medically unreviewed packet. This canonical thread retains
-stale-target/source-use validation, canonical IDs, database edits, review status, rules/points, and
-all runtime validation.
+This canonical thread retains stale-target/source-use validation, canonical IDs, database edits,
+review status, rules/points, and all runtime validation. The refreshed whole-corpus Developer
+Database projection may supply safe coverage signals and locators. D-192 does not authorize
+private source-text transfer; the ordinary explicit source-specific authorization remains
+required.

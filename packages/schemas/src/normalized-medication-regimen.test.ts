@@ -298,8 +298,14 @@ describe('normalized medication-regimen authoring boundary', () => {
         contentVersion: '0.1.0',
       },
       patientWhen: {
-        type: 'clinicalTagPresent',
-        clinicalTagId: 'clinical-tag.fatigue',
+        type: 'fact',
+        fact: {
+          recordKind: 'canonical_finding',
+          identityId: 'finding.history.current-self-reported-fatigue-low-energy',
+          identityContentVersion: '1.0.0',
+          attributeId: 'finding.outcome',
+          valueId: 'finding-outcome.present',
+        },
       },
       transitionWhen: {
         type: 'startCount',
@@ -402,5 +408,40 @@ describe('normalized medication-regimen authoring boundary', () => {
         ],
       }).success,
     ).toBe(false);
+
+    const approvedClass = {
+      ...medicationClass,
+      developerOpinionIds: [],
+      review: {
+        status: 'approved' as const,
+        reviewerId: 'reviewer.test',
+        reviewedAt: '2026-07-29T00:00:00.000Z',
+        sourceUseNoteIds: ['source-use.test.medication-class'],
+      },
+    };
+    const sourceUseNote = {
+      id: 'source-use.test.medication-class',
+      authority: 'formal_publication' as const,
+      evidenceSourceIds: ['evidence.test'],
+      sourceDocumentId: null,
+      sourceChunkIds: [],
+      targetContentIds: [medicationClass.id],
+      contributionTypes: ['classification_mapping' as const],
+      contribution: 'Synthetic source-use note for strict review-state validation.',
+      generatedBy: 'human' as const,
+      medicalReviewStatus: 'unreviewed' as const,
+    };
+    const sourcedCatalog = {
+      ...catalog,
+      medicationClasses: [approvedClass],
+      sourceUseNotes: [sourceUseNote],
+    };
+    expect(MedicationRegimenKnowledgeCatalogSchema.safeParse(sourcedCatalog).success).toBe(false);
+    expect(
+      MedicationRegimenKnowledgeCatalogSchema.safeParse({
+        ...sourcedCatalog,
+        sourceUseNotes: [{ ...sourceUseNote, medicalReviewStatus: 'approved' }],
+      }).success,
+    ).toBe(true);
   });
 });

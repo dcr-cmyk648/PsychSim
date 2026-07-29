@@ -239,8 +239,12 @@ plan.
 
 For example, an inpatient with several chronic diagnoses, nine active medication entries, and
 superimposed delirium can still be a focused encounter. Most background data affect the available
-clues, interactions, and safety constraints; only rules relevant to the current decision horizon
-enter the positive-treatment rubric. Global safety and interaction rules always remain eligible.
+clues, interactions, and safety constraints. Exactly one primary decision policy owns the
+dominant broad route. Reviewed secondary fit effects may arise from any exact typed fact in the
+complete frozen patient, but only when they also target an available or selected action in this
+focused horizon. A background diagnosis's broad route does not become another objective merely
+because that condition exists. Matching global safety, interaction, and treatment-prerequisite
+rules always remain eligible.
 
 ## Deterministic constrained generation
 
@@ -256,7 +260,9 @@ exist:
 5. Resolve reaction history and any explicitly authored optional-feature modules.
 6. Resolve typed clinical facts and derive stable tags from them.
 7. Generate presentation wording, findings, and noncritical observations.
-8. Compile only applicable clinical rules for the decision horizon.
+8. Compile exactly one primary decision policy, then discover reviewed secondary contributors
+   from complete typed patient state through exact action-relative matching. A derived reverse
+   index must be equivalent to exhaustive semantic scanning.
 9. Validate schema conformance, deterministic identity/reference integrity, literal fact
    consistency, and explicitly reviewed same-scope incompatibilities. Emit nonblocking coverage
    diagnostics for missing action/rubric relationships.
@@ -567,6 +573,18 @@ The user's complex-record example resolves two boundaries: internal condition st
 from visible/obtainable chart diagnosis entries, and a best-next-step encounter grades a focused
 decision set—often one primary decision plus required companion safety actions—rather than an
 exhaustive complete plan.
+
+The primary policy is not an exhaustive allowlist of secondary modifiers. Any reviewed fit,
+response, tolerability, prior-trial, reaction, regulatory, discontinuation, parsimony,
+interaction, contraindication, prerequisite, or disposition relationship may be discovered from
+the complete frozen state when its exact typed patient dependency and exact action target match.
+Predicates retain explicit same-record binding when several values must belong to one repeated
+record; missing or unassessed state does not become a negative match. The compiled rule freezes
+its logical patient/action predicates and exact fact-to-record trace. The deterministic reverse
+index is an implementation optimization only, is re-fingerprinted before use, and must equal a
+semantic scan. Broad routes from background diagnoses remain inactive, labels and free tags carry
+no matching authority, and missing relationships emit nonblocking coverage diagnostics rather
+than guessed scoring.
 
 Reviewed safety constraints may resolve an otherwise valid clinical tension while preserving both
 rules in the trace. Only literal structural invalidity quarantines. Coverage gaps remain

@@ -785,7 +785,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "technical",
     "priority": "blocking",
-    "status": "accepted_for_workflow",
+    "status": "resolved",
     "requiresClinicalAcumen": false,
     "attemptId": null,
     "blueprintId": null,
@@ -794,9 +794,11 @@
     "receiptItemSnapshot": null,
     "targetContentIds": [
       "registry.catalog.decision-policies",
-      "schema.decision-policy",
+      "schema.decision-policy-definition",
+      "schema.decision-rule-candidate",
       "schema.compiled-rubric",
-      "engine.rule-combination",
+      "engine.decision-policy-compiler",
+      "engine.decision-rule-index",
       "engine.coverage-diagnostics"
     ],
     "dependencyTicketIds": [
@@ -807,15 +809,20 @@
       "ticket.catalog.medications.normalized-regimen-risk-benefit"
     ],
     "conflictContentIds": ["schema.case-blueprint"],
-    "proposedRouting": "Define the reusable, versioned decision-policy catalog and pure compiler boundary that selects one focused broad route, treatment-triggered prerequisites, fit, interaction, safety, parsimony, and disposition contributors into a CompiledRubric.",
-    "guidance": "This ticket is compiler architecture, not clinical authoring. A policy references reviewed stable owners and constrained predicates; only decision-relevant positive rules plus global safety/interaction rules enter one focused snapshot. It preserves provenance, specificity, issue/effect IDs, rule-combination outcomes, engine-inferred labels, and coverage diagnostics. Missing clinical direction creates a ticket and no default penalty. Existing case-local scoring and reference runs remain unchanged until separately migrated. Do not create MDD treatment guidance, point values, a general-purpose expression language, or generated encounters in this slice.",
+    "proposedRouting": "Define one versioned primary decision policy per focused encounter, then compile reviewed secondary contributors from complete frozen patient state through exact typed patient dependencies and exact available-action targets. Preserve a deterministic scan-equivalent in-memory reverse index and freeze the qualitative result as a CompiledRubric.",
+    "guidance": "This ticket is compiler architecture, not clinical authoring. One primary policy owns the dominant broad route but does not have to hand-link every secondary modifier. Reviewed fit, response, tolerability, prior-trial, reaction, regulatory, regimen-change, parsimony, interaction, contraindication, prerequisite, and disposition contributors may be discovered from complete typed patient state only when their exact action targets intersect the focused horizon. Broad routes from background diagnoses remain inactive. Matching safety/interaction and treatment-prerequisite guardrails remain eligible. Labels, prose, aliases, free tags, lexical similarity, points, and file order never match. Full scanning and the reverse index must return the same ordered candidates. Missing coverage is nonblocking and invents no rule or penalty. Existing case-local scoring and reference runs remain unchanged until separately migrated. Do not create MDD treatment guidance, point values, a general-purpose expression language, or generated encounters in this slice.",
     "sourceReviewSnapshot": null,
-    "reviewerNotes": "Approved model: the broad primary decision owns most points, smaller goodness-of-fit contributors may stack, history/workup misses are bounded, and one critical error cannot be outweighed by many minor bonuses. Clinical rule approval and provisional balance remain separate.",
-    "reviewerNotesUpdatedAt": "2026-07-28T15:27:08.000Z",
+    "reviewerNotes": "Approved by Dustin Rowland. One primary policy owns the broad decision and most later points. Do not require that policy to enumerate every possible bonus. The complete frozen patient should remain eligible for reviewed secondary fit and safety contributors. A deterministic relevance-gated reverse index is acceptable if scanning every rule is too expensive, but it must be semantically equivalent to the full scan and must not turn every background diagnosis into a separate treatment objective. Smaller goodness-of-fit contributors may stack, history/workup misses remain bounded, and one critical error cannot be outweighed by many minor bonuses. Clinical rule approval and provisional balance remain separate.",
+    "reviewerNotesUpdatedAt": "2026-07-29T01:50:00.000Z",
     "resurfacingTrigger": "After reusable patient/test/intervention owners exist and before PatientTemplate can compile an encounter rubric or a diagnosis dossier activates shared scoring.",
-    "resolution": null,
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added one empty runtime-excluded decision-policy catalog; strict point-free policy, exact patient/action predicate, normalized rule-candidate, action-horizon, coverage-diagnostic, and CompiledRubric schemas; a pure compiler with one pinned primary route, typed complete-state projection, explicit same-record matching for repeated records, explicit-negative rather than closed-world absence semantics, frozen activation predicates and fact-to-record traces, exact action-relative discovery, nonblocking support diagnostics, full-width verified payload fingerprints, and copied/re-fingerprinted scan/index equivalence. Duration and burden retain source/time/scale identity, and current-regimen tolerability must bind the exact subject entry before targeting an operation. Approved records require approved formal contributions or accepted Developer opinions. Direct content and source-use validation plus runtime-boundary coverage are included. The medication-regimen patient predicate now uses the same typed fact boundary. No policy, clinical relationship, points, generated patient, compatibility-case migration, or runtime import was added.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-07-29T01:50:00.000Z"
+    },
     "createdAt": "2026-07-28T15:27:08.000Z",
-    "updatedAt": "2026-07-28T15:27:08.000Z"
+    "updatedAt": "2026-07-29T01:50:00.000Z"
   },
   {
     "schemaVersion": 1,

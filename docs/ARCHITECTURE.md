@@ -125,10 +125,42 @@ It is not a score, tier, progression gate, or economy configuration.
 The authoring-only medication-regimen knowledge catalog provides explicit medication-class
 identities and memberships, a V2 transition payload made only of starts and entry-targeted
 operations, focused route-owned transition meanings, and separate qualitative contributor kinds.
-It is registered with `runtimeIncluded: false` until the decision-policy compiler is reviewed.
+It remains registered with `runtimeIncluded: false`; the point-free decision-policy compiler now
+exists, but generated encounters and topical clinical content do not.
 Legacy class-label strings are never parsed. Patient state and player selections never own
 switch/augmentation/simplification intent, and recognizing a replacement shape never establishes
 safe overlap, washout, or cross-taper timing.
+
+The authoring-only decision-policy catalog owns exactly one pinned primary route per focused
+policy plus narrow explicit supporting references. It does not duplicate topical medication,
+diagnosis, finding, interaction, intervention, or disposition knowledge. Topical adapters expose
+point-free reviewed candidates to `compileDecisionPolicy`. The compiler projects the complete
+frozen patient into exact typed fact keys, intersects candidates with exact available action
+targets, and returns a versioned point-free `CompiledRubric`. The compiled rule retains its
+patient/action activation predicates plus exact fact-to-record bindings, so later submission
+evaluation never has to reread mutable source content and repeated records cannot be flattened into
+an unauditable match. Cross-owner `all` and explicit `same_record_all` are separate operations.
+`same_record_all` accepts unique facts from one record kind only; singleton patient-state domains
+and each clinical-context dimension receive distinct deterministic binding identities so shared
+container IDs cannot create a false join.
+Duration and subjective-burden adapters retain target identity, source modality, time scope, and
+the exact ordinal-scale version. A current-regimen tolerability adapter also emits its exact
+regimen-entry subject; any candidate that targets a regimen operation must bind that same entry,
+so two copies of one medication cannot exchange fit or harm facts.
+Missing or unresolved state is never interpreted as a negative; a negative dependency must match
+an explicit typed value. A semantic scan and the derived in-memory reverse index must return the
+same deterministic candidate set. A supplied index is copied and re-fingerprinted before use; it
+is not persisted source truth. Semantically unordered predicate branches, action targets, and
+provenance IDs are normalized before serialization. The frozen rubric uses the full 64-bit
+compiler-fingerprint suffix as its ID, includes the exact patient-state and action-horizon IDs in
+the fingerprint payload, and requires untrusted or persisted artifacts to pass both strict schema
+parsing and `verifyCompiledRubricIntegrity`.
+Content validation resolves every rule and owner version pin, requires formal contributions to
+pass the existing derived-content source-use decision, and rejects an approved policy that relies
+on a superseded or retired Developer opinion or on a formal contribution that is not itself
+medically approved. The active reference union contains only owner kinds that validation can
+currently resolve; future diagnosis-route, intervention, disposition, or template-override
+references must arrive atomically with their canonical owner and validator.
 
 `@psychsim/engine` owns top-down diagnosis and decision-policy composition, typed-fact derivation,
 conflict reports, constrained patient generation, focused encounter compilation, deterministic
@@ -385,10 +417,18 @@ checkpoint: only malformed or literally contradictory same-scope state quarantin
 clinical/rubric/response coverage emits a nonblocking diagnostic and ticket. A reviewed safety
 constraint may govern valid clinical tension while both rules remain traceable; evidence
 disagreement stays disabled behind a ticket; and balance disagreement remains outside qualitative
-guidance. That compiler consumes internal conditions rather than chart claims, addresses regimen
-entries independently, measures the resolved patient against a provisional template complexity
-envelope, and limits positive guidance to the focused decision horizon while retaining global
-safety/interaction rules. See
+guidance.
+
+The point-free decision-policy compiler now establishes the next boundary without migrating this
+compatibility path. Exactly one primary policy supplies the dominant route. Reviewed secondary
+rules may be discovered from any exact typed fact in the complete resolved patient, but only when
+their exact action targets intersect the focused horizon. Chart claims and internal conditions
+have different fact namespaces; labels, prose, aliases, free clinical tags, and file order cannot
+match. Background diagnoses therefore remain available context without silently becoming
+additional primary treatment objectives. Matching safety, interaction, and treatment-prerequisite
+guardrails stay eligible, and missing supporting coverage produces a nonblocking diagnostic. The
+later generated-patient compiler will also address regimen entries independently and measure the
+resolved patient against a provisional template complexity envelope. See
 [DIAGNOSIS_ENGINE.md](DIAGNOSIS_ENGINE.md) and
 [PATIENT_GENERATION_ENGINE.md](PATIENT_GENERATION_ENGINE.md).
 

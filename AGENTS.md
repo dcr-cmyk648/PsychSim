@@ -286,9 +286,28 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   that resemblance to internal condition truth. Retry or quarantine only malformed state or
   literal same-scope contradictions. Missing clinical, action, disposition, or rubric coverage is
   a nonblocking diagnostic and ticket.
-- Compile only positive rules relevant to the encounter's focused decision horizon, while retaining
-  global safety and interaction rules. Do not grade a complex patient against an exhaustive plan for
-  every background problem.
+- Compile exactly one primary decision policy for the focused encounter. It owns the dominant broad
+  route but does not have to hand-link every secondary effect. Discover reviewed secondary
+  contributors from the complete frozen `ResolvedPatientState` only when exact typed patient
+  dependencies and exact available/selected action targets match. Missing, unresolved, or
+  unassessed state never satisfies a negative dependency; require an explicit negative value.
+  Preserve fact-to-record bindings and use the explicit same-record predicate when several
+  attributes must belong to one repeated record. Freeze patient/action activation predicates in
+  the compiled rubric. A deterministic reverse index is an optimization only, must be
+  re-fingerprinted before use, and must return the same candidates as a semantic full scan. Never
+  let same-record matching join different record kinds or unrelated singleton/context owners.
+  Normalize every semantically unordered predicate, action-target, and provenance-reference array
+  before freezing output; use the full compiler-fingerprint suffix for the durable rubric ID and
+  verify the complete frozen payload—including patient-state and action-horizon IDs—when loading
+  it. Preserve source and time scope for duration/burden facts. A current-regimen tolerability
+  contributor must bind the exact regimen-entry subject before it may target an entry operation;
+  medication identity alone is insufficient when duplicate entries exist. Add a new rule-reference
+  kind only with its canonical owner and validator in the same checkpoint. Never
+  match on labels, prose, aliases, free tags, lexical similarity, point magnitude, or file order.
+  Background diagnoses do not become additional primary treatment objectives; positive
+  contributors remain action-relative, while matching global safety/interaction and
+  treatment-prerequisite rules stay eligible. Missing coverage is nonblocking and never invents a
+  penalty or invalidates the patient.
 - Keep private extracted documents, formal bibliographic sources, and clinical contributions
   separate. Every formal article/guideline/regulatory source has one stable file under
   `content/catalogs/evidence/formal/`; a large source may own many stable, linkable source-local
@@ -302,6 +321,8 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   be co-located for review only when it remains a separately typed provenance object. A rule
   without a formal contribution is labeled `Expert opinion`; never invent a citation for notes,
   notebooks, or unsourced judgment. Bibliographic verification does not confer medical approval.
+  An approved rule or policy may cite only formal contributions whose own medical-review status is
+  approved; source-use permission and bibliographic existence alone are insufficient.
 - Dossier readiness is a sparse, derived authoring view, not a manually synchronized status matrix.
   A stable identity may exist before its knowledge is deep. Derive compact independent readiness
   lanes from canonical identity, source, opinion, relationship/rule, and game-validation records;
@@ -539,13 +560,17 @@ Ordinary gameplay is static and deterministic. The web app must not import an Op
   Never print or inspect rclone OAuth configuration (`rclone config show` is prohibited), never
   create a remote with credential output enabled, and never give the remote write scope. Never
   propagate a source directly into scoring; create reviewable claim/change proposals first.
-- A sibling PsychSimDataAdjunct thread may act only as a read-only evidence-gap scanner and
-  literature-packet producer against an exact committed PsychSim base plus named
-  `SourceRequest`, ticket, and target IDs. It must not edit this repository, mint canonical IDs,
-  approve clinical content, create rules or points, or compete for the canonical write lease.
-  Adjunct packets are hashed and medically unreviewed. This canonical PsychSim thread alone
-  validates target freshness and source-use rights, translates reviewed proposals into candidate
-  database edits, and runs clinical/runtime validation.
+- A sibling PsychSimDataAdjunct process may independently maintain concept-first evidence-horizon
+  records and produce versioned, hashed, medically unreviewed proposal bundles. PsychSim tickets
+  are inputs, not its queue authority. A general adjunct bundle may remain unmapped; a bundle
+  submitted for PsychSim incorporation must carry a separate mapping pinned to an exact committed
+  PsychSim base plus named `SourceRequest`, ticket, and target IDs. The adjunct must not edit this
+  repository, mint canonical IDs, approve clinical content, create rules or points, or compete for
+  the canonical write lease. This canonical PsychSim thread alone validates target freshness and
+  source-use rights, translates reviewed proposals into candidate database edits, and runs
+  clinical/runtime validation. This boundary does not authorize transfer of private source text:
+  safe coverage projections and locators may be shared, while any source-text transfer still
+  requires the ordinary explicit source-specific authorization.
 - Never collapse source progress into an ambiguous word such as “processed,” “ingested,” or
   “incorporated.” Report and persist these stages separately: metadata discovered; exact bytes
   downloaded and SHA-256 verified; text extracted; semantic scope reviewed; candidate changes
