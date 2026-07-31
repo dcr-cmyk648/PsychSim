@@ -484,14 +484,21 @@ Last updated: 2026-07-31
   unknown private rule IDs still fail closed.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state during release: implementation checkpoint
-  `044aaa27cd48c6685c70ea29f8beffd00239e66a` (`Extend deterministic patient generation
-foundation`) is one local commit ahead of `origin/beta`; this state-sync edit is the only
-  subsequent worktree change before its own documentation commit. The user has authorized the
-  deliberate whole-beta promotion after remote verification.
-- The current implementation checkpoint includes D-193 through D-253 and may be used as the
-  adjunct's stale-target mapping base only after `beta` is pushed and that exact commit is
-  confirmed from Git.
+- Distributed implementation checkpoint:
+  `ca0fc353bab10c7f7cbe39db2be6a7d003e8dc99` (`Stabilize completion history integration test`).
+  `main`, `origin/main`, `beta`, and `origin/beta` all matched that commit immediately after the
+  verified release. This handoff-sync edit is the only subsequent worktree change before its own
+  beta-only documentation commit and push; confirm the actual local/remote beta HEAD with Git.
+- The current implementation checkpoint includes D-193 through D-253 and is the adjunct's current
+  committed stale-target mapping base.
+- Beta verification run
+  `https://github.com/dcr-cmyk648/PsychSim/actions/runs/30644145659` passed the complete Node 22
+  gate. Main verification/deployment run
+  `https://github.com/dcr-cmyk648/PsychSim/actions/runs/30644611327` independently passed the same
+  gate, including iPhone/WebKit, then deployed Pages.
+- Live portable Reviewer: `https://dcr-cmyk648.github.io/PsychSim/`. Its fresh
+  `version.json` reports distribution
+  `ca0fc353bab10c7f7cbe39db2be6a7d003e8dc99`, build kind `portable_reviewer`, and channel `main`.
 - Configured local Developer URL: `http://127.0.0.1:4318/` (not started for this backend-only
   checkpoint).
 - Configured local portable Reviewer URL: `http://127.0.0.1:4319/` (not started for this
@@ -1951,8 +1958,8 @@ The D-253 integration gate completed locally on 2026-07-31:
 - Playwright 1.53.2 WebKit build 2182 is installed locally but declares macOS 14.5 as its minimum;
   this Intel Mac is on macOS 14.1.1, so the browser process exits with a bus error before opening a
   page. The repository's required `CI=true` workflow installs and runs the iPhone/WebKit project
-  on a supported runner; that remote gate must pass before the main/Pages promotion is considered
-  verified; and
+  on a supported runner; both beta and main remote gates passed that project before the
+  main/Pages promotion was accepted; and
 - the sandboxed tsx validators and Playwright servers failed only because the managed sandbox
   denies local IPC sockets or loopback listeners; identical Node 22 commands passed with the
   required local permission.
@@ -2084,30 +2091,23 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. Inspect the final beta diff and branch relation, commit the complete intentional checkpoint,
-   push `beta`, and wait for its Node 22 verification workflow.
-2. Promote the whole verified `beta` branch to `main`, push it, and require the main workflow's
-   Player, 390-pixel, 320-pixel, and iPhone/WebKit assertions plus Pages deployment to pass. Do not
-   represent the locally unsupported WebKit binary as a passing local test.
-3. Return the checkout to `beta`, update this handoff with exact commits and remote relations, and
-   start a verified local server whose URL can be handed to the user.
-4. Treat the current adjunct MDD dimensions, severity, TSH, antidepressant-fit, and regimen
+1. Treat the current adjunct MDD dimensions, severity, TSH, antidepressant-fit, and regimen
    combination packets as preliminary. They may expose missing typed owners or review questions,
    but cannot supply real profiles, probabilities, qualitative rules, balances, or points.
-5. The next clinical decision remains
+2. The next clinical decision remains
    `ticket.catalog.diagnoses.mdd-current-episode-finding-profile`. Do not invent its exact core
    constraint, total dimensional cardinality, manifestation groupings, or
    pessimism/suicidality roles. The source request is received, but the preliminary packet still
    requires canonical source-use validation and psychiatrist interpretation.
-6. In the absence of that clinical decision, continue only bounded dependency work that is
+3. In the absence of that clinical decision, continue only bounded dependency work that is
    clinical-neutral. Current candidates are: formal-source metadata/rights registration;
    broad-category and unspecified diagnosis identities with explicit reviewed ancestry queued
    separately; real-owner inventory for source reports/action recipes; and audit of the eventual
    generated-to-review projection. Do not author a real patient template yet.
-7. Real ED, inpatient-psychiatry, and consultation-liaison runtime locations remain deferred until
+4. Real ED, inpatient-psychiatry, and consultation-liaison runtime locations remain deferred until
    their typed location, department, capability, service, formulary, disposition, action, and
    assignment owners exist. Setting labels never grant those resources.
-8. Treatment-charge ownership, severity/specifier diagnosis validation, real finding/result/
+5. Treatment-charge ownership, severity/specifier diagnosis validation, real finding/result/
    source/presentation content, SaveData, compatibility queue migration, IndexedDB, review/export
    projection, automatic Standard refill, Developer Patient Maker, and UI remain deliberately
    unactivated until one realistic source-controlled vertical is ready.
