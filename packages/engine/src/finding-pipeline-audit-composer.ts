@@ -39,7 +39,7 @@ import {
 } from './weighted-finding-tendency-aggregator';
 import { verifyWeightedFindingTendencyApplicabilityIntegrity } from './weighted-finding-tendency-applicability-compiler';
 
-export const FINDING_PIPELINE_AUDIT_COMPOSER_VERSION = '20.0.0';
+export const FINDING_PIPELINE_AUDIT_COMPOSER_VERSION = '21.0.0';
 
 export type FindingPipelineAuditComposeErrorCode =
   | 'INVALID_REQUEST'
@@ -178,6 +178,21 @@ const sortCandidates = (
   candidates: readonly FindingResolutionCandidate[],
 ): FindingResolutionCandidate[] =>
   [...candidates].map(normalizeCandidate).sort((left, right) => compareStrings(left.id, right.id));
+
+const effectiveBackgroundCandidates = (
+  backgroundCandidates: readonly FindingResolutionCandidate[],
+  findingTextureCandidates: readonly FindingResolutionCandidate[],
+): FindingResolutionCandidate[] => {
+  const replacedFindingDefinitionIds = new Set(
+    findingTextureCandidates.map((candidate) => candidate.findingDefinitionId),
+  );
+  return sortCandidates([
+    ...backgroundCandidates.filter(
+      (candidate) => !replacedFindingDefinitionIds.has(candidate.findingDefinitionId),
+    ),
+    ...findingTextureCandidates,
+  ]);
+};
 
 const assembleWeightedTendencyRequest = (input: {
   readonly applicability: WeightedFindingTendencyApplicabilityArtifact;
@@ -632,6 +647,45 @@ const verifyChain = (
       };
     }
   }
+  const findingTextureBridge =
+    patientStateComposition.compositionRequest.findingTextureBridgeArtifact;
+  if (findingTextureBridge !== null) {
+    const backgroundByFindingId = new Map(
+      background.candidates.map((candidate) => [candidate.findingDefinitionId, candidate]),
+    );
+    const invalidTextureCandidateIds = findingTextureBridge.candidates
+      .filter((candidate) => {
+        const baseline = backgroundByFindingId.get(candidate.findingDefinitionId);
+        return (
+          baseline === undefined ||
+          baseline.findingDefinitionContentVersion !== candidate.findingDefinitionContentVersion
+        );
+      })
+      .map((candidate) => candidate.id);
+    const weightedTextureCollisions = (weightedTendencyArtifact?.candidates ?? [])
+      .filter((candidate) =>
+        findingTextureBridge.replacedBackgroundFindingDefinitionIds.includes(
+          candidate.findingDefinitionId,
+        ),
+      )
+      .map((candidate) => candidate.id);
+    if (invalidTextureCandidateIds.length > 0 || weightedTextureCollisions.length > 0) {
+      return {
+        ok: false,
+        code: 'ARTIFACT_CHAIN_MISMATCH',
+        message:
+          invalidTextureCandidateIds.length > 0
+            ? 'A D-201-selected finding texture lacks the exact D-198 background target it replaces.'
+            : 'A selected exact finding texture and a D-199 aggregate target the same finding; this narrow bridge will not guess how to combine them.',
+        contentIds: [
+          findingTextureBridge.id,
+          background.id,
+          ...invalidTextureCandidateIds,
+          ...weightedTextureCollisions,
+        ],
+      };
+    }
+  }
   return {
     ok: true,
     value: {
@@ -650,6 +704,7 @@ const verifyChain = (
 const candidateUnion = (
   downstream: FindingPipelineAuditDownstreamRequest,
   weightedTendencyArtifact: WeightedFindingTendencyArtifact | null,
+  findingTextureCandidates: readonly FindingResolutionCandidate[],
 ):
   | { readonly ok: true; readonly value: FindingResolutionCandidate[] }
   | {
@@ -660,7 +715,10 @@ const candidateUnion = (
   const candidates = sortCandidates([
     ...downstream.catalogCompileRecipe.authoredFindingCandidates,
     ...downstream.conditionFindingArtifact.candidates,
-    ...downstream.backgroundFindingArtifact.candidates,
+    ...effectiveBackgroundCandidates(
+      downstream.backgroundFindingArtifact.candidates,
+      findingTextureCandidates,
+    ),
     ...(weightedTendencyArtifact?.candidates ?? []),
   ]);
   const duplicateCandidateIds = candidates
@@ -847,7 +905,11 @@ export const composeFindingPipelineAudit = (input: unknown): FindingPipelineAudi
     weightedTendencyRequest,
     weightedTendencyArtifact,
   } = chain.value;
-  const union = candidateUnion(downstream, weightedTendencyArtifact);
+  const union = candidateUnion(
+    downstream,
+    weightedTendencyArtifact,
+    patientStateComposition.compositionRequest.findingTextureBridgeArtifact?.candidates ?? [],
+  );
   if (!union.ok) {
     return fail(
       'CANDIDATE_UNION_COLLISION',
@@ -1143,9 +1205,15 @@ export const verifyFindingPipelineAuditIntegrity = (
     };
   }
 
+  const findingTextureCandidates =
+    chain.value.patientStateComposition.compositionRequest.findingTextureBridgeArtifact
+      ?.candidates ?? [];
   const upstreamCandidates = sortCandidates([
     ...artifact.conditionFindingArtifact.candidates,
-    ...artifact.backgroundFindingArtifact.candidates,
+    ...effectiveBackgroundCandidates(
+      artifact.backgroundFindingArtifact.candidates,
+      findingTextureCandidates,
+    ),
     ...(artifact.weightedFindingTendencyArtifact?.candidates ?? []),
   ]);
   const candidateById = new Map(

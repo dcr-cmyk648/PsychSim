@@ -158,7 +158,7 @@ describe('prototype content', () => {
     const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
     expect(parsedFindings).toEqual(runtimeCatalog.findings);
-    expect(parsedFindings).toHaveLength(41);
+    expect(parsedFindings).toHaveLength(50);
     expect(
       parsedFindings.find((finding) => finding.id === 'finding.depressive.depressed-mood'),
     ).toEqual(
@@ -185,6 +185,7 @@ describe('prototype content', () => {
 
   it('keeps the canonical finding seed identity-only and preserves case-local compatibility', () => {
     expect(catalogs.findings.map((finding) => finding.id)).toEqual([
+      'finding.appetite.current-increased',
       'finding.appetite.current-reduced',
       'finding.depressive.depressed-mood',
       'finding.function.self-reported-current-impact',
@@ -197,7 +198,10 @@ describe('prototype content', () => {
       'finding.history.current-grandiosity',
       'finding.history.current-high-risk-spending',
       'finding.history.current-increased-goal-directed-activity',
+      'finding.history.current-indecision',
+      'finding.history.current-pessimism',
       'finding.history.current-pressured-speech',
+      'finding.history.current-psychomotor-agitation',
       'finding.history.current-psychomotor-slowing',
       'finding.history.current-racing-thoughts',
       'finding.history.current-self-reported-ideas-of-reference',
@@ -205,6 +209,9 @@ describe('prototype content', () => {
       'finding.history.current-self-reported-persecutory-ideation',
       'finding.history.current-self-reported-suspiciousness',
       'finding.history.current-self-reported-thought-disorganization',
+      'finding.history.current-unintentional-weight-gain',
+      'finding.history.current-unintentional-weight-loss',
+      'finding.history.current-worthlessness',
       'finding.history.difficulty-controlling-worry',
       'finding.history.excessive-worry',
       'finding.history.muscle-tension',
@@ -214,6 +221,8 @@ describe('prototype content', () => {
       'finding.history.reported-hallucinations',
       'finding.history.restlessness',
       'finding.mse.current-observed-grandiosity',
+      'finding.mse.current-observed-psychomotor-agitation',
+      'finding.mse.current-observed-psychomotor-slowing',
       'finding.mse.current-observed-thought-disorganization',
       'finding.safety.current-active-suicidal-ideation',
       'finding.safety.current-passive-death-wish',

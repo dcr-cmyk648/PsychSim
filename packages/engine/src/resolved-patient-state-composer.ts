@@ -3,6 +3,7 @@ import {
   ResolvedPatientStateCompositionRequestSchema,
   ResolvedPatientStateSchema,
   type OptionalExposureBudgetBridgeArtifact,
+  type OptionalFindingTextureBridgeArtifact,
   type OptionalPriorTreatmentBridgeArtifact,
   type OptionalReactionHistoryBridgeArtifact,
   type PatientOptionalFeatureModuleKind,
@@ -18,11 +19,12 @@ import {
 
 import { verifyOptionalExposureBudgetBridgeIntegrity } from './optional-exposure-budget-bridge';
 import { verifyOptionalFeatureBudgetSelectionIntegrity } from './optional-feature-budget-selector';
+import { verifyOptionalFindingTextureBridgeIntegrity } from './optional-finding-texture-bridge';
 import { verifyOptionalPriorTreatmentBridgeIntegrity } from './optional-prior-treatment-bridge';
 import { verifyOptionalReactionHistoryBridgeIntegrity } from './optional-reaction-history-bridge';
 import { verifyResolvedConditionSourceIntegrity } from './resolved-condition-source';
 
-export const RESOLVED_PATIENT_STATE_COMPOSER_VERSION = '1.0.0';
+export const RESOLVED_PATIENT_STATE_COMPOSER_VERSION = '2.0.0';
 
 export type ResolvedPatientStateCompositionErrorCode =
   | 'INVALID_REQUEST'
@@ -32,6 +34,7 @@ export type ResolvedPatientStateCompositionErrorCode =
   | 'REACTION_HISTORY_BRIDGE_INVALID'
   | 'PRIOR_TREATMENT_BRIDGE_INVALID'
   | 'EXPOSURE_BRIDGE_INVALID'
+  | 'FINDING_TEXTURE_BRIDGE_INVALID'
   | 'OPTIONAL_FEATURE_CONTEXT_MISMATCH'
   | 'CORE_CONDITION_STATE_MISMATCH'
   | 'INVALID_OUTPUT';
@@ -188,6 +191,7 @@ const artifactPayload = (
   reactionHistoryBridgeRef: artifact.reactionHistoryBridgeRef,
   priorTreatmentBridgeRef: artifact.priorTreatmentBridgeRef,
   exposureBridgeRef: artifact.exposureBridgeRef,
+  findingTextureBridgeRef: artifact.findingTextureBridgeRef,
   reactionHistoryOwnership: artifact.reactionHistoryOwnership,
   selectedModuleAudits: artifact.selectedModuleAudits,
   coverageDiagnostics: artifact.coverageDiagnostics,
@@ -220,6 +224,7 @@ interface VerifiedCompositionInputs {
   readonly reactionBridge: OptionalReactionHistoryBridgeArtifact | null;
   readonly priorTreatmentBridge: OptionalPriorTreatmentBridgeArtifact | null;
   readonly exposureBridge: OptionalExposureBudgetBridgeArtifact | null;
+  readonly findingTextureBridge: OptionalFindingTextureBridgeArtifact | null;
 }
 
 const sameTemplateContext = (
@@ -440,6 +445,39 @@ const verifyInputs = (
     exposureBridge = integrity.value;
   }
 
+  let findingTextureBridge: OptionalFindingTextureBridgeArtifact | null = null;
+  if (request.findingTextureBridgeArtifact !== null) {
+    const integrity = verifyOptionalFindingTextureBridgeIntegrity(
+      request.findingTextureBridgeArtifact,
+    );
+    if (!integrity.ok) {
+      return {
+        ok: false,
+        result: fail(
+          'FINDING_TEXTURE_BRIDGE_INVALID',
+          `${integrity.error.code}: ${integrity.error.message}`,
+          [request.findingTextureBridgeArtifact.id],
+        ),
+      };
+    }
+    if (
+      !verifyOptionalArtifactContext(
+        integrity.value.bridgeRequest.optionalFeatureArtifact,
+        request.optionalFeatureArtifact,
+      )
+    ) {
+      return {
+        ok: false,
+        result: fail(
+          'OPTIONAL_FEATURE_CONTEXT_MISMATCH',
+          'The finding-texture bridge does not retain this exact D-201 artifact.',
+          [integrity.value.id, request.optionalFeatureArtifact.id],
+        ),
+      };
+    }
+    findingTextureBridge = integrity.value;
+  }
+
   return {
     ok: true,
     value: {
@@ -448,6 +486,7 @@ const verifyInputs = (
       reactionBridge,
       priorTreatmentBridge,
       exposureBridge,
+      findingTextureBridge,
     },
   };
 };
@@ -495,6 +534,16 @@ const materializedIdsForModule = (
     );
     return evaluation ? [...evaluation.useEntryIds].sort(compareStrings) : [];
   }
+  if (moduleKind === 'finding_texture') {
+    const evaluation = inputs.findingTextureBridge?.candidateEvaluations.find(
+      (candidate) => candidate.moduleRef.id === moduleDefinitionId,
+    );
+    return evaluation
+      ? evaluation.outcomeEvaluations
+          .flatMap((outcome) => (outcome.candidateId === null ? [] : [outcome.candidateId]))
+          .sort(compareStrings)
+      : [];
+  }
   return [];
 };
 
@@ -505,6 +554,7 @@ const ownerKindForModule = (
   if (moduleKind === 'allergy_reaction') return 'reaction_history_bridge';
   if (moduleKind === 'prior_treatment') return 'prior_treatment_bridge';
   if (moduleKind === 'substance_use') return 'exposure_bridge';
+  if (moduleKind === 'finding_texture') return 'finding_texture_bridge';
   return 'unowned_other';
 };
 
@@ -703,6 +753,13 @@ const buildComposedPatientState = (
             id: inputs.exposureBridge.id,
             payloadFingerprint: inputs.exposureBridge.payloadFingerprint,
           },
+    findingTextureBridgeRef:
+      inputs.findingTextureBridge === null
+        ? null
+        : {
+            id: inputs.findingTextureBridge.id,
+            payloadFingerprint: inputs.findingTextureBridge.payloadFingerprint,
+          },
     reactionHistoryOwnership: inputs.request.reactionHistoryOwnership,
   });
   const state = normalizePatientState({
@@ -758,6 +815,13 @@ const buildArtifact = (
         : {
             id: inputs.exposureBridge.id,
             payloadFingerprint: inputs.exposureBridge.payloadFingerprint,
+          },
+    findingTextureBridgeRef:
+      inputs.findingTextureBridge === null
+        ? null
+        : {
+            id: inputs.findingTextureBridge.id,
+            payloadFingerprint: inputs.findingTextureBridge.payloadFingerprint,
           },
     reactionHistoryOwnership: request.reactionHistoryOwnership,
     selectedModuleAudits,

@@ -3,12 +3,14 @@ import {
   PreFindingPatientStateOrchestrationRequestSchema,
   type ClinicalRuleReview,
   type EncounterCareSetting,
+  type FindingDefinition,
   type OptionalComorbidityBridgeProfile,
   type OptionalExposureBudgetBridgeProfile,
   type OptionalExposureContribution,
   type OptionalExposureReferenceHorizon,
   type OptionalFeatureBudgetSelectionArtifact,
   type OptionalFeatureBudgetSelectionRequest,
+  type OptionalFindingTextureBridgeProfile,
   type OptionalPriorTreatmentBridgeProfile,
   type OptionalPriorTreatmentContribution,
   type OptionalPriorTreatmentReferenceHorizon,
@@ -37,6 +39,10 @@ import {
   fingerprintOptionalFeatureModuleDefinition,
   selectOptionalFeaturesWithinBudget,
 } from './optional-feature-budget-selector';
+import {
+  fingerprintOptionalFindingTextureBridgeProfile,
+  fingerprintOptionalFindingTextureReferenceHorizon,
+} from './optional-finding-texture-bridge';
 import {
   fingerprintOptionalPriorTreatmentBridgeProfile,
   fingerprintOptionalPriorTreatmentReferenceHorizon,
@@ -68,6 +74,7 @@ const moduleIds = {
   reaction: 'optional-feature.test.orchestration.reaction',
   priorTreatment: 'optional-feature.test.orchestration.prior-treatment',
   exposure: 'optional-feature.test.orchestration.exposure',
+  texture: 'optional-feature.test.orchestration.texture',
   other: 'optional-feature.test.orchestration.other',
 } as const;
 
@@ -78,19 +85,26 @@ const moduleKeySlugs: Readonly<Record<ModuleKey, string>> = {
   reaction: 'reaction',
   priorTreatment: 'prior-treatment',
   exposure: 'exposure',
+  texture: 'texture',
   other: 'other',
 };
 
 const moduleKinds: Readonly<
   Record<
     ModuleKey,
-    'allergy_reaction' | 'prior_treatment' | 'comorbidity' | 'substance_use' | 'other'
+    | 'allergy_reaction'
+    | 'prior_treatment'
+    | 'comorbidity'
+    | 'substance_use'
+    | 'finding_texture'
+    | 'other'
   >
 > = {
   comorbidity: 'comorbidity',
   reaction: 'allergy_reaction',
   priorTreatment: 'prior_treatment',
   exposure: 'substance_use',
+  texture: 'finding_texture',
   other: 'other',
 };
 
@@ -99,6 +113,7 @@ const moduleCosts: Readonly<Record<ModuleKey, number>> = {
   reaction: 1,
   priorTreatment: 2,
   exposure: 1,
+  texture: 1,
   other: 3,
 };
 
@@ -282,7 +297,7 @@ const makeOptionalFeatureRequest = (
           selectedModuleId: `patient-optional-feature.test.orchestration.${keySlug}`,
           cost: moduleCosts[key],
           impact:
-            key === 'other'
+            key === 'other' || key === 'texture'
               ? ('background' as const)
               : key === 'comorbidity'
                 ? ('fit_modifier' as const)
@@ -292,7 +307,7 @@ const makeOptionalFeatureRequest = (
               id: `complexity-contribution.test.orchestration.${keySlug}`,
               label: `Synthetic ${key} contribution`,
               dimension:
-                key === 'comorbidity'
+                key === 'comorbidity' || key === 'texture'
                   ? ('diagnostic' as const)
                   : key === 'reaction'
                     ? ('pharmacologic' as const)
@@ -690,6 +705,92 @@ const makeExposureInput = (
   };
 };
 
+const textureFindingDefinition = (): FindingDefinition => ({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'finding.history.test-orchestration-texture',
+  label: 'Synthetic orchestration texture',
+  aliases: ['Synthetic extra complaint'],
+  semanticKind: 'history',
+  valueSpecification: {
+    kind: 'outcome',
+    allowedValues: ['present', 'absent', 'subthreshold'],
+  },
+  allowedPresentationProjections: ['status'],
+  lifecycle: 'approved',
+  medicalReviewStatus: 'unreviewed',
+});
+
+const makeFindingTextureInput = (
+  optionalArtifact: OptionalFeatureBudgetSelectionArtifact,
+): NonNullable<PreFindingPatientStateOrchestrationRequest['findingTextureBridgeInput']> => {
+  const definition = textureFindingDefinition();
+  const referenceHorizon = {
+    schemaVersion: 1 as const,
+    contentVersion: '1.0.0',
+    id: 'finding-texture-horizon.test.pre-finding-orchestration',
+    findingDefinitionRefs: [
+      {
+        id: definition.id,
+        contentVersion: definition.contentVersion,
+      },
+    ],
+  };
+  const binding = optionalArtifact.selectionRequest.profile.candidateBindings.find(
+    (candidate) => candidate.moduleRef.id === moduleIds.texture,
+  );
+  if (!binding) throw new Error('Missing finding-texture binding.');
+  const bridgeProfile: OptionalFindingTextureBridgeProfile = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'optional-finding-texture-profile.test.pre-finding-orchestration',
+    modelVersion: 'selected-optional-finding-texture.v1',
+    templateRef: optionalArtifact.templateRef,
+    templateFingerprint: optionalArtifact.templateFingerprint,
+    optionalFeatureProfileRef: optionalArtifact.profileRef,
+    optionalFeatureProfileFingerprint: optionalArtifact.profileFingerprint,
+    referenceHorizonRef: {
+      id: referenceHorizon.id,
+      contentVersion: referenceHorizon.contentVersion,
+    },
+    referenceHorizonFingerprint:
+      fingerprintOptionalFindingTextureReferenceHorizon(referenceHorizon),
+    mappings: [
+      {
+        schemaVersion: 1,
+        id: 'optional-finding-texture-mapping.test.pre-finding-orchestration',
+        moduleRef: binding.moduleRef,
+        moduleFingerprint: binding.moduleFingerprint,
+        optionalFeatureBindingId: binding.id,
+        selectedModuleId: binding.selectedModuleId,
+        outcomes: [
+          {
+            schemaVersion: 1,
+            id: 'optional-finding-texture-outcome.test.pre-finding-orchestration',
+            findingDefinitionId: definition.id,
+            findingDefinitionContentVersion: definition.contentVersion,
+            proposedValue: { kind: 'outcome', value: 'subthreshold' },
+            uncertainty: 'none',
+            developerOpinionIds: ['developer-opinion.test.pre-finding-texture'],
+            review: approvedReview,
+          },
+        ],
+      },
+    ],
+    review: approvedReview,
+  };
+  expect(fingerprintOptionalFindingTextureBridgeProfile(bridgeProfile)).toMatch(
+    /^fingerprint\.optional-finding-texture-bridge\./,
+  );
+  return {
+    schemaVersion: 1,
+    id: 'optional-finding-texture-request.test.pre-finding-orchestration',
+    referenceHorizon,
+    findingDefinitions: [definition],
+    bridgeProfile,
+  };
+};
+
 const deriveConditionSource = (
   requestId: string,
   optionalArtifact: OptionalFeatureBudgetSelectionArtifact,
@@ -846,6 +947,9 @@ const makeScenario = (
       exposureBridgeInput: modules.includes('exposure')
         ? makeExposureInput(fixture.artifact)
         : null,
+      findingTextureBridgeInput: modules.includes('texture')
+        ? makeFindingTextureInput(fixture.artifact)
+        : null,
     },
   };
 };
@@ -880,6 +984,7 @@ describe('pre-finding patient-state orchestrator', () => {
     expect(artifact.reactionHistoryBridgeArtifact).toBeNull();
     expect(artifact.priorTreatmentBridgeArtifact).toBeNull();
     expect(artifact.exposureBridgeArtifact).toBeNull();
+    expect(artifact.findingTextureBridgeArtifact).toBeNull();
     expect(
       artifact.patientStateCompositionArtifact.composedPatientState?.conditionStates,
     ).toHaveLength(1);
@@ -904,7 +1009,7 @@ describe('pre-finding patient-state orchestrator', () => {
 
   it('retains complete null-materialization audits for unselected typed lanes', () => {
     const { request } = makeScenario({
-      modules: ['reaction', 'priorTreatment', 'exposure'],
+      modules: ['reaction', 'priorTreatment', 'exposure', 'texture'],
       selected: [],
     });
     const artifact = expectOrchestration(request);
@@ -929,8 +1034,53 @@ describe('pre-finding patient-state orchestrator', () => {
       materializedUseEntryIds: [],
       selectedExposureModuleDefinitionIds: [],
     });
+    expect(artifact.findingTextureBridgeArtifact).toMatchObject({
+      selectedTextureModuleDefinitionIds: [],
+      selectedModuleIds: [],
+      candidates: [],
+    });
     expect(artifact.patientStateCompositionArtifact.status).toBe('composed');
     expect(artifact.patientStateCompositionArtifact.selectedModuleAudits).toEqual([]);
+  });
+
+  it('retains one selected finding-texture module as a lower-priority pre-finding candidate', () => {
+    const { request } = makeScenario({
+      modules: ['texture'],
+      selected: ['texture'],
+      budget: 1,
+      maximumSelectedModules: 1,
+    });
+    const artifact = expectOrchestration(request);
+    const d201 = artifact.optionalFeatureArtifact;
+    const bridge = artifact.findingTextureBridgeArtifact;
+
+    expect(artifact.status).toBe('composed');
+    expect(d201.selectedCount).toBe(1);
+    expect(d201.totalSpent).toBe(1);
+    expect(d201.remainingBudget).toBe(0);
+    expect(bridge).not.toBeNull();
+    expect(bridge?.optionalFeatureSelectedCount).toBe(d201.selectedCount);
+    expect(bridge?.optionalFeatureTotalSpent).toBe(d201.totalSpent);
+    expect(bridge?.optionalFeatureRemainingBudget).toBe(d201.remainingBudget);
+    expect(bridge?.candidates).toHaveLength(1);
+    expect(bridge?.candidates[0]).toMatchObject({
+      findingDefinitionId: textureFindingDefinition().id,
+      kind: 'background_variation',
+      proposedValue: { kind: 'outcome', value: 'subthreshold' },
+    });
+    expect(
+      artifact.patientStateCompositionArtifact.composedPatientState?.canonicalFindings,
+    ).toEqual([]);
+    expect(artifact.patientStateCompositionArtifact.selectedModuleAudits).toEqual([
+      expect.objectContaining({
+        moduleDefinitionId: moduleIds.texture,
+        moduleKind: 'finding_texture',
+        ownerKind: 'finding_texture_bridge',
+        materializationStatus: 'materialized',
+        cost: 1,
+        materializedRecordIds: bridge?.candidates.map((candidate) => candidate.id),
+      }),
+    ]);
   });
 
   it('preserves one exact D-201 accounting artifact through a mixed typed pool', () => {
@@ -1041,6 +1191,10 @@ describe('pre-finding patient-state orchestrator', () => {
       modules: ['exposure'],
       selected: [],
     }).request;
+    const texture = makeScenario({
+      modules: ['texture'],
+      selected: [],
+    }).request;
 
     const invalidRequests: unknown[] = [];
     const missingReaction = structuredClone(reaction);
@@ -1063,6 +1217,13 @@ describe('pre-finding patient-state orchestrator', () => {
     const unexpectedExposure = structuredClone(requiredOnly);
     unexpectedExposure.exposureBridgeInput = exposure.exposureBridgeInput;
     invalidRequests.push(unexpectedExposure);
+
+    const missingTexture = structuredClone(texture);
+    missingTexture.findingTextureBridgeInput = null;
+    invalidRequests.push(missingTexture);
+    const unexpectedTexture = structuredClone(requiredOnly);
+    unexpectedTexture.findingTextureBridgeInput = texture.findingTextureBridgeInput;
+    invalidRequests.push(unexpectedTexture);
 
     invalidRequests.forEach(expectInvalidRequest);
   });

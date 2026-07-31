@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.trzepacz.drs-r-98-validation.2001",
+  "authority": "formal_publication",
+  "sourceType": "journal_article",
+  "title": "Validation of the Delirium Rating Scale-revised-98: comparison with the delirium rating scale and the cognitive test for delirium",
+  "authors": [
+    "Paula T Trzepacz",
+    "Dinesh Mittal",
+    "Rafael Torres",
+    "Kim Kanary",
+    "John Norton",
+    "Nita Jimerson"
+  ],
+  "organization": null,
+  "publicationYear": 2001,
+  "publicationDate": "2001-05-01",
+  "lastReviewedDate": null,
+  "versionLabel": "Original English DRS-R-98 validation; published correction in volume 13, issue 3, page 433",
+  "containerTitle": "The Journal of Neuropsychiatry and Clinical Neurosciences",
+  "volume": "13",
+  "issue": "2",
+  "pages": "229-242",
+  "doi": "10.1176/jnp.13.2.229",
+  "pmid": "11449030",
+  "url": "https://psychiatryonline.org/doi/10.1176/jnp.13.2.229",
+  "citation": "Trzepacz PT, Mittal D, Torres R, Kanary K, Norton J, Jimerson N. Validation of the Delirium Rating Scale-revised-98: comparison with the delirium rating scale and the cognitive test for delirium. J Neuropsychiatry Clin Neurosci. 2001;13(2):229-242. doi:10.1176/jnp.13.2.229. Published correction: 2001;13(3):433.",
+  "knownContentHashes": [],
+  "jurisdictions": ["United States validation context"],
+  "populations": [
+    "Hospitalized people in delirium, dementia, depression, schizophrenia, and other diagnostic comparison groups"
+  ],
+  "settings": ["Hospital neuropsychiatric assessment", "Delirium research"],
+  "sourceRelations": [],
+  "accessPolicy": {
+    "fullTextStatus": "restricted",
+    "reuseStatus": "permission_required",
+    "adaptationStatus": "permission_required",
+    "commercialUseStatus": "permission_required",
+    "aiUseStatus": "permission_required",
+    "localExtractionStatus": "permission_required",
+    "licenseLabel": null,
+    "licenseUrl": null,
+    "termsUrl": "https://psychiatryonline.org/journals/faq",
+    "note": "APA Publishing exposes publisher metadata and a permissions-request workflow but no reusable open licence for the article or embedded instrument. Later validation work explicitly reports that participating investigators had permission to use the scale. PsychSim may retain bibliographic metadata and an original abstract-level summary only; it must not copy item wording, anchors, instructions, or score sheets without permission."
+  },
+  "metadataReviewedAt": "2026-07-31T14:32:00.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

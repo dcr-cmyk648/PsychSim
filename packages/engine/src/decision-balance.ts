@@ -1,5 +1,6 @@
 import {
   CompiledRubricSchema,
+  DecisionBalanceCatalogSnapshotSchema,
   DecisionBalanceCatalogSchema,
   DecisionRuleCandidateDefinitionSchema,
   GeneratedEncounterDecisionSelectionSchema,
@@ -10,8 +11,12 @@ import {
   type CompiledRubricRule,
   type DecisionActionTarget,
   type DecisionBalanceCatalog,
+  type DecisionBalanceCatalogSnapshot,
   type DecisionBalanceDefinition,
+  type DecisionBalanceSnapshotDefinition,
+  type DecisionBalanceSnapshotFingerprint,
   type DecisionTriggeredInformationPrerequisiteBalanceDefinition,
+  type DecisionTriggeredInformationPrerequisiteBalanceSnapshot,
   type DecisionRuleCandidateDefinition,
   type DecisionRuleReference,
   type GeneratedEncounterDecisionSelection,
@@ -30,8 +35,9 @@ import {
 import { evaluateMedicationRegimenTransition } from './medication-regimen-route-adapter';
 import { resolveGeneratedRuleCombination } from './rule-combination';
 
-export const NATIVE_DECISION_BALANCE_COMPILER_VERSION = '4.0.0';
+export const NATIVE_DECISION_BALANCE_COMPILER_VERSION = '5.0.0';
 export const NATIVE_DECISION_BALANCE_PRODUCER_ID = 'engine.native-decision-balance';
+export const DECISION_BALANCE_SNAPSHOT_COMPILER_VERSION = '1.0.0';
 
 export type DecisionBalanceCompileErrorCode =
   | 'INVALID_INPUT'
@@ -40,6 +46,7 @@ export type DecisionBalanceCompileErrorCode =
   | 'BALANCE_REFERENCE_MISSING'
   | 'BALANCE_RULE_MISMATCH'
   | 'BALANCE_SHAPE_MISMATCH'
+  | 'BALANCE_SNAPSHOT_INVALID'
   | 'UNREVIEWED_RULE'
   | 'UNSUPPORTED_BALANCED_RULE'
   | 'ROUTE_MISSING'
@@ -66,6 +73,20 @@ export type NativeDecisionPointReportCompileResult =
       };
     }
   | { readonly ok: false; readonly error: DecisionBalanceCompileError };
+
+export type DecisionBalanceCatalogSnapshotCompileResult =
+  | { readonly ok: true; readonly value: DecisionBalanceCatalogSnapshot }
+  | { readonly ok: false; readonly error: DecisionBalanceCompileError };
+
+export type DecisionBalanceCatalogSnapshotIntegrityResult =
+  | { readonly ok: true; readonly value: DecisionBalanceCatalogSnapshot }
+  | {
+      readonly ok: false;
+      readonly error: {
+        readonly code: 'INVALID_SCHEMA' | 'UNSUPPORTED_VERSION' | 'PAYLOAD_MISMATCH';
+        readonly message: string;
+      };
+    };
 
 export interface AttachDecisionBalanceInput {
   readonly candidate: DecisionRuleCandidateDefinition;
@@ -95,6 +116,36 @@ const compareStrings = (left: string, right: string): number =>
 const uniqueSorted = (values: readonly string[]): string[] =>
   [...new Set(values)].sort(compareStrings);
 
+const canonicalizeObjectKeys = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonicalizeObjectKeys);
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => compareStrings(left, right))
+        .map(([key, child]) => [key, canonicalizeObjectKeys(child)]),
+    );
+  }
+  return value;
+};
+
+const hashToHex64 = (value: string): string => {
+  let hash = 0xcbf29ce484222325n;
+  const prime = 0x100000001b3n;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= BigInt(value.charCodeAt(index));
+    hash = BigInt.asUintN(64, hash * prime);
+  }
+  return hash.toString(16).padStart(16, '0');
+};
+
+const snapshotFingerprint = (scope: string, value: unknown): DecisionBalanceSnapshotFingerprint =>
+  `fingerprint.decision-balance-snapshot.${scope}.fnv1a64.${hashToHex64(
+    JSON.stringify(canonicalizeObjectKeys(value)),
+  )}`;
+
+const snapshotStableId = (fingerprint: DecisionBalanceSnapshotFingerprint): string =>
+  `decision-balance-catalog-snapshot.${fingerprint.slice(-16)}`;
+
 const fail = (
   code: DecisionBalanceCompileErrorCode,
   message: string,
@@ -120,8 +171,10 @@ const sameRuleRef = (left: DecisionRuleReference, right: DecisionRuleReference):
   exactRuleKey(left) === exactRuleKey(right);
 
 const isTriggeredInformationPrerequisiteBalance = (
-  balance: DecisionBalanceDefinition,
-): balance is DecisionTriggeredInformationPrerequisiteBalanceDefinition =>
+  balance: DecisionBalanceDefinition | DecisionBalanceSnapshotDefinition,
+): balance is
+  | DecisionTriggeredInformationPrerequisiteBalanceDefinition
+  | DecisionTriggeredInformationPrerequisiteBalanceSnapshot =>
   'balanceKind' in balance && balance.balanceKind === 'triggered_information_prerequisite';
 
 const ruleUsesTriggeredInformationPrerequisite = (
@@ -135,7 +188,7 @@ const ruleUsesTriggeredInformationPrerequisite = (
   rule.triggeredInformationPrerequisite !== null;
 
 const balanceShapeMatchesRule = (
-  balance: DecisionBalanceDefinition,
+  balance: DecisionBalanceDefinition | DecisionBalanceSnapshotDefinition,
   rule: Pick<
     DecisionRuleCandidateDefinition | CompiledRubricRule,
     'ruleKind' | 'ruleRef' | 'triggeredInformationPrerequisite'
@@ -407,9 +460,252 @@ const resolveBalance = (
   return { ok: true, balance };
 };
 
+const normalizeSourceBalanceCatalog = (catalog: DecisionBalanceCatalog): unknown => ({
+  ...catalog,
+  balances: [...catalog.balances]
+    .map((balance) => ({
+      ...balance,
+      developerOpinionIds: [...balance.developerOpinionIds].sort(compareStrings),
+    }))
+    .sort((left, right) => compareStrings(exactRuleKey(left.ruleRef), exactRuleKey(right.ruleRef))),
+});
+
+const toBalanceSnapshotDefinition = (
+  balance: DecisionBalanceDefinition,
+): DecisionBalanceSnapshotDefinition =>
+  isTriggeredInformationPrerequisiteBalance(balance)
+    ? {
+        schemaVersion: balance.schemaVersion,
+        contentVersion: balance.contentVersion,
+        id: balance.id,
+        balanceKind: balance.balanceKind,
+        ruleRef: balance.ruleRef,
+        component: balance.component,
+        outcomes: balance.outcomes,
+      }
+    : {
+        schemaVersion: balance.schemaVersion,
+        contentVersion: balance.contentVersion,
+        id: balance.id,
+        balanceKind: 'matched_rule',
+        ruleRef: balance.ruleRef,
+        impactBand: balance.impactBand,
+        component: balance.component,
+        pointsWhenMatched: balance.pointsWhenMatched,
+        unmatchedBehavior: balance.unmatchedBehavior,
+        matchedExplanation: balance.matchedExplanation,
+        unmatchedExplanation: balance.unmatchedExplanation,
+      };
+
+const balanceSnapshotPayload = (
+  snapshot: Omit<DecisionBalanceCatalogSnapshot, 'id' | 'payloadFingerprint'>,
+): unknown => snapshot;
+
+export const verifyDecisionBalanceCatalogSnapshotIntegrity = (
+  value: unknown,
+  compiledRubric: unknown,
+): DecisionBalanceCatalogSnapshotIntegrityResult => {
+  const parsedSnapshot = DecisionBalanceCatalogSnapshotSchema.safeParse(value);
+  const parsedRubric = CompiledRubricSchema.safeParse(compiledRubric);
+  if (!parsedSnapshot.success || !parsedRubric.success) {
+    return {
+      ok: false,
+      error: {
+        code: 'INVALID_SCHEMA',
+        message: [
+          ...(!parsedSnapshot.success
+            ? parsedSnapshot.error.issues.map(
+                (issue) => `snapshot.${issue.path.join('.') || '<root>'}: ${issue.message}`,
+              )
+            : []),
+          ...(!parsedRubric.success
+            ? parsedRubric.error.issues.map(
+                (issue) => `rubric.${issue.path.join('.') || '<root>'}: ${issue.message}`,
+              )
+            : []),
+        ].join('; '),
+      },
+    };
+  }
+  const snapshot = parsedSnapshot.data;
+  const rubric = parsedRubric.data;
+  if (snapshot.compilerVersion !== DECISION_BALANCE_SNAPSHOT_COMPILER_VERSION) {
+    return {
+      ok: false,
+      error: {
+        code: 'UNSUPPORTED_VERSION',
+        message: `${snapshot.id} uses unsupported balance-snapshot compiler ${snapshot.compilerVersion}.`,
+      },
+    };
+  }
+  const expectedRules = rubric.includedRules
+    .filter((rule) => rule.balanceRef !== null)
+    .sort((left, right) => compareStrings(exactRuleKey(left.ruleRef), exactRuleKey(right.ruleRef)));
+  const actualBalances = [...snapshot.balances].sort((left, right) =>
+    compareStrings(exactRuleKey(left.ruleRef), exactRuleKey(right.ruleRef)),
+  );
+  if (
+    expectedRules.length !== actualBalances.length ||
+    expectedRules.some((rule, index) => {
+      const balance = actualBalances[index];
+      return (
+        balance === undefined ||
+        rule.balanceRef?.id !== balance.id ||
+        rule.balanceRef.contentVersion !== balance.contentVersion ||
+        !sameRuleRef(rule.ruleRef, balance.ruleRef) ||
+        !balanceShapeMatchesRule(balance, rule)
+      );
+    })
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'PAYLOAD_MISMATCH',
+        message:
+          'The balance snapshot does not retain exactly one compatible balance for every balanced compiled rule.',
+      },
+    };
+  }
+  const withoutIdentity = {
+    schemaVersion: snapshot.schemaVersion,
+    compilerVersion: snapshot.compilerVersion,
+    modelVersion: snapshot.modelVersion,
+    sourceCatalogRef: snapshot.sourceCatalogRef,
+    sourceCatalogFingerprint: snapshot.sourceCatalogFingerprint,
+    balances: snapshot.balances,
+  };
+  const expectedPayloadFingerprint = snapshotFingerprint(
+    'payload',
+    balanceSnapshotPayload(withoutIdentity),
+  );
+  if (
+    snapshot.payloadFingerprint !== expectedPayloadFingerprint ||
+    snapshot.id !== snapshotStableId(expectedPayloadFingerprint)
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'PAYLOAD_MISMATCH',
+        message: `${snapshot.id} does not match its exact minimized balance payload.`,
+      },
+    };
+  }
+  return { ok: true, value: snapshot };
+};
+
+export const compileDecisionBalanceCatalogSnapshot = (input: {
+  readonly compiledRubric: unknown;
+  readonly balanceCatalog: unknown;
+}): DecisionBalanceCatalogSnapshotCompileResult => {
+  const parsedRubric = CompiledRubricSchema.safeParse(input.compiledRubric);
+  const parsedCatalog = DecisionBalanceCatalogSchema.safeParse(input.balanceCatalog);
+  if (!parsedRubric.success || !parsedCatalog.success) {
+    return fail(
+      'INVALID_INPUT',
+      [
+        ...(!parsedRubric.success
+          ? parsedRubric.error.issues.map(
+              (issue) => `rubric.${issue.path.join('.') || '<root>'}: ${issue.message}`,
+            )
+          : []),
+        ...(!parsedCatalog.success
+          ? parsedCatalog.error.issues.map(
+              (issue) => `balanceCatalog.${issue.path.join('.') || '<root>'}: ${issue.message}`,
+            )
+          : []),
+      ].join('; '),
+    );
+  }
+  const balances: DecisionBalanceSnapshotDefinition[] = [];
+  for (const rule of parsedRubric.data.includedRules) {
+    const resolved = resolveBalance(rule, parsedCatalog.data);
+    if (!resolved.ok) return resolved;
+    if (resolved.balance !== null) balances.push(toBalanceSnapshotDefinition(resolved.balance));
+  }
+  balances.sort((left, right) =>
+    compareStrings(exactRuleKey(left.ruleRef), exactRuleKey(right.ruleRef)),
+  );
+  const sourceCatalogFingerprint = snapshotFingerprint(
+    'source-catalog',
+    normalizeSourceBalanceCatalog(parsedCatalog.data),
+  );
+  const withoutIdentity = {
+    schemaVersion: 1 as const,
+    compilerVersion: DECISION_BALANCE_SNAPSHOT_COMPILER_VERSION,
+    modelVersion: 'decision-balance-catalog-snapshot.v1' as const,
+    sourceCatalogRef: {
+      id: parsedCatalog.data.id,
+      contentVersion: parsedCatalog.data.contentVersion,
+    },
+    sourceCatalogFingerprint,
+    balances,
+  };
+  const payloadFingerprint = snapshotFingerprint(
+    'payload',
+    balanceSnapshotPayload(withoutIdentity),
+  );
+  const output = DecisionBalanceCatalogSnapshotSchema.safeParse({
+    ...withoutIdentity,
+    id: snapshotStableId(payloadFingerprint),
+    payloadFingerprint,
+  });
+  if (!output.success) {
+    return fail(
+      'INVALID_OUTPUT',
+      output.error.issues
+        .map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`)
+        .join('; '),
+    );
+  }
+  const verified = verifyDecisionBalanceCatalogSnapshotIntegrity(output.data, parsedRubric.data);
+  return verified.ok
+    ? { ok: true, value: output.data }
+    : fail('BALANCE_SNAPSHOT_INVALID', verified.error.message, [
+        parsedCatalog.data.id,
+        parsedRubric.data.id,
+      ]);
+};
+
+const resolveSnapshotBalance = (
+  rule: CompiledRubricRule,
+  snapshot: DecisionBalanceCatalogSnapshot,
+):
+  | { readonly ok: true; readonly balance: DecisionBalanceSnapshotDefinition | null }
+  | { readonly ok: false; readonly error: DecisionBalanceCompileError } => {
+  if (rule.balanceRef === null) return { ok: true, balance: null };
+  const byReference = snapshot.balances.filter(
+    (balance) =>
+      balance.id === rule.balanceRef?.id &&
+      balance.contentVersion === rule.balanceRef.contentVersion,
+  );
+  if (byReference.length !== 1) {
+    return fail(
+      'BALANCE_REFERENCE_MISSING',
+      `${rule.ruleRef.id} references a missing or ambiguous frozen balance ${rule.balanceRef.id}@${rule.balanceRef.contentVersion}.`,
+      [rule.ruleRef.id, rule.balanceRef.id, snapshot.id],
+    );
+  }
+  const balance = byReference[0]!;
+  if (!sameRuleRef(balance.ruleRef, rule.ruleRef)) {
+    return fail(
+      'BALANCE_RULE_MISMATCH',
+      `${balance.id} targets a different exact decision rule than ${rule.ruleRef.id}.`,
+      [rule.ruleRef.id, balance.id, balance.ruleRef.id],
+    );
+  }
+  if (!balanceShapeMatchesRule(balance, rule)) {
+    return fail(
+      'BALANCE_SHAPE_MISMATCH',
+      `${balance.id} does not use the frozen balance shape required by ${rule.ruleRef.id}.`,
+      [rule.ruleRef.id, balance.id],
+    );
+  }
+  return { ok: true, balance };
+};
+
 const evaluateRule = (
   rule: CompiledRubricRule,
-  balance: DecisionBalanceDefinition | null,
+  balance: DecisionBalanceSnapshotDefinition | null,
   decision: GeneratedEncounterDecisionSelection,
   currentRegimen: readonly MedicationRegimenEntryV2[],
   regimenCatalog: MedicationRegimenKnowledgeCatalog,
@@ -621,7 +917,7 @@ const evaluateRubric = (
   rubric: CompiledRubric,
   decision: GeneratedEncounterDecisionSelection,
   currentRegimen: readonly MedicationRegimenEntryV2[],
-  balanceCatalog: DecisionBalanceCatalog,
+  balanceSnapshot: DecisionBalanceCatalogSnapshot,
   regimenCatalog: MedicationRegimenKnowledgeCatalog,
 ):
   | {
@@ -632,7 +928,7 @@ const evaluateRubric = (
   | { readonly ok: false; readonly error: DecisionBalanceCompileError } => {
   const trace: GeneratedRulePointEvaluation[] = [];
   for (const rule of rubric.includedRules) {
-    const resolved = resolveBalance(rule, balanceCatalog);
+    const resolved = resolveSnapshotBalance(rule, balanceSnapshot);
     if (!resolved.ok) return resolved;
     const evaluated = evaluateRule(
       rule,
@@ -731,11 +1027,16 @@ export const compileNativeDecisionPointReport = (
       ].join('; '),
     );
   }
+  const balanceSnapshot = compileDecisionBalanceCatalogSnapshot({
+    compiledRubric: rubric.data,
+    balanceCatalog: balanceCatalog.data,
+  });
+  if (!balanceSnapshot.ok) return balanceSnapshot;
   const player = evaluateRubric(
     rubric.data,
     playerDecision.data,
     currentRegimen.data,
-    balanceCatalog.data,
+    balanceSnapshot.value,
     regimenCatalog.data,
   );
   if (!player.ok) return player;
@@ -743,7 +1044,7 @@ export const compileNativeDecisionPointReport = (
     rubric.data,
     databasePlanDecision.data,
     currentRegimen.data,
-    balanceCatalog.data,
+    balanceSnapshot.value,
     regimenCatalog.data,
   );
   if (!databasePlan.ok) return databasePlan;
@@ -752,7 +1053,9 @@ export const compileNativeDecisionPointReport = (
       id: NATIVE_DECISION_BALANCE_PRODUCER_ID,
       contentVersion: NATIVE_DECISION_BALANCE_COMPILER_VERSION,
     },
+    balanceCatalogSnapshot: balanceSnapshot.value,
     ruleTrace: player.trace,
+    databasePlanRuleTrace: databasePlan.trace,
     playerDecision: playerDecision.data,
     databasePlanDecision: databasePlanDecision.data,
     databasePlanPoints: databasePlan.audit.reduce(

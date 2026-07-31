@@ -34,7 +34,10 @@ describe('Developer ticket literature scout', () => {
 
   it('rejects a missing active-ticket attachment', () => {
     const invalid = structuredClone(developerTicketLiteratureScoutCatalog);
-    invalid.attachments.pop();
+    invalid.attachments = invalid.attachments.filter(
+      (attachment) =>
+        attachment.ticketId !== 'ticket.catalog.diagnoses.mdd-current-episode-finding-profile',
+    );
     expect(
       validateTicketLiteratureScoutCatalog(
         invalid,

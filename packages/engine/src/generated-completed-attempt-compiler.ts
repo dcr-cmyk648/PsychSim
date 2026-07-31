@@ -8,6 +8,7 @@ import {
   type GeneratedCompletedEncounterAttempt,
   type GeneratedCompletedEncounterAttemptCompileInput,
   type GeneratedCompletedEncounterAttemptPersistenceRecord,
+  type DecisionBalanceCatalogSnapshot,
   type GeneratedEncounterDecisionSelection,
   type GeneratedEncounterActionEventInput,
   type GeneratedEncounterAttemptFingerprint,
@@ -29,6 +30,7 @@ import {
   NATIVE_DECISION_BALANCE_COMPILER_VERSION,
   compileNativeDecisionPointReport,
   deriveNativeSelectedRuleTargets,
+  verifyDecisionBalanceCatalogSnapshotIntegrity,
 } from './decision-balance';
 import {
   deriveGeneratedEncounterDecisionSelection,
@@ -45,7 +47,7 @@ import {
 } from './generated-service-quote';
 import { resolveGeneratedRuleCombination } from './rule-combination';
 
-export const GENERATED_COMPLETED_ATTEMPT_COMPILER_VERSION = '6.0.0';
+export const GENERATED_COMPLETED_ATTEMPT_COMPILER_VERSION = '7.0.0';
 
 type CompileErrorCode =
   | 'INVALID_INPUT'
@@ -299,10 +301,14 @@ const validateTreatmentSelection = (
 const validatePointTrace = (input: {
   readonly trace: readonly GeneratedRulePointEvaluation[];
   readonly snapshot: GeneratedEncounterReplaySnapshot;
+  readonly balanceSnapshot: DecisionBalanceCatalogSnapshot;
   readonly playerDecision: GeneratedEncounterDecisionSelection;
 }): string | null => {
   const includedRules = input.snapshot.encounterInstance.compiledRubric.includedRules;
   const includedByKey = new Map(includedRules.map((rule) => [exactRuleKey(rule.ruleRef), rule]));
+  const balancesByRuleKey = new Map(
+    input.balanceSnapshot.balances.map((balance) => [exactRuleKey(balance.ruleRef), balance]),
+  );
   const compiledRows = input.trace.filter((row) => row.source.kind === 'compiled_decision_rule');
   if (compiledRows.length !== input.trace.length) {
     return 'A native generated point trace may contain only exact compiled-rubric rules.';
@@ -328,6 +334,15 @@ const validatePointTrace = (input: {
     ) {
       return `Trace row ${row.id} does not preserve its exact compiled rule and balance reference.`;
     }
+    const balance = balancesByRuleKey.get(exactRuleKey(row.source.ruleRef)) ?? null;
+    if (
+      (compiled.balanceRef === null) !== (balance === null) ||
+      (balance !== null &&
+        (compiled.balanceRef?.id !== balance.id ||
+          compiled.balanceRef.contentVersion !== balance.contentVersion))
+    ) {
+      return `Trace row ${row.id} does not preserve its exact frozen balance owner.`;
+    }
     const expectedPrerequisiteEvaluation =
       compiled.triggeredInformationPrerequisite === null
         ? null
@@ -352,6 +367,31 @@ const validatePointTrace = (input: {
         row.matched !== expectedPrerequisiteEvaluation.triggerSelected)
     ) {
       return `Trace row ${row.id} does not preserve its exact triggered-information evaluation.`;
+    }
+    if (balance !== null) {
+      const expectedOutcome =
+        balance.balanceKind === 'triggered_information_prerequisite'
+          ? expectedPrerequisiteEvaluation?.status === 'fulfilled'
+            ? balance.outcomes.fulfilled
+            : expectedPrerequisiteEvaluation?.status === 'omitted'
+              ? balance.outcomes.omitted
+              : balance.outcomes.notTriggered
+          : row.matched
+            ? {
+                points: balance.pointsWhenMatched,
+                explanation: balance.matchedExplanation,
+              }
+            : {
+                points: 0,
+                explanation: balance.unmatchedExplanation,
+              };
+      if (
+        row.component !== balance.component ||
+        row.pointsBeforeCombination !== expectedOutcome.points ||
+        row.explanation !== expectedOutcome.explanation
+      ) {
+        return `Trace row ${row.id} does not preserve its frozen balance magnitude and explanation.`;
+      }
     }
     const expectedTargets = deriveNativeSelectedRuleTargets(
       compiled,
@@ -432,6 +472,16 @@ const buildPointReport = (input: {
       message: 'The point-report producer version must equal the retained scoring-engine version.',
     };
   }
+  const balanceSnapshotIntegrity = verifyDecisionBalanceCatalogSnapshotIntegrity(
+    input.report.balanceCatalogSnapshot,
+    input.snapshot.encounterInstance.compiledRubric,
+  );
+  if (!balanceSnapshotIntegrity.ok) {
+    return {
+      ok: false,
+      message: `The point report has an invalid balance snapshot: ${balanceSnapshotIntegrity.error.message}`,
+    };
+  }
   const playerDecisionValidation = validateGeneratedEncounterDecisionSelectionAgainstSnapshot(
     input.playerDecision,
     input.snapshot,
@@ -461,9 +511,32 @@ const buildPointReport = (input: {
   const traceError = validatePointTrace({
     trace: input.report.ruleTrace,
     snapshot: input.snapshot,
+    balanceSnapshot: balanceSnapshotIntegrity.value,
     playerDecision: playerDecisionValidation.value,
   });
   if (traceError !== null) return { ok: false, message: traceError };
+  const databasePlanTraceError = validatePointTrace({
+    trace: input.report.databasePlanRuleTrace,
+    snapshot: input.snapshot,
+    balanceSnapshot: balanceSnapshotIntegrity.value,
+    playerDecision: databasePlanValidation.value,
+  });
+  if (databasePlanTraceError !== null) {
+    return {
+      ok: false,
+      message: `Database-plan trace: ${databasePlanTraceError}`,
+    };
+  }
+  const databasePlanPoints = input.report.databasePlanRuleTrace.reduce(
+    (total, row) => total + row.appliedPoints,
+    0,
+  );
+  if (input.report.databasePlanPoints !== databasePlanPoints) {
+    return {
+      ok: false,
+      message: 'The database-plan point total does not equal its exact frozen rule trace.',
+    };
+  }
   const componentPoints = SCORE_COMPONENTS.map((component) => ({
     component,
     points: input.report.ruleTrace
@@ -481,7 +554,7 @@ const buildPointReport = (input: {
   const withoutIdentity = {
     ...input.report,
     schemaVersion: 1 as const,
-    modelVersion: 'generated-encounter-point-report.v5' as const,
+    modelVersion: 'generated-encounter-point-report.v6' as const,
     pointDerivation: 'provisional_balance_snapshot' as const,
     compiledRubricRef: {
       id: input.snapshot.encounterInstance.compiledRubric.id,
@@ -491,7 +564,7 @@ const buildPointReport = (input: {
     componentPoints,
     uncappedCarePoints,
     carePointsEarned,
-    differenceFromDatabasePlan: carePointsEarned - input.report.databasePlanPoints,
+    differenceFromDatabasePlan: carePointsEarned - databasePlanPoints,
   };
   const payloadFingerprint = fingerprint('point-report', pointReportPayload(withoutIdentity));
   const parsed = GeneratedEncounterPointReportSchema.safeParse({
@@ -1105,7 +1178,9 @@ const verifyPointReport = (
   const rebuilt = buildPointReport({
     report: {
       producerRef: report.producerRef,
+      balanceCatalogSnapshot: report.balanceCatalogSnapshot,
       ruleTrace: report.ruleTrace,
+      databasePlanRuleTrace: report.databasePlanRuleTrace,
       playerDecision: report.playerDecision,
       databasePlanDecision: report.databasePlanDecision,
       databasePlanPoints: report.databasePlanPoints,

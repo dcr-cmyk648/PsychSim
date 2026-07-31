@@ -2,6 +2,7 @@ import {
   PreFindingPatientStateOrchestrationArtifactSchema,
   PreFindingPatientStateOrchestrationRequestSchema,
   type OptionalExposureBudgetBridgeArtifact,
+  type OptionalFindingTextureBridgeArtifact,
   type OptionalPriorTreatmentBridgeArtifact,
   type OptionalReactionHistoryBridgeArtifact,
   type PreFindingPatientStateOrchestrationArtifact,
@@ -20,6 +21,10 @@ import {
   verifyOptionalFeatureBudgetSelectionIntegrity,
 } from './optional-feature-budget-selector';
 import {
+  bridgeOptionalFindingTextureFromBudget,
+  verifyOptionalFindingTextureBridgeIntegrity,
+} from './optional-finding-texture-bridge';
+import {
   bridgeOptionalPriorTreatmentHistoryFromBudget,
   verifyOptionalPriorTreatmentBridgeIntegrity,
 } from './optional-prior-treatment-bridge';
@@ -37,7 +42,7 @@ import {
   selectTemplateConditions,
 } from './template-condition-selector';
 
-export const PRE_FINDING_PATIENT_STATE_ORCHESTRATOR_VERSION = '1.0.0';
+export const PRE_FINDING_PATIENT_STATE_ORCHESTRATOR_VERSION = '2.0.0';
 
 export type PreFindingPatientStateOrchestrationErrorCode =
   | 'INVALID_REQUEST'
@@ -47,6 +52,7 @@ export type PreFindingPatientStateOrchestrationErrorCode =
   | 'REACTION_HISTORY_BRIDGE_FAILED'
   | 'PRIOR_TREATMENT_BRIDGE_FAILED'
   | 'EXPOSURE_BRIDGE_FAILED'
+  | 'FINDING_TEXTURE_BRIDGE_FAILED'
   | 'PATIENT_STATE_COMPOSITION_FAILED'
   | 'INVALID_OUTPUT';
 
@@ -165,6 +171,7 @@ const artifactPayload = (
   reactionHistoryBridgeArtifact: artifact.reactionHistoryBridgeArtifact,
   priorTreatmentBridgeArtifact: artifact.priorTreatmentBridgeArtifact,
   exposureBridgeArtifact: artifact.exposureBridgeArtifact,
+  findingTextureBridgeArtifact: artifact.findingTextureBridgeArtifact,
   patientStateCompositionArtifact: artifact.patientStateCompositionArtifact,
   orchestrationRequest: artifact.orchestrationRequest,
   inputFingerprint: artifact.inputFingerprint,
@@ -203,6 +210,19 @@ const normalizedExposureInput = (
         schemaVersion: artifact.bridgeRequest.schemaVersion,
         id: artifact.bridgeRequest.id,
         referenceHorizon: artifact.bridgeRequest.referenceHorizon,
+        bridgeProfile: artifact.bridgeRequest.bridgeProfile,
+      };
+
+const normalizedFindingTextureInput = (
+  artifact: OptionalFindingTextureBridgeArtifact | null,
+): PreFindingPatientStateOrchestrationRequest['findingTextureBridgeInput'] =>
+  artifact === null
+    ? null
+    : {
+        schemaVersion: artifact.bridgeRequest.schemaVersion,
+        id: artifact.bridgeRequest.id,
+        referenceHorizon: artifact.bridgeRequest.referenceHorizon,
+        findingDefinitions: artifact.bridgeRequest.findingDefinitions,
         bridgeProfile: artifact.bridgeRequest.bridgeProfile,
       };
 
@@ -335,6 +355,22 @@ export const orchestratePreFindingPatientState = (
     exposureBridgeArtifact = result.value;
   }
 
+  let findingTextureBridgeArtifact: OptionalFindingTextureBridgeArtifact | null = null;
+  if (request.findingTextureBridgeInput !== null) {
+    const result = bridgeOptionalFindingTextureFromBudget({
+      ...request.findingTextureBridgeInput,
+      optionalFeatureArtifact,
+    });
+    if (!result.ok) {
+      return fail(
+        'FINDING_TEXTURE_BRIDGE_FAILED',
+        `${result.error.code}: ${result.error.message}`,
+        result.error.contentIds,
+      );
+    }
+    findingTextureBridgeArtifact = result.value;
+  }
+
   const compositionResult = composeResolvedPatientState({
     schemaVersion: 1,
     id: `${request.id}.resolved-patient-state-composition`,
@@ -345,6 +381,7 @@ export const orchestratePreFindingPatientState = (
     reactionHistoryBridgeArtifact,
     priorTreatmentBridgeArtifact,
     exposureBridgeArtifact,
+    findingTextureBridgeArtifact,
   });
   if (!compositionResult.ok) {
     return fail(
@@ -366,6 +403,7 @@ export const orchestratePreFindingPatientState = (
     reactionHistoryBridgeInput: normalizedReactionInput(reactionHistoryBridgeArtifact),
     priorTreatmentBridgeInput: normalizedPriorTreatmentInput(priorTreatmentBridgeArtifact),
     exposureBridgeInput: normalizedExposureInput(exposureBridgeArtifact),
+    findingTextureBridgeInput: normalizedFindingTextureInput(findingTextureBridgeArtifact),
   };
   const inputFingerprint = fingerprint('input', orchestrationRequest);
   const withoutIdentity = {
@@ -378,6 +416,7 @@ export const orchestratePreFindingPatientState = (
     reactionHistoryBridgeArtifact,
     priorTreatmentBridgeArtifact,
     exposureBridgeArtifact,
+    findingTextureBridgeArtifact,
     patientStateCompositionArtifact,
     orchestrationRequest,
     inputFingerprint,
@@ -438,6 +477,9 @@ export const verifyPreFindingPatientStateOrchestrationIntegrity = (
     ...(artifact.exposureBridgeArtifact === null
       ? []
       : [verifyOptionalExposureBudgetBridgeIntegrity(artifact.exposureBridgeArtifact)]),
+    ...(artifact.findingTextureBridgeArtifact === null
+      ? []
+      : [verifyOptionalFindingTextureBridgeIntegrity(artifact.findingTextureBridgeArtifact)]),
     verifyResolvedPatientStateCompositionIntegrity(artifact.patientStateCompositionArtifact),
   ];
   const failedUpstream = upstreamChecks.find((result) => !result.ok);

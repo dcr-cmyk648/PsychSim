@@ -547,7 +547,7 @@ The first additive part of this target now exists without replacing compatibilit
   candidate disposition, all applicable reveal projections, nonblocking review diagnostics, and
   input/payload fingerprints.
 
-The runtime catalog currently contains 41 identity-only, medically unreviewed definitions across
+The runtime catalog currently contains 50 identity-only, medically unreviewed definitions across
 function, depressive/anxiety/mania history, reported psychosis, sleep/appetite, and
 suicide/violence safety. They have no condition association, criteria role, prevalence, generation
 weight, treatment implication, or point value. The first 37-candidate audit intentionally did not
@@ -564,7 +564,10 @@ disorganization. Duration and subjective burden are routed to target-scoped type
 than Boolean findings. The final reviewed semantic boundary keeps paranoia as overlapping
 presentation/search vocabulary while separately resolving current self-reported suspiciousness or
 mistrust, ideas of reference, and persecutory ideation. Belief truth and appraisal do not live in
-those identity shells.
+those identity shells. D-248 adds neutral current self-reported pessimism without assigning it an
+MDD criterion, severity, or safety role. D-250 adds current unintentional weight-gain and
+weight-loss findings while retaining point-in-time weight and BMI as numeric measurements; no
+single measurement or appetite finding implies longitudinal change.
 
 Source, modality, and time are general axes even though the first additive schema does not yet
 encode them as independent typed fields. Add only combinations encountered by real content, and
@@ -665,7 +668,7 @@ the frozen finding state. D-241 places those definitions in
 truth, D-213 `3.0.0` evaluates definition-level completeness, and D-214 attaches only referenced
 target-redacted reveals to `attachment_only.v6` patient instances. `not_applicable` remains
 neutral, while applicable missing or ambiguous values prevent a partial binding. The full target
-audit remains nested in the authoring snapshot and replays through D-200 `20.0.0`. This avoids
+audit remains nested in the authoring snapshot and replays through D-200 `21.0.0`. This avoids
 duplicating a pre-resolved finding merely to attach dependent state. The required
 `presentation-richness.v1` envelope records decision-driver categories and one prior-effort
 expectation without copying a rule predicate or point value. Its derived evaluation lists exact
@@ -698,6 +701,34 @@ profile; coupled or overlapping constraint groups remain later design work rathe
 implicit rule. A valid zero-count-only result may emit no candidate and is therefore a
 compositional partial; the later composer, not this selector, must supply D-193 a nonempty merged
 candidate set.
+
+The reusable-owner model is intentionally data-first. A symptom “entry” is a
+`FindingDefinition`, not a callback or embedded program. A diagnosis-owned profile references
+those exact versioned definitions and supplies only reviewed composition semantics; a pure
+compiler resolves the output. Numeric weight and BMI remain `MeasurementDefinition` records,
+while self-reported or longitudinal weight change needs a separate typed owner if it later becomes
+decision-relevant. The encounter recipe supplies setting and complexity context to the overall
+pipeline, but a diagnosis dossier does not consume the optional-feature budget or change meaning
+by location.
+
+MDD exposes a concrete reason not to flatten composition into one raw member count. Insomnia and
+hypersomnia, appetite directions, psychomotor directions and observation modalities,
+worthlessness and guilt, concentration and indecision, and the safety/death manifestations remain
+separable backend facts even when a diagnostic framework groups them into one dimension.
+`condition-finding-dimensions.v1` therefore selects reviewed diagnosis-level dimensions first and
+one or more concrete manifestations second. The selected dimension counts once; each manifestation
+remains a separate finding candidate and audit row. Nonoverlapping core/cluster requirements keep
+the first model deterministic without a general expression language. The first real MDD profile
+still waits for source and psychiatrist review of its exact core, cardinality, grouping,
+pessimism, and suicidality semantics.
+
+Subthreshold texture is not another diagnosis criterion. D-249's typed `finding_texture` module
+may spend a small positive amount of the encounter-owned optional-feature budget and contribute
+one or more exact reviewed background outcomes. Its bridge copies the original D-201
+ordinal/draw/accounting and emits `background_variation` candidates without a second selection or
+charge. D-200 substitutes those candidates only for the same exact D-198 baseline target; hard
+D-197 candidates remain dominant. Real texture profiles and rates remain disabled, and core
+criteria never spend optional richness.
 
 A bounded `BackgroundFindingHorizon` may now name exact finding versions that receive independent
 reviewed background texture. Each target has one `weighted-background-finding.v1` profile with a
@@ -753,6 +784,13 @@ module snapshots, total spent, and unspent capacity. Its resulting complexity pr
 authoring snapshot only: it identifies optional modules but contains no reaction, condition,
 exposure, regimen, trial, finding, test, or scoring payload.
 
+`OptionalFindingTextureBridgeProfile` owns the exact reviewed relationship from each D-201
+`finding_texture` candidate to a bounded set of version-pinned lawful finding outcomes. The
+artifact retains selected and unselected mappings, original stable draws/ordinals, unchanged
+D-201 accounting, exact finding horizons, all emitted candidate IDs, provenance, and replay
+fingerprints. D-208 audits these candidate IDs as the selected module's materialized records but
+does not add them to pre-finding `canonicalFindings`; D-193 remains the only value resolver.
+
 `OptionalComorbidityBridgeProfile` owns the exact-template relationship from each D-201
 `comorbidity` candidate definition/binding/selected-record identity to one D-196 optional
 group/candidate. The mapping is a bijection across both complete candidate pools, and every
@@ -806,14 +844,15 @@ exposure, population or misuse priors, evidence/reveals, intoxication/withdrawal
 points, base-state composition, and runtime remain separate.
 
 Real contributor discovery, instrument output, compatibility mapping, persistence, and runtime
-generation remain later dependency work. D-208 now composes one complete pre-finding
+generation remain later dependency work. D-208 `2.0.0` now composes one complete pre-finding
 `ResolvedPatientState` from required/default state plus the genuine D-202, D-205, D-206, and D-207
-outputs selected by one exact D-201 artifact. Conditions replace the required-only lane, reaction
-history replaces only an explicitly declared default, and treatment history and exposure append
-without deduplication. The composition artifact retains every cost, ordinal, draw, bridge, and
-coverage diagnostic. A selected unsupported `other` module yields no state and is neither rerolled
-nor refunded. D-209 now attaches this single source to D-200/D-194 and removes the parallel
-caller-owned state and binding inputs.
+outputs plus D-249 texture candidates selected by one exact D-201 artifact. Conditions replace
+the required-only lane, reaction history replaces only an explicitly declared default, and
+treatment history and exposure append without deduplication. Texture candidate IDs are audited
+without pre-resolving findings. The composition artifact retains every cost, ordinal, draw,
+bridge, and coverage diagnostic. A selected unsupported `other` module yields no state and is
+neither rerolled nor refunded. D-209 now attaches this single source to D-200/D-194 and removes
+the parallel caller-owned state and binding inputs.
 
 D-210 adds a separate reviewed applicability-definition owner. One definition identifies one
 finding-definition version and one exact complete D-199 profile, then supplies a positive typed
@@ -1034,8 +1073,8 @@ D-223 adds the authoring-only `PreFindingPatientStateOrchestrationRequest` and
 `PreFindingPatientStateOrchestrationArtifact`. The request owns one exact D-201 selection request,
 a discriminated required-only D-196 or D-202 condition plan, the pre-finding core
 `ResolvedPatientState`, explicit reaction-history ownership, and nullable typed D-205, D-206, and
-D-207 bridge inputs. Candidate kinds determine which inputs must be present; caller omission or an
-unexpected parallel lane is invalid.
+D-207 plus D-249 texture-bridge inputs. Candidate kinds determine which inputs must be present;
+caller omission or an unexpected parallel lane is invalid.
 
 The orchestrator runs D-201 exactly once. A candidate horizon with no comorbidity uses D-196 and
 must contain no optional condition groups. A horizon containing any comorbidity candidate uses
@@ -1045,13 +1084,13 @@ difference between no optional contribution and documented none, treatment-naive
 Reaction-history replacement is valid only under explicit `optional_alternative_default`
 ownership; otherwise the core history remains `core_locked`.
 
-The resulting artifact contains the exact D-201 selection/accounting artifact, resolved condition
-source, nullable complete D-205/D-206/D-207 artifacts, complete D-208 composition artifact,
-normalized orchestration request, exact input and payload fingerprints, status, and deterministic
-identity. A D-202 literal conflict or selected `other` results in `not_composed` with the full
-selection and cost trace intact. It cannot refund, reroll, drop a module, or invent a typed
-fallback. External verification requires the exact template, seed, profiles, horizons, ownership,
-and core payload and replays every nested artifact.
+The resulting D-223 `2.0.0` artifact contains the exact D-201 selection/accounting artifact,
+resolved condition source, nullable complete D-205/D-206/D-207/D-249 artifacts, complete D-208
+composition artifact, normalized orchestration request, exact input and payload fingerprints,
+status, and deterministic identity. A D-202 literal conflict or selected `other` results in
+`not_composed` with the full selection and cost trace intact. It cannot refund, reroll, drop a
+module, or invent a typed fallback. External verification requires the exact template, seed,
+profiles, horizons, ownership, and core payload and replays every nested artifact.
 
 The model is identical for outpatient psychiatry, emergency department, inpatient psychiatry,
 and consultation-liaison; the setting remains an exact template coordinate but owns no patient
@@ -1175,14 +1214,17 @@ optional disposition.
 The attempt preserves a contiguous immutable event sequence from `EncounterStarted` through
 `EncounterCompleted`, final submitted selections, one complete trace row per compiled-rubric rule,
 the point report, all-points settlement, engine/content versions, and deterministic replay and
-payload fingerprints. Generated point-report v5 preserves a complete point-free
+payload fingerprints. Generated point-report v6 preserves a complete point-free
 `GeneratedEncounterDecisionSelection` for both the player and database plan: unique purchased
 information-action IDs, final diagnosis selections, and final treatment selection. The player
 decision is derived from replayed purchases and final events; the reference is the sole explicit
 `databasePlanDecision`. Both validate against the frozen horizons, while repeated purchases
-remain separately itemized in events and expenses. D-235 compiler v6 derives the point trace and
-database-plan total through the native decision-balance compiler; caller input cannot inject the
-player decision, trace rows, or point magnitudes. D-245 applies one D-159 pass after per-rule
+remain separately itemized in events and expenses. D-235 compiler v7 derives both complete rule
+traces and the database-plan total through the native decision-balance compiler; caller input
+cannot inject the player decision, trace rows, or point magnitudes. D-252 freezes a minimized
+balance snapshot for the exact compiled rubric plus a fingerprint of the complete source balance
+catalog. The snapshot contains replayable magnitudes and explanations but no authoring rationale
+or Developer-opinion records. D-245 applies one D-159 pass after per-rule
 evaluation for both decisions. Same-effect specificity replacement, same-issue worst-only harm,
 and exact-selected-target contraindication suppression preserve every original row, direct
 controller chain, combination explanation, selected target, and nested prerequisite audit.
@@ -1224,7 +1266,7 @@ queue migration, IndexedDB mutation, browser/public review projections, and UI a
 later work.
 
 The current authoring chain is D-230 `3.0.0`, D-233 occupancy `1.0.0`, seed authority `2.0.0`,
-atomic fill `2.0.0`, D-200 `20.0.0`, facility migration `3.0.0`, and D-234
+atomic fill `2.0.0`, D-200 `21.0.0`, facility migration `3.0.0`, and D-234
 lifecycle/reconciliation `2.0.0`, with D-235 native-attempt compiler `6.0.0` and point report v5
 retaining complete player and database-plan decisions plus native combination traces. D-230's
 eligibility overlay filters the

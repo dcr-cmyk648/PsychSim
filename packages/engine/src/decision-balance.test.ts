@@ -2,6 +2,7 @@ import {
   CompiledRubricRuleSchema,
   DecisionActionHorizonSchema,
   DecisionBalanceCatalogSchema,
+  DecisionBalanceCatalogSnapshotSchema,
   DecisionPolicyCatalogSchema,
   DecisionRuleCandidateDefinitionSchema,
   DiagnosisDefinitionSchema,
@@ -20,8 +21,10 @@ import medicationRegimenCatalogJson from '../../../content/catalogs/medications/
 import { compileDecisionPolicy } from './decision-policy';
 import {
   attachDecisionBalance,
+  compileDecisionBalanceCatalogSnapshot,
   compileNativeDecisionPointReport,
   deriveNativeSelectedRuleTargets,
+  verifyDecisionBalanceCatalogSnapshotIntegrity,
 } from './decision-balance';
 import { adaptDiagnosisInformationPrerequisite } from './diagnosis-information-prerequisite-adapter';
 import { adaptFocusedMedicationRegimenRoute } from './medication-regimen-route-adapter';
@@ -358,6 +361,102 @@ describe('native decision balance', () => {
       impactBand: 'dominant_primary_route',
       component: 'medication_selection',
       pointsWhenMatched: 200,
+    });
+  });
+
+  it('cannot attach a provisional balance to an unreviewed qualitative rule', () => {
+    const adapted = adaptFocusedMedicationRegimenRoute({
+      route,
+      diagnosis,
+      medicationClasses: regimenCatalog.medicationClasses,
+      classMemberships: regimenCatalog.classMemberships,
+    });
+    expect(adapted.ok).toBe(true);
+    if (!adapted.ok) return;
+
+    const preliminaryCandidate = DecisionRuleCandidateDefinitionSchema.parse({
+      ...adapted.value,
+      review: {
+        status: 'unreviewed',
+        reviewerId: null,
+        reviewedAt: null,
+        sourceUseNoteIds: [],
+      },
+    });
+
+    expect(
+      attachDecisionBalance({
+        candidate: preliminaryCandidate,
+        balanceCatalog,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: {
+        code: 'UNREVIEWED_RULE',
+        contentIds: [
+          'balance.mdd-initial-one-first-line-antidepressant',
+          preliminaryCandidate.ruleRef.id,
+        ],
+      },
+    });
+  });
+
+  it('freezes only exact referenced balances and fingerprints same-version retuning', () => {
+    const { rubric } = compileRubricWithPrerequisites();
+    const frozen = compileDecisionBalanceCatalogSnapshot({
+      compiledRubric: rubric,
+      balanceCatalog,
+    });
+    expect(frozen.ok).toBe(true);
+    if (!frozen.ok) return;
+    expect(DecisionBalanceCatalogSnapshotSchema.parse(frozen.value)).toEqual(frozen.value);
+    expect(verifyDecisionBalanceCatalogSnapshotIntegrity(frozen.value, rubric)).toEqual({
+      ok: true,
+      value: frozen.value,
+    });
+    expect(frozen.value.balances).toHaveLength(3);
+    expect(frozen.value.balances[0]).not.toHaveProperty('developerOpinionIds');
+    expect(frozen.value.balances[0]).not.toHaveProperty('rationale');
+
+    const reordered = compileDecisionBalanceCatalogSnapshot({
+      compiledRubric: rubric,
+      balanceCatalog: {
+        ...balanceCatalog,
+        balances: [...balanceCatalog.balances].reverse(),
+      },
+    });
+    expect(reordered).toEqual(frozen);
+
+    const retuned = compileDecisionBalanceCatalogSnapshot({
+      compiledRubric: rubric,
+      balanceCatalog: {
+        ...balanceCatalog,
+        balances: balanceCatalog.balances.map((balance) =>
+          balance.id === routeBalance.id && !('balanceKind' in balance)
+            ? { ...balance, pointsWhenMatched: balance.pointsWhenMatched + 1 }
+            : balance,
+        ),
+      },
+    });
+    expect(retuned.ok).toBe(true);
+    if (!retuned.ok) return;
+    expect(retuned.value.sourceCatalogRef).toEqual(frozen.value.sourceCatalogRef);
+    expect(retuned.value.sourceCatalogFingerprint).not.toBe(frozen.value.sourceCatalogFingerprint);
+    expect(retuned.value.payloadFingerprint).not.toBe(frozen.value.payloadFingerprint);
+    expect(retuned.value.balances.find((balance) => balance.id === routeBalance.id)).toMatchObject({
+      balanceKind: 'matched_rule',
+      pointsWhenMatched: routeBalance.pointsWhenMatched + 1,
+    });
+
+    const tampered = structuredClone(frozen.value);
+    const matched = tampered.balances.find((balance) => balance.balanceKind === 'matched_rule');
+    if (matched === undefined || matched.balanceKind !== 'matched_rule') {
+      throw new Error('Expected one frozen matched-rule balance.');
+    }
+    matched.pointsWhenMatched += 1;
+    expect(verifyDecisionBalanceCatalogSnapshotIntegrity(tampered, rubric)).toMatchObject({
+      ok: false,
+      error: { code: 'PAYLOAD_MISMATCH' },
     });
   });
 

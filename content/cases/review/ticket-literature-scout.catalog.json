@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.35",
+  "contentVersion": "1.0.36",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -290,6 +290,25 @@
     }
   ],
   "profiles": [
+    {
+      "id": "literature-profile.mdd.current-episode-diagnostic-structure",
+      "clinicalQuestion": "How should the current adult MDD episode group atomic symptoms into diagnosis-level dimensions without double-counting concrete manifestations?",
+      "metaAnalysisFit": "not_applicable",
+      "outcome": "requires_other_evidence",
+      "linkedSourceRequestIds": ["source-request.mdd.current-episode-dimensions"],
+      "searchPlan": null,
+      "searchRun": null,
+      "selectedReferenceId": null,
+      "relevanceNote": "This requires a legally reusable diagnostic or symptom-structure source plus psychiatrist review. A treatment-effect meta-analysis cannot define the episode's criteria, core requirement, or dimension cardinality.",
+      "limitations": [
+        "The registered NIMH topic source can support attributed broad symptom scaffolding but is not a complete diagnostic standard.",
+        "The registered CANMAT guideline supports focused MDD assessment but does not by itself authorize a complete executable diagnostic profile.",
+        "DSM text remains metadata-only under the current source-use decision."
+      ],
+      "pointMagnitudeExcluded": true,
+      "supportsExecutableRule": false,
+      "medicalReviewStatus": "unreviewed"
+    },
     {
       "id": "literature-profile.ecg.citalopram-palpitations-monitoring",
       "clinicalQuestion": "Does a stable outpatient taking citalopram who reports intermittent palpitations require ECG evaluation in this snapshot?",
@@ -943,6 +962,11 @@
       "ticketId": "ticket.source.mdd.severity-generator-policy",
       "profileIds": [],
       "exemptionReason": "This is a diagnostic-standard and generator-policy decision. Treatment-effect meta-analysis can expose incompatible severity groupings but cannot select the authoritative MDD severity envelopes."
+    },
+    {
+      "ticketId": "ticket.catalog.diagnoses.mdd-current-episode-finding-profile",
+      "profileIds": ["literature-profile.mdd.current-episode-diagnostic-structure"],
+      "exemptionReason": null
     },
     {
       "ticketId": "ticket.source.canmat-mdd.antidepressant-baseline",

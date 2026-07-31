@@ -129,6 +129,11 @@ content validation, runtime compilation, and historical compatibility remain Psy
 responsibilities. An adjunct packet that targets a changed or missing record is quarantined for
 re-scouting rather than silently rebased.
 
+`docs/DATA_ADJUNCT_EVIDENCE_QUEUE.md` is the durable routing guide. It orders the current
+bootstrap work and defines the packet contract, while the source-request JSON remains the sole
+machine-readable authority for question content and status. The guide cannot resolve a request or
+promote a source.
+
 Every unresolved checked-in Developer ticket also has a `TicketLiteratureScoutCatalog`
 attachment. Related tickets may share a clinically bounded profile. The Developer-side refresh
 tool automatically repeats the recorded Europe PMC search, ranks clinically relevant

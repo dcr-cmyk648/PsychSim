@@ -1815,6 +1815,7 @@ const reports = [
       catalogs,
       [...approvedCaseBlueprints, ...allReviewBlueprints],
       checkedInReviewTickets,
+      authoringEvidenceSources.map((source) => source.id),
     ),
   ],
   [

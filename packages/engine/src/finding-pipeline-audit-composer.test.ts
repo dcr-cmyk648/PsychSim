@@ -39,6 +39,7 @@ import {
   type LocationTemplateSelectionEligibilityOverlay,
   type LocationPatientSlotOccupancySnapshotCompileInput,
   type OptionalComorbidityBridgeProfile,
+  type OptionalFindingTextureBridgeProfile,
   type OptionalFeatureBudgetSelectionRequest,
   type OptionalFeatureBudgetSelectionArtifact,
   type PatientOptionalFeatureModuleDefinition,
@@ -52,6 +53,7 @@ import {
   type PatientTemplateLocationAdmissionMatrixRequest,
   type ProgressionMode,
   type PreFindingPatientStateOrchestrationArtifact,
+  type PreFindingPatientStateOrchestrationRequest,
   type ResolvedConditionSource,
   type ResolvedPatientState,
   type ResolvedPatientStateCompositionArtifact,
@@ -138,6 +140,10 @@ import {
 } from './patient-slot-post-encounter-lifecycle-compiler';
 import { compileModePatientTemplateHorizon } from './mode-patient-template-horizon-compiler';
 import { bridgeOptionalComorbiditiesFromBudget } from './optional-comorbidity-budget-bridge';
+import {
+  fingerprintOptionalFindingTextureBridgeProfile,
+  fingerprintOptionalFindingTextureReferenceHorizon,
+} from './optional-finding-texture-bridge';
 import {
   fingerprintOptionalFeatureModuleDefinition,
   selectOptionalFeaturesWithinBudget,
@@ -737,6 +743,7 @@ const addSyntheticInstrumentResponse = (
 const makeTemplate = (
   recipeFingerprints: ReturnType<typeof fingerprintCatalogInstanceRecipe>,
   includeOptionalComorbidity = false,
+  includeOptionalFindingTexture = false,
 ): PatientTemplate => ({
   schemaVersion: 1,
   contentVersion: '1.0.0',
@@ -811,8 +818,8 @@ const makeTemplate = (
   complexityProfile: {
     modelVersion: 'additional-feature-budget.v1',
     measurementStatus: 'budget_only',
-    additionalFeatureBudget: includeOptionalComorbidity ? 1 : 0,
-    maximumSelectedModules: includeOptionalComorbidity ? 1 : 0,
+    additionalFeatureBudget: includeOptionalComorbidity || includeOptionalFindingTexture ? 1 : 0,
+    maximumSelectedModules: includeOptionalComorbidity || includeOptionalFindingTexture ? 1 : 0,
     selectedModules: [],
     targetEnvelope: null,
   },
@@ -888,6 +895,144 @@ const selectEmptyOptionalFeatures = (
   });
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
+};
+
+const selectFindingTextureOptionalFeature = (
+  template: PatientTemplate,
+  seed = 'seed.d201.selected-finding-texture',
+): OptionalFeatureBudgetSelectionArtifact => {
+  const moduleDefinition: PatientOptionalFeatureModuleDefinition = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'optional-feature.test.pipeline-finding-texture',
+    label: 'Synthetic sleep-change texture',
+    moduleKind: 'finding_texture',
+    lifecycle: 'approved',
+    medicalReviewStatus: 'approved',
+    review: approvedReview,
+  };
+  const moduleFingerprint = fingerprintOptionalFeatureModuleDefinition(moduleDefinition);
+  const result = selectOptionalFeaturesWithinBudget({
+    schemaVersion: 1,
+    id: 'optional-feature-budget-request.test.finding-pipeline-texture',
+    template: structuredClone(template),
+    moduleDefinitions: [moduleDefinition],
+    profile: {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'optional-feature-profile.test.finding-pipeline-texture',
+      modelVersion: 'weighted-optional-feature-budget-selection.v1',
+      templateRef: {
+        id: template.id,
+        contentVersion: template.contentVersion,
+      },
+      templateFingerprint: fingerprintTemplateConditionSelectionTemplate(template),
+      countWeights: [
+        { schemaVersion: 1, selectionCount: 0, gameSelectionWeight: 1 },
+        { schemaVersion: 1, selectionCount: 1, gameSelectionWeight: 10_000 },
+      ],
+      candidateBindings: [
+        {
+          schemaVersion: 1,
+          id: 'optional-feature-binding.test.pipeline-finding-texture',
+          moduleRef: {
+            id: moduleDefinition.id,
+            contentVersion: moduleDefinition.contentVersion,
+          },
+          moduleFingerprint,
+          selectedModuleId: 'patient-optional-feature.test.pipeline-finding-texture',
+          cost: 1,
+          impact: 'background',
+          complexityContributions: [
+            {
+              id: 'complexity-contribution.test.pipeline-finding-texture',
+              label: 'Synthetic diagnostic texture',
+              dimension: 'diagnostic',
+              weight: 1,
+              review: approvedReview,
+            },
+          ],
+          gameSelectionWeight: 10_000,
+          review: approvedReview,
+        },
+      ],
+      incompatibilities: [],
+      review: approvedReview,
+    },
+    seed,
+  });
+  if (!result.ok || result.value.selectedCount !== 1) {
+    throw new Error(
+      result.ok ? 'Expected one selected synthetic finding-texture module.' : result.error.message,
+    );
+  }
+  return result.value;
+};
+
+const makeFindingTextureBridgeInput = (
+  optionalArtifact: OptionalFeatureBudgetSelectionArtifact,
+): NonNullable<PreFindingPatientStateOrchestrationRequest['findingTextureBridgeInput']> => {
+  const referenceHorizon = {
+    schemaVersion: 1 as const,
+    contentVersion: '1.0.0',
+    id: 'finding-texture-horizon.test.finding-pipeline',
+    findingDefinitionRefs: [
+      {
+        id: textureFinding.id,
+        contentVersion: textureFinding.contentVersion,
+      },
+    ],
+  };
+  const binding = optionalArtifact.selectionRequest.profile.candidateBindings[0]!;
+  const bridgeProfile: OptionalFindingTextureBridgeProfile = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'optional-finding-texture-profile.test.finding-pipeline',
+    modelVersion: 'selected-optional-finding-texture.v1',
+    templateRef: optionalArtifact.templateRef,
+    templateFingerprint: optionalArtifact.templateFingerprint,
+    optionalFeatureProfileRef: optionalArtifact.profileRef,
+    optionalFeatureProfileFingerprint: optionalArtifact.profileFingerprint,
+    referenceHorizonRef: {
+      id: referenceHorizon.id,
+      contentVersion: referenceHorizon.contentVersion,
+    },
+    referenceHorizonFingerprint:
+      fingerprintOptionalFindingTextureReferenceHorizon(referenceHorizon),
+    mappings: [
+      {
+        schemaVersion: 1,
+        id: 'optional-finding-texture-mapping.test.finding-pipeline',
+        moduleRef: binding.moduleRef,
+        moduleFingerprint: binding.moduleFingerprint,
+        optionalFeatureBindingId: binding.id,
+        selectedModuleId: binding.selectedModuleId,
+        outcomes: [
+          {
+            schemaVersion: 1,
+            id: 'optional-finding-texture-outcome.test.finding-pipeline',
+            findingDefinitionId: textureFinding.id,
+            findingDefinitionContentVersion: textureFinding.contentVersion,
+            proposedValue: { kind: 'outcome', value: 'subthreshold' },
+            uncertainty: 'none',
+            developerOpinionIds: ['developer-opinion.test.pipeline-finding-texture'],
+            review: approvedReview,
+          },
+        ],
+      },
+    ],
+    review: approvedReview,
+  };
+  expect(fingerprintOptionalFindingTextureBridgeProfile(bridgeProfile)).toMatch(
+    /^fingerprint\.optional-finding-texture-bridge\./,
+  );
+  return {
+    schemaVersion: 1,
+    id: 'optional-finding-texture-request.test.finding-pipeline',
+    referenceHorizon,
+    findingDefinitions: [textureFinding],
+    bridgeProfile,
+  };
 };
 
 const selectBridgedConditionSource = (
@@ -1087,6 +1232,9 @@ const orchestratePatientState = (input: {
   readonly requestId: string;
   readonly conditionSource: ResolvedConditionSource;
   readonly optionalFeatureArtifact: OptionalFeatureBudgetSelectionArtifact;
+  readonly findingTextureBridgeInput?: NonNullable<
+    PreFindingPatientStateOrchestrationRequest['findingTextureBridgeInput']
+  >;
 }): PreFindingPatientStateOrchestrationArtifact => {
   const conditionSourcePlan =
     input.conditionSource.sourceKind === 'template_condition_selection'
@@ -1113,6 +1261,7 @@ const orchestratePatientState = (input: {
     reactionHistoryBridgeInput: null,
     priorTreatmentBridgeInput: null,
     exposureBridgeInput: null,
+    findingTextureBridgeInput: input.findingTextureBridgeInput ?? null,
   });
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
@@ -1348,6 +1497,7 @@ interface PipelineRequestOptions {
   readonly includeStructuredReport?: boolean;
   readonly includeInstrument?: boolean;
   readonly includeTargetScopedDuration?: boolean;
+  readonly includeFindingTextureBridge?: boolean;
   readonly capacityBaseSlotCount?: number;
   readonly capacitySlotOrdinal?: number;
   readonly generationRoot?: string;
@@ -1432,6 +1582,7 @@ const makeRequestFixture = (
       universalActionResultAssemblyRecipe,
     }),
     options.conditionSourceKind === 'd202',
+    options.includeFindingTextureBridge === true,
   );
   const location = {
     schemaVersion: 1 as const,
@@ -1474,10 +1625,10 @@ const makeRequestFixture = (
     options.conditionSourceKind === 'd202'
       ? selectBridgedConditionSource(template, false, patientGenerationSeed)
       : (() => {
-          const optionalFeatureArtifact = selectEmptyOptionalFeatures(
-            template,
-            patientGenerationSeed,
-          );
+          const optionalFeatureArtifact =
+            options.includeFindingTextureBridge === true
+              ? selectFindingTextureOptionalFeature(template, patientGenerationSeed)
+              : selectEmptyOptionalFeatures(template, patientGenerationSeed);
           const conditionSource: ResolvedConditionSource = {
             schemaVersion: 1,
             sourceKind: 'template_condition_selection',
@@ -1492,6 +1643,10 @@ const makeRequestFixture = (
     requestId: 'pre-finding-request.test.finding-pipeline',
     conditionSource: conditionSetup.conditionSource,
     optionalFeatureArtifact: conditionSetup.optionalFeatureArtifact,
+    findingTextureBridgeInput:
+      options.includeFindingTextureBridge === true
+        ? makeFindingTextureBridgeInput(conditionSetup.optionalFeatureArtifact)
+        : undefined,
   });
   const patientStateCompositionArtifact =
     preFindingPatientStateOrchestrationArtifact.patientStateCompositionArtifact;
@@ -2626,7 +2781,7 @@ describe('finding pipeline audit composer', () => {
     if (artifact.catalogSnapshot === null) {
       throw new Error('Expected the compiled D-200 fixture to retain a D-194 snapshot.');
     }
-    expect(artifact.composerVersion).toBe('20.0.0');
+    expect(artifact.composerVersion).toBe('21.0.0');
     expect(artifact.patientSlotFillSeedAuthorityArtifact).toEqual(
       request.patientSlotFillSeedAuthorityArtifact,
     );
@@ -3074,7 +3229,7 @@ describe('finding pipeline audit composer', () => {
     });
     const artifact = expectComposed(request);
     const conditionSource = conditionSourceOf(request);
-    expect(artifact.composerVersion).toBe('20.0.0');
+    expect(artifact.composerVersion).toBe('21.0.0');
     expect(conditionSource.sourceKind).toBe('optional_comorbidity_bridge');
     if (
       conditionSource.sourceKind !== 'optional_comorbidity_bridge' ||
@@ -3529,6 +3684,51 @@ describe('finding pipeline audit composer', () => {
     expect(
       weighted.candidateUnion.some((candidate) => candidate.id === retainedBackground.id),
     ).toBe(true);
+  });
+
+  it('substitutes a selected D-201 finding texture for the matching D-198 baseline exactly once', () => {
+    const artifact = expectComposed(
+      makeRequest({
+        includeWeighted: false,
+        includeFindingTextureBridge: true,
+      }),
+    );
+    const preFinding = preFindingOf(artifact);
+    const bridge = preFinding.findingTextureBridgeArtifact;
+    const backgroundCandidate = artifact.backgroundFindingArtifact.candidates[0]!;
+
+    expect(bridge).not.toBeNull();
+    expect(bridge?.optionalFeatureSelectedCount).toBe(1);
+    expect(bridge?.optionalFeatureTotalSpent).toBe(1);
+    expect(bridge?.optionalFeatureRemainingBudget).toBe(0);
+    expect(bridge?.candidates).toHaveLength(1);
+    const textureCandidate = bridge!.candidates[0]!;
+    expect(textureCandidate).toMatchObject({
+      findingDefinitionId: textureFinding.id,
+      kind: 'background_variation',
+      proposedValue: { kind: 'outcome', value: 'subthreshold' },
+    });
+    expect(artifact.candidateUnion.some((candidate) => candidate.id === textureCandidate.id)).toBe(
+      true,
+    );
+    expect(
+      artifact.candidateUnion.some((candidate) => candidate.id === backgroundCandidate.id),
+    ).toBe(false);
+    expect(evaluationFor(artifact, textureCandidate.id)?.disposition).toBe('applied');
+    expect(
+      artifact.catalogSnapshot?.patientInstance.patientState.canonicalFindings.find(
+        (finding) => finding.definitionId === textureFinding.id,
+      )?.value,
+    ).toEqual({ kind: 'outcome', value: 'subthreshold' });
+    expect(preFinding.patientStateCompositionArtifact.selectedModuleAudits).toContainEqual(
+      expect.objectContaining({
+        moduleKind: 'finding_texture',
+        ownerKind: 'finding_texture_bridge',
+        materializationStatus: 'materialized',
+        cost: 1,
+        materializedRecordIds: [textureCandidate.id],
+      }),
+    );
   });
 
   it('preserves D-197 hard precedence over soft lanes', () => {
@@ -4026,7 +4226,11 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
         },
       ],
       pointReport: {
-        modelVersion: 'generated-encounter-point-report.v5',
+        modelVersion: 'generated-encounter-point-report.v6',
+        balanceCatalogSnapshot: {
+          modelVersion: 'decision-balance-catalog-snapshot.v1',
+          balances: [],
+        },
         playerDecision: {
           informationActionIds: [
             purchase.type === 'InformationPurchased' ? purchase.purchase.informationActionId : '',
@@ -4037,6 +4241,7 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
           informationActionIds: [],
           diagnosisSelections: [],
         },
+        databasePlanRuleTrace: expect.any(Array),
         carePointsEarned: 0,
         databasePlanPoints: 0,
       },
@@ -4267,6 +4472,12 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
       status: 'applied',
       appliedPoints: -150,
     });
+    expect(
+      attempt.pointReport.databasePlanRuleTrace.reduce(
+        (total, row) => total + row.appliedPoints,
+        0,
+      ),
+    ).toBe(attempt.pointReport.databasePlanPoints);
 
     const statusTamper = structuredClone(attempt);
     const statusRow = statusTamper.pointReport.ruleTrace.find(
@@ -4309,6 +4520,31 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
       combinationExplanation: null,
     });
     expect(verifyGeneratedCompletedEncounterAttemptIntegrity(extraSourceRow)).toMatchObject({
+      ok: false,
+      error: { code: 'REPLAY_MISMATCH' },
+    });
+
+    const balanceSnapshotTamper = structuredClone(attempt);
+    const frozenMatchedBalance =
+      balanceSnapshotTamper.pointReport.balanceCatalogSnapshot.balances.find(
+        (balance) => balance.balanceKind === 'matched_rule',
+      );
+    if (frozenMatchedBalance?.balanceKind !== 'matched_rule') {
+      throw new Error('Expected one frozen matched-rule balance.');
+    }
+    frozenMatchedBalance.pointsWhenMatched += 1;
+    expect(verifyGeneratedCompletedEncounterAttemptIntegrity(balanceSnapshotTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'REPLAY_MISMATCH' },
+    });
+
+    const databasePlanTraceTamper = structuredClone(attempt);
+    const databasePlanRow = databasePlanTraceTamper.pointReport.databasePlanRuleTrace[0];
+    if (databasePlanRow === undefined) throw new Error('Expected a database-plan trace row.');
+    databasePlanRow.explanation = `${databasePlanRow.explanation} Forged.`;
+    expect(
+      verifyGeneratedCompletedEncounterAttemptIntegrity(databasePlanTraceTamper),
+    ).toMatchObject({
       ok: false,
       error: { code: 'REPLAY_MISMATCH' },
     });

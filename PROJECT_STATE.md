@@ -1,6 +1,6 @@
 # PsychSim project state
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Operational handoff
 
@@ -12,8 +12,8 @@ Last updated: 2026-07-30
 - Current phase: Milestone 3 is complete. The bounded work is still the pre-Milestone-4
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
-- Current checkpoint implements the D-159 compatibility and D-245 native generated
-  rule-combination engines plus accepted architecture Decisions D-160 through D-246. D-163 makes
+- Current checkpoint implements the D-159 compatibility and D-245/D-252 native generated
+  scoring/replay engines plus accepted architecture Decisions D-160 through D-253. D-163 makes
   the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
@@ -75,7 +75,7 @@ Last updated: 2026-07-30
   tickets without adding clinical rules, probabilities, points, or runtime behavior.
   `ticket.catalog.findings.canonical-definition-boundary` and the unambiguous portion of
   `ticket.catalog.findings.general-psychiatry-seed` are now resolved. The strict runtime catalog
-  registers 41 medically unreviewed, identity-only findings. The 37-candidate audit plus subsequent
+  registers 50 medically unreviewed, identity-only findings. The 37-candidate audit plus subsequent
   reviewed defaults now route duration and subjective burden to typed owners and resolve
   grandiosity, impulsivity versus concrete behavior, preparatory-behavior timing, weapon access
   versus concern, and reported versus observed thought disorganization without forcing them into
@@ -101,7 +101,7 @@ Last updated: 2026-07-30
   D-180 keeps paranoia as overlapping presentation/search vocabulary while separately resolving
   current self-reported suspiciousness or mistrust, ideas of reference, and persecutory ideation.
   Belief content, world-state truth, belief appraisal, and clinical interpretation remain separate.
-  The strict runtime catalog now registers 41 medically unreviewed identity-only findings; the
+  The strict runtime catalog now registers 50 medically unreviewed identity-only findings; the
   initial 37-candidate semantic-collision tranche is resolved without migrating compatibility
   cases.
   D-181 establishes a fourth patient-state layer for explicitly modeled adjudicable encounter
@@ -464,6 +464,18 @@ Last updated: 2026-07-30
   universal-result assembly, source-report profile, and complete presentation remains synthetic or
   absent. The result stays in the existing dependency ticket/audit instead of introducing a
   duplicate readiness-status model.
+  D-247 accepts the atomic symptom-owner model, adds six missing MDD-oriented identity shells, and
+  retains weight/BMI as typed numeric measurements. Diagnoses compose those owners through
+  declarative profiles and pure compilers rather than executable content.
+  D-248 adds the approved disorder-general D-197 dimension/manifestation model. A reviewed profile
+  selects a total dimension count under nonoverlapping core/cluster constraints, then preserves
+  one or more separate manifestations per selected dimension. Pessimism now has a neutral atomic
+  finding owner. The first real MDD profile remains blocked on the exact evidence-reviewed core,
+  cardinality, grouping, and pessimism/suicidality semantics, not on compiler expressiveness.
+  D-249 adds the synthetic typed `finding_texture` bridge. It preserves one D-201 draw and charge,
+  retains exact candidate IDs through D-208/D-223, and replaces only the matching D-198 baseline
+  in D-200 while hard D-197 findings remain dominant. No real texture mapping or distribution is
+  activated.
   The requested integration audit also advances D-201 to selector `2.0.0`: exact template/profile
   fingerprints remain in validation and replay, while the RNG-only profile fingerprint excludes
   the embedded full-template fingerprint so changing only D-216 care setting cannot reroll or
@@ -472,9 +484,13 @@ Last updated: 2026-07-30
   unknown private rule IDs still fail closed.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state after the requested backup: `HEAD` and `origin/beta` match the checkpoint
-  commit `Build deterministic patient-generation foundation`, with a clean worktree. No `main`
-  promotion is due under D-178.
+- Expected Git state during this bounded local iteration: `HEAD` and `origin/beta` remain
+  `19d8582747bec30609c64a4985911e3671c453b5` (`Build deterministic patient-generation
+foundation`). The worktree intentionally contains the uncommitted D-247/D-248 finding-identity,
+  dimension-compiler, evidence-queue, and review-packet changes plus the D-249 synthetic
+  optional-texture bridge. The user has authorized a later deliberate beta-to-main release only
+  after all safely executable dependency work is exhausted and complete Player/Reviewer/mobile
+  gates pass.
 - The current committed checkpoint includes D-193 through D-246 and may be used as the adjunct's
   stale-target mapping base after its exact commit hash is confirmed from Git.
 - Configured local Developer URL: `http://127.0.0.1:4318/` (not started for this backend-only
@@ -628,7 +644,7 @@ only the current operational state and should not grow into a second changelog.
   GAD Reviewer feedback remains preserved as a blocking historical attempt ticket.
 - The 2026-07-28 dependency audit found 621 nested finding occurrences and 186 finding IDs across
   the five approved/review case files, with 112 IDs reused across files. The canonical
-  finding-definition boundary and 41-definition wide/shallow seed are implemented and validated.
+  finding-definition boundary and 47-definition wide/shallow seed are implemented and validated.
   Point-free proposition/evidence, presentation-projection, measurement/exam, structured-test, and
   complete resolved-patient-state owners are now present. Substance/background-exposure,
   intervention-modality, medication-regimen, and point-free decision-policy/compiler boundaries
@@ -1820,6 +1836,134 @@ The D-246 first-real-MDD compile-readiness audit completed on 2026-07-30:
 No new readiness schema, compiler, completion percentage, clinical inference, patient, point,
 persistence, runtime generation, browser behavior, or UI was added.
 
+The D-247 atomic MDD finding-owner pass completed locally on 2026-07-31:
+
+- the reusable finding catalog now has 47 identity-only definitions;
+- new shells cover increased appetite, indecision, worthlessness, self-reported psychomotor
+  agitation, and separately observed psychomotor agitation/slowing;
+- existing depressed mood, anhedonia, fatigue/energy, sleep, reduced appetite, guilt,
+  concentration, psychomotor slowing, passive-death-wish, active-SI, weight, and BMI owners were
+  retained rather than duplicated;
+- weight and BMI remain numeric `MeasurementDefinition` records;
+- D-247 records database-entry-as-function as a declarative ownership metaphor: diagnoses
+  reference atomic versioned inputs and pure compilers execute the mapping; and
+- `ticket.catalog.diagnoses.mdd-current-episode-finding-profile` is the one active clinical packet.
+  It must decide dimension/cardinality semantics before a real D-197 profile can safely count
+  paired or differently sourced manifestations.
+
+The focused content-runtime suite passes 56/56 and `pnpm content:validate` passes. No real MDD
+criterion, cardinality, generation weight, diagnosis inference, point, patient, persistence,
+runtime behavior, browser behavior, UI, build, server, or remote update was added.
+
+The D-248 dimension/manifestation pass completed locally on 2026-07-31:
+
+- `condition-finding-dimensions.v1` extends D-197 rather than creating a parallel symptom engine;
+- a profile chooses one reviewed total dimension count, enforces nonoverlapping core/cluster
+  constraints, then selects one or more separately auditable manifestations inside every selected
+  dimension;
+- the frozen artifact retains selected/unselected dimensions and manifestations, requirement
+  evaluations, separate stable draws, exact provenance, candidates, and fingerprints;
+- D-197 advances to selector `3.0.0`; synthetic tests prove determinism, input-order invariance,
+  exact core satisfaction, multiple manifestations counting as one dimension, invalid-overlap
+  rejection, and D-193 compatibility;
+- the finding catalog advances to 48 with neutral, medically unreviewed
+  `finding.history.current-pessimism`;
+- `source-request.mdd.current-episode-dimensions` now requests legally reusable evidence for the
+  exact MDD core/cardinality/grouping and pessimism/suicidality roles before any real profile;
+- `docs/DATA_ADJUNCT_EVIDENCE_QUEUE.md` makes that request the bootstrap priority while preserving
+  the source-request JSON as canonical status; and
+- source-request validation now accepts exact registered authoring-only evidence IDs supplied by
+  the content validator, so metadata-only sources such as NIMH can remain visible without entering
+  the Player catalog.
+
+Focused validation passes: 108 assertions across six impacted engine/content-runtime suites,
+`pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm content:validate`, and
+`git diff --check`. No real MDD clinical mapping, texture bridge, generation probability, points,
+patient, persistence, runtime behavior, browser behavior, UI, build, server, commit, or remote
+update was added.
+
+The D-249 optional finding-texture bridge completed locally on 2026-07-31:
+
+- strict profile/request/artifact schemas bind exact D-201 module/profile/template identity to a
+  bounded exact finding horizon and lawful reviewed outcomes;
+- the pure bridge reuses each selected module's ordinal and stable draw and copies the unchanged
+  selected count, spent budget, and remaining budget;
+- D-208 and D-223 advance to `2.0.0`, audit the emitted candidate IDs as materialized records, and
+  do not populate canonical findings before D-193;
+- D-200 advances to `21.0.0`, substitutes selected texture for only the exact matching D-198
+  baseline, preserves hard D-197 precedence, and rejects same-target D-199 overlap pending
+  reviewed combination semantics;
+- synthetic tests cover selected/unselected behavior, one-charge accounting, D-193 precedence,
+  full D-223/D-200 attachment, deterministic replay, and stale/tampered/illegal-value rejection;
+  and
+- the deferred local Developer Patient Maker is recorded as a thin exact-template/setting/
+  complexity client over the canonical compiler, while the adjunct handoff now requires
+  source-local takeaways to be atomized into exact owners and reviewed qualitative rules before
+  any separate provisional balance.
+
+Focused D-249 validation passes 28 assertions across the bridge, D-208, and D-223 suites; the
+targeted D-200 attachment assertion passes; `pnpm typecheck` passes. The complete D-200 file's
+47 assertions pass when run under the current Node process, although the known Node 26 Vitest
+worker `onTaskUpdate` shutdown timeout can still make a long aggregate invocation exit nonzero.
+No real MDD mapping, outcome rate, clinical rule, point, patient, persistence, runtime, browser
+behavior, UI, commit, or remote update was added.
+
+The D-250 through D-252 and evidence-scaffolding pass completed locally on 2026-07-31:
+
+- D-250 adds separate medically unreviewed identities for current unintentional weight gain and
+  loss while point-in-time weight and BMI remain numeric measurements;
+- formal metadata/source-use boundaries now register the 2018 CANMAT/ISBD bipolar guideline, its
+  2023 evidence update, the APA 2023 eating-disorders guideline, the DRS-R-98 validation article
+  and erratum, one 2024 MDD treatment network meta-analysis, and VA/DoD MDD 2022 without extracting
+  restricted text or activating clinical content;
+- D-251 permits explicitly preliminary adjunct packets to guide neutral owners, schemas,
+  dependency edges, candidate bins, and review questions while prohibiting clinical mappings,
+  generation probabilities, qualitative rules, balances, points, and runtime behavior;
+- matching unreviewed rules already remain nonblocking diagnostics outside the compiled rubric,
+  and a new regression proves they cannot receive a provisional balance;
+- D-252 advances native decision balance to `5.0.0`, D-235 generated-attempt compilation to
+  `7.0.0`, and generated point-report to v6;
+- the point report fingerprints the complete source balance catalog, freezes only exact
+  rubric-referenced balance payloads, omits authoring rationale and Developer-opinion records,
+  retains complete player and database-plan traces, and revalidates exact magnitudes and
+  explanations before D-159 combination and arithmetic; and
+- same-ID/version balance retuning changes the source and minimized-payload fingerprints, while
+  catalog reordering remains inert.
+
+Focused D-251/D-252 validation passes 43 decision-policy/balance assertions and 18 targeted native
+balance/generated-attempt assertions (43 unrelated D-200 assertions skipped), plus `pnpm
+typecheck`. Those interim results are superseded by the complete D-253 gate below. No clinical
+rule, probability, balance magnitude, patient, SaveData, IndexedDB, runtime queue, browser
+behavior, or UI was added.
+
+The D-253 integration gate completed locally on 2026-07-31:
+
+- Vitest now uses its thread pool, which preserves the complete assertions and isolation while
+  avoiding the fork worker's fixed RPC acknowledgement timeout;
+- the complete Node 22.23.1 unit/handoff gate exits cleanly with 98 Vitest files / 989 product
+  assertions plus 10 Python handoff tests;
+- `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `git diff --check`,
+  `pnpm content:validate`, `pnpm content:sources:validate`,
+  `pnpm content:diagnoses:validate`, `pnpm content:knowledge:crossref:validate`,
+  `pnpm content:compile`, and `pnpm demo:reference-runs` pass;
+- Player and portable Reviewer builds pass their separate bundle-isolation scans;
+- the Player Chromium gate passes 5/5, and the portable Reviewer Chromium phone gates pass 4/4
+  across 390-pixel and 320-pixel layouts, including multi-case feedback export;
+- Playwright 1.53.2 WebKit build 2182 is installed locally but declares macOS 14.5 as its minimum;
+  this Intel Mac is on macOS 14.1.1, so the browser process exits with a bus error before opening a
+  page. The repository's required `CI=true` workflow installs and runs the iPhone/WebKit project
+  on a supported runner; that remote gate must pass before the main/Pages promotion is considered
+  verified; and
+- the sandboxed tsx validators and Playwright servers failed only because the managed sandbox
+  denies local IPC sockets or loopback listeners; identical Node 22 commands passed with the
+  required local permission.
+
+D-253 also repairs two stale aggregate tests: authoring-only evidence metadata participates in the
+Developer synthesis validation boundary, and missing ticket coverage targets one known active
+ticket instead of whichever attachment happens to be last. The Player E2E queue count is derived
+from the checked-in source-request file. No clinical rule, probability, balance magnitude,
+patient, runtime content, persistence behavior, or UI was added.
+
 The requested beta-backup integration audit completed on 2026-07-30:
 
 - the three integration regressions exposed by the first aggregate run were repaired: D-216 care
@@ -1851,10 +1995,11 @@ database/engine-only and is a backup rather than a release promotion.
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-246
+- `docs/DECISIONS.md` through D-252
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
+- `docs/DATA_ADJUNCT_EVIDENCE_QUEUE.md`
 - `docs/DATABASE_FIRST_DECISION_QUEUE.md`
 - `docs/ENCOUNTER_GENERATION_DEPENDENCIES.md`
 - `docs/DOCUMENT_INGESTION.md`
@@ -1940,68 +2085,33 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 
 ## Exact next action
 
-1. D-231 through D-235 prove the authoring-only lifecycle horizon, current exact-location
-   admission/capacity, deterministic local template draw, domain-separated patient seed, complete
-   D-223-through-D-200 patient compile, atomic fill, completion/skip transition, current-horizon
-   eligibility, native encounter completion, and canonical refill proposal for synthetic
-   outpatient psychiatry, ED, inpatient psychiatry, and consultation-liaison.
-2. D-236 keeps persistence/runtime deferred. D-237 supplies the first real reviewed MDD route and
-   policy. D-238 supplies its separate provisional balance and makes D-235 derive the exact trace
-   and frozen database-plan comparison without caller-authored points. D-239 supplies native
-   versioned information-service quotes without caller-authored prices. D-240 supplies the
-   standalone exact target-scoped duration/burden projection and minimized frozen reveal. D-241
-   attaches that verified source through D-213/D-214/D-194/D-200 without exposing its authoring
-   target or spending more complexity. D-242 freezes exact point-free player and database-plan
-   decisions, derives player information selections from replayed purchases, and distinguishes
-   selected actions from merely available actions without changing the current route points. D-243
-   preserves treatment triggers separately from information fulfillment, compiles both only when
-   available, evaluates three selected-decision states, and proves the approved any-medication-start
-   MDD prerequisite adapters without assigning points.
-   Treatment charges and other settlement inputs,
-   severity/specifier diagnosis validation, real finding/result/source/presentation content,
-   SaveData, compatibility queues, IndexedDB, review/export projection, automatic Standard refill,
-   and UI remain deliberately unactivated.
-3. D-244 adds separate exact three-outcome balance owners for the two already-approved MDD
-   any-medication-start prerequisites. Reconciliation is `+35/-25`, reaction history is
-   `+30/-40`, not-triggered is zero, the primary route remains `+200`, and D-235
-   `5.0.0`/point-report v4 replays the nested state and both Booleans. Canonical balance-catalog
-   payload identity remains explicitly deferred to the pre-runtime persistence boundary.
-4. D-245 applies the already-approved D-159 rule-combination semantics to native generated scoring
-   for both player and database-plan traces. Native balance `4.0.0`, D-235 `6.0.0`, and point-report
-   v5 preserve every row, prerequisite subtrace, exact selected target, controller, explanation,
-   and pre-combination value; totals derive only after combination and replay rejects combination,
-   target, or extra-row tampering. The synthetic proof covers specificity replacement, worst-only
-   same-issue harm, exact-target hard-contraindication suppression, controller chains, and
-   order-independence without adding a real clinical contributor or point magnitude.
-5. D-246 audits the exact first real MDD generation slice against D-193 through D-245. The
-   authoritative dependency ticket/document now identifies a real `PatientTemplate` as the first
-   absent executable owner and the MDD episode finding/cardinality owner plus canonical
-   finding-identity completeness as its first clinical dependency. No duplicate readiness schema,
-   completion percentage, clinical inference, or synthetic patient was added.
-6. The next bounded clinical review packet should define only that MDD episode
-   finding/cardinality owner: first verify the needed canonical finding identities, then decide
-   required versus cardinality-selected findings and permissible values for a current adult MDD
-   episode. Keep severity thresholds, presentation-source accuracy, background probabilities,
-   result wording, tests, treatment, and points outside that packet unless a dependency cannot be
-   separated.
+1. Inspect the final beta diff and branch relation, commit the complete intentional checkpoint,
+   push `beta`, and wait for its Node 22 verification workflow.
+2. Promote the whole verified `beta` branch to `main`, push it, and require the main workflow's
+   Player, 390-pixel, 320-pixel, and iPhone/WebKit assertions plus Pages deployment to pass. Do not
+   represent the locally unsupported WebKit binary as a passing local test.
+3. Return the checkout to `beta`, update this handoff with exact commits and remote relations, and
+   start a verified local server whose URL can be handed to the user.
+4. Treat the current adjunct MDD dimensions, severity, TSH, antidepressant-fit, and regimen
+   combination packets as preliminary. They may expose missing typed owners or review questions,
+   but cannot supply real profiles, probabilities, qualitative rules, balances, or points.
+5. The next clinical decision remains
+   `ticket.catalog.diagnoses.mdd-current-episode-finding-profile`. Do not invent its exact core
+   constraint, total dimensional cardinality, manifestation groupings, or
+   pessimism/suicidality roles. The source request is received, but the preliminary packet still
+   requires canonical source-use validation and psychiatrist interpretation.
+6. In the absence of that clinical decision, continue only bounded dependency work that is
+   clinical-neutral. Current candidates are: formal-source metadata/rights registration;
+   broad-category and unspecified diagnosis identities with explicit reviewed ancestry queued
+   separately; real-owner inventory for source reports/action recipes; and audit of the eventual
+   generated-to-review projection. Do not author a real patient template yet.
 7. Real ED, inpatient-psychiatry, and consultation-liaison runtime locations remain deferred until
    their typed location, department, capability, service, formulary, disposition, action, and
-   assignment owners exist. Setting labels never grant those resources, and the compatibility
-   runtime's facility-wide union cannot admit them.
-8. Real source-report profiles, universal action recipes/content, instrument content, and the
-   explicit compatibility/persistence checkpoint remain separate later tasks. DBQ-011 remains
-   deferred until one complete vertical exposes real maintenance costs. Other bounded tasks:
-   - review MDD severity envelopes; ownership is resolved but thresholds remain disabled;
-   - select current eating-disorder medical-instability and CANMAT/ISBD bipolar sources;
-   - verify DRS-R-98 identity, validation scope, and reuse rights before adding it to Testing;
-   - add real broad-category and unspecified diagnosis identities plus explicit reviewed ancestry;
-   - harden medication-fit activation so unreviewed modifiers remain inert and true
-     contraindications suppress positive fit;
-   - continue foundational MDD, medication-family, psychotherapy, and common-interaction review
-     packets before narrow augmentation topics;
-   - continue private semantic processing one complete topic/source revision at a time;
-   - split the private dossier loader into a compact index plus lazy per-entry payloads before it
-     approaches the current 2 MB loader ceiling.
+   assignment owners exist. Setting labels never grant those resources.
+8. Treatment-charge ownership, severity/specifier diagnosis validation, real finding/result/
+   source/presentation content, SaveData, compatibility queue migration, IndexedDB, review/export
+   projection, automatic Standard refill, Developer Patient Maker, and UI remain deliberately
+   unactivated until one realistic source-controlled vertical is ready.
 
 The sibling PsychSimDataAdjunct remains read-only and operates its own concept-first evidence
 horizon; PsychSim tickets are inputs, not its queue authority. A general proposal may remain an
@@ -2029,3 +2139,15 @@ psychotic-depression bundle's Oliva access claim is narrowed by a separate advis
 validator does not enforce. Future adjunct handoff should preserve immutable hashed evidence units
 for emulation and send a separate target-bound mapping proposal; it must not create points, rules,
 clinical winners, canonical IDs, or runtime content.
+
+Adjunct proposals are never copied wholesale into game content. The canonical translation pass
+validates packet/base/source-use identity, preserves each source-local finding and limitation,
+routes it to the smallest exact owner or a retained candidate bin, separates emulation inputs from
+clinical judgment, and asks for only the unresolved psychiatrist interpretation. An accepted
+qualitative rule and its provisional balance remain two distinct later records.
+
+The deferred local Developer Patient Maker may eventually choose an exact template/recipe,
+admitted care setting/location, and bounded complexity envelope and request one deterministic
+patient from the canonical compiler. It must not bypass admission, expose hidden truth, or create
+a parallel generator. Do not build it until the first realistic source-controlled generation
+vertical is complete enough to audit.

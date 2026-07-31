@@ -848,7 +848,7 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "1.1.0",
     "id": "literature-synthesis.mdd.severity-generator-policy.2026-07-26",
     "linkedTicketIds": ["ticket.source.mdd.severity-generator-policy"],
     "linkedSourceRequestIds": ["source-request.mdd.severity-thresholds"],
@@ -888,32 +888,33 @@
       },
       {
         "id": "literature-source.mavranezouli-depression-treatments.2024",
-        "evidenceSourceId": null,
+        "evidenceSourceId": "evidence.mavranezouli.depression-treatments.2024",
         "title": "A systematic review and network meta-analysis of psychological, psychosocial, pharmacological, physical and combined treatments for adults with a new episode of depression",
         "publicationYear": 2024,
         "doi": "10.1016/j.eclinm.2024.102780",
         "pmid": "39246718",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/39246718/",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11377144/",
         "sourceKind": "network_meta_analysis",
-        "accessStatus": "metadata_or_abstract_only",
+        "accessStatus": "cataloged_and_cleared",
         "findingRole": "qualifies",
         "conciseFinding": "This review stratified less versus more severe depression using depression-scale cutoffs for its treatment analysis, illustrating that a treatment-study severity split is not automatically a complete diagnostic or generator standard.",
         "supportsProposedDirection": false
       }
     ],
-    "supportingSummary": "The available source-cleared guidance supports preserving severity-relevant dimensions as distinct structured facts and requiring the generated patient to remain internally coherent.",
-    "opposingOrQualifyingSummary": "No reviewed source in the current catalog operationalizes all three desired severity bands across symptom count, intensity, distress, function, psychosis, and safety. PHQ-style symptom burden and study-specific less-versus-more-severe cutoffs must remain measurements or research strata, not silent substitutes for diagnosis severity.",
-    "proposedDirection": "Let a patient template author the intended severity, generate symptom burden, intensity or frequency, distress, function, psychosis, and safety as separate saved facts, and validate them against a later reviewed envelope. Retry or quarantine a conflicting patient rather than silently changing the intended diagnosis. Keep psychosis and safety separately explainable. Do not enable mild, moderate, or severe treatment branches from this packet.",
+    "supportingSummary": "The source-cleared CANMAT convention supports preserving symptom severity and depression-attributable functional impairment as distinct structured facts, allowing them to disagree, and using the higher qualitative rating as a practical overall descriptor.",
+    "opposingOrQualifyingSummary": "No reviewed source in the current catalog operationalizes universal numeric boundaries for all three desired severity bands. PHQ-style symptom burden, screening cutoffs, trial-entry thresholds, and study-specific less-versus-more-severe treatment strata must remain separately named measurements or research conventions. Psychosis, safety, course, treatment history, and impairment from other causes also remain independent facts.",
+    "proposedDirection": "Let the MDD dossier own one point-free qualitative severity profile over separately frozen symptom-severity and depression-attributable-function dimensions. An encounter recipe may select a branch but cannot redefine it. Preserve plausible discordance and uncertain middle-boundary cases; only malformed or literal same-scope contradictions are structural failures, while incomplete clinical coverage remains a nonblocking diagnostic. Keep psychosis, safety, course, treatment history, and named instrument results separately explainable. Do not enable a branch, treatment path, probability, or point value from this packet.",
     "limitations": [
-      "The exact three-band envelopes and their diagnostic provenance remain unresolved.",
-      "The Mavranezouli record has not yet received a PsychSim formal evidence record and source-use decision.",
+      "The exact three-band boundary descriptions and their diagnostic provenance remain unresolved.",
+      "The Mavranezouli review's scale-cutoff strata are specific to its treatment analysis and do not supply diagnostic or generator severity boundaries.",
       "A symptom questionnaire score cannot by itself establish diagnosis, psychosis, safety, or functional severity.",
-      "This packet authorizes no diagnosis, generator, pathway, or point change."
+      "The preliminary adjunct bundle is unmapped and unsealed; it informed this gap audit but is not a formal PsychSim source or clinical approval.",
+      "This packet authorizes no diagnosis, generator, pathway, probability, or point change."
     ],
     "unresolvedQuestions": [
-      "Which legally reusable diagnostic standard should define the bounded three-band envelopes?",
-      "Which conflicts should trigger a deterministic retry versus quarantine?",
-      "Which dimensions are required for every MDD patient and which remain optional context?"
+      "Should the initial scaffold adopt CANMAT's higher-of symptom-severity and depression-attributable-functional-impairment convention?",
+      "Which later qualitative descriptions, if any, should distinguish mild, moderate, and severe without inventing numeric cut points?",
+      "How should ambiguous middle-boundary cases be labeled in authoring diagnostics without deleting a plausible patient?"
     ],
     "pointMagnitudeExcluded": true,
     "medicalReviewStatus": "unreviewed"

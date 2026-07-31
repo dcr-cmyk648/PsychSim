@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.history.current-unintentional-weight-loss",
+  "label": "Current unintentional weight loss",
+  "aliases": [],
+  "semanticKind": "symptom",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent", "subthreshold"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

@@ -285,14 +285,28 @@ without replacement. It freezes selected/unselected traces, stable draw IDs, exa
 states/bindings, and literal approved incompatibility conflicts. It does not search for an
 alternative selection, use clinical prevalence, infer a diagnosis, or generate findings.
 
-`condition-finding-cardinality.v1` then binds exact selected condition states to reviewed profiles
-and emits exact D-193 candidates. Required outcomes always emit; bounded groups use separate
-game-only count/member weights and sample without replacement. The artifact retains all selected
-and unselected mappings, exact reviews and provenance, stable draws, profile fingerprints, and
-unbound selected conditions. An unselected mapping is unknown, not absent. Overlapping condition
+The D-197 condition-finding lane then binds exact selected condition states to reviewed profiles
+and emits exact D-193 candidates. Required outcomes always emit. A
+`condition-finding-cardinality.v1` profile retains raw bounded count/member selection for simple
+uncoupled finding sets. A `condition-finding-dimensions.v1` profile instead selects a reviewed
+total number of dimensions under nonoverlapping core/cluster constraints and then selects one or
+more manifestations per dimension. The dimension counts once while every manifestation remains a
+separate candidate. The artifact retains all selected and unselected mappings, requirements,
+dimensions, manifestations, reviews/provenance, stable draws, profile fingerprints, and unbound
+selected conditions. An unselected mapping is unknown, not absent. Overlapping condition
 contributions remain distinct and D-193 alone resolves agreement or reports a literal conflict.
 No real diagnostic criteria, background variation, soft-tendency combination, diagnosis
 inference, clinical probability, or points are enabled.
+
+The “database entry as a function” metaphor stops at this pure boundary. Findings and
+measurements are declarative reusable records; diagnoses reference them; compilers execute. The
+MDD family does not contain code and does not receive the encounter's location or optional-feature
+budget. Those inputs are handled by the location-admission and complexity-selection passes before
+the frozen patient graph is assembled.
+
+Before a real MDD profile is added, its exact core, total dimensional cardinality, manifestation
+grouping, and the roles of pessimism and suicidality still require source and psychiatrist review.
+The compiler can now represent the result without accidental raw-member double-counting.
 
 `weighted-background-finding.v1` resolves the lowest-priority independent texture lane. One exact
 profile covers each target in a bounded horizon and offers only explicitly reviewed lawful
@@ -376,6 +390,7 @@ fulfilled, and omitted rather than reducing them to matched/unmatched, and D-235
 recomputes the exact state from the frozen decision. This does not add a real patient template,
 source-report profile, action-result recipe, runtime queue, or persistence activation. A separate
 pre-runtime task must pin the exact balance-catalog payload used for historical re-derivation.
+D-252, described below, completes that task without activating persistence.
 
 D-245 adds the native D-159 pass after each compiled rule has evaluated the complete frozen
 decision. Same-effect specificity, exact-target hard-contraindication suppression, and
@@ -388,6 +403,14 @@ combination results and rejects extra noncompiled rows or tampering. This activa
 secondary clinical relationship, point magnitude, cap, settlement input, persistence, runtime,
 compatibility content, browser behavior, or UI.
 
+D-252 closes the separate balance-payload identity debt. Native scoring fingerprints the complete
+validated source balance catalog, freezes only exact balances referenced by the compiled rubric,
+and derives both the player and database-plan traces from that minimized snapshot. Generated
+attempt replay verifies each row's component, pre-combination magnitude, and explanation against
+the snapshot before combination and arithmetic. The snapshot does not copy clinical rules,
+authoring rationale, or Developer-opinion records, and does not activate SaveData or runtime
+queues.
+
 D-246 checks that exact chain against source-controlled content. The current real MDD
 route/policy/balances and shared catalogs stop before a generation graph: every executable
 template, complete core pre-finding state, condition/background/tendency profile, projection
@@ -397,6 +420,19 @@ recorded in the existing dependency ticket/document rather than a duplicate stat
 first clinical input required before a real template is an approved MDD episode
 finding/cardinality owner and a review that its canonical finding identities are complete enough
 for the focused slice.
+
+D-247 completes the currently identified MDD identity shells and interprets the “entry as a
+function” metaphor as declarative data plus a pure compiler. The remaining profile review must
+separate diagnosis-level dimensions from concrete manifestations; raw finding-member cardinality
+cannot silently count insomnia and hypersomnia, or self-reported and observed psychomotor change,
+as independent MDD dimensions.
+
+D-248 supplies that disorder-general dimension/manifestation selection. D-249 then supplies the
+separate optional-texture bridge without changing diagnostic meaning: D-201 selects and charges
+one `finding_texture` module, the bridge reuses its exact draw and maps it to reviewed
+`background_variation` candidates, and D-200 substitutes those candidates for only the matching
+D-198 baselines. D-197 hard diagnosis values remain higher priority. No real MDD mapping, texture
+frequency, or points are authorized by either compiler.
 
 D-200 keeps every upstream artifact and stage seed, never removes D-198 when D-199 exists, and
 retains and replays the complete assembled D-193/D-194 request before returning either a verified
@@ -417,7 +453,7 @@ reviewed behavior, D-215 applies it after final patient truth, D-194 derives D-2
 responses, and D-213/D-214 attach the complete result audit plus presentation-safe structured and
 instrument views. The snapshot pins matching care setting, exact horizons, shared findings, the
 D-219 operational artifact, source-report artifacts, the root and nested D-220 audit, nested D-240
-audit, result audit, and compiled-rubric payloads. D-213 `3.0.0` and D-200 composer `20.0.0`
+audit, result audit, and compiled-rubric payloads. D-213 `3.0.0` and D-200 composer `21.0.0`
 retain the complete chain. Finding-scoped duration and burden are staged by finding-definition
 version, then D-240 resolves them after D-193 creates the target ID. Structural, stale, tampered,
 or incomplete operational/result
@@ -1030,6 +1066,13 @@ lifecycle-approved prototype content may still be medically unreviewed. D-231 do
 setting, location, pool, diagnosis, dependency coverage, queue history, weights, points, or
 complexity.
 
+A future local Developer Patient Maker is a thin authoring client over this same graph. It may let
+the reviewer choose an exact template/recipe, an admitted care setting/location, and a bounded
+complexity envelope, then request one deterministic seed and show retained diagnostics. It must
+not fabricate a patient file, bypass D-226 admission, manually edit hidden truth, activate
+unreviewed clinical mappings, or create a second generator. The UI remains deferred until one
+real source-controlled vertical can compile.
+
 D-226 `3.0.0` removes its raw template input and derives every matrix row from the verified D-231
 artifact. It adds one authoring-only admission matrix before patient selection and before any D-201
 complexity selection. It compiles D-222 once for every currently built location, then evaluates
@@ -1158,7 +1201,7 @@ order. It
 stops at a retained blocker unless a later caller extends the exact transcript with an explicit
 authorization naming that blocker; the next attempt starts at the blocker-advanced ordinal with
 new seeds. Current versions are D-233 occupancy `1.0.0`, seed
-authority `2.0.0`, atomic fill `2.0.0`, D-200 `20.0.0`, facility migration `3.0.0`, and D-234
+authority `2.0.0`, atomic fill `2.0.0`, D-200 `21.0.0`, facility migration `3.0.0`, and D-234
 transition/reconciliation `2.0.0`.
 
 D-230 chooses the template but does not construct a patient; D-233 owns only the deterministic
@@ -1252,6 +1295,18 @@ current `CaseBlueprint` compatibility path can carry typed reaction history and 
 budget-only `PatientComplexityProfile`, but it has neither the new conflict taxonomy nor
 deterministic optional-module selection. It does not claim that the current budget is a measured
 complexity envelope.
+
+Condition-owned symptom generation now has one general dimension form. A reviewed profile chooses
+the total number of diagnosis-level dimensions, satisfies explicit nonoverlapping core/cluster
+requirements, and then chooses one or more atomic manifestations for each selected dimension.
+Several manifestations may therefore describe one dimension without inflating the threshold
+count. All draws and selected/unselected alternatives remain frozen and replayable. The model is
+point-free and does not infer a diagnosis from symptoms.
+
+Subthreshold texture belongs to the encounter's optional-richness envelope. It may eventually
+spend a small authored D-201 cost, but it must materialize through its own typed background-finding
+bridge. It cannot change the diagnosis definition, spend the core profile's cardinality, or hide a
+required finding.
 Before implementing that versioned compiler migration, authoring must prepare the reusable symptom
 and finding definitions, condition branches, medication/intervention and test relationships,
 regimen and prior-trial records, context modules, and qualitative policies it will resolve. The

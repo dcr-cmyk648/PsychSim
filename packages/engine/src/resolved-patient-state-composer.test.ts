@@ -733,6 +733,7 @@ const makeScenario = (selectedIds: readonly string[]): Scenario => {
       reactionHistoryBridgeArtifact: makeReactionBridge(optionalFeatureArtifact),
       priorTreatmentBridgeArtifact: makePriorTreatmentBridge(optionalFeatureArtifact),
       exposureBridgeArtifact: makeExposureBridge(optionalFeatureArtifact),
+      findingTextureBridgeArtifact: null,
     },
   };
 };

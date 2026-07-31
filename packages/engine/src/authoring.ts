@@ -29,6 +29,7 @@ export * from './mode-patient-template-horizon-compiler';
 export * from './optional-comorbidity-budget-bridge';
 export * from './optional-exposure-budget-bridge';
 export * from './optional-feature-budget-selector';
+export * from './optional-finding-texture-bridge';
 export * from './optional-prior-treatment-bridge';
 export * from './optional-reaction-history-bridge';
 export * from './patient-template-location-admission-compiler';

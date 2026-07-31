@@ -151,11 +151,12 @@ presentation-richness envelope and exact frozen-state evaluator; shortfalls rema
 have no generation or scoring authority. D-196 adds a standalone exact-template condition profile
 and deterministic, without-replacement required/optional selector with complete draw, binding,
 provenance, incompatibility, and integrity traces. Its weights are game variety only, and the
-selector remains authoring-only. D-197 adds the separate exact-state
-`condition-finding-cardinality.v1` profile and selector: reviewed fixed outcomes and bounded
-count/member draws emit exact D-193 diagnostic/cardinality candidates while preserving every
-selected/unselected mapping, unbound condition, draw, and provenance record. It adds no real
-clinical profile, background/soft-tendency aggregation, diagnosis inference, or scoring. D-198
+selector remains authoring-only. D-197 adds the separate exact-state condition-finding lane:
+reviewed fixed outcomes, simple raw cardinality groups, and D-248's constrained
+dimension-then-manifestation profiles emit exact D-193 diagnostic/cardinality candidates while
+preserving every selected/unselected mapping, requirement, unbound condition, draw, and provenance
+record. It adds no real clinical profile, background/soft-tendency aggregation, diagnosis
+inference, or scoring. D-198
 adds the bounded exact-finding background profile and deterministic lowest-priority outcome
 selector, retaining all offered weights/values and exact D-197/horizon/profile/provenance traces.
 It contains no real outcome rates or context-sensitive aggregation. D-199 adds the authoring-only
@@ -378,7 +379,7 @@ checkpoint changes no D-213/D-214/D-194/D-200 version and activates no real cont
 D-241 attaches that owner through the universal-result chain. Static assembly v3 owns definitions;
 D-194 `9.0.0` compiles D-240 after final truth; D-213 `3.0.0` preserves definition-level
 not-applicable, missing, and ambiguous coverage while routing only safe frozen reveals; D-214
-attaches the referenced subset; and D-200 `20.0.0` replays the full nested audit without another
+attaches the referenced subset; and D-200 `21.0.0` replays the full nested audit without another
 complexity charge. The patient attachment contract is now `attachment_only.v6`.
 
 D-242 widens the native generated scoring audit from treatment-only comparison to one complete
@@ -412,6 +413,11 @@ rows and combination tampering. Current compilation rejects equal-priority ambig
 effect. Exact balance-catalog payload identity, real secondary contributors, remaining MDD
 generation/result/source dependencies, and runtime persistence remain open.
 
+D-252 advances native scoring to `5.0.0`, D-235 to `7.0.0`, and the generated point report to v6.
+It freezes a minimized exact balance payload plus the complete source-catalog fingerprint and
+retains the complete database-plan trace, so same-ID/version retuning cannot silently change
+historical magnitudes. This remains runtime-excluded and does not activate SaveData.
+
 D-246 re-audits that exact native path against checked-in content before the first real template.
 The approved MDD route/policy/balances and shared identities are reusable, but every executable
 patient template, core pre-finding state, generation profile, finding projection recipe, universal
@@ -420,6 +426,32 @@ synthetic or absent. Compatibility cases are not promoted. The result remains in
 dependency ticket/audit rather than creating a parallel readiness-status system; the next clinical
 dependency is the MDD episode finding/cardinality owner and its finding-identity completeness
 review.
+
+D-247 completes the currently identified atomic MDD symptom-owner shells, retains weight and BMI
+as numeric measurement owners, and fixes the composition boundary: diagnoses reference reusable
+facts through declarative profiles and pure compilers rather than executable content. The next
+review is the current adult MDD episode's dimension/cardinality model. No real MDD profile or
+patient may compile until paired or related manifestations can remain separate in the audit
+without being double-counted diagnostically.
+
+D-248 completes the disorder-general technical part of that review. D-197 v3 selects a total
+number of dimensions under explicit nonoverlapping core/cluster constraints and then preserves
+one or more separate manifestations per dimension. Pessimism has a neutral atomic identity.
+The real MDD profile remains evidence-gated on its exact core, cardinality, manifestation
+grouping, and pessimism/suicidality roles. The read-only adjunct's ordered evidence work is
+documented separately without replacing canonical source-request status.
+
+D-249 completes the first synthetic optional-texture materialization seam. One D-201-selected
+`finding_texture` module retains its original draw and complexity accounting, emits exact
+background candidates through D-208/D-223, and replaces only the matching generic D-198 baseline
+inside D-200 `21.0.0`. Hard diagnosis candidates remain dominant and a same-target D-199 collision
+is rejected pending reviewed combination semantics. Real texture mappings/rates and the real MDD
+profile remain evidence-gated.
+
+The later local Developer Patient Maker may expose exact recipe, admitted setting/location, and
+bounded complexity choices only as a thin client over the canonical deterministic compiler. It is
+not part of the current dependency phase and cannot precede one realistic source-controlled
+generation vertical.
 
 The remaining
 exact finding/result/source/presentation, diagnosis, secondary-rule, and settlement dependencies

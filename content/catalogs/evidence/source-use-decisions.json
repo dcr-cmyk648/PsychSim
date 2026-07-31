@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.7.0",
+  "contentVersion": "1.11.0",
   "id": "source-use-decisions.psychsim",
   "decisions": [
     {
@@ -355,6 +355,43 @@
       "reviewedBy": "reviewer.codex-source-rights-audit",
       "reviewedAt": "2026-07-26T17:00:00.000Z",
       "notes": "The PMC Open Access record identifies the hash-pinned article as CC BY 4.0. A first internal packet may paraphrase only the grade-D relevance trigger from source-chunk.1b36e6afa6c8a74a5a8a.12. BFCRS wording, other instrument content, treatment, disposition, and point values remain outside that packet and require separate review."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.mavranezouli.depression-treatments.2024",
+      "evidenceSourceId": "evidence.mavranezouli.depression-treatments.2024",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "allowedContributionTypes": ["treatment", "scoring", "teaching_point", "context_only"],
+      "territories": ["Global, subject to CC BY 4.0"],
+      "attributionStatement": "Mavranezouli I, et al. A systematic review and network meta-analysis of treatments for adults with a new episode of depression. EClinicalMedicine. 2024. CC BY 4.0.",
+      "requiredNotices": [
+        "Give source and licence attribution and identify changes.",
+        "Do not imply author, journal, NICE, or funder endorsement.",
+        "Preserve the review's population definitions, evidence-quality limits, search dates, and treatment-analysis context.",
+        "Do not convert study-specific depression-scale cutoffs into diagnostic or generator severity boundaries.",
+        "Review third-party material separately before reuse."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-31T14:22:31.000Z",
+      "notes": "The official NCBI PMC Open Access API reports PMCID PMC11377144 under CC BY. This decision permits concise original derived summaries and later reviewed contributions, but registration and source-use clearance confer no medical approval, rule, probability, or point value."
     },
     {
       "schemaVersion": 1,
@@ -822,6 +859,42 @@
       "reviewedBy": "reviewer.codex-source-rights-audit",
       "reviewedAt": "2026-07-26T17:00:00.000Z",
       "notes": "Government-authored portions are generally public domain in the United States, but the current repository has no hash-pinned local PDF or extraction for this source. The decision permits a future protected local extraction while keeping structured indexing, AI processing, derived content, and redistribution disabled. Current literature packets may use this record only as context, never as source-cleared support."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.va-dod.mdd.2022",
+      "evidenceSourceId": "evidence.va-dod.mdd.2022",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["United States"],
+      "attributionStatement": "Source: Department of Veterans Affairs and Department of Defense, VA/DoD Clinical Practice Guideline for the Management of Major Depressive Disorder, Version 4.0, 2022.",
+      "requiredNotices": [
+        "Limit current use to protected local extraction and bibliographic or source-comparison review.",
+        "Do not extract, adapt, or redistribute the sidebar explicitly labeled as DSM-5 criteria under this source-use decision.",
+        "Audit contractor-supported material, instruments, tables, figures, logos, seals, and other credited elements before any narrower use.",
+        "Do not imply VA, DoD, APA, or U.S. government endorsement."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-31T16:30:00.000Z",
+      "notes": "The guideline is a current official comparator for adult MDD management, but the diagnostic-criteria sidebar expressly identifies its material as DSM-5 criteria. The current source-global representation therefore keeps structured indexing, AI processing, derived content, and redistribution disabled. PsychSim may record the guideline's verified metadata and use it to identify a review gap, but it may not treat that sidebar as source-cleared executable diagnostic content."
     },
     {
       "schemaVersion": 1,
@@ -1460,6 +1533,185 @@
       "reviewedBy": "reviewer.codex-source-rights-audit",
       "reviewedAt": "2026-07-27T15:34:26.000Z",
       "notes": "This decision permits only the independently worded current-indications proposition. It does not permit label extraction or a dosing/monitoring import."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.trzepacz.drs-r-98-validation.2001",
+      "evidenceSourceId": "evidence.trzepacz.drs-r-98-validation.2001",
+      "decisionStatus": "metadata_only",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["Global metadata reference only"],
+      "attributionStatement": null,
+      "requiredNotices": [
+        "Do not copy DRS-R-98 item wording, anchors, instructions, forms, or scoring materials.",
+        "Do not treat public web access as permission to reproduce or adapt the instrument.",
+        "Keep the published correction linked and unresolved.",
+        "Obtain written reuse permission or another explicit lawful instrument licence before adding real instrument content."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-31T14:32:00.000Z",
+      "notes": "Bibliographic metadata and an original abstract-level description may identify the source and the unresolved review question. No clinical contribution, instrument definition, score interpretation, rule, probability, or point value is authorized."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.trzepacz.drs-r-98-validation-erratum.2001",
+      "evidenceSourceId": "evidence.trzepacz.drs-r-98-validation-erratum.2001",
+      "decisionStatus": "metadata_only",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["Global metadata reference only"],
+      "attributionStatement": null,
+      "requiredNotices": [
+        "Preserve the correction relationship and journal locator.",
+        "Do not infer the corrected content from the existence of the notice.",
+        "Obtain and review the exact correction before activating an interpretation tied to the original article."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-31T14:32:00.000Z",
+      "notes": "The current record preserves verified correction metadata only. It authorizes no use of correction text or changes to the DRS-R-98 identity, content, scoring, or clinical interpretation."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.canmat-isbd.bipolar.2018",
+      "evidenceSourceId": "evidence.canmat-isbd.bipolar.2018",
+      "decisionStatus": "blocked_pending_permission",
+      "legalBasis": "open_license",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["Global, subject to CC BY-NC-ND 4.0"],
+      "attributionStatement": "Yatham LN, et al. CANMAT and ISBD 2018 guidelines for the management of patients with bipolar disorder. Bipolar Disorders. 2018. CC BY-NC-ND 4.0.",
+      "requiredNotices": [
+        "Do not adapt, extract into structured recommendations, or use the guideline text in AI-assisted processing without separate permission.",
+        "Do not use the verified public copy to imply permission for a derived clinical rule, probability, point value, or runtime summary.",
+        "Keep any later update, correction, or phase-specific evidence mapped as a separate provenance event.",
+        "Do not imply CANMAT, ISBD, journal, or author endorsement."
+      ],
+      "nonCommercialOnly": true,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-31T14:43:32.000Z",
+      "notes": "The source-specific NoDerivatives licence allows attributed noncommercial sharing of the unchanged article but not the transformations PsychSim would need for structured emulation inputs. This record therefore authorizes metadata only pending permission."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.canmat-isbd.bipolar-evidence-update.2023",
+      "evidenceSourceId": "evidence.canmat-isbd.bipolar-evidence-update.2023",
+      "decisionStatus": "blocked_pending_permission",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["Global metadata reference only"],
+      "attributionStatement": null,
+      "requiredNotices": [
+        "Treat public PMC reading access as distinct from Open Access or permission to extract, adapt, or use the article with AI.",
+        "Use the article only to identify the verified update relationship and unresolved phase-specific review questions.",
+        "Do not treat this summary/update as an automatically superseding full guideline.",
+        "Do not derive recommendations, rules, probabilities, or point values without a separately cleared source and psychiatrist review."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-31T14:43:32.000Z",
+      "notes": "The official PMC Open Access service reports that the article is not in the Open Access Subset. Bibliographic metadata and its relationship to the 2018 source are retained; clinical transformation remains blocked."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.apa.eating-disorders.2023",
+      "evidenceSourceId": "evidence.apa.eating-disorders.fourth-edition.2023",
+      "decisionStatus": "blocked_pending_permission",
+      "legalBasis": "metadata_only",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": false,
+        "localTextExtraction": false,
+        "localStructuredIndexing": false,
+        "aiAssistedProcessing": false,
+        "derivedClinicalContent": false,
+        "runtimeRedistribution": false,
+        "commercialDistribution": false
+      },
+      "allowedContributionTypes": [],
+      "territories": ["Global metadata reference only"],
+      "attributionStatement": null,
+      "requiredNotices": [
+        "Do not copy, extract, adapt, or input APA guideline content into AI systems without written permission.",
+        "Keep the full guideline distinct from its separately published executive summary.",
+        "Use metadata only to define the source gap and the topics that need a legally reusable companion source.",
+        "Do not infer a medical-instability threshold, disposition rule, generation probability, or point value from the source title or table of contents."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "item_level_review_required",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-07-31T14:43:32.000Z",
+      "notes": "APA's public copyright policy reserves copying, adaptation, text/data mining, and AI use. This decision preserves only verified bibliographic metadata and a source-gap locator."
     }
   ]
 }

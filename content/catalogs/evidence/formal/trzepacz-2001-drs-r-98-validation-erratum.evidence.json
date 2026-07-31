@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.trzepacz.drs-r-98-validation-erratum.2001",
+  "authority": "formal_publication",
+  "sourceType": "correction_notice",
+  "title": "Published correction to Validation of the Delirium Rating Scale-revised-98",
+  "authors": [],
+  "organization": "American Psychiatric Association Publishing",
+  "publicationYear": 2001,
+  "publicationDate": "2001",
+  "lastReviewedDate": null,
+  "versionLabel": "Journal correction notice at volume 13, issue 3, page 433",
+  "containerTitle": "The Journal of Neuropsychiatry and Clinical Neurosciences",
+  "volume": "13",
+  "issue": "3",
+  "pages": "433",
+  "doi": null,
+  "pmid": null,
+  "url": "https://pubmed.ncbi.nlm.nih.gov/11449030/",
+  "citation": "Published correction to: Validation of the Delirium Rating Scale-revised-98. J Neuropsychiatry Clin Neurosci. 2001;13(3):433.",
+  "knownContentHashes": [],
+  "jurisdictions": ["United States publication context"],
+  "populations": ["Not applicable; bibliographic correction"],
+  "settings": ["Publication correction"],
+  "sourceRelations": [
+    {
+      "sourceId": "evidence.trzepacz.drs-r-98-validation.2001",
+      "relationType": "corrects",
+      "note": "PubMed records a published correction in J Neuropsychiatry Clin Neurosci. 2001;13(3):433. The exact corrected content has not yet been lawfully obtained and reviewed."
+    }
+  ],
+  "accessPolicy": {
+    "fullTextStatus": "metadata_only",
+    "reuseStatus": "not_verified",
+    "adaptationStatus": "not_verified",
+    "commercialUseStatus": "not_verified",
+    "aiUseStatus": "not_verified",
+    "localExtractionStatus": "not_verified",
+    "licenseLabel": null,
+    "licenseUrl": null,
+    "termsUrl": "https://psychiatryonline.org/journals/faq",
+    "note": "PubMed verifies that a correction exists and supplies the journal locator, but the correction text and reuse terms have not been verified. The correction must remain linked and unresolved before any DRS-R-98 interpretation is activated."
+  },
+  "metadataReviewedAt": "2026-07-31T14:32:00.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

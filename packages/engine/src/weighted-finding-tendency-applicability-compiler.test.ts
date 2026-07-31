@@ -426,6 +426,7 @@ const makeComposedState = (): {
     reactionHistoryBridgeArtifact: null,
     priorTreatmentBridgeArtifact: null,
     exposureBridgeArtifact: null,
+    findingTextureBridgeArtifact: null,
   });
   if (!composed.ok) throw new Error(composed.error.message);
   return { composition: composed.value, conditionSource };
@@ -761,6 +762,7 @@ const makeBlockedComposition = (): ResolvedPatientStateCompositionArtifact => {
     reactionHistoryBridgeArtifact: null,
     priorTreatmentBridgeArtifact: null,
     exposureBridgeArtifact: null,
+    findingTextureBridgeArtifact: null,
   });
   if (!composed.ok) throw new Error(composed.error.message);
   return composed.value;

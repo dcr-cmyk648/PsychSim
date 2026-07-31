@@ -1,11 +1,11 @@
 import {
+  EvidenceSourceDefinitionSchema,
   LiteratureSynthesisProposalSchema,
   SourceUseDecisionCatalogSchema,
 } from '@psychsim/schemas';
 import { describe, expect, it } from 'vitest';
 
 import sourceUseDecisionsJson from '../../../content/catalogs/evidence/source-use-decisions.json';
-import { catalogs } from './content';
 import {
   developerCaseBlueprints,
   developerClinicalAuditTickets,
@@ -17,6 +17,16 @@ import {
 } from './literature-synthesis';
 
 const sourceUseDecisions = SourceUseDecisionCatalogSchema.parse(sourceUseDecisionsJson).decisions;
+const evidenceSourceModules = import.meta.glob(
+  '../../../content/catalogs/evidence/formal/*.evidence.json',
+  {
+    eager: true,
+    import: 'default',
+  },
+) as Record<string, unknown>;
+const allRegisteredEvidenceSources = Object.entries(evidenceSourceModules)
+  .sort(([left], [right]) => left.localeCompare(right))
+  .map(([, value]) => EvidenceSourceDefinitionSchema.parse(value));
 
 const validate = (
   proposals = developerLiteratureSynthesisProposals,
@@ -24,7 +34,7 @@ const validate = (
 ) =>
   validateLiteratureSynthesisProposals(
     proposals,
-    catalogs.evidenceSources,
+    allRegisteredEvidenceSources,
     decisions,
     developerCaseBlueprints,
     developerClinicalAuditTickets,

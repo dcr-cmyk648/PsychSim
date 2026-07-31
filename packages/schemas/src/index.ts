@@ -5558,6 +5558,7 @@ export const PatientOptionalFeatureModuleKindSchema = z.enum([
   'prior_treatment',
   'comorbidity',
   'substance_use',
+  'finding_texture',
   'other',
 ]);
 export type PatientOptionalFeatureModuleKind = z.infer<
@@ -11571,6 +11572,127 @@ export const DecisionBalanceCatalogSchema = z
   });
 export type DecisionBalanceCatalog = z.infer<typeof DecisionBalanceCatalogSchema>;
 
+export const DecisionBalanceSnapshotFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.decision-balance-snapshot\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type DecisionBalanceSnapshotFingerprint = z.infer<
+  typeof DecisionBalanceSnapshotFingerprintSchema
+>;
+
+export const DecisionMatchedBalanceSnapshotSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    balanceKind: z.literal('matched_rule'),
+    ruleRef: DecisionRuleReferenceSchema,
+    impactBand: DecisionBalanceImpactBandSchema,
+    component: NonDiagnosisScoreComponentSchema,
+    pointsWhenMatched: z
+      .number()
+      .int()
+      .refine((points) => points !== 0, {
+        message: 'A frozen matched-rule balance must retain a nonzero point value.',
+      }),
+    unmatchedBehavior: z.literal('not_triggered_zero'),
+    matchedExplanation: z.string().trim().min(1).max(1_200),
+    unmatchedExplanation: z.string().trim().min(1).max(1_200),
+  })
+  .strict();
+export type DecisionMatchedBalanceSnapshot = z.infer<typeof DecisionMatchedBalanceSnapshotSchema>;
+
+export const DecisionTriggeredInformationPrerequisiteBalanceSnapshotSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    balanceKind: z.literal('triggered_information_prerequisite'),
+    ruleRef: DecisionRuleReferenceSchema.extend({
+      kind: z.literal('diagnosis_rule'),
+    }).strict(),
+    component: NonDiagnosisScoreComponentSchema,
+    outcomes: z
+      .object({
+        notTriggered: z
+          .object({
+            points: z.literal(0),
+            explanation: z.string().trim().min(1).max(1_200),
+          })
+          .strict(),
+        fulfilled: z
+          .object({
+            impactBand: DecisionBalanceImpactBandSchema,
+            points: z.number().int().positive(),
+            explanation: z.string().trim().min(1).max(1_200),
+          })
+          .strict(),
+        omitted: z
+          .object({
+            impactBand: DecisionBalanceImpactBandSchema,
+            points: z.number().int().negative(),
+            explanation: z.string().trim().min(1).max(1_200),
+          })
+          .strict(),
+      })
+      .strict(),
+  })
+  .strict();
+export type DecisionTriggeredInformationPrerequisiteBalanceSnapshot = z.infer<
+  typeof DecisionTriggeredInformationPrerequisiteBalanceSnapshotSchema
+>;
+
+export const DecisionBalanceSnapshotDefinitionSchema = z.discriminatedUnion('balanceKind', [
+  DecisionMatchedBalanceSnapshotSchema,
+  DecisionTriggeredInformationPrerequisiteBalanceSnapshotSchema,
+]);
+export type DecisionBalanceSnapshotDefinition = z.infer<
+  typeof DecisionBalanceSnapshotDefinitionSchema
+>;
+
+/**
+ * Minimized historical point ownership for one compiled rubric. It retains
+ * exact balance values and explanations without copying clinical rules,
+ * authoring rationale, or Developer-opinion records into the attempt.
+ */
+export const DecisionBalanceCatalogSnapshotSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('decision-balance-catalog-snapshot.v1'),
+    sourceCatalogRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+      })
+      .strict(),
+    sourceCatalogFingerprint: DecisionBalanceSnapshotFingerprintSchema,
+    balances: z.array(DecisionBalanceSnapshotDefinitionSchema),
+    payloadFingerprint: DecisionBalanceSnapshotFingerprintSchema,
+  })
+  .strict()
+  .superRefine((snapshot, context) => {
+    const ids = snapshot.balances.map((balance) => balance.id);
+    const targetKeys = snapshot.balances.map((balance) =>
+      [
+        balance.ruleRef.kind,
+        balance.ruleRef.id,
+        balance.ruleRef.contentVersion,
+        balance.ruleRef.ownerId,
+        balance.ruleRef.ownerContentVersion,
+      ].join('\0'),
+    );
+    if (new Set(ids).size !== ids.length || new Set(targetKeys).size !== targetKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['balances'],
+        message:
+          'A decision-balance snapshot may retain each balance and exact rule target only once.',
+      });
+    }
+  });
+export type DecisionBalanceCatalogSnapshot = z.infer<typeof DecisionBalanceCatalogSnapshotSchema>;
+
 const decisionPredicateContainsRecordKind = (
   predicate: DecisionPatientPredicate | null,
   recordKind: DecisionPatientFactRecordKind,
@@ -13395,7 +13517,7 @@ export type ConditionFindingCardinalityGroup = z.infer<
  * These weights are game-authoring variety controls. They are not diagnostic
  * probabilities, prevalence, evidence strength, or points.
  */
-export const ConditionFindingCardinalityProfileSchema = z
+const ConditionFindingCardinalityV1ProfileSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     contentVersion: ContentVersionSchema,
@@ -13448,6 +13570,219 @@ export const ConditionFindingCardinalityProfileSchema = z
       });
     }
   });
+
+export const ConditionFindingDimensionManifestationSchema = z
+  .object({
+    ...ConditionFindingReviewedOutcomeShape,
+    gameSelectionWeight: z.number().int().positive().max(10_000),
+  })
+  .strict()
+  .superRefine(validateConditionFindingReview);
+export type ConditionFindingDimensionManifestation = z.infer<
+  typeof ConditionFindingDimensionManifestationSchema
+>;
+
+export const ConditionFindingDimensionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    gameSelectionWeight: z.number().int().positive().max(10_000),
+    minimumManifestations: z.number().int().positive(),
+    maximumManifestations: z.number().int().positive(),
+    manifestationCountWeights: z.array(ConditionFindingCardinalityCountWeightSchema).min(1),
+    manifestations: z.array(ConditionFindingDimensionManifestationSchema).min(1).max(16),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((dimension, context) => {
+    validateConditionFindingReview(dimension, context);
+    const counts = dimension.manifestationCountWeights.map((entry) => entry.selectionCount);
+    const manifestationIds = dimension.manifestations.map((manifestation) => manifestation.id);
+    const findingKeys = dimension.manifestations.map(
+      (manifestation) =>
+        `${manifestation.findingDefinitionId}\u0000${manifestation.findingDefinitionContentVersion}`,
+    );
+    if (
+      dimension.minimumManifestations > dimension.maximumManifestations ||
+      dimension.maximumManifestations > dimension.manifestations.length ||
+      dimension.manifestationCountWeights.some(
+        (entry) =>
+          entry.selectionCount < dimension.minimumManifestations ||
+          entry.selectionCount > dimension.maximumManifestations,
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['manifestationCountWeights'],
+        message:
+          'Every reachable manifestation count must remain within achievable dimension bounds.',
+      });
+    }
+    if (
+      new Set(counts).size !== counts.length ||
+      new Set(manifestationIds).size !== manifestationIds.length ||
+      new Set(findingKeys).size !== findingKeys.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Manifestation counts, manifestation IDs, and finding targets must be unique within one dimension.',
+      });
+    }
+  });
+export type ConditionFindingDimension = z.infer<typeof ConditionFindingDimensionSchema>;
+
+export const ConditionFindingDimensionSelectionRequirementSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    dimensionIds: z.array(StableIdSchema).min(1).max(32),
+    minimumSelections: z.number().int().nonnegative(),
+    maximumSelections: z.number().int().positive(),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((requirement, context) => {
+    validateConditionFindingReview(requirement, context);
+    if (
+      new Set(requirement.dimensionIds).size !== requirement.dimensionIds.length ||
+      requirement.minimumSelections > requirement.maximumSelections ||
+      requirement.maximumSelections > requirement.dimensionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A dimension-selection requirement needs unique members and achievable minimum/maximum bounds.',
+      });
+    }
+  });
+export type ConditionFindingDimensionSelectionRequirement = z.infer<
+  typeof ConditionFindingDimensionSelectionRequirementSchema
+>;
+
+/**
+ * Dimension weights are deterministic game-authoring variety controls. A
+ * selected dimension counts once even when it emits several separately
+ * auditable manifestations. They are not diagnostic probabilities,
+ * prevalence, evidence strength, or points.
+ */
+export const ConditionFindingDimensionProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('condition-finding-dimensions.v1'),
+    conditionScope: ConditionFindingProfileScopeSchema,
+    requiredOutcomes: z.array(ConditionFindingRequiredOutcomeSchema),
+    minimumSelectedDimensions: z.number().int().positive(),
+    maximumSelectedDimensions: z.number().int().positive(),
+    dimensionCountWeights: z.array(ConditionFindingCardinalityCountWeightSchema).min(1),
+    dimensions: z.array(ConditionFindingDimensionSchema).min(1).max(32),
+    selectionRequirements: z.array(ConditionFindingDimensionSelectionRequirementSchema).max(16),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    validateConditionFindingReview(profile, context);
+    const dimensionIds = profile.dimensions.map((dimension) => dimension.id);
+    const countValues = profile.dimensionCountWeights.map((entry) => entry.selectionCount);
+    const requirementIds = profile.selectionRequirements.map((requirement) => requirement.id);
+    const requirementDimensionIds = profile.selectionRequirements.flatMap(
+      (requirement) => requirement.dimensionIds,
+    );
+    const ownedIds = [
+      ...profile.requiredOutcomes.map((outcome) => outcome.id),
+      ...dimensionIds,
+      ...profile.dimensions.flatMap((dimension) =>
+        dimension.manifestations.map((manifestation) => manifestation.id),
+      ),
+      ...requirementIds,
+    ];
+    const findingKeys = [
+      ...profile.requiredOutcomes.map(
+        (outcome) =>
+          `${outcome.findingDefinitionId}\u0000${outcome.findingDefinitionContentVersion}`,
+      ),
+      ...profile.dimensions.flatMap((dimension) =>
+        dimension.manifestations.map(
+          (manifestation) =>
+            `${manifestation.findingDefinitionId}\u0000${manifestation.findingDefinitionContentVersion}`,
+        ),
+      ),
+    ];
+    const findingDefinitionIds = [
+      ...profile.requiredOutcomes.map((outcome) => outcome.findingDefinitionId),
+      ...profile.dimensions.flatMap((dimension) =>
+        dimension.manifestations.map((manifestation) => manifestation.findingDefinitionId),
+      ),
+    ];
+    if (
+      profile.minimumSelectedDimensions > profile.maximumSelectedDimensions ||
+      profile.maximumSelectedDimensions > profile.dimensions.length ||
+      profile.dimensionCountWeights.some(
+        (entry) =>
+          entry.selectionCount < profile.minimumSelectedDimensions ||
+          entry.selectionCount > profile.maximumSelectedDimensions,
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['dimensionCountWeights'],
+        message: 'Every reachable dimension count must remain within achievable profile bounds.',
+      });
+    }
+    if (
+      new Set(dimensionIds).size !== dimensionIds.length ||
+      new Set(countValues).size !== countValues.length ||
+      new Set(requirementIds).size !== requirementIds.length ||
+      new Set(requirementDimensionIds).size !== requirementDimensionIds.length ||
+      requirementDimensionIds.some((dimensionId) => !dimensionIds.includes(dimensionId)) ||
+      new Set(ownedIds).size !== ownedIds.length ||
+      new Set(findingKeys).size !== findingKeys.length ||
+      new Set(findingDefinitionIds).size !== findingDefinitionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A dimension profile requires unique dimensions, nonoverlapping requirement membership, owned IDs, and finding targets.',
+      });
+    }
+    const constrainedIds = new Set(requirementDimensionIds);
+    const unconstrainedCount = dimensionIds.filter(
+      (dimensionId) => !constrainedIds.has(dimensionId),
+    ).length;
+    for (const count of countValues) {
+      const minimumRequired = profile.selectionRequirements.reduce(
+        (total, requirement) => total + requirement.minimumSelections,
+        0,
+      );
+      const maximumCapacity =
+        unconstrainedCount +
+        profile.selectionRequirements.reduce(
+          (total, requirement) => total + requirement.maximumSelections,
+          0,
+        );
+      if (count < minimumRequired || count > maximumCapacity) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dimensionCountWeights'],
+          message:
+            'Every offered dimension count must satisfy the complete nonoverlapping selection-requirement envelope.',
+        });
+      }
+    }
+  });
+export type ConditionFindingDimensionProfile = z.infer<
+  typeof ConditionFindingDimensionProfileSchema
+>;
+
+export const ConditionFindingCardinalityProfileSchema = z.union([
+  ConditionFindingCardinalityV1ProfileSchema,
+  ConditionFindingDimensionProfileSchema,
+]);
 export type ConditionFindingCardinalityProfile = z.infer<
   typeof ConditionFindingCardinalityProfileSchema
 >;
@@ -13585,6 +13920,240 @@ export type ConditionFindingCardinalityGroupSelection = z.infer<
   typeof ConditionFindingCardinalityGroupSelectionSchema
 >;
 
+export const ConditionFindingDimensionSelectionDrawSchema = z
+  .object({
+    selectionOrdinal: z.number().int().nonnegative(),
+    selectedDimensionId: StableIdSchema,
+    stableDrawId: StableIdSchema,
+  })
+  .strict();
+export type ConditionFindingDimensionSelectionDraw = z.infer<
+  typeof ConditionFindingDimensionSelectionDrawSchema
+>;
+
+export const ConditionFindingDimensionManifestationSelectionDrawSchema = z
+  .object({
+    selectionOrdinal: z.number().int().nonnegative(),
+    selectedManifestationId: StableIdSchema,
+    stableDrawId: StableIdSchema,
+  })
+  .strict();
+export type ConditionFindingDimensionManifestationSelectionDraw = z.infer<
+  typeof ConditionFindingDimensionManifestationSelectionDrawSchema
+>;
+
+export const ConditionFindingDimensionManifestationEvaluationSchema = z
+  .object({
+    manifestationId: StableIdSchema,
+    findingDefinitionId: StableIdSchema,
+    findingDefinitionContentVersion: ContentVersionSchema,
+    proposedValue: ConditionFindingGeneratedOutcomeValueSchema,
+    uncertainty: z.enum(['none', 'reported_uncertain', 'conflicting_sources']),
+    gameSelectionWeight: z.number().int().positive().max(10_000),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+    selected: z.boolean(),
+    selectionOrdinal: z.number().int().nonnegative().nullable(),
+    stableDrawId: StableIdSchema.nullable(),
+    candidateId: StableIdSchema.nullable(),
+  })
+  .strict()
+  .superRefine((manifestation, context) => {
+    validateConditionFindingReview(manifestation, context);
+    const hasTrace =
+      manifestation.selectionOrdinal !== null &&
+      manifestation.stableDrawId !== null &&
+      manifestation.candidateId !== null;
+    if (manifestation.selected !== hasTrace) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Only a selected dimension manifestation may retain an ordinal, stable draw, and emitted candidate ID.',
+      });
+    }
+  });
+export type ConditionFindingDimensionManifestationEvaluation = z.infer<
+  typeof ConditionFindingDimensionManifestationEvaluationSchema
+>;
+
+export const ConditionFindingDimensionEvaluationSchema = z
+  .object({
+    dimensionId: StableIdSchema,
+    gameSelectionWeight: z.number().int().positive().max(10_000),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+    selected: z.boolean(),
+    selectionOrdinal: z.number().int().nonnegative().nullable(),
+    stableDrawId: StableIdSchema.nullable(),
+    selectedManifestationCount: z.number().int().positive().nullable(),
+    selectedManifestationCountGameWeight: z.number().int().positive().max(10_000).nullable(),
+    manifestationCountStableDrawId: StableIdSchema.nullable(),
+    manifestationSelectionDraws: z.array(ConditionFindingDimensionManifestationSelectionDrawSchema),
+    manifestationEvaluations: z
+      .array(ConditionFindingDimensionManifestationEvaluationSchema)
+      .min(1),
+  })
+  .strict()
+  .superRefine((dimension, context) => {
+    validateConditionFindingReview(dimension, context);
+    const hasDimensionTrace =
+      dimension.selectionOrdinal !== null && dimension.stableDrawId !== null;
+    const hasManifestationCountTrace =
+      dimension.selectedManifestationCount !== null &&
+      dimension.selectedManifestationCountGameWeight !== null &&
+      dimension.manifestationCountStableDrawId !== null;
+    const selectedManifestations = dimension.manifestationEvaluations.filter(
+      (manifestation) => manifestation.selected,
+    );
+    const manifestationIds = dimension.manifestationEvaluations.map(
+      (manifestation) => manifestation.manifestationId,
+    );
+    const selectedTraces = selectedManifestations
+      .map(
+        (manifestation) =>
+          `${manifestation.manifestationId}\u0000${manifestation.selectionOrdinal}\u0000${manifestation.stableDrawId}`,
+      )
+      .sort();
+    const drawTraces = dimension.manifestationSelectionDraws
+      .map(
+        (draw) =>
+          `${draw.selectedManifestationId}\u0000${draw.selectionOrdinal}\u0000${draw.stableDrawId}`,
+      )
+      .sort();
+    const ordinals = dimension.manifestationSelectionDraws
+      .map((draw) => draw.selectionOrdinal)
+      .sort((left, right) => left - right);
+    const stableDrawIds = dimension.manifestationSelectionDraws.map((draw) => draw.stableDrawId);
+    if (
+      dimension.selected !== hasDimensionTrace ||
+      dimension.selected !== hasManifestationCountTrace ||
+      new Set(manifestationIds).size !== manifestationIds.length ||
+      new Set(stableDrawIds).size !== stableDrawIds.length ||
+      (dimension.selectedManifestationCount ?? 0) !== selectedManifestations.length ||
+      (dimension.selectedManifestationCount ?? 0) !==
+        dimension.manifestationSelectionDraws.length ||
+      ordinals.some((ordinal, index) => ordinal !== index) ||
+      selectedTraces.join('\u0001') !== drawTraces.join('\u0001')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A dimension must exactly trace its own selection and every selected manifestation once in ordinal order.',
+      });
+    }
+  });
+export type ConditionFindingDimensionEvaluation = z.infer<
+  typeof ConditionFindingDimensionEvaluationSchema
+>;
+
+export const ConditionFindingDimensionRequirementEvaluationSchema = z
+  .object({
+    requirementId: StableIdSchema,
+    dimensionIds: z.array(StableIdSchema).min(1).max(32),
+    minimumSelections: z.number().int().nonnegative(),
+    maximumSelections: z.number().int().positive(),
+    selectedCount: z.number().int().nonnegative(),
+    satisfied: z.literal(true),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((requirement, context) => {
+    validateConditionFindingReview(requirement, context);
+    if (
+      new Set(requirement.dimensionIds).size !== requirement.dimensionIds.length ||
+      requirement.minimumSelections > requirement.maximumSelections ||
+      requirement.maximumSelections > requirement.dimensionIds.length ||
+      requirement.selectedCount < requirement.minimumSelections ||
+      requirement.selectedCount > requirement.maximumSelections
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A saved dimension requirement must retain unique members and a satisfying selected count.',
+      });
+    }
+  });
+export type ConditionFindingDimensionRequirementEvaluation = z.infer<
+  typeof ConditionFindingDimensionRequirementEvaluationSchema
+>;
+
+export const ConditionFindingDimensionProfileSelectionSchema = z
+  .object({
+    bindingId: StableIdSchema,
+    conditionStateId: StableIdSchema,
+    profileRef: CatalogInstanceVersionedReferenceSchema,
+    profileFingerprint: ConditionFindingCardinalityFingerprintSchema,
+    selectedDimensionCount: z.number().int().positive(),
+    selectedDimensionCountGameWeight: z.number().int().positive().max(10_000),
+    countStableDrawId: StableIdSchema,
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+    selectionDraws: z.array(ConditionFindingDimensionSelectionDrawSchema).min(1),
+    requirementEvaluations: z.array(ConditionFindingDimensionRequirementEvaluationSchema),
+    dimensionEvaluations: z.array(ConditionFindingDimensionEvaluationSchema).min(1),
+  })
+  .strict()
+  .superRefine((selection, context) => {
+    validateConditionFindingReview(selection, context);
+    const dimensionIds = selection.dimensionEvaluations.map((dimension) => dimension.dimensionId);
+    const selectedDimensions = selection.dimensionEvaluations.filter(
+      (dimension) => dimension.selected,
+    );
+    const selectedTraces = selectedDimensions
+      .map(
+        (dimension) =>
+          `${dimension.dimensionId}\u0000${dimension.selectionOrdinal}\u0000${dimension.stableDrawId}`,
+      )
+      .sort();
+    const drawTraces = selection.selectionDraws
+      .map(
+        (draw) =>
+          `${draw.selectedDimensionId}\u0000${draw.selectionOrdinal}\u0000${draw.stableDrawId}`,
+      )
+      .sort();
+    const ordinals = selection.selectionDraws
+      .map((draw) => draw.selectionOrdinal)
+      .sort((left, right) => left - right);
+    const stableDrawIds = selection.selectionDraws.map((draw) => draw.stableDrawId);
+    const requirementIds = selection.requirementEvaluations.map(
+      (requirement) => requirement.requirementId,
+    );
+    const selectedDimensionIds = new Set(
+      selectedDimensions.map((dimension) => dimension.dimensionId),
+    );
+    const requirementMembershipIds = selection.requirementEvaluations.flatMap(
+      (requirement) => requirement.dimensionIds,
+    );
+    const requirementCountsMatch = selection.requirementEvaluations.every(
+      (requirement) =>
+        requirement.dimensionIds.every((dimensionId) => dimensionIds.includes(dimensionId)) &&
+        requirement.selectedCount ===
+          requirement.dimensionIds.filter((dimensionId) => selectedDimensionIds.has(dimensionId))
+            .length,
+    );
+    if (
+      new Set(dimensionIds).size !== dimensionIds.length ||
+      new Set(stableDrawIds).size !== stableDrawIds.length ||
+      new Set(requirementIds).size !== requirementIds.length ||
+      new Set(requirementMembershipIds).size !== requirementMembershipIds.length ||
+      !requirementCountsMatch ||
+      selection.selectedDimensionCount !== selectedDimensions.length ||
+      selection.selectedDimensionCount !== selection.selectionDraws.length ||
+      ordinals.some((ordinal, index) => ordinal !== index) ||
+      selectedTraces.join('\u0001') !== drawTraces.join('\u0001')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A dimension-profile selection must exactly trace every selected dimension and reviewed requirement.',
+      });
+    }
+  });
+export type ConditionFindingDimensionProfileSelection = z.infer<
+  typeof ConditionFindingDimensionProfileSelectionSchema
+>;
+
 export const ConditionFindingCardinalityProfileReferenceSchema = z
   .object({
     id: StableIdSchema,
@@ -13658,6 +14227,7 @@ export const ConditionFindingCardinalityArtifactSchema = z
     unboundConditionStateIds: z.array(StableIdSchema),
     requiredEvaluations: z.array(ConditionFindingRequiredEvaluationSchema),
     groupSelections: z.array(ConditionFindingCardinalityGroupSelectionSchema),
+    dimensionSelections: z.array(ConditionFindingDimensionProfileSelectionSchema),
     candidates: z.array(FindingResolutionCandidateSchema),
     inputFingerprint: ConditionFindingCardinalityFingerprintSchema,
     payloadFingerprint: ConditionFindingCardinalityFingerprintSchema,
@@ -13714,12 +14284,22 @@ export const ConditionFindingCardinalityArtifactSchema = z
     const groupKeys = artifact.groupSelections.map(
       (group) => `${group.bindingId}\u0000${group.groupId}`,
     );
+    const dimensionSelectionBindingIds = artifact.dimensionSelections.map(
+      (selection) => selection.bindingId,
+    );
     const candidateIds = artifact.candidates.map((candidate) => candidate.id);
     const evaluationCandidateIds = [
       ...artifact.requiredEvaluations.map((evaluation) => evaluation.candidateId),
       ...artifact.groupSelections.flatMap((group) =>
         group.memberEvaluations.flatMap((member) =>
           member.candidateId === null ? [] : [member.candidateId],
+        ),
+      ),
+      ...artifact.dimensionSelections.flatMap((selection) =>
+        selection.dimensionEvaluations.flatMap((dimension) =>
+          dimension.manifestationEvaluations.flatMap((manifestation) =>
+            manifestation.candidateId === null ? [] : [manifestation.candidateId],
+          ),
         ),
       ),
     ].sort();
@@ -13733,6 +14313,10 @@ export const ConditionFindingCardinalityArtifactSchema = z
       new Set(boundPairs).size !== boundPairs.length ||
       new Set(requiredKeys).size !== requiredKeys.length ||
       new Set(groupKeys).size !== groupKeys.length ||
+      new Set(dimensionSelectionBindingIds).size !== dimensionSelectionBindingIds.length ||
+      artifact.groupSelections.some((group) =>
+        dimensionSelectionBindingIds.includes(group.bindingId),
+      ) ||
       new Set(candidateIds).size !== candidateIds.length ||
       new Set(contributionIds).size !== contributionIds.length ||
       candidateIds.slice().sort().join('\u0001') !== evaluationCandidateIds.join('\u0001') ||
@@ -13803,6 +14387,22 @@ export const ConditionFindingCardinalityArtifactSchema = z
           code: z.ZodIssueCode.custom,
           path: ['groupSelections'],
           message: 'A group selection must retain its exact condition-profile binding.',
+        });
+      }
+    }
+    for (const selection of artifact.dimensionSelections) {
+      const binding = bindingById.get(selection.bindingId);
+      if (
+        !binding ||
+        binding.conditionStateId !== selection.conditionStateId ||
+        binding.profileRef.id !== selection.profileRef.id ||
+        binding.profileRef.contentVersion !== selection.profileRef.contentVersion ||
+        binding.profileFingerprint !== selection.profileFingerprint
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dimensionSelections'],
+          message: 'A dimension-profile selection must retain its exact condition-profile binding.',
         });
       }
     }
@@ -13912,18 +14512,22 @@ export const ConditionFindingCardinalityRequestSchema = z
         message: 'Every supplied condition-finding profile must be bound at least once.',
       });
     }
-    const referencedDefinitionKeys = request.profiles.flatMap((profile) => [
-      ...profile.requiredOutcomes.map(
-        (outcome) =>
-          `${outcome.findingDefinitionId}\u0000${outcome.findingDefinitionContentVersion}`,
-      ),
-      ...profile.cardinalityGroups.flatMap((group) =>
-        group.members.map(
-          (member) =>
-            `${member.findingDefinitionId}\u0000${member.findingDefinitionContentVersion}`,
+    const referencedDefinitionKeys = request.profiles.flatMap((profile) => {
+      const variableOutcomes =
+        profile.modelVersion === 'condition-finding-cardinality.v1'
+          ? profile.cardinalityGroups.flatMap((group) => group.members)
+          : profile.dimensions.flatMap((dimension) => dimension.manifestations);
+      return [
+        ...profile.requiredOutcomes.map(
+          (outcome) =>
+            `${outcome.findingDefinitionId}\u0000${outcome.findingDefinitionContentVersion}`,
         ),
-      ),
-    ]);
+        ...variableOutcomes.map(
+          (outcome) =>
+            `${outcome.findingDefinitionId}\u0000${outcome.findingDefinitionContentVersion}`,
+        ),
+      ];
+    });
     if (
       new Set(referencedDefinitionKeys).size !== definitionKeys.length ||
       referencedDefinitionKeys.some((definitionKey) => !definitionsByKey.has(definitionKey)) ||
@@ -14241,6 +14845,9 @@ export const BackgroundFindingOutcomeRequestSchema = z
         ...request.conditionFindingArtifact.requiredEvaluations,
         ...request.conditionFindingArtifact.groupSelections.flatMap(
           (group) => group.memberEvaluations,
+        ),
+        ...request.conditionFindingArtifact.dimensionSelections.flatMap((selection) =>
+          selection.dimensionEvaluations.flatMap((dimension) => dimension.manifestationEvaluations),
         ),
       ].map((evaluation) => [
         evaluation.findingDefinitionId,
@@ -19924,6 +20531,425 @@ export type OptionalExposureBudgetBridgeArtifact = z.infer<
   typeof OptionalExposureBudgetBridgeArtifactSchema
 >;
 
+export const OptionalFindingTextureBridgeFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.optional-finding-texture-bridge\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type OptionalFindingTextureBridgeFingerprint = z.infer<
+  typeof OptionalFindingTextureBridgeFingerprintSchema
+>;
+
+export const OptionalFindingTextureReferenceHorizonSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    findingDefinitionRefs: z.array(CatalogInstanceVersionedReferenceSchema).min(1).max(128),
+  })
+  .strict()
+  .superRefine((horizon, context) => {
+    const ids = horizon.findingDefinitionRefs.map((reference) => reference.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['findingDefinitionRefs'],
+        message: 'An optional finding-texture horizon may reference each finding definition once.',
+      });
+    }
+  });
+export type OptionalFindingTextureReferenceHorizon = z.infer<
+  typeof OptionalFindingTextureReferenceHorizonSchema
+>;
+
+export const OptionalFindingTextureOutcomeSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    findingDefinitionId: StableIdSchema,
+    findingDefinitionContentVersion: ContentVersionSchema,
+    proposedValue: ConditionFindingGeneratedOutcomeValueSchema,
+    uncertainty: z.enum(['none', 'reported_uncertain', 'conflicting_sources']),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((outcome, context) => {
+    if (
+      new Set(outcome.developerOpinionIds).size !== outcome.developerOpinionIds.length ||
+      outcome.review.status !== 'approved' ||
+      (outcome.developerOpinionIds.length === 0 && outcome.review.sourceUseNoteIds.length === 0)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An executable optional finding-texture outcome requires unique provenance and explicit rule-level approval.',
+      });
+    }
+  });
+export type OptionalFindingTextureOutcome = z.infer<typeof OptionalFindingTextureOutcomeSchema>;
+
+export const OptionalFindingTextureMappingSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    moduleRef: CatalogInstanceVersionedReferenceSchema,
+    moduleFingerprint: OptionalFeatureBudgetFingerprintSchema,
+    optionalFeatureBindingId: StableIdSchema,
+    selectedModuleId: StableIdSchema,
+    outcomes: z.array(OptionalFindingTextureOutcomeSchema).min(1).max(8),
+  })
+  .strict()
+  .superRefine((mapping, context) => {
+    const outcomeIds = mapping.outcomes.map((outcome) => outcome.id);
+    const findingIds = mapping.outcomes.map((outcome) => outcome.findingDefinitionId);
+    if (
+      new Set(outcomeIds).size !== outcomeIds.length ||
+      new Set(findingIds).size !== findingIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['outcomes'],
+        message:
+          'One optional finding-texture mapping requires unique outcome and finding identities.',
+      });
+    }
+  });
+export type OptionalFindingTextureMapping = z.infer<typeof OptionalFindingTextureMappingSchema>;
+
+export const OptionalFindingTextureBridgeProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('selected-optional-finding-texture.v1'),
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: TemplateConditionSelectionFingerprintSchema,
+    optionalFeatureProfileRef: CatalogInstanceVersionedReferenceSchema,
+    optionalFeatureProfileFingerprint: OptionalFeatureBudgetFingerprintSchema,
+    referenceHorizonRef: CatalogInstanceVersionedReferenceSchema,
+    referenceHorizonFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
+    mappings: z.array(OptionalFindingTextureMappingSchema).min(1).max(64),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    const mappingIds = profile.mappings.map((mapping) => mapping.id);
+    const moduleIds = profile.mappings.map((mapping) => mapping.moduleRef.id);
+    const bindingIds = profile.mappings.map((mapping) => mapping.optionalFeatureBindingId);
+    const selectedModuleIds = profile.mappings.map((mapping) => mapping.selectedModuleId);
+    const findingIds = profile.mappings.flatMap((mapping) =>
+      mapping.outcomes.map((outcome) => outcome.findingDefinitionId),
+    );
+    if (
+      new Set(mappingIds).size !== mappingIds.length ||
+      new Set(moduleIds).size !== moduleIds.length ||
+      new Set(bindingIds).size !== bindingIds.length ||
+      new Set(selectedModuleIds).size !== selectedModuleIds.length ||
+      new Set(findingIds).size !== findingIds.length ||
+      profile.review.status !== 'approved'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An executable optional finding-texture profile requires one approved, collision-free mapping per module, binding, selected record, and finding target.',
+      });
+    }
+  });
+export type OptionalFindingTextureBridgeProfile = z.infer<
+  typeof OptionalFindingTextureBridgeProfileSchema
+>;
+
+export const OptionalFindingTextureBridgeRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    optionalFeatureArtifact: OptionalFeatureBudgetSelectionArtifactSchema,
+    referenceHorizon: OptionalFindingTextureReferenceHorizonSchema,
+    findingDefinitions: z.array(FindingDefinitionSchema).min(1).max(128),
+    bridgeProfile: OptionalFindingTextureBridgeProfileSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const optionalArtifact = request.optionalFeatureArtifact;
+    const profile = request.bridgeProfile;
+    if (
+      profile.templateRef.id !== optionalArtifact.templateRef.id ||
+      profile.templateRef.contentVersion !== optionalArtifact.templateRef.contentVersion ||
+      profile.templateFingerprint !== optionalArtifact.templateFingerprint ||
+      profile.optionalFeatureProfileRef.id !== optionalArtifact.profileRef.id ||
+      profile.optionalFeatureProfileRef.contentVersion !==
+        optionalArtifact.profileRef.contentVersion ||
+      profile.optionalFeatureProfileFingerprint !== optionalArtifact.profileFingerprint ||
+      profile.referenceHorizonRef.id !== request.referenceHorizon.id ||
+      profile.referenceHorizonRef.contentVersion !== request.referenceHorizon.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['bridgeProfile'],
+        message:
+          'The optional finding-texture profile must pin the exact D-201 template, selection profile, and finding horizon.',
+      });
+    }
+
+    const moduleDefinitionById = new Map(
+      optionalArtifact.selectionRequest.moduleDefinitions.map((definition) => [
+        definition.id,
+        definition,
+      ]),
+    );
+    const bindingByModuleId = new Map(
+      optionalArtifact.selectionRequest.profile.candidateBindings.map((binding) => [
+        binding.moduleRef.id,
+        binding,
+      ]),
+    );
+    const textureModuleIds = optionalArtifact.selectionRequest.moduleDefinitions
+      .filter((definition) => definition.moduleKind === 'finding_texture')
+      .map((definition) => definition.id)
+      .sort();
+    const mappedModuleIds = profile.mappings.map((mapping) => mapping.moduleRef.id).sort();
+    if (
+      textureModuleIds.length === 0 ||
+      textureModuleIds.join('\u0000') !== mappedModuleIds.join('\u0000')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['bridgeProfile', 'mappings'],
+        message:
+          'The optional finding-texture profile must map every and only D-201 finding-texture module exactly once.',
+      });
+    }
+    profile.mappings.forEach((mapping, mappingIndex) => {
+      const definition = moduleDefinitionById.get(mapping.moduleRef.id);
+      const binding = bindingByModuleId.get(mapping.moduleRef.id);
+      if (
+        !definition ||
+        definition.moduleKind !== 'finding_texture' ||
+        definition.contentVersion !== mapping.moduleRef.contentVersion ||
+        !binding ||
+        binding.moduleRef.contentVersion !== mapping.moduleRef.contentVersion ||
+        binding.moduleFingerprint !== mapping.moduleFingerprint ||
+        binding.id !== mapping.optionalFeatureBindingId ||
+        binding.selectedModuleId !== mapping.selectedModuleId
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['bridgeProfile', 'mappings', mappingIndex],
+          message:
+            'Each finding-texture mapping must pin one exact D-201 module definition, fingerprint, binding, and selected-record identity.',
+        });
+      }
+    });
+
+    const definitionById = new Map(
+      request.findingDefinitions.map((definition) => [definition.id, definition]),
+    );
+    const horizonById = new Map(
+      request.referenceHorizon.findingDefinitionRefs.map((reference) => [reference.id, reference]),
+    );
+    const mappedOutcomes = profile.mappings.flatMap((mapping) => mapping.outcomes);
+    const mappedFindingIds = mappedOutcomes.map((outcome) => outcome.findingDefinitionId).sort();
+    const definitionIds = request.findingDefinitions.map((definition) => definition.id).sort();
+    const horizonIds = request.referenceHorizon.findingDefinitionRefs
+      .map((reference) => reference.id)
+      .sort();
+    if (
+      new Set(definitionIds).size !== definitionIds.length ||
+      mappedFindingIds.join('\u0000') !== definitionIds.join('\u0000') ||
+      mappedFindingIds.join('\u0000') !== horizonIds.join('\u0000')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['findingDefinitions'],
+        message:
+          'The optional finding-texture request requires one exact supplied definition and horizon reference per mapped finding.',
+      });
+    }
+    mappedOutcomes.forEach((outcome, outcomeIndex) => {
+      const definition = definitionById.get(outcome.findingDefinitionId);
+      const horizonRef = horizonById.get(outcome.findingDefinitionId);
+      if (
+        !definition ||
+        !horizonRef ||
+        definition.contentVersion !== outcome.findingDefinitionContentVersion ||
+        horizonRef.contentVersion !== outcome.findingDefinitionContentVersion ||
+        !definition.valueSpecification.allowedValues.includes(outcome.proposedValue.value)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['bridgeProfile', 'mappings', outcomeIndex],
+          message:
+            'Each optional texture outcome must use one value admitted by the exact supplied finding-definition version.',
+        });
+      }
+    });
+  });
+export type OptionalFindingTextureBridgeRequest = z.infer<
+  typeof OptionalFindingTextureBridgeRequestSchema
+>;
+
+export const OptionalFindingTextureOutcomeEvaluationSchema = z
+  .object({
+    outcomeId: StableIdSchema,
+    findingDefinitionId: StableIdSchema,
+    findingDefinitionContentVersion: ContentVersionSchema,
+    proposedValue: ConditionFindingGeneratedOutcomeValueSchema,
+    candidateId: StableIdSchema.nullable(),
+  })
+  .strict();
+export type OptionalFindingTextureOutcomeEvaluation = z.infer<
+  typeof OptionalFindingTextureOutcomeEvaluationSchema
+>;
+
+export const OptionalFindingTextureCandidateEvaluationSchema = z
+  .object({
+    mappingId: StableIdSchema,
+    moduleRef: CatalogInstanceVersionedReferenceSchema,
+    moduleFingerprint: OptionalFeatureBudgetFingerprintSchema,
+    optionalFeatureBindingId: StableIdSchema,
+    selectedModuleId: StableIdSchema,
+    disposition: z.enum(['selected_by_optional_feature', 'not_selected']),
+    optionalFeatureSelectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    optionalFeatureStableDrawId: StableIdSchema.nullable(),
+    outcomeEvaluations: z.array(OptionalFindingTextureOutcomeEvaluationSchema).min(1).max(8),
+  })
+  .strict()
+  .superRefine((evaluation, context) => {
+    const selected = evaluation.disposition === 'selected_by_optional_feature';
+    const hasSelectionTrace =
+      evaluation.optionalFeatureSelectionOrdinal !== null &&
+      evaluation.optionalFeatureStableDrawId !== null;
+    const candidateIds = evaluation.outcomeEvaluations.map((outcome) => outcome.candidateId);
+    if (
+      selected !== hasSelectionTrace ||
+      candidateIds.some((candidateId) => selected !== (candidateId !== null))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Only a D-201-selected finding-texture mapping may retain its original ordinal, draw, and emitted candidate identities.',
+      });
+    }
+  });
+export type OptionalFindingTextureCandidateEvaluation = z.infer<
+  typeof OptionalFindingTextureCandidateEvaluationSchema
+>;
+
+export const OptionalFindingTextureBridgeArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    resolverVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: TemplateConditionSelectionFingerprintSchema,
+    optionalFeatureArtifactRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: OptionalFeatureBudgetFingerprintSchema,
+        payloadFingerprint: OptionalFeatureBudgetFingerprintSchema,
+      })
+      .strict(),
+    optionalFeatureProfileRef: CatalogInstanceVersionedReferenceSchema,
+    optionalFeatureProfileFingerprint: OptionalFeatureBudgetFingerprintSchema,
+    referenceHorizonRef: CatalogInstanceVersionedReferenceSchema,
+    referenceHorizonFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
+    bridgeProfileRef: CatalogInstanceVersionedReferenceSchema,
+    bridgeProfileFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
+    optionalFeatureSelectedCount: z.number().int().min(0).max(3),
+    optionalFeatureTotalSpent: z.number().int().min(0).max(6),
+    optionalFeatureRemainingBudget: z.number().int().min(0).max(6),
+    candidateEvaluations: z.array(OptionalFindingTextureCandidateEvaluationSchema).min(1).max(64),
+    selectedTextureModuleDefinitionIds: z.array(StableIdSchema).max(3),
+    selectedMappingIds: z.array(StableIdSchema).max(3),
+    selectedOptionalFeatureBindingIds: z.array(StableIdSchema).max(3),
+    selectedModuleIds: z.array(StableIdSchema).max(3),
+    replacedBackgroundFindingDefinitionIds: z.array(StableIdSchema).max(24),
+    candidates: z.array(FindingResolutionCandidateSchema).max(24),
+    bridgeRequest: OptionalFindingTextureBridgeRequestSchema,
+    inputFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
+    payloadFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const optional = artifact.bridgeRequest.optionalFeatureArtifact;
+    if (
+      artifact.requestId !== artifact.bridgeRequest.id ||
+      artifact.templateRef.id !== optional.templateRef.id ||
+      artifact.templateRef.contentVersion !== optional.templateRef.contentVersion ||
+      artifact.templateFingerprint !== optional.templateFingerprint ||
+      artifact.optionalFeatureArtifactRef.id !== optional.id ||
+      artifact.optionalFeatureArtifactRef.inputFingerprint !== optional.inputFingerprint ||
+      artifact.optionalFeatureArtifactRef.payloadFingerprint !== optional.payloadFingerprint ||
+      artifact.optionalFeatureSelectedCount !== optional.selectedCount ||
+      artifact.optionalFeatureTotalSpent !== optional.totalSpent ||
+      artifact.optionalFeatureRemainingBudget !== optional.remainingBudget
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An optional finding-texture artifact must retain the exact D-201 identity and unchanged selection/accounting totals.',
+      });
+    }
+    const selected = artifact.candidateEvaluations
+      .filter((evaluation) => evaluation.disposition === 'selected_by_optional_feature')
+      .sort(
+        (left, right) =>
+          left.optionalFeatureSelectionOrdinal! - right.optionalFeatureSelectionOrdinal!,
+      );
+    const candidateIds = artifact.candidates.map((candidate) => candidate.id).sort();
+    const evaluationCandidateIds = selected
+      .flatMap((evaluation) =>
+        evaluation.outcomeEvaluations.flatMap((outcome) =>
+          outcome.candidateId === null ? [] : [outcome.candidateId],
+        ),
+      )
+      .sort();
+    const candidateFindingIds = artifact.candidates
+      .map((candidate) => candidate.findingDefinitionId)
+      .sort();
+    if (
+      artifact.candidates.some((candidate) => candidate.kind !== 'background_variation') ||
+      new Set(candidateIds).size !== candidateIds.length ||
+      candidateIds.join('\u0000') !== evaluationCandidateIds.join('\u0000') ||
+      candidateFindingIds.join('\u0000') !==
+        [...artifact.replacedBackgroundFindingDefinitionIds].sort().join('\u0000') ||
+      selected
+        .map((evaluation) => evaluation.moduleRef.id)
+        .sort()
+        .join('\u0000') !==
+        [...artifact.selectedTextureModuleDefinitionIds].sort().join('\u0000') ||
+      selected
+        .map((evaluation) => evaluation.mappingId)
+        .sort()
+        .join('\u0000') !== [...artifact.selectedMappingIds].sort().join('\u0000') ||
+      selected
+        .map((evaluation) => evaluation.optionalFeatureBindingId)
+        .sort()
+        .join('\u0000') !== [...artifact.selectedOptionalFeatureBindingIds].sort().join('\u0000') ||
+      selected
+        .map((evaluation) => evaluation.selectedModuleId)
+        .sort()
+        .join('\u0000') !== [...artifact.selectedModuleIds].sort().join('\u0000')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'The optional finding-texture artifact must retain every selected mapping and emitted lowest-tier candidate exactly once.',
+      });
+    }
+    const expectedId = `optional-finding-texture-bridge.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `An optional finding-texture bridge artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type OptionalFindingTextureBridgeArtifact = z.infer<
+  typeof OptionalFindingTextureBridgeArtifactSchema
+>;
+
 export const ResolvedPatientStateCompositionFingerprintSchema = z
   .string()
   .regex(/^fingerprint\.resolved-patient-state-composition\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
@@ -19961,6 +20987,7 @@ export const PatientStateOptionalModuleMaterializationAuditSchema = z
       'reaction_history_bridge',
       'prior_treatment_bridge',
       'exposure_bridge',
+      'finding_texture_bridge',
       'unowned_other',
     ]),
     materializationStatus: z.enum(['materialized', 'unsupported']),
@@ -19973,6 +21000,7 @@ export const PatientStateOptionalModuleMaterializationAuditSchema = z
       allergy_reaction: 'reaction_history_bridge',
       prior_treatment: 'prior_treatment_bridge',
       substance_use: 'exposure_bridge',
+      finding_texture: 'finding_texture_bridge',
       other: 'unowned_other',
     };
     if (
@@ -20055,6 +21083,7 @@ export const ResolvedPatientStateCompositionRequestSchema = z
     reactionHistoryBridgeArtifact: OptionalReactionHistoryBridgeArtifactSchema.nullable(),
     priorTreatmentBridgeArtifact: OptionalPriorTreatmentBridgeArtifactSchema.nullable(),
     exposureBridgeArtifact: OptionalExposureBudgetBridgeArtifactSchema.nullable(),
+    findingTextureBridgeArtifact: OptionalFindingTextureBridgeArtifactSchema.nullable(),
   })
   .strict()
   .superRefine((request, context) => {
@@ -20080,6 +21109,7 @@ export const ResolvedPatientStateCompositionRequestSchema = z
     for (const [kind, artifact, path] of [
       ['prior_treatment', request.priorTreatmentBridgeArtifact, 'priorTreatmentBridgeArtifact'],
       ['substance_use', request.exposureBridgeArtifact, 'exposureBridgeArtifact'],
+      ['finding_texture', request.findingTextureBridgeArtifact, 'findingTextureBridgeArtifact'],
     ] as const) {
       if (definitionKinds.has(kind) !== (artifact !== null)) {
         context.addIssue({
@@ -20158,6 +21188,13 @@ export const ResolvedPatientStateCompositionArtifactSchema = z
       })
       .strict()
       .nullable(),
+    findingTextureBridgeRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
+      })
+      .strict()
+      .nullable(),
     reactionHistoryOwnership: PatientStateReactionHistoryOwnershipSchema,
     selectedModuleAudits: z.array(PatientStateOptionalModuleMaterializationAuditSchema).max(3),
     coverageDiagnostics: z.array(PatientStateCompositionCoverageDiagnosticSchema).max(64),
@@ -20198,6 +21235,7 @@ export const ResolvedPatientStateCompositionArtifactSchema = z
       !exactBridgeRef(artifact.reactionHistoryBridgeRef, request.reactionHistoryBridgeArtifact) ||
       !exactBridgeRef(artifact.priorTreatmentBridgeRef, request.priorTreatmentBridgeArtifact) ||
       !exactBridgeRef(artifact.exposureBridgeRef, request.exposureBridgeArtifact) ||
+      !exactBridgeRef(artifact.findingTextureBridgeRef, request.findingTextureBridgeArtifact) ||
       artifact.reactionHistoryOwnership !== request.reactionHistoryOwnership
     ) {
       context.addIssue({
@@ -20491,6 +21529,16 @@ const PreFindingPatientStateExposureBridgeInputSchema = z
   })
   .strict();
 
+const PreFindingPatientStateFindingTextureBridgeInputSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    referenceHorizon: OptionalFindingTextureReferenceHorizonSchema,
+    findingDefinitions: z.array(FindingDefinitionSchema).min(1).max(128),
+    bridgeProfile: OptionalFindingTextureBridgeProfileSchema,
+  })
+  .strict();
+
 /**
  * Authoring-only orchestration input for the complete pre-finding patient
  * state. Child plans omit D-201 because the orchestrator owns its one exact
@@ -20507,6 +21555,7 @@ export const PreFindingPatientStateOrchestrationRequestSchema = z
     reactionHistoryBridgeInput: PreFindingPatientStateReactionBridgeInputSchema.nullable(),
     priorTreatmentBridgeInput: PreFindingPatientStatePriorTreatmentBridgeInputSchema.nullable(),
     exposureBridgeInput: PreFindingPatientStateExposureBridgeInputSchema.nullable(),
+    findingTextureBridgeInput: PreFindingPatientStateFindingTextureBridgeInputSchema.nullable(),
   })
   .strict()
   .superRefine((request, context) => {
@@ -20531,6 +21580,7 @@ export const PreFindingPatientStateOrchestrationRequestSchema = z
       ['allergy_reaction', request.reactionHistoryBridgeInput, 'reactionHistoryBridgeInput'],
       ['prior_treatment', request.priorTreatmentBridgeInput, 'priorTreatmentBridgeInput'],
       ['substance_use', request.exposureBridgeInput, 'exposureBridgeInput'],
+      ['finding_texture', request.findingTextureBridgeInput, 'findingTextureBridgeInput'],
     ] as const) {
       if (definitionKinds.has(kind) !== (input !== null)) {
         context.addIssue({
@@ -20614,6 +21664,7 @@ export const PreFindingPatientStateOrchestrationArtifactSchema = z
     reactionHistoryBridgeArtifact: OptionalReactionHistoryBridgeArtifactSchema.nullable(),
     priorTreatmentBridgeArtifact: OptionalPriorTreatmentBridgeArtifactSchema.nullable(),
     exposureBridgeArtifact: OptionalExposureBudgetBridgeArtifactSchema.nullable(),
+    findingTextureBridgeArtifact: OptionalFindingTextureBridgeArtifactSchema.nullable(),
     patientStateCompositionArtifact: ResolvedPatientStateCompositionArtifactSchema,
     orchestrationRequest: PreFindingPatientStateOrchestrationRequestSchema,
     inputFingerprint: PreFindingPatientStateOrchestrationFingerprintSchema,
@@ -20698,6 +21749,11 @@ export const PreFindingPatientStateOrchestrationArtifactSchema = z
         'priorTreatmentBridgeArtifact',
       ],
       [request.exposureBridgeInput, artifact.exposureBridgeArtifact, 'exposureBridgeArtifact'],
+      [
+        request.findingTextureBridgeInput,
+        artifact.findingTextureBridgeArtifact,
+        'findingTextureBridgeArtifact',
+      ],
     ] as const) {
       if (
         (input === null) !== (bridge === null) ||
@@ -20733,7 +21789,8 @@ export const PreFindingPatientStateOrchestrationArtifactSchema = z
         compositionRequest.priorTreatmentBridgeArtifact,
         artifact.priorTreatmentBridgeArtifact,
       ) ||
-      !exact(compositionRequest.exposureBridgeArtifact, artifact.exposureBridgeArtifact)
+      !exact(compositionRequest.exposureBridgeArtifact, artifact.exposureBridgeArtifact) ||
+      !exact(compositionRequest.findingTextureBridgeArtifact, artifact.findingTextureBridgeArtifact)
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -25613,7 +26670,9 @@ export type GeneratedRulePointEvaluation = z.infer<typeof GeneratedRulePointEval
 export const GeneratedEncounterPointReportInputSchema = z
   .object({
     producerRef: CatalogInstanceVersionedReferenceSchema,
+    balanceCatalogSnapshot: DecisionBalanceCatalogSnapshotSchema,
     ruleTrace: z.array(GeneratedRulePointEvaluationSchema),
+    databasePlanRuleTrace: z.array(GeneratedRulePointEvaluationSchema),
     playerDecision: GeneratedEncounterDecisionSelectionSchema,
     databasePlanDecision: GeneratedEncounterDecisionSelectionSchema,
     databasePlanPoints: z.number().int(),
@@ -25624,11 +26683,14 @@ export const GeneratedEncounterPointReportInputSchema = z
   .superRefine((report, context) => {
     if (
       new Set(report.ruleTrace.map((row) => row.id)).size !== report.ruleTrace.length ||
+      new Set(report.databasePlanRuleTrace.map((row) => row.id)).size !==
+        report.databasePlanRuleTrace.length ||
       new Set(report.safetyConsequenceIds).size !== report.safetyConsequenceIds.length
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Generated point trace and safety consequence IDs must be unique.',
+        message:
+          'Generated player/database-plan point traces and safety consequence IDs must be unique within their collections.',
       });
     }
   });
@@ -25641,7 +26703,7 @@ export const GeneratedEncounterPointReportSchema =
     .extend({
       schemaVersion: SchemaVersionSchema,
       id: StableIdSchema,
-      modelVersion: z.literal('generated-encounter-point-report.v5'),
+      modelVersion: z.literal('generated-encounter-point-report.v6'),
       pointDerivation: z.literal('provisional_balance_snapshot'),
       compiledRubricRef: z
         .object({

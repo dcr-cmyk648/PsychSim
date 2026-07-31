@@ -135,6 +135,11 @@ refresh the fixed gitignored Codex handoff file at
 copy, while JSON export is a backup. The ordinary Player build contains neither these queues nor the
 writable local endpoint.
 
+A future local-only Developer Patient Maker is intentionally deferred until the database can
+compile one realistic source-controlled vertical. It will select an exact encounter recipe,
+admitted setting/location, and bounded complexity envelope, then call the same deterministic
+compiler used by queues; it will not create a second free-form patient generator.
+
 While a Developer patient is open, the fixed “Case notes” control saves an encounter-scoped draft
 in IndexedDB. On a phone it is a compact bar at the bottom of the viewport; on desktop it opens as
 a small review panel. Reopening the same waiting-room patient restores the draft. Submitting the
@@ -374,6 +379,7 @@ Start with [PROJECT_STATE.md](PROJECT_STATE.md), [GAME_DESIGN.md](docs/GAME_DESI
 [PATIENT_GENERATION_ENGINE.md](docs/PATIENT_GENERATION_ENGINE.md),
 [MEDICATION_AND_INTERVENTION_DATA.md](docs/MEDICATION_AND_INTERVENTION_DATA.md),
 [SOURCE_USE_POLICY.md](docs/SOURCE_USE_POLICY.md),
+[DATA_ADJUNCT_EVIDENCE_QUEUE.md](docs/DATA_ADJUNCT_EVIDENCE_QUEUE.md),
 [RECOMMENDED_GUIDELINE_SOURCE_MAP.md](docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md),
 [WHO_MHGAP_2023_SOURCE_MAP.md](docs/WHO_MHGAP_2023_SOURCE_MAP.md),
 [LAB_RESULTS.md](docs/LAB_RESULTS.md), and [DECISIONS.md](docs/DECISIONS.md). Contributor constraints

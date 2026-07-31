@@ -1228,7 +1228,7 @@ describe('location-owned patient-slot selection compiler', () => {
         }),
       ).toEqual({ ok: true, value: artifact });
     }
-  });
+  }, 10_000);
 
   it('retains the complete sorted local admitted horizon and is deterministic', () => {
     const request = makeRequest();

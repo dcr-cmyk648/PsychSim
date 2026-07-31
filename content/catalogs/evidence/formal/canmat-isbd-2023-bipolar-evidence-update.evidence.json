@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.canmat-isbd.bipolar-evidence-update.2023",
+  "authority": "formal_publication",
+  "sourceType": "journal_article",
+  "title": "The CANMAT and ISBD Guidelines for the Treatment of Bipolar Disorder: Summary and a 2023 Update of Evidence",
+  "authors": ["Kamyar Keramatian", "Nellai K Chithra", "Lakshmi N Yatham"],
+  "organization": "Canadian Network for Mood and Anxiety Treatments and International Society for Bipolar Disorders",
+  "publicationYear": 2023,
+  "publicationDate": "2023-10-15",
+  "lastReviewedDate": null,
+  "versionLabel": "Summary of the 2018 guideline with evidence update through 2023",
+  "containerTitle": "Focus",
+  "volume": "21",
+  "issue": "4",
+  "pages": "344-353",
+  "doi": "10.1176/appi.focus.20230009",
+  "pmid": "38695002",
+  "url": "https://pubmed.ncbi.nlm.nih.gov/38695002/",
+  "citation": "Keramatian K, Chithra NK, Yatham LN. The CANMAT and ISBD Guidelines for the Treatment of Bipolar Disorder: Summary and a 2023 Update of Evidence. Focus (Am Psychiatr Publ). 2023;21(4):344-353. doi:10.1176/appi.focus.20230009.",
+  "knownContentHashes": [],
+  "jurisdictions": ["Canada", "International"],
+  "populations": ["People with bipolar disorder across the lifespan"],
+  "settings": ["Psychiatric assessment and treatment settings"],
+  "sourceRelations": [
+    {
+      "sourceId": "evidence.canmat-isbd.bipolar.2018",
+      "relationType": "updates",
+      "note": "This article summarizes the 2018 CANMAT/ISBD guideline and adds evidence available through 2023; it is not recorded as a replacement full guideline."
+    }
+  ],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "permission_required",
+    "adaptationStatus": "permission_required",
+    "commercialUseStatus": "permission_required",
+    "aiUseStatus": "prohibited",
+    "localExtractionStatus": "permission_required",
+    "licenseLabel": "American Psychiatric Association copyright",
+    "licenseUrl": null,
+    "termsUrl": "https://www.psychiatry.org/copyright",
+    "note": "The article is publicly readable through PMC, but the official NCBI Open Access service reports that PMCID PMC11058959 is not in the Open Access Subset, and PubMed records American Psychiatric Association copyright. Public reading access does not grant extraction, adaptation, AI-processing, or redistribution rights. PsychSim retains bibliographic metadata and the update relationship only."
+  },
+  "metadataReviewedAt": "2026-07-31T14:43:32.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

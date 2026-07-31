@@ -100,7 +100,7 @@ import { findingDefinitions } from './finding-definitions';
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.20.0',
+  contentVersion: '3.23.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,

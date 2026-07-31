@@ -254,22 +254,27 @@
     "receiptItemSnapshot": null,
     "targetContentIds": [
       "diagnosis.major-depressive-disorder",
+      "evidence.canmat.mdd-adults.2023-update",
+      "evidence.mavranezouli.depression-treatments.2024",
       "severity-axis.mdd.episode",
       "severity.mdd.mild",
       "severity.mdd.moderate",
       "severity.mdd.severe",
       "source-request.mdd.severity-thresholds"
     ],
-    "dependencyTicketIds": ["ticket.source.canmat-mdd.initial-modality"],
+    "dependencyTicketIds": [
+      "ticket.source.canmat-mdd.initial-modality",
+      "ticket.catalog.diagnoses.mdd-current-episode-finding-profile"
+    ],
     "conflictContentIds": [],
-    "proposedRouting": "Keep mild, moderate, and severe MDD inside the single MDD diagnosis-family record. Patient templates select an intended branch and add narrow constraints; the generator validates separate symptom, function, psychosis, and safety dimensions against a reviewed envelope and retries or quarantines conflicts.",
-    "guidance": "The ownership question is resolved: MDD owns its reusable mild, moderate, and severe variants; a patient template may request moderate MDD but must not redefine generic moderate-MDD parameters. The remaining clinical question is the bounded content of each severity envelope. Current sources use non-equivalent schemes: treatment guidelines use qualitative mild/moderate/severe or less/more severe groupings, while PHQ-9 bands measure symptom burden and do not by themselves establish diagnosis or episode severity. Psychosis and acute safety remain separately explainable and cannot disappear inside one total score. All three severity branches stay disabled until the envelope and provenance receive psychiatrist review. This ticket authorizes no clinical threshold, treatment, or point change.",
-    "reviewerNotes": "Architecture direction accepted: variants of an underlying disorder belong to one diagnosis-family record. A patient template can select moderate MDD and add patient-specific specifiers or constraints, but the MDD record owns the reusable mild/moderate/severe parameters.",
-    "reviewerNotesUpdatedAt": "2026-07-27T23:50:43.000Z",
-    "resurfacingTrigger": "Before enabling any MDD severity branch or generating severity-dependent MDD treatment pathways.",
+    "proposedRouting": "Keep mild, moderate, and severe MDD inside the single MDD diagnosis-family record. Preserve symptom breadth/intensity and depression-attributable functional impairment as separate typed dimensions, then let one reviewed severity profile derive the qualitative branch without absorbing psychosis, safety, course, treatment history, or nondepressive causes of impairment.",
+    "guidance": "P1: MDD owns its reusable mild, moderate, and severe variants; an encounter recipe may select one branch and add narrow patient constraints but cannot redefine the shared branch. P2: CANMAT's current source-cleared convention rates depressive symptom severity and functional impairment separately and uses whichever qualitative rating is higher for the episode descriptor; its own example permits discordance. P3: That convention is guidance supported largely by consensus rather than a validated universal boundary algorithm. The current evidence packet found no defensible numerical cut points for the three categories. P4: Symptom count or breadth, symptom intensity/frequency, depression-attributable functional impairment, subjective distress, and any named instrument result remain separately auditable facts. P5: Screening cutoffs, instrument bands, trial-entry thresholds, and less-/more-severe treatment-analysis strata answer different questions and cannot silently become the generator ontology. P6: Psychotic features, acute safety, longitudinal course, treatment exposure/nonresponse, and impairment from other conditions remain independently modeled; none is inferred from the severity label. P7: The compiler should preserve plausible symptom/function discordance and unresolved middle-boundary cases. Only malformed or literal same-scope contradictions are structural failures; evidence gaps or an uncertain qualitative boundary produce nonblocking diagnostics rather than patient deletion. P8: No severity branch, treatment rule, generation distribution, or point value activates from this packet. Q1: As the initial MDD severity scaffold, approve CANMAT's higher-of symptom-severity and depression-attributable-functional-impairment convention while leaving exact mild/moderate/severe boundary descriptions disabled until separately reviewed?",
+    "reviewerNotes": "Architecture direction accepted: variants of an underlying disorder belong to one diagnosis-family record. A patient template can select moderate MDD and add patient-specific specifiers or constraints, but the MDD record owns the reusable mild/moderate/severe parameters. The source request now contains exact CANMAT chunk provenance. A preliminary adjunct packet was used only to check the evidence-gap framing: it reinforced that scales and research strata are not interchangeable with a diagnostic severity branch, but it is uncommitted, unmapped, medically unreviewed, and supplies no executable rule.",
+    "reviewerNotesUpdatedAt": "2026-07-31T14:21:08.000Z",
+    "resurfacingTrigger": "After the current-episode dimension packet is resolved, present Q1 as the next single review decision. Do not enable an MDD severity branch, numeric envelope, severity-dependent treatment path, or point rule before that review.",
     "resolution": null,
     "createdAt": "2026-07-26T17:00:00.000Z",
-    "updatedAt": "2026-07-27T23:50:43.000Z"
+    "updatedAt": "2026-07-31T14:21:08.000Z"
   },
   {
     "schemaVersion": 1,

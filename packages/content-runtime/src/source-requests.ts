@@ -108,6 +108,7 @@ export const validateSourceRequests = (
   catalogs: CatalogBundle,
   blueprints: readonly CaseBlueprint[],
   tickets: readonly ClinicalReviewTicket[],
+  additionalRegisteredEvidenceSourceIds: readonly string[] = [],
 ): SourceRequestValidationReport => {
   const issues: SourceRequestValidationIssue[] = [];
   for (const id of duplicateIds(requests.map((request) => request.id))) {
@@ -115,7 +116,10 @@ export const validateSourceRequests = (
   }
   const contentIds = collectReviewableContentIds(catalogs, blueprints);
   const ticketIds = new Set(tickets.map((ticket) => ticket.id));
-  const evidenceIds = new Set(catalogs.evidenceSources.map((source) => source.id));
+  const evidenceIds = new Set([
+    ...catalogs.evidenceSources.map((source) => source.id),
+    ...additionalRegisteredEvidenceSourceIds,
+  ]);
   for (const request of requests) {
     for (const targetId of request.targetContentIds) {
       if (!contentIds.has(targetId)) {

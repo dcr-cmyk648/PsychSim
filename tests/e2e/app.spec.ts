@@ -1,4 +1,15 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from '@playwright/test';
+
+const sourceRequestCount = (
+  JSON.parse(
+    readFileSync(
+      new URL('../../content/cases/review/source-needed.requests.json', import.meta.url),
+      'utf8',
+    ),
+  ) as unknown[]
+).length;
 
 test('browses the safe runtime database without changing the clinic', async ({ page }) => {
   await page.goto('/');
@@ -233,7 +244,7 @@ test('completes a patient, stores review guidance, and preserves the profile and
     }),
   ).toBeVisible();
   await page.getByText('Sources needed', { exact: true }).click();
-  await expect(page.locator('.source-request-card')).toHaveCount(19);
+  await expect(page.locator('.source-request-card')).toHaveCount(sourceRequestCount);
   await expect(
     page.getByText('Cyclothymia and duration-based near-miss generation', { exact: true }),
   ).toBeVisible();

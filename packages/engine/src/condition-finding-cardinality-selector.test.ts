@@ -4,6 +4,7 @@ import {
   type ClinicalRuleReview,
   type ConditionFindingCardinalityProfile,
   type ConditionFindingCardinalityRequest,
+  type ConditionFindingDimensionProfile,
   type FindingDefinition,
   type PatientTemplate,
   type PatientTemplateConditionConstraint,
@@ -197,6 +198,17 @@ const sleepDefinition = findingDefinition(
   'finding.history.test-sleep-change',
   'Current sleep change',
 );
+const selfReportedSlowingDefinition = findingDefinition(
+  'finding.history.test-psychomotor-slowing',
+  'Current self-reported psychomotor slowing',
+);
+const observedSlowingDefinition: FindingDefinition = {
+  ...findingDefinition(
+    'finding.mse.test-observed-psychomotor-slowing',
+    'Current observed psychomotor slowing',
+  ),
+  semanticKind: 'mental_status_exam',
+};
 
 const reviewedOutcome = (
   id: string,
@@ -322,6 +334,141 @@ const makeRequest = (
   };
 };
 
+const makeDimensionRequest = (): ConditionFindingCardinalityRequest => {
+  const request = makeRequest('condition-finding-dimension-seed-42');
+  const comorbidProfile = request.profiles.find(
+    (profile) => profile.id === 'condition-finding-profile.test.comorbid',
+  )!;
+  const dimensionProfile: ConditionFindingDimensionProfile = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'condition-finding-profile.test.focus-dimensions',
+    modelVersion: 'condition-finding-dimensions.v1',
+    conditionScope: {
+      diagnosisDefinitionId: 'diagnosis.test.focus',
+      diagnosisDefinitionContentVersion: '1.0.0',
+      clinicalStateId: 'clinical-state.current',
+      timeScopeId: 'time-scope.current',
+      severity: { kind: 'exact', severityId: 'severity.test.moderate' },
+      requiredSpecifierIds: [],
+    },
+    requiredOutcomes: [],
+    minimumSelectedDimensions: 2,
+    maximumSelectedDimensions: 2,
+    dimensionCountWeights: [
+      {
+        schemaVersion: 1,
+        selectionCount: 2,
+        gameSelectionWeight: 1,
+      },
+    ],
+    dimensions: [
+      {
+        schemaVersion: 1,
+        id: 'condition-finding-dimension.test.core-interest',
+        gameSelectionWeight: 1,
+        minimumManifestations: 1,
+        maximumManifestations: 1,
+        manifestationCountWeights: [
+          {
+            schemaVersion: 1,
+            selectionCount: 1,
+            gameSelectionWeight: 1,
+          },
+        ],
+        manifestations: [
+          {
+            ...reviewedOutcome(
+              'condition-finding-manifestation.test.anhedonia',
+              anhedoniaDefinition,
+            ),
+            gameSelectionWeight: 1,
+          },
+        ],
+        developerOpinionIds: [],
+        review: {
+          ...approvedReview,
+          sourceUseNoteIds: [...approvedReview.sourceUseNoteIds],
+        },
+      },
+      {
+        schemaVersion: 1,
+        id: 'condition-finding-dimension.test.psychomotor',
+        gameSelectionWeight: 1,
+        minimumManifestations: 2,
+        maximumManifestations: 2,
+        manifestationCountWeights: [
+          {
+            schemaVersion: 1,
+            selectionCount: 2,
+            gameSelectionWeight: 1,
+          },
+        ],
+        manifestations: [
+          {
+            ...reviewedOutcome(
+              'condition-finding-manifestation.test.self-reported-slowing',
+              selfReportedSlowingDefinition,
+            ),
+            gameSelectionWeight: 1,
+          },
+          {
+            ...reviewedOutcome(
+              'condition-finding-manifestation.test.observed-slowing',
+              observedSlowingDefinition,
+            ),
+            gameSelectionWeight: 1,
+          },
+        ],
+        developerOpinionIds: [],
+        review: {
+          ...approvedReview,
+          sourceUseNoteIds: [...approvedReview.sourceUseNoteIds],
+        },
+      },
+    ],
+    selectionRequirements: [
+      {
+        schemaVersion: 1,
+        id: 'condition-finding-dimension-requirement.test.core',
+        dimensionIds: ['condition-finding-dimension.test.core-interest'],
+        minimumSelections: 1,
+        maximumSelections: 1,
+        developerOpinionIds: [],
+        review: {
+          ...approvedReview,
+          sourceUseNoteIds: [...approvedReview.sourceUseNoteIds],
+        },
+      },
+    ],
+    developerOpinionIds: [],
+    review: {
+      ...approvedReview,
+      sourceUseNoteIds: [...approvedReview.sourceUseNoteIds],
+    },
+  };
+  request.profiles = [dimensionProfile, comorbidProfile];
+  request.conditionProfileBindings = request.conditionProfileBindings.map((binding) =>
+    binding.profileRef.id === 'condition-finding-profile.test.focus'
+      ? {
+          ...binding,
+          profileRef: {
+            id: dimensionProfile.id,
+            contentVersion: dimensionProfile.contentVersion,
+          },
+          profileFingerprint: fingerprintConditionFindingCardinalityProfile(dimensionProfile),
+        }
+      : binding,
+  );
+  request.findingDefinitions = [
+    fatigueDefinition,
+    anhedoniaDefinition,
+    selfReportedSlowingDefinition,
+    observedSlowingDefinition,
+  ];
+  return request;
+};
+
 const expectSelected = (request: unknown) => {
   const result = selectConditionFindingCardinalityCandidates(request);
   expect(result.ok).toBe(true);
@@ -365,6 +512,107 @@ const sharedFindingRequest = (
 };
 
 describe('condition finding cardinality selector', () => {
+  it('counts selected dimensions once while preserving every selected manifestation', () => {
+    const request = makeDimensionRequest();
+    expect(ConditionFindingCardinalityRequestSchema.parse(request)).toEqual(request);
+    const artifact = expectSelected(request);
+
+    expect(artifact.groupSelections).toEqual([]);
+    expect(artifact.dimensionSelections).toHaveLength(1);
+    const selection = artifact.dimensionSelections[0]!;
+    expect(selection.selectedDimensionCount).toBe(2);
+    expect(selection.requirementEvaluations).toEqual([
+      expect.objectContaining({
+        requirementId: 'condition-finding-dimension-requirement.test.core',
+        selectedCount: 1,
+        satisfied: true,
+      }),
+    ]);
+    const psychomotor = selection.dimensionEvaluations.find(
+      (dimension) => dimension.dimensionId === 'condition-finding-dimension.test.psychomotor',
+    )!;
+    expect(psychomotor).toMatchObject({
+      selected: true,
+      selectedManifestationCount: 2,
+    });
+    expect(
+      psychomotor.manifestationEvaluations.filter((manifestation) => manifestation.selected),
+    ).toHaveLength(2);
+    expect(
+      artifact.candidates.filter(
+        (candidate) => candidate.contributions[0]?.ownerId === selection.conditionStateId,
+      ),
+    ).toHaveLength(3);
+    expect(verifyConditionFindingCardinalityIntegrity(artifact)).toEqual({
+      ok: true,
+      value: artifact,
+    });
+    const crossedRequirementCount = structuredClone(artifact);
+    crossedRequirementCount.dimensionSelections[0]!.requirementEvaluations[0]!.selectedCount = 0;
+    expect(
+      ConditionFindingCardinalityArtifactSchema.safeParse(crossedRequirementCount).success,
+    ).toBe(false);
+
+    const reordered = structuredClone(request);
+    reordered.profiles.reverse();
+    reordered.conditionProfileBindings.reverse();
+    reordered.findingDefinitions.reverse();
+    const reorderedProfile = reordered.profiles.find(
+      (entry): entry is ConditionFindingDimensionProfile =>
+        entry.modelVersion === 'condition-finding-dimensions.v1',
+    )!;
+    reorderedProfile.dimensions.reverse();
+    reorderedProfile.selectionRequirements.reverse();
+    reorderedProfile.dimensionCountWeights.reverse();
+    reorderedProfile.dimensions.forEach((dimension) => {
+      dimension.manifestations.reverse();
+      dimension.manifestationCountWeights.reverse();
+    });
+    expect(expectSelected(reordered)).toEqual(artifact);
+  });
+
+  it('rejects overlapping dimension requirements and impossible count envelopes', () => {
+    const overlapping = makeDimensionRequest();
+    const profile = overlapping.profiles.find(
+      (entry): entry is ConditionFindingDimensionProfile =>
+        entry.modelVersion === 'condition-finding-dimensions.v1',
+    )!;
+    profile.selectionRequirements.push({
+      schemaVersion: 1,
+      id: 'condition-finding-dimension-requirement.test.overlap',
+      dimensionIds: ['condition-finding-dimension.test.core-interest'],
+      minimumSelections: 1,
+      maximumSelections: 1,
+      developerOpinionIds: [],
+      review: {
+        ...approvedReview,
+        sourceUseNoteIds: [...approvedReview.sourceUseNoteIds],
+      },
+    });
+    expect(ConditionFindingCardinalityRequestSchema.safeParse(overlapping).success).toBe(false);
+
+    const impossible = makeDimensionRequest();
+    const impossibleProfile = impossible.profiles.find(
+      (entry): entry is ConditionFindingDimensionProfile =>
+        entry.modelVersion === 'condition-finding-dimensions.v1',
+    )!;
+    impossibleProfile.minimumSelectedDimensions = 1;
+    impossibleProfile.maximumSelectedDimensions = 1;
+    impossibleProfile.dimensionCountWeights = [
+      {
+        schemaVersion: 1,
+        selectionCount: 1,
+        gameSelectionWeight: 1,
+      },
+    ];
+    impossibleProfile.selectionRequirements[0]!.dimensionIds.push(
+      'condition-finding-dimension.test.psychomotor',
+    );
+    impossibleProfile.selectionRequirements[0]!.minimumSelections = 2;
+    impossibleProfile.selectionRequirements[0]!.maximumSelections = 2;
+    expect(ConditionFindingCardinalityRequestSchema.safeParse(impossible).success).toBe(false);
+  });
+
   it('strictly parses, is deterministic and order-invariant, and does not mutate input', () => {
     const request = makeRequest();
     expect(ConditionFindingCardinalityRequestSchema.parse(request)).toEqual(request);
@@ -379,6 +627,7 @@ describe('condition finding cardinality selector', () => {
     for (const profile of reordered.profiles) {
       profile.conditionScope.requiredSpecifierIds.reverse();
       profile.requiredOutcomes.reverse();
+      if (profile.modelVersion !== 'condition-finding-cardinality.v1') continue;
       profile.cardinalityGroups.reverse();
       for (const requirement of profile.requiredOutcomes) {
         requirement.review.sourceUseNoteIds.reverse();
@@ -459,7 +708,7 @@ describe('condition finding cardinality selector', () => {
     for (const candidate of artifact.candidates) {
       expect(candidate.resolution).toMatchObject({
         origin: 'deterministic_generation',
-        resolverVersion: '2.0.0',
+        resolverVersion: '3.0.0',
       });
       expect(candidate.contributions.map((contribution) => contribution.ownerKind)).toEqual([
         'condition_state',

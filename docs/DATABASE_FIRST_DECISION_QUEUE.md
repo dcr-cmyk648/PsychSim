@@ -1136,6 +1136,13 @@ targets, and prerequisite state. Current compilation rejects equal-priority same
 while replay preserves the stable tie-break, reconstructs exact targets, refuses noncompiled
 source rows, and rejects trace tampering. No real secondary relationship or balance was activated.
 
+D-252 closes the exact balance-payload replay debt before runtime activation. Native balance
+`5.0.0` produces a minimized, fingerprinted snapshot containing only the exact point owners needed
+by the compiled rubric while separately fingerprinting the full source catalog. D-235
+`7.0.0`/point-report v6 freezes complete player and database-plan traces and revalidates every
+pre-combination magnitude and explanation from that snapshot. Same-ID/version retuning changes the
+snapshot fingerprints. No SaveData, runtime queue, clinical rule, or point magnitude was added.
+
 D-246 re-audits the first real MDD compile slice without creating another readiness framework.
 The D-223/D-200 chain is executable, but all of its template, core-state, generation-profile,
 projection, universal-result, source-report, and complete-presentation inputs remain synthetic or
@@ -1143,6 +1150,21 @@ absent. Compatibility patients remain compatibility-only. The authoritative depe
 audit now identify a real `PatientTemplate` as the first executable blocker and the MDD episode
 finding/cardinality owner plus finding-identity completeness review as its first clinical
 dependency.
+
+D-247 accepts the atomic-owner model for MDD symptoms and records the implementation boundary:
+reusable findings and measurements are declarative inputs, diagnoses compose exact versioned
+references, and pure compilers resolve patient state. The finding catalog now includes the
+currently missing increased-appetite, indecision, worthlessness, and self-reported/observed
+psychomotor identities; weight and BMI remain numeric measurements. The active packet is now the
+narrow clinical/modeling question of how MDD symptom dimensions and concrete manifestations count
+without backend facts being blended or double-counted.
+
+D-248 resolves the general modeling portion. D-197 v3 can select reviewed core/cluster-constrained
+dimensions and then separately select manifestations, preserving all backend facts while counting
+each dimension once. Pessimism is now a neutral finding owner. The active MDD ticket remains
+blocked only on its diagnosis-specific evidence: exact core/cardinality/grouping and the roles of
+pessimism and suicidality. The ordered evidence work is maintained in
+`docs/DATA_ADJUNCT_EVIDENCE_QUEUE.md`, with canonical status in the source-request catalog.
 
 The remaining exact real finding/result/source/presentation ownership needed by that same
 outpatient vertical resumes. SaveData versioning resumes only after the vertical can deterministically generate,

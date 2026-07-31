@@ -5128,3 +5128,209 @@ D-246 adds no schema, compiler, clinical claim, patient, rule, point value, pers
 activation, browser behavior, or UI. A future readiness projection is justified only if it can be
 derived lazily from canonical owners and changes a concrete review decision more efficiently than
 the current ticket/dependency audit.
+
+## D-247 — Symptoms are atomic owners; diagnoses compose them declaratively
+
+**Decision:** Treat the developer's “database entry as a function” description as an ownership and
+compilation metaphor, not as executable code in content. Every symptom or other independently
+resolvable patient fact receives the smallest reusable declarative owner that is useful to the
+game. A diagnosis then references those exact versioned owners through reviewed composition data,
+and pure deterministic compilers turn the selected condition state plus separately owned encounter
+inputs into frozen patient state.
+
+The first MDD completeness pass adds identity-only owners for increased appetite, indecision,
+worthlessness, self-reported psychomotor agitation, and separately observed psychomotor agitation
+and slowing. Existing owners already cover depressed mood, anhedonia, fatigue/low energy, reduced
+appetite, insomnia, hypersomnia, excessive guilt, concentration difficulty, self-reported
+psychomotor slowing, passive wish for death, and active suicidal ideation. Weight and BMI already
+belong to the typed measurement catalog and must not be duplicated as outcome-valued symptoms.
+Later subjective weight change or longitudinal weight trend requires its own typed relationship or
+value owner rather than inference from one measured value.
+
+Do not add a second generic “symptom function” framework or a parallel diagnosis-cluster truth
+store. `FindingDefinition` remains the atomic identity boundary, `MeasurementDefinition` remains
+the numeric boundary, and `condition-finding-cardinality` remains the intended diagnosis-to-finding
+compilation lane. A content change propagates to future compilation through explicit versioned
+references and validation; it never mutates a frozen historical patient or lets prose, aliases, or
+file order drive behavior.
+
+The encounter recipe still owns location, focused decision, and the optional-feature complexity
+budget. The MDD dossier remains setting- and intensity-neutral. Location controls operational
+admission; complexity selects separately budgeted optional modules; neither is hidden inside a
+symptom definition or used to alter what MDD means.
+
+The first real MDD profile remains disabled pending one narrow clinical decision. Related
+manifestations such as insomnia/hypersomnia, appetite directions, self-reported versus observed
+psychomotor change, worthlessness/guilt, concentration/indecision, and death/suicidality may need to
+count as diagnosis-level dimensions while retaining separate backend facts. D-197 v1 selects raw
+finding members and must not silently double-count mutually exclusive or criterion-equivalent
+manifestations. Add a narrow dimension-with-manifestations extension only after the reviewer
+approves the grouping and cardinality semantics.
+
+D-247 adds six medically unreviewed identity shells and updates catalog membership. It adds no MDD
+criterion, required symptom, cardinality, severity threshold, generation weight, source-report
+behavior, background probability, diagnosis inference, wording, points, treatment rule, patient,
+persistence, runtime activation, browser behavior, or UI.
+
+## D-248 — Diagnosis dimensions count once; manifestations remain separate
+
+**Decision:** Extend the existing D-197 condition-to-finding lane with one disorder-general
+`condition-finding-dimensions.v1` profile. A reviewed profile selects a total number of
+diagnosis-level dimensions, enforces one or more nonoverlapping reviewed core/cluster constraints,
+and then selects one or more concrete manifestations inside each selected dimension. The
+dimension—not each manifestation—counts toward the profile's diagnostic cardinality. Every
+selected manifestation still emits its own exact D-193 candidate and retains its source modality,
+finding identity, proposed value, draw, provenance, and review trace.
+
+This is a narrow extension of the existing condition-finding compiler, not a second symptom
+database, diagnosis engine, probability model, or general expression language. Required exact
+outcomes remain available outside the dimensional set. Dimension-count, dimension-selection,
+manifestation-count, and manifestation-selection weights are positive game-authoring variety
+weights only. They are not prevalence, diagnostic probability, evidence strength, case points, or
+clinical importance. Selection requirements may not overlap in v1; this keeps feasibility
+deterministic and legible while covering required core sets and cluster minima. A later diagnosis
+that genuinely needs coupled overlapping constraints requires a focused reviewed extension rather
+than hidden inference.
+
+The frozen artifact preserves all selected and unselected dimensions and manifestations, total
+dimension count, every core/cluster requirement evaluation, all stable draws, exact
+condition/profile binding, emitted candidates, and fingerprints. Integrity and exact-context
+replay use the same pure selector. Multiple manifestations can therefore explain the patient
+without inflating the number of diagnostic dimensions.
+
+The reviewer also accepts subthreshold texture as optional encounter richness that may consume a
+small positive amount of the encounter-owned D-201 budget. Core symptoms and the supra-threshold
+diagnosis profile never spend that budget. No texture-module bridge or real texture distribution
+is activated in this decision; authoring must first define its exact module owner and background
+finding mapping so one feature cannot be charged twice or compete with a hard diagnostic
+candidate.
+
+Pessimism receives a medically unreviewed atomic finding identity because it may be reusable
+across diagnoses and safety/fit questions. This decision does not declare pessimism, hopelessness,
+passive death wish, or active suicidal ideation to be an MDD core criterion or merge those
+constructs. `source-request.mdd.current-episode-dimensions` and the linked clinical ticket now own
+that evidence and reviewer question. No real MDD profile, diagnostic threshold, severity mapping,
+generation probability, point value, patient, runtime behavior, persistence change, or UI change
+is added.
+
+`docs/DATA_ADJUNCT_EVIDENCE_QUEUE.md` supplies a durable priority view for the read-only evidence
+adjunct. Canonical question/status data remains only in `source-needed.requests.json`; the adjunct
+returns evidence useful for emulation, never clinical rules, judgments, IDs, or points.
+
+## D-249 — Optional finding texture spends once and replaces only its generic background baseline
+
+**Decision:** Add one typed authoring-only `finding_texture` optional-module lane between D-201
+and the existing D-193 finding resolver. D-201 remains the sole selector and complexity spender.
+A reviewed `OptionalFindingTextureBridgeProfile` maps an exact selected module to one or more exact
+versioned finding outcomes. The bridge reuses the module's original selection ordinal and stable
+draw, copies the unchanged selected-count/spend/remaining-budget audit, and emits only
+`background_variation` candidates. It performs no second draw and assigns no probability,
+prevalence, diagnosis meaning, evidence strength, or points.
+
+D-208 `2.0.0` retains each selected texture module as materialized by its exact emitted candidate
+IDs while leaving the pre-finding patient's `canonicalFindings` empty. D-223 `2.0.0` builds and
+replays the bridge exactly once. D-200 `21.0.0` replaces the ordinary D-198 baseline candidate only
+for the same exact finding-definition ID/version, then passes the resulting collision-free union
+to D-193. D-197 diagnosis/cardinality candidates keep their higher priority, so optional texture
+cannot override a hard diagnosis-owned value. The first narrow version rejects a selected exact
+texture outcome that also has an applicable D-199 weighted tendency for the same finding; a later
+review must define intentional combination rather than letting file order or hidden arithmetic
+choose.
+
+This checkpoint uses synthetic fixtures only. It adds no real MDD mapping, texture frequencies,
+clinical claim, case, patient, point rule, persistence, runtime activation, browser behavior, or
+UI. The MDD dimension packet still gates the first real diagnosis profile and any real
+subthreshold-texture distribution.
+
+## D-250 — Longitudinal weight change is not inferred from one weight or BMI measurement
+
+**Decision:** Keep `measurement.anthropometric.weight` and `measurement.anthropometric.bmi` as
+numeric point-in-time owners. Add separate medically unreviewed finding identities for current
+unintentional weight gain and current unintentional weight loss. A diagnosis profile may later
+reference either directional finding as a manifestation only after clinical review; it may not
+infer longitudinal change from one measured value, body habitus, appetite direction, label text,
+or a free clinical tag.
+
+The two directional findings remain distinct because the underlying patient truth and future
+explanations can differ, while a diagnosis-level appetite/weight dimension may count either one
+only once. A future structured amount, time window, or observed-versus-reported discrepancy must
+use the existing target-scoped duration/measurement/projection boundaries rather than being packed
+into the identity shell.
+
+D-250 adds identity and registry membership only. It assigns no criterion role, threshold,
+generation rate, complexity cost, source-report behavior, point value, treatment implication,
+patient, runtime generator, persistence change, browser behavior, or UI.
+
+## D-251 — Preliminary evidence packets may shape scaffolding but remain non-executable
+
+**Decision:** A versioned PsychSimDataAdjunct packet does not have to be final before it is useful.
+An explicitly preliminary packet may identify a reusable owner, a missing schema distinction, a
+dependency edge, a candidate bin, a source-registration task, or a narrowly framed review
+question. PsychSim may implement that neutral authoring scaffold while the evidence packet is
+still evolving.
+
+Preliminary status is a hard activation boundary, not a weaker kind of medical approval. A
+preliminary packet cannot supply a diagnosis-to-finding mapping, source-report or patient
+generation probability, qualitative clinical rule, balance record, point magnitude, runtime
+content, or clinical winner. Its prose is not copied into gameplay. Exact source identity,
+corrections, locators, access and reuse rights, target freshness, and source-use decisions remain
+subject to the ordinary canonical translation pass.
+
+The existing two-stage compiler boundary enforces the executable side of this decision. Matching
+unreviewed candidates remain outside the compiled rubric and create nonblocking coverage
+diagnostics. A compiled rubric may contain only approved qualitative rules, and an unreviewed
+qualitative rule cannot receive a provisional balance. Therefore preliminary evidence can expose
+what the database must be capable of representing without silently turning an evidence scout into
+points.
+
+D-251 adds one regression at the rule-to-balance boundary and documentation only. It adds no
+clinical claim, probability, qualitative rule, point value, patient, runtime behavior,
+persistence change, browser behavior, or UI.
+
+## D-252 — Generated point reports freeze the exact balance payload they use
+
+**Decision:** A generated attempt cannot rely on balance ID and content-version discipline alone.
+Before native scoring, compile one minimized `DecisionBalanceCatalogSnapshot` from the validated
+authoring catalog and exact compiled rubric. The snapshot fingerprints the complete source catalog
+but retains only balances referenced by that rubric. Every retained balance preserves its exact
+rule reference, component, impact band, point magnitude or three prerequisite outcomes, and
+player-facing explanations.
+
+The snapshot deliberately omits authoring rationale and Developer-opinion records. It is
+historical point ownership, not a duplicate clinical-rule catalog or a public authoring endpoint.
+The compiled rubric continues to own clinical meaning, trigger, scope, certainty, provenance, and
+combination metadata. An unbalanced reviewed qualitative rule remains in the rubric and trace but
+does not fabricate a balance snapshot row.
+
+Native scoring derives both player and database-plan traces from the frozen snapshot. The point
+report retains both complete traces and derives the database-plan total from its trace. Integrity
+replay checks every balanced row's exact component, pre-combination magnitude, and explanation
+against the snapshot before applying D-159 combination and arithmetic. Reordering the authoring
+catalog is semantically inert, while changing a balance payload without changing its ID or
+content version changes both the full-catalog and minimized-payload fingerprints.
+
+Native decision balance advances to `5.0.0`, D-235 generated-attempt compilation advances to
+`7.0.0`, and the nested report advances to `generated-encounter-point-report.v6`. D-252 does not
+activate SaveData, IndexedDB, generated runtime queues, portable exports, or historical
+re-scoring. It adds no clinical rule, probability, point magnitude, patient, settlement behavior,
+browser behavior, or UI.
+
+## D-253 — The unit gate uses Vitest threads and content-derived queue counts
+
+**Decision:** Run Vitest with its thread pool. The long deterministic finding-pipeline audit can
+keep a fork worker busy beyond Vitest 3.2.4's fixed RPC acknowledgement window even after every
+assertion passes. The thread pool preserves per-file isolation and identical assertions while
+allowing the complete Node 22 process to report and exit cleanly. One four-setting admission test
+has an explicit ten-second timeout because its ordinary full-suite runtime can exceed the
+framework's five-second default under parallel load; production code receives no timeout or
+behavior change.
+
+Browser tests that assert the complete Developer source-request queue derive the expected count
+from the checked-in source-request file rather than duplicating a stale integer. They still assert
+the exact queue size and named high-value requests. Literature-synthesis tests enumerate and parse
+all registered formal evidence files in the test boundary, including authoring-only metadata,
+without moving those sources into the ordinary runtime catalog. Missing-ticket coverage tests
+remove one explicitly active ticket rather than relying on attachment order.
+
+This is test-infrastructure maintenance only. It adds no clinical claim, probability, rule,
+balance, point value, patient, runtime content, persistence change, browser behavior, or UI.

@@ -235,6 +235,16 @@ describe('developer clinical audit queue', () => {
         catalogs,
         developerCaseBlueprints,
         developerClinicalAuditTickets,
+        [
+          'evidence.nimh.mental-health-topics.current',
+          'evidence.va-dod.mdd.2022',
+          'evidence.mavranezouli.depression-treatments.2024',
+          'evidence.trzepacz.drs-r-98-validation.2001',
+          'evidence.trzepacz.drs-r-98-validation-erratum.2001',
+          'evidence.canmat-isbd.bipolar.2018',
+          'evidence.canmat-isbd.bipolar-evidence-update.2023',
+          'evidence.apa.eating-disorders.fourth-edition.2023',
+        ],
       ),
     ).toEqual({ valid: true, issues: [] });
     expect(developerSourceRequests).toEqual(
@@ -249,6 +259,19 @@ describe('developer clinical audit queue', () => {
         }),
         expect.objectContaining({ id: 'source-request.mdd.tsh-workup' }),
         expect.objectContaining({ id: 'source-request.mdd.severity-thresholds' }),
+        expect.objectContaining({
+          id: 'source-request.mdd.current-episode-dimensions',
+          status: 'source_received',
+          receivedEvidenceSourceIds: expect.arrayContaining([
+            'evidence.canmat.mdd-adults.2023-update',
+            'evidence.nimh.mental-health-topics.current',
+            'evidence.va-dod.mdd.2022',
+          ]),
+          sourceChunkIds: [
+            'source-chunk.412aade56104fd394503.8',
+            'source-chunk.412aade56104fd394503.9',
+          ],
+        }),
         expect.objectContaining({
           id: 'source-request.cyclothymia.duration-discrimination',
           status: 'source_received',

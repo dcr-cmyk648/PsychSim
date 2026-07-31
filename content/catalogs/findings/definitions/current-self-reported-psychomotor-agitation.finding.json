@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.history.current-psychomotor-agitation",
+  "label": "Self-reported current psychomotor agitation",
+  "aliases": ["Moving more than usual"],
+  "semanticKind": "history",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent", "subthreshold"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

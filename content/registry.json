@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.36.0",
+  "contentVersion": "3.43.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -39,6 +39,7 @@
       "path": "content/catalogs/findings/definitions",
       "runtimeIncluded": true,
       "categoryIds": [
+        "finding.appetite.current-increased",
         "finding.appetite.current-reduced",
         "finding.depressive.depressed-mood",
         "finding.function.self-reported-current-impact",
@@ -51,7 +52,10 @@
         "finding.history.current-grandiosity",
         "finding.history.current-high-risk-spending",
         "finding.history.current-increased-goal-directed-activity",
+        "finding.history.current-indecision",
+        "finding.history.current-pessimism",
         "finding.history.current-pressured-speech",
+        "finding.history.current-psychomotor-agitation",
         "finding.history.current-psychomotor-slowing",
         "finding.history.current-racing-thoughts",
         "finding.history.current-self-reported-ideas-of-reference",
@@ -59,6 +63,9 @@
         "finding.history.current-self-reported-persecutory-ideation",
         "finding.history.current-self-reported-suspiciousness",
         "finding.history.current-self-reported-thought-disorganization",
+        "finding.history.current-unintentional-weight-gain",
+        "finding.history.current-unintentional-weight-loss",
+        "finding.history.current-worthlessness",
         "finding.history.difficulty-controlling-worry",
         "finding.history.excessive-worry",
         "finding.history.muscle-tension",
@@ -68,6 +75,8 @@
         "finding.history.reported-hallucinations",
         "finding.history.restlessness",
         "finding.mse.current-observed-grandiosity",
+        "finding.mse.current-observed-psychomotor-agitation",
+        "finding.mse.current-observed-psychomotor-slowing",
         "finding.mse.current-observed-thought-disorganization",
         "finding.safety.current-active-suicidal-ideation",
         "finding.safety.current-passive-death-wish",
@@ -108,9 +117,12 @@
         "evidence.apa.bpd-treatment.second-edition.2024",
         "evidence.apa.delirium.2025",
         "evidence.apa.dsm5tr.2022",
+        "evidence.apa.eating-disorders.fourth-edition.2023",
         "evidence.asam.benzodiazepine-tapering.2025",
         "evidence.bap.catatonia.2023",
         "evidence.bostwick.mdd-antidepressant-fit.2010",
+        "evidence.canmat-isbd.bipolar.2018",
+        "evidence.canmat-isbd.bipolar-evidence-update.2023",
         "evidence.canmat.mdd-adults.2023-update",
         "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
         "evidence.cdc-nchs.icd10cm.2026",
@@ -118,6 +130,7 @@
         "evidence.fda.abilify-oral-label.2025-01",
         "evidence.fda.citalopram-capsules-label.2023",
         "evidence.fda.clozaril-label.2025-01",
+        "evidence.mavranezouli.depression-treatments.2024",
         "evidence.mishra.clozapine-augmentation-network-meta-analysis.2024",
         "evidence.mhra.citalopram-escitalopram-qt.2014",
         "evidence.nice.self-harm.ng225.2022",
@@ -128,7 +141,10 @@
         "evidence.roerig.clozapine-augmentation-strategies.2019",
         "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
         "evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025",
+        "evidence.trzepacz.drs-r-98-validation-erratum.2001",
+        "evidence.trzepacz.drs-r-98-validation.2001",
         "evidence.va-dod.bipolar.2023",
+        "evidence.va-dod.mdd.2022",
         "evidence.va-dod.schizophrenia.2023",
         "evidence.va-dod.suicide-risk.2024",
         "evidence.villanueva.epilepsy-depression-consensus.2023",
@@ -471,6 +487,12 @@
       "runtimeIncluded": true
     },
     {
+      "id": "evidence.apa.eating-disorders.fourth-edition.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/apa-2023-eating-disorders-guideline.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
       "id": "evidence.asam.benzodiazepine-tapering.2025",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/asam-benzodiazepine-tapering-2025-guideline.evidence.json",
@@ -487,6 +509,19 @@
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/bostwick-2010-antidepressant-fit-review.evidence.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.canmat-isbd.bipolar.2018",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/canmat-isbd-2018-bipolar-guideline.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.canmat-isbd.bipolar-evidence-update.2023",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/canmat-isbd-2023-bipolar-evidence-update.evidence.json",
+      "runtimeIncluded": false,
+      "dependsOnIds": ["evidence.canmat-isbd.bipolar.2018"]
     },
     {
       "id": "evidence.canmat.mdd-adults.2023-update",
@@ -524,6 +559,12 @@
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-clozaril-2025-label.evidence.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.mavranezouli.depression-treatments.2024",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/mavranezouli-2024-depression-treatment-network-meta-analysis.evidence.json",
+      "runtimeIncluded": false
     },
     {
       "id": "evidence.mishra.clozapine-augmentation-network-meta-analysis.2024",
@@ -574,10 +615,28 @@
       "runtimeIncluded": true
     },
     {
+      "id": "evidence.trzepacz.drs-r-98-validation-erratum.2001",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/trzepacz-2001-drs-r-98-validation-erratum.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.trzepacz.drs-r-98-validation.2001",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/trzepacz-2001-drs-r-98-validation.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
       "id": "evidence.va-dod.bipolar.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/va-dod-bipolar-2023-guideline.evidence.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "evidence.va-dod.mdd.2022",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/va-dod-mdd-2022-guideline.evidence.json",
+      "runtimeIncluded": false
     },
     {
       "id": "evidence.va-dod.schizophrenia.2023",

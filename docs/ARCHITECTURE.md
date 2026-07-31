@@ -442,7 +442,7 @@ responses, and target-redacted D-240 reveals, compiles D-191, and atomically emi
 or selected optional template condition with matching provenance. The snapshot embeds the complete
 D-219, D-217, D-215, D-220, D-240, and D-213 audits and fingerprints every patient, horizon,
 location, derived result, rubric, seed, and compiler attachment. The containing D-200 audit
-composer is `20.0.0`. It remains synthetic and
+composer is `21.0.0`. It remains synthetic and
 runtime-excluded: no case adapter, save migration, queue behavior, new probability draw, scoring,
 or browser import exists.
 
@@ -481,6 +481,32 @@ to the same finding; D-193 alone reconciles agreement or returns a literal hard-
 This pass does not aggregate soft tendencies, infer diagnoses, assign points, retry a seed, or
 contain real diagnosis criteria.
 
+Clinical content remains declarative even when it is useful to think of a database record as a
+function. Atomic `FindingDefinition` and `MeasurementDefinition` records are reusable inputs;
+diagnosis-owned composition data and pure authoring compilers produce frozen outputs. Content
+files never receive callbacks or arbitrary expressions. The overall encounter compiler may
+consume location and complexity state, but location admission, optional-feature spending, and
+diagnosis-to-finding composition remain separate passes.
+
+The condition-finding lane now supports an explicit dimension boundary rather than counting every
+concrete manifestation independently. A `condition-finding-dimensions.v1` profile selects a total
+number of dimensions subject to nonoverlapping reviewed core/cluster constraints, then selects
+one or more manifestations inside each selected dimension. Backend facts such as insomnia versus
+hypersomnia and self-reported versus observed psychomotor change remain independently auditable,
+while their owning dimension counts once. This is D-197 v3, not a parallel cluster engine or
+general expression language. Real MDD mappings remain disabled until the evidence-gated profile is
+reviewed.
+
+Subthreshold texture remains downstream of encounter-owned D-201 optional-richness selection.
+D-249 supplies the typed authoring-only bridge: one selected `finding_texture` module maps to
+exact reviewed finding outcomes, reuses its D-201 ordinal/draw, and copies the unchanged
+selection/spend audit. D-208/D-223 retain the emitted IDs without populating canonical findings
+early. D-200 replaces only the matching generic D-198 baseline with those
+`background_variation` candidates before D-193. Hard D-197 candidates still control the same
+finding. The narrow first version rejects a same-target D-199 contributor collision pending
+reviewed combination semantics. Diagnosis criteria and core dimensions never spend the optional
+budget, and no real texture mapping or rate is active.
+
 Background texture is a separate lowest-priority authoring pass. A
 `weighted-background-finding.v1` profile pins one exact finding definition and finite lawful
 outcome set. One exact profile binds every target in a bounded background horizon. The pure
@@ -509,7 +535,9 @@ whole-state applicability audit. It requires D-197 to embed the exact condition 
 D-208 and D-210 to embed that same D-208/D-198 payload. A caller cannot supply D-199. When D-210
 emits bindings, D-200 derives the exact profile and finding-definition subsets and delegates
 probability work to D-199; a zero-binding audit retains null D-199. It then builds one
-collision-free D-193 candidate union. D-198 is never dropped when D-199 exists. The composer
+collision-free D-193 candidate union. D-198 is never dropped when D-199 exists; the sole exception
+is D-249's exact one-for-one substitution of a selected texture candidate for the generic D-198
+baseline on that same definition. The composer
 preflights D-193 for a complete conflict trace, calls D-194 once, and freezes every upstream
 artifact, the derived D-199 request/result, the complete assembled compiler request, and either the
 verified catalog snapshot or one literal hard-conflict audit. Standalone integrity replays the
@@ -665,7 +693,7 @@ closed target-scoped source class. `not_applicable` is neutral when another sour
 missing or ambiguous applicable definitions block the action and cannot be hidden by a complete
 sibling definition. D-214 puts only referenced target-redacted reveals on
 `attachment_only.v6` patient instances. The complete D-240 audit stays nested in D-213 and replays
-through D-200 `20.0.0`; no parallel snapshot copy, complexity spend, real definition, persistence,
+through D-200 `21.0.0`; no parallel snapshot copy, complexity spend, real definition, persistence,
 runtime, or UI is added.
 
 D-216 adds the closed `EncounterCareSetting` values `outpatient_psychiatry`,
@@ -970,10 +998,11 @@ and
 retains and stops at the first blocked D-233 attempt. A later caller may extend the same
 deterministic transcript only by naming that exact blocker as an explicit retry authorization; the
 next attempt uses the blocker-advanced occupancy, ordinal, and new seeds. Current dependent
-versions are D-233 occupancy `1.0.0`, seed authority `2.0.0`, atomic fill `2.0.0`, D-200 `20.0.0`,
+versions are D-233 occupancy `1.0.0`, seed authority `2.0.0`, atomic fill `2.0.0`, D-200 `21.0.0`,
 facility migration `3.0.0`, D-234 transition/reconciliation `2.0.0`, and the D-235 native-attempt
-compiler `6.0.0`; generated point-report v5 retains the exact player and database-plan decisions,
-three-state prerequisite audits, and native D-159 combination trace.
+compiler `7.0.0`; generated point-report v6 retains the exact player and database-plan decisions,
+both complete rule traces, the minimized D-252 balance snapshot, three-state prerequisite audits,
+and native D-159 combination trace.
 
 This remains authoring-only. D-230 owns only the local template draw; D-233 owns the derived
 patient seed and atomic fill proposal. Neither persists/refills a slot, spends complexity, assigns
@@ -1046,8 +1075,16 @@ shape. Exact approved prerequisite rules may map to zero `notTriggered`, positiv
 negative `omitted` values. Native scoring `3.0.0` derives the outcome from the complete frozen
 D-242 decision, while D-235 `5.0.0`/point-report v4 recomputes and verifies the nested status,
 both Booleans, and selected targets. Balance shape is checked at content validation, attachment,
-resolution, and replay. The authoring path is still runtime-excluded; exact balance-catalog
-payload fingerprinting remains a required persistence boundary before activation.
+resolution, and replay. The authoring path is still runtime-excluded; D-252 supplies exact
+balance-catalog payload fingerprinting but runtime persistence remains disabled.
+
+D-252 compiles one minimized balance snapshot before scoring. It fingerprints the complete
+validated source catalog, retains only the exact balances referenced by the compiled rubric, and
+omits authoring rationale and Developer-opinion records. Native scoring derives both the player
+and database-plan traces from this snapshot; generated-attempt replay verifies each row's exact
+component, pre-combination magnitude, and explanation before combination and totals. This closes
+same-ID/version balance drift without exposing the private authoring catalog or activating
+SaveData.
 
 The first runtime bridge from qualitative guidance is deliberately narrow.
 `TreatmentWorkupRequirement` names one or more diagnosis-owned source-rule IDs, a shared workup

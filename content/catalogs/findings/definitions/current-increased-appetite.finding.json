@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "finding.appetite.current-increased",
+  "label": "Current increased appetite",
+  "aliases": ["Increased appetite"],
+  "semanticKind": "symptom",
+  "valueSpecification": {
+    "kind": "outcome",
+    "allowedValues": ["present", "absent", "subthreshold"]
+  },
+  "allowedPresentationProjections": ["status"],
+  "lifecycle": "approved",
+  "medicalReviewStatus": "unreviewed"
+}

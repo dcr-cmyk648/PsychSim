@@ -7,6 +7,8 @@ import {
   type ConditionFindingCardinalityGroupSelection,
   type ConditionFindingCardinalityProfile,
   type ConditionFindingCardinalityRequest,
+  type ConditionFindingDimensionProfile,
+  type ConditionFindingDimensionProfileSelection,
   type ConditionFindingProfileBinding,
   type ConditionFindingRequiredEvaluation,
   type FindingDefinition,
@@ -16,7 +18,7 @@ import {
 import { seededUnit } from './rng';
 import { verifyResolvedConditionSourceIntegrity } from './resolved-condition-source';
 
-export const CONDITION_FINDING_CARDINALITY_SELECTOR_VERSION = '2.0.0';
+export const CONDITION_FINDING_CARDINALITY_SELECTOR_VERSION = '3.0.0';
 
 export type ConditionFindingCardinalitySelectionResult =
   | { readonly ok: true; readonly value: ConditionFindingCardinalityArtifact }
@@ -103,40 +105,91 @@ const normalizeReview = (review: ClinicalRuleReview): ClinicalRuleReview => ({
 
 const normalizeProfile = (
   profile: ConditionFindingCardinalityProfile,
-): ConditionFindingCardinalityProfile => ({
-  ...profile,
-  conditionScope: {
-    ...profile.conditionScope,
-    severity: { ...profile.conditionScope.severity },
-    requiredSpecifierIds: uniqueSorted(profile.conditionScope.requiredSpecifierIds),
-  },
-  requiredOutcomes: [...profile.requiredOutcomes]
-    .map((outcome) => ({
-      ...outcome,
-      proposedValue: { ...outcome.proposedValue },
-      developerOpinionIds: uniqueSorted(outcome.developerOpinionIds),
-      review: normalizeReview(outcome.review),
-    }))
-    .sort((left, right) => compareStrings(left.id, right.id)),
-  cardinalityGroups: [...profile.cardinalityGroups]
-    .map((group) => ({
-      ...group,
-      countWeights: [...group.countWeights].sort(
-        (left, right) => left.selectionCount - right.selectionCount,
-      ),
-      members: [...group.members]
-        .map((member) => ({
-          ...member,
-          proposedValue: { ...member.proposedValue },
-          developerOpinionIds: uniqueSorted(member.developerOpinionIds),
-          review: normalizeReview(member.review),
+): ConditionFindingCardinalityProfile => {
+  if (profile.modelVersion === 'condition-finding-cardinality.v1') {
+    return {
+      ...profile,
+      conditionScope: {
+        ...profile.conditionScope,
+        severity: { ...profile.conditionScope.severity },
+        requiredSpecifierIds: uniqueSorted(profile.conditionScope.requiredSpecifierIds),
+      },
+      requiredOutcomes: [...profile.requiredOutcomes]
+        .map((outcome) => ({
+          ...outcome,
+          proposedValue: { ...outcome.proposedValue },
+          developerOpinionIds: uniqueSorted(outcome.developerOpinionIds),
+          review: normalizeReview(outcome.review),
         }))
         .sort((left, right) => compareStrings(left.id, right.id)),
-      developerOpinionIds: uniqueSorted(group.developerOpinionIds),
-      review: normalizeReview(group.review),
-    }))
-    .sort((left, right) => compareStrings(left.id, right.id)),
-});
+      cardinalityGroups: [...profile.cardinalityGroups]
+        .map((group) => ({
+          ...group,
+          countWeights: [...group.countWeights].sort(
+            (left, right) => left.selectionCount - right.selectionCount,
+          ),
+          members: [...group.members]
+            .map((member) => ({
+              ...member,
+              proposedValue: { ...member.proposedValue },
+              developerOpinionIds: uniqueSorted(member.developerOpinionIds),
+              review: normalizeReview(member.review),
+            }))
+            .sort((left, right) => compareStrings(left.id, right.id)),
+          developerOpinionIds: uniqueSorted(group.developerOpinionIds),
+          review: normalizeReview(group.review),
+        }))
+        .sort((left, right) => compareStrings(left.id, right.id)),
+    };
+  }
+  return {
+    ...profile,
+    conditionScope: {
+      ...profile.conditionScope,
+      severity: { ...profile.conditionScope.severity },
+      requiredSpecifierIds: uniqueSorted(profile.conditionScope.requiredSpecifierIds),
+    },
+    requiredOutcomes: [...profile.requiredOutcomes]
+      .map((outcome) => ({
+        ...outcome,
+        proposedValue: { ...outcome.proposedValue },
+        developerOpinionIds: uniqueSorted(outcome.developerOpinionIds),
+        review: normalizeReview(outcome.review),
+      }))
+      .sort((left, right) => compareStrings(left.id, right.id)),
+    dimensionCountWeights: [...profile.dimensionCountWeights].sort(
+      (left, right) => left.selectionCount - right.selectionCount,
+    ),
+    dimensions: [...profile.dimensions]
+      .map((dimension) => ({
+        ...dimension,
+        manifestationCountWeights: [...dimension.manifestationCountWeights].sort(
+          (left, right) => left.selectionCount - right.selectionCount,
+        ),
+        manifestations: [...dimension.manifestations]
+          .map((manifestation) => ({
+            ...manifestation,
+            proposedValue: { ...manifestation.proposedValue },
+            developerOpinionIds: uniqueSorted(manifestation.developerOpinionIds),
+            review: normalizeReview(manifestation.review),
+          }))
+          .sort((left, right) => compareStrings(left.id, right.id)),
+        developerOpinionIds: uniqueSorted(dimension.developerOpinionIds),
+        review: normalizeReview(dimension.review),
+      }))
+      .sort((left, right) => compareStrings(left.id, right.id)),
+    selectionRequirements: [...profile.selectionRequirements]
+      .map((requirement) => ({
+        ...requirement,
+        dimensionIds: uniqueSorted(requirement.dimensionIds),
+        developerOpinionIds: uniqueSorted(requirement.developerOpinionIds),
+        review: normalizeReview(requirement.review),
+      }))
+      .sort((left, right) => compareStrings(left.id, right.id)),
+    developerOpinionIds: uniqueSorted(profile.developerOpinionIds),
+    review: normalizeReview(profile.review),
+  };
+};
 
 const normalizeDefinition = (definition: FindingDefinition): FindingDefinition => ({
   ...definition,
@@ -206,7 +259,14 @@ interface DrawContextInput {
   };
   readonly seed: string;
   readonly binding: ConditionFindingProfileBinding;
-  readonly lane: 'required' | 'count' | 'member';
+  readonly lane:
+    | 'required'
+    | 'count'
+    | 'member'
+    | 'dimension_count'
+    | 'dimension'
+    | 'manifestation_count'
+    | 'manifestation';
   readonly sourceItemId: string;
   readonly ordinal: number | null;
 }
@@ -356,9 +416,280 @@ const artifactPayload = (
   unboundConditionStateIds: artifact.unboundConditionStateIds,
   requiredEvaluations: artifact.requiredEvaluations,
   groupSelections: artifact.groupSelections,
+  dimensionSelections: artifact.dimensionSelections,
   candidates: artifact.candidates,
   inputFingerprint: artifact.inputFingerprint,
 });
+
+const dimensionCompletionIsFeasible = (input: {
+  readonly profile: ConditionFindingDimensionProfile;
+  readonly selectedDimensionIds: readonly string[];
+  readonly remainingDimensionIds: readonly string[];
+  readonly remainingSlots: number;
+}): boolean => {
+  if (input.remainingSlots < 0 || input.remainingSlots > input.remainingDimensionIds.length) {
+    return false;
+  }
+  const selectedIds = new Set(input.selectedDimensionIds);
+  const remainingIds = new Set(input.remainingDimensionIds);
+  const constrainedIds = new Set(
+    input.profile.selectionRequirements.flatMap((requirement) => requirement.dimensionIds),
+  );
+  let minimumStillRequired = 0;
+  let remainingCapacity = [...remainingIds].filter(
+    (dimensionId) => !constrainedIds.has(dimensionId),
+  ).length;
+  for (const requirement of input.profile.selectionRequirements) {
+    const selectedCount = requirement.dimensionIds.filter((dimensionId) =>
+      selectedIds.has(dimensionId),
+    ).length;
+    const remainingCount = requirement.dimensionIds.filter((dimensionId) =>
+      remainingIds.has(dimensionId),
+    ).length;
+    if (
+      selectedCount > requirement.maximumSelections ||
+      selectedCount + remainingCount < requirement.minimumSelections
+    ) {
+      return false;
+    }
+    minimumStillRequired += Math.max(0, requirement.minimumSelections - selectedCount);
+    remainingCapacity += Math.min(remainingCount, requirement.maximumSelections - selectedCount);
+  }
+  return minimumStillRequired <= input.remainingSlots && remainingCapacity >= input.remainingSlots;
+};
+
+const buildDimensionSelection = (input: {
+  readonly request: ConditionFindingCardinalityRequest;
+  readonly conditionSourceRef: Extract<
+    ReturnType<typeof verifyResolvedConditionSourceIntegrity>,
+    { readonly ok: true }
+  >['value']['sourceRef'];
+  readonly binding: ConditionFindingProfileBinding;
+  readonly profile: ConditionFindingDimensionProfile;
+}): {
+  readonly selection: ConditionFindingDimensionProfileSelection;
+  readonly candidates: FindingResolutionCandidate[];
+} => {
+  const { request, conditionSourceRef, binding, profile } = input;
+  const countDraw = drawContext({
+    conditionSourceRef,
+    seed: request.seed,
+    binding,
+    lane: 'dimension_count',
+    sourceItemId: profile.id,
+    ordinal: null,
+  });
+  const countChoice = weightedChoice(
+    profile.dimensionCountWeights,
+    seededUnit(request.seed, countDraw.key),
+  );
+  const remaining = profile.dimensions.map((dimension) => ({ ...dimension }));
+  const selectedById = new Map<
+    string,
+    { readonly ordinal: number; readonly stableDrawId: string }
+  >();
+  const selectionDraws: ConditionFindingDimensionProfileSelection['selectionDraws'] = [];
+
+  for (let ordinal = 0; ordinal < countChoice.selectionCount; ordinal += 1) {
+    const slotsAfter = countChoice.selectionCount - ordinal - 1;
+    const eligible = remaining.filter((candidate) =>
+      dimensionCompletionIsFeasible({
+        profile,
+        selectedDimensionIds: [...selectedById.keys(), candidate.id],
+        remainingDimensionIds: remaining
+          .filter((dimension) => dimension.id !== candidate.id)
+          .map((dimension) => dimension.id),
+        remainingSlots: slotsAfter,
+      }),
+    );
+    if (eligible.length === 0) {
+      throw new Error(
+        `${profile.id} cannot complete its reviewed dimension requirements at selection ordinal ${ordinal}.`,
+      );
+    }
+    const draw = drawContext({
+      conditionSourceRef,
+      seed: request.seed,
+      binding,
+      lane: 'dimension',
+      sourceItemId: profile.id,
+      ordinal,
+    });
+    const selected = weightedChoice(eligible, seededUnit(request.seed, draw.key));
+    selectedById.set(selected.id, {
+      ordinal,
+      stableDrawId: draw.stableDrawId,
+    });
+    selectionDraws.push({
+      selectionOrdinal: ordinal,
+      selectedDimensionId: selected.id,
+      stableDrawId: draw.stableDrawId,
+    });
+    remaining.splice(
+      remaining.findIndex((dimension) => dimension.id === selected.id),
+      1,
+    );
+  }
+
+  const candidates: FindingResolutionCandidate[] = [];
+  const dimensionEvaluations = profile.dimensions.map((dimension) => {
+    const dimensionSelection = selectedById.get(dimension.id);
+    if (!dimensionSelection) {
+      return {
+        dimensionId: dimension.id,
+        gameSelectionWeight: dimension.gameSelectionWeight,
+        developerOpinionIds: [...dimension.developerOpinionIds],
+        review: normalizeReview(dimension.review),
+        selected: false,
+        selectionOrdinal: null,
+        stableDrawId: null,
+        selectedManifestationCount: null,
+        selectedManifestationCountGameWeight: null,
+        manifestationCountStableDrawId: null,
+        manifestationSelectionDraws: [],
+        manifestationEvaluations: dimension.manifestations.map((manifestation) => ({
+          manifestationId: manifestation.id,
+          findingDefinitionId: manifestation.findingDefinitionId,
+          findingDefinitionContentVersion: manifestation.findingDefinitionContentVersion,
+          proposedValue: { ...manifestation.proposedValue },
+          uncertainty: manifestation.uncertainty,
+          gameSelectionWeight: manifestation.gameSelectionWeight,
+          developerOpinionIds: [...manifestation.developerOpinionIds],
+          review: normalizeReview(manifestation.review),
+          selected: false,
+          selectionOrdinal: null,
+          stableDrawId: null,
+          candidateId: null,
+        })),
+      };
+    }
+
+    const manifestationCountDraw = drawContext({
+      conditionSourceRef,
+      seed: request.seed,
+      binding,
+      lane: 'manifestation_count',
+      sourceItemId: dimension.id,
+      ordinal: null,
+    });
+    const manifestationCountChoice = weightedChoice(
+      dimension.manifestationCountWeights,
+      seededUnit(request.seed, manifestationCountDraw.key),
+    );
+    const remainingManifestations = dimension.manifestations.map((manifestation) => ({
+      ...manifestation,
+    }));
+    const selectedManifestationById = new Map<
+      string,
+      { readonly ordinal: number; readonly stableDrawId: string }
+    >();
+    const manifestationSelectionDraws: ConditionFindingDimensionProfileSelection['dimensionEvaluations'][number]['manifestationSelectionDraws'] =
+      [];
+    for (let ordinal = 0; ordinal < manifestationCountChoice.selectionCount; ordinal += 1) {
+      const draw = drawContext({
+        conditionSourceRef,
+        seed: request.seed,
+        binding,
+        lane: 'manifestation',
+        sourceItemId: dimension.id,
+        ordinal,
+      });
+      const selected = weightedChoice(remainingManifestations, seededUnit(request.seed, draw.key));
+      selectedManifestationById.set(selected.id, {
+        ordinal,
+        stableDrawId: draw.stableDrawId,
+      });
+      manifestationSelectionDraws.push({
+        selectionOrdinal: ordinal,
+        selectedManifestationId: selected.id,
+        stableDrawId: draw.stableDrawId,
+      });
+      remainingManifestations.splice(
+        remainingManifestations.findIndex((manifestation) => manifestation.id === selected.id),
+        1,
+      );
+    }
+
+    const manifestationEvaluations = dimension.manifestations.map((manifestation) => {
+      const selection = selectedManifestationById.get(manifestation.id);
+      const candidate =
+        selection === undefined
+          ? null
+          : buildCandidate({
+              conditionSourceRef,
+              binding,
+              profile,
+              sourceItemId: manifestation.id,
+              kind: 'cardinality_requirement',
+              findingDefinitionId: manifestation.findingDefinitionId,
+              findingDefinitionContentVersion: manifestation.findingDefinitionContentVersion,
+              proposedValue: manifestation.proposedValue,
+              uncertainty: manifestation.uncertainty,
+              stableDrawId: selection.stableDrawId,
+              review: manifestation.review,
+              provenanceIds: provenanceIds(profile, dimension, manifestation),
+            });
+      if (candidate) candidates.push(candidate);
+      return {
+        manifestationId: manifestation.id,
+        findingDefinitionId: manifestation.findingDefinitionId,
+        findingDefinitionContentVersion: manifestation.findingDefinitionContentVersion,
+        proposedValue: { ...manifestation.proposedValue },
+        uncertainty: manifestation.uncertainty,
+        gameSelectionWeight: manifestation.gameSelectionWeight,
+        developerOpinionIds: [...manifestation.developerOpinionIds],
+        review: normalizeReview(manifestation.review),
+        selected: selection !== undefined,
+        selectionOrdinal: selection?.ordinal ?? null,
+        stableDrawId: selection?.stableDrawId ?? null,
+        candidateId: candidate?.id ?? null,
+      };
+    });
+    return {
+      dimensionId: dimension.id,
+      gameSelectionWeight: dimension.gameSelectionWeight,
+      developerOpinionIds: [...dimension.developerOpinionIds],
+      review: normalizeReview(dimension.review),
+      selected: true,
+      selectionOrdinal: dimensionSelection.ordinal,
+      stableDrawId: dimensionSelection.stableDrawId,
+      selectedManifestationCount: manifestationCountChoice.selectionCount,
+      selectedManifestationCountGameWeight: manifestationCountChoice.gameSelectionWeight,
+      manifestationCountStableDrawId: manifestationCountDraw.stableDrawId,
+      manifestationSelectionDraws,
+      manifestationEvaluations,
+    };
+  });
+
+  return {
+    selection: {
+      bindingId: binding.id,
+      conditionStateId: binding.conditionStateId,
+      profileRef: { ...binding.profileRef },
+      profileFingerprint: binding.profileFingerprint,
+      selectedDimensionCount: countChoice.selectionCount,
+      selectedDimensionCountGameWeight: countChoice.gameSelectionWeight,
+      countStableDrawId: countDraw.stableDrawId,
+      developerOpinionIds: [...profile.developerOpinionIds],
+      review: normalizeReview(profile.review),
+      selectionDraws,
+      requirementEvaluations: profile.selectionRequirements.map((requirement) => ({
+        requirementId: requirement.id,
+        dimensionIds: [...requirement.dimensionIds],
+        minimumSelections: requirement.minimumSelections,
+        maximumSelections: requirement.maximumSelections,
+        selectedCount: requirement.dimensionIds.filter((dimensionId) =>
+          selectedById.has(dimensionId),
+        ).length,
+        satisfied: true as const,
+        developerOpinionIds: [...requirement.developerOpinionIds],
+        review: normalizeReview(requirement.review),
+      })),
+      dimensionEvaluations,
+    },
+    candidates,
+  };
+};
 
 const buildArtifact = (
   request: ConditionFindingCardinalityRequest,
@@ -376,6 +707,7 @@ const buildArtifact = (
   );
   const requiredEvaluations: ConditionFindingRequiredEvaluation[] = [];
   const groupSelections: ConditionFindingCardinalityGroupSelection[] = [];
+  const dimensionSelections: ConditionFindingDimensionProfileSelection[] = [];
   const candidates: FindingResolutionCandidate[] = [];
 
   for (const binding of request.conditionProfileBindings) {
@@ -421,6 +753,18 @@ const buildArtifact = (
         stableDrawId: draw.stableDrawId,
         candidateId: candidate.id,
       });
+    }
+
+    if (profile.modelVersion === 'condition-finding-dimensions.v1') {
+      const dimensionResult = buildDimensionSelection({
+        request,
+        conditionSourceRef,
+        binding,
+        profile,
+      });
+      dimensionSelections.push(dimensionResult.selection);
+      candidates.push(...dimensionResult.candidates);
+      continue;
     }
 
     for (const group of profile.cardinalityGroups) {
@@ -551,6 +895,9 @@ const buildArtifact = (
         `${right.bindingId}\u0000${right.groupId}`,
       ),
     ),
+    dimensionSelections: dimensionSelections.sort((left, right) =>
+      compareStrings(left.bindingId, right.bindingId),
+    ),
     candidates: candidates.sort((left, right) => compareStrings(left.id, right.id)),
     inputFingerprint,
   };
@@ -570,10 +917,11 @@ const invalidCandidateValue = (request: ConditionFindingCardinalityRequest): str
     ]),
   );
   for (const profile of request.profiles) {
-    const outcomes = [
-      ...profile.requiredOutcomes,
-      ...profile.cardinalityGroups.flatMap((group) => group.members),
-    ];
+    const variableOutcomes =
+      profile.modelVersion === 'condition-finding-cardinality.v1'
+        ? profile.cardinalityGroups.flatMap((group) => group.members)
+        : profile.dimensions.flatMap((dimension) => dimension.manifestations);
+    const outcomes = [...profile.requiredOutcomes, ...variableOutcomes];
     for (const outcome of outcomes) {
       const definition = definitionByKey.get(
         `${outcome.findingDefinitionId}\u0000${outcome.findingDefinitionContentVersion}`,
@@ -774,6 +1122,88 @@ export const verifyConditionFindingCardinalityIntegrity = (
       }
     }
   }
+  for (const selection of artifact.dimensionSelections) {
+    const binding = bindingById.get(selection.bindingId)!;
+    if (
+      selection.countStableDrawId !==
+      expectedDraw({
+        artifact,
+        binding,
+        lane: 'dimension_count',
+        sourceItemId: selection.profileRef.id,
+        ordinal: null,
+      })
+    ) {
+      return {
+        ok: false,
+        error: {
+          code: 'DRAW_CONTEXT_MISMATCH',
+          message: `${selection.profileRef.id} does not match its saved dimension-count draw context.`,
+        },
+      };
+    }
+    for (const draw of selection.selectionDraws) {
+      if (
+        draw.stableDrawId !==
+        expectedDraw({
+          artifact,
+          binding,
+          lane: 'dimension',
+          sourceItemId: selection.profileRef.id,
+          ordinal: draw.selectionOrdinal,
+        })
+      ) {
+        return {
+          ok: false,
+          error: {
+            code: 'DRAW_CONTEXT_MISMATCH',
+            message: `${selection.profileRef.id} dimension draw ${draw.selectionOrdinal} does not match its saved context.`,
+          },
+        };
+      }
+    }
+    for (const dimension of selection.dimensionEvaluations) {
+      if (!dimension.selected) continue;
+      if (
+        dimension.manifestationCountStableDrawId !==
+        expectedDraw({
+          artifact,
+          binding,
+          lane: 'manifestation_count',
+          sourceItemId: dimension.dimensionId,
+          ordinal: null,
+        })
+      ) {
+        return {
+          ok: false,
+          error: {
+            code: 'DRAW_CONTEXT_MISMATCH',
+            message: `${dimension.dimensionId} does not match its saved manifestation-count draw context.`,
+          },
+        };
+      }
+      for (const draw of dimension.manifestationSelectionDraws) {
+        if (
+          draw.stableDrawId !==
+          expectedDraw({
+            artifact,
+            binding,
+            lane: 'manifestation',
+            sourceItemId: dimension.dimensionId,
+            ordinal: draw.selectionOrdinal,
+          })
+        ) {
+          return {
+            ok: false,
+            error: {
+              code: 'DRAW_CONTEXT_MISMATCH',
+              message: `${dimension.dimensionId} manifestation draw ${draw.selectionOrdinal} does not match its saved context.`,
+            },
+          };
+        }
+      }
+    }
+  }
 
   const evaluationByCandidateId = new Map<
     string,
@@ -814,6 +1244,26 @@ export const verifyConditionFindingCardinalityIntegrity = (
         review: member.review,
         provenanceIds: provenanceIds(group, member),
       });
+    }
+  }
+  for (const selection of artifact.dimensionSelections) {
+    for (const dimension of selection.dimensionEvaluations) {
+      for (const manifestation of dimension.manifestationEvaluations) {
+        if (!manifestation.candidateId || !manifestation.stableDrawId) continue;
+        evaluationByCandidateId.set(manifestation.candidateId, {
+          bindingId: selection.bindingId,
+          conditionStateId: selection.conditionStateId,
+          profileRef: selection.profileRef,
+          stableDrawId: manifestation.stableDrawId,
+          kind: 'cardinality_requirement',
+          findingDefinitionId: manifestation.findingDefinitionId,
+          findingDefinitionContentVersion: manifestation.findingDefinitionContentVersion,
+          proposedValue: manifestation.proposedValue,
+          uncertainty: manifestation.uncertainty,
+          review: manifestation.review,
+          provenanceIds: provenanceIds(selection, dimension, manifestation),
+        });
+      }
     }
   }
   for (const candidate of artifact.candidates) {

@@ -126,6 +126,14 @@ medication starts fail the broad route but still activate both prerequisites, pr
 when neither history was purchased. Every trace preserves the three-state result, both component
 Booleans, exact selected targets, component, balance reference, and explanation.
 
+D-252 freezes the exact point owners used by a native generated attempt. A minimized balance
+snapshot retains only rubric-referenced magnitudes, outcomes, components, impact bands, and
+player-facing explanations while a separate fingerprint identifies the complete validated source
+catalog. Both player and database-plan traces are stored and replayed against that snapshot before
+D-159 combination and totals. Authoring rationale and Developer-opinion records remain outside the
+attempt. Reordering a catalog is inert; changing a same-ID/version magnitude changes the snapshot
+fingerprints.
+
 D-239 independently makes generated information expenses native. It does not affect care points
 or whether an investigation was appropriate. The compiler selects the least-cost available
 equal-quality fulfillment method from the exact versioned service owner after D-219 mechanical

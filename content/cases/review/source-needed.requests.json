@@ -161,7 +161,7 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "1.1.0",
     "id": "source-request.mdd.severity-thresholds",
     "title": "Structured mild, moderate, and severe MDD generation",
     "question": "Which current authoritative criteria should PsychSim use to distinguish mild, moderate, and severe depressive episodes using symptom count, symptom intensity, distress, functional impairment, psychosis, and safety findings?",
@@ -199,16 +199,94 @@
     },
     "existingEvidenceSourceIds": [
       "evidence.canmat.mdd-adults.2023-update",
+      "evidence.mavranezouli.depression-treatments.2024",
       "evidence.who.mhgap-mns.2023"
     ],
-    "receivedEvidenceSourceIds": [],
-    "sourceDocumentIds": [],
-    "sourceChunkIds": [],
+    "receivedEvidenceSourceIds": [
+      "evidence.canmat.mdd-adults.2023-update",
+      "evidence.mavranezouli.depression-treatments.2024"
+    ],
+    "sourceDocumentIds": ["source-document.412aade56104fd394503"],
+    "sourceChunkIds": [
+      "source-chunk.412aade56104fd394503.6",
+      "source-chunk.412aade56104fd394503.7"
+    ],
     "sourceUseNoteIds": [],
-    "status": "needs_source",
-    "resolutionNote": null,
+    "status": "source_received",
+    "resolutionNote": "CANMAT's source-cleared conventions section supplies one current, explicit severity scaffold: retain depressive symptom severity and depression-attributable functional impairment as separate dimensions and use the higher qualitative rating as the overall mild, moderate, or severe descriptor. It also demonstrates that the two dimensions may disagree. The source does not supply universal numeric boundaries. The source-cleared Mavranezouli review uses depression-scale cutoffs only to define less- and more-severe treatment-analysis populations, reinforcing that research strata are not diagnostic or generator thresholds. The preliminary adjunct search found no recent validation study that closes the remaining gap. Screening cutoffs, instrument bands, trial-entry thresholds, psychosis, safety, course, and treatment resistance therefore remain separate facts rather than silent severity proxies. Exact branch envelopes still require psychiatrist review; no generator profile, treatment rule, or point value is authorized.",
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-23T14:55:00.000Z"
+    "updatedAt": "2026-07-31T14:21:08.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.1.0",
+    "id": "source-request.mdd.current-episode-dimensions",
+    "title": "Current adult MDD episode dimensions and manifestations",
+    "question": "Which legally reusable, current sources support a game-usable adult MDD episode structure with required core dimensions, a supra-threshold total of selected dimensions, and separately auditable manifestations? Specifically clarify how depressed mood, anhedonia, pessimism or hopelessness, passive death wish, active suicidal ideation, sleep direction, appetite or weight direction, psychomotor report versus observation, worthlessness or guilt, and concentration or indecision should be represented without double-counting.",
+    "whyNeeded": "The general dimension compiler is approved, but the first real MDD profile must not infer its clinical grouping from compatibility content, inaccessible DSM text, or labels. The profile needs reviewed evidence for core requirements, total cardinality, criterion-equivalent groupings, and the role of pessimism and suicidality before it can emit executable patient facts.",
+    "targetContentIds": [
+      "diagnosis.major-depressive-disorder",
+      "finding.depressive.depressed-mood",
+      "finding.history.current-anhedonia",
+      "finding.history.current-pessimism",
+      "finding.history.current-fatigue-low-energy",
+      "finding.sleep.current-insomnia",
+      "finding.sleep.current-hypersomnia",
+      "finding.appetite.current-reduced",
+      "finding.appetite.current-increased",
+      "finding.history.current-unintentional-weight-gain",
+      "finding.history.current-unintentional-weight-loss",
+      "finding.history.current-psychomotor-slowing",
+      "finding.history.current-psychomotor-agitation",
+      "finding.mse.current-observed-psychomotor-slowing",
+      "finding.mse.current-observed-psychomotor-agitation",
+      "finding.history.current-worthlessness",
+      "finding.history.current-excessive-guilt",
+      "finding.history.current-concentration-difficulty",
+      "finding.history.current-indecision",
+      "finding.safety.current-passive-death-wish",
+      "finding.safety.current-active-suicidal-ideation"
+    ],
+    "linkedTicketIds": ["ticket.catalog.diagnoses.mdd-current-episode-finding-profile"],
+    "preferredSourceTypes": [
+      "classification_standard",
+      "clinical_guideline",
+      "professional_guidance",
+      "systematic_review",
+      "journal_article"
+    ],
+    "acceptanceCriteria": [
+      "Separates a diagnosis-level dimension count from the number of concrete or differently sourced manifestations.",
+      "Identifies which core symptom or symptom-set requirement is supported and the source scope to which it applies.",
+      "Clarifies whether pessimism or hopelessness and passive or active suicidality are core, criterion-level, associated, severity, or safety constructs rather than silently merging them.",
+      "Supports concise psychiatrist-authored paraphrases and exact source locations without reproducing restricted diagnostic text.",
+      "Names disagreements, jurisdiction limits, or evidence gaps rather than manufacturing one falsely unanimous structure.",
+      "Does not assign generation weights, case points, treatment rules, or player-facing wording."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [
+      "evidence.canmat.mdd-adults.2023-update",
+      "evidence.nimh.mental-health-topics.current",
+      "evidence.va-dod.mdd.2022"
+    ],
+    "receivedEvidenceSourceIds": [
+      "evidence.canmat.mdd-adults.2023-update",
+      "evidence.nimh.mental-health-topics.current",
+      "evidence.va-dod.mdd.2022"
+    ],
+    "sourceDocumentIds": ["source-document.412aade56104fd394503"],
+    "sourceChunkIds": [
+      "source-chunk.412aade56104fd394503.8",
+      "source-chunk.412aade56104fd394503.9"
+    ],
+    "sourceUseNoteIds": [],
+    "status": "source_received",
+    "resolutionNote": "CANMAT Q.1.c-e and the current NIMH depression publication provide source-cleared scaffolding for the core pair, duration, broad symptom palette, and separation of screening from diagnosis. The 2022 VA/DoD guideline is registered as a current official comparator, but its DSM-labeled criteria sidebar remains metadata/context only under the current source-use decision. Exact cardinality, manifestation grouping, and the roles of pessimism and suicidality remain a psychiatrist-review decision; no executable profile is authorized.",
+    "createdAt": "2026-07-31T13:04:04.000Z",
+    "updatedAt": "2026-07-31T16:30:00.000Z"
   },
   {
     "schemaVersion": 1,
@@ -787,5 +865,135 @@
     "resolutionNote": null,
     "createdAt": "2026-07-27T14:30:00.000Z",
     "updatedAt": "2026-07-27T14:30:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.assessments.drs-r-98-reuse-and-validation",
+    "title": "DRS-R-98 identity, validation, and reuse boundary",
+    "question": "Which exact DRS-R-98 version, correction, validation populations, administration boundary, score outputs, and reproduction permissions can support a universally searchable but contextually scored Testing option without copying protected instrument content?",
+    "whyNeeded": "PsychSim has a neutral instrument-response compiler but no lawful real DRS-R-98 owner. The requested game action may eventually show only a total score, yet internal derivation, interpretation, and point relevance still require an exact version, reviewed source, correction handling, and permission to use the instrument content.",
+    "targetContentIds": ["info.physical.mental-status"],
+    "linkedTicketIds": ["ticket.catalog.assessments.drs-r-98-identity-and-reuse"],
+    "preferredSourceTypes": [
+      "journal_article",
+      "correction_notice",
+      "professional_guidance",
+      "systematic_review"
+    ],
+    "acceptanceCriteria": [
+      "Identifies the exact instrument owner, English version, correction content, and authoritative administration or scoring material.",
+      "Records explicit permission or licence terms for item wording, anchors, instructions, scoring, internal structured derivation, and display of a total score.",
+      "Separates original validation, later validation populations, diagnostic discrimination, severity measurement, and any delirium-versus-dementia use.",
+      "Defines what can be displayed to the player without reproducing protected item content or making one score a definitive diagnosis.",
+      "Leaves clinical relevance, effort cost, point magnitude, and encounter probability for separate psychiatrist and game-balance review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [
+      "evidence.trzepacz.drs-r-98-validation.2001",
+      "evidence.trzepacz.drs-r-98-validation-erratum.2001"
+    ],
+    "receivedEvidenceSourceIds": [
+      "evidence.trzepacz.drs-r-98-validation.2001",
+      "evidence.trzepacz.drs-r-98-validation-erratum.2001"
+    ],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "source_received",
+    "resolutionNote": "PubMed and the publisher establish the primary validation identity, DOI, PMID, original hospitalized comparison population, and existence of a published correction. The publisher exposes a permissions workflow but no open reuse licence; later validation literature explicitly describes permission to use the scale. Exact correction content, current owner authorization, item and anchor reproduction, internal scoring derivation, and display rights therefore remain unresolved. PsychSim may retain metadata and this gap analysis only. No instrument definition, score cutoff, diagnostic rule, generation probability, action cost, or point value is authorized.",
+    "createdAt": "2026-07-31T14:32:00.000Z",
+    "updatedAt": "2026-07-31T14:32:00.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.bipolar.canmat-isbd-current-guidance",
+    "title": "Current CANMAT/ISBD bipolar guidance and phase-specific mapping",
+    "question": "Which current, legally processable CANMAT/ISBD sources should support separate emulation inputs for bipolar I mania, bipolar I depression, bipolar II depression, maintenance, complex regimen transitions, and relevant comorbidity or medication-fit questions?",
+    "whyNeeded": "PsychSim has bipolar identity and review-cohort placeholders plus a U.S. VA/DoD guideline, but it has not mapped the foundational CANMAT/ISBD source family by illness phase, population, update status, rights, or recommendation unit. A verified source identity is necessary before bipolar rules can safely influence generated patients or cross-condition medication fit.",
+    "targetContentIds": [
+      "diagnosis.bipolar-spectrum-disorder",
+      "case.review-cohort.bipolar-depression",
+      "case.review-cohort.acute-mania"
+    ],
+    "linkedTicketIds": ["ticket.source.canmat-bipolar.current-guideline-intake"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "systematic_review",
+      "journal_article",
+      "correction_notice"
+    ],
+    "acceptanceCriteria": [
+      "Preserves the 2018 full guideline and any later summary, update, correction, or superseding source as separate linked records.",
+      "Separates bipolar I mania, bipolar I depression, bipolar II depression, maintenance, special populations, comorbidity, safety, and monitoring rather than flattening them into one treatment list.",
+      "Records recommendation identifiers, evidence strength, population, phase, and exact locator where the source supplies them.",
+      "Identifies a lawful source-use route for concise original emulation inputs before any clinical rule is proposed.",
+      "Leaves treatment selection, regimen-transition semantics, probabilities, point values, and clinical approval for separate psychiatrist review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": [
+      "evidence.canmat-isbd.bipolar.2018",
+      "evidence.canmat-isbd.bipolar-evidence-update.2023",
+      "evidence.va-dod.bipolar.2023"
+    ],
+    "receivedEvidenceSourceIds": [
+      "evidence.canmat-isbd.bipolar.2018",
+      "evidence.canmat-isbd.bipolar-evidence-update.2023",
+      "evidence.va-dod.bipolar.2023"
+    ],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "source_received",
+    "resolutionNote": "The 2018 full CANMAT/ISBD guideline, the 2023 summary/evidence update, and the existing 2023 VA/DoD guideline are now separate verified source records. The 2018 source is CC BY-NC-ND 4.0 and the 2023 update is publisher-controlled, so neither currently authorizes PsychSim to transform its text into clinical rules. The records establish source identity, scope, and update relation only. No phase-specific recommendation, regimen route, probability, point value, or runtime behavior has been incorporated.",
+    "createdAt": "2026-07-31T14:43:32.000Z",
+    "updatedAt": "2026-07-31T14:43:32.000Z"
+  },
+  {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
+    "id": "source-request.eating-disorders.medical-instability-disposition",
+    "title": "Eating-disorder medical-instability and level-of-care contributors",
+    "question": "Which current, legally reusable sources should define the bounded medical-instability facts and level-of-care contributors for a focused eating-disorder encounter without letting BMI alone determine disposition?",
+    "whyNeeded": "The planned anorexia snapshot requires independently owned BMI, vital-sign, laboratory, ECG, intake-trajectory, acute-symptom, safety, and support facts. The current APA guideline identifies assessment, level of care, and medical stabilization as relevant source topics, but its publisher terms do not permit extraction or AI-assisted transformation.",
+    "targetContentIds": [
+      "info.physical.weight-bmi",
+      "disposition.outpatient-followup",
+      "disposition.emergency-transfer"
+    ],
+    "linkedTicketIds": ["ticket.source.eating-disorders.medical-instability-disposition"],
+    "preferredSourceTypes": [
+      "clinical_guideline",
+      "professional_guidance",
+      "systematic_review",
+      "journal_article"
+    ],
+    "acceptanceCriteria": [
+      "Defines the intended age range, care setting, and eating-disorder population.",
+      "Separates BMI, recent weight trajectory, vital signs, laboratory findings, ECG findings, acute symptoms, intake or hydration, suicidality, and available support when the source does.",
+      "Distinguishes hard medical escalation triggers from contextual concerns without reducing the decision to one score or cutoff.",
+      "Identifies which player-accessible examinations and tests are prerequisites for each proposed focused decision.",
+      "Has source terms permitting concise original emulation inputs and leaves clinical mapping, generation probabilities, point values, and disposition scoring for psychiatrist review."
+    ],
+    "destination": {
+      "provider": "google_drive",
+      "folderLabel": "PsychSim documents"
+    },
+    "existingEvidenceSourceIds": ["evidence.apa.eating-disorders.fourth-edition.2023"],
+    "receivedEvidenceSourceIds": ["evidence.apa.eating-disorders.fourth-edition.2023"],
+    "sourceDocumentIds": [],
+    "sourceChunkIds": [],
+    "sourceUseNoteIds": [],
+    "status": "source_received",
+    "resolutionNote": "The current APA fourth-edition guideline is now a verified metadata-only source and confirms the relevant source topics, but APA's copyright policy blocks extraction, adaptation, and AI use without permission. A legally reusable companion source and psychiatrist review are still required before any instability threshold, generator field relationship, disposition rule, probability, or point value is created.",
+    "createdAt": "2026-07-31T14:43:32.000Z",
+    "updatedAt": "2026-07-31T14:43:32.000Z"
   }
 ]
