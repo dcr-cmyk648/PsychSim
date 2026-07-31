@@ -13,10 +13,11 @@ import {
   type DecisionPolicyDefinition,
   type DecisionRuleCandidateDefinition,
   type DecisionRuleReference,
+  type DecisionTriggeredInformationPrerequisite,
   type ResolvedPatientState,
 } from '@psychsim/schemas';
 
-export const DECISION_POLICY_COMPILER_VERSION = '1.0.0';
+export const DECISION_POLICY_COMPILER_VERSION = '3.0.0';
 
 export type DecisionPolicyCompileErrorCode =
   | 'POLICY_NOT_APPROVED'
@@ -27,6 +28,7 @@ export type DecisionPolicyCompileErrorCode =
   | 'PRIMARY_ROUTE_NOT_APPROVED'
   | 'PRIMARY_ROUTE_INVALID'
   | 'ACTION_HORIZON_INVALID'
+  | 'AMBIGUOUS_EFFECT_SPECIFICITY'
   | 'RULE_INDEX_STALE'
   | 'COMPILED_RUBRIC_INVALID';
 
@@ -60,20 +62,46 @@ export type CompiledRubricIntegrityResult =
   | {
       readonly ok: false;
       readonly error: {
-        readonly code: 'INVALID_SCHEMA' | 'FINGERPRINT_MISMATCH';
+        readonly code: 'INVALID_SCHEMA' | 'UNSUPPORTED_COMPILER_VERSION' | 'FINGERPRINT_MISMATCH';
         readonly message: string;
       };
     };
 
-interface IndexedPatientFact {
+export type CompiledRubricContextVerificationErrorCode =
+  | 'RUBRIC_INTEGRITY_INVALID'
+  | 'PATIENT_STATE_ID_MISMATCH'
+  | 'PATIENT_STATE_FINGERPRINT_MISMATCH'
+  | 'ACTION_HORIZON_ID_MISMATCH'
+  | 'ACTION_HORIZON_FINGERPRINT_MISMATCH';
+
+export type CompiledRubricContextVerificationResult =
+  | { readonly ok: true; readonly value: CompiledRubric }
+  | {
+      readonly ok: false;
+      readonly error: {
+        readonly code: CompiledRubricContextVerificationErrorCode;
+        readonly message: string;
+        readonly contentIds: readonly string[];
+      };
+    };
+
+export interface VerifyCompiledRubricContextInput {
+  readonly rubric: unknown;
+  readonly patientState: ResolvedPatientState;
+  readonly actionHorizon: DecisionActionHorizon;
+}
+
+export interface IndexedPatientFact {
   readonly key: DecisionPatientFactKey;
   readonly recordIds: readonly string[];
 }
 
-interface PredicateMatch {
+export interface DecisionPatientPredicateMatch {
   readonly matched: boolean;
   readonly bindings: readonly DecisionMatchedPatientFactBinding[];
 }
+
+type PredicateMatch = DecisionPatientPredicateMatch;
 
 interface ActionMatch {
   readonly matched: boolean;
@@ -132,10 +160,14 @@ const hashToHex64 = (value: string): string => {
 const fingerprint = (scope: string, value: unknown): DecisionCompilerFingerprint =>
   `fingerprint.decision.${scope}.fnv1a64.${hashToHex64(JSON.stringify(canonicalize(value)))}`;
 
+export const fingerprintDecisionPatientState = (
+  patientState: ResolvedPatientState,
+): DecisionCompilerFingerprint => fingerprint('patient-state', patientState);
+
 const referenceKey = (reference: DecisionRuleReference): string =>
   `${reference.kind}:${reference.id}@${reference.contentVersion}:${reference.ownerId}@${reference.ownerContentVersion}`;
 
-const factKey = (fact: DecisionPatientFactKey): string =>
+export const serializeDecisionPatientFactKey = (fact: DecisionPatientFactKey): string =>
   [
     fact.recordKind,
     fact.identityId,
@@ -143,6 +175,7 @@ const factKey = (fact: DecisionPatientFactKey): string =>
     fact.attributeId,
     fact.valueId,
   ].join('\0');
+const factKey = serializeDecisionPatientFactKey;
 const actionTargetKey = (target: DecisionActionTarget): string =>
   JSON.stringify(canonicalize(target));
 
@@ -182,7 +215,7 @@ const uniqueFactBindings = (
     }));
 };
 
-const normalizePatientPredicate = (
+export const normalizeDecisionPatientPredicate = (
   predicate: DecisionPatientPredicate | null,
 ): DecisionPatientPredicate | null => {
   if (predicate === null) return null;
@@ -199,7 +232,7 @@ const normalizePatientPredicate = (
     case 'all':
     case 'any': {
       const predicates = predicate.predicates
-        .map((child) => normalizePatientPredicate(child)!)
+        .map((child) => normalizeDecisionPatientPredicate(child)!)
         .sort((left, right) =>
           compareStrings(JSON.stringify(canonicalize(left)), JSON.stringify(canonicalize(right))),
         );
@@ -216,6 +249,21 @@ const normalizeActionPredicate = (
     : {
         match: predicate.match,
         targets: uniqueActionTargets(predicate.targets),
+      };
+
+const normalizeTriggeredInformationPrerequisite = (
+  prerequisite: DecisionTriggeredInformationPrerequisite | null,
+): DecisionTriggeredInformationPrerequisite | null =>
+  prerequisite === null
+    ? null
+    : {
+        schemaVersion: 1,
+        policyScope: {
+          policyRef: { ...prerequisite.policyScope.policyRef },
+          focusedDecisionId: prerequisite.policyScope.focusedDecisionId,
+        },
+        triggerWhen: normalizeActionPredicate(prerequisite.triggerWhen)!,
+        fulfillmentWhen: normalizeActionPredicate(prerequisite.fulfillmentWhen)!,
       };
 
 const stateBindingId = (
@@ -964,6 +1012,21 @@ const evaluatePatientPredicate = (
   }
 };
 
+export const matchDecisionPatientPredicateAgainstFacts = (
+  predicate: DecisionPatientPredicate | null,
+  facts: readonly IndexedPatientFact[],
+): DecisionPatientPredicateMatch =>
+  evaluatePatientPredicate(
+    predicate,
+    new Map(facts.map((fact) => [factKey(fact.key), fact] as const)),
+  );
+
+export const matchDecisionPatientPredicateAgainstState = (
+  predicate: DecisionPatientPredicate | null,
+  state: ResolvedPatientState,
+): DecisionPatientPredicateMatch =>
+  matchDecisionPatientPredicateAgainstFacts(predicate, collectDecisionPatientFacts(state));
+
 const evaluateActionPredicate = (
   predicate: DecisionActionPredicate | null,
   availableTargetsByKey: ReadonlyMap<string, DecisionActionTarget>,
@@ -1074,8 +1137,11 @@ const toCompiledRule = (
   ruleRef: { ...match.candidate.ruleRef },
   label: match.candidate.label,
   inclusionReason: reason,
-  patientWhen: normalizePatientPredicate(match.candidate.patientWhen),
+  patientWhen: normalizeDecisionPatientPredicate(match.candidate.patientWhen),
   actionWhen: normalizeActionPredicate(match.candidate.actionWhen),
+  triggeredInformationPrerequisite: normalizeTriggeredInformationPrerequisite(
+    match.candidate.triggeredInformationPrerequisite,
+  ),
   matchedPatientFactBindings: uniqueFactBindings(match.patient.bindings),
   matchedActionTargets: uniqueActionTargets(match.action.targets),
   ruleKind: match.candidate.ruleKind,
@@ -1140,6 +1206,15 @@ export const verifyCompiledRubricIntegrity = (value: unknown): CompiledRubricInt
       },
     };
   }
+  if (parsed.data.compilerVersion !== DECISION_POLICY_COMPILER_VERSION) {
+    return {
+      ok: false,
+      error: {
+        code: 'UNSUPPORTED_COMPILER_VERSION',
+        message: `${parsed.data.id} uses unsupported decision-policy compiler ${parsed.data.compilerVersion}.`,
+      },
+    };
+  }
   const expectedFingerprint = exactFingerprint(
     'compiler-output',
     compilerFingerprintPayload(parsed.data),
@@ -1154,6 +1229,75 @@ export const verifyCompiledRubricIntegrity = (value: unknown): CompiledRubricInt
     };
   }
   return { ok: true, value: parsed.data };
+};
+
+/**
+ * Verifies that a frozen rubric remains attached to the exact patient and
+ * action-horizon payloads it was compiled against. Stable IDs alone are not
+ * sufficient because an in-memory or persisted payload may change while
+ * retaining its identity.
+ */
+export const verifyCompiledRubricContext = (
+  input: VerifyCompiledRubricContextInput,
+): CompiledRubricContextVerificationResult => {
+  const integrity = verifyCompiledRubricIntegrity(input.rubric);
+  if (!integrity.ok) {
+    return {
+      ok: false,
+      error: {
+        code: 'RUBRIC_INTEGRITY_INVALID',
+        message: `The compiled rubric failed integrity verification: ${integrity.error.message}`,
+        contentIds: [],
+      },
+    };
+  }
+
+  const rubric = integrity.value;
+  const patientStateFingerprint = fingerprintDecisionPatientState(input.patientState);
+  const actionHorizonFingerprint = fingerprint('action-horizon', input.actionHorizon);
+
+  if (rubric.patientStateId !== input.patientState.id) {
+    return {
+      ok: false,
+      error: {
+        code: 'PATIENT_STATE_ID_MISMATCH',
+        message: `${rubric.id} was compiled for patient state ${rubric.patientStateId}, not ${input.patientState.id}.`,
+        contentIds: uniqueSorted([rubric.id, rubric.patientStateId, input.patientState.id]),
+      },
+    };
+  }
+  if (rubric.patientStateFingerprint !== patientStateFingerprint) {
+    return {
+      ok: false,
+      error: {
+        code: 'PATIENT_STATE_FINGERPRINT_MISMATCH',
+        message: `${input.patientState.id} does not match the exact patient-state payload frozen into ${rubric.id}.`,
+        contentIds: uniqueSorted([rubric.id, input.patientState.id]),
+      },
+    };
+  }
+  if (rubric.actionHorizonId !== input.actionHorizon.id) {
+    return {
+      ok: false,
+      error: {
+        code: 'ACTION_HORIZON_ID_MISMATCH',
+        message: `${rubric.id} was compiled for action horizon ${rubric.actionHorizonId}, not ${input.actionHorizon.id}.`,
+        contentIds: uniqueSorted([rubric.id, rubric.actionHorizonId, input.actionHorizon.id]),
+      },
+    };
+  }
+  if (rubric.actionHorizonFingerprint !== actionHorizonFingerprint) {
+    return {
+      ok: false,
+      error: {
+        code: 'ACTION_HORIZON_FINGERPRINT_MISMATCH',
+        message: `${input.actionHorizon.id} does not match the exact action-horizon payload frozen into ${rubric.id}.`,
+        contentIds: uniqueSorted([rubric.id, input.actionHorizon.id]),
+      },
+    };
+  }
+
+  return { ok: true, value: rubric };
 };
 
 const fail = (
@@ -1251,7 +1395,22 @@ export const compileDecisionPolicy = (
   const matchCandidate = (candidate: DecisionRuleCandidateDefinition): CandidateMatch | null => {
     const patient = evaluatePatientPredicate(candidate.patientWhen, factsByKey);
     const action = evaluateActionPredicate(candidate.actionWhen, actionTargetsByKey);
-    return patient.matched && action.matched ? { candidate, patient, action } : null;
+    const policyMatches =
+      candidate.triggeredInformationPrerequisite === null ||
+      (candidate.triggeredInformationPrerequisite.policyScope.policyRef.id === input.policy.id &&
+        candidate.triggeredInformationPrerequisite.policyScope.policyRef.contentVersion ===
+          input.policy.contentVersion &&
+        candidate.triggeredInformationPrerequisite.policyScope.focusedDecisionId ===
+          input.policy.focusedDecisionId);
+    const triggerAvailable =
+      candidate.triggeredInformationPrerequisite === null ||
+      evaluateActionPredicate(
+        candidate.triggeredInformationPrerequisite.triggerWhen,
+        actionTargetsByKey,
+      ).matched;
+    return patient.matched && action.matched && policyMatches && triggerAvailable
+      ? { candidate, patient, action }
+      : null;
   };
 
   const diagnostics: DecisionCoverageDiagnostic[] = [];
@@ -1379,6 +1538,20 @@ export const compileDecisionPolicy = (
       return leftPrimary - rightPrimary || compareStrings(leftKey, rightKey);
     })
     .map(([, rule]) => rule);
+  const effectPriorityOwners = new Map<string, CompiledRubricRule>();
+  for (const rule of includedRules) {
+    if (rule.effectId === null) continue;
+    const key = `${rule.effectId}\0${rule.specificityPriority}`;
+    const prior = effectPriorityOwners.get(key);
+    if (prior !== undefined) {
+      return fail(
+        'AMBIGUOUS_EFFECT_SPECIFICITY',
+        `${prior.ruleRef.id} and ${rule.ruleRef.id} claim ${rule.effectId} at the same specificity priority ${rule.specificityPriority}.`,
+        [input.policy.id, prior.ruleRef.id, rule.ruleRef.id, rule.effectId],
+      );
+    }
+    effectPriorityOwners.set(key, rule);
+  }
   const sortedDiagnostics = [
     ...new Map(
       diagnostics
@@ -1387,7 +1560,7 @@ export const compileDecisionPolicy = (
     ).values(),
   ];
 
-  const patientStateFingerprint = fingerprint('patient-state', input.patientState);
+  const patientStateFingerprint = fingerprintDecisionPatientState(input.patientState);
   const actionHorizonFingerprint = fingerprint('action-horizon', input.actionHorizon);
   const sourceCatalogFingerprint = fingerprint('source-catalog', {
     policy: input.policy,

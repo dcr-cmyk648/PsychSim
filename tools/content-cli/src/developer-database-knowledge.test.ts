@@ -175,6 +175,36 @@ describe('Developer database knowledge compiler', () => {
         'developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27',
       ]),
     );
+    const initialMddOpinion = projection.records
+      .find((record) => record.entryId === 'diagnosis.major-depressive-disorder')
+      ?.developerOpinions.find(
+        (opinion) =>
+          opinion.id ===
+          'developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27',
+      );
+    expect(initialMddOpinion?.targetEntryIds).toContain('diagnosis.major-depressive-disorder');
+    expect(initialMddOpinion?.targetEntryIds).not.toContain(
+      'medication-regimen-route.mdd-initial-one-first-line-antidepressant',
+    );
+  });
+
+  it('rejects an unknown authoring-only clinical-rule target', () => {
+    const opinionCatalog = DeveloperOpinionCatalogSchema.parse(developerOpinionsJson);
+    const tamperedOpinions = opinionCatalog.opinions.map((opinion) => ({
+      ...opinion,
+      targets: opinion.targets.map((target) =>
+        target.targetKind === 'clinical_rule'
+          ? { ...target, targetContentId: 'clinical-rule.unknown' }
+          : target,
+      ),
+    }));
+    expect(() =>
+      buildDeveloperDatabaseKnowledgeProjection({
+        ...buildInput(),
+        developerOpinions: tamperedOpinions,
+        opinionEvidenceRelationships: opinionCatalog.evidenceRelationships,
+      }),
+    ).toThrow(/unknown authoring-only clinical rule/);
   });
 
   it('deterministically links OCR without serializing private prose', () => {

@@ -1,10 +1,11 @@
 [
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "2.0.0",
     "id": "location.solo-office.outpatient",
     "label": "Solo Office · Outpatient Room",
     "facilityTier": "solo_office",
+    "careSetting": "outpatient_psychiatry",
     "capabilities": [
       "history.basic",
       "medication-review.basic",
@@ -24,10 +25,11 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "3.0.0",
+    "contentVersion": "4.0.0",
     "id": "location.outpatient-clinic.outpatient",
     "label": "Outpatient Clinic · Consultation Room",
     "facilityTier": "outpatient_clinic",
+    "careSetting": "outpatient_psychiatry",
     "capabilities": [
       "history.basic",
       "medication-review.basic",
@@ -48,10 +50,11 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "3.0.0",
+    "contentVersion": "4.0.0",
     "id": "location.multidisciplinary-center.outpatient",
     "label": "Behavioral-Health Center · Outpatient Clinic",
     "facilityTier": "multidisciplinary_center",
+    "careSetting": "outpatient_psychiatry",
     "capabilities": [
       "history.basic",
       "medication-review.basic",
@@ -72,10 +75,11 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.0.0",
+    "contentVersion": "2.0.0",
     "id": "location.endgame.outpatient",
     "label": "Behavioral-Health System · Outpatient Psychiatry",
     "facilityTier": "behavioral_health_system",
+    "careSetting": "outpatient_psychiatry",
     "capabilities": [
       "history.basic",
       "medication-review.basic",

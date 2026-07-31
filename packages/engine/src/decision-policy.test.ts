@@ -21,6 +21,7 @@ import {
   buildDecisionRuleIndex,
   collectDecisionPatientFacts,
   compileDecisionPolicy,
+  verifyCompiledRubricContext,
   verifyCompiledRubricIntegrity,
 } from './decision-policy';
 
@@ -249,6 +250,7 @@ const makeCandidate = (
     match: 'any',
     targets: [{ kind: 'medication_start', medicationIdentityId: 'medication.bupropion' }],
   },
+  triggeredInformationPrerequisite: null,
   stance: 'preferred',
   concernLevel: 'minor',
   certaintyLevel: 'moderate',
@@ -362,6 +364,50 @@ const makeRules = (): DecisionRuleCandidateDefinition[] => [
   }),
 ];
 
+const triggeredInformationPrerequisite = (): DecisionRuleCandidateDefinition =>
+  makeCandidate('rule.test.triggered-medication-reconciliation', {
+    ruleRef: ruleReference('rule.test.triggered-medication-reconciliation', 'diagnosis_rule'),
+    ruleKind: 'prerequisite',
+    discoveryLane: 'automatic_guardrail',
+    patientWhen: { type: 'fact', fact: mddFact },
+    actionWhen: {
+      match: 'any',
+      targets: [
+        {
+          kind: 'information_action',
+          informationActionId: 'info.history.medication-reconciliation',
+        },
+      ],
+    },
+    triggeredInformationPrerequisite: {
+      schemaVersion: 1,
+      policyScope: {
+        policyRef: {
+          id: 'decision-policy.test.mdd-focused',
+          contentVersion: '1.0.0',
+        },
+        focusedDecisionId: 'decision.test.immediate-treatment',
+      },
+      triggerWhen: {
+        match: 'any',
+        targets: [{ kind: 'any_medication_start' }],
+      },
+      fulfillmentWhen: {
+        match: 'any',
+        targets: [
+          {
+            kind: 'information_action',
+            informationActionId: 'info.history.medication-reconciliation',
+          },
+        ],
+      },
+    },
+    stance: 'required',
+    concernLevel: 'major',
+    effectId: null,
+    issueId: 'issue.test.medication-reconciliation',
+  });
+
 describe('point-free decision-policy compiler', () => {
   it('keeps policy, candidate, and compiled artifacts point-free and singularly routed', () => {
     const policy = makePolicy();
@@ -383,6 +429,15 @@ describe('point-free decision-policy compiler', () => {
       DecisionRuleCandidateDefinitionSchema.safeParse({
         ...candidate,
         patientWhen: { type: 'not', predicate: { type: 'fact', fact: lowEnergyFact } },
+      }).success,
+    ).toBe(false);
+    expect(
+      DecisionRuleCandidateDefinitionSchema.safeParse({
+        ...candidate,
+        triggeredInformationPrerequisite: {
+          ...candidate.triggeredInformationPrerequisite!,
+          schemaVersion: 2,
+        },
       }).success,
     ).toBe(false);
     expect(
@@ -1430,6 +1485,35 @@ describe('point-free decision-policy compiler', () => {
     });
   });
 
+  it('rejects equal-specificity ambiguity for the same explicit effect', () => {
+    const first = makeCandidate('rule.test.ambiguous-effect-first', {
+      effectId: 'effect.test.ambiguous-fit',
+      specificityPriority: 20,
+    });
+    const second = makeCandidate('rule.test.ambiguous-effect-second', {
+      effectId: 'effect.test.ambiguous-fit',
+      specificityPriority: 20,
+    });
+    expect(
+      compileDecisionPolicy({
+        policy: makePolicy(),
+        patientState: makePatientState(),
+        actionHorizon: makeHorizon(),
+        rules: [primaryCandidate(), first, second],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: {
+        code: 'AMBIGUOUS_EFFECT_SPECIFICITY',
+        contentIds: expect.arrayContaining([
+          first.ruleRef.id,
+          second.ruleRef.id,
+          'effect.test.ambiguous-fit',
+        ]),
+      },
+    });
+  });
+
   it('validates frozen rubric approval, primary ownership, and payload integrity', () => {
     const compiled = compileDecisionPolicy({
       policy: makePolicy(),
@@ -1505,6 +1589,136 @@ describe('point-free decision-policy compiler', () => {
     });
   });
 
+  it('rejects a schema-valid unsupported decision-policy compiler version before fingerprint validation', () => {
+    const compiled = compileDecisionPolicy({
+      policy: makePolicy(),
+      patientState: makePatientState(),
+      actionHorizon: makeHorizon(),
+      rules: makeRules(),
+    });
+    expect(compiled.ok).toBe(true);
+    if (!compiled.ok) return;
+    const unsupported = {
+      ...compiled.value,
+      compilerVersion: '9.0.0',
+    };
+    expect(CompiledRubricSchema.safeParse(unsupported).success).toBe(true);
+    expect(verifyCompiledRubricIntegrity(unsupported)).toMatchObject({
+      ok: false,
+      error: { code: 'UNSUPPORTED_COMPILER_VERSION' },
+    });
+  });
+
+  it('attaches a compiled rubric to exact patient-state and action-horizon payloads', () => {
+    const patientState = makePatientState();
+    const actionHorizon = makeHorizon();
+    const compiled = compileDecisionPolicy({
+      policy: makePolicy(),
+      patientState,
+      actionHorizon,
+      rules: makeRules(),
+    });
+    expect(compiled.ok).toBe(true);
+    if (!compiled.ok) return;
+
+    expect(
+      verifyCompiledRubricContext({
+        rubric: compiled.value,
+        patientState,
+        actionHorizon,
+      }),
+    ).toEqual({ ok: true, value: compiled.value });
+
+    expect(
+      verifyCompiledRubricContext({
+        rubric: compiled.value,
+        patientState: {
+          ...patientState,
+          demographics: {
+            ...patientState.demographics,
+            ageYears: patientState.demographics.ageYears + 1,
+          },
+        },
+        actionHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_FINGERPRINT_MISMATCH' },
+    });
+
+    expect(
+      verifyCompiledRubricContext({
+        rubric: compiled.value,
+        patientState,
+        actionHorizon: {
+          ...actionHorizon,
+          informationActionIds: [
+            ...actionHorizon.informationActionIds,
+            'info.history.full-treatment-history',
+          ],
+        },
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'ACTION_HORIZON_FINGERPRINT_MISMATCH' },
+    });
+  });
+
+  it('checks rubric integrity before context identity and rejects mismatched context IDs', () => {
+    const patientState = makePatientState();
+    const actionHorizon = makeHorizon();
+    const compiled = compileDecisionPolicy({
+      policy: makePolicy(),
+      patientState,
+      actionHorizon,
+      rules: makeRules(),
+    });
+    expect(compiled.ok).toBe(true);
+    if (!compiled.ok) return;
+
+    expect(
+      verifyCompiledRubricContext({
+        rubric: {
+          ...compiled.value,
+          patientStateId: 'resolved-patient-state.test.tampered',
+        },
+        patientState,
+        actionHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'RUBRIC_INTEGRITY_INVALID' },
+    });
+
+    expect(
+      verifyCompiledRubricContext({
+        rubric: compiled.value,
+        patientState: {
+          ...patientState,
+          id: 'resolved-patient-state.test.other',
+        },
+        actionHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_ID_MISMATCH' },
+    });
+
+    expect(
+      verifyCompiledRubricContext({
+        rubric: compiled.value,
+        patientState,
+        actionHorizon: {
+          ...actionHorizon,
+          id: 'decision-action-horizon.test.other',
+        },
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'ACTION_HORIZON_ID_MISMATCH' },
+    });
+  });
+
   it('exposes exact typed patient facts while ignoring free clinical tags', () => {
     const facts = collectDecisionPatientFacts(makePatientState());
     facts.forEach(({ key }) => {
@@ -1536,5 +1750,174 @@ describe('point-free decision-policy compiler', () => {
           entry.key.identityId === 'diagnosis.bipolar-spectrum-disorder',
       ),
     ).toBe(false);
+  });
+});
+
+describe('triggered information prerequisite compilation', () => {
+  it('requires a diagnosis prerequisite to preserve separate trigger and fulfillment predicates', () => {
+    const candidate = triggeredInformationPrerequisite();
+    expect(DecisionRuleCandidateDefinitionSchema.parse(candidate)).toEqual(candidate);
+    expect(
+      DecisionRuleCandidateDefinitionSchema.safeParse({
+        ...candidate,
+        triggeredInformationPrerequisite: null,
+      }).success,
+    ).toBe(false);
+    expect(
+      DecisionRuleCandidateDefinitionSchema.safeParse({
+        ...candidate,
+        actionWhen: {
+          match: 'any',
+          targets: [
+            {
+              kind: 'information_action',
+              informationActionId: 'info.history.full-treatment-history',
+            },
+          ],
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      DecisionRuleCandidateDefinitionSchema.safeParse({
+        ...candidate,
+        triggeredInformationPrerequisite: {
+          ...candidate.triggeredInformationPrerequisite!,
+          triggerWhen: {
+            match: 'any',
+            targets: [
+              {
+                kind: 'information_action',
+                informationActionId: 'info.history.medication-reconciliation',
+              },
+            ],
+          },
+        },
+      }).success,
+    ).toBe(false);
+  });
+
+  it('requires both trigger and fulfillment availability and keeps scan/index equivalent', () => {
+    const candidate = triggeredInformationPrerequisite();
+    const rules = [primaryCandidate(), candidate];
+    const input = {
+      policy: makePolicy(),
+      patientState: makePatientState(),
+      actionHorizon: makeHorizon(),
+      rules,
+    };
+    const scanned = compileDecisionPolicy(input);
+    const indexed = compileDecisionPolicy({
+      ...input,
+      discoveryStrategy: 'index',
+      ruleIndex: buildDecisionRuleIndex(rules),
+    });
+    expect(scanned).toEqual(indexed);
+    expect(scanned.ok).toBe(true);
+    if (!scanned.ok) return;
+    expect(scanned.value.compilerVersion).toBe('3.0.0');
+    expect(
+      scanned.value.includedRules.find((rule) => rule.ruleRef.id === candidate.ruleRef.id),
+    ).toMatchObject({
+      actionWhen: candidate.actionWhen,
+      triggeredInformationPrerequisite: candidate.triggeredInformationPrerequisite,
+      matchedActionTargets: candidate.actionWhen?.targets,
+      balanceRef: null,
+    });
+
+    const withoutFulfillment = compileDecisionPolicy({
+      ...input,
+      actionHorizon: makeHorizon({ informationActionIds: [] }),
+    });
+    expect(withoutFulfillment.ok).toBe(true);
+    if (withoutFulfillment.ok) {
+      expect(
+        withoutFulfillment.value.includedRules.some(
+          (rule) => rule.ruleRef.id === candidate.ruleRef.id,
+        ),
+      ).toBe(false);
+    }
+
+    const withoutTrigger = compileDecisionPolicy({
+      ...input,
+      actionHorizon: makeHorizon({ startMedicationIds: [] }),
+    });
+    expect(withoutTrigger.ok).toBe(true);
+    if (withoutTrigger.ok) {
+      expect(
+        withoutTrigger.value.includedRules.some((rule) => rule.ruleRef.id === candidate.ruleRef.id),
+      ).toBe(false);
+    }
+
+    const crossedPolicy = compileDecisionPolicy({
+      ...input,
+      policy: {
+        ...input.policy,
+        id: 'decision-policy.test.mdd-focused-crossed',
+      },
+    });
+    expect(crossedPolicy.ok).toBe(true);
+    if (crossedPolicy.ok) {
+      expect(
+        crossedPolicy.value.includedRules.some((rule) => rule.ruleRef.id === candidate.ruleRef.id),
+      ).toBe(false);
+    }
+  });
+
+  it('fingerprints the complete prerequisite contract and rejects tampering', () => {
+    const compiled = compileDecisionPolicy({
+      policy: makePolicy(),
+      patientState: makePatientState(),
+      actionHorizon: makeHorizon(),
+      rules: [primaryCandidate(), triggeredInformationPrerequisite()],
+    });
+    expect(compiled.ok).toBe(true);
+    if (!compiled.ok) return;
+    const tampered = structuredClone(compiled.value);
+    const prerequisite = tampered.includedRules.find(
+      (rule) => rule.triggeredInformationPrerequisite !== null,
+    );
+    if (!prerequisite?.triggeredInformationPrerequisite) {
+      throw new Error('Expected compiled triggered prerequisite.');
+    }
+    prerequisite.triggeredInformationPrerequisite.triggerWhen = {
+      match: 'any',
+      targets: [
+        {
+          kind: 'medication_start',
+          medicationIdentityId: 'medication.bupropion',
+        },
+      ],
+    };
+    expect(CompiledRubricSchema.safeParse(tampered).success).toBe(true);
+    expect(verifyCompiledRubricIntegrity(tampered)).toMatchObject({
+      ok: false,
+      error: { code: 'FINGERPRINT_MISMATCH' },
+    });
+
+    const fulfillmentTampered = structuredClone(compiled.value);
+    const fulfillmentPrerequisite = fulfillmentTampered.includedRules.find(
+      (rule) => rule.triggeredInformationPrerequisite !== null,
+    );
+    if (!fulfillmentPrerequisite?.triggeredInformationPrerequisite) {
+      throw new Error('Expected compiled triggered prerequisite.');
+    }
+    const replacementFulfillment = {
+      match: 'any' as const,
+      targets: [
+        {
+          kind: 'information_action' as const,
+          informationActionId: 'info.history.full-treatment-history',
+        },
+      ],
+    };
+    fulfillmentPrerequisite.actionWhen = replacementFulfillment;
+    fulfillmentPrerequisite.triggeredInformationPrerequisite.fulfillmentWhen =
+      replacementFulfillment;
+    fulfillmentPrerequisite.matchedActionTargets = replacementFulfillment.targets;
+    expect(CompiledRubricSchema.safeParse(fulfillmentTampered).success).toBe(true);
+    expect(verifyCompiledRubricIntegrity(fulfillmentTampered)).toMatchObject({
+      ok: false,
+      error: { code: 'FINGERPRINT_MISMATCH' },
+    });
   });
 });

@@ -22,6 +22,7 @@
     "paths": {
       "@psychsim/schemas": ["packages/schemas/src/index.ts"],
       "@psychsim/engine": ["packages/engine/src/index.ts"],
+      "@psychsim/engine/authoring": ["packages/engine/src/authoring.ts"],
       "@psychsim/content-runtime": ["packages/content-runtime/src/index.ts"],
       "@psychsim/content-runtime/developer": ["packages/content-runtime/src/developer-content.ts"]
     },

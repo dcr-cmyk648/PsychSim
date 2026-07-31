@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.7",
+  "contentVersion": "1.0.35",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1289,6 +1289,171 @@
       "exemptionReason": "This umbrella game-generation policy spans associated symptoms, ordinary background findings, treatment exposure, optional comorbidity, and legibility. It must first be decomposed into diagnosis- or context-specific tendencies before bounded literature searches can support any clinical probabilities."
     },
     {
+      "ticketId": "ticket.engine.patient-generation.weighted-finding-tendency-aggregator",
+      "profileIds": [],
+      "exemptionReason": "This is a deterministic game-weight combination and provenance architecture decision. Clinical literature may later support individual contributor directions or relative calibration, but a meta-analysis cannot choose the repository's auditable aggregation arithmetic."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.finding-pipeline-audit-composer",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic authoring composition, exact artifact-chain verification, audit retention, and conflict propagation. Clinical literature cannot define the repository's compiler attachment, seed-preservation, or fingerprint contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.optional-feature-budget-selector",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic encounter-recipe budget, feasibility, and audit architecture. Later clinical sources and Developer review may support the content, cost, or relative game variety of a specific optional module, but a meta-analysis cannot define the repository's one-budget selection and replay contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.optional-comorbidity-budget-bridge",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-reference, single-budget, provenance, and replay architecture. Clinical evidence may later support a real module, condition mapping, incompatibility, cost, or game weight, but cannot determine the bridge contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.resolved-condition-source-contract",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic provenance, source-specific integrity, reference, and replay architecture. Clinical literature may support later condition content but cannot determine the repository's neutral source union or authorize fabricated selection history."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.finding-pipeline-resolved-condition-source",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic artifact-chain verification, source-specific replay, attachment, and fingerprint architecture. Clinical literature may support later condition or optional-feature content but cannot determine how the repository carries genuine D-196 or D-202 provenance through D-200."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.optional-reaction-history-bridge",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-reference, single-budget, complete-payload, provenance, and replay architecture. Clinical sources and Developer review may later support a real reaction alternative, cost, frequency, interpretation, or medication consequence, but a meta-analysis cannot define the bridge or base-state composition contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.optional-prior-treatment-bridge",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-reference, single-budget, additive-record, provenance, and replay architecture. Clinical evidence may later support a real prior-treatment contribution, cost, frequency, adequacy interpretation, or decision effect, but a meta-analysis cannot define the bridge or core-plus-optional composition contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.optional-exposure-budget-bridge",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-reference, single-budget, additive positive-use, provenance, and replay architecture. Clinical evidence may later support real exposure frequencies, misuse priors, context modifiers, source-report behavior, or decision effects, but a meta-analysis cannot define the bridge or core-plus-optional inventory-composition contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.core-optional-patient-state-composer",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic cross-artifact verification, exact-once typed routing, collision-safe state composition, budget provenance, and replay architecture. Clinical evidence may later support real core or optional content, costs, frequencies, and consequences, but cannot define this composition contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.finding-pipeline-composed-patient-state",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-source attachment, upstream-blocker propagation, provenance retention, and D-208-to-D-193-to-D-194 replay architecture. Clinical literature may later support real patient-state content and finding tendencies but cannot define this compiler contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.whole-state-tendency-applicability",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact typed-fact and same-record matching, complete-state provenance, full-scan/index equivalence, binding emission, integrity, and runtime-isolation architecture. Clinical sources and Developer review may later support real applicability definitions and tendency profiles, but a meta-analysis cannot define this compiler or its attachment contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.weighted-tendency-applicability-attachment",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-artifact attachment, binding/profile/target/definition equality, zero-match audit retention, delegated probability ownership, replay, and complexity-budget provenance architecture. Clinical sources may later support real tendency content but cannot define this compiler boundary."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.structured-patient-state-reveal-projections",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic typed projection, source and record provenance, explicit inclusion or omission, alignment audit, and complexity-budget isolation architecture. Later clinical sources and Developer review may support real source-report profiles, but cannot define this schema boundary."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.universal-action-result-recipe-compiler",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-catalog fingerprinting, closed frozen-source routing, coverage diagnostics, request normalization, replay, and complexity-budget isolation architecture. Clinical sources may later support real action recipes or interpretation, but cannot define this compiler boundary."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.verified-universal-action-result-attachment",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-artifact attachment, structured source-view sanitization, cross-compiler context verification, derived-binding replay, and complexity-budget isolation architecture. Clinical sources and Developer review may later support real action recipes and source-report profiles, but cannot define the D-213-to-D-194/D-200 attachment contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.structured-source-report-compiler",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic reviewed-profile application, exact whole-lane structured source-view transformation, native D-212 validation, patient-state fingerprinting, replay, and complexity/scoring isolation architecture. Clinical sources and Developer review may later calibrate real source-behavior profiles or selection probabilities, but cannot define this compiler contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.encounter-care-setting-attachment",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic encounter-setting identity, exact template/location attachment, fingerprint/replay, and complexity isolation architecture. Clinical and operational sources may later support setting-specific patient pools, capabilities, actions, formularies, and dispositions, but cannot define this enum or compiler-coordinate contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.source-report-behavior-selection",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-slot behavior selection, setting context, within-slot game-weight normalization, independent substream, fingerprint/replay, D-215 compatibility, and D-201 isolation architecture. Clinical sources and Developer review may later calibrate real source-report alternatives and weights, but cannot define this selector contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.source-report-attachment-chain",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic cross-compiler attachment, exact final-state and context verification, null-horizon handling, full D-217/D-215/D-213/D-194 replay, safe-view translation, and complexity isolation architecture. Clinical sources may later support real source-report behaviors and action content, but cannot define this attachment contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.encounter-operational-admission",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-location operational admission, minimized catalog projection, itemized capability/formulary/service/disposition coverage, cross-compiler replay, and complexity/scoring/economy isolation architecture. Clinical or operational sources may later support real location resources, but a meta-analysis cannot define this compiler boundary."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.instrument-item-response-compiler",
+      "profileIds": [],
+      "exemptionReason": "This is exact instrument/item owner, rights-boundary, action/horizon, response-option, deterministic materialization, replay, and complexity/scoring isolation architecture. Primary instrument sources remain necessary for real identity, validation, scoring, interpretation, and reuse decisions, but a meta-analysis cannot define this compiler boundary."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.instrument-item-response-attachment-chain",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-artifact attachment, full-audit versus presentation-safe redaction, action-owned source routing, empty-horizon behavior, cross-compiler replay, tamper rejection, setting neutrality, and complexity isolation architecture. Primary instrument sources remain necessary for real identity, text, validation, scoring, interpretation, and reuse decisions, but a meta-analysis cannot define the D-220-to-D-213/D-214/D-194/D-200 attachment contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.selected-location-operational-resource-context",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic clinic-wide resource-assignment, exact owner-version/fingerprint validation, exclusive-versus-shared placement, selected-location projection, staff-automation conflict rejection, global-resource isolation, replay, and runtime/scoring/complexity boundary architecture. Operational sources and Developer review remain necessary for real facility resources and assignments, but a clinical meta-analysis cannot define this compiler contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.pre-finding-patient-state-orchestrator",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-once cross-compiler orchestration, normalized context and replay, single D-201 budget preservation, typed child-audit retention, and audited D-208 non-composition architecture. Clinical sources and Developer review remain necessary for real module content, costs, frequencies, and later rules, but a meta-analysis cannot define this orchestration contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.selected-location-operational-admission-attachment",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-artifact attachment, current-versus-historical context separation, formulary-membership fingerprinting, selected-location isolation, and persistence-safe redaction architecture. Operational sources and Developer review remain necessary for real resource assignments, but a clinical meta-analysis cannot define the D-222-to-D-219/D-194/D-200 compiler contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.pre-finding-orchestration-attachment",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-root attachment, nested provenance, replay, blocker propagation, and single-authority optional-complexity architecture. Clinical sources and Developer review remain necessary for real modules and generation probabilities, but a meta-analysis cannot define the D-223-to-D-200 compiler contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.template-location-admission-matrix",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic current-context template/location matrix compilation, exact versioned compatibility, selected-location resource isolation, mechanical dependency diagnostics, and zero-spend preselection architecture. Clinical and operational sources may later support real setting-specific content, but a meta-analysis cannot define this compiler boundary or queue policy."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.minimized-clinic-operational-context",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic operational-state minimization, strict schema projection, exact resource-owner fingerprinting, replay, and unrelated-state isolation architecture. Clinical or operational literature may later support real setting resources, but it cannot determine which mutable game-state fields belong in this compiler context."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.admitted-template-location-binding",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic admitted-cell binding, exact current-matrix verification, compact historical provenance, downstream attachment, and single-budget isolation architecture. Clinical or operational literature may later support real setting-specific owners or patient distributions, but it cannot define this compiler handoff or choose a queue policy."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.queue-coordinate-policy",
+      "profileIds": [],
+      "exemptionReason": "This is a game architecture and player-workflow decision about whether frozen patient slots are owned by physical locations or by one clinic-wide queue. Clinical literature cannot select that persistence, queue, or presentation coordinate."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.local-template-distribution-policy",
+      "profileIds": [],
+      "exemptionReason": "This is a game-distribution and repetition-policy decision about relative question-bank frequency, deterministic local selection, and player-visible variety. Clinical prevalence literature cannot determine game weights, repeat attenuation, or the generated-slot selection audit contract."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.mode-lifecycle-template-horizon",
+      "profileIds": [],
+      "exemptionReason": "This is a static-content lifecycle, local-Developer isolation, and deterministic compiler-boundary decision. Clinical literature cannot determine which authoring lifecycle lanes a game mode may load or grant a mode operational resources."
+    },
+    {
       "ticketId": "ticket.ui.encounter.unified-testing-tab",
       "profileIds": [],
       "exemptionReason": "This is player-facing navigation and search architecture that intentionally preserves backend study types. A clinical meta-analysis cannot determine the UI grouping or saved-content compatibility boundary."
@@ -1317,6 +1482,31 @@
       "ticketId": "ticket.feedback.drive-2026-07-27.gad-generation-richness",
       "profileIds": [],
       "exemptionReason": "This historical attempt review spans shared-symptom ownership, GAD-associated findings, subthreshold overlap, substance self-medication, prior OTC exposure, and game richness. Implement the fact compiler first, then split each proposed clinical tendency into a bounded source question rather than using one meta-analysis as a general realism prior."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.location-capacity-facility-move-migration",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic game-capacity, exact queue-coordinate authorization, atomic facility-transition, persistence-migration, and replay architecture. Clinical literature cannot determine location slot counts, capacity-upgrade ownership, facility-successor mappings, or whether a frozen game patient may be rerolled, dropped, or partially migrated."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.empty-slot-fill-seed-authority",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic game seed, queue occupancy, canonical fill-order, replay, blocker, and atomicity architecture. Clinical literature cannot determine private seed coordinates, ordinal consumption, whether an occupied game patient rerolls, or the exact compiler boundary for an empty location slot."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.post-encounter-slot-lifecycle",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic game completion, native-attempt proof (originally the temporary D-234 opaque seam, replaced by D-235), location-local history, mode-specific refresh, exact-template rerandomization, eligibility ordering, refill, blocker, retry, replay, and runtime-isolation architecture. Clinical literature cannot determine when a generated game slot becomes empty, which mode may skip or rerandomize it, how Developer run history filters game content, or how D-233 ordinals and blockers govern refill."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.native-generated-attempt-persistence-contract",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic generated-attempt event, replay, provisional producer-snapshot, settlement-arithmetic, timestamp-isolation, fingerprint, and compatibility-boundary architecture. Clinical literature cannot choose a persistence envelope, event ordering, replay identity, practice-mode banking representation, or the boundary between native generated attempts and legacy CaseInstance saves."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.decision-balance-catalog-fingerprint",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic historical-replay, exact payload-identity, authoring/runtime isolation, and persistence-boundary architecture. Clinical literature cannot determine how a versioned balance catalog is fingerprinted or which minimized source material must be frozen to detect same-ID/version payload drift."
     }
   ]
 }

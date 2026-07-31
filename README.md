@@ -252,17 +252,19 @@ page, so both CDDR and DSM-5-TR remain metadata-only pending permission for the 
 transformation. See [the source-use policy](docs/SOURCE_USE_POLICY.md) and
 [the diagnosis-catalog contract](content/catalogs/diagnoses/README.md).
 
-The clinical-model checkpoint now includes one file per diagnosis family, top-down
-base/severity/specifier composition, deterministic gameplay-critical patient-context variants,
-conservative blocking conflict detection, and a five-dimensional complexity vector. The next
-compiler is specified to quarantine structural/no-safe-route states while preserving valid
-clinical tension as traceable; that narrower classification is not implemented yet. The next recorded
-boundary splits reusable patient templates, resolved patients, frozen encounters, regimen/prior
-trial records, and compiled focused rubrics so future poly-diagnosis patients do not require copied
-per-case treatment plans. Diagnosis guidance is qualitative and point-free until separately
-balanced. MDD severity and optional comorbidity generation remain disabled in approved content
-pending source and compiler gates; see [DIAGNOSIS_ENGINE.md](docs/DIAGNOSIS_ENGINE.md) and
-[PATIENT_GENERATION_ENGINE.md](docs/PATIENT_GENERATION_ENGINE.md).
+The clinical-model checkpoint now separates diagnosis-family knowledge, encounter recipes,
+resolved patients, frozen encounters, regimen/prior-trial state, focused compiled rubrics,
+location-owned slots, and native generated completed attempts. The authoring-only compiler chain
+can deterministically prove synthetic patients across outpatient, ED, inpatient, and
+consultation-liaison settings without granting resources from a setting label. It rejects only
+malformed or literal same-scope contradictions; missing clinical/rubric coverage remains a
+nonblocking diagnostic rather than a vague “no safe route” or winnability failure. SaveData v5,
+IndexedDB, compatibility queues, and browser generation remain unchanged pending an explicit
+migration. Diagnosis guidance stays qualitative and point-free until separately reviewed and
+balanced, and generalized generation remains disabled until real dependency owners pass the
+readiness gate; see [DIAGNOSIS_ENGINE.md](docs/DIAGNOSIS_ENGINE.md),
+[PATIENT_GENERATION_ENGINE.md](docs/PATIENT_GENERATION_ENGINE.md), and
+[ENCOUNTER_GENERATION_DEPENDENCIES.md](docs/ENCOUNTER_GENERATION_DEPENDENCIES.md).
 
 The CANMAT MDD source has been decomposed into focused Developer tickets rather than applied
 automatically. The reviewed initial-medication packet now supplies one broad qualitative

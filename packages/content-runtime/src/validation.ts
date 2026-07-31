@@ -2326,8 +2326,36 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       });
     }
   }
+  for (const duplicate of duplicateIds(
+    catalogs.services.flatMap((service) => service.fulfillmentMethods.map((method) => method.id)),
+  )) {
+    issues.push({
+      severity: 'error',
+      code: 'DUPLICATE_SERVICE_FULFILLMENT_METHOD_ID',
+      message: duplicate,
+    });
+  }
   for (const service of catalogs.services) {
     for (const method of service.fulfillmentMethods) {
+      if (
+        duplicateIds(method.requiredCapabilities).length > 0 ||
+        (method.allowedLocationIds && duplicateIds(method.allowedLocationIds).length > 0)
+      ) {
+        issues.push({
+          severity: 'error',
+          code: 'DUPLICATE_SERVICE_METHOD_REQUIREMENT',
+          message: `${service.id}/${method.id}`,
+        });
+      }
+      for (const allowedLocationId of method.allowedLocationIds ?? []) {
+        if (!locationIds.has(allowedLocationId)) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_SERVICE_LOCATION_REF',
+            message: `${service.id}/${method.id} references ${allowedLocationId}.`,
+          });
+        }
+      }
       if (!method.requiredStaffUpgradeId) continue;
       const staffUpgrade = catalogs.upgrades.find(
         (upgrade) => upgrade.id === method.requiredStaffUpgradeId,

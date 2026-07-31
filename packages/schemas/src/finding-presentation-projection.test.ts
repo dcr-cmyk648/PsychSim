@@ -21,12 +21,16 @@ const projection = {
     {
       kind: 'canonical_finding',
       findingDefinitionId: 'finding.history.current-fatigue-low-energy',
+      findingDefinitionContentVersion: '1.0.0',
       allowedStates: ['present', 'subthreshold'],
     },
     {
       kind: 'proposition_evidence',
       propositionDefinitionId: 'proposition.test.energy-limitation',
+      propositionDefinitionContentVersion: '1.0.0',
       allowedAssertions: ['supports'],
+      sourceKinds: ['patient_report'],
+      timeScopeIds: ['time-scope.current'],
     },
   ],
   target: {
@@ -38,6 +42,7 @@ const projection = {
     responseOptionId: 'response.energy.present',
   },
   expressionBankId: bank.id,
+  expressionBankContentVersion: bank.contentVersion,
   review: {
     status: 'unreviewed',
     reviewerId: null,
@@ -62,10 +67,9 @@ const resolved = {
   propositionIds: ['patient-proposition.test.energy-limitation'],
   evidenceIds: ['patient-evidence.test.energy-report'],
   resolution: {
-    origin: 'deterministic_generation',
-    generationProfileId: projection.id,
-    generationProfileContentVersion: projection.contentVersion,
-    resolverVersion: '1.0.0',
+    origin: 'compiled',
+    compilerVersion: '1.0.0',
+    inputFingerprint: 'fingerprint.finding.input.fnv1a64.0123456789abcdef',
     stableDrawId: 'draw.projection.test.energy',
   },
 } as const;
@@ -163,6 +167,7 @@ describe('finding presentation projection boundary', () => {
         itemId: 'instrument-item.test.energy',
       },
       expressionBankId: null,
+      expressionBankContentVersion: null,
     } as const;
     const instrumentResolved = {
       ...resolved,

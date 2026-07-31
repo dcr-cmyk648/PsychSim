@@ -2,7 +2,6 @@ export * from './case';
 export * from './complete';
 export * from './diagnosis';
 export * from './diagnosis-scoring';
-export * from './decision-policy';
 export * from './economy';
 export * from './eligibility';
 export * from './encounter';

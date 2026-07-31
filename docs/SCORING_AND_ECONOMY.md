@@ -99,6 +99,41 @@ medication, diagnosis, interaction, or patient rule. Necessary investigation rew
 exceed accessible cost. A critical contraindication is ineligible for positive goodness-of-fit
 bonuses, and a cap prevents accumulated small bonuses from rescuing a critical error.
 
+D-238 implements the first native use of this contract. The point-free MDD route is decorated
+after qualitative compilation by one separate exact balance record at `+200`. The native scorer
+evaluates the route's full cardinality for the submitted and database-plan decisions, then emits
+the D-235 trace. D-242 freezes each as one full point-free decision containing purchased
+information-action IDs, diagnosis selections, and treatment selection. The player decision is
+derived from replayed purchases and final events; the database plan is one explicit reference
+snapshot. The current MDD route still reads only treatment selection, so this wider audit changes
+no current award. It never derives the value from CANMAT, concern, certainty, tags, complexity, or
+a caller-authored score row. A balance retune versions only the balance record.
+
+D-243 preserves treatment trigger and purchased-information fulfillment as separate exact
+predicates and evaluates a frozen decision as `not_triggered`, `fulfilled`, or `omitted`.
+Qualitative prerequisites remain visible `unbalanced` rows worth zero until an exact balance owner
+exists. D-244 adds the separate three-outcome balance shape: not triggered must be zero,
+fulfilled must be a positive explicit provisional value, and omitted must be negative. The
+current matched/nonmatched balance cannot be reused because an omission is not the same as a rule
+that never triggered.
+
+The two already-approved MDD any-medication-start prerequisites begin with the existing reviewed
+prototype tuning: medication reconciliation `+35/-25` and allergy/adverse-reaction history
+`+30/-40`, both in `workup`. With the independent `+200` broad route, the database plan is
+`265`. Medication plus neither history is `135`; reconciliation only is `195`; reaction history
+only is `205`; both is `265`; and histories without a medication start contribute `0`. Two
+medication starts fail the broad route but still activate both prerequisites, producing `-65`
+when neither history was purchased. Every trace preserves the three-state result, both component
+Booleans, exact selected targets, component, balance reference, and explanation.
+
+D-239 independently makes generated information expenses native. It does not affect care points
+or whether an investigation was appropriate. The compiler selects the least-cost available
+equal-quality fulfillment method from the exact versioned service owner after D-219 mechanical
+availability and D-222 action-specific staff configuration are verified. It derives operating
+cost, external cost avoided, and staff savings; changing only fulfillment economics therefore
+cannot change the clinical rule trace. Treatment-service charges and the other settlement inputs
+remain explicitly unverified until their own bounded owner is attached.
+
 Certainty does not multiply point magnitude automatically. Concern describes potential clinical
 impact; certainty describes confidence and provenance. A high-impact but uncertain risk remains
 visible as such instead of becoming artificially trivial, while review and reuse gates prevent the
@@ -120,8 +155,10 @@ The final combination is evaluated in named layers:
 
 The itemized receipt keeps these layers separate. In the current initial-MDD snapshot, one of the
 five reviewed first-line antidepressants receives the same provisional +200 primary-route award.
-A medication can then show a separate +0 fit row; it did not “earn zero,” it simply had no
-additional patient-specific adjustment. The current medically unreviewed mirtazapine prototype
+A compatibility case may then show a separate +0 fit row; it did not “earn zero,” it simply had no
+additional patient-specific adjustment. Native generated point-report v3 does not yet create a
+balanced matched-zero row; that explicit trace status is deferred until the first reviewed native
+fit contributor requires it. The current medically unreviewed mirtazapine prototype
 has a +35 insomnia fit modifier and a −50 high-BMI-without-countervailing-reason modifier. Those
 values exercise architecture and remain reviewable clinical content, not authoritative guidance.
 
@@ -149,15 +186,22 @@ sharing one `issueId` contribute only the worst point consequence. Equal specifi
 effect is a content-validation error; the engine's stable-ID tie-break exists to preserve
 determinism if an older or otherwise unvalidated snapshot reaches replay.
 
-A true hard contraindication suppresses only explicitly marked positive primary-treatment and
-fit rows for that same treatment. A high-risk but nonabsolute concern remains a negative row and
-does not erase otherwise legitimate benefits. Other earned workup, diagnosis, and disposition
-points remain separate unless their own rule says otherwise. Safety caps remain an additional,
-explicit mechanism for a critical error; suppression is not an implicit global score cap.
+A true hard contraindication suppresses only positive primary-treatment, fit, response,
+tolerability, prior-trial, and regulatory-alignment rows for the same canonical exact selected
+treatment target. Broad medication-start and regimen-operation predicates are normalized to the
+selected medication or regimen-entry operation before this comparison. A high-risk but
+nonabsolute concern remains a negative row and does not erase otherwise legitimate benefits.
+Other earned workup, diagnosis, and disposition points remain separate unless their own rule says
+otherwise. Safety caps remain an additional, explicit mechanism for a critical error; suppression
+is not an implicit global score cap.
 
-The resolver keeps every contributor in the saved trace. `replaced`, `deduplicated`, and
-`suppressed` rows show their original points, applied zero, controlling rule, and explanation.
-This makes the engine's estimate auditable without double-counting it.
+The native resolver runs once after per-rule evaluation for both the player and database plan.
+It keeps every contributor in the saved trace. `replaced`, `deduplicated`, and `suppressed` rows
+show their original points, applied zero, direct controlling trace, combination explanation, and
+exact selected targets. A direct controller can itself later be suppressed or deduplicated, so
+the complete deterministic chain remains auditable without double-counting it. Current
+compilation rejects equal-priority ambiguity for the same effect; a stable rule-ID tie-break is
+retained for deterministic recovery.
 
 Every investigation remains a genuine point cost even when it reveals nothing useful. A purchase
 does not automatically earn care points; independent workup objectives reward only authored

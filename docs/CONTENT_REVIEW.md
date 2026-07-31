@@ -2,7 +2,20 @@
 
 ## Milestone 1 capture and ticket queue
 
-The receipt exposes a local flag control for the whole encounter, each receipt item, and each rule trace. A ContentFlag records stable ID, case/blueprint/content version, seed, engine version, attempt ID, disputed item, category, clinical-review requirement, note, open status, and timestamp. The associated CompletedAttempt preserves the resolved CaseInstance, clinic snapshot, event/action history, submitted combination, point report, and exact rule trace. Flags and attempts persist together in IndexedDB.
+The receipt exposes a local flag control for the whole encounter, each receipt item, and each rule
+trace. A ContentFlag records stable ID, case/blueprint/content version, seed, engine version,
+attempt ID, disputed item, category, clinical-review requirement, note, open status, and
+timestamp. The associated compatibility `CompletedAttempt` preserves the resolved `CaseInstance`,
+clinic snapshot, event/action history, submitted combination, point report, and exact rule trace.
+Flags and attempts persist together in IndexedDB.
+
+This capture/export path is still the SaveData v5 compatibility path. D-235 defines a separate
+authoring-only `GeneratedCompletedEncounterAttempt` for generated `PatientInstance` and
+`EncounterInstance` records, but it is not yet admitted to IndexedDB, `DeveloperAttemptReview`,
+portable Reviewer exports, historical comparison, or any public projection. A later explicit
+SaveData/review migration must minimize hidden patient truth and rubric data before generated
+attempts can enter those surfaces; current code must not treat the two attempt types as
+interchangeable.
 
 Categories cover the whole encounter, information result, workup objective, treatment grade,
 interaction rule, penalty, rationale, missing acceptable alternative, need for another

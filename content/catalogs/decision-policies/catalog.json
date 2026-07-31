@@ -1,7 +1,50 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "0.1.0",
+  "contentVersion": "1.0.0",
   "id": "registry.catalog.decision-policies",
-  "policies": [],
-  "sourceUseNotes": []
+  "policies": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "decision-policy.mdd-initial-medication",
+      "label": "Focused initial MDD medication decision",
+      "focusedDecisionId": "decision.mdd-initial-treatment",
+      "primaryRouteRef": {
+        "kind": "medication_regimen_route",
+        "id": "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
+        "contentVersion": "1.0.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.3.0"
+      },
+      "explicitSupportingRuleRefs": [],
+      "developerOpinionIds": [
+        "developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T16:55:53.000Z",
+        "sourceUseNoteIds": ["source-use.decision-policy.mdd-initial-medication.canmat-2023"]
+      }
+    }
+  ],
+  "sourceUseNotes": [
+    {
+      "id": "source-use.decision-policy.mdd-initial-medication.canmat-2023",
+      "authority": "formal_publication",
+      "evidenceSourceIds": ["evidence.canmat.mdd-adults.2023-update"],
+      "sourceDocumentId": "source-document.412aade56104fd394503",
+      "sourceChunkIds": [
+        "source-chunk.412aade56104fd394503.17",
+        "source-chunk.412aade56104fd394503.18",
+        "source-chunk.412aade56104fd394503.19",
+        "source-chunk.412aade56104fd394503.20"
+      ],
+      "targetContentIds": ["decision-policy.mdd-initial-medication"],
+      "contributionTypes": ["treatment", "medication_fit"],
+      "contribution": "CANMAT supports a broad first-line antidepressant set and individualized selection for adults with MDD. The focused PsychSim policy scope, exact five-medication current set, equal primary-route treatment, and any later point magnitude remain separately attributable Developer interpretation and game balance.",
+      "generatedBy": "human",
+      "medicalReviewStatus": "approved"
+    }
+  ]
 }

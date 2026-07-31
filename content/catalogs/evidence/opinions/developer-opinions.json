@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.2.0",
+  "contentVersion": "1.4.0",
   "id": "developer-opinions.psychsim",
   "opinions": [
     {
@@ -99,7 +99,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.2.0",
       "id": "developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27",
       "summary": "For a focused, uncomplicated adult MDD snapshot already routed to medication treatment, one reviewed first-line antidepressant should receive the same dominant primary-route credit. Medication-specific fit, safety, interactions, prior response, preference, feasibility, and formulary availability remain separate, smaller contributors; exact game-point magnitudes are provisional balance values.",
       "developerId": "reviewer.dustin-rowland",
@@ -151,6 +151,27 @@
           "targetContentId": "medication.mirtazapine",
           "role": "subject",
           "rationale": "Mirtazapine is one currently modeled member of the reviewed equal-baseline set."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
+          "role": "affected_rule",
+          "rationale": "The route records the accepted one-medication equal-baseline interpretation without assigning points."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "decision-policy.mdd-initial-medication",
+          "role": "affected_rule",
+          "rationale": "The policy scopes the accepted interpretation to the focused initial MDD medication decision."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-initial-one-first-line-antidepressant",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the approved dominant-route weighting without changing the qualitative route."
         }
       ],
       "developerReview": {
@@ -165,7 +186,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
       "summary": "Information requirements should follow the focused patient problem and the treatment actually selected rather than a universal psychiatric checklist. For an initial MDD medication decision, episode characterization and depressive symptoms are central; antidepressant selection makes mania history important; starting any medication makes medication reconciliation and allergy/adverse-reaction history important. Substance-use history is broadly rewarded in depression and other commonly substance-induced presentations. A known prior reaction to a selected medication affects treatment safety even when the player did not reveal it, because patient facts are resolved before play.",
       "developerId": "reviewer.dustin-rowland",
@@ -182,6 +203,20 @@
           "targetContentId": "diagnosis.major-depressive-disorder",
           "role": "subject",
           "rationale": "The first executable application defines focused assessment and treatment-triggered prerequisites for an uncomplicated initial MDD snapshot."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-any-medication-reconciliation",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the accepted treatment-triggered reconciliation weighting without changing the qualitative diagnosis rule."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-any-medication-reaction-history",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the accepted treatment-triggered reaction-history weighting without changing the qualitative diagnosis rule."
         }
       ],
       "developerReview": {

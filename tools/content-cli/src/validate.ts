@@ -4,6 +4,7 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import {
   CaseBlueprintSchema,
   ClinicalReviewTicketSchema,
+  DecisionBalanceCatalogSchema,
   DecisionPolicyCatalogSchema,
   DeveloperOpinionCatalogSchema,
   DiagnosisClassificationReleaseSchema,
@@ -33,6 +34,7 @@ import {
 } from '@psychsim/content-runtime';
 import { reviewerCaseBlueprints } from '@psychsim/content-runtime/reviewer';
 import { resolveClinicForProgressionMode } from '@psychsim/engine';
+import { adaptFocusedMedicationRegimenRoute } from '@psychsim/engine/authoring';
 import { contentRegistry } from '../../../packages/content-runtime/src/registry';
 import { supplementIdentities } from '../../../packages/content-runtime/src/supplement-identities';
 import {
@@ -131,7 +133,7 @@ if (findingExpressionBankEntries.length !== 1) {
     const entry = findingExpressionBankEntries[0]!;
     if (entry.runtimeIncluded) {
       throw new Error(
-        'Expression banks remain outside the ordinary runtime until the shared projection compiler exists.',
+        'Expression banks remain outside the ordinary runtime until generated encounters consume reviewed frozen projections.',
       );
     }
     const catalog = FindingExpressionBankCatalogSchema.parse(
@@ -638,6 +640,42 @@ if (medicationRegimenKnowledgeEntries.length !== 1) {
 
     for (const route of catalog.focusedRoutes) {
       validateTransitionPredicateTargets(route.transitionMatch, route.id);
+      if (route.qualitativeDiagnosisRuleRef) {
+        const diagnosis = catalogs.diagnoses.find(
+          (candidate) => candidate.id === route.qualitativeDiagnosisRuleRef!.ownerId,
+        );
+        const diagnosisRules = diagnosis
+          ? [
+              ...diagnosis.baseRules,
+              ...(diagnosis.severityAxis?.levels.flatMap((level) => level.rules) ?? []),
+              ...diagnosis.specifiers.flatMap((specifier) => specifier.rules),
+            ]
+          : [];
+        const qualitativeRule = diagnosisRules.find(
+          (candidate) => candidate.id === route.qualitativeDiagnosisRuleRef!.id,
+        );
+        if (
+          !diagnosis ||
+          diagnosis.contentVersion !== route.qualitativeDiagnosisRuleRef.ownerContentVersion ||
+          route.qualitativeDiagnosisRuleRef.contentVersion !== diagnosis.contentVersion ||
+          !qualitativeRule
+        ) {
+          throw new Error(
+            `${route.id} references unknown or mismatched qualitative diagnosis rule ${route.qualitativeDiagnosisRuleRef.id}@${route.qualitativeDiagnosisRuleRef.contentVersion} owned by ${route.qualitativeDiagnosisRuleRef.ownerId}@${route.qualitativeDiagnosisRuleRef.ownerContentVersion}.`,
+          );
+        }
+        const adapted = adaptFocusedMedicationRegimenRoute({
+          route,
+          diagnosis,
+          medicationClasses: catalog.medicationClasses,
+          classMemberships: catalog.classMemberships,
+        });
+        if (!adapted.ok) {
+          throw new Error(
+            `${route.id} cannot compile into a decision-rule candidate: ${adapted.error.code}: ${adapted.error.message}`,
+          );
+        }
+      }
     }
     for (const contributor of catalog.contributors) {
       validateTransitionPredicateTargets(contributor.transitionWhen, contributor.id);
@@ -849,6 +887,143 @@ if (decisionPolicyEntries.length !== 1) {
       code: 'INVALID_DECISION_POLICY_CATALOG',
       message:
         error instanceof Error ? error.message : 'Decision-policy catalog validation failed.',
+    });
+  }
+}
+
+const decisionBalanceIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let decisionBalanceCatalogForValidation: ReturnType<
+  typeof DecisionBalanceCatalogSchema.parse
+> | null = null;
+const decisionBalanceEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'decision_balance_catalog',
+);
+if (decisionBalanceEntries.length !== 1) {
+  decisionBalanceIssues.push({
+    severity: 'error',
+    code: 'DECISION_BALANCE_CATALOG_COUNT',
+    message: `Expected one decision-balance catalog; found ${decisionBalanceEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = decisionBalanceEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Decision balances must remain outside Player and portable Reviewer runtimes.',
+      );
+    }
+    const catalog = DecisionBalanceCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    decisionBalanceCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    if (
+      JSON.stringify([...entry.categoryIds].sort()) !==
+      JSON.stringify(catalog.balances.map((balance) => balance.id).sort())
+    ) {
+      throw new Error('Decision-balance registry membership must exactly match its balances.');
+    }
+
+    const diagnosisRuleOwners = new Map<
+      string,
+      {
+        contentVersion: string;
+        ownerId: string;
+        ownerContentVersion: string;
+        reviewStatus: string;
+        requiresTriggeredInformationPrerequisiteBalance: boolean;
+      }
+    >();
+    for (const diagnosis of catalogs.diagnoses) {
+      for (const rule of [
+        ...diagnosis.baseRules,
+        ...(diagnosis.severityAxis?.levels.flatMap((level) => level.rules) ?? []),
+        ...diagnosis.specifiers.flatMap((specifier) => specifier.rules),
+      ]) {
+        diagnosisRuleOwners.set(rule.id, {
+          contentVersion: diagnosis.contentVersion,
+          ownerId: diagnosis.id,
+          ownerContentVersion: diagnosis.contentVersion,
+          reviewStatus: rule.review.status,
+          requiresTriggeredInformationPrerequisiteBalance:
+            rule.target.kind === 'information_action' &&
+            rule.stance === 'required' &&
+            rule.selectionWhen?.type === 'anyMedicationStarted' &&
+            rule.patientWhen?.type === 'clinicalTagPresent',
+        });
+      }
+    }
+    const regimenRuleOwners = new Map([
+      ...(medicationRegimenKnowledgeCatalogForValidation?.focusedRoutes ?? []).map(
+        (route) =>
+          [
+            `medication_regimen_route:${route.id}`,
+            {
+              contentVersion: route.contentVersion,
+              ownerId: route.owner.id,
+              ownerContentVersion: route.owner.contentVersion,
+              reviewStatus: route.review.status,
+              requiresTriggeredInformationPrerequisiteBalance: false,
+            },
+          ] as const,
+      ),
+      ...(medicationRegimenKnowledgeCatalogForValidation?.contributors ?? []).map(
+        (contributor) =>
+          [
+            `medication_regimen_contributor:${contributor.id}`,
+            {
+              contentVersion: contributor.contentVersion,
+              ownerId: contributor.owner.id,
+              ownerContentVersion: contributor.owner.contentVersion,
+              reviewStatus: contributor.review.status,
+              requiresTriggeredInformationPrerequisiteBalance: false,
+            },
+          ] as const,
+      ),
+    ]);
+    for (const balance of catalog.balances) {
+      const target =
+        balance.ruleRef.kind === 'diagnosis_rule'
+          ? diagnosisRuleOwners.get(balance.ruleRef.id)
+          : regimenRuleOwners.get(`${balance.ruleRef.kind}:${balance.ruleRef.id}`);
+      if (
+        !target ||
+        target.contentVersion !== balance.ruleRef.contentVersion ||
+        target.ownerId !== balance.ruleRef.ownerId ||
+        target.ownerContentVersion !== balance.ruleRef.ownerContentVersion
+      ) {
+        throw new Error(
+          `${balance.id} pins unknown or stale ${balance.ruleRef.kind} ${balance.ruleRef.id}@${balance.ruleRef.contentVersion} owned by ${balance.ruleRef.ownerId}@${balance.ruleRef.ownerContentVersion}.`,
+        );
+      }
+      if (target.reviewStatus !== 'approved') {
+        throw new Error(
+          `${balance.id} cannot assign points to ${target.reviewStatus} qualitative rule ${balance.ruleRef.id}.`,
+        );
+      }
+      const usesTriggeredInformationPrerequisiteBalance =
+        'balanceKind' in balance && balance.balanceKind === 'triggered_information_prerequisite';
+      if (
+        usesTriggeredInformationPrerequisiteBalance !==
+        target.requiresTriggeredInformationPrerequisiteBalance
+      ) {
+        throw new Error(
+          `${balance.id} does not use the balance shape required by ${balance.ruleRef.id}.`,
+        );
+      }
+    }
+  } catch (error) {
+    decisionBalanceIssues.push({
+      severity: 'error',
+      code: 'INVALID_DECISION_BALANCE_CATALOG',
+      message:
+        error instanceof Error ? error.message : 'Decision-balance catalog validation failed.',
     });
   }
 }
@@ -1372,6 +1547,9 @@ if (developerOpinionEntries.length !== 1) {
       ...(decisionPolicyCatalogForValidation?.policies.map(
         (policy) => [policy.id, 'clinical_rule'] as const,
       ) ?? []),
+      ...(decisionBalanceCatalogForValidation?.balances.map(
+        (balance) => [balance.id, 'clinical_rule'] as const,
+      ) ?? []),
     ]);
     for (const opinion of catalog.opinions) {
       for (const target of opinion.targets) {
@@ -1467,6 +1645,29 @@ if (developerOpinionEntries.length !== 1) {
         }
       }
     }
+    for (const balance of decisionBalanceCatalogForValidation?.balances ?? []) {
+      for (const developerOpinionId of balance.developerOpinionIds) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${balance.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === balance.id,
+          )
+        ) {
+          throw new Error(`${developerOpinionId} does not target decision balance ${balance.id}.`);
+        }
+        if (opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${balance.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+          );
+        }
+      }
+    }
     const sourceUseById = new Map(
       sourceUseDecisionCatalog.decisions.map((decision) => [decision.id, decision]),
     );
@@ -1554,6 +1755,13 @@ const reports = [
     {
       valid: decisionPolicyIssues.length === 0,
       issues: decisionPolicyIssues,
+    },
+  ],
+  [
+    'decision-balances',
+    {
+      valid: decisionBalanceIssues.length === 0,
+      issues: decisionBalanceIssues,
     },
   ],
   [

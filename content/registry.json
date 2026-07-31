@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.33.0",
+  "contentVersion": "3.36.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -308,16 +308,30 @@
       "kind": "medication_regimen_knowledge_catalog",
       "path": "content/catalogs/medications/regimen-knowledge.json",
       "runtimeIncluded": false,
-      "categoryIds": [],
-      "dependsOnIds": ["registry.catalog.medication-identities", "developer-opinions.psychsim"]
+      "categoryIds": [
+        "medication-class.mdd-initial-first-line-antidepressant",
+        "medication-class-membership.mdd-initial-first-line.sertraline",
+        "medication-class-membership.mdd-initial-first-line.escitalopram",
+        "medication-class-membership.mdd-initial-first-line.fluoxetine",
+        "medication-class-membership.mdd-initial-first-line.bupropion",
+        "medication-class-membership.mdd-initial-first-line.mirtazapine",
+        "medication-regimen-route.mdd-initial-one-first-line-antidepressant"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.medication-identities",
+        "evidence.canmat.mdd-adults.2023-update",
+        "registry.catalog.source-use-decisions",
+        "developer-opinions.psychsim"
+      ]
     },
     {
       "id": "registry.catalog.decision-policies",
       "kind": "decision_policy_catalog",
       "path": "content/catalogs/decision-policies/catalog.json",
       "runtimeIncluded": false,
-      "categoryIds": [],
+      "categoryIds": ["decision-policy.mdd-initial-medication"],
       "dependsOnIds": [
+        "evidence.canmat.mdd-adults.2023-update",
         "registry.catalog.information-actions",
         "registry.catalog.diagnoses",
         "registry.catalog.medication-regimen-knowledge",
@@ -328,6 +342,22 @@
         "registry.catalog.reaction-concepts",
         "registry.catalog.exposures",
         "registry.catalog.source-use-decisions",
+        "developer-opinions.psychsim"
+      ]
+    },
+    {
+      "id": "registry.catalog.decision-balances",
+      "kind": "decision_balance_catalog",
+      "path": "content/catalogs/decision-policies/balances.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "balance.mdd-any-medication-reaction-history",
+        "balance.mdd-any-medication-reconciliation",
+        "balance.mdd-initial-one-first-line-antidepressant"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.medication-regimen-knowledge",
         "developer-opinions.psychsim"
       ]
     },

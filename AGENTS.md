@@ -207,6 +207,39 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   `provisional_balance` value from the approved bands for Developer/Reviewer play without a second
   clinical review. Retuning points does not reopen the qualitative rule; changing its clinical
   meaning does. Missing rule coverage creates a ticket and never invents a default penalty.
+- Keep native decision balance in its own runtime-excluded catalog, keyed to the full exact
+  qualitative rule reference. Never store point magnitudes on diagnosis, regimen-route, or
+  decision-policy records, and never infer them from stance, concern, certainty, evidence
+  strength, labels, prose, tags, complexity, or file order. Retuning versions only the balance
+  record/catalog. Generated scoring evaluates the rule's canonical predicate and retains the exact
+  player and database-plan decision snapshots; callers cannot author the player decision, trace
+  rows, or point totals. A generated decision snapshot contains presence-semantic purchased
+  information-action IDs plus the final diagnosis and treatment selections. Derive the player
+  information IDs only from successfully replayed purchases; keep repeat purchases separately
+  itemized in events and expenses. Validate both snapshots against the exact frozen action,
+  diagnosis, medication, regimen-entry, intervention, and disposition horizons. D-191 action
+  predicates over a compiled horizon mean “available”; the separate selected-decision matcher
+  means “selected.” Never substitute one meaning for the other.
+- Keep a treatment-triggered information prerequisite as one point-free typed pair:
+  `triggerWhen` names the treatment/intervention trigger and `fulfillmentWhen` names only
+  information actions. Its D-191 `actionWhen` discovery anchor equals the fulfillment predicate.
+  Preserve the exact originating policy ID/version and focused-decision ID with that pair, and
+  require exact policy-scope equality during compilation; a compatibility scope check must never
+  be discarded after adaptation. A triggered prerequisite also requires an exact non-null typed
+  patient predicate.
+  Compile it only when both sides exist in the exact horizon; evaluate the frozen player/reference
+  decisions separately as `not_triggered`, `fulfilled`, or `omitted`. Availability never fulfills
+  the prerequisite. The initial adapter accepts only approved diagnosis rules with exact
+  `anyMedicationStarted` selection semantics and emits the primary route's typed patient scope;
+  it may verify a compatibility focused-decision tag but must not emit or match that tag. Reject
+  medication-tag triggers until an exact reviewed native class exists. A point-free prerequisite
+  remains an unbalanced trace row until a separate reviewed three-outcome balance owner is added.
+  That balance must own explicit zero `notTriggered`, positive `fulfilled`, and negative `omitted`
+  outcomes; it never changes the qualitative rule version or derives magnitude from evidence
+  certainty. Generated traces retain the three-state result and both component Booleans even when
+  unbalanced. Reject shape-crossed or dangling balance ownership. Before runtime persistence,
+  fingerprint or freeze the exact canonical balance payload needed to independently rederive
+  historical magnitudes; stable IDs and content versions alone are not payload identity.
 - A verified, current FDA approval may contribute one minor, separately traced
   `regulatory_alignment` bonus only when indication, population, jurisdiction, and selected
   formulation match. The provisional default is +10 after the generic rule receives rule-level
@@ -223,6 +256,23 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Gameplay-critical random context uses reviewed `PatientClinicalContextDimension` options, not cosmetic variants. Every option must bind the same short structured findings to its derived fit tags, resolve deterministically, and be saved in the CaseInstance. Clinically meaningful duration is also structured saved case state; a deliberately below-threshold duration must name the reviewed diagnosis criterion it misses and cannot infer that criterion from prose. Optional-comorbidity pools are patient-family-owned and may declare bounded minimum/maximum selections from explicit candidates; do not enable their generation until resolved condition/chart/regimen records pass deterministic consistency, literal-contradiction, and replay validation. Missing rule or route coverage is a nonblocking diagnostic, not patient invalidity.
 - Treat typed clinical facts and measurements as sources of truth. Stable clinical tags are
   versioned derived relationship keys; never let a free tag contradict its originating fact.
+- Clinical duration and subjective burden remain target-scoped typed patient values, not canonical
+  findings and not whole-lane source reports. One reviewed projection definition pins exactly one
+  value kind and semantic owner, target-definition selector, source kind, time scope, and current
+  information-action payload. Resolve absent, singular, and ambiguous targets separately; never
+  silently aggregate multiple condition or proposition instances. Keep the full target/source
+  audit authoring-only, and freeze only the separately minimized reveal that omits raw hidden
+  condition/finding/proposition targets. A record may feed different actions explicitly, but the
+  same action may not receive it through overlapping definitions.
+- The `universal-action-result-assembly.v3` static owner carries only D-240 projection
+  definitions. D-194 `9.0.0` compiles them after final D-193 findings and deferred target-scoped
+  records are frozen, then supplies the complete nullable artifact to D-213 `3.0.0`. D-213 routes
+  only exact `FrozenTargetScopedPatientValueReveal` records. `not_applicable` is neutral when
+  another declared owner resolves; an applicable missing value or ambiguous target blocks that
+  action's result binding and cannot be masked by another complete definition. D-214 attaches only
+  referenced, target-redacted reveals to `PatientInstance`; the full target audit remains nested in
+  the authoring snapshot and replays through D-200 `20.0.0`. This chain spends no additional
+  complexity and adds no wording, clinical rule, point value, persistence, runtime, or UI.
 - Apply source, observation modality, and time scope across symptom clusters. Current self-report,
   historical self-report, collateral, records, MSE/physical observation, and standardized-item
   response remain independently resolvable whenever their values can disagree, even if one compact
@@ -262,6 +312,12 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   or a player-entered intent field. Never parse free-text medication classes or arbitrary tags to
   infer class membership, duplication, interaction, or a penalty; use explicit versioned
   relationships.
+- A focused regimen route must preserve its complete count-aware transition predicate separately
+  from the decision compiler's coarse action-horizon discovery anchor. Native route adapters may
+  expand only explicit versioned medication-class memberships and must link qualitative
+  stance/concern/certainty to an exact reviewed topical rule. Never parse compatibility tags,
+  labels, aliases, or prose to build a candidate; reject a missing, stale, unreviewed, or lossy
+  mapping instead.
 - Reaction history is explicit patient state: `unassessed`, documented none, and entries present
   are distinct, and medication-reaction assessment has its own completeness state. Preserve the
   chart/patient `recordedAs` label separately from any reviewed interpretation; never infer immune
@@ -269,11 +325,314 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   interpretations remain disabled until rule-level review/provenance exists. New scenarios must
   own reaction state explicitly, and validation must keep it consistent with the revealed result.
 - `PatientComplexityProfile` is a transitional name for an encounter-recipe-owned optional-richness
-  envelope; it is never diagnosis-owned. Its budget, selected modules, and
-  eventual five-axis envelope never derive a scalar patient tier, `difficultyTier`, pool, facility gate,
-  care points, reimbursement, or `economy.complexityBonus`. A feature that reframes the focused
-  question belongs in required template/policy content, not an optional module. Current authored
-  patients are `budget_only`; reject selected modules until a stable module catalog/compiler exists.
+  envelope; it is never diagnosis-owned. Its one budget is a hard maximum for optional texture,
+  never a quota to exhaust. Required diagnoses, focused complications, and other state needed to
+  pose the immediate question remain outside that budget. Keep reusable module identity separate
+  from exact-template cost, impact, five-axis contributions, and synthetic game-selection weight;
+  none derives a scalar patient tier, `difficultyTier`, pool, facility gate, care points,
+  reimbursement, or `economy.complexityBonus`. A feature that reframes the focused question belongs
+  in required template/policy content, not an optional module. The D-201 selector is authoring-only
+  and freezes identities plus accounting without materializing clinical payload. Compatibility and
+  runtime still reject selected modules until typed payload compilers exist. D-196 optional
+  conditions are constrained by the D-202 authoring bridge to D-201-selected comorbidity modules
+  rather than making a second independent draw. Every candidate comorbidity maps one-to-one to an
+  exact optional group/candidate; bridged groups permit zero selections, while case-defining
+  conditions remain required state outside the budget. D-196 weights are audit context only in
+  this path. D-203 lets D-197 consume either the genuine D-196 artifact or genuine D-202 bridge
+  through one discriminated source and native verifier; it never fabricates D-196 selection
+  semantics. D-204 carries that complete genuine source through D-200, requires exact equality
+  with D-197, and attaches its derived condition state/bindings to D-194 without copying D-201
+  `selectedModules`. D-205 maps each `allergy_reaction` candidate to one complete uninterpreted
+  `PatientReactionHistory`; all such alternatives must already be pairwise incompatible in D-201,
+  so the bridge copies at most one selected payload and exact D-201 ordinal/draw without merging,
+  rerolling, or spending again. Its exact typed reference horizon and full D-201 artifact remain
+  authoring provenance. A null result means no optional contribution, never inferred unassessed
+  or documented-none state. D-206 treats `prior_treatment` differently because its four typed
+  lanes are positive record collections: each candidate maps to one nonempty contribution, and
+  compatible selected contributions concatenate by globally unique record ID so separate
+  complications can spend D-201 budget independently. D-201 remains the only selector/cost owner;
+  D-206 preserves every ordinal/draw and performs no inference, deduplication, or second charge.
+  Null means no optional contribution, never treatment-naive. D-207 maps every D-201
+  `substance_use` candidate to one nonempty additive positive-use contribution. Compatible
+  selected contributions concatenate only when record IDs and semantic agent identities are
+  disjoint; same-agent alternatives must pin one exact version and already be explicitly
+  incompatible in D-201. D-201 remains the only selector/cost owner, and D-207 copies authored
+  recency, amount, prescription relationship, and misuse truth while stamping resolution
+  provenance from the original D-201 stable draw. Null means no optional exposure contribution,
+  never nonuse or unassessed state. Its exact authoring horizon covers medication, supplement, and
+  other-substance identities. Required exposure stays outside the budget; do not derive prevalence
+  or misuse probability, intoxication, withdrawal, diagnosis, points, or runtime behavior. The
+  generic `other` kind remains unsupported. D-208 is the only core-plus-optional composition
+  boundary: every typed bridge must retain the same complete D-201 artifact, core condition state
+  must equal the required-source subset, reaction replacement requires an explicit default slot,
+  and history/exposure append without deduplication. Preserve every D-201 cost, ordinal, draw,
+  spent value, and remaining capacity exactly; payload record count never adds cost. A selected
+  unsupported `other` remains charged and yields an auditable incomplete composition without
+  reroll or refund. D-209 makes this complete D-208 artifact D-200's only pre-finding patient
+  source: derive the condition source, base state, condition bindings, D-193 patient-state ID, and
+  proposition state rather than accepting parallel caller copies; retain and replay the complete
+  D-208 → D-193 → D-194 chain. A `not_composed` result blocks before downstream compilation
+  without fallback, reroll, or refund. D-210 is the standalone whole-state tendency-applicability
+  boundary: verify one composed D-208 state and genuine D-198 target context, scan every supplied
+  approved definition using the exact typed fact vocabulary and same-record semantics, and emit at
+  most one D-199-ready binding per matched definition while retaining exact fact-to-record,
+  profile, target, and version provenance. Required and D-201-selected optional facts are equal
+  applicability inputs once frozen; their origin remains audit provenance and never changes the
+  match. A module may activate several independently reviewed tendencies without another
+  complexity charge. Full scan remains authoritative and any reverse index must return the same
+  exact match set. D-199 alone owns allocations, pooled mass, normalization, and draw; D-201 alone
+  owns optional selection, costs, spending, and remaining budget. Do not infer reaction meaning or
+  treatment adequacy, add probability arithmetic, points, or enable runtime modules until the
+  separate clinical-review, real-content, attachment, compatibility, and persistence boundaries
+  exist. D-211 makes that attachment explicit: D-200 accepts one verified D-210 artifact instead of
+  caller-owned D-199 bindings or output, requires exact D-208/D-198/profile/target/definition
+  equality, derives the matched profile and finding-definition subsets, and delegates all mass
+  arithmetic and drawing to D-199. Zero emitted bindings retain the full D-210 audit and require a
+  null D-199 result while D-198 stays active. D-212 is a separate authoring-only structured reveal
+  foundation for non-finding patient state. It may project only closed typed record lanes and
+  singleton fields from one frozen state, with exact source, time, claim-origin, dependency,
+  included-record, omitted-record, and aligned/misaligned/indeterminate audit. It never converts a
+  raw empty collection into “none reported,” infers why a source is inaccurate, or uses an
+  arbitrary selector language. D-201 remains the sole selector and spender: projection count,
+  source count, included or omitted record count, alignment status, and reveal count never select,
+  charge, refund, reroll, or recalculate an optional module. D-212 has no independent runtime,
+  persistence, presentation-wording, action-availability, or scoring authority. D-213 adds one
+  exact, versioned result recipe per action in a fingerprinted universal information-action
+  catalog. It audits the whole catalog and routes only exact frozen D-193 projections, D-212
+  source views, measurements, categorical observations, structured tests, and exact D-220
+  instrument-item responses. A missing declared owner creates incomplete coverage and no result
+  candidate; an explicit D-212 `none_reported` view remains data. Stale or malformed owner
+  versions are structural input errors. D-221 makes D-194 derive the complete D-220 artifact after
+  final D-193 truth, then requires D-213 and D-214 to attach only exact action-owned instrument
+  responses.
+  D-214 makes D-194 the only result-attachment orchestrator. An `attachment_only.v2` template pins
+  one static action-result assembly—catalog, recipes, and source definitions—but never
+  patient-specific projections or bindings. After final D-193 state exists, D-194 builds exact
+  D-212 envelopes, requires one complete D-213 artifact for the focused information-action
+  horizon, and derives every selector; reject caller-authored bindings and incomplete coverage
+  without fallback. Retain the complete D-212/D-213 audit only in the authoring snapshot and freeze
+  only presentation-safe D-212 fields into the patient instance. Exact context and derivation must
+  replay under D-194 and D-200 `5.0.0`. Recipe/action/source count, candidates, diagnostics, and
+  action costs never select or spend optional complexity. D-201 remains the sole optional-module
+  budget authority, while information-action purchase points remain a separate encounter-economy
+  concern. D-215 adds a separate authoring-only compiler for an already-selected exact source
+  behavior profile. Each declared D-212 lane resolves as one whole-lane `report_all`,
+  `none_reported`, `unassessed`, or `unable_to_assess` presentation; typed singleton fields either
+  mirror truth or present one explicitly reviewed typed value. Preserve exact patient-state,
+  definition, profile, and source-view fingerprints and replay the complete transformation. Never
+  add partial record-ID filters, source-credibility inference, probability selection, complexity
+  spending, information-action cost, points, or scoring here.
+  D-216 advances the current template contract to `attachment_only.v3` and freezes one exact
+  `careSetting` across template, location, and encounter: `outpatient_psychiatry`,
+  `emergency_department`, `inpatient_psychiatry`, or `consultation_liaison`. One template owns one
+  setting. Setting costs zero optional complexity and grants no action, capability, formulary,
+  disposition, difficulty, reimbursement, or progression state; the exact location remains the
+  owner of its operational horizon. Current runtime locations are all outpatient, and real
+  ED/inpatient/consultation-liaison content remains deferred.
+  D-217 adds a separate neutral source-view horizon plus one reviewed care-setting-specific
+  selection profile. Each exact source slot is either fixed or chooses among at least two complete
+  D-215 profiles using positive unnormalized game-generation weights normalized only within that
+  mutually exclusive slot. Fixed slots never draw; weighted slots use independent stable
+  substreams so candidate reordering or an unrelated slot cannot perturb an existing selection.
+  Candidate profiles must match the complete source coordinate, permitted source kind, and exact
+  D-212 lane/singleton coverage before selection. These weights are not prevalence, reliability,
+  evidence strength, points, or complexity. D-217 consumes no patient state or D-201 artifact,
+  and grants no operational capability. D-218 makes D-194 accept only a nullable verified D-217
+  artifact, preflight its exact seed/template/assembly/care-setting context before D-193 can exit,
+  run D-215 only after final patient truth exists, and feed only D-215-derived D-212 envelopes into
+  D-213/D-214. A zero-definition horizon requires null D-217 and D-215 artifacts. Retain and replay
+  the complete D-217 → D-215 → D-213 → D-194 chain under catalog compiler `4.0.0` and D-200
+  `7.0.0`; reject legacy caller-authored D-212 recipes. This attachment adds no real behavior,
+  complexity charge, action cost, points, persistence, or runtime authority.
+  D-219 advances the current contract to `attachment_only.v4`, catalog compiler `5.0.0`, and
+  D-200 `8.0.0`. Before D-194 may compile, one complete authoring-only operational-admission
+  artifact must pin the exact template, physical location, focused action horizon, universal
+  action catalog, and deliberately minimized service, formulary, medication-identity, and
+  treatment projections. The same explicit-resource algorithm applies to outpatient psychiatry,
+  emergency department, inpatient psychiatry, and consultation-liaison; a setting label, facility
+  tier, or another same-setting location grants nothing. Baseline access comes only from the exact
+  location's capabilities, base formulary, disposition allowlist, and eligible service methods.
+  Staff-dependent access remains pending until an explicit runtime-context artifact exists.
+  Existing-regimen operations remain patient-state-owned and are not formulary-gated. Preserve
+  itemized incomplete-coverage diagnostics without rerolling the patient or changing D-201.
+  Operational projections must not carry costs, cheapest-method selection, quality, points,
+  reimbursement, clinical correctness, or hidden fit rules. Retain and replay the complete
+  D-219 artifact in D-194/D-200 and pin its ID/fingerprint in the encounter. Real non-outpatient
+  catalog content, D-222-to-D-219 attachment, persisted assignments, and runtime generation remain
+  separate. Never activate multiple real settings through the compatibility runtime's current
+  facility-wide capability/formulary union; a standalone D-222 projection is not runtime access.
+  D-220 adds a standalone authoring-only instrument item-response compiler `1.0.0`. One
+  `instrument-item-response-only.v1` definition owns only an opaque rights boundary and exact item
+  response-scale/options, information-action, respondent-source, and time-scope metadata. Compile
+  it only from one verified D-193 artifact, its exact projection horizon, the minimized
+  `InstrumentInformationActionHorizon`, the exact universal action catalog, and approved exact
+  instrument definitions. Every instrument target must resolve exactly one response option, use a
+  null display channel and no expression bank, match the owning action source, and preserve an
+  identical option set for every item sharing one response-scale ID. Preserve per-target
+  complete/incomplete evaluations, diagnostics, contributors, fingerprints, and deterministic
+  replay. Do not infer source modality from finding IDs, copy instrument text, calculate totals or
+  thresholds, attach interpretation, choose among responses, assign points, or spend D-201
+  complexity. D-220 was initially standalone.
+  D-221 attaches that exact D-220 artifact through the complete authoring chain. The static
+  `universal-action-result-assembly.v2` owns exact instrument definitions; D-194 derives the
+  minimized instrument-action horizon and runs D-220 only after final D-193 truth. D-213 `2.0.0`
+  treats each complete response as an exact action-owned source, and D-214 freezes the result
+  selector plus a presentation-safe response that excludes contributor, projection,
+  interpretation, diagnostic, and compiler-audit fields. Keep the full D-220 artifact both at the
+  snapshot root and nested in D-213, require exact equality and deterministic replay, and reject
+  root, nested, patient-safe, or binding tampering. Unrelated medication, intervention, or
+  disposition horizon fields must not perturb the minimized instrument horizon. A zero-instrument
+  horizon compiles and attaches an explicit complete empty artifact and freezes no patient
+  responses. This advances the current
+  contracts to `attachment_only.v5`, catalog compiler `6.0.0`, and D-200 `9.0.0`. It spends no
+  D-201 complexity and uses the same algorithm in outpatient psychiatry, emergency department,
+  inpatient psychiatry, and consultation-liaison without deriving resources from a setting name.
+  It adds no real instrument text, total, cutoff, interpretation, point rule, runtime generation,
+  persistence migration, or UI.
+  D-222 adds a separate authoring-only selected-location operational-resource compiler `1.0.0`.
+  One clinic-wide `clinic-location-resource-assignment-horizon.v1` must cover every built location
+  exactly once. Each nested `selected-location-operational-resource-assignment.v1` pins exact
+  versioned and fingerprinted upgrade/formulary references to one exact location version, while
+  each upgrade owner declares `exclusive_location` or `shared_locations`. Compile effective
+  capabilities, formularies, and staff automation only from that complete horizon plus the exact
+  clinic, facility, selected location, and complete current minimized owner horizons. Verify
+  facility/location membership, tier and allowlists, built/required department context, clinic
+  ownership including equipment ownership, reference-to-owner identity/version/kind/fingerprint,
+  exclusivity, staff kind/configuration/action horizon, no duplicate or overlapping staff
+  automation, and exact formulary ownership/grant parity. Never union clinic-global capabilities,
+  formularies, staff, or unassigned upgrades into the location. The same explicit-assignment
+  algorithm applies to outpatient psychiatry, emergency department, inpatient psychiatry, and
+  consultation-liaison; setting names grant nothing. Preserve normalized inputs, itemized
+  incomplete-coverage diagnostics, exact fingerprints, current-owner context verification, and
+  deterministic replay. D-222 supplies no persistence authority, runtime access, clinical rule,
+  service-method choice, cost, point, probability, or D-201 complexity operation; its exact
+  attachment to D-219/D-194/D-200 is governed by D-224 through D-229 below.
+  D-223 adds one standalone authoring-only pre-finding patient-state orchestrator `1.0.0`. It
+  executes D-201 exactly once, then derives required-only D-196 condition state when the complete
+  candidate pool has no comorbidity lane or routes that same frozen D-201 artifact through D-202
+  when a comorbidity candidate exists. Every present reaction, prior-treatment, or exposure lane
+  must supply its exact typed D-205, D-206, or D-207 input even when no candidate in that lane was
+  selected; the resulting complete null-materialization artifact remains part of the audit.
+  Reaction-history ownership is explicit and must match the candidate horizon. D-208 receives
+  only those genuine child artifacts and returns either the complete composed state or audited
+  `not_composed`. A literal D-202 conflict or selected unsupported `other` module never rerolls,
+  refunds, or performs another selection. Preserve exact D-201 costs, ordinals, draws, spending,
+  and remaining budget through every child artifact. Root and nested integrity, deterministic
+  D-202/D-208 request IDs, exact template/seed/profile/horizon/core context, and replay are
+  mandatory. The same algorithm applies to outpatient psychiatry, emergency department,
+  inpatient psychiatry, and consultation-liaison; care setting grants no new behavior. D-223 is
+  not attached to runtime generation and adds no real content, clinical rule, point, probability,
+  or second complexity authority.
+  D-224 makes D-219 consume one complete exact D-222 resource artifact and preserves an
+  independently recompiled current selected-location resource context before a historical
+  D-194/D-200 snapshot may activate. D-225 makes D-223 D-200's only pre-finding patient-state
+  root; D-200 derives D-208 from it and rejects a parallel composition root. D-231 first
+  materializes the sole template horizon allowed to reach D-226. Standard/Normal and Endgame use
+  only an explicit lifecycle-approved lane; local Developer may add a separately supplied
+  lifecycle-review lane. Wrong-lane, blueprint, draft, deprecated, and duplicate-stable-ID
+  payloads are rejected. Lifecycle inclusion is independent of `medicalReviewStatus`, setting,
+  pool, diagnosis, weights, complexity, points, resources, or run history. D-226 `3.0.0` removes
+  its raw template array, verifies that complete D-231 artifact, and compiles its exact templates ×
+  built-location admission matrix before patient or complexity selection. D-227 restricts that
+  matrix to the strict derived
+  `clinic-operational-context.v1`; economy, satisfaction, active location, debug state, labels,
+  and facility-wide capability unions cannot grant or stale admission. D-228 accepts one
+  caller-named diagnostic-free admitted cell, verifies it against the complete current D-226
+  request, and freezes a compact exact template/location/pool/setting plus D-222/D-219 binding.
+  D-229 makes every future generated-patient slot an exact physical-location coordinate. It
+  verifies the current D-226 matrix, retains every and only admitted candidate for that location,
+  rejects empty or cross-location selection without global fallback, and nests D-228 for the
+  caller-selected local cell. D-230 is the only authority allowed to make that local choice. Its
+  versioned, location-pinned distribution profile assigns positive relative question-bank mass to
+  exact template versions/fingerprints; those values are not prevalence, clinical probability,
+  points, difficulty, or complexity. It normalizes only the current D-229 horizon, uses one
+  deterministic 64-bit slot-local draw, and applies active-waiting and bounded recent-completion
+  suppression by stable template ID. Both suppressors apply at most once, remain positive, and
+  active suppression is stronger. Repeat context is frozen when the slot is filled; it is local
+  to the exact location and later history does not invalidate a waiting patient. D-230 nests the
+  selected D-229 proof so no downstream caller may bypass the draw. D-228, D-229, and D-230 are
+  `2.0.0` after the nested D-231/D-226 proof change. D-233 now derives two
+  domain-separated seeds from one private per-mode generation root, exact location, exact
+  coordinate, and monotonically increasing coordinate-local fill ordinal. Only D-230 receives the
+  template-selection seed. The exact selected template/version/fingerprint then joins those
+  coordinates to derive the one patient-generation seed required by D-223, D-197, D-198,
+  optional D-199, D-193/D-194, optional D-217, and the final `PatientInstance`. Request IDs,
+  occupancy-audit fingerprints, unrelated slots, file order, weights, points, and prose never
+  enter either seed. D-200 `18.0.0` accepts the resulting
+  `PatientSlotFillSeedAuthorityArtifact` as its sole slot root; parallel raw D-230/D-232 roots are
+  invalid.
+  Normal progression begins with outpatient locations; other settings require real unlocked and
+  built locations. Endgame and Developer may broaden their explicit template horizons, but mode
+  labels grant no resources and every patient remains bound/tagged to its exact setting. A hub
+  queue is only a projection over location-owned slots. D-232 keeps base and upgraded capacity in
+  a separate exact-location profile with a minimized capacity-only ownership/assignment horizon;
+  capacity never alters location/facility definitions, D-222/D-226 resources, D-230 weights,
+  points, or D-201 complexity. Stable base/upgrade authorization coordinates survive later
+  capacity additions. A separate facility-successor profile and authoring migration compiler
+  preserve every frozen patient, seed, template, historical D-230/D-232 proof, and source
+  provenance while attaching one free target coordinate plus fresh current D-226/D-228 proof.
+  Missing occupied mapping, insufficient capacity, or unavailable exact target admission blocks
+  the whole move; never partially move, drop, truncate, silently relocate, or regenerate a
+  patient. The existing compatibility runtime's facility-wide `patientSlotCount`, SaveData v5,
+  queue implementation, persistence, and UI remain unchanged until their dedicated migration.
+  D-233 compiles a compact exact-location occupancy snapshot and fills only the first empty
+  coordinate in canonical capacity order. Each attempt is immutable and atomic: a complete D-200
+  patient occupies that coordinate, while a deterministic D-200 error or literal finding conflict
+  leaves it empty, records the blocker, and still advances the coordinate's next fill ordinal.
+  Retrying is a separate explicit attempt with new seeds. Occupied assignments cannot be silently
+  overwritten, relocated without a dedicated facility-move placement proof, or rerolled when
+  another slot changes. Multiple empties are filled individually, so later draws see earlier
+  occupied patients in their frozen local repeat context. D-233 remains authoring-only: SaveData
+  v5, the compatibility queue, completion/refill lifecycle, persistence, Developer run history,
+  points, clinical probabilities, and UI/runtime activation remain later work. The same rules
+  apply to outpatient psychiatry, emergency department, inpatient psychiatry, and
+  consultation-liaison; setting labels grant nothing.
+  D-234 adds the authoring-only post-encounter lifecycle without activating those runtime
+  surfaces. It vacates only the exact completed coordinate and advances a bounded,
+  duplicate-preserving, mode/location-local recent-completion history bound to the exact current
+  occupancy, whose patient, attempt, completion-event, and proof identities are unique and
+  replay-verified. D-230
+  `3.0.0` applies an exact eligibility overlay before positive weights: ordinary Standard/Endgame
+  draws use all admitted templates, while Developer replacement uses exact-version unrun
+  membership after excluding completed versions globally and currently waiting versions at that
+  exact location.
+  Same-ID/version fingerprint mutation is invalid; same-template rerandomization pins one exact
+  version/fingerprint and must target the canonical first vacancy after removal. Refill
+  dynamically recomputes eligibility after every success, pins one exact generation root across
+  all active and retained-history patients, distribution profile, and current admission matrix,
+  and visits empty coordinates in canonical order. It stops after a retained D-233 blocker unless
+  a later caller explicitly extends the
+  deterministic transcript and names that exact blocker as an authorized retry boundary; each
+  retry still consumes the next ordinal and new seeds. Earlier successes remain preserved.
+  Standard automatic refill remains later runtime orchestration. Explicit selected-location
+  refresh in Endgame or Developer creates skipped-patient audit only, never a completion or
+  Developer-run record. Developer unrun exhaustion is an auditable empty no-op. Current versions
+  are D-233 occupancy `1.0.0`, seed authority `2.0.0`, atomic fill `2.0.0`, D-200 `20.0.0`,
+  facility migration `3.0.0`, and both D-234 compilers `2.0.0`.
+  D-235 replaces D-234's temporary opaque JSON bridge with one native
+  `GeneratedCompletedEncounterAttempt`. Its compact replay snapshot is derived from the verified
+  D-200 waiting patient and retains the exact `PatientInstance`, `EncounterInstance`, minimized
+  information-action runtime horizon, purchased results and fulfillment, editable diagnosis and
+  V2 regimen-entry-targeted treatment selections, contiguous start-through-terminal events,
+  complete rule/point trace, all-points settlement, engine/content versions, and deterministic
+  replay/payload fingerprints. The compiler verifies every action and selection against the frozen
+  encounter, requires one trace row for every compiled rule, checks point and settlement
+  arithmetic, and makes the terminal `EncounterCompleted` event unique and last. D-238 derives
+  points from the separate exact balance owner. D-239 derives information-purchase fulfillment,
+  labels, costs, external savings, and staff savings from exact versioned service owners plus
+  D-219/D-222 availability; purchase commands contain no quote fields. Treatment charges and the
+  remaining settlement inputs stay explicitly unverified. D-242 advances D-235 to `4.0.0` and
+  point report v3. It derives the complete player decision from successful purchases and final
+  diagnosis/treatment events, accepts one explicit `databasePlanDecision`, and exact-horizon
+  validates both. D-191 matching still means an action is available; D-242 selected-decision
+  matching means it was selected. The current D-237 route reads only each decision's treatment
+  lane, so its point results do not change.
+  `completedAt` belongs only to the
+  separately fingerprinted persistence wrapper and never enters clinical replay identity. D-234
+  completion proof v2 embeds and cross-verifies that native attempt against the retained waiting
+  patient. The D-235 compiler remains available only through `@psychsim/engine/authoring`; SaveData
+  v5, the compatibility queue, IndexedDB, review exports, browser persistence, runtime generation,
+  and UI remain unchanged pending their explicit migration.
 - Safety-planning history asks whether the patient reports feeling able to participate in safety
   planning. Store that subjective response separately from the clinician's safety formulation and
   disposition decision; it may inform a reviewed case-specific disposition rule but never decides
@@ -406,7 +765,103 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
   contain the complete four-factor `FairUseAssessment`, or the schema rejects it. DSM content stays
   metadata-only and out of AI tooling unless written APA permission changes the recorded decision.
 - Every laboratory or diagnostic study has its own file under `content/catalogs/tests/definitions/`. It owns context inputs, generation profiles, reference-interval set/population metadata, UCUM units, ranges, precision, and bounded incidental behavior. Numeric results must render value, unit, reference interval, and `N`/`H`/`L` interpretation. Values are deterministic; at most one incidental flag is generated per panel, it stays inside a tightly reviewed mild range, remains noncritical/non-case-defining, and never alters the rubric. Patient-authored observations always override generation.
-- Resolve every reusable clinical finding exactly once in the `PatientInstance`, including its typed value, uncertainty, origin, and contributor trace. `EncounterState` records only whether that truth has been revealed. Tests and named instruments own result/generation definitions; shared information actions separately own neutral player labels, search/category metadata, fulfillment, and repeatability; post-submit rules separately own clinical relevance and points. All encounter-available results are frozen before play.
+- Resolve every reusable clinical finding exactly once in the `PatientInstance`, including its
+  typed value, uncertainty, origin, and contributor trace. The point-free shared-finding compiler
+  consumes exact version-pinned candidates, retains all candidate dispositions, and freezes
+  reviewed action/instrument projections with exact source/time selectors and a stable integrity
+  fingerprint. It does not choose raw clinical probabilities, combine weights, infer diagnosis, or
+  assign points; upstream reviewed generators must first resolve those inputs to candidate values.
+  Literal same-scope hard-value disagreement is structural invalidity, while conflicting
+  proposition evidence remains valid. `EncounterState` records only whether frozen truth has been
+  revealed. Tests and named instruments own result/generation definitions; shared information
+  actions separately own neutral player labels, search/category metadata, fulfillment, and
+  repeatability; post-submit rules separately own clinical relevance and points. All
+  encounter-available results are frozen before play.
+- Named-instrument item responses use the separate D-220 authoring compiler. Definitions supplied
+  to that compiler contain no item wording, score weights, totals, thresholds, interpretation, or
+  private source text. D-220 verifies exact approved owners, response option sets, null
+  presentation/wording, action source, and one D-193 projection per item, but it does not infer the
+  clinical modality of an underlying finding. D-221 makes D-194 own that compilation and makes
+  D-213/D-214 attach the exact responses while preserving the full audit separately from the
+  presentation-safe patient projection.
+- Selected-location operational resources use the separate D-222 authoring compiler. A resource is
+  effective only when a complete clinic-wide assignment horizon places its exact
+  version-and-fingerprint-pinned reference at the selected location and it passes clinic
+  ownership, exclusive/shared placement, facility/tier/department permission, current owner,
+  nonoverlapping staff-configuration, and formulary-grant checks. Clinic-global ownership is
+  necessary but never sufficient for location access. Until a later attachment checkpoint, D-219
+  still consumes its own explicit synthetic operational inputs; do not treat a D-222 artifact as
+  runtime access or silently feed it into D-219.
+- Build pre-finding patient state only through the standalone D-223 authoring orchestrator. A
+  caller must not select D-201 separately for each lane, fabricate or cross D-196/D-202 or
+  D-205/D-206/D-207 child artifacts, bypass explicit reaction-history ownership, or call D-208
+  with parallel budget state. Preserve the one complete D-201 artifact and its exact spend,
+  remaining budget, ordinals, and draws through composed and `not_composed` results.
+- The additive `attachment_only.v6` catalog-instance compiler `9.0.0` accepts already-resolved
+  synthetic inputs only. It must pin the exact template, location payload, one matching care
+  setting across template/location/encounter, internal seed, condition bindings,
+  action/diagnosis/projection horizon IDs plus exact payload fingerprints, and one static
+  `universal-action-result-assembly.v3`. It first requires one complete exact-location D-219
+  operational-admission artifact, then after final patient state exists builds exact D-212
+  envelopes, derives and verifies one complete D-220 artifact, resolves D-240 target-scoped
+  duration/burden values only after their exact targets exist, requires one complete D-213
+  `3.0.0` artifact, and derives frozen information-action result bindings plus presentation-safe
+  structured views, instrument responses, and target-redacted D-240 reveals. Retain the full
+  D-220 and D-240 audits at the snapshot root and nested in D-213; the patient instance receives
+  only their strict redactions. The containing D-200 audit composer is `20.0.0`. Verify current
+  outer and nested compiler versions and payload fingerprints; keep `CaseBlueprint`, saves,
+  queues, and runtime imports unchanged. Every full
+  internal condition must bind exactly once through a required template condition with exact
+  template-authored provenance or a selected optional condition with deterministic-generation
+  provenance. Finding-scoped duration or burden enters through a definition/version selector and
+  resolves only after the shared finding exists. Normalize only explicitly set-like fields. Do not
+  turn this boundary into probability selection, optional-feature generation, scoring,
+  persistence, or a compatibility adapter. Its template-owned `presentation-richness.v1`
+  envelope is a separate point-free authoring expectation: the pure evaluator records exact
+  frozen-domain IDs/counts and structured prior-effort units at the atomic snapshot root.
+  Shortfalls and inconsistent treatment-naive exceptions are nonblocking diagnostics only; they
+  never generate, select, reroll, reject, quarantine, infer, or score a patient. Optional internal
+  conditions use a separate exact-template `weighted-template-condition-selection.v1` profile
+  whose explicit `gameSelectionWeight` values mean game variety only. The pure selector freezes
+  every selected/unselected candidate, stable draw, exact state/binding, and
+  authored-versus-generated provenance; only selected endpoints of an explicitly approved literal
+  incompatibility pair can produce a full structural-conflict artifact. It does not search, retry,
+  infer from symptoms, generate findings, or assign clinical probabilities or points. Keep its
+  audit artifact separate until an explicit composer attaches it. Exact selected condition states
+  may then bind a matching reviewed `condition-finding-cardinality.v1` profile. Required mappings
+  emit D-193 diagnostic candidates; bounded groups use explicit game-only count/member weights and
+  emit cardinality candidates only for selected members. Preserve every selected and unselected
+  mapping, draw, review/provenance record, and unbound-condition coverage. An unselected mapping is
+  unknown, never absent. D-193 alone reconciles agreeing hard candidates or reports their literal
+  conflict. The condition-finding selector does not own real criteria, soft-tendency aggregation,
+  diagnosis inference, or points. A separate `weighted-background-finding.v1` profile may own one
+  reviewed finite outcome set for one exact horizon finding. Its `gameGenerationWeight` values
+  are nonnegative unnormalized synthetic generation mass, not gameplay points, percentages,
+  evidence strength, diagnostic likelihood, or clinical prevalence. The pure selector emits
+  exactly one lowest-priority D-193
+  `background_variation` candidate while preserving every offered weight/outcome, the selected
+  outcome, exact review/provenance, draw, and fingerprints. It never infers absent/normal, inspects
+  conditions/medications/context, combines soft influences, or claims prevalence. An
+  `additive-categorical-finding-tendency.v1` profile may then add a complete nonnegative
+  allocation over that same exact finding-definition outcome set. D-199 accepts only
+  already-matched reviewed contributors, requires the baseline and every contributor to cover one
+  closed exhaustive mutually exclusive set, sums raw mass outcome-by-outcome, normalizes once for
+  the exact game draw, and preserves both exact fractions and display decimals in its audit. If
+  states can coexist, they are separate findings and draws. A binary suppressive tendency may
+  explicitly favor its unique complement; a larger set must name every allocation and the engine
+  never guesses redistribution. Zero contributor mass means no added support, never impossibility;
+  literal impossibility remains a separately reviewed hard constraint. D-193 hard lanes remain
+  dominant. D-191/D-193/D-194 and the
+  richness/condition-selector/finding-cardinality/background/weighted-tendency/finding-pipeline
+  tooling export only from `@psychsim/engine/authoring`. D-200 must retain D-198 beside an
+  internally derived D-199, preserve every stage's own seed, verify the complete D-208 state,
+  D-210 audit, and unchanged D-201 complexity accounting, derive all D-193/D-194 patient context
+  from that one source, replay the complete chain during standalone integrity, and propagate
+  either a D-208 upstream blocker or literal finding conflict with all upstream audits rather than
+  retrying or deleting candidates.
+  Never
+  re-export these synthetic authoring compilers from the ordinary browser-facing engine root, and
+  never import an engine subpath from web or content-runtime code.
 - Information results are structured finding sets, not memorable prose paragraphs. Use short swappable labels and explicit outcomes (`present`, `absent`, `normal`, `high`, `low`, `positive`, `negative`), and render the outcome explicitly rather than relying only on color. Criteria-driven condition modules use declarative minimum/maximum/required finding constraints. Background and cross-condition positives may overlap or superficially satisfy another symptom checklist; retain them, but never silently infer an internal diagnosis or change the focused rubric from symptom cardinality alone.
 - Label nonexact treatment evaluation as engine-inferred. Do not present catalog heuristics as an authored or medically reviewed patient pathway.
 - Each selectable therapy modality has one stable treatment ID and file. Source contributions and
@@ -422,9 +877,15 @@ If pnpm is not installed, enable it through Corepack or install the pinned versi
 - Combine rules only through explicit stable `effectId`, `issueId`, and `specificityPriority`
   metadata. More-specific rules replace only the same effect; duplicate harms sharing one issue
   keep the worst consequence; distinct fit effects stack; true hard contraindications suppress
-  affected positive base/fit rows. Preserve replaced, deduplicated, and suppressed rows with their
-  original points and controlling rule in the attempt trace. Never infer precedence from file
-  order, source hierarchy, prose, or point magnitude.
+  affected positive primary-route, fit, response, tolerability, prior-trial, and
+  regulatory-alignment rows. Serious nonabsolute risks never suppress those benefits. Normalize a
+  selected broad medication start or regimen operation to its exact selected medication or
+  regimen-entry operation before testing treatment overlap. Preserve replaced, deduplicated, and
+  suppressed rows with their original points, direct controlling trace, combination explanation,
+  and exact selected targets. A controller may itself be resolved later in the deterministic
+  chain. Current compilation rejects equal-specificity same-effect ambiguity; the stable-ID
+  tie-break exists only for deterministic recovery. Never infer precedence from file order,
+  source hierarchy, prose, or point magnitude.
 - Clinical correctness is independent of fulfillment cost. Service ownership can change the financial receipt, never the clinical reward for an indicated test.
 - Staff automation is action-specific fulfillment, not free information. Persist an allowlisted configuration, buy each delegated action through the ordinary event path at a discounted nonzero cost, and preserve initiator/savings data for replay and receipts. Do not add salaries, schedules, capacity queues, departments, or treatment automation through this slice.
 - Points are the only visible unit. Care-point subtotals, investigation costs, reimbursement, banked balance, and lifetime progression all use points; there is no letter rank, 0–100 score, Reputation, XP, or credits layer. Store current spendable balance and lifetime points earned. Encounter expenses settle against that encounter; Normal-mode payout and the persistent bank have a zero floor.

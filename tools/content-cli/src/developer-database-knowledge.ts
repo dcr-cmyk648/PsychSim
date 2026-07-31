@@ -14,9 +14,13 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:pat
 
 import {
   AppleNotesIntakeManifestSchema,
+  DecisionBalanceCatalogSchema,
+  DecisionPolicyCatalogSchema,
   DeveloperDatabaseKnowledgeProjectionSchema,
   DeveloperOpinionCatalogSchema,
   EvidenceSourceDefinitionSchema,
+  ExposureCatalogSchema,
+  MedicationRegimenKnowledgeCatalogSchema,
   PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgePrivateCorpusClassificationSchema,
   PersonalKnowledgePrivateSourceCatalogSchema,
@@ -48,8 +52,12 @@ import {
 import { catalogs, publicClinicalCatalog } from '@psychsim/content-runtime';
 
 import aliasCatalogJson from '../../../content/catalogs/authoring/personal-knowledge/cross-reference-aliases.json';
+import decisionBalanceCatalogJson from '../../../content/catalogs/decision-policies/balances.json';
+import decisionPolicyCatalogJson from '../../../content/catalogs/decision-policies/catalog.json';
 import privateSourceCatalogJson from '../../../content/catalogs/authoring/personal-knowledge/private-source-catalog.json';
 import developerOpinionsJson from '../../../content/catalogs/evidence/opinions/developer-opinions.json';
+import exposureCatalogJson from '../../../content/catalogs/exposures/definitions.json';
+import medicationRegimenKnowledgeCatalogJson from '../../../content/catalogs/medications/regimen-knowledge.json';
 import registryJson from '../../../content/registry.json';
 import sourceUseDecisionsJson from '../../../content/catalogs/evidence/source-use-decisions.json';
 import {
@@ -125,6 +133,21 @@ const normalize = (value: string): string =>
 
 const compareText = (left: string, right: string): number =>
   left < right ? -1 : left > right ? 1 : 0;
+
+const medicationRegimenKnowledgeCatalog = MedicationRegimenKnowledgeCatalogSchema.parse(
+  medicationRegimenKnowledgeCatalogJson,
+);
+const authoringClinicalRuleIds = new Set(
+  [
+    ...medicationRegimenKnowledgeCatalog.medicationClasses,
+    ...medicationRegimenKnowledgeCatalog.classMemberships,
+    ...medicationRegimenKnowledgeCatalog.focusedRoutes,
+    ...medicationRegimenKnowledgeCatalog.contributors,
+    ...DecisionPolicyCatalogSchema.parse(decisionPolicyCatalogJson).policies,
+    ...DecisionBalanceCatalogSchema.parse(decisionBalanceCatalogJson).balances,
+    ...ExposureCatalogSchema.parse(exposureCatalogJson).misuseGenerationPriors,
+  ].map((entry) => entry.id),
+);
 
 const normalizeSearchText = (value: string): string =>
   value.normalize('NFKC').toLocaleLowerCase('en-US');
@@ -406,52 +429,58 @@ const developerOpinionProjection = (
   relationships: readonly OpinionEvidenceRelationship[],
   evidenceById: ReadonlyMap<string, EvidenceSourceDefinition>,
   decisionByEvidenceId: ReadonlyMap<string, SourceUseDecision>,
-) => ({
-  id: opinion.id,
-  summary: opinion.summary,
-  developerId: opinion.developerId,
-  contributionTypes: opinion.contributionTypes,
-  asOfDate: opinion.asOfDate,
-  currentness: opinion.currentness,
-  targetEntryIds: opinion.targets.map((target) => target.targetContentId).sort(compareText),
-  reviewStatus: opinion.developerReview.status,
-  reviewedBy: opinion.developerReview.reviewerId,
-  reviewedAt: opinion.developerReview.reviewedAt,
-  reviewNote: opinion.developerReview.note,
-  evidenceRelationships: relationships
-    .filter((relationship) => relationship.opinionId === opinion.id)
-    .map((relationship) => {
-      const source = evidenceById.get(relationship.evidenceSourceId);
-      if (!source) {
-        throw new Error(
-          `${relationship.id} references unknown source ${relationship.evidenceSourceId}.`,
-        );
-      }
-      const decision = decisionByEvidenceId.get(relationship.evidenceSourceId);
-      if (
-        !decision ||
-        decision.id !== relationship.sourceUseDecisionId ||
-        decision.decisionStatus !== 'permitted_with_conditions' ||
-        !decision.permissions.derivedClinicalContent
-      ) {
-        throw new Error(
-          `${relationship.id} lacks a matching derived-content-cleared source-use decision.`,
-        );
-      }
-      return {
-        id: relationship.id,
-        relationType: relationship.relationType,
-        relationshipSummary: relationship.relationshipSummary,
-        sourceLocation: relationship.sourceLocation,
-        applicabilityLimitations: relationship.applicabilityLimitations,
-        stillExpertBridge: relationship.stillExpertBridge,
-        evidenceSource: formalSourceProjection(source, decision),
-        reviewStatus: relationship.review.status,
-      };
-    })
-    .sort((left, right) => compareText(left.id, right.id)),
-  ruleEligibility: opinion.ruleEligibility,
-});
+) => {
+  const publicEntryIds = new Set(publicClinicalCatalog.entries.map((entry) => entry.id));
+  return {
+    id: opinion.id,
+    summary: opinion.summary,
+    developerId: opinion.developerId,
+    contributionTypes: opinion.contributionTypes,
+    asOfDate: opinion.asOfDate,
+    currentness: opinion.currentness,
+    targetEntryIds: opinion.targets
+      .map((target) => target.targetContentId)
+      .filter((targetContentId) => publicEntryIds.has(targetContentId))
+      .sort(compareText),
+    reviewStatus: opinion.developerReview.status,
+    reviewedBy: opinion.developerReview.reviewerId,
+    reviewedAt: opinion.developerReview.reviewedAt,
+    reviewNote: opinion.developerReview.note,
+    evidenceRelationships: relationships
+      .filter((relationship) => relationship.opinionId === opinion.id)
+      .map((relationship) => {
+        const source = evidenceById.get(relationship.evidenceSourceId);
+        if (!source) {
+          throw new Error(
+            `${relationship.id} references unknown source ${relationship.evidenceSourceId}.`,
+          );
+        }
+        const decision = decisionByEvidenceId.get(relationship.evidenceSourceId);
+        if (
+          !decision ||
+          decision.id !== relationship.sourceUseDecisionId ||
+          decision.decisionStatus !== 'permitted_with_conditions' ||
+          !decision.permissions.derivedClinicalContent
+        ) {
+          throw new Error(
+            `${relationship.id} lacks a matching derived-content-cleared source-use decision.`,
+          );
+        }
+        return {
+          id: relationship.id,
+          relationType: relationship.relationType,
+          relationshipSummary: relationship.relationshipSummary,
+          sourceLocation: relationship.sourceLocation,
+          applicabilityLimitations: relationship.applicabilityLimitations,
+          stillExpertBridge: relationship.stillExpertBridge,
+          evidenceSource: formalSourceProjection(source, decision),
+          reviewStatus: relationship.review.status,
+        };
+      })
+      .sort((left, right) => compareText(left.id, right.id)),
+    ruleEligibility: opinion.ruleEligibility,
+  };
+};
 
 const relatedEntryMap = (
   developerOpinions: readonly DeveloperOpinion[],
@@ -656,6 +685,19 @@ export const buildDeveloperDatabaseKnowledgeProjection = (
   };
   for (const opinion of input.developerOpinions) {
     for (const target of opinion.targets) {
+      if (target.targetKind === 'clinical_rule') {
+        if (!authoringClinicalRuleIds.has(target.targetContentId)) {
+          throw new Error(
+            `${opinion.id} targets unknown authoring-only clinical rule ${target.targetContentId}.`,
+          );
+        }
+        continue;
+      }
+      if (!['medication', 'diagnosis', 'intervention', 'test'].includes(target.targetKind)) {
+        throw new Error(
+          `${opinion.id} targets unsupported authoring-only ${target.targetKind} ${target.targetContentId}.`,
+        );
+      }
       const publicEntry = publicEntryById.get(target.targetContentId);
       if (!publicEntry || expectedTargetKind(publicEntry) !== target.targetKind) {
         throw new Error(

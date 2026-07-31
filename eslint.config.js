@@ -27,4 +27,21 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['apps/web/**/*.{ts,tsx}', 'packages/content-runtime/src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@psychsim/engine/*', '**/engine/src/*', '**/engine/src/**'],
+              message:
+                'Web and content-runtime code may import only the ordinary @psychsim/engine root. Use @psychsim/engine/authoring only from quarantined developer-side tooling.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

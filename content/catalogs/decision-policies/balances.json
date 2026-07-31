@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.1.0",
+  "id": "registry.catalog.decision-balances",
+  "balances": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "balance.mdd-initial-one-first-line-antidepressant",
+      "ruleRef": {
+        "kind": "medication_regimen_route",
+        "id": "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
+        "contentVersion": "1.0.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.3.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "impactBand": "dominant_primary_route",
+      "component": "medication_selection",
+      "pointsWhenMatched": 200,
+      "unmatchedBehavior": "not_triggered_zero",
+      "matchedExplanation": "The submitted regimen transition satisfies the reviewed broad initial-medication route.",
+      "unmatchedExplanation": "The submitted regimen transition does not satisfy the reviewed broad initial-medication route.",
+      "rationale": "The +200 value is provisional PsychSim balance from the approved dominant-primary-route band. CANMAT supports the qualitative option set but did not supply this game-point magnitude.",
+      "developerOpinionIds": [
+        "developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "balance.mdd-any-medication-reconciliation",
+      "balanceKind": "triggered_information_prerequisite",
+      "ruleRef": {
+        "kind": "diagnosis_rule",
+        "id": "rule.diagnosis-mdd.any-medication-reconciliation",
+        "contentVersion": "1.3.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.3.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "component": "workup",
+      "outcomes": {
+        "notTriggered": {
+          "points": 0,
+          "explanation": "No medication was started, so this treatment-triggered medication-reconciliation prerequisite did not apply."
+        },
+        "fulfilled": {
+          "impactBand": "major",
+          "points": 35,
+          "explanation": "The medication list was reconciled before a medication was started."
+        },
+        "omitted": {
+          "impactBand": "moderate",
+          "points": -25,
+          "explanation": "A medication was started without reconciling the medication list."
+        }
+      },
+      "rationale": "The three values are provisional PsychSim balance from the accepted treatment-triggered history policy and existing prototype tuning. They do not change the qualitative diagnosis rule or derive magnitude from evidence certainty.",
+      "developerOpinionIds": [
+        "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "balance.mdd-any-medication-reaction-history",
+      "balanceKind": "triggered_information_prerequisite",
+      "ruleRef": {
+        "kind": "diagnosis_rule",
+        "id": "rule.diagnosis-mdd.any-medication-reaction-history",
+        "contentVersion": "1.3.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.3.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "component": "workup",
+      "outcomes": {
+        "notTriggered": {
+          "points": 0,
+          "explanation": "No medication was started, so this treatment-triggered allergy and adverse-reaction prerequisite did not apply."
+        },
+        "fulfilled": {
+          "impactBand": "moderate",
+          "points": 30,
+          "explanation": "Allergies and adverse reactions were reviewed before a medication was started."
+        },
+        "omitted": {
+          "impactBand": "major",
+          "points": -40,
+          "explanation": "A medication was started without reviewing allergies and adverse reactions."
+        }
+      },
+      "rationale": "The three values are provisional PsychSim balance from the accepted treatment-triggered history policy and existing prototype tuning. They do not change the qualitative diagnosis rule or derive magnitude from evidence certainty.",
+      "developerOpinionIds": [
+        "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27"
+      ]
+    }
+  ]
+}

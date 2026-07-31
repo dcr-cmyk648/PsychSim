@@ -105,6 +105,9 @@
       "case.first-visit-depression",
       "diagnosis.major-depressive-disorder",
       "rule.diagnosis-mdd.initial-first-line-antidepressant",
+      "medication-class.mdd-initial-first-line-antidepressant",
+      "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
+      "decision-policy.mdd-initial-medication",
       "medication-tag-set.mdd-initial-first-line",
       "info.history.depressive-symptoms",
       "info.history.medication-effects",
@@ -134,12 +137,12 @@
     "resurfacingTrigger": "When the starter formulary, medication files, patient fit facts, or antidepressant guidance changes.",
     "resolution": {
       "disposition": "applied",
-      "note": "Added one reviewed diagnosis-owned qualitative rule and a shared mdd-initial-first-line medication tag for the five currently modeled medications. The prototype and initial Reviewer policy now use one 200-point broad grade; medication fit remains separately itemized, and the exact score magnitudes remain medically unreviewed provisional balance.",
+      "note": "Added one reviewed diagnosis-owned qualitative rule and a shared mdd-initial-first-line compatibility medication tag for the five currently modeled medications. D-237 additionally materializes the exact five identities as an explicit native class, one count-aware point-free regimen route, one focused decision policy, and a lossless authoring adapter linked back to this qualitative rule. D-238 now attaches a separate runtime-excluded provisional +200 balance owner after qualitative adaptation and derives the route trace from full cardinality. The route/policy remain point-free, medication fit remains separately itemized, and CANMAT is not represented as supplying the game-point magnitude.",
       "resolvedBy": "reviewer.dustin-rowland",
       "resolvedAt": "2026-07-27T16:55:53.000Z"
     },
     "createdAt": "2026-07-22T22:00:00.000Z",
-    "updatedAt": "2026-07-27T16:55:53.000Z"
+    "updatedAt": "2026-07-30T22:41:49.000Z"
   },
   {
     "schemaVersion": 1,

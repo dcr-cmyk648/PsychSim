@@ -119,6 +119,7 @@ describe('runtime boundaries', () => {
     const runtimeSource = `${runtimeEntry}\n${runtimeIndex}\n${reviewerEntry}`;
     expect(runtimeSource).not.toContain('content/catalogs/decision-policies');
     expect(runtimeSource).not.toContain('registry.catalog.decision-policies');
+    expect(runtimeSource).not.toContain('registry.catalog.decision-balances');
 
     const registry = JSON.parse(registryText) as {
       entries: Array<{
@@ -135,8 +136,538 @@ describe('runtime boundaries', () => {
       kind: 'decision_policy_catalog',
       path: 'content/catalogs/decision-policies/catalog.json',
       runtimeIncluded: false,
-      categoryIds: [],
+      categoryIds: ['decision-policy.mdd-initial-medication'],
     });
+    expect(
+      registry.entries.find((entry) => entry.id === 'registry.catalog.decision-balances'),
+    ).toMatchObject({
+      kind: 'decision_balance_catalog',
+      path: 'content/catalogs/decision-policies/balances.json',
+      runtimeIncluded: false,
+      categoryIds: [
+        'balance.mdd-any-medication-reaction-history',
+        'balance.mdd-any-medication-reconciliation',
+        'balance.mdd-initial-one-first-line-antidepressant',
+      ],
+    });
+  });
+
+  it('keeps finding wording content outside Player and Reviewer runtimes while exposing only the pure compiler', async () => {
+    const [runtimeEntry, runtimeIndex, reviewerEntry, registryText, compilerSource] =
+      await Promise.all([
+        readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
+        readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+        readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
+        readFile(resolve('content/registry.json'), 'utf8'),
+        readFile(resolve('packages/engine/src/shared-finding-compiler.ts'), 'utf8'),
+      ]);
+    const runtimeSource = `${runtimeEntry}\n${runtimeIndex}\n${reviewerEntry}`;
+    expect(runtimeSource).not.toContain('content/catalogs/findings/expression-banks.json');
+    expect(runtimeSource).not.toContain('registry.catalog.finding-expression-banks');
+    expect(compilerSource).not.toContain('content/catalogs/');
+    expect(compilerSource).not.toContain('import.meta.glob');
+
+    const registry = JSON.parse(registryText) as {
+      entries: Array<{
+        id: string;
+        kind: string;
+        path: string;
+        runtimeIncluded: boolean;
+      }>;
+    };
+    expect(
+      registry.entries.find((entry) => entry.id === 'registry.catalog.finding-expression-banks'),
+    ).toMatchObject({
+      kind: 'finding_expression_bank_catalog',
+      path: 'content/catalogs/findings/expression-banks.json',
+      runtimeIncluded: false,
+    });
+  });
+
+  it('keeps catalog-compiled patient instances synthetic and outside content runtimes', async () => {
+    const [
+      runtimeEntry,
+      runtimeIndex,
+      reviewerEntry,
+      engineRoot,
+      authoringEntry,
+      admittedTemplateLocationBindingSource,
+      locationOwnedPatientSlotSelectionSource,
+      locationPatientSlotCapacitySource,
+      locationTemplateSelectionSource,
+      backgroundFindingSource,
+      compilerSource,
+      richnessSource,
+      conditionFindingCardinalitySource,
+      decisionBalanceSource,
+      decisionSelectionSource,
+      diagnosisInformationPrerequisiteAdapterSource,
+      emptyAuthorizedPatientSlotFillSource,
+      encounterOperationalAdmissionSource,
+      facilityMoveWaitingSlotMigrationSource,
+      findingPipelineAuditSource,
+      generatedCompletedAttemptSource,
+      generatedServiceQuoteSource,
+      instrumentItemResponseSource,
+      informationActionFingerprintSource,
+      medicationRegimenRouteAdapterSource,
+      optionalComorbidityBridgeSource,
+      optionalExposureSource,
+      optionalFeatureBudgetSource,
+      optionalPriorTreatmentSource,
+      optionalReactionHistorySource,
+      modePatientTemplateHorizonSource,
+      patientSlotFillSeedAuthoritySource,
+      patientSlotPostEncounterLifecycleSource,
+      patientTemplateLocationAdmissionSource,
+      preFindingPatientStateSource,
+      resolvedConditionSource,
+      resolvedPatientStateNormalizerSource,
+      resolvedPatientStateComposerSource,
+      selectedLocationOperationalResourceSource,
+      structuredSourceReportBehaviorSelectorSource,
+      structuredSourceReportSource,
+      targetScopedPatientValueProjectionSource,
+      universalActionResultAttachmentSource,
+      universalActionResultSource,
+      weightedFindingTendencyApplicabilitySource,
+      weightedFindingTendencySource,
+    ] = await Promise.all([
+      readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/index.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/authoring.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/admitted-template-location-binding-compiler.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/location-owned-patient-slot-selection-compiler.ts'),
+        'utf8',
+      ),
+      readFile(resolve('packages/engine/src/location-patient-slot-capacity-compiler.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/location-template-selector.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/background-finding-outcome-selector.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/catalog-instance-compiler.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/presentation-richness.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/condition-finding-cardinality-selector.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/decision-balance.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/decision-selection.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/diagnosis-information-prerequisite-adapter.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/empty-authorized-patient-slot-fill-compiler.ts'),
+        'utf8',
+      ),
+      readFile(resolve('packages/engine/src/encounter-operational-admission-compiler.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/facility-move-waiting-slot-migration-compiler.ts'),
+        'utf8',
+      ),
+      readFile(resolve('packages/engine/src/finding-pipeline-audit-composer.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/generated-completed-attempt-compiler.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/generated-service-quote.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/instrument-item-response-compiler.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/information-action-fingerprint.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/medication-regimen-route-adapter.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/optional-comorbidity-budget-bridge.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/optional-exposure-budget-bridge.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/optional-feature-budget-selector.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/optional-prior-treatment-bridge.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/optional-reaction-history-bridge.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/mode-patient-template-horizon-compiler.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/patient-slot-fill-seed-authority.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/patient-slot-post-encounter-lifecycle-compiler.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/patient-template-location-admission-compiler.ts'),
+        'utf8',
+      ),
+      readFile(resolve('packages/engine/src/pre-finding-patient-state-orchestrator.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/resolved-condition-source.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/resolved-patient-state-normalizer.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/resolved-patient-state-composer.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/selected-location-operational-resource-compiler.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/structured-source-report-behavior-selector.ts'),
+        'utf8',
+      ),
+      readFile(resolve('packages/engine/src/structured-source-report-compiler.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/target-scoped-patient-value-projection.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/universal-action-result-attachment.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/universal-action-result-compiler.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/weighted-finding-tendency-applicability-compiler.ts'),
+        'utf8',
+      ),
+      readFile(resolve('packages/engine/src/weighted-finding-tendency-aggregator.ts'), 'utf8'),
+    ]);
+    const runtimeSource = `${runtimeEntry}\n${runtimeIndex}\n${reviewerEntry}`;
+    for (const authoringModule of [
+      'admitted-template-location-binding-compiler',
+      'background-finding-outcome-selector',
+      'catalog-instance-compiler',
+      'condition-finding-cardinality-selector',
+      'decision-balance',
+      'decision-selection',
+      'decision-policy',
+      'diagnosis-information-prerequisite-adapter',
+      'empty-authorized-patient-slot-fill-compiler',
+      'encounter-operational-admission-compiler',
+      'facility-move-waiting-slot-migration-compiler',
+      'finding-pipeline-audit-composer',
+      'generated-completed-attempt-compiler',
+      'generated-service-quote',
+      'instrument-item-response-compiler',
+      'information-action-fingerprint',
+      'location-owned-patient-slot-selection-compiler',
+      'location-patient-slot-capacity-compiler',
+      'location-template-selector',
+      'medication-regimen-route-adapter',
+      'mode-patient-template-horizon-compiler',
+      'optional-comorbidity-budget-bridge',
+      'optional-exposure-budget-bridge',
+      'optional-feature-budget-selector',
+      'optional-prior-treatment-bridge',
+      'optional-reaction-history-bridge',
+      'patient-slot-fill-seed-authority',
+      'patient-slot-post-encounter-lifecycle-compiler',
+      'patient-template-location-admission-compiler',
+      'pre-finding-patient-state-orchestrator',
+      'presentation-richness',
+      'resolved-condition-source',
+      'resolved-patient-state-normalizer',
+      'resolved-patient-state-composer',
+      'selected-location-operational-resource-compiler',
+      'shared-finding-compiler',
+      'structured-source-report-behavior-selector',
+      'structured-source-report-compiler',
+      'target-scoped-patient-value-projection',
+      'template-condition-selector',
+      'universal-action-result-attachment',
+      'universal-action-result-compiler',
+      'weighted-finding-tendency-applicability-compiler',
+      'weighted-finding-tendency-aggregator',
+    ]) {
+      expect(runtimeSource).not.toContain(authoringModule);
+      expect(engineRoot).not.toContain(authoringModule);
+      expect(authoringEntry).toContain(authoringModule);
+    }
+    expect(runtimeSource).not.toContain('patient-template.test');
+    expect(runtimeSource).not.toContain('catalog-instance-snapshot');
+    for (const source of [
+      admittedTemplateLocationBindingSource,
+      locationOwnedPatientSlotSelectionSource,
+      locationPatientSlotCapacitySource,
+      locationTemplateSelectionSource,
+      backgroundFindingSource,
+      compilerSource,
+      richnessSource,
+      conditionFindingCardinalitySource,
+      decisionBalanceSource,
+      decisionSelectionSource,
+      diagnosisInformationPrerequisiteAdapterSource,
+      emptyAuthorizedPatientSlotFillSource,
+      encounterOperationalAdmissionSource,
+      facilityMoveWaitingSlotMigrationSource,
+      findingPipelineAuditSource,
+      generatedCompletedAttemptSource,
+      generatedServiceQuoteSource,
+      informationActionFingerprintSource,
+      instrumentItemResponseSource,
+      medicationRegimenRouteAdapterSource,
+      optionalComorbidityBridgeSource,
+      optionalExposureSource,
+      optionalFeatureBudgetSource,
+      optionalPriorTreatmentSource,
+      optionalReactionHistorySource,
+      modePatientTemplateHorizonSource,
+      patientSlotFillSeedAuthoritySource,
+      patientSlotPostEncounterLifecycleSource,
+      patientTemplateLocationAdmissionSource,
+      preFindingPatientStateSource,
+      resolvedConditionSource,
+      resolvedPatientStateNormalizerSource,
+      resolvedPatientStateComposerSource,
+      selectedLocationOperationalResourceSource,
+      structuredSourceReportBehaviorSelectorSource,
+      structuredSourceReportSource,
+      targetScopedPatientValueProjectionSource,
+      universalActionResultAttachmentSource,
+      universalActionResultSource,
+      weightedFindingTendencyApplicabilitySource,
+      weightedFindingTendencySource,
+    ]) {
+      expect(source).not.toContain('content/catalogs/');
+      expect(source).not.toContain('content/cases/');
+      expect(source).not.toContain('import.meta.glob');
+      expect(source).not.toContain('Math.random');
+      expect(source).not.toContain('Date.now');
+      expect(source).not.toContain('new Date');
+      expect(source).not.toMatch(/from\s+['"]react['"]/);
+    }
+    expect(admittedTemplateLocationBindingSource).toContain(
+      'verifyPatientTemplateLocationAdmissionMatrixContext',
+    );
+    expect(admittedTemplateLocationBindingSource).not.toContain(
+      'selectOptionalFeaturesWithinBudget',
+    );
+    expect(admittedTemplateLocationBindingSource).not.toMatch(
+      /from\s+['"].*(scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(admittedTemplateLocationBindingSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(locationOwnedPatientSlotSelectionSource).toContain(
+      'compileAdmittedTemplateLocationBinding',
+    );
+    expect(locationOwnedPatientSlotSelectionSource).toContain(
+      'verifyPatientTemplateLocationAdmissionMatrixContext',
+    );
+    expect(locationOwnedPatientSlotSelectionSource).not.toContain(
+      'selectOptionalFeaturesWithinBudget',
+    );
+    expect(locationOwnedPatientSlotSelectionSource).not.toMatch(
+      /from\s+['"].*(scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(locationOwnedPatientSlotSelectionSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(locationPatientSlotCapacitySource).toContain('verifyLocationTemplateSelectionIntegrity');
+    expect(locationPatientSlotCapacitySource).not.toMatch(
+      /from\s+['"].*(queue|progression|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(locationPatientSlotCapacitySource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(locationTemplateSelectionSource).toContain('compileLocationOwnedPatientSlotSelection');
+    expect(locationTemplateSelectionSource).toContain(
+      'verifyPatientTemplateLocationAdmissionMatrixContext',
+    );
+    expect(locationTemplateSelectionSource).not.toContain('selectOptionalFeaturesWithinBudget');
+    expect(locationTemplateSelectionSource).not.toMatch(
+      /from\s+['"].*(scoring|economy|receipt|persistence|browser).*['"]/,
+    );
+    expect(locationTemplateSelectionSource).not.toMatch(
+      /\b(?:Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(patientSlotFillSeedAuthoritySource).toContain('compileLocationTemplateSelection');
+    expect(patientSlotFillSeedAuthoritySource).toContain(
+      'compileCapacityBoundLocationTemplateSelectionCertificate',
+    );
+    expect(patientSlotFillSeedAuthoritySource).not.toContain('composeFindingPipelineAudit');
+    expect(patientSlotFillSeedAuthoritySource).not.toMatch(
+      /from\s+['"].*(queue|progression|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(patientSlotFillSeedAuthoritySource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(emptyAuthorizedPatientSlotFillSource).toContain('composeFindingPipelineAudit');
+    expect(emptyAuthorizedPatientSlotFillSource).toContain(
+      'verifyPatientSlotFillSeedAuthorityContext',
+    );
+    expect(emptyAuthorizedPatientSlotFillSource).toContain(
+      'compileLocationPatientSlotOccupancySnapshot',
+    );
+    expect(emptyAuthorizedPatientSlotFillSource).not.toMatch(
+      /from\s+['"].*(queue|progression|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(emptyAuthorizedPatientSlotFillSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(patientSlotPostEncounterLifecycleSource).toContain(
+      'compileEmptyAuthorizedPatientSlotFill',
+    );
+    expect(patientSlotPostEncounterLifecycleSource).toContain(
+      'compileLocationPatientSlotOccupancySnapshot',
+    );
+    expect(patientSlotPostEncounterLifecycleSource).toContain(
+      'createLocationTemplateSelectionEligibilityOverlay',
+    );
+    expect(patientSlotPostEncounterLifecycleSource).not.toContain('composeFindingPipelineAudit');
+    expect(patientSlotPostEncounterLifecycleSource).not.toMatch(
+      /\b(?:CompletedAttemptSchema|SaveData|PatientQueueState|seededUnit)\b/,
+    );
+    expect(patientSlotPostEncounterLifecycleSource).not.toMatch(
+      /from\s+['"].*(queue|progression|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(patientSlotPostEncounterLifecycleSource).not.toMatch(
+      /\b(?:Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(generatedCompletedAttemptSource).toContain('verifyFindingPipelineAuditIntegrity');
+    expect(generatedCompletedAttemptSource).not.toMatch(
+      /\b(?:CaseInstance|EncounterState|CompletedAttemptSchema|SaveData|PatientQueueState)\b/,
+    );
+    expect(generatedCompletedAttemptSource).not.toMatch(
+      /from\s+['"].*(queue|progression|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(generatedCompletedAttemptSource).not.toMatch(
+      /\b(?:Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(modePatientTemplateHorizonSource).not.toMatch(
+      /from\s+['"].*(queue|progression|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(modePatientTemplateHorizonSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(optionalComorbidityBridgeSource).not.toContain('seededUnit');
+    expect(optionalExposureSource).not.toContain('seededUnit');
+    expect(optionalExposureSource).not.toContain('AgentMisuseGenerationPrior');
+    expect(optionalExposureSource).not.toMatch(/from\s+['"].*scoring.*['"]/);
+    expect(optionalPriorTreatmentSource).not.toContain('seededUnit');
+    expect(optionalPriorTreatmentSource).not.toMatch(/from\s+['"].*scoring.*['"]/);
+    expect(optionalReactionHistorySource).not.toContain('seededUnit');
+    expect(optionalReactionHistorySource).not.toContain('MedicationReactionSelectionPolicy');
+    expect(optionalReactionHistorySource).not.toMatch(/from\s+['"].*scoring.*['"]/);
+    expect(patientTemplateLocationAdmissionSource).toContain(
+      'compileSelectedLocationOperationalResourceContext',
+    );
+    expect(patientTemplateLocationAdmissionSource).toContain(
+      'compileEncounterOperationalAdmission',
+    );
+    expect(patientTemplateLocationAdmissionSource).not.toContain(
+      'selectOptionalFeaturesWithinBudget',
+    );
+    expect(patientTemplateLocationAdmissionSource).not.toContain(
+      'orchestratePreFindingPatientState',
+    );
+    expect(patientTemplateLocationAdmissionSource).not.toMatch(
+      /from\s+['"].*(scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(patientTemplateLocationAdmissionSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(preFindingPatientStateSource).not.toMatch(
+      /from\s+['"].*(catalog-instance-compiler|encounter-operational-admission-compiler|finding-pipeline-audit-composer|scoring|economy|receipt|persistence|browser).*['"]/,
+    );
+    expect(preFindingPatientStateSource).not.toMatch(
+      /\b(?:Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(findingPipelineAuditSource).toContain(
+      'verifyPreFindingPatientStateOrchestrationIntegrity',
+    );
+    expect(findingPipelineAuditSource).not.toContain(
+      'verifyResolvedPatientStateCompositionIntegrity',
+    );
+    expect(findingPipelineAuditSource).not.toContain('composeResolvedPatientState');
+    expect(findingPipelineAuditSource).not.toContain('selectOptionalFeaturesWithinBudget');
+    expect(findingPipelineAuditSource).toContain(
+      'verifyWeightedFindingTendencyApplicabilityIntegrity',
+    );
+    expect(findingPipelineAuditSource).toContain('aggregateWeightedFindingTendencies');
+    expect(findingPipelineAuditSource).not.toContain('compileWeightedFindingTendencyApplicability');
+    expect(findingPipelineAuditSource).not.toContain('matchDecisionPatientPredicateAgainstFacts');
+    expect(findingPipelineAuditSource).toContain('verifyPatientSlotFillSeedAuthorityIntegrity');
+    expect(findingPipelineAuditSource).not.toContain(
+      'verifyCapacityBoundLocationTemplateSelectionCertificateIntegrity',
+    );
+    expect(findingPipelineAuditSource).not.toContain(
+      'compileCapacityBoundLocationTemplateSelectionCertificate',
+    );
+    expect(findingPipelineAuditSource).not.toContain('compileLocationPatientSlotCapacity');
+    expect(findingPipelineAuditSource).not.toContain('seededUnit');
+    expect(findingPipelineAuditSource).not.toMatch(/from\s+['"].*scoring.*['"]/);
+    expect(facilityMoveWaitingSlotMigrationSource).toContain('verifyFindingPipelineAuditIntegrity');
+    expect(facilityMoveWaitingSlotMigrationSource).toContain(
+      'verifyLocationPatientSlotCapacityContext',
+    );
+    expect(facilityMoveWaitingSlotMigrationSource).toContain(
+      'verifyPatientTemplateLocationAdmissionMatrixContext',
+    );
+    expect(facilityMoveWaitingSlotMigrationSource).not.toMatch(
+      /from\s+['"].*(queue|progression|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(facilityMoveWaitingSlotMigrationSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(instrumentItemResponseSource).not.toMatch(
+      /from\s+['"].*(catalog-instance-compiler|optional-feature-budget-selector|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(instrumentItemResponseSource).not.toContain('selectOptionalFeaturesWithinBudget');
+    expect(resolvedConditionSource).not.toContain('seededUnit');
+    expect(resolvedPatientStateComposerSource).not.toContain('seededUnit');
+    expect(resolvedPatientStateComposerSource).not.toMatch(/from\s+['"].*scoring.*['"]/);
+    expect(resolvedPatientStateComposerSource).not.toContain('compileSharedFindings');
+    expect(resolvedPatientStateComposerSource).not.toContain('compileCatalogInstances');
+    expect(resolvedPatientStateComposerSource).not.toContain('composeFindingPipelineAudit');
+    expect(selectedLocationOperationalResourceSource).not.toMatch(
+      /from\s+['"].*(catalog-instance-compiler|encounter-operational-admission-compiler|finding-pipeline-audit-composer|optional-feature-budget-selector|scoring|economy|receipt|persistence|browser|rng).*['"]/,
+    );
+    expect(selectedLocationOperationalResourceSource).not.toContain(
+      'selectOptionalFeaturesWithinBudget',
+    );
+    expect(selectedLocationOperationalResourceSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(structuredSourceReportSource).not.toMatch(
+      /from\s+['"].*(catalog-instance-compiler|finding-pipeline-audit-composer|optional-feature-budget-selector|scoring|economy|receipt|rng).*['"]/,
+    );
+    expect(structuredSourceReportSource).not.toContain('selectOptionalFeaturesWithinBudget');
+    expect(structuredSourceReportSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(structuredSourceReportBehaviorSelectorSource).not.toMatch(
+      /from\s+['"].*(catalog-instance-compiler|finding-pipeline-audit-composer|optional-feature-budget-selector|scoring|economy|receipt).*['"]/,
+    );
+    expect(structuredSourceReportBehaviorSelectorSource).not.toContain(
+      'selectOptionalFeaturesWithinBudget',
+    );
+    expect(structuredSourceReportBehaviorSelectorSource).not.toContain('ResolvedPatientState');
+    expect(structuredSourceReportBehaviorSelectorSource).not.toMatch(
+      /\b(?:Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(weightedFindingTendencyApplicabilitySource).not.toContain('seededUnit');
+    expect(weightedFindingTendencyApplicabilitySource).not.toContain(
+      'aggregateWeightedFindingTendencies',
+    );
+    expect(weightedFindingTendencyApplicabilitySource).not.toMatch(
+      /from\s+['"].*(scoring|economy|receipt|rng)['"]/,
+    );
+    expect(universalActionResultSource).not.toMatch(
+      /from\s+['"].*(catalog-instance-compiler|optional-feature-budget-selector|scoring|economy|receipt|rng).*['"]/,
+    );
+    expect(universalActionResultSource).not.toContain('compileCatalogInstances');
+    expect(universalActionResultSource).not.toContain('selectOptionalFeaturesWithinBudget');
+    expect(universalActionResultSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+    expect(universalActionResultAttachmentSource).not.toMatch(
+      /from\s+['"].*(catalog-instance-compiler|finding-pipeline-audit-composer|optional-feature-budget-selector|scoring|economy|receipt|rng).*['"]/,
+    );
+    expect(universalActionResultAttachmentSource).not.toMatch(
+      /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
+    );
+  });
+
+  it('rejects authoring-engine subpath imports anywhere in web or content-runtime source', async () => {
+    const files = (
+      await Promise.all(
+        [resolve('apps/web'), resolve('packages/content-runtime/src')].map(filesBelow),
+      )
+    )
+      .flat()
+      .filter((file) => /\.(ts|tsx)$/.test(file));
+    const importPattern =
+      /(?:\bfrom\s+|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*)['"]([^'"]+)['"]/g;
+
+    for (const file of files) {
+      const source = await readFile(file, 'utf8');
+      const specifiers = [...source.matchAll(importPattern)].map((match) => match[1]!);
+      for (const specifier of specifiers) {
+        expect(
+          specifier.startsWith('@psychsim/engine/') || specifier.includes('/engine/src/'),
+          `${file} imports quarantined engine module ${specifier}`,
+        ).toBe(false);
+      }
+    }
   });
 
   it('keeps the personal-knowledge workbench behind a local serve-only boundary', async () => {

@@ -51,6 +51,7 @@ const routeBase = {
     id: 'decision-policy.test',
     contentVersion: '0.1.0',
   },
+  qualitativeDiagnosisRuleRef: null,
   patientWhen: null,
   rationale: 'A point-free fixture for the route-owned transition boundary.',
   developerOpinionIds: [],
