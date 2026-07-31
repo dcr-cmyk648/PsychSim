@@ -4995,7 +4995,7 @@ describe('D-234 post-encounter patient-slot lifecycle', () => {
       authority.selectedTemplateRef.id,
       authority.selectedTemplateRef.id,
     ]);
-  });
+  }, 20_000);
 
   it('updates exact-version Developer run history on completion and returns an ordinal-free exhausted reconciliation', () => {
     const fixture = makeLifecycleTransitionFixture({

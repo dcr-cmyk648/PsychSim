@@ -5321,9 +5321,10 @@ browser behavior, or UI.
 keep a fork worker busy beyond Vitest 3.2.4's fixed RPC acknowledgement window even after every
 assertion passes. The thread pool preserves per-file isolation and identical assertions while
 allowing the complete Node 22 process to report and exit cleanly. One four-setting admission test
-has an explicit ten-second timeout because its ordinary full-suite runtime can exceed the
-framework's five-second default under parallel load; production code receives no timeout or
-behavior change.
+has an explicit ten-second timeout, and one completion-history integration test has an explicit
+twenty-second timeout, because their ordinary full-suite runtime can exceed the framework's
+five-second default under parallel or CI load; production code receives no timeout or behavior
+change.
 
 Browser tests that assert the complete Developer source-request queue derive the expected count
 from the checked-in source-request file rather than duplicating a stale integer. They still assert
