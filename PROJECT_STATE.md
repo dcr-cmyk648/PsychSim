@@ -484,15 +484,14 @@ Last updated: 2026-07-31
   unknown private rule IDs still fail closed.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Expected Git state during this bounded local iteration: `HEAD` and `origin/beta` remain
-  `19d8582747bec30609c64a4985911e3671c453b5` (`Build deterministic patient-generation
-foundation`). The worktree intentionally contains the uncommitted D-247/D-248 finding-identity,
-  dimension-compiler, evidence-queue, and review-packet changes plus the D-249 synthetic
-  optional-texture bridge. The user has authorized a later deliberate beta-to-main release only
-  after all safely executable dependency work is exhausted and complete Player/Reviewer/mobile
-  gates pass.
-- The current committed checkpoint includes D-193 through D-246 and may be used as the adjunct's
-  stale-target mapping base after its exact commit hash is confirmed from Git.
+- Expected Git state during release: implementation checkpoint
+  `044aaa27cd48c6685c70ea29f8beffd00239e66a` (`Extend deterministic patient generation
+  foundation`) is one local commit ahead of `origin/beta`; this state-sync edit is the only
+  subsequent worktree change before its own documentation commit. The user has authorized the
+  deliberate whole-beta promotion after remote verification.
+- The current implementation checkpoint includes D-193 through D-253 and may be used as the
+  adjunct's stale-target mapping base only after `beta` is pushed and that exact commit is
+  confirmed from Git.
 - Configured local Developer URL: `http://127.0.0.1:4318/` (not started for this backend-only
   checkpoint).
 - Configured local portable Reviewer URL: `http://127.0.0.1:4319/` (not started for this
