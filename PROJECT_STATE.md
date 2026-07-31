@@ -486,7 +486,7 @@ Last updated: 2026-07-31
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
 - Expected Git state during release: implementation checkpoint
   `044aaa27cd48c6685c70ea29f8beffd00239e66a` (`Extend deterministic patient generation
-  foundation`) is one local commit ahead of `origin/beta`; this state-sync edit is the only
+foundation`) is one local commit ahead of `origin/beta`; this state-sync edit is the only
   subsequent worktree change before its own documentation commit. The user has authorized the
   deliberate whole-beta promotion after remote verification.
 - The current implementation checkpoint includes D-193 through D-253 and may be used as the
