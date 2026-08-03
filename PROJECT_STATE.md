@@ -488,20 +488,22 @@ Last updated: 2026-08-03
 - Verified local implementation checkpoint:
   `891792a646f035fe3c0fba5a95185e7e5bb8a69b` (`Build generated-patient foundations and developer
 maker`). It contains the complete D-254-through-D-274 public code, schema, catalog, test, and
-  documentation batch except this operational handoff update. `main` and `origin/main` remain at
+  documentation batch except the operational handoff. `main` and `origin/main` remain at
   `ca0fc353bab10c7f7cbe39db2be6a7d003e8dc99` (`Stabilize completion history integration test`).
-  `beta` is one handoff-only `PROJECT_STATE.md` commit beyond the implementation checkpoint once
-  this state is committed; `origin/beta` remains at
-  `a20b63a68be816c3ccfec29075638d6bf54a15f8` until the requested integration push.
-- The next adjunct stale-target mapping base is
-  `891792a646f035fe3c0fba5a95185e7e5bb8a69b`. It is not a usable remote base until the requested
-  `beta` push completes. The later handoff-only state commit does not change canonical schema,
-  catalog, or engine targets.
+  The remote-verified `beta` checkpoint is
+  `867541820f128d394b0421e8470568fade88c598` (`Record D-274 integration handoff`). The final
+  verification-note commit containing this paragraph is documentation-only and uses `[skip ci]`;
+  after its push, local `beta` and `origin/beta` should match exactly one commit beyond that
+  verified checkpoint.
+- The current adjunct stale-target mapping base is
+  `891792a646f035fe3c0fba5a95185e7e5bb8a69b`. The later handoff and verification-note commits do
+  not change canonical schema, catalog, or engine targets.
 - Beta verification run
-  `https://github.com/dcr-cmyk648/PsychSim/actions/runs/30644145659` passed the complete Node 22
-  gate. Main verification/deployment run
+  `https://github.com/dcr-cmyk648/PsychSim/actions/runs/30842884010` passed the complete Node 22
+  D-254-through-D-274 gate at
+  `867541820f128d394b0421e8470568fade88c598`. Main verification/deployment run
   `https://github.com/dcr-cmyk648/PsychSim/actions/runs/30644611327` independently passed the same
-  gate, including iPhone/WebKit, then deployed Pages.
+  older distributed-release gate, including iPhone/WebKit, then deployed Pages.
 - Live portable Reviewer: `https://dcr-cmyk648.github.io/PsychSim/`. Its fresh
   `version.json` reports distribution
   `ca0fc353bab10c7f7cbe39db2be6a7d003e8dc99`, build kind `portable_reviewer`, and channel `main`.
@@ -2436,8 +2438,10 @@ browser check passes 1/1. The complete local integration gate also passes:
 The first unit invocation was incorrectly run concurrently with lint, TypeScript, and formatting,
 causing three existing five-second stress tests to time out under CPU contention; the required
 standalone `pnpm test` gate then passed all 1,081 tests. Local validation used Node 26.3.0 because
-Node 22 is not installed on this Mac. The project-required Node 22 certification and requested
-GitHub `beta` backup remain pending at the remote integration checkpoint.
+Node 22 is not installed on this Mac. GitHub run `30842884010` subsequently passed the complete
+project-required Node 22 gate, including all unit, content, source-boundary, Player/Developer
+browser, portable Reviewer mobile, and bundle-build stages. The complete public checkpoint is
+backed up on `beta`; `main` remains unchanged.
 
 ## Files to read before continuing
 
@@ -2567,16 +2571,17 @@ request concerns exact backend input boundaries, not whether mild/moderate/sever
 player diagnoses.
 
 D-274 now closes the requested transitional local Developer Patient Maker over the finite
-compatibility-case engine. The complete local integration gate and implementation commit
-`891792a646f035fe3c0fba5a95185e7e5bb8a69b` are complete. The exact next action is to commit this
-operational handoff, push `beta` for backup and evaluation, and require the remote Node 22 gate to
-pass. Do not promote `main` without a separate explicit release instruction.
+compatibility-case engine. The complete local integration gate, implementation commit
+`891792a646f035fe3c0fba5a95185e7e5bb8a69b`, remote handoff checkpoint
+`867541820f128d394b0421e8470568fade88c598`, and Node 22 GitHub gate are complete. Do not promote
+`main` without a separate explicit release instruction.
 
-After that checkpoint, resume the database-first dependency work by auditing the smallest safe
-attachment boundary from D-273's minimized presentation to the generated patient/waiting-slot
-chain. Implement that later attachment only if it preserves the existing sole seed authority,
-adds no second clinical or complexity owner, retains the full audit outside the player-safe
-projection, and does not pretend that real complaint-bank/profile content already exists.
+The exact next bounded task is to resume the database-first dependency work by auditing the
+smallest safe attachment boundary from D-273's minimized presentation to the generated
+patient/waiting-slot chain. Implement that later attachment only if it preserves the existing sole
+seed authority, adds no second clinical or complexity owner, retains the full audit outside the
+player-safe projection, and does not pretend that real complaint-bank/profile content already
+exists.
 
 1. Treat remaining adjunct MDD severity, TSH, antidepressant-fit, and regimen-combination packets
    as preliminary. They may expose missing typed owners or review questions, but cannot supply real
