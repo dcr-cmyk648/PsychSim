@@ -47,6 +47,8 @@
     "Depressive symptoms"
   ],
   "durationProfile": {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "duration-profile.review-mdd-prior-intolerance.current-episode",
     "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
     "interpretation": "supports_authored_state",

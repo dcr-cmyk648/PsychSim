@@ -1,0 +1,1641 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.finding-projections",
+  "projections": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.depressed-mood.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.depressive.depressed-mood",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.depressed-mood.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.depressive.depressed-mood",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.depressed-mood.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.depressive.depressed-mood",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.anhedonia.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-anhedonia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.anhedonia.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-anhedonia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.anhedonia.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-anhedonia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.increased-appetite.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.appetite.current-increased",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.increased-appetite.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.appetite.current-increased",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.increased-appetite.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.appetite.current-increased",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.reduced-appetite.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.appetite.current-reduced",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.reduced-appetite.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.appetite.current-reduced",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.reduced-appetite.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.appetite.current-reduced",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.weight-gain.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-unintentional-weight-gain",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.weight-gain.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-unintentional-weight-gain",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.weight-gain.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-unintentional-weight-gain",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.weight-loss.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-unintentional-weight-loss",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.weight-loss.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-unintentional-weight-loss",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.weight-loss.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-unintentional-weight-loss",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.insomnia.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.sleep.current-insomnia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.insomnia.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.sleep.current-insomnia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.insomnia.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.sleep.current-insomnia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.hypersomnia.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.sleep.current-hypersomnia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.hypersomnia.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.sleep.current-hypersomnia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.hypersomnia.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.sleep.current-hypersomnia",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-psychomotor-slowing",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-psychomotor-slowing",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-psychomotor-slowing",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-psychomotor-agitation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-psychomotor-agitation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-psychomotor-agitation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-fatigue-low-energy",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-fatigue-low-energy",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-fatigue-low-energy",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.worthlessness.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-worthlessness",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.worthlessness.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-worthlessness",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.worthlessness.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-worthlessness",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.excessive-guilt.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-excessive-guilt",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.excessive-guilt.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-excessive-guilt",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.excessive-guilt.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-excessive-guilt",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-concentration-difficulty",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-concentration-difficulty",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-concentration-difficulty",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.indecision.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-indecision",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.indecision.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-indecision",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.indecision.subthreshold",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-indecision",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.passive-death-wish.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-passive-death-wish",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.passive-death-wish.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-passive-death-wish",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.active-suicidal-ideation.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-active-suicidal-ideation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.depressive-symptoms.active-suicidal-ideation.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-active-suicidal-ideation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.depressive-symptoms"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    }
+  ]
+}

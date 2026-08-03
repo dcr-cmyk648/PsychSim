@@ -112,6 +112,9 @@ export const normalizeTargetScopedPatientValueProjectionDefinition = (
 ): TargetScopedPatientValueProjectionDefinition => ({
   ...definition,
   targetSelector: { ...definition.targetSelector },
+  ...(definition.developerOpinionIds === undefined
+    ? {}
+    : { developerOpinionIds: uniqueSorted(definition.developerOpinionIds) }),
   review: normalizeReview(definition.review),
 });
 
@@ -215,7 +218,9 @@ const recordMatchesDefinition = (
   targetSelectorKey(definition.targetSelector) ===
     targetSelectorKey(resolveTargetSelector(patientState, record.target)) &&
   (definition.valueKind === 'clinical_duration'
-    ? 'durationProfileId' in record && record.durationProfileId === definition.durationProfileId
+    ? 'durationProfileId' in record &&
+      record.durationProfileId === definition.durationProfileId &&
+      record.durationProfileContentVersion === definition.durationProfileContentVersion
     : !('durationProfileId' in record) &&
       record.ordinalScaleId === definition.ordinalScaleId &&
       record.ordinalScaleContentVersion === definition.ordinalScaleContentVersion);
@@ -267,6 +272,7 @@ const authoringValue = (record: SourceRecord): TargetScopedPatientValue =>
         value: record.value,
         unit: record.unit,
         durationProfileId: record.durationProfileId,
+        durationProfileContentVersion: record.durationProfileContentVersion,
         durationOptionId: record.durationOptionId,
       }
     : {

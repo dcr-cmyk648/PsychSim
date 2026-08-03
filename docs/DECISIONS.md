@@ -5335,3 +5335,710 @@ remove one explicitly active ticket rather than relying on attachment order.
 
 This is test-infrastructure maintenance only. It adds no clinical claim, probability, rule,
 balance, point value, patient, runtime content, persistence change, browser behavior, or UI.
+
+## D-254 — The first real MDD finding profile is point-free; points enter after rule review
+
+**Decision:** Add one authoring-only `condition-finding-profile.mdd.current-episode` using the
+already approved D-248 dimension compiler. The adult current-episode profile selects five through
+nine of nine reviewed dimensions and requires at least one of depressed mood or anhedonia.
+Appetite or weight change, sleep change, psychomotor change, worthlessness or excessive guilt,
+concentration difficulty or indecision, and death or suicidality each count as one dimension.
+Their concrete findings remain separate, auditable patient facts. Pessimism remains a reusable
+non-counting finding. Duration, functional impairment, and causal or exclusion judgments remain
+separate typed constraints and are not inferred from the symptom count.
+
+The exact grouping is a psychiatrist-approved Developer opinion. Source-cleared NIMH material
+partially supports the episode frame, core pair, and symptom palette; CANMAT supplies assessment
+context and explicitly distinguishes screening from diagnosis. Neither source is represented as
+having authored the exact executable mapping. VA/DoD remains metadata/comparison context only
+under its current source-use decision. The profile and every nested mapping retain the approved
+opinion; that opinion retains the separately reviewed formal-source relationships.
+
+All first-version dimension counts, dimension choices, manifestation counts, and manifestation
+choices use equal positive game-authoring weights. Those weights are not prevalence,
+probability, evidence strength, clinical importance, or points. The first real profile emits one
+concrete manifestation per selected dimension so the existing selector cannot create an
+unreviewed same-scope directional contradiction. The general D-248 schema still supports several
+manifestations per dimension; a later reviewed coexistence/distribution owner may version the
+MDD profile without changing its dimension identities.
+
+Scoring remains a downstream, separate compilation:
+
+1. The profile resolves frozen patient truth without points.
+2. The focused decision compiler matches only approved qualitative rules against that patient and
+   the exact available action horizon.
+3. The separate decision-balance catalog may attach explicit `provisional_balance` values only to
+   exact approved rule versions.
+4. The generated attempt freezes the minimized exact balance payload.
+5. Submission evaluates the player's frozen decision, applies rule combination once, and totals
+   the resulting trace.
+
+Patient facts therefore never “earn points” merely by existing, and a point value never changes
+diagnosis generation. Existing native MDD balances remain the current proof: `+200` for the
+reviewed broad medication route, `+35/-25` for medication reconciliation when any medication is
+started, and `+30/-40` for allergy/adverse-reaction history under the same trigger. This decision
+adds no new clinical point magnitude. Direct episode/symptom workup, antidepressant-specific
+mania history, safety, diagnosis, disposition, and fit still need exact native qualitative
+adapters and/or balance owners before a real generated MDD attempt may score them.
+
+The catalog is runtime-excluded and has no `PatientTemplate` binding. D-254 therefore adds one
+real reviewed generation profile but no patient, case, complexity rule, background rate, source
+behavior, result recipe, presentation wording, persistence, runtime activation, browser behavior,
+or UI.
+
+## D-255 — Focused information actions receive explicit downstream balance shapes
+
+**Decision:** Extend the native generated scorer with one direct diagnosis-owned information
+action path. The adapter accepts only an approved diagnosis rule that targets one exact
+information action, has no treatment-selection trigger, and pins the same compatibility
+focused-decision ID as the approved primary policy. The compatibility tag is verification input
+only. The emitted point-free candidate uses the primary route's exact typed patient predicate and
+the information action as its exact action-horizon anchor; neither tags nor prose enter the
+compiled rubric.
+
+Required and preferred information actions remain distinct. A required direct action receives one
+separate `information_requirement` balance with explicit positive `fulfilled` and negative
+`omitted` outcomes. A preferred direct action uses the existing matched-rule balance: purchasing
+it earns its explicit positive value, while omission contributes zero and does not fabricate a
+penalty. In both cases D-191 compilation checks availability only. The generated player decision
+derives purchase presence only from successful replayed information events, and submission—not
+availability—chooses the outcome.
+
+The first exact applications use already accepted MDD qualitative rules and existing provisional
+prototype tuning:
+
+- current episode course and functional effect: `+35` obtained / `−35` omitted;
+- depressive symptom cluster: `+50` obtained / `−50` omitted; and
+- preferred substance-use history: `+30` obtained / `0` omitted.
+
+These values are game balance owned by `registry.catalog.decision-balances`; CANMAT and the
+accepted Developer opinion support the qualitative assessment direction but do not supply the
+point magnitudes. Retuning these values versions balance only. The MDD diagnosis dossier and the
+D-254 finding profile remain point-free.
+
+With the existing broad medication route and two any-medication-start prerequisites, the focused
+native fixture's database plan now totals `380`: `+200` broad route, `+35` episode history, `+50`
+depressive-syndrome history, `+30` substance history, `+35` medication reconciliation, and `+30`
+allergy/adverse-reaction history. The same fixture derives `85` for both required focused histories
+without medication or substance history, `180` for medication plus both treatment-triggered
+histories while omitting both focused histories, and `50` for medication with no purchased
+history. These are isolated care-point derivations; information operating costs and settlement
+remain separate.
+
+The frozen balance snapshot advances to
+`decision-balance-catalog-snapshot.v2`/compiler `2.0.0`, native balance scoring to `6.0.0`,
+D-235 generated-attempt compilation to `8.0.0`, and the nested point report to
+`generated-encounter-point-report.v7`. Replay rederives each direct action outcome from the exact
+frozen decision and rejects balance-shape crossing or magnitude/explanation tampering.
+
+D-255 does not adapt the antidepressant-tag mania rule, infer an antidepressant class, translate
+the passive-death-wish compatibility tag into incomplete patient facts, add diagnosis or
+disposition scoring, activate a real template, or change runtime, persistence, browser behavior,
+or UI. Those rules remain unbalanced until their exact typed triggers and scopes are reviewed and
+available.
+
+## D-256 — Symptom generation is sparse and positive-first; assessment negatives are derived
+
+**Decision:** Do not add one D-198 `absent` baseline for every MDD manifestation that D-254 did
+not select. Symptom-producing condition, context, texture, override, and other generators first
+compose the patient's positive or otherwise deliberately authored symptom state. Routine
+nonselection must not create a competing negative candidate and must not limit a later generator's
+ability to add the symptom.
+
+When a history action, checklist, or instrument asks about a finite versioned set of symptoms, its
+result compiler may close that exact assessment horizon after all applicable patient generators
+have completed. A member represented positively in final frozen patient state is reported
+positive; an ungenerated member of that exact horizon is reported negative. The derived negative
+is an assessment response, not a D-198 background draw, a prevalence claim, or a separately
+persisted clinical assertion. Adding a new catalog symptom does not silently alter old patients:
+only the exact horizon frozen with the encounter is closed.
+
+Three distinctions remain mandatory:
+
+1. A latent negative result is still unknown to the player until the corresponding information
+   action is purchased or automatically completed.
+2. Missing data in an open-ended fact lane, an unresolved value, or an unassessed source report
+   does not become negative. Closed-horizon derivation applies only to a declared symptom
+   assessment whose members and positive semantics are exact.
+3. An explicit negative candidate remains available for a separately reviewed exclusion or
+   literal incompatibility that must be checked against another generator. It participates in
+   normal conflict validation. No clinical incompatibility may be inferred from labels, aliases,
+   prose, or this decision; the reviewer's mania/hypersomnia example establishes the structural
+   use case only.
+
+This decision changes the result-assembly boundary, not D-254's point-free symptom selection,
+D-198's role for genuinely variable background outcomes, source-report reliability, scoring, or
+runtime activation. D-193 shared-finding compiler `1.1.0` implements the narrow seam through an
+optional reviewed negative-result projection. Only that projection can request an `absent`
+fallback, and only when no approved value-bearing candidate exists for its one exact source
+finding. The fallback is derived after the complete supplied candidate set, remains lowest
+priority and fully auditable, and is suppressed by a positive, explicit negative, or unresolved
+candidate. Other missing definitions retain the existing `NO_REVIEWED_VALUE` failure. No parallel
+symptom engine was added.
+
+## D-257 — Inaccurate self-report is optional complexity; accurate reporting is the base
+
+**Decision:** Accurate/aligned self-report is the zero-complexity default for a basic encounter.
+Minimization, exaggeration, omission, or another inaccurate/discordant self-report pattern is not
+an unconditioned probability rolled for every patient. It must be represented by a separately
+reviewed `source_report` optional-feature module selected by the encounter recipe's one D-201
+complexity budget.
+
+D-201 remains the only selector and cost owner. D-208 preserves a selected `source_report`
+module's exact binding, ordinal, stable draw, cost, and remaining-budget transition, but marks its
+payload `deferred_to_post_truth`: report texture does not add, remove, or change latent patient
+facts. After truth freezes, one D-217 `complexity_gated` source-view policy uses the accurate
+complete D-215 profile as its base and maps exact D-201 module/binding identities to alternative
+complete D-215 profiles. No selected module means the base profile. A selected module reuses its
+original D-201 trace and performs no second draw or charge.
+
+One selected module may affect several exact source-view slots for its single authored cost when
+the reviewed behavior genuinely spans them. No slot may be controlled by two selected modifiers;
+potentially competing same-slot modules must already be mutually incompatible in D-201. Each
+mapping pins the exact source definition, source instance, time scope, claim origin, dependency
+groups, behavior-profile version, optional-module definition, template binding, and selected
+module-record identity. D-200 requires the D-217 request to retain the same complete D-201 artifact
+as its one nested D-208 root.
+
+This supersedes D-217's earlier statement that misleading or unavailable reports always cost zero
+complexity. D-217's fixed and weighted machinery remains available for synthetic compatibility and
+nonclinical variation, but real inaccurate/partial self-report must enter through the
+complexity-gated path. The selector still assigns no clinical probability, prevalence, source
+credibility, points, or global reliability score and does not infer why a report disagrees.
+“Minimization,” “secondary gain,” “poor insight,” or another motive may be named only when a
+separately reviewed module explicitly owns it; otherwise the audit records only the concrete
+report behavior.
+
+The first implementation advances D-217 to `2.0.0`, adds the `source_report` module kind, and
+supports the current D-215 whole-lane/singleton behavior surface. It does not yet fabricate
+false-positive structured records, add real clinical source-report profiles or frequencies,
+activate a real patient template, change persistence/runtime/UI, or assign points. Canonical
+symptom and finding results travel through D-193 rather than D-215, so
+`ticket.engine.patient-generation.finding-source-report-complexity-bridge` owns the remaining
+technical work: reuse the same D-201 selection to choose an exact patient-report projection while
+leaving the compiled finding unchanged. This is not a second clinical-policy question and must
+not become a parallel symptom engine or a second complexity draw.
+
+## D-258 — Finding reports reuse the same complexity selection without changing truth
+
+**Decision:** Extend D-257 to canonical symptom and finding reports through the existing D-193
+projection boundary. One reviewed `finding-source-report-projection.v1` policy retains the complete
+D-201 optional-feature artifact and defines exact patient-report slots. Each slot has one accurate
+base projection plus one or more alternative projections keyed to exact `source_report` module
+definition, module fingerprint, template binding, and selected module-record identities.
+
+No selected modifier uses the accurate base. When D-201 selected no modifier for a slot, D-193
+uses its base projection. When D-201 selected one matching modifier, D-193 uses that exact
+alternative while retaining the original cost, selection ordinal, and stable draw. A base and all
+alternatives for one slot must use the same exact hidden source predicate and response target, so
+the policy can change only the source's presentation—not canonical patient truth or which fact is
+being queried. The compiled projection trace reconstructs source coordinate, hidden finding,
+selected complexity module, selected projection, and displayed response.
+
+D-256 closed-assessment absence derivation considers only the active governed projection. An
+inactive accurate or inaccurate projection cannot create a latent negative candidate, influence
+finding resolution, or collide with another generator. The active projection may still present a
+different response from the frozen finding, which is the intended inaccurate-report behavior.
+Collateral, records, examinations, and other sources change only through their own exact reviewed
+slots; there is no global reliability score, motive inference, or parallel symptom engine.
+
+One D-201 module may govern several exact D-215 structured views and/or D-193 finding views for its
+single original complexity cost. D-200 verifies that every `source_report` definition in its D-201
+root is mapped through the union of those two paths and that every embedded artifact exactly
+matches the one D-208 root. It rejects omitted, crossed, redrawn, or recharged source-report
+modules.
+
+The implementation advances D-193 to `1.2.0` and D-200 to `22.0.0`. Synthetic tests prove the
+zero-cost accurate base, one-charge inaccurate reporting, unchanged hidden truth,
+active-projection-only negative closure, full-root replay, and crossed/tampered artifact rejection.
+It adds no real report profile, motive, module cost or frequency, clinical probability, point rule,
+patient, persistence/runtime/UI behavior, or medical claim.
+
+## D-259 — The compact depressive-symptom history owns a 17-finding assessment horizon
+
+**Decision:** The shared `info.history.depressive-symptoms` action asks one compact,
+question-bank-style set of patient-report items covering the reviewed current-MDD dimensions. Its
+exact first horizon contains depressed mood, anhedonia, increased and reduced appetite,
+unintentional weight gain and loss, insomnia and hypersomnia, self-reported psychomotor slowing
+and agitation, fatigue or low energy, worthlessness, excessive guilt, concentration difficulty,
+indecision, passive death wish, and current active suicidal ideation.
+
+Sleep and death/suicidality therefore appear briefly in the compact cluster. The separate Sleep
+and Suicide and self-harm actions remain distinct and may later own richer characterization,
+attempt and preparatory-behavior history, means access, protective factors, or other focused
+assessment. Reusing an atomic fact across compatible reveal actions does not duplicate patient
+truth and does not by itself create duplicate scoring.
+
+The runtime-excluded `registry.catalog.finding-projections` owns 49 explicit mappings:
+
+1. all 17 findings map hidden `present` to displayed `present`;
+2. all 17 findings have one D-256 closed-horizon mapping that derives and displays `absent` only
+   when no approved generator supplied a value; and
+3. the 15 nonsafety findings map hidden `subthreshold` to displayed `present`, while the canonical
+   hidden value remains `subthreshold`.
+
+The two safety findings intentionally allow only present or absent under their current canonical
+definitions. The catalog pins every source finding/version, exact action target, response,
+reviewer, and the accepted Developer opinion. The content validator requires exact registry
+membership, valid source states and target actions, approved provenance, and no duplicate
+source-to-target mappings. A checked-in D-193 test proves that sparse positives, one subthreshold
+finding, and D-256-derived negatives compile into 17 deterministic responses without changing
+hidden truth.
+
+D-259 packages already reviewed atomic facts; it does not assert that the compact cluster is a
+complete risk assessment or diagnostic conclusion. It adds no inaccurate-report profile,
+PatientTemplate, generation frequency, clinical probability, point rule, action cost, treatment
+or disposition inference, persistence/runtime activation, browser behavior, or UI.
+
+## D-260 — Static result content pins the projection set and routes it without filters
+
+**Decision:** Add two runtime-excluded static owners around the D-259 projections without creating
+a new result engine.
+
+`registry.catalog.finding-projection-horizons` owns the exact versioned set used by the compact
+depressive-symptom history. Its first definition pins all 49 projection IDs and content versions,
+one `FindingProjectionHorizon`, the accepted Developer opinion, and the reviewer record. The
+horizon permits only displayed `present` or `absent` responses for the exact
+`info.history.depressive-symptoms` target. Validation requires every approved projection to
+belong to at least one exact horizon, every referenced version to be current, every response to
+be allowed, and every horizon target to have a real projection owner.
+
+`registry.catalog.universal-action-result-assemblies` owns the existing D-213/D-214 static
+assembly payload. Its first assembly embeds the exact current information-action payload and one
+`universal-action-result.v1` recipe whose sole source class is `finding_projections`. The recipe
+does not name, filter, reinterpret, or score individual findings. D-193 and the exact horizon
+remain responsible for the projection set; D-213 consumes every frozen in-horizon projection for
+the action. Validation rejects stale action payloads or fingerprints and requires every
+checked-in finding-projection action to have a static universal result recipe.
+
+A checked-in integration test runs the real D-259 projection content through D-193/D-256 and then
+D-213. One generated positive plus 16 closed-horizon negatives produce 17 resolved projections,
+all of which enter one complete binding; integrity replay passes. The empty D-220 instrument
+artifact is still supplied because D-213's existing complete attachment contract requires it,
+but this content adds no instrument definition or result.
+
+D-260 adds no patient or template, inaccurate-report profile, duration or impairment rule,
+diagnosis inference, points, cost, treatment/disposition behavior, persistence/runtime
+activation, browser behavior, or UI.
+
+## D-261 — Duration semantics are exact-version-pinned before real profiles exist
+
+**Decision:** A clinical-duration profile is versioned content, not an ID-only lookup.
+`ClinicalDurationProfile` now carries both `schemaVersion` and `contentVersion`. Compatibility
+case resolution retains the exact profile content version beside the profile and option IDs, and
+future `ResolvedClinicalDuration` plus deferred finding-scoped duration records do the same.
+
+D-240 duration projection definitions also pin `durationProfileId` and
+`durationProfileContentVersion`. Matching requires both values; a record created from another
+version is `missing_required_value` rather than being silently reinterpreted under current
+content. The full authoring projection retains that versioned semantic owner. The minimized
+patient-facing reveal still exposes only the frozen duration value, unit, source, and time scope;
+the snapshot audit owns profile provenance.
+
+This closes a historical-identity asymmetry with subjective burden, whose ordinal scale was
+already version-pinned. The existing finite Reviewer profiles are explicitly recorded as version
+`1.0.0`; their options, generated displays, and clinical behavior are unchanged. D-261 adds no
+real MDD duration profile or range, threshold, distribution, PatientTemplate, patient, rule,
+points, persistence migration, runtime activation, browser behavior, or UI.
+
+## D-262 — The first reusable duration content varies only within current MDD
+
+**Decision:** Add one runtime-excluded `ClinicalDurationProfileCatalog` and one reviewed
+`duration-profile.mdd.current-episode@1.0.0`. Its 13 finite options span 2 through 52 weeks and
+all remain inside the already reviewed at-least-two-week current-episode state. The profile owns
+possible structured values only. It contains no selection weights and does not infer probability,
+prevalence, severity, impairment, persistent-depression classification, treatment history,
+treatment direction, or points.
+
+The reviewed Developer opinion owns the exact game-authoring option bank and the noninference
+boundary. Its accepted evidence relationship links the current NIMH depression topic material
+only to the at-least-two-week frame. Because that NIMH record is authoring-only, it is not copied
+into the runtime diagnosis dossier as a source-use note or made a runtime evidence dependency.
+The source relationship remains independently auditable without weakening the runtime/authoring
+bundle boundary.
+
+The checked-in static result catalog now also owns
+`universal-action-result-assembly.mdd-initial-assessment-foundation`. It embeds the exact current
+payloads for Presenting problem and timeline plus Depressive symptoms. One approved D-240
+definition projects an already-resolved exact current-MDD duration into the presenting-problem
+action, while the existing 49-projection horizon supplies the compact symptom action. The older
+single-action D-260 assembly remains intact as historical checked-in content. Validation requires
+exact registry membership, current action fingerprints, profile ID/version resolution,
+diagnosis-target compatibility, accepted opinion ownership, and one static D-240 definition for
+every approved checked-in duration profile.
+
+Checked-in integration tests prove that an authored eight-week duration and the compact
+17-finding symptom result compile together into two complete D-213 bindings and replay
+identically. D-262 does not select a duration option, create a PatientTemplate or patient,
+generate wording, infer functional impact, add a source-report modifier, assign points, change
+persistence/runtime/browser/UI behavior, or activate generalized generation.
+
+## D-263 — One exact reviewed duration profile resolves through an auditable unweighted draw
+
+**Decision:** Add one pure, runtime-excluded condition-duration resolver rather than reusing the
+legacy compatibility case resolver or introducing a generic executable expression. Its request
+contains one exact reviewed `ClinicalDurationProfile`, one exact condition state, patient-state
+identity, source instance, matching time scope, and internal seed. The target diagnosis must equal
+the profile's related diagnosis and the request time scope must equal the condition time scope.
+
+The resolver canonicalizes option order, display-variant order, opinion IDs, review source IDs,
+and condition specifiers before fingerprinting. It performs one unweighted deterministic choice
+using the existing seeded domain primitive. Unweighted selection means neutral synthetic variety
+over the authored finite options; it is not a claim that the durations have equal clinical
+probability or prevalence.
+
+The artifact freezes the exact request, profile fingerprint and version, source/time coordinate,
+stable draw ID, every offered option with its selected state, and one complete
+`ResolvedClinicalDuration` with deterministic-generation provenance. Integrity validation parses
+the strict artifact, requires resolver version `1.0.0`, reruns the stored request, and compares the
+complete payload. File order cannot reroll the result. Checked-in tests prove repeatability,
+reordering invariance, variation only within declared options, coverage of all 13 current-MDD
+options across many seeds, exact target/source/profile retention, rejection of crossed targets or
+unapproved profiles, and tamper detection.
+
+D-263 is condition-scoped because that is the first real dependency. Finding- and
+proposition-scoped durations require later explicit adapters rather than a loose generic target.
+It does not attach the artifact to D-200/D-194, create a PatientTemplate or patient, choose
+severity or impairment, spend D-201 complexity, add probability/weights/points, change
+persistence/runtime/browser/UI behavior, or activate generalized generation.
+
+## D-264 — Resolved condition durations attach only through verified post-composition artifacts
+
+**Decision:** Add one standalone authoring-only seam after D-208. A
+`ConditionClinicalDurationAttachmentRequest` contains one complete D-208 composition artifact and
+zero or more complete D-263 resolution artifacts. The attachment compiler first replays every
+upstream artifact. It accepts only a composed D-208 patient state, requires every D-263 artifact to
+name that exact patient-state identity, and compares the complete targeted condition state rather
+than trusting a matching ID or diagnosis label.
+
+One stable condition/profile owner may attach at most once, even if two artifacts refer to
+different content versions of that profile. An existing duration with the same condition/profile
+owner cannot be replaced. Exact content versions remain retained in the accepted artifact for
+historical replay; crossed versions cannot create two simultaneous copies of the same semantic
+fact. Record-ID collisions are also rejected rather than deduplicated.
+
+Input order is canonicalized before fingerprinting. A zero-resolution request is an explicit
+identity path that preserves the exact D-208 patient state. A nonempty request emits a new
+fingerprinted `ResolvedPatientState` containing the unchanged D-208 payload plus the sorted exact
+D-263 duration records. The attachment artifact freezes the upstream composition reference, every
+resolution reference and resolved-duration ID, the complete normalized request, the complete
+resulting state, and input/state/payload fingerprints. Integrity validation replays the whole
+chain.
+
+D-264 performs no draw, retry, inference, merge, or complexity accounting. It does not modify
+D-208 or D-263, infer severity/impairment/chronicity, add probability/weights/points, attach to
+D-200/D-194, activate a PatientTemplate, change persistence/runtime/browser/UI behavior, or enable
+generalized generation.
+
+## D-265 — Race/ethnicity is self-identified context, never a diagnostic shortcut
+
+**Decision:** Add one runtime-excluded authoring catalog for race/ethnicity and no other new
+demographic dimension. Its first version uses the seven co-equal minimum categories in the 2024
+U.S. Office of Management and Budget Statistical Policy Directive No. 15, represented as one
+combined, select-all-that-apply, self-identified field. The categories are sociopolitical
+classification identities, not biological or genetic identities. `not_recorded` and
+`declined_to_answer` are distinct states and are not synthetic categories. Fictional first name,
+last name, occupation, or any other cosmetic pool must never infer race/ethnicity.
+
+Preserve historical `ResolvedPatientDemographicsV2` snapshots unchanged. A separate
+`ResolvedPatientDemographicsV3` owns one exact classification-standard ID/version plus the frozen
+multiselect response. Only explicitly provided categories project to version-pinned demographic
+decision facts; absent, not-recorded, and declined values do not become negative facts.
+
+Future population-matched evidence may adjust the relative generation mass of an otherwise
+eligible diagnosis or optional encounter feature, but it may never turn a category into a
+diagnostic requirement, exclusion, certainty claim, or zero-probability shortcut. Every
+otherwise eligible outcome must retain positive authored mass so the game can deliberately
+present uncommon patients and avoid teaching deterministic demographic heuristics. The
+case/template's required conditions remain authoritative.
+
+A future symptom-report association must use robust, population- and construct-matched evidence
+and modify only the source-report/projection layer, never hidden patient truth. A future
+pharmacology association requires unusually strong, population-, medication-, formulation-, and
+outcome-matched evidence; social race/ethnicity must not stand in for ancestry, genotype, or
+metabolizer phenotype. Each such association requires its own qualitative clinical review,
+provenance, exceptions, exact trigger, explanation, and separate balance if it affects points.
+
+The checked-in catalog, OMB evidence record, source-use decision, and accepted Developer opinion
+approve only identity, collection semantics, and these guardrails. D-265 adds no prevalence table,
+clinical weight, probability, diagnosis sampler, symptom-report profile, pharmacology rule, point
+value, complexity cost, PatientTemplate, runtime import, persistence migration, or UI.
+
+## D-266 — The finding pipeline accepts only a verified optional duration attachment
+
+**Decision:** Advance D-200 to `23.0.0` and add one nullable
+`conditionClinicalDurationAttachmentArtifact` beside the existing D-223 root. Null preserves the
+exact D-208-only compatibility path. A non-null value must pass the complete D-264 integrity
+replay, embed the same exact D-208 composition artifact retained by D-223, and preserve its exact
+composition reference and fingerprints. Every retained D-263 duration resolution must use the one
+D-233 patient-generation seed shared by the other patient randomizers.
+
+D-200 derives one pre-finding state from that choice: the D-208 composed state when the field is
+null, or the D-264 resulting state when it is present. That one state supplies D-194's
+`basePatientState` and D-193's patient/proposition target. D-208 continues to supply the exact
+condition bindings and the D-210 applicability context. D-194 remains `9.0.0`; its existing
+attachment-only compiler already accepts a resolved duration-bearing base state and runs D-240
+after final findings exist. No second patient-state source or duration compiler is added to D-194.
+
+The D-200 artifact retains the complete optional D-264 artifact, includes its exact fingerprints
+in input and payload identity, and independently replays the D-208 → optional D-264 → D-193 →
+D-194 chain. A crossed D-208 root, stale or modified D-264 artifact, different duration seed, or a
+D-194 state that does not equal the selected upstream state is rejected. Dropping the attachment
+from a retained duration-bearing audit also invalidates the audit rather than falling back.
+
+D-266 adds no duration profile selection plan, weight, prevalence, probability, severity,
+impairment, exclusion criterion, treatment history, clinical rule, point value, complexity
+charge, PatientTemplate, runtime activation, persistence migration, or UI. The existing D-201
+accounting is unchanged, and D-208 is never mutated.
+
+## D-267 — Functional impairment has a condition-attributed owner distinct from burden and findings
+
+**Decision:** Add one standalone, runtime-excluded functional-impairment profile/resolver boundary
+before adding any real MDD impairment content. Its qualitative identities are `none`, `mild`,
+`moderate`, and `severe`. They describe impairment attributed to one exact condition state and
+must not be substituted for subjective burden, a coarse self-report that functioning was affected,
+symptom intensity, diagnosis severity, or an overall clinical conclusion.
+
+One `ConditionFunctionalImpairmentProfile` pins an exact diagnosis, content version, finite unique
+level options, review state, and source-use or accepted Developer-opinion provenance. The pure
+resolver accepts that exact profile plus one exact condition state, patient-state identity,
+source instance, matching time scope, and internal seed. It canonicalizes option order, opinion
+IDs, review-source IDs, and condition specifiers; makes one deterministic unweighted selection;
+and freezes every offered option, the selected condition-attributed level, profile fingerprint,
+stable draw, complete request, and input/payload fingerprints. Integrity verification replays the
+stored request and compares the complete artifact.
+
+“Unweighted” means neutral synthetic selection among the levels an approved profile explicitly
+offers. It is not a claim that those impairment levels are equally prevalent or clinically
+probable. No real profile is checked in by D-267, so this structural mechanism cannot yet generate
+MDD impairment. The pending MDD severity packet still owns the separate question of whether and
+how symptom severity and depression-attributable impairment combine into a branch.
+
+D-267 does not add the record to `ResolvedPatientState`, D-200, D-194, D-240, persistence, runtime,
+or UI. It adds no impairment definitions or thresholds, diagnosis inference, severity rule,
+selection weight, epidemiology, wording, information result, complexity cost, treatment, points,
+PatientTemplate, or generalized patient generation. A later attachment/projection slice must
+consume only a verified artifact after a real profile receives exact clinical review.
+
+## D-268 — MDD severity is backend generation state, not a separate player diagnosis
+
+**Decision:** Accept the CANMAT-supported qualitative convention for the reusable MDD dossier:
+depressive symptom severity and depression-attributable functional impairment remain separate
+auditable inputs, and the higher qualitative level supplies the backend current-episode severity
+descriptor. The policy records only that relationship. Exact mild/moderate/severe input boundaries
+remain disabled because the reviewed sources do not supply a validated universal operational
+algorithm.
+
+Mild, moderate, and severe do not become separate player diagnosis choices. The player-facing
+family diagnosis is Major depressive disorder. The MDD severity axis therefore declares
+`playerSelectionMode: family_only`; encounter validation rejects a submitted severity qualifier
+even though internal `ConditionState.severityId` remains available for deterministic generation,
+rule composition, and audit. “With psychotic features” is the one currently approved named MDD
+specifier identity. A named specifier is still separate from severity and must never be inferred
+from severity, symptom count, or a treatment selection.
+
+The diagnosis schema now stores an exact reviewed `highest_qualitative_level` derivation policy
+whose two required inputs are `symptom_severity` and
+`condition_attributed_functional_impairment`. A profile omitting or duplicating either input is
+invalid. The MDD dossier retains all three severity levels as `disabled_pending_source`; D-268
+does not generate either input, select a level, or attach the D-267 impairment artifact.
+
+The user approval is stored as a separate accepted Developer opinion. The linked CANMAT evidence
+relationship supports the two-dimension/higher-of convention and separation of psychotic features,
+while explicitly leaving the family-only gameplay presentation, exact boundary definitions, and
+generation mechanics as Developer opinion. D-268 adds no severity distribution, clinical cutoff,
+treatment route, point value, complexity cost, PatientTemplate, generated patient, persistence
+migration, or UI control. The current family-only diagnosis UI remains unchanged; the named
+specifier identity is available for a later reviewed qualifier interface and psychotic-depression
+vertical.
+
+## D-269 — The higher-of severity policy compiles only from exact same-episode inputs
+
+**Decision:** Implement the D-268 higher-of relationship as one standalone, authoring-only,
+point-free compiler without inventing either input. The symptom-severity side is a strict
+`ResolvedConditionSymptomSeverityInput` envelope that names its future upstream resolution owner,
+content version, and payload fingerprint. It carries only the exact patient, condition, diagnosis
+version, clinical state, time scope, and qualitative `mild`/`moderate`/`severe` value. It does not
+encode symptom-count thresholds, intensity rules, instrument cutoffs, source evidence, or a
+generation mechanism.
+
+The functional-impairment side must be the complete D-267 artifact and pass its native replay
+verifier. Both inputs must match the same patient, exact condition state, diagnosis version,
+clinical state, and time scope. The diagnosis-owned policy projection must be approved, must retain
+the exact D-268 two-input shape, and must carry explicit source-use provenance. The compiler has no
+random draw: it applies the fixed qualitative order and returns the higher input.
+
+The output is explicitly `derived_descriptor_only`. It retains both input values, exact policy and
+axis IDs, both input identities and payload fingerprints, compiler version, normalized request, and
+input/payload fingerprints. It deliberately contains no `severityId`; therefore it cannot enable
+one of the still-disabled MDD severity branches or mutate a `ConditionState`. Integrity verification
+replays the complete request and the nested D-267 artifact.
+
+D-269 closes only the deterministic combination seam. It does not authenticate or generate the
+upstream symptom-severity envelope, create a real impairment profile, attach either input or output
+to resolved patient state, define level boundaries, add probabilities or complexity spending,
+change treatment or scoring, create a PatientTemplate, activate runtime/persistence, or expose a
+player control. Those remain separate gates.
+
+## D-270 — Service-backed treatment expenses use the same exact native price owners as information
+
+**Decision:** Remove caller-authored treatment-charge snapshots from generated-attempt input.
+The existing versioned `ServiceDefinition` remains the sole operating-price owner. D-270 extends
+the D-239 authoring-only join across the complete intervention and disposition horizon retained by
+the exact D-219 operational-admission artifact. It freezes every full `TreatmentOption` owner,
+every treatment-to-service relationship, the exact mechanically available fulfillment methods,
+and the normalized service-price owners needed by either information actions or treatments.
+
+The final submitted treatment selection is the only charge trigger. A selected intervention or
+disposition with a non-null `fulfillmentServiceId` receives exactly one deterministic quote from
+the least-cost equal-quality available method, with stable method-ID tie-breaking. The frozen
+charge retains treatment, service, method, labels, operating cost, outside-service savings, and
+staff/upgrade savings with exact owner fingerprints. A treatment with no fulfillment-service
+owner produces no operating charge; D-270 never invents a price for medications, regimen
+operations, psychotherapy, referral, or any other unpriced option. Unequal-quality methods require
+a later explicit selection policy and fail closed.
+
+Generated replay snapshot, settlement, and completed-attempt models advance to v3, and the D-235
+compiler advances to `9.0.0`. Settlement derives its complete service-backed treatment-charge set
+from the frozen player decision and independently re-quotes it during integrity replay. Altering a
+charge or its arithmetic therefore fails replay even when the surrounding totals are forged to
+agree. The settlement derivation label remains explicit that base reimbursement, challenge bonus,
+satisfaction multiplier, and pre-encounter bank inputs are not yet natively owned.
+
+D-270 changes only operating expenses. It does not change clinical correctness, rule matching,
+care points, treatment availability, service quality, prices, payout arithmetic, the zero payout
+floor, complexity, persistence, runtime generation, SaveData, browser/UI behavior, or checked-in
+clinical content. Medication acquisition/dispensing costs and any non-service treatment economics
+remain unmodeled until a real separate owner is reviewed.
+
+## D-271 — Generated settlement inputs come from exact economy, clinic-state, and satisfaction owners
+
+**Decision:** Remove the remaining caller-authored reimbursement, challenge, satisfaction, and
+bank-before scalars from generated-attempt input. One separate versioned
+`GeneratedEncounterEconomyPolicy` owns base reimbursement and challenge bonus for one exact
+PatientTemplate ID, version, and native template fingerprint. It is explicitly
+`provisional_balance`; it owns no clinical rule, care points, service price, treatment fit,
+complexity interpretation, or patient fact.
+
+The current full `ClinicState` is the source owner for clinic points before the encounter,
+lifetime points before the encounter, and raw satisfaction. Before settlement compilation, that
+state must project byte-equivalently to the exact D-227 operational clinic context that admitted
+the waiting patient. This preserves D-227's volatile-field independence during admission while
+preventing a settlement from being crossed onto another clinic/facility/location/resource
+context. The stored clinic satisfaction multiplier is not trusted as a free input: the compiler
+recalculates it from raw satisfaction and one exact versioned `SatisfactionConfiguration` owner
+and rejects stale disagreement.
+
+Generated replay snapshot v4 freezes the full economy policy, clinic state, operational
+projection, satisfaction owner, derived multiplier, and independent owner fingerprints in
+`generated-encounter-settlement-context.v1`. Settlement v4 references that context and derives
+base reimbursement, challenge bonus, satisfaction multiplier, prior/after bank values, gross
+payout, expenses, zero-floor payout, and practice-mode banking. Generated completed attempt v4 and
+D-235 compiler `10.0.0` independently replay the entire context and settlement. A caller now
+supplies exact owners, not five independently mutable numbers.
+
+D-271 does not create a real template economy policy or assign a new production reimbursement or
+challenge value. It does not derive either value from diagnosis, severity, patient complexity,
+complexity budget, care setting, setting label, source evidence, clinical points, or file order.
+It does not change existing compatibility-case economics, the satisfaction curve, practice-mode
+banking, payout arithmetic, the zero floor, any service cost, clinical scoring, runtime
+activation, persistence migration, or UI. Real generated-template economy policies and their
+balance review remain a separate content gate.
+
+## D-272 — Generated diagnosis qualifiers compile from minimized exact diagnosis owners
+
+**Decision:** Close the generated-attempt qualifier-validation gap already identified by D-268.
+The diagnosis-selection horizon continues to own only the finite diagnosis-family choices for one
+encounter. A separate pure authoring compiler must receive every and only the exact
+`DiagnosisDefinition` versions named by that horizon. It rejects missing, extra, stale, or
+non-gameplay-selectable owners.
+
+The compiled historical snapshot is deliberately minimized. For each horizon option it retains
+the option ID, exact diagnosis ID/version, a fingerprint of the complete source definition,
+`playerSeverityMode`, the finite allowed player severity IDs, and reviewed player-selectable
+specifier IDs with their exclusivity groups. It does not copy diagnosis labels, descriptions,
+clinical rules, severity constraints, source prose, evidence contributions, or treatment
+guidance. A family-only axis always yields an empty player-severity allowlist. A
+severity-selectable axis currently fails closed unless at least one enabled, individually reviewed
+and source-linked level exists; no current diagnosis uses that path. A specifier enters the
+allowlist only when it is both explicitly player-selectable and individually approved with exact
+source-use provenance.
+
+Generated decision validation now checks submitted qualifiers against that frozen owner set.
+Blank diagnosis submission remains valid. Major depressive disorder therefore rejects submitted
+mild/moderate/severe qualifiers while allowing the reviewed `with psychotic features` identity
+when MDD is actually present in that encounter's diagnosis horizon. Two selected specifiers in one
+exclusive group are rejected. The frozen owner set must match the exact horizon ID, fingerprint,
+option IDs, diagnosis versions, payload fingerprints, and deterministic replay. The completed
+attempt records `exact_frozen_qualifier_owners` as its validation mode; the older
+`family_identity_only` label remains only in the historical D-235 decision that D-272 supersedes.
+
+Generated replay snapshot and completed-attempt models advance to v5, and D-235 advances to
+compiler `11.0.0`. D-272 adds no diagnosis inference, answer key, diagnosis points, severity
+generation, psychosis finding, treatment rule, PatientTemplate, runtime activation, persistence
+migration, or UI. The current compatibility engine already enforced the same MDD family-only
+boundary; this decision makes the future native generated path preserve it independently.
+
+## D-273 — Launcher names and chief complaints resolve as a separate cosmetic presentation owner
+
+**Decision:** Add one standalone authoring-only launcher-presentation resolver rather than placing
+fictional names or chief-complaint prose inside diagnosis truth, clinical findings, scoring rules,
+or UI components. A versioned `PatientLauncherPresentationProfile` references one exact curated
+first-name pool, one exact curated last-name pool, and one or more reusable short
+chief-complaint banks. It preserves the accepted 25% middle-initial policy as the literal fraction
+one quarter. The resolver uses separate stable substreams for first name, last name, middle-initial
+presence, middle-initial letter, complaint-bank choice, and complaint-variant choice, then freezes
+all resolved values before play.
+
+First and last names are independently selected and never receive race/ethnicity, sex, diagnosis,
+or other clinical inputs. Chief-complaint text is presentation wording only: it cannot establish a
+diagnosis, finding, severity, treatment route, rule match, point value, or eligibility result.
+Complaint-bank bindings have explicit authoring specificity and synthetic game-selection weight.
+Only the highest specificity present in one profile participates; general and condition-specific
+banks that should both remain eligible must deliberately share that priority. A higher priority is
+therefore a specific-over-general content override, not a prevalence estimate or clinical
+probability. Variant text is concise, unique within its bank, and cannot become an answer-key hint.
+
+The complete authoring artifact retains exact profile/pool/bank versions and fingerprints, every
+eligible or shadowed bank, six domain-separated stable-draw identities, the original request, and
+replay fingerprints. Its minimized `ResolvedPatientLauncherPresentation` retains only the
+fictional name components, display name, selected bank/version, selected variant ID and text,
+patient-state ID, and resolver version. It intentionally omits the seed, diagnosis, rules, points,
+source prose, and authoring rationale.
+
+D-273 does not add real complaint-bank or profile content, attach presentation to
+`PatientInstance`, migrate D-200/D-235, persist a queue slot, change historical debrief behavior,
+activate runtime generation, or alter the app. Those are separate gates after a real
+PatientTemplate and presentation content exist. Care setting remains exact encounter/location
+state and is never inferred from launcher wording.
+
+## D-274 — The first Developer Patient Maker is a validated compatibility-case bridge
+
+**Decision:** Implement the requested local Developer Patient Maker now as an explicitly
+transitional client over the finite playable `CaseBlueprint` engine, without representing it as
+the future database-generated `PatientTemplate` maker. Its Developer-only allowlist contains only
+approved or review lifecycle cases that pass the complete canonical content validator, including
+schema, catalog references, deterministic instantiation, location eligibility, required-action
+reachability, accepted treatment/disposition paths, scoring, settlement, and reference solutions.
+It excludes legacy-unmeasured complexity content.
+
+The reviewer chooses one authored optional-complexity budget and one validated case that owns that
+exact value. The budget control filters the allowlist; it cannot edit the blueprint, select or
+materialize D-201 modules, change case facts, or imply that arbitrary complexity values are
+supported. This preserves the distinction between a measured but currently unspent compatibility
+envelope and future database-driven complication generation.
+
+Generation delegates to the existing pure deterministic `instantiateCase` and exact eligibility
+path. It increments the Developer queue generation, uses the ordinary complaint-variation
+substreams, replaces any prior reserved maker slot or same-blueprint waiting copy, re-enables an
+explicitly requested previously run blueprint, refills the other Developer definitions through
+the ordinary queue algorithm, and freezes the result in the stable
+`slot.developer.patient-maker` slot before opening the chart. A reload therefore preserves the
+same waiting patient. Completing it uses the ordinary attempt/review/export path and practice
+rewards still do not affect the standard bank.
+
+The maker appears only in local Developer mode, is collapsed by default, and exposes no seed or
+hidden patient truth. It is absent from Normal, Endgame, and portable Reviewer content. The future
+generalized maker remains deferred until one real source-controlled `PatientTemplate` vertical
+can traverse D-226/D-201/D-200. That later tool must be a thin client over the canonical generated
+compiler and must not silently extend this compatibility bridge into a parallel generator.

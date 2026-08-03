@@ -229,3 +229,155 @@ export const adaptDiagnosisInformationPrerequisite = (
   }
   return { ok: true, value: parsed.data };
 };
+
+/**
+ * Losslessly adapts an already-approved diagnosis-owned information
+ * requirement that applies whenever the exact focused patient/policy scope is
+ * active. Unlike a treatment-triggered prerequisite, this rule has no
+ * treatment trigger: the selected decision later resolves its information
+ * predicate as fulfilled or omitted.
+ */
+const adaptDiagnosisInformationAction = (
+  input: AdaptDiagnosisInformationPrerequisiteInput,
+  expectedStance: 'required' | 'preferred',
+): DiagnosisInformationPrerequisiteAdapterResult => {
+  const { diagnosis, policy } = input;
+  if (policy.review.status !== 'approved') {
+    return fail(
+      'POLICY_UNAPPROVED',
+      `${policy.id} is not approved for diagnosis-information requirement adaptation.`,
+      [policy.id],
+    );
+  }
+
+  const primaryCandidate = adaptFocusedMedicationRegimenRoute({
+    route: input.primaryRoute,
+    diagnosis,
+    medicationClasses: input.medicationClasses,
+    classMemberships: input.classMemberships,
+  });
+  if (!primaryCandidate.ok) {
+    return fail(
+      'PRIMARY_ROUTE_INVALID',
+      primaryCandidate.error.message,
+      primaryCandidate.error.contentIds,
+    );
+  }
+  if (referenceKey(primaryCandidate.value.ruleRef) !== referenceKey(policy.primaryRouteRef)) {
+    return fail(
+      'PRIMARY_ROUTE_MISMATCH',
+      `${policy.id} does not pin ${input.primaryRoute.id}@${input.primaryRoute.contentVersion}.`,
+      [policy.id, input.primaryRoute.id],
+    );
+  }
+  if (primaryCandidate.value.patientWhen === null) {
+    return fail(
+      'PRIMARY_ROUTE_INVALID',
+      `${input.primaryRoute.id} has no exact patient-state predicate to preserve on its information requirement.`,
+      [policy.id, input.primaryRoute.id],
+    );
+  }
+
+  const rule = diagnosisRules(diagnosis).find(
+    (candidate) => candidate.id === input.diagnosisRuleId,
+  );
+  if (!rule) {
+    return fail(
+      'DIAGNOSIS_RULE_MISSING',
+      `${diagnosis.id} does not own diagnosis rule ${input.diagnosisRuleId}.`,
+      [diagnosis.id, input.diagnosisRuleId],
+    );
+  }
+  if (rule.review.status !== 'approved') {
+    return fail('DIAGNOSIS_RULE_UNREVIEWED', `${rule.id} is not approved for compilation.`, [
+      diagnosis.id,
+      rule.id,
+    ]);
+  }
+  if (rule.target.kind !== 'information_action') {
+    return fail('UNSUPPORTED_TARGET', `${rule.id} does not target one exact information action.`, [
+      rule.id,
+      rule.target.id,
+    ]);
+  }
+  if (rule.stance !== expectedStance) {
+    return fail(
+      'UNSUPPORTED_STANCE',
+      `${rule.id} is not a ${expectedStance} direct information action.`,
+      [rule.id],
+    );
+  }
+  if (
+    rule.patientWhen?.type !== 'clinicalTagPresent' ||
+    rule.patientWhen.clinicalTagId !== policy.focusedDecisionId
+  ) {
+    return fail(
+      'UNSUPPORTED_PATIENT_SCOPE',
+      `${rule.id} does not pin the exact focused decision owned by ${policy.id}.`,
+      [rule.id, policy.id],
+    );
+  }
+  if (rule.selectionWhen !== null) {
+    return fail(
+      'UNSUPPORTED_SELECTION_TRIGGER',
+      `${rule.id} has a treatment trigger and is not a direct information requirement.`,
+      [rule.id],
+    );
+  }
+
+  const actionWhen = {
+    match: 'any' as const,
+    targets: [
+      {
+        kind: 'information_action' as const,
+        informationActionId: rule.target.id,
+      },
+    ],
+  };
+  const parsed = DecisionRuleCandidateDefinitionSchema.safeParse({
+    schemaVersion: 1,
+    ruleRef: {
+      kind: 'diagnosis_rule',
+      id: rule.id,
+      contentVersion: diagnosis.contentVersion,
+      ownerId: diagnosis.id,
+      ownerContentVersion: diagnosis.contentVersion,
+    },
+    label: rule.label,
+    ruleKind: 'prerequisite',
+    discoveryLane: 'automatic_guardrail',
+    patientWhen: primaryCandidate.value.patientWhen,
+    actionWhen,
+    triggeredInformationPrerequisite: null,
+    stance: rule.stance,
+    concernLevel: rule.concernLevel,
+    certaintyLevel: rule.certaintyLevel,
+    effectId: null,
+    issueId: null,
+    specificityPriority: 0,
+    rationale: rule.rationale,
+    balanceRef: null,
+    developerOpinionIds: [],
+    review: rule.review,
+  });
+  if (!parsed.success) {
+    return fail(
+      'CANDIDATE_INVALID',
+      parsed.error.issues
+        .map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`)
+        .join('; '),
+      [diagnosis.id, rule.id, policy.id],
+    );
+  }
+  return { ok: true, value: parsed.data };
+};
+
+export const adaptDiagnosisInformationRequirement = (
+  input: AdaptDiagnosisInformationPrerequisiteInput,
+): DiagnosisInformationPrerequisiteAdapterResult =>
+  adaptDiagnosisInformationAction(input, 'required');
+
+export const adaptDiagnosisInformationRecommendation = (
+  input: AdaptDiagnosisInformationPrerequisiteInput,
+): DiagnosisInformationPrerequisiteAdapterResult =>
+  adaptDiagnosisInformationAction(input, 'preferred');

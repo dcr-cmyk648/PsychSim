@@ -214,7 +214,16 @@ now have a separate D-217 reviewed fixed/weighted behavior-selection boundary wi
 slot-local deterministic draws across all four care settings, but no real profiles. D-218
 advances catalog-instance compilation to `4.0.0` and D-200 to `7.0.0`: it replaces
 caller-authored D-212 recipes with exact D-217 selection, runs D-215 after final truth, and replays
-the complete D-217/D-215/D-213/D-194 audit. D-219 advances the current attachment contract to
+the complete D-217/D-215/D-213/D-194 audit. D-257 corrects the real-content policy: accurate
+self-report is the zero-cost base, while inaccurate/partial self-report is a D-201
+`source_report` complexity module applied through a D-217 `2.0.0` complexity-gated slot without a
+second draw, charge, or truth mutation. This first route covers D-215 structured non-finding
+views. D-258 completes the matching D-193 route: the same exact D-201 artifact selects one
+approved patient-report projection after finding truth freezes, every alternative preserves the
+same hidden predicate and target, only the active projection participates in D-256 negative
+closure, and D-200 `22.0.0` verifies complete union coverage across both routes without a second
+cost. No real report profile or frequency is activated. D-219
+advances the current attachment contract to
 `attachment_only.v4`, catalog compiler `5.0.0`, and D-200 `8.0.0`: one exact, operational-only
 admission artifact evaluates the complete focused action horizon against the selected physical
 location's capabilities, base formulary, disposition allowlist, and eligible service methods.
@@ -369,6 +378,40 @@ purchase commands no longer accept quote fields. D-235 advances to compiler `3.0
 charges and the remaining settlement inputs stay explicitly unverified. No SaveData, runtime,
 browser, or UI work is activated.
 
+D-270 extends that exact native price-owner join to the complete intervention/disposition
+horizon. Generated-attempt input no longer accepts treatment-charge rows. Replay snapshot v3
+freezes exact treatment owners and nullable fulfillment-service bindings; the submitted selection
+creates one least-cost equal-quality quote only for each service-backed option, and integrity
+replay rejects charge tampering. Service-free treatments and medication/regimen actions receive
+no invented price. D-235 advances to compiler `9.0.0`, generated attempt/settlement v3, while
+base reimbursement, challenge bonus, satisfaction multiplier, and prior-bank inputs remain
+explicit non-native settlement inputs. No clinical rule, point, price, SaveData, runtime, browser,
+or UI work is activated.
+
+D-271 closes those remaining free scalar settlement inputs without inventing production balance.
+One separate versioned, exact-template economy policy owns provisional base reimbursement and
+challenge bonus. The current ClinicState owns prior clinic/lifetime points and raw satisfaction,
+must match the exact D-227 operational clinic projection used for admission, and is combined with
+the exact versioned satisfaction curve. Replay snapshot, settlement, and generated attempt advance
+to v4 and D-235 advances to compiler `10.0.0`; integrity replay rederives the multiplier, payout,
+zero floor, practice banking, and after-balances. Real template economy policies, runtime
+activation, SaveData, browser persistence, and UI remain open.
+
+D-272 closes generated diagnosis-qualifier validation. One minimized owner set is compiled from
+every exact diagnosis definition in the frozen diagnosis horizon and retains only family/severity
+selection mode plus reviewed player-selectable qualifier identities. MDD severity remains backend
+state and cannot be submitted; the reviewed psychotic-features specifier remains available for a
+later named-qualifier interface. Replay snapshot and completed attempt advance to v5 and D-235 to
+compiler `11.0.0`. No diagnosis scoring, severity generation, real template, runtime, persistence,
+or UI is activated.
+
+D-273 adds the standalone deterministic launcher-presentation owner required before a generated
+waiting patient can have neutral display copy. Exact curated first/last-name pools, a fixed 25%
+middle-initial policy, and reusable brief chief-complaint banks resolve through independent stable
+substreams into a replayable authoring artifact and a minimized safe presentation. No real
+profile/bank content, PatientInstance attachment, queue/save migration, runtime activation, or UI
+is included.
+
 D-240 adds the first missing reusable presentation owner found by auditing that real route:
 clinical duration and subjective burden compile through singular exact
 action/semantic-owner/target/source/time definitions into a full authoring projection and a
@@ -448,10 +491,64 @@ inside D-200 `21.0.0`. Hard diagnosis candidates remain dominant and a same-targ
 is rejected pending reviewed combination semantics. Real texture mappings/rates and the real MDD
 profile remain evidence-gated.
 
-The later local Developer Patient Maker may expose exact recipe, admitted setting/location, and
-bounded complexity choices only as a thin client over the canonical deterministic compiler. It is
-not part of the current dependency phase and cannot precede one realistic source-controlled
-generation vertical.
+D-254 adds the first real, runtime-excluded current-episode MDD profile: five through nine of nine
+reviewed dimensions with depressed mood or anhedonia required, one concrete manifestation per
+selected dimension in v1, and no points. D-255 then proves the approved downstream scoring
+handoff without binding a patient template. Exact direct MDD information actions receive separate
+required `fulfilled/omitted` or preferred `selected/unselected` balance shapes, frozen in balance
+snapshot v2 and replayed by native scorer `6.0.0`/D-235 `8.0.0`/point-report v7. Remaining real
+source-report behavior, result recipes, mania/safety triggers, diagnosis, disposition, fit, and
+settlement owners still gate the vertical. D-256 explicitly rejects per-manifestation D-198
+absence baselines. D-193 `1.1.0` instead lets one reviewed negative-result projection derive
+`absent` only after the complete supplied generator candidate set contains no approved value for
+that exact finding; positive and unresolved values suppress the fallback, and open-world missing
+remains distinct. D-258 advances D-193 to `1.2.0`: a D-201-selected inaccurate self-report may
+choose an alternate display projection, but only the active projection can request that D-256
+fallback and the canonical finding remains unchanged. D-259 then adds the first real
+runtime-excluded projection catalog: 49 explicit mappings close a 17-finding compact
+`info.history.depressive-symptoms` horizon, include brief sleep and death/suicidality items, and
+display a nonsafety subthreshold symptom as present without changing its hidden value. Dedicated
+Sleep and Suicide/self-harm actions remain the owners of deeper detail. The next content
+checkpoint D-260 pins those 49 mappings in one versioned projection horizon and adds one exact
+`finding_projections`-only static D-213 recipe for the current shared action payload. The
+checked-in content now produces one complete 17-source result binding. D-261 separately
+version-pins duration profiles, resolved/deferred duration records, and D-240 definitions before
+real duration content is added. D-262 then adds the first runtime-excluded current-MDD duration
+profile and a two-action static foundation that routes its already-resolved D-240 reveal beside
+the 17-finding compact symptom result. D-263 adds one standalone deterministic, replayable,
+unweighted profile-option resolver with exact condition/source/time provenance. D-264 then replays
+one genuine D-208 artifact plus the genuine D-263 results and appends them through a collision-safe,
+state-fingerprinted authoring artifact. D-266 advances D-200 to `23.0.0`, retains one optional
+verified D-264 artifact, and passes its resulting state through the unchanged D-194/D-240 path
+while keeping null as the D-208-only compatibility route. D-267 adds the standalone exact
+condition-functional-impairment profile/resolver contract, but deliberately checks in no real
+profile and does not attach it to resolved patient state. D-268 then records MDD's reviewed
+generation-only higher-of severity policy and family-only player diagnosis boundary, plus the
+named psychotic-features specifier identity, while leaving every exact level boundary disabled.
+D-269 adds the replayable authoring-only higher-of combiner over one strict externally owned
+symptom-severity envelope and one native-verified D-267 artifact for the exact same episode. It
+returns only a detached qualitative descriptor and does not create the missing upstream
+symptom-severity derivation or map the result to a diagnosis severity ID. These steps still add no
+PatientTemplate, real impairment result path, symptom-severity owner, exclusion owner, or point
+rule. PatientTemplate
+activation, inaccurate-report content, reviewed impairment content and attachment, exclusion
+owners, points,
+persistence, and UI remain later gates.
+
+D-265 separately adds the runtime-excluded race/ethnicity identity foundation: the current 2024
+OMB minimum categories, combined multiselect self-identification, exact source/source-use and
+Developer-opinion guardrails, a migration-safe demographics v3 record, and typed provided-category
+facts. It adds no demographic selection distribution or clinical modifier. Before any such content
+can enter a generated vertical, tests must prove name pools cannot infer identity, every eligible
+diagnosis retains positive mass, report effects stay out of hidden truth, pharmacology effects do
+not proxy ancestry/genetics, and every active modifier has exact reviewed provenance.
+
+D-274 adds a transitional local Developer Patient Maker only for finite compatibility cases that
+already pass complete playability validation. Its complexity choice filters on the exact authored
+budget and cannot synthesize optional modules. It persists the ordinary deterministic case into a
+Developer slot before opening it. The later database-generated maker remains a separate thin
+client over exact recipe, admitted setting/location, and D-201/D-200 complexity ownership; that
+path still cannot activate before one realistic source-controlled generation vertical.
 
 The remaining
 exact finding/result/source/presentation, diagnosis, secondary-rule, and settlement dependencies

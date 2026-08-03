@@ -363,6 +363,7 @@ const makeState = () => ({
       value: 4,
       unit: 'month',
       durationProfileId: 'duration-profile.test.low-energy',
+      durationProfileContentVersion: '1.0.0',
       durationOptionId: 'duration-option.test.four-months',
       relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
       interpretation: 'supports_authored_state',

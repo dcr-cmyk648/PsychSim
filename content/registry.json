@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.43.0",
+  "contentVersion": "3.51.0",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
@@ -101,6 +101,117 @@
       "dependsOnIds": ["registry.catalog.findings"]
     },
     {
+      "id": "registry.catalog.finding-projections",
+      "kind": "finding_projection_catalog",
+      "path": "content/catalogs/findings/projections.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "finding-projection.history.depressive-symptoms.depressed-mood.present",
+        "finding-projection.history.depressive-symptoms.depressed-mood.absent",
+        "finding-projection.history.depressive-symptoms.depressed-mood.subthreshold",
+        "finding-projection.history.depressive-symptoms.anhedonia.present",
+        "finding-projection.history.depressive-symptoms.anhedonia.absent",
+        "finding-projection.history.depressive-symptoms.anhedonia.subthreshold",
+        "finding-projection.history.depressive-symptoms.increased-appetite.present",
+        "finding-projection.history.depressive-symptoms.increased-appetite.absent",
+        "finding-projection.history.depressive-symptoms.increased-appetite.subthreshold",
+        "finding-projection.history.depressive-symptoms.reduced-appetite.present",
+        "finding-projection.history.depressive-symptoms.reduced-appetite.absent",
+        "finding-projection.history.depressive-symptoms.reduced-appetite.subthreshold",
+        "finding-projection.history.depressive-symptoms.weight-gain.present",
+        "finding-projection.history.depressive-symptoms.weight-gain.absent",
+        "finding-projection.history.depressive-symptoms.weight-gain.subthreshold",
+        "finding-projection.history.depressive-symptoms.weight-loss.present",
+        "finding-projection.history.depressive-symptoms.weight-loss.absent",
+        "finding-projection.history.depressive-symptoms.weight-loss.subthreshold",
+        "finding-projection.history.depressive-symptoms.insomnia.present",
+        "finding-projection.history.depressive-symptoms.insomnia.absent",
+        "finding-projection.history.depressive-symptoms.insomnia.subthreshold",
+        "finding-projection.history.depressive-symptoms.hypersomnia.present",
+        "finding-projection.history.depressive-symptoms.hypersomnia.absent",
+        "finding-projection.history.depressive-symptoms.hypersomnia.subthreshold",
+        "finding-projection.history.depressive-symptoms.psychomotor-slowing.present",
+        "finding-projection.history.depressive-symptoms.psychomotor-slowing.absent",
+        "finding-projection.history.depressive-symptoms.psychomotor-slowing.subthreshold",
+        "finding-projection.history.depressive-symptoms.psychomotor-agitation.present",
+        "finding-projection.history.depressive-symptoms.psychomotor-agitation.absent",
+        "finding-projection.history.depressive-symptoms.psychomotor-agitation.subthreshold",
+        "finding-projection.history.depressive-symptoms.fatigue-low-energy.present",
+        "finding-projection.history.depressive-symptoms.fatigue-low-energy.absent",
+        "finding-projection.history.depressive-symptoms.fatigue-low-energy.subthreshold",
+        "finding-projection.history.depressive-symptoms.worthlessness.present",
+        "finding-projection.history.depressive-symptoms.worthlessness.absent",
+        "finding-projection.history.depressive-symptoms.worthlessness.subthreshold",
+        "finding-projection.history.depressive-symptoms.excessive-guilt.present",
+        "finding-projection.history.depressive-symptoms.excessive-guilt.absent",
+        "finding-projection.history.depressive-symptoms.excessive-guilt.subthreshold",
+        "finding-projection.history.depressive-symptoms.concentration-difficulty.present",
+        "finding-projection.history.depressive-symptoms.concentration-difficulty.absent",
+        "finding-projection.history.depressive-symptoms.concentration-difficulty.subthreshold",
+        "finding-projection.history.depressive-symptoms.indecision.present",
+        "finding-projection.history.depressive-symptoms.indecision.absent",
+        "finding-projection.history.depressive-symptoms.indecision.subthreshold",
+        "finding-projection.history.depressive-symptoms.passive-death-wish.present",
+        "finding-projection.history.depressive-symptoms.passive-death-wish.absent",
+        "finding-projection.history.depressive-symptoms.active-suicidal-ideation.present",
+        "finding-projection.history.depressive-symptoms.active-suicidal-ideation.absent"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.information-actions",
+        "registry.catalog.findings",
+        "developer-opinions.psychsim"
+      ]
+    },
+    {
+      "id": "registry.catalog.finding-projection-horizons",
+      "kind": "finding_projection_horizon_catalog",
+      "path": "content/catalogs/findings/projection-horizons.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["finding-projection-horizon.history.depressive-symptoms"],
+      "dependsOnIds": ["registry.catalog.finding-projections", "developer-opinions.psychsim"]
+    },
+    {
+      "id": "registry.catalog.universal-action-result-assemblies",
+      "kind": "universal_action_result_assembly_catalog",
+      "path": "content/catalogs/actions/universal-action-result-assemblies.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "universal-action-result-assembly.history.depressive-symptoms",
+        "universal-action-result-assembly.mdd-initial-assessment-foundation"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.information-actions",
+        "registry.catalog.finding-projection-horizons",
+        "registry.catalog.clinical-duration-profiles",
+        "registry.catalog.diagnoses",
+        "developer-opinions.psychsim"
+      ]
+    },
+    {
+      "id": "registry.catalog.clinical-duration-profiles",
+      "kind": "clinical_duration_profile_catalog",
+      "path": "content/catalogs/durations/profiles.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["duration-profile.mdd.current-episode"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "developer-opinions.psychsim",
+        "evidence.nimh.mental-health-topics.current"
+      ]
+    },
+    {
+      "id": "registry.catalog.condition-finding-profiles",
+      "kind": "condition_finding_profile_catalog",
+      "path": "content/catalogs/diagnoses/condition-finding-profiles.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["condition-finding-profile.mdd.current-episode"],
+      "dependsOnIds": [
+        "registry.catalog.diagnoses",
+        "registry.catalog.findings",
+        "developer-opinions.psychsim"
+      ]
+    },
+    {
       "id": "registry.catalog.diagnosis-classifications.icd10cm-2026",
       "kind": "diagnosis_classification_catalog",
       "path": "content/catalogs/diagnoses/classifications/icd-10-cm/2026",
@@ -138,6 +249,7 @@
         "evidence.nhs.heart-palpitations.2026",
         "evidence.nimh.mental-health-topics.current",
         "evidence.nlm.rxnorm-cpc.2026-07-06",
+        "evidence.omb.spd15.2024",
         "evidence.roerig.clozapine-augmentation-strategies.2019",
         "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
         "evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025",
@@ -179,7 +291,10 @@
         "registry.catalog.diagnoses",
         "registry.catalog.medication-identities",
         "registry.catalog.source-use-decisions",
+        "evidence.canmat.mdd-adults.2023-update",
         "evidence.fda.abilify-maintena-label.2025-01",
+        "evidence.nimh.mental-health-topics.current",
+        "evidence.omb.spd15.2024",
         "evidence.roerig.clozapine-augmentation-strategies.2019",
         "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019"
       ]
@@ -369,7 +484,10 @@
       "categoryIds": [
         "balance.mdd-any-medication-reaction-history",
         "balance.mdd-any-medication-reconciliation",
-        "balance.mdd-initial-one-first-line-antidepressant"
+        "balance.mdd-initial-depressive-syndrome-assessment",
+        "balance.mdd-initial-episode-course-assessment",
+        "balance.mdd-initial-one-first-line-antidepressant",
+        "balance.mdd-substance-history"
       ],
       "dependsOnIds": [
         "registry.catalog.diagnoses",
@@ -429,6 +547,26 @@
       "kind": "variant_pool_catalog",
       "path": "content/catalogs/demographics/variant-pools.json",
       "runtimeIncluded": true
+    },
+    {
+      "id": "race-ethnicity-catalog.omb-spd15-2024-minimum",
+      "kind": "race_ethnicity_catalog",
+      "path": "content/catalogs/demographics/race-ethnicity.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "race-ethnicity.american-indian-or-alaska-native",
+        "race-ethnicity.asian",
+        "race-ethnicity.black-or-african-american",
+        "race-ethnicity.hispanic-or-latino",
+        "race-ethnicity.middle-eastern-or-north-african",
+        "race-ethnicity.native-hawaiian-or-pacific-islander",
+        "race-ethnicity.white"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.source-use-decisions",
+        "developer-opinions.psychsim",
+        "evidence.omb.spd15.2024"
+      ]
     },
     {
       "id": "registry.catalog.tests",
@@ -690,6 +828,12 @@
       "id": "evidence.nimh.mental-health-topics.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nimh-mental-health-topics.evidence.json",
+      "runtimeIncluded": false
+    },
+    {
+      "id": "evidence.omb.spd15.2024",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/omb-spd15-2024.evidence.json",
       "runtimeIncluded": false
     },
     {

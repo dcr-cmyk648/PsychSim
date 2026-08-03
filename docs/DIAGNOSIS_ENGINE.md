@@ -19,7 +19,10 @@ One diagnosis family lives in one file under `content/catalogs/diagnoses/definit
 - source-linked complexity contributions;
 - source-use notes that identify exactly which nested rules they informed.
 
-MDD therefore has one family file containing the future mild, moderate, and severe branches. Its severity constraints are deliberately `disabled_pending_source`; the file does not guess symptom-count, impairment, psychosis, or safety thresholds while the source request remains open.
+MDD therefore has one family file containing the future mild, moderate, and severe branches. Its
+severity constraints are deliberately `disabled_pending_source`; the file does not guess
+symptom-count, impairment, psychosis, or safety thresholds while the exact-boundary source request
+remains open.
 
 That family file has no outpatient, inpatient, difficulty, play-time, facility, or treatment-
 intensity ceiling. The same reusable MDD dossier must be capable of supporting later encounter
@@ -27,12 +30,23 @@ recipes involving hospital care, polypharmacy, ECT, ketamine, neuromodulation, o
 contexts. Those interventions retain their own dossier knowledge and cross-link to MDD. Sparse or
 unsupported MDD branches remain disabled or ticketed rather than being invented.
 
-A medically unreviewed severity-policy packet now asks whether a patient template should author
-intended severity while the generator validates separate bounded dimensions such as symptom
-burden, intensity, distress, and function. Psychosis and acute safety remain separate structured
-facts, and a PHQ band remains a symptom-burden measurement rather than a diagnosis or sole severity
-definition. This is a decision proposal, not an adopted generator algorithm; all MDD severity
-branches remain disabled until the envelopes and provenance receive psychiatrist review.
+The reviewed MDD policy now keeps symptom severity and depression-attributed functional impairment
+separate and names only their higher qualitative level as an internal episode descriptor.
+Psychosis, acute safety, course, treatment history, and nondepressive causes of impairment remain
+separate structured facts, and a PHQ band remains a symptom-burden measurement rather than a
+diagnosis or sole severity definition. D-269 proves the higher-of operation only for two exact
+same-episode inputs and returns a detached qualitative descriptor. It neither authenticates the
+still-missing symptom-severity owner nor maps the result to a `severityId`; all MDD severity
+branches remain disabled until their exact input boundaries and attachments receive review.
+
+D-272 makes that player/backend separation replayable in the native generated-attempt path. One
+minimized owner projection is compiled from the exact diagnosis definitions in the encounter's
+finite diagnosis horizon. It preserves only whether severity is player-selectable, the finite
+reviewed severity allowlist when applicable, and reviewed player-selectable specifier identities
+with their exclusivity groups. Consequently a generated MDD encounter rejects mild, moderate, or
+severe as a submitted qualifier while a horizon that includes MDD may accept the separately
+reviewed psychotic-features specifier. Whole diagnosis dossiers, source prose, recommendation
+rules, and backend severity descriptors are not copied into the replay payload.
 
 A patient-template file continues to own:
 

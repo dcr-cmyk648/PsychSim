@@ -270,8 +270,16 @@ const diagnosisSelectionReferenceIsValid = (
   ) {
     return false;
   }
+  if (
+    selection.severityId !== null &&
+    definition.severityAxis?.playerSelectionMode === 'family_only'
+  ) {
+    return false;
+  }
   return selection.specifierIds.every((specifierId) =>
-    definition.specifiers.some((specifier) => specifier.id === specifierId),
+    definition.specifiers.some(
+      (specifier) => specifier.id === specifierId && specifier.playerSelectable,
+    ),
   );
 };
 
@@ -1891,6 +1899,9 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     ...(diagnosis.severityAxis
       ? [
           diagnosis.severityAxis.id,
+          ...(diagnosis.severityAxis.derivationPolicy
+            ? [diagnosis.severityAxis.derivationPolicy.id]
+            : []),
           ...diagnosis.severityAxis.levels.flatMap((level) => [
             level.id,
             ...level.rules.map((rule) => rule.id),
@@ -1983,6 +1994,9 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     const nestedReviews = [
       ...rules.map((rule) => rule.review),
       ...complexityContributions.map((contribution) => contribution.review),
+      ...(diagnosis.severityAxis?.derivationPolicy
+        ? [diagnosis.severityAxis.derivationPolicy.review]
+        : []),
       ...(diagnosis.severityAxis?.levels.map((level) => level.review) ?? []),
       ...diagnosis.specifiers.map((specifier) => specifier.review),
       ...diagnosis.comorbidityRelationships.map((relationship) => relationship.review),

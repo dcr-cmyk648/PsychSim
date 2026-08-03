@@ -46,6 +46,8 @@
     "Anhedonia"
   ],
   "durationProfile": {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "duration-profile.review-mdd-initial.current-episode",
     "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
     "interpretation": "supports_authored_state",

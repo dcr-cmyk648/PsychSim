@@ -555,6 +555,7 @@ const ownerKindForModule = (
   if (moduleKind === 'prior_treatment') return 'prior_treatment_bridge';
   if (moduleKind === 'substance_use') return 'exposure_bridge';
   if (moduleKind === 'finding_texture') return 'finding_texture_bridge';
+  if (moduleKind === 'source_report') return 'source_report_selection';
   return 'unowned_other';
 };
 
@@ -596,7 +597,12 @@ const buildSelectedModuleAudits = (
         remainingBudgetBefore: draw.remainingBudgetBefore,
         remainingBudgetAfter: draw.remainingBudgetAfter,
         ownerKind: ownerKindForModule(moduleKind),
-        materializationStatus: moduleKind === 'other' ? 'unsupported' : 'materialized',
+        materializationStatus:
+          moduleKind === 'other'
+            ? 'unsupported'
+            : moduleKind === 'source_report'
+              ? 'deferred_to_post_truth'
+              : 'materialized',
         materializedRecordIds: materializedIdsForModule(
           inputs,
           evaluation.moduleRef.id,

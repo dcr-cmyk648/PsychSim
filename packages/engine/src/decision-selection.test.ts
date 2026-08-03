@@ -1,6 +1,7 @@
 import {
   GeneratedEncounterDecisionSelectionSchema,
   type DecisionActionHorizon,
+  type DiagnosisDefinition,
   type DiagnosisSelectionHorizon,
   type GeneratedEncounterDecisionSelection,
   type MedicationRegimenEntryV2,
@@ -15,6 +16,7 @@ import {
   selectedDecisionActionTargetMatches,
   validateGeneratedEncounterDecisionSelectionAgainstHorizon,
 } from './decision-selection';
+import { compileGeneratedDiagnosisSelectionOwners } from './generated-diagnosis-selection-owner';
 
 const regimenEntry = (id: string, medicationIdentityId: string): MedicationRegimenEntryV2 => ({
   recordVersion: 2,
@@ -61,6 +63,117 @@ const diagnosisSelectionHorizon: DiagnosisSelectionHorizon = {
   ],
 };
 
+const reviewed = {
+  status: 'approved' as const,
+  reviewerId: 'reviewer.test',
+  reviewedAt: '2026-08-03T00:00:00.000Z',
+  sourceUseNoteIds: ['source-use.test.diagnosis-qualifier'],
+};
+
+const diagnosisDefinition: DiagnosisDefinition = {
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'diagnosis.test.mdd',
+  label: 'Synthetic MDD',
+  searchAliases: [],
+  selectableInGameplay: true,
+  description: 'Synthetic family-only qualifier fixture.',
+  medicalReviewStatus: 'unreviewed',
+  baseClinicalTagIds: [],
+  baseRules: [],
+  severityAxis: {
+    id: 'severity-axis.test.mdd',
+    label: 'Synthetic severity',
+    playerSelectionMode: 'family_only',
+    derivationPolicy: null,
+    levels: [
+      {
+        id: 'severity.test.mdd.mild',
+        label: 'Mild',
+        rank: 1,
+        generationStatus: 'disabled_pending_source',
+        constraints: {
+          criteriaSetId: null,
+          minimumPositiveCriteria: null,
+          maximumPositiveCriteria: null,
+          requiredCriterionIds: [],
+          forbiddenCriterionIds: [],
+          minimumFunctionalImpairment: null,
+        },
+        addedClinicalTagIds: [],
+        rules: [],
+        complexityContributions: [],
+        review: {
+          status: 'unreviewed',
+          reviewerId: null,
+          reviewedAt: null,
+          sourceUseNoteIds: [],
+        },
+      },
+      {
+        id: 'severity.test.mdd.moderate',
+        label: 'Moderate',
+        rank: 2,
+        generationStatus: 'disabled_pending_source',
+        constraints: {
+          criteriaSetId: null,
+          minimumPositiveCriteria: null,
+          maximumPositiveCriteria: null,
+          requiredCriterionIds: [],
+          forbiddenCriterionIds: [],
+          minimumFunctionalImpairment: null,
+        },
+        addedClinicalTagIds: [],
+        rules: [],
+        complexityContributions: [],
+        review: {
+          status: 'unreviewed',
+          reviewerId: null,
+          reviewedAt: null,
+          sourceUseNoteIds: [],
+        },
+      },
+    ],
+  },
+  specifiers: [
+    {
+      id: 'specifier.test.mdd.psychotic-features',
+      label: 'With psychotic features',
+      playerSelectable: true,
+      exclusiveGroupId: null,
+      addedClinicalTagIds: [],
+      rules: [],
+      complexityContributions: [],
+      review: reviewed,
+    },
+    {
+      id: 'specifier.test.mdd.internal',
+      label: 'Internal-only fixture',
+      playerSelectable: false,
+      exclusiveGroupId: null,
+      addedClinicalTagIds: [],
+      rules: [],
+      complexityContributions: [],
+      review: reviewed,
+    },
+  ],
+  comorbidityRelationships: [],
+  complexityContributions: [],
+  classificationBindings: [],
+  sourceUseNotes: [],
+};
+
+const diagnosisSelectionOwnerResult = compileGeneratedDiagnosisSelectionOwners({
+  diagnosisSelectionHorizon,
+  diagnosisSelectionHorizonFingerprint:
+    'fingerprint.catalog-instance.diagnosis-selection-horizon.fnv1a64.1111111111111111',
+  definitionOwners: { definitions: [diagnosisDefinition] },
+});
+if (!diagnosisSelectionOwnerResult.ok) {
+  throw new Error(diagnosisSelectionOwnerResult.error.message);
+}
+const diagnosisSelectionOwners = diagnosisSelectionOwnerResult.value;
+
 const emptyTreatment = {
   schemaVersion: 1 as const,
   selectionVersion: 2 as const,
@@ -93,6 +206,7 @@ const validate = (selection: unknown) =>
   validateGeneratedEncounterDecisionSelectionAgainstHorizon(selection, {
     decisionActionHorizon,
     diagnosisSelectionHorizon,
+    diagnosisSelectionOwners,
     currentRegimen,
   });
 
@@ -161,6 +275,54 @@ describe('generated encounter decision selection', () => {
     ).toMatchObject({
       ok: false,
       error: { code: 'TREATMENT_OUTSIDE_HORIZON' },
+    });
+  });
+
+  it('keeps family-only severity internal while permitting one reviewed named specifier', () => {
+    expect(
+      validate(
+        decision({
+          diagnosisSelections: [
+            {
+              diagnosisId: diagnosisDefinition.id,
+              severityId: null,
+              specifierIds: ['specifier.test.mdd.psychotic-features'],
+            },
+          ],
+        }),
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      validate(
+        decision({
+          diagnosisSelections: [
+            {
+              diagnosisId: diagnosisDefinition.id,
+              severityId: 'severity.test.mdd.moderate',
+              specifierIds: [],
+            },
+          ],
+        }),
+      ),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'DIAGNOSIS_QUALIFIER_OUTSIDE_HORIZON' },
+    });
+    expect(
+      validate(
+        decision({
+          diagnosisSelections: [
+            {
+              diagnosisId: diagnosisDefinition.id,
+              severityId: null,
+              specifierIds: ['specifier.test.mdd.internal'],
+            },
+          ],
+        }),
+      ),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'DIAGNOSIS_QUALIFIER_OUTSIDE_HORIZON' },
     });
   });
 

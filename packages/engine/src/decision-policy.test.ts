@@ -1264,6 +1264,7 @@ describe('point-free decision-policy compiler', () => {
             value: 4,
             unit: 'month',
             durationProfileId: 'duration-profile.test.low-energy',
+            durationProfileContentVersion: '1.0.0',
             durationOptionId: 'duration-option.test.four-months',
             relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
             interpretation: 'supports_authored_state',
@@ -1337,6 +1338,7 @@ describe('point-free decision-policy compiler', () => {
             value: 4,
             unit: 'month',
             durationProfileId: 'duration-profile.test.low-energy',
+            durationProfileContentVersion: '1.0.0',
             durationOptionId: 'duration-option.test.four-months',
             relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
             interpretation: 'supports_authored_state',
@@ -1751,10 +1753,74 @@ describe('point-free decision-policy compiler', () => {
       ),
     ).toBe(false);
   });
+
+  it('indexes only explicitly provided version-pinned race/ethnicity identities', () => {
+    const patientState = makePatientState();
+    const facts = collectDecisionPatientFacts({
+      ...patientState,
+      demographics: {
+        recordVersion: 3,
+        ageYears: patientState.demographics.ageYears,
+        reviewedAgeBandId: patientState.demographics.reviewedAgeBandId,
+        sexForReference: patientState.demographics.sexForReference,
+        raceEthnicity: {
+          recordVersion: 1,
+          standardId: 'race-ethnicity-standard.omb-spd15-2024',
+          standardContentVersion: '1.0.0',
+          collectionStatus: 'provided',
+          identificationBasis: 'self_identified',
+          categoryIds: [
+            'race-ethnicity.black-or-african-american',
+            'race-ethnicity.hispanic-or-latino',
+          ],
+        },
+      },
+    });
+    const demographicIdentityFacts = facts.filter(
+      (entry) => entry.key.attributeId === 'demographics.race-ethnicity-category',
+    );
+
+    expect(demographicIdentityFacts.map((entry) => entry.key)).toEqual([
+      {
+        recordKind: 'demographics',
+        identityId: 'race-ethnicity-standard.omb-spd15-2024',
+        identityContentVersion: '1.0.0',
+        attributeId: 'demographics.race-ethnicity-category',
+        valueId: 'race-ethnicity.black-or-african-american',
+      },
+      {
+        recordKind: 'demographics',
+        identityId: 'race-ethnicity-standard.omb-spd15-2024',
+        identityContentVersion: '1.0.0',
+        attributeId: 'demographics.race-ethnicity-category',
+        valueId: 'race-ethnicity.hispanic-or-latino',
+      },
+    ]);
+
+    expect(
+      collectDecisionPatientFacts({
+        ...patientState,
+        demographics: {
+          recordVersion: 3,
+          ageYears: patientState.demographics.ageYears,
+          reviewedAgeBandId: patientState.demographics.reviewedAgeBandId,
+          sexForReference: patientState.demographics.sexForReference,
+          raceEthnicity: {
+            recordVersion: 1,
+            standardId: 'race-ethnicity-standard.omb-spd15-2024',
+            standardContentVersion: '1.0.0',
+            collectionStatus: 'not_recorded',
+            identificationBasis: null,
+            categoryIds: [],
+          },
+        },
+      }).some((entry) => entry.key.attributeId === 'demographics.race-ethnicity-category'),
+    ).toBe(false);
+  });
 });
 
 describe('triggered information prerequisite compilation', () => {
-  it('requires a diagnosis prerequisite to preserve separate trigger and fulfillment predicates', () => {
+  it('preserves separate trigger and fulfillment predicates when the triggered contract is used', () => {
     const candidate = triggeredInformationPrerequisite();
     expect(DecisionRuleCandidateDefinitionSchema.parse(candidate)).toEqual(candidate);
     expect(
@@ -1762,7 +1828,7 @@ describe('triggered information prerequisite compilation', () => {
         ...candidate,
         triggeredInformationPrerequisite: null,
       }).success,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       DecisionRuleCandidateDefinitionSchema.safeParse({
         ...candidate,

@@ -43,6 +43,8 @@
     "I cannot trust anyone"
   ],
   "durationProfile": {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "duration-profile.review-schizophrenia-relapse.current-change",
     "relatedDiagnosisId": "diagnosis.schizophrenia-spectrum-disorder",
     "interpretation": "supports_authored_state",

@@ -19,6 +19,8 @@ import {
   type GeneratedEncounterSettlement,
   type GeneratedEncounterSettlementInput,
   type GeneratedEncounterTreatmentSelection,
+  type GeneratedDiagnosisSelectionDefinitionOwnersInput,
+  type GeneratedDiagnosisSelectionOwnerSetSnapshot,
   type GeneratedInformationPurchaseSnapshot,
   type GeneratedRulePointEvaluation,
   type PlayerDiagnosisSelections,
@@ -34,20 +36,31 @@ import {
 } from './decision-balance';
 import {
   deriveGeneratedEncounterDecisionSelection,
+  evaluateSelectedDecisionActionPredicate,
   evaluateTriggeredInformationPrerequisite,
   selectedDecisionActionTargetMatches,
   validateGeneratedEncounterDecisionSelectionAgainstSnapshot,
 } from './decision-selection';
 import { verifyFindingPipelineAuditIntegrity } from './finding-pipeline-audit-composer';
 import {
+  compileGeneratedDiagnosisSelectionOwners,
+  verifyGeneratedDiagnosisSelectionOwnerSetIntegrity,
+} from './generated-diagnosis-selection-owner';
+import {
   NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION,
-  compileGeneratedInformationServicePricing,
+  compileGeneratedEncounterServicePricing,
   quoteGeneratedInformationPurchase,
+  quoteGeneratedTreatmentCharges,
   verifyGeneratedServicePricingReplaySnapshot,
 } from './generated-service-quote';
+import {
+  NATIVE_GENERATED_SETTLEMENT_CONTEXT_COMPILER_VERSION,
+  compileGeneratedEncounterSettlementContext,
+  verifyGeneratedEncounterSettlementContextIntegrity,
+} from './generated-settlement-context';
 import { resolveGeneratedRuleCombination } from './rule-combination';
 
-export const GENERATED_COMPLETED_ATTEMPT_COMPILER_VERSION = '7.0.0';
+export const GENERATED_COMPLETED_ATTEMPT_COMPILER_VERSION = '11.0.0';
 
 type CompileErrorCode =
   | 'INVALID_INPUT'
@@ -369,6 +382,17 @@ const validatePointTrace = (input: {
       return `Trace row ${row.id} does not preserve its exact triggered-information evaluation.`;
     }
     if (balance !== null) {
+      const informationRequirementFulfilled =
+        balance.balanceKind === 'information_requirement' && compiled.actionWhen !== null
+          ? evaluateSelectedDecisionActionPredicate({
+              predicate: compiled.actionWhen,
+              selection: input.playerDecision,
+              currentRegimen: input.snapshot.patientInstance.patientState.medicationRegimenEntries,
+            })
+          : null;
+      if (balance.balanceKind === 'information_requirement' && !row.matched) {
+        return `Trace row ${row.id} does not preserve its active direct information requirement.`;
+      }
       const expectedOutcome =
         balance.balanceKind === 'triggered_information_prerequisite'
           ? expectedPrerequisiteEvaluation?.status === 'fulfilled'
@@ -376,15 +400,19 @@ const validatePointTrace = (input: {
             : expectedPrerequisiteEvaluation?.status === 'omitted'
               ? balance.outcomes.omitted
               : balance.outcomes.notTriggered
-          : row.matched
-            ? {
-                points: balance.pointsWhenMatched,
-                explanation: balance.matchedExplanation,
-              }
-            : {
-                points: 0,
-                explanation: balance.unmatchedExplanation,
-              };
+          : balance.balanceKind === 'information_requirement'
+            ? informationRequirementFulfilled
+              ? balance.outcomes.fulfilled
+              : balance.outcomes.omitted
+            : row.matched
+              ? {
+                  points: balance.pointsWhenMatched,
+                  explanation: balance.matchedExplanation,
+                }
+              : {
+                  points: 0,
+                  explanation: balance.unmatchedExplanation,
+                };
       if (
         row.component !== balance.component ||
         row.pointsBeforeCombination !== expectedOutcome.points ||
@@ -554,7 +582,7 @@ const buildPointReport = (input: {
   const withoutIdentity = {
     ...input.report,
     schemaVersion: 1 as const,
-    modelVersion: 'generated-encounter-point-report.v6' as const,
+    modelVersion: 'generated-encounter-point-report.v7' as const,
     pointDerivation: 'provisional_balance_snapshot' as const,
     compiledRubricRef: {
       id: input.snapshot.encounterInstance.compiledRubric.id,
@@ -578,7 +606,7 @@ const buildPointReport = (input: {
 };
 
 const buildSettlement = (input: {
-  readonly settlement: GeneratedEncounterSettlementInput;
+  readonly producerRef: GeneratedEncounterSettlementInput['producerRef'];
   readonly settlementEngineVersion: string;
   readonly mode: GeneratedCompletedEncounterAttempt['mode'];
   readonly pointReport: GeneratedEncounterPointReport;
@@ -590,33 +618,32 @@ const buildSettlement = (input: {
       readonly ok: false;
       readonly message: string;
     } => {
-  if (input.settlement.producerRef.contentVersion !== input.settlementEngineVersion) {
+  if (input.producerRef.contentVersion !== input.settlementEngineVersion) {
     return {
       ok: false,
       message: 'The settlement producer version must equal the retained settlement-engine version.',
     };
   }
-  for (const charge of input.settlement.treatmentCharges) {
-    if (
-      !selectedDecisionActionTargetMatches(
-        charge.actionTarget,
-        input.pointReport.playerDecision,
-        input.snapshot.patientInstance.patientState.medicationRegimenEntries,
-      )
-    ) {
-      return {
-        ok: false,
-        message: `Treatment charge ${charge.id} does not target a selected action.`,
-      };
-    }
+  const treatmentCharges = quoteGeneratedTreatmentCharges({
+    treatmentSelection: input.pointReport.playerDecision.treatmentSelection,
+    replaySnapshot: input.snapshot,
+  });
+  if (!treatmentCharges.ok) {
+    return {
+      ok: false,
+      message: `${treatmentCharges.error.code}: ${treatmentCharges.error.message}`,
+    };
   }
+  const settlementContext = input.snapshot.settlementContext;
+  const policy = settlementContext.economyPolicy;
+  const clinicState = settlementContext.clinicState;
   const positiveCarePoints = Math.max(0, input.pointReport.carePointsEarned);
   const carePointPenalty = Math.min(0, input.pointReport.carePointsEarned);
   const grossPayout = Math.round(
     Math.max(
       0,
-      (input.settlement.baseReimbursement + positiveCarePoints + input.settlement.challengeBonus) *
-        input.settlement.satisfactionMultiplier +
+      (policy.baseReimbursement + positiveCarePoints + policy.challengeBonus) *
+        settlementContext.derivedSatisfactionMultiplier +
         carePointPenalty,
     ),
   );
@@ -624,7 +651,7 @@ const buildSettlement = (input: {
     (total, purchase) => total + purchase.operatingCost,
     0,
   );
-  const treatmentExpenses = input.settlement.treatmentCharges.reduce(
+  const treatmentExpenses = treatmentCharges.value.reduce(
     (total, charge) => total + charge.operatingCost,
     0,
   );
@@ -634,11 +661,19 @@ const buildSettlement = (input: {
   const practiceMode = input.mode !== 'standard';
   const bankedPointsEarned = practiceMode ? 0 : projectedNetPointsEarned;
   const withoutIdentity = {
-    ...input.settlement,
     schemaVersion: 1 as const,
-    modelVersion: 'generated-encounter-settlement.v2' as const,
+    modelVersion: 'generated-encounter-settlement.v4' as const,
     settlementDerivation:
-      'arithmetic_verified_information_pricing_native_treatment_pricing_unverified' as const,
+      'native_economy_policy_clinic_state_satisfaction_and_service_pricing.v1' as const,
+    producerRef: input.producerRef,
+    settlementContextRef: {
+      id: settlementContext.id,
+      payloadFingerprint: settlementContext.payloadFingerprint,
+    },
+    baseReimbursement: policy.baseReimbursement,
+    challengeBonus: policy.challengeBonus,
+    satisfactionMultiplier: settlementContext.derivedSatisfactionMultiplier,
+    treatmentCharges: [...treatmentCharges.value],
     pointReportRef: {
       id: input.pointReport.id,
       payloadFingerprint: input.pointReport.payloadFingerprint,
@@ -652,8 +687,10 @@ const buildSettlement = (input: {
     projectedNetPointsEarned,
     bankedPointsEarned,
     practiceMode,
-    persistentPointsAfter: input.settlement.persistentPointsBefore + bankedPointsEarned,
-    lifetimePointsAfter: input.settlement.lifetimePointsBefore + bankedPointsEarned,
+    persistentPointsBefore: clinicState.clinicPoints,
+    persistentPointsAfter: clinicState.clinicPoints + bankedPointsEarned,
+    lifetimePointsBefore: clinicState.lifetimePointsEarned,
+    lifetimePointsAfter: clinicState.lifetimePointsEarned + bankedPointsEarned,
   };
   const payloadFingerprint = fingerprint('settlement', settlementPayload(withoutIdentity));
   const parsed = GeneratedEncounterSettlementSchema.safeParse({
@@ -668,7 +705,17 @@ const buildSettlement = (input: {
 
 const buildReplaySnapshot = (
   frozenWaitingSlot: FrozenGeneratedWaitingSlot,
+  diagnosisSelectionOwners:
+    | {
+        readonly kind: 'source';
+        readonly value: GeneratedDiagnosisSelectionDefinitionOwnersInput;
+      }
+    | {
+        readonly kind: 'frozen';
+        readonly value: GeneratedDiagnosisSelectionOwnerSetSnapshot;
+      },
   servicePricing: GeneratedCompletedEncounterAttemptCompileInput['servicePricing'],
+  settlement: GeneratedCompletedEncounterAttemptCompileInput['settlement'],
 ):
   | { readonly ok: true; readonly value: GeneratedEncounterReplaySnapshot }
   | {
@@ -696,6 +743,77 @@ const buildReplaySnapshot = (
   }
   const catalog = audit.catalogSnapshot;
   const authority = audit.patientSlotFillSeedAuthorityArtifact;
+  const diagnosisOwnerSet =
+    diagnosisSelectionOwners.kind === 'source'
+      ? compileGeneratedDiagnosisSelectionOwners({
+          diagnosisSelectionHorizon: catalog.encounterInstance.diagnosisSelectionHorizon,
+          diagnosisSelectionHorizonFingerprint:
+            catalog.encounterInstance.diagnosisSelectionHorizonFingerprint,
+          definitionOwners: diagnosisSelectionOwners.value,
+        })
+      : (() => {
+          const integrity = verifyGeneratedDiagnosisSelectionOwnerSetIntegrity(
+            diagnosisSelectionOwners.value,
+          );
+          if (!integrity.ok) {
+            return {
+              ok: false as const,
+              error: {
+                code: integrity.error.code,
+                message: integrity.error.message,
+                contentIds: [] as readonly string[],
+              },
+            };
+          }
+          const artifact = integrity.value;
+          if (
+            artifact.diagnosisSelectionHorizonRef.id !==
+              catalog.encounterInstance.diagnosisSelectionHorizon.id ||
+            artifact.diagnosisSelectionHorizonRef.payloadFingerprint !==
+              catalog.encounterInstance.diagnosisSelectionHorizonFingerprint
+          ) {
+            return {
+              ok: false as const,
+              error: {
+                code: 'OWNER_HORIZON_MISMATCH',
+                message:
+                  'The frozen generated diagnosis-selection owners target another exact diagnosis horizon.',
+                contentIds: [
+                  artifact.id,
+                  artifact.diagnosisSelectionHorizonRef.id,
+                  catalog.encounterInstance.diagnosisSelectionHorizon.id,
+                ],
+              },
+            };
+          }
+          return { ok: true as const, value: artifact };
+        })();
+  if (!diagnosisOwnerSet.ok) {
+    return {
+      ok: false,
+      message: `DIAGNOSIS_SELECTION_OWNER_${diagnosisOwnerSet.error.code}: ${diagnosisOwnerSet.error.message}`,
+      contentIds: diagnosisOwnerSet.error.contentIds,
+    };
+  }
+  const settlementContext = compileGeneratedEncounterSettlementContext({
+    source: {
+      economyPolicy: settlement.economyPolicy,
+      clinicState: settlement.clinicState,
+      satisfactionConfigurationOwner: settlement.satisfactionConfigurationOwner,
+    },
+    template: catalog.template,
+    templateFingerprint: authority.selectedTemplateFingerprint,
+    clinicOperationalContext:
+      catalog.operationalAdmissionArtifact.compileRequest.selectedLocationResourceArtifact
+        .compileRequest.clinicOperationalContext,
+  });
+  if (!settlementContext.ok) {
+    return {
+      ok: false,
+      message: `SETTLEMENT_CONTEXT_${settlementContext.error.code}: ${settlementContext.error.message}`,
+      contentIds: settlementContext.error.contentIds,
+    };
+  }
   const actionDefinitions = new Map(
     catalog.universalActionResultAssemblyRecipe.actionCatalog.actions.map((action) => [
       action.id,
@@ -708,10 +826,12 @@ const buildReplaySnapshot = (
       evaluation,
     ]),
   );
-  const pricing = compileGeneratedInformationServicePricing({
+  const pricing = compileGeneratedEncounterServicePricing({
     servicePricing,
     operationalAdmission: catalog.operationalAdmissionArtifact,
     informationActionIds: catalog.encounterInstance.decisionActionHorizon.informationActionIds,
+    interventionIds: catalog.encounterInstance.decisionActionHorizon.interventionIds,
+    dispositionIds: catalog.encounterInstance.decisionActionHorizon.dispositionIds,
   });
   if (!pricing.ok) {
     return {
@@ -754,7 +874,7 @@ const buildReplaySnapshot = (
   }
   const withoutIdentity = {
     schemaVersion: 1 as const,
-    modelVersion: 'generated-encounter-replay-snapshot.v2' as const,
+    modelVersion: 'generated-encounter-replay-snapshot.v5' as const,
     sourceFindingPipelineAuditRef: {
       id: audit.id,
       payloadFingerprint: audit.payloadFingerprint,
@@ -769,13 +889,21 @@ const buildReplaySnapshot = (
       mode: authority.coordinates.mode,
       slotCoordinateId: authority.coordinates.slotCoordinateId,
       fillOrdinal: authority.coordinates.fillOrdinal,
+      templateFingerprint: authority.selectedTemplateFingerprint,
       locationRef: authority.coordinates.locationRef,
       locationFingerprint: authority.coordinates.locationFingerprint,
     },
     patientInstance: catalog.patientInstance,
     encounterInstance: catalog.encounterInstance,
+    diagnosisSelectionOwners: diagnosisOwnerSet.value,
     servicePricingOwners: [...pricing.value.servicePricingOwners],
+    treatmentPricingOwners: [...pricing.value.treatmentPricingOwners],
     informationActionRuntimeHorizon,
+    treatmentRuntimeHorizon: pricing.value.treatmentPricingHorizon.map((entry) => ({
+      ...entry,
+      availableFulfillmentMethodIds: [...entry.availableFulfillmentMethodIds],
+    })),
+    settlementContext: settlementContext.value,
   };
   const payloadFingerprint = fingerprint('replay-snapshot', replaySnapshotPayload(withoutIdentity));
   const parsed = GeneratedEncounterReplaySnapshotSchema.safeParse({
@@ -941,12 +1069,30 @@ export const compileGeneratedCompletedEncounterAttempt = (
       `Generated service-pricing engine ${input.engineVersions.servicePricingEngineVersion} does not match native quote compiler ${NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION}.`,
     );
   }
-  const snapshotResult = buildReplaySnapshot(input.frozenWaitingSlot, input.servicePricing);
+  if (
+    input.engineVersions.settlementEngineVersion !==
+    NATIVE_GENERATED_SETTLEMENT_CONTEXT_COMPILER_VERSION
+  ) {
+    return fail(
+      'INVALID_SETTLEMENT',
+      `Generated settlement engine ${input.engineVersions.settlementEngineVersion} does not match native settlement-context compiler ${NATIVE_GENERATED_SETTLEMENT_CONTEXT_COMPILER_VERSION}.`,
+    );
+  }
+  const snapshotResult = buildReplaySnapshot(
+    input.frozenWaitingSlot,
+    { kind: 'source', value: input.diagnosisSelectionOwners },
+    input.servicePricing,
+    input.settlement,
+  );
   if (!snapshotResult.ok) {
     return fail(
       snapshotResult.message.includes('SERVICE_') || snapshotResult.message.includes('METHOD_')
         ? 'INVALID_SERVICE_PRICING'
-        : 'INVALID_WAITING_SLOT',
+        : snapshotResult.message.includes('SETTLEMENT_CONTEXT_')
+          ? 'INVALID_SETTLEMENT'
+          : snapshotResult.message.includes('DIAGNOSIS_SELECTION_OWNER_')
+            ? 'INVALID_SELECTION'
+            : 'INVALID_WAITING_SLOT',
       snapshotResult.message,
       snapshotResult.contentIds,
     );
@@ -1031,7 +1177,7 @@ export const compileGeneratedCompletedEncounterAttempt = (
     return fail('INVALID_POINT_REPORT', pointReportResult.message);
   }
   const settlementResult = buildSettlement({
-    settlement: input.settlement,
+    producerRef: input.settlement.producerRef,
     settlementEngineVersion: input.engineVersions.settlementEngineVersion,
     mode: input.mode,
     pointReport: pointReportResult.value,
@@ -1103,14 +1249,14 @@ export const compileGeneratedCompletedEncounterAttempt = (
     schemaVersion: 1 as const,
     compilerVersion: GENERATED_COMPLETED_ATTEMPT_COMPILER_VERSION,
     id: input.attemptId,
-    modelVersion: 'generated-completed-encounter-attempt.v2' as const,
+    modelVersion: 'generated-completed-encounter-attempt.v5' as const,
     mode: input.mode,
     engineVersions: input.engineVersions,
     replaySnapshot: snapshot,
     events,
     purchases: [...converted.purchases],
     submittedDiagnoses: converted.diagnoses,
-    diagnosisQualifierValidation: 'family_identity_only' as const,
+    diagnosisQualifierValidation: 'exact_frozen_qualifier_owners' as const,
     submittedTreatment: converted.treatment,
     pointReport: pointReportResult.value,
     settlement: settlementResult.value,
@@ -1138,6 +1284,24 @@ export const compileGeneratedCompletedEncounterAttempt = (
 const verifyReplaySnapshot = (snapshot: GeneratedEncounterReplaySnapshot): string | null => {
   const pricingIntegrity = verifyGeneratedServicePricingReplaySnapshot(snapshot);
   if (!pricingIntegrity.ok) return pricingIntegrity.message;
+  const diagnosisOwnerIntegrity = verifyGeneratedDiagnosisSelectionOwnerSetIntegrity(
+    snapshot.diagnosisSelectionOwners,
+  );
+  if (!diagnosisOwnerIntegrity.ok) return diagnosisOwnerIntegrity.error.message;
+  const settlementContextIntegrity = verifyGeneratedEncounterSettlementContextIntegrity(
+    snapshot.settlementContext,
+  );
+  if (!settlementContextIntegrity.ok) return settlementContextIntegrity.error.message;
+  if (
+    snapshot.settlementContext.economyPolicy.templateRef.id !==
+      snapshot.encounterInstance.templateRef.id ||
+    snapshot.settlementContext.economyPolicy.templateRef.contentVersion !==
+      snapshot.encounterInstance.templateRef.contentVersion ||
+    snapshot.settlementContext.economyPolicy.templateFingerprint !==
+      snapshot.waitingSlotRef.templateFingerprint
+  ) {
+    return 'The generated settlement context is crossed from another waiting-patient template.';
+  }
   const withoutIdentity = {
     schemaVersion: snapshot.schemaVersion,
     modelVersion: snapshot.modelVersion,
@@ -1146,8 +1310,12 @@ const verifyReplaySnapshot = (snapshot: GeneratedEncounterReplaySnapshot): strin
     waitingSlotRef: snapshot.waitingSlotRef,
     patientInstance: snapshot.patientInstance,
     encounterInstance: snapshot.encounterInstance,
+    diagnosisSelectionOwners: snapshot.diagnosisSelectionOwners,
     servicePricingOwners: snapshot.servicePricingOwners,
+    treatmentPricingOwners: snapshot.treatmentPricingOwners,
     informationActionRuntimeHorizon: snapshot.informationActionRuntimeHorizon,
+    treatmentRuntimeHorizon: snapshot.treatmentRuntimeHorizon,
+    settlementContext: snapshot.settlementContext,
   };
   const expectedFingerprint = fingerprint(
     'replay-snapshot',
@@ -1209,15 +1377,7 @@ const verifySettlement = (
   },
 ): string | null => {
   const rebuilt = buildSettlement({
-    settlement: {
-      producerRef: settlement.producerRef,
-      baseReimbursement: settlement.baseReimbursement,
-      challengeBonus: settlement.challengeBonus,
-      satisfactionMultiplier: settlement.satisfactionMultiplier,
-      treatmentCharges: settlement.treatmentCharges,
-      persistentPointsBefore: settlement.persistentPointsBefore,
-      lifetimePointsBefore: settlement.lifetimePointsBefore,
-    },
+    producerRef: settlement.producerRef,
     settlementEngineVersion: input.settlementEngineVersion,
     mode: input.mode,
     pointReport: input.pointReport,
@@ -1475,9 +1635,20 @@ export const verifyGeneratedCompletedEncounterAttemptContext = (input: {
   const waitingSlotResult = buildReplaySnapshot(
     input.frozenWaitingSlot as FrozenGeneratedWaitingSlot,
     {
+      kind: 'frozen',
+      value: attemptIntegrity.value.replaySnapshot.diagnosisSelectionOwners,
+    },
+    {
       services: attemptIntegrity.value.replaySnapshot.servicePricingOwners.map(
         (owner) => owner.service,
       ),
+    },
+    {
+      producerRef: attemptIntegrity.value.settlement.producerRef,
+      economyPolicy: attemptIntegrity.value.replaySnapshot.settlementContext.economyPolicy,
+      clinicState: attemptIntegrity.value.replaySnapshot.settlementContext.clinicState,
+      satisfactionConfigurationOwner:
+        attemptIntegrity.value.replaySnapshot.settlementContext.satisfactionConfigurationOwner,
     },
   );
   if (!waitingSlotResult.ok) {

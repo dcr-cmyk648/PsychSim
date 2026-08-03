@@ -115,6 +115,40 @@ describe('diagnosis guidance composition', () => {
     );
   });
 
+  it('keeps the approved MDD higher-of policy generation-only and preserves both inputs', () => {
+    const mdd = catalogs.diagnoses.find(
+      (diagnosis) => diagnosis.id === 'diagnosis.major-depressive-disorder',
+    )!;
+
+    expect(mdd.severityAxis).toMatchObject({
+      playerSelectionMode: 'family_only',
+      derivationPolicy: {
+        id: 'severity-policy.mdd.current-episode-higher-of',
+        strategy: 'highest_qualitative_level',
+        inputDimensions: ['symptom_severity', 'condition_attributed_functional_impairment'],
+        review: { status: 'approved' },
+      },
+    });
+    expect(mdd.severityAxis?.levels.every((level) => level.generationStatus !== 'enabled')).toBe(
+      true,
+    );
+    expect(mdd.specifiers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'specifier.mdd.psychotic-features',
+          playerSelectable: true,
+        }),
+      ]),
+    );
+
+    const invalid = structuredClone(mdd);
+    invalid.severityAxis!.derivationPolicy!.inputDimensions = [
+      'symptom_severity',
+      'symptom_severity',
+    ];
+    expect(DiagnosisDefinitionSchema.safeParse(invalid).success).toBe(false);
+  });
+
   it('layers shared, severity, and specifier guidance without assigning points', () => {
     const diagnosis = definition('diagnosis.fixture-mood', {
       baseClinicalTagIds: ['diagnosis-tag.fixture-mood'],
@@ -122,6 +156,8 @@ describe('diagnosis guidance composition', () => {
       severityAxis: {
         id: 'severity-axis.fixture-mood',
         label: 'Fixture severity',
+        playerSelectionMode: 'severity_selectable',
+        derivationPolicy: null,
         levels: [
           {
             id: 'severity.fixture-mood.mild',
@@ -173,6 +209,7 @@ describe('diagnosis guidance composition', () => {
         {
           id: 'specifier.fixture.anxious',
           label: 'Anxious features',
+          playerSelectable: true,
           exclusiveGroupId: null,
           addedClinicalTagIds: ['specifier-tag.fixture-anxious'],
           rules: [rule('rule.fixture.anxious', 'preferred', 'antidepressant')],
@@ -329,6 +366,8 @@ describe('diagnosis guidance composition', () => {
       severityAxis: {
         id: 'severity-axis.fixture-pending',
         label: 'Pending severity',
+        playerSelectionMode: 'severity_selectable',
+        derivationPolicy: null,
         levels: [
           {
             id: 'severity.fixture-pending.mild',

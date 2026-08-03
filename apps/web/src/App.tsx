@@ -34,6 +34,7 @@ import {
   consumePatientSlot,
   emptyPatientQueueState,
   ensurePatientQueues,
+  generateDeveloperPatientSlot,
   refreshPatientQueue,
   rerollDeveloperSlot,
   purchaseUpgrade,
@@ -46,6 +47,10 @@ import {
 
 import { ClinicHub, type PatientSlotPreview } from './components/ClinicHub';
 import { DatabaseBrowser, type DatabaseDossierReviewFeedback } from './components/DatabaseBrowser';
+import type {
+  DeveloperPatientMakerCaseOption,
+  DeveloperPatientMakerGenerateResult,
+} from './components/DeveloperPatientMaker';
 import { DistributionControls } from './components/DistributionControls';
 import { EncounterScratchpad } from './components/EncounterScratchpad';
 import { EncounterView } from './components/EncounterView';
@@ -145,6 +150,9 @@ export default function App() {
     useState<readonly LiteratureSynthesisProposal[]>([]);
   const [developerTicketLiteratureScoutCatalog, setDeveloperTicketLiteratureScoutCatalog] =
     useState<TicketLiteratureScoutCatalog | null>(null);
+  const [developerPatientMakerCases, setDeveloperPatientMakerCases] = useState<
+    readonly DeveloperPatientMakerCaseOption[]
+  >([]);
   const [saveData, setSaveData] = useState<SaveData | null>(null);
   const [sourceReviewFeedError, setSourceReviewFeedError] = useState<string | null>(null);
   const [developerKnowledgeError, setDeveloperKnowledgeError] = useState<string | null>(null);
@@ -246,6 +254,7 @@ export default function App() {
           sourceRequests: [] as readonly SourceRequest[],
           literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
           ticketLiteratureScoutCatalog: null as TicketLiteratureScoutCatalog | null,
+          patientMakerCases: [] as readonly DeveloperPatientMakerCaseOption[],
         }))
       : import.meta.env.DEV
         ? import('@psychsim/content-runtime/developer').then((module) => ({
@@ -256,6 +265,7 @@ export default function App() {
             sourceRequests: module.developerSourceRequests,
             literatureSynthesisProposals: module.developerLiteratureSynthesisProposals,
             ticketLiteratureScoutCatalog: module.developerTicketLiteratureScoutCatalog,
+            patientMakerCases: module.developerPatientMakerCases,
           }))
         : Promise.resolve({
             blueprints: approvedCaseBlueprints as readonly CaseBlueprint[],
@@ -265,6 +275,7 @@ export default function App() {
             sourceRequests: [] as readonly SourceRequest[],
             literatureSynthesisProposals: [] as readonly LiteratureSynthesisProposal[],
             ticketLiteratureScoutCatalog: null as TicketLiteratureScoutCatalog | null,
+            patientMakerCases: [] as readonly DeveloperPatientMakerCaseOption[],
           });
     const sourceReviewTickets = sourceReviewTicketTools
       ? sourceReviewTicketTools
@@ -299,6 +310,7 @@ export default function App() {
         setDeveloperSourceRequests(developerData.sourceRequests);
         setDeveloperLiteratureSynthesisProposals(developerData.literatureSynthesisProposals);
         setDeveloperTicketLiteratureScoutCatalog(developerData.ticketLiteratureScoutCatalog);
+        setDeveloperPatientMakerCases(developerData.patientMakerCases);
         setSourceReviewFeedError(sourceFeedError);
         if (sourceFeedError) {
           setTicketToolStatus(sourceFeedError);
@@ -538,6 +550,42 @@ export default function App() {
     await persist(
       withFilledQueues(SaveDataSchema.parse({ ...saveData, patientQueues }), developerBlueprints),
     );
+  };
+
+  const generateDeveloperPatient = async (
+    blueprintId: string,
+    authoredComplexityBudget: number,
+  ): Promise<DeveloperPatientMakerGenerateResult> => {
+    if (!LOCAL_DEVELOPER || !saveData || saveData.profile.progressionMode !== 'developer') {
+      return { ok: false, message: 'Patient Maker is available only in local Developer mode.' };
+    }
+    const developerClinic = resolveClinicForProgressionMode(
+      saveData.profile.clinic,
+      'developer',
+      catalogs,
+    );
+    const generated = generateDeveloperPatientSlot(
+      saveData.patientQueues,
+      blueprintId,
+      authoredComplexityBudget,
+      developerClinic,
+      developerBlueprints,
+      catalogs,
+    );
+    if (!generated.ok) {
+      return { ok: false, message: generated.error.message };
+    }
+    const nextSave = SaveDataSchema.parse({
+      ...saveData,
+      patientQueues: generated.value.patientQueues,
+    });
+    await persist(nextSave);
+    openEncounter(
+      generated.value.slot.caseInstance,
+      generated.value.slot.locationId,
+      generated.value.slot.id,
+    );
+    return { ok: true };
   };
 
   const buyUpgrade = async (upgradeId: string): Promise<void> => {
@@ -1130,6 +1178,7 @@ export default function App() {
           sourceRequests={developerSourceRequests}
           literatureSynthesisProposals={developerLiteratureSynthesisProposals}
           ticketLiteratureScoutCatalog={developerTicketLiteratureScoutCatalog}
+          developerPatientMakerCases={developerPatientMakerCases}
           developerKnowledgeWorkbench={
             PersonalKnowledgeWorkbenchComponent ? (
               <PersonalKnowledgeWorkbenchComponent projection={personalKnowledgeProjection} />
@@ -1146,6 +1195,7 @@ export default function App() {
           onRefresh={() => void refreshSlots()}
           onRerollDeveloper={(slotId) => void rerollDeveloperPatient(slotId)}
           onResetDeveloper={() => void resetDeveloperPatients()}
+          onGenerateDeveloperPatient={generateDeveloperPatient}
           onSaveTicketReview={saveTicketReview}
           onWriteTickets={() => void writeTicketsToWorkspace()}
           onExportTickets={() => void exportTickets()}

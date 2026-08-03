@@ -1275,6 +1275,93 @@ code {
   font: 400 var(--review-meta-size) / 1.55 var(--font-reading);
 }
 
+.developer-patient-maker {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border: 1px solid var(--teal-dark);
+  border-radius: 0.3rem;
+  background: rgba(5, 14, 10, 0.98);
+  box-shadow: var(--shadow);
+}
+
+.developer-patient-maker-body {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.developer-patient-maker-body > p {
+  max-width: 920px;
+  margin: 0;
+  color: var(--review-muted);
+  line-height: 1.55;
+}
+
+.developer-patient-maker-controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.35fr) minmax(260px, 1fr);
+  gap: 0.8rem;
+}
+
+.developer-patient-maker-controls label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--teal-dark);
+  font-size: var(--review-caption-size);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.developer-patient-maker-controls select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  color: var(--ink);
+  background: #020806;
+  text-transform: none;
+}
+
+.developer-patient-maker-summary {
+  display: grid;
+  grid-template-columns: 0.4fr 0.4fr 1.2fr;
+  margin: 0;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.developer-patient-maker-summary div {
+  min-width: 0;
+  padding: 0.65rem;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.developer-patient-maker-summary dt {
+  color: var(--review-muted);
+  font-size: var(--review-caption-size);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.developer-patient-maker-summary dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
+.developer-patient-maker-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.developer-patient-maker-actions small {
+  color: var(--review-muted);
+}
+
 .queue-heading {
   display: flex;
   align-items: center;
@@ -5835,7 +5922,9 @@ tbody th small {
   .ticket-card,
   .ticket-card-body,
   .audit-plan-summary,
-  .literature-summary-grid {
+  .literature-summary-grid,
+  .developer-patient-maker-controls,
+  .developer-patient-maker-summary {
     grid-template-columns: 1fr;
   }
 
@@ -5867,14 +5956,16 @@ tbody th small {
   .patient-queue-open-tools,
   .focused-review-header,
   .focused-review-actions,
-  .database-review-progression {
+  .database-review-progression,
+  .developer-patient-maker-actions {
     align-items: stretch;
     flex-direction: column;
   }
 
   .patient-queue-open-tools button,
   .focused-review-actions button,
-  .database-review-progression button {
+  .database-review-progression button,
+  .developer-patient-maker-actions button {
     width: 100%;
   }
 

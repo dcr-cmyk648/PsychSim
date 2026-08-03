@@ -14,6 +14,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:pat
 
 import {
   AppleNotesIntakeManifestSchema,
+  ConditionFindingProfileCatalogSchema,
   DecisionBalanceCatalogSchema,
   DecisionPolicyCatalogSchema,
   DeveloperDatabaseKnowledgeProjectionSchema,
@@ -30,6 +31,7 @@ import {
   SourceDocumentSchema,
   SourceManifestSchema,
   SourceUseDecisionCatalogSchema,
+  UniversalActionResultAssemblyCatalogSchema,
   type DeveloperDatabaseKnowledgeProjection,
   type DeveloperDatabaseSemanticState,
   type DeveloperDatabaseSourceKind,
@@ -52,6 +54,7 @@ import {
 import { catalogs, publicClinicalCatalog } from '@psychsim/content-runtime';
 
 import aliasCatalogJson from '../../../content/catalogs/authoring/personal-knowledge/cross-reference-aliases.json';
+import conditionFindingProfileCatalogJson from '../../../content/catalogs/diagnoses/condition-finding-profiles.json';
 import decisionBalanceCatalogJson from '../../../content/catalogs/decision-policies/balances.json';
 import decisionPolicyCatalogJson from '../../../content/catalogs/decision-policies/catalog.json';
 import privateSourceCatalogJson from '../../../content/catalogs/authoring/personal-knowledge/private-source-catalog.json';
@@ -60,6 +63,7 @@ import exposureCatalogJson from '../../../content/catalogs/exposures/definitions
 import medicationRegimenKnowledgeCatalogJson from '../../../content/catalogs/medications/regimen-knowledge.json';
 import registryJson from '../../../content/registry.json';
 import sourceUseDecisionsJson from '../../../content/catalogs/evidence/source-use-decisions.json';
+import universalActionResultAssemblyCatalogJson from '../../../content/catalogs/actions/universal-action-result-assemblies.json';
 import {
   loadPersonalKnowledgePilotProfile,
   loadPersonalKnowledgePilotQueue,
@@ -137,6 +141,53 @@ const compareText = (left: string, right: string): number =>
 const medicationRegimenKnowledgeCatalog = MedicationRegimenKnowledgeCatalogSchema.parse(
   medicationRegimenKnowledgeCatalogJson,
 );
+const authoringClinicalRegistryKinds = new Set([
+  'finding_projection_catalog',
+  'finding_projection_horizon_catalog',
+  'universal_action_result_assembly_catalog',
+  'clinical_duration_profile_catalog',
+  'condition_finding_profile_catalog',
+  'race_ethnicity_catalog',
+]);
+const authoringClinicalRegistryIds = (
+  registryJson as {
+    entries: Array<{
+      id: string;
+      kind: string;
+      runtimeIncluded: boolean;
+      categoryIds?: string[];
+    }>;
+  }
+).entries.flatMap((entry) =>
+  !entry.runtimeIncluded && authoringClinicalRegistryKinds.has(entry.kind)
+    ? [entry.id, ...(entry.categoryIds ?? [])]
+    : [],
+);
+const authoringDiagnosisRuleIds = catalogs.diagnoses.flatMap((diagnosis) => [
+  ...diagnosis.baseRules.map((rule) => rule.id),
+  ...(diagnosis.severityAxis === null
+    ? []
+    : [
+        diagnosis.severityAxis.id,
+        ...(diagnosis.severityAxis.derivationPolicy === null
+          ? []
+          : [diagnosis.severityAxis.derivationPolicy.id]),
+        ...diagnosis.severityAxis.levels.map((level) => level.id),
+      ]),
+  ...diagnosis.specifiers.map((specifier) => specifier.id),
+  ...diagnosis.complexityContributions.map((contribution) => contribution.id),
+]);
+const universalActionResultAssemblyCatalog = UniversalActionResultAssemblyCatalogSchema.parse(
+  universalActionResultAssemblyCatalogJson,
+);
+const authoringActionResultRuleIds = universalActionResultAssemblyCatalog.assemblies.flatMap(
+  (assembly) => [
+    assembly.id,
+    ...assembly.structuredRevealDefinitions.map((definition) => definition.id),
+    ...assembly.targetScopedPatientValueProjectionDefinitions.map((definition) => definition.id),
+    ...assembly.recipes.map((recipe) => recipe.id),
+  ],
+);
 const authoringClinicalRuleIds = new Set(
   [
     ...medicationRegimenKnowledgeCatalog.medicationClasses,
@@ -146,6 +197,10 @@ const authoringClinicalRuleIds = new Set(
     ...DecisionPolicyCatalogSchema.parse(decisionPolicyCatalogJson).policies,
     ...DecisionBalanceCatalogSchema.parse(decisionBalanceCatalogJson).balances,
     ...ExposureCatalogSchema.parse(exposureCatalogJson).misuseGenerationPriors,
+    ...ConditionFindingProfileCatalogSchema.parse(conditionFindingProfileCatalogJson).profiles,
+    ...authoringClinicalRegistryIds.map((id) => ({ id })),
+    ...authoringDiagnosisRuleIds.map((id) => ({ id })),
+    ...authoringActionResultRuleIds.map((id) => ({ id })),
   ].map((entry) => entry.id),
 );
 

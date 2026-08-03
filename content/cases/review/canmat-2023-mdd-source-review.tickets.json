@@ -245,7 +245,7 @@
     "sourceAuthority": "developer_observation",
     "ticketType": "case_construction",
     "priority": "blocking",
-    "status": "proposed",
+    "status": "resolved",
     "requiresClinicalAcumen": true,
     "attemptId": null,
     "blueprintId": null,
@@ -269,12 +269,17 @@
     "conflictContentIds": [],
     "proposedRouting": "Keep mild, moderate, and severe MDD inside the single MDD diagnosis-family record. Preserve symptom breadth/intensity and depression-attributable functional impairment as separate typed dimensions, then let one reviewed severity profile derive the qualitative branch without absorbing psychosis, safety, course, treatment history, or nondepressive causes of impairment.",
     "guidance": "P1: MDD owns its reusable mild, moderate, and severe variants; an encounter recipe may select one branch and add narrow patient constraints but cannot redefine the shared branch. P2: CANMAT's current source-cleared convention rates depressive symptom severity and functional impairment separately and uses whichever qualitative rating is higher for the episode descriptor; its own example permits discordance. P3: That convention is guidance supported largely by consensus rather than a validated universal boundary algorithm. The current evidence packet found no defensible numerical cut points for the three categories. P4: Symptom count or breadth, symptom intensity/frequency, depression-attributable functional impairment, subjective distress, and any named instrument result remain separately auditable facts. P5: Screening cutoffs, instrument bands, trial-entry thresholds, and less-/more-severe treatment-analysis strata answer different questions and cannot silently become the generator ontology. P6: Psychotic features, acute safety, longitudinal course, treatment exposure/nonresponse, and impairment from other conditions remain independently modeled; none is inferred from the severity label. P7: The compiler should preserve plausible symptom/function discordance and unresolved middle-boundary cases. Only malformed or literal same-scope contradictions are structural failures; evidence gaps or an uncertain qualitative boundary produce nonblocking diagnostics rather than patient deletion. P8: No severity branch, treatment rule, generation distribution, or point value activates from this packet. Q1: As the initial MDD severity scaffold, approve CANMAT's higher-of symptom-severity and depression-attributable-functional-impairment convention while leaving exact mild/moderate/severe boundary descriptions disabled until separately reviewed?",
-    "reviewerNotes": "Architecture direction accepted: variants of an underlying disorder belong to one diagnosis-family record. A patient template can select moderate MDD and add patient-specific specifiers or constraints, but the MDD record owns the reusable mild/moderate/severe parameters. The source request now contains exact CANMAT chunk provenance. A preliminary adjunct packet was used only to check the evidence-gap framing: it reinforced that scales and research strata are not interchangeable with a diagnostic severity branch, but it is uncommitted, unmapped, medically unreviewed, and supplies no executable rule.",
-    "reviewerNotesUpdatedAt": "2026-07-31T14:21:08.000Z",
-    "resurfacingTrigger": "After the current-episode dimension packet is resolved, present Q1 as the next single review decision. Do not enable an MDD severity branch, numeric envelope, severity-dependent treatment path, or point rule before that review.",
-    "resolution": null,
+    "reviewerNotes": "Approved by Dustin Rowland. Keep depressive symptom severity and depression-attributable functional impairment separately auditable and use their higher qualitative level as backend episode-severity generation state. From the player-facing practical perspective, all mild, moderate, and severe presentations remain the family diagnosis MDD; do not present them as separate diagnosis choices. With psychotic features is the one currently meaningful named MDD variant. Exact mild/moderate/severe boundaries remain disabled, and psychosis, safety, course, treatment exposure, and nondepressive impairment remain separate.",
+    "reviewerNotesUpdatedAt": "2026-08-03T16:03:25.000Z",
+    "resurfacingTrigger": "When exact symptom-severity or impairment boundary profiles are proposed, when severity changes treatment generation, or before adding another player-facing MDD specifier.",
+    "resolution": {
+      "disposition": "applied",
+      "note": "Added an approved generation-only MDD severity-axis policy that combines separate symptom-severity and condition-attributed-functional-impairment inputs by their higher qualitative level. Added a player-selection boundary that keeps severity family-only and a reviewed identity shell for the named with-psychotic-features specifier. No severity level was enabled, no boundary or distribution was invented, and no treatment, point, PatientTemplate, runtime-generation, or UI behavior was activated.",
+      "resolvedBy": "reviewer.dustin-rowland",
+      "resolvedAt": "2026-08-03T16:03:25.000Z"
+    },
     "createdAt": "2026-07-26T17:00:00.000Z",
-    "updatedAt": "2026-07-31T14:21:08.000Z"
+    "updatedAt": "2026-08-03T16:03:25.000Z"
   },
   {
     "schemaVersion": 1,

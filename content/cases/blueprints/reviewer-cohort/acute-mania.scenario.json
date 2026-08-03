@@ -42,6 +42,8 @@
     "Everyone else is too slow"
   ],
   "durationProfile": {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "duration-profile.review-acute-mania.current-episode",
     "relatedDiagnosisId": "diagnosis.bipolar-spectrum-disorder",
     "interpretation": "supports_authored_state",

@@ -99,6 +99,32 @@ medication, diagnosis, interaction, or patient rule. Necessary investigation rew
 exceed accessible cost. A critical contraindication is ineligible for positive goodness-of-fit
 bonuses, and a cap prevents accumulated small bonuses from rescuing a critical error.
 
+### Where points enter the generated encounter
+
+Patient and diagnosis profiles never contain points. They resolve the complete frozen patient
+state first, including facts the player may never reveal. The focused policy compiler then
+matches approved, point-free qualitative rules to that state and the exact action horizon. Only
+after that match may the separate balance catalog attach an explicit provisional magnitude to the
+exact rule version. The generated attempt freezes the minimized balance payload before play, and
+submission evaluates the player's final decision against it before combination and summation.
+
+This order is deliberate:
+
+1. Database profiles answer “what is true about this patient?”
+2. Qualitative rules answer “what does this fact/action combination mean for this focused
+   decision?”
+3. Balance records answer “how much should that already-reviewed meaning matter in this game
+   build?”
+4. The submitted-decision trace answers “which of those rules actually applied, were fulfilled,
+   or were omitted?”
+
+Retuning a balance cannot change patient generation or the qualitative rule. Changing a
+diagnosis profile cannot silently award points. A new finding, medication relationship, or
+source contribution remains point-free until a psychiatrist accepts a concrete qualitative rule;
+tooling may then assign a provisional value from the approved bands. This allows the personal
+knowledge database to remain comprehensive while the game compiles only focused, auditable,
+decision-relevant scoring.
+
 D-238 implements the first native use of this contract. The point-free MDD route is decorated
 after qualitative compilation by one separate exact balance record at `+200`. The native scorer
 evaluates the route's full cardinality for the submitted and database-plan decisions, then emits
@@ -134,13 +160,38 @@ D-159 combination and totals. Authoring rationale and Developer-opinion records 
 attempt. Reordering a catalog is inert; changing a same-ID/version magnitude changes the snapshot
 fingerprints.
 
+D-255 adds direct focused information actions without pretending that availability means the
+player obtained them. A required action has explicit positive fulfilled and negative omitted
+outcomes; a preferred action has a positive selected outcome and zero unselected outcome. The
+first native MDD values are episode course `+35/−35`, depressive syndrome `+50/−50`, and preferred
+substance-use history `+30/0`. Together with the existing `+200` broad medication route and
+treatment-triggered histories, the current isolated database-plan fixture totals `380`. These
+care-point values do not include information operating costs; settlement still subtracts those
+costs separately.
+
 D-239 independently makes generated information expenses native. It does not affect care points
 or whether an investigation was appropriate. The compiler selects the least-cost available
 equal-quality fulfillment method from the exact versioned service owner after D-219 mechanical
 availability and D-222 action-specific staff configuration are verified. It derives operating
 cost, external cost avoided, and staff savings; changing only fulfillment economics therefore
-cannot change the clinical rule trace. Treatment-service charges and the other settlement inputs
-remain explicitly unverified until their own bounded owner is attached.
+cannot change the clinical rule trace. At that checkpoint, treatment-service charges and the
+other settlement inputs remained explicitly unverified pending separate owners.
+
+D-270 attaches that bounded owner for service-backed interventions and dispositions. The exact
+versioned treatment and service owners plus D-219 availability determine one least-cost
+equal-quality quote after the final selection. Each such charge is frozen with its method and
+savings and rederived during replay. A treatment with no explicit fulfillment service has no
+operating charge; medication and regimen-operation costs remain unmodeled rather than silently
+verified at zero.
+
+D-271 removes the remaining free scalar settlement seam. One exact, separately versioned
+template economy policy supplies provisional base reimbursement and challenge bonus. The frozen
+current ClinicState supplies prior clinic points, lifetime points, and raw satisfaction, and must
+project to the same operational clinic context used to admit the patient. The exact versioned
+satisfaction curve derives the multiplier and must agree with the stored clinic state. Settlement
+then derives every before/after balance and independently replays the full owner set. No real
+generated-template economy policy has been authored yet, and neither reimbursement nor challenge
+bonus may be inferred from diagnosis, severity, or the optional-feature complexity budget.
 
 Certainty does not multiply point magnitude automatically. Concern describes potential clinical
 impact; certainty describes confidence and provenance. A high-impact but uncertain risk remains
@@ -379,8 +430,8 @@ run at a zero payout.
 
 These are generated by `pnpm demo:reference-runs`, not hand-entered expectations. “Workup cost” in
 these tables is `informationExpenses`. Every listed reference policy currently has zero
-`treatmentExpenses`; a selected service-backed intervention or disposition would be shown and
-deducted separately.
+`treatmentExpenses`; a selected service-backed intervention or disposition is natively quoted,
+shown, and deducted separately.
 
 | Policy             | Care points | Database plan | Workup cost | Base | Complexity | Gross | Calculated | Banked |
 | ------------------ | ----------: | ------------: | ----------: | ---: | ---------: | ----: | ---------: | -----: |

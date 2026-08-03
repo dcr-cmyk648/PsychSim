@@ -433,8 +433,9 @@ horizon IDs and payload fingerprints, location versions, one exact care setting,
 constraints, and one exact `universal-action-result-assembly.v3`. Catalog-instance compiler
 `9.0.0` first requires one complete D-219 operational-admission artifact for that exact template,
 physical location, focused action horizon, and universal information-action catalog. It then runs
-D-193, inserts any definition-addressed finding duration/burden records, applies verified D-217
-source selection through D-215, derives one complete D-220 response artifact, resolves D-240
+D-193 with any exact D-258 D-201-backed patient-report projection slots, inserts any
+definition-addressed finding duration/burden records, applies verified D-217 source selection
+through D-215, derives one complete D-220 response artifact, resolves D-240
 target-scoped values against the final patient truth, compiles one complete D-213 `3.0.0`
 artifact, derives frozen result bindings plus presentation-safe structured views, instrument
 responses, and target-redacted D-240 reveals, compiles D-191, and atomically emits a `PatientInstance`,
@@ -442,9 +443,115 @@ responses, and target-redacted D-240 reveals, compiles D-191, and atomically emi
 or selected optional template condition with matching provenance. The snapshot embeds the complete
 D-219, D-217, D-215, D-220, D-240, and D-213 audits and fingerprints every patient, horizon,
 location, derived result, rubric, seed, and compiler attachment. The containing D-200 audit
-composer is `21.0.0`. It remains synthetic and
+composer is `23.0.0`. It remains synthetic and
 runtime-excluded: no case adapter, save migration, queue behavior, new probability draw, scoring,
 or browser import exists.
+
+The first real D-259 projection content remains on the same authoring side of this boundary.
+`content/catalogs/findings/projections.json` contains the explicit 17-finding compact
+depressive-symptom assessment mappings, including D-256 closed negatives and nonsafety
+subthreshold-to-present display mappings. It is registry-tracked but `runtimeIncluded: false`.
+The ordinary content-runtime root does not import it; only authoring validation and a later exact
+compiler request may consume it before minimized generated results are frozen.
+
+D-260 adds the corresponding checked-in set and routing owners without weakening that isolation.
+`projection-horizons.json` pins all 49 exact projection versions and the one lawful action target;
+`universal-action-result-assemblies.json` pins the current shared action payload and declares only
+the existing `finding_projections` source class. D-213 therefore receives every frozen projection
+for that action without a content-level filter. Both files remain authoring-only and are
+cross-validated against the shared action and projection catalogs.
+
+D-261 version-pins the duration semantic owner across compatibility generation, resolved and
+deferred patient state, and D-240 definitions. Full authoring audit retains the exact profile
+ID/version; the browser-safe reveal remains profile-redacted. A stale profile version cannot
+silently match a current definition.
+
+D-262 adds the first runtime-excluded reusable duration content. The duration catalog owns one
+reviewed current-MDD profile with neutral at-least-two-week options and no weights or inference
+logic. A second static universal assembly combines the exact Presenting problem and timeline
+payload with the compact Depressive symptoms payload: D-240 supplies the former and D-193/D-256
+supplies the latter before D-213 routes both. The formal NIMH locator stays in the
+authoring-only Developer-opinion evidence relationship rather than entering the runtime diagnosis
+dossier. No browser entry imports either the profile catalog or the assembly; a later exact
+template/compiler request must freeze the minimized results first.
+
+D-263 adds that exact authoring-side selection seam. The condition-duration resolver accepts one
+reviewed profile and exact condition/source/time coordinate, derives one stable unweighted draw
+from the internal seed, and emits one replayable artifact containing all offered options plus the
+complete resolved duration. Canonical sorting makes content-array order irrelevant. The resolver
+exports only from `@psychsim/engine/authoring`; the ordinary engine root, content-runtime root,
+browser bundles, persistence, and D-200/D-194 attachment remain unchanged.
+
+D-264 adds the next authoring-side composition seam without widening either upstream owner. It
+replays one complete D-208 artifact plus every supplied D-263 artifact, requires the exact composed
+patient identity and unchanged condition payload, rejects repeated or preexisting
+condition/profile owners, and emits either the unchanged zero-resolution state or one new
+fingerprinted state with the exact sorted duration records appended. The complete attachment
+request and all upstream references remain frozen for replay. The export stays confined to
+`@psychsim/engine/authoring`; D-200/D-194, runtime content, persistence, and browser bundles still
+cannot consume it.
+
+D-266 makes that consumption explicit without changing D-194. D-200 `23.0.0` owns one nullable
+D-264 field: null keeps the existing D-208-only route, while a non-null value is fully replayed,
+must embed the exact D-208 artifact under the retained D-223 root, and must share D-233's patient
+seed across every D-263 resolution. Only the verified resulting patient state is passed through
+the existing D-194 `9.0.0` base-state input; D-208 still owns condition bindings and D-210
+applicability. The D-200 artifact retains the full optional D-264 proof and replays the complete
+chain, so a duration-bearing D-194 request cannot silently outlive or switch its source. D-240
+then sees the frozen condition duration during its ordinary final-state pass. This remains an
+authoring-only integration with no profile selection plan, new draw, complexity charge, runtime
+content, persistence, or UI.
+
+D-265 adds a separate authoring-only demographic identity boundary rather than extending cosmetic
+variant pools or rewriting historical patient snapshots. `race-ethnicity.json` pins the 2024 OMB
+SPD 15 minimum category set, combined multiselect collection semantics, exact evidence/source-use
+owners, and an accepted Developer-opinion guardrail. `ResolvedPatientDemographicsV3` stores the
+exact standard version and either a self-identified category set, not-recorded state, or declined
+state; the existing v2 remains valid. Provided categories may enter the typed decision-fact index,
+but no current policy consumes them. The ordinary content-runtime entry, browser persistence,
+PatientTemplate compiler, and UI do not import or generate this catalog. Future epidemiologic,
+reporting, or pharmacology adapters require separate source- and scope-specific owners and may
+not infer race/ethnicity from name pools.
+
+D-267 adds a second deliberately standalone authoring seam for condition-attributed functional
+impairment. The new profile and resolver live in schemas plus `@psychsim/engine/authoring`; they do
+not enter the ordinary engine entry, content-runtime, browser, persistence, or composed patient
+pipeline. One reviewed, versioned profile can offer unique qualitative
+`none`/`mild`/`moderate`/`severe` levels for one exact diagnosis. The resolver binds it to one exact
+condition/source/time coordinate, canonicalizes its finite horizon, makes one replayable
+unweighted synthetic selection, and freezes the full proof. No real profile is checked in yet.
+This preserves a later exact attachment seam without conflating impairment with subjective burden
+or the existing coarse functional-impact finding, and without answering the pending MDD severity
+question through architecture.
+
+D-268 resolves only that qualitative MDD policy. `DiagnosisDefinition.severityAxis` now separates
+internal severity composition from player diagnosis selection. The MDD axis is `family_only` and
+owns one reviewed `highest_qualitative_level` policy requiring both symptom severity and
+condition-attributed impairment. Its level records remain source-disabled, so the policy is inert
+until exact upstream values and boundary profiles exist. Encounter and content validation reject
+player-submitted severity qualifiers for such an axis.
+
+The MDD dossier also owns a reviewed, player-selectable identity shell for
+`specifier.mdd.psychotic-features`; this does not create a psychosis detector, finding mapping,
+case route, or UI. The ordinary diagnosis picker therefore continues to submit family-level MDD.
+The approved Developer opinion and separate CANMAT relationship preserve which portions are
+source-supported versus game-authoring judgment.
+
+D-269 adds only the standalone authoring proof for applying that policy to two already-resolved
+same-episode inputs. `ResolvedConditionSymptomSeverityInput` is a compact, exact upstream-owner
+envelope: it carries the patient/condition/diagnosis/clinical-state/time coordinate, qualitative
+level, owner version, and payload fingerprint, but deliberately does not claim how symptoms or an
+instrument produced that level. The second input is the complete D-267 artifact and must pass its
+native replay verifier.
+
+`deriveConditionEpisodeSeverity` verifies the exact coordinate and approved diagnosis-owned policy,
+then returns the higher qualitative level with `attachmentStatus: derived_descriptor_only`. Its
+artifact freezes the normalized request, minimized policy projection, both input IDs and payload
+fingerprints, input/payload fingerprints, and complete deterministic replay. It has no random draw
+and does not map the descriptor to a diagnosis severity ID. The compiler remains available only
+through `@psychsim/engine/authoring`; the unresolved symptom-severity owner, real impairment
+profile/attachment, enabled level mapping, resolved-patient attachment, and runtime path remain
+separate gates.
 
 The template also owns one small `presentation-richness.v1` authoring envelope, separate from the
 optional-feature budget. It names at least one audited category explaining what makes the focused
@@ -693,7 +800,7 @@ closed target-scoped source class. `not_applicable` is neutral when another sour
 missing or ambiguous applicable definitions block the action and cannot be hidden by a complete
 sibling definition. D-214 puts only referenced target-redacted reveals on
 `attachment_only.v6` patient instances. The complete D-240 audit stays nested in D-213 and replays
-through D-200 `21.0.0`; no parallel snapshot copy, complexity spend, real definition, persistence,
+through D-200 `23.0.0`; no parallel snapshot copy, complexity spend, real definition, persistence,
 runtime, or UI is added.
 
 D-216 adds the closed `EncounterCareSetting` values `outpatient_psychiatry`,
@@ -963,9 +1070,10 @@ all-points settlement, content/engine versions, and replay/payload fingerprints.
 requires one start, submission, score, settlement, and terminal completion in that order; actions
 cannot occur after submission. Every purchase and treatment target must belong to the frozen
 encounter horizon, every compiled-rubric rule must have one trace row, and component, cap,
-expense, payout-floor, and practice-bank arithmetic must agree. Diagnosis identity is checked
-against the frozen family horizon; exact severity/specifier validation remains an explicitly
-labeled later owner.
+expense, payout-floor, and practice-bank arithmetic must agree. D-272 now checks diagnosis
+identity and every submitted qualifier against a minimized exact owner set compiled from every and
+only the diagnosis definitions in the frozen horizon. It persists family/severity selection mode
+and reviewed selectable specifier identities, not whole diagnosis dossiers.
 
 The D-238 generated point source is now native: after folding the exact submitted events, D-235
 resolves the separate balance catalog and evaluates the canonical count-aware regimen route.
@@ -982,9 +1090,47 @@ settlement prices no longer share one undifferentiated status. D-239 joins the e
 staff-gated methods with D-222's action-specific staff configuration, and freezes the normalized
 price owners in replay snapshot v2. Information-purchase commands carry only purchase and action
 identity; native pricing selects the cheapest equal-quality available method, derives label/cost
-and external/staff savings, and rejects stale topology or quote tampering. Treatment charges and
-the remaining settlement inputs are still unverified, which settlement v2 records explicitly as
-`arithmetic_verified_information_pricing_native_treatment_pricing_unverified`. A separate
+and external/staff savings, and rejects stale topology or quote tampering. D-270 extends the same
+join to the exact intervention/disposition horizon: replay snapshot v3 freezes every treatment
+owner, its nullable fulfillment-service binding, and available method set. The final submitted
+selection natively creates one charge only for each service-backed treatment and independently
+re-quotes it on replay. A service-free treatment and every medication/regimen action remain
+unpriced rather than receiving an assumed zero-cost owner. D-271 then freezes one separate
+template-scoped economy policy, the complete current ClinicState, its exact D-227 operational
+projection, and the versioned satisfaction configuration in replay snapshot v4. The economy policy
+owns only provisional base reimbursement and challenge bonus. The clinic state owns bank-before,
+lifetime-before, and raw satisfaction; the multiplier is recalculated and must agree with the
+stored state. Settlement v4 records this boundary as
+`native_economy_policy_clinic_state_satisfaction_and_service_pricing.v1` and contains no
+free-floating caller settlement values. Real template economy-policy content remains unactivated.
+D-272 advances replay snapshot and completed attempt to v5 and the D-235 compiler to `11.0.0`.
+The snapshot now also contains one fingerprinted, minimized diagnosis-qualifier owner per exact
+diagnosis option. A family-only owner exposes no player severity, and only individually reviewed
+player-selectable specifiers plus their exclusivity groups survive the projection. The compiler
+rejects missing, extra, stale, or crossed definition owners; replay independently rejects changed
+option/version/qualifier payloads. No diagnosis prose, clinical rule, answer key, point value, or
+backend severity descriptor enters this owner set.
+
+D-273 adds a separate authoring-only launcher-presentation boundary. One exact reviewed profile
+joins curated fictional first- and last-name pools to reusable short chief-complaint banks, then
+uses independent seeded substreams for each name component and complaint selection. The full
+artifact retains profile, pool, bank, draw, and fingerprint audit; its minimized resolved
+presentation contains only the fictional name and brief complaint safe for a future launcher.
+Neither name nor complaint wording is a clinical input, rule predicate, source of diagnosis
+likelihood, or point owner. This standalone resolver is exported only from the engine authoring
+entry and is not yet attached to D-200, D-235, a waiting slot, persistence, or UI.
+
+D-274 does not change that generated-presentation status. It adds a separate transitional local
+Developer Patient Maker over the existing `CaseBlueprint → instantiateCase → CaseInstance`
+compatibility boundary. `@psychsim/content-runtime/developer` computes a finite safe option
+projection only for measured approved/review cases whose complete canonical validator passes.
+The web UI receives no raw registry traversal; it submits an exact blueprint ID and its existing
+authored complexity budget to the pure queue function. That function reuses ordinary
+instantiation and eligibility, persists one reserved Developer slot, and never invokes or
+simulates D-201/D-200. The production root content entry and portable Reviewer assignment do not
+export this allowlist.
+
+A separate
 `GeneratedCompletedEncounterAttemptPersistenceRecord` adds `completedAt` and its own record
 fingerprint; wall-clock metadata never changes the attempt's clinical replay fingerprint.
 D-234's v2 completion proof embeds the verified native attempt and cross-checks it against the
@@ -998,9 +1144,9 @@ and
 retains and stops at the first blocked D-233 attempt. A later caller may extend the same
 deterministic transcript only by naming that exact blocker as an explicit retry authorization; the
 next attempt uses the blocker-advanced occupancy, ordinal, and new seeds. Current dependent
-versions are D-233 occupancy `1.0.0`, seed authority `2.0.0`, atomic fill `2.0.0`, D-200 `21.0.0`,
+versions are D-233 occupancy `1.0.0`, seed authority `2.0.0`, atomic fill `2.0.0`, D-200 `23.0.0`,
 facility migration `3.0.0`, D-234 transition/reconciliation `2.0.0`, and the D-235 native-attempt
-compiler `7.0.0`; generated point-report v6 retains the exact player and database-plan decisions,
+compiler `11.0.0`; generated point-report v7 retains the exact player and database-plan decisions,
 both complete rule traces, the minimized D-252 balance snapshot, three-state prerequisite audits,
 and native D-159 combination trace.
 

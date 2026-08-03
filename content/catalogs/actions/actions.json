@@ -13,7 +13,7 @@
     "id": "info.history.depressive-symptoms",
     "label": "Depressive symptoms",
     "category": "history",
-    "description": "Review mood, interest, energy, concentration, appetite, guilt, and psychomotor change.",
+    "description": "Review mood, interest, sleep, energy, concentration, appetite or weight, guilt or worthlessness, psychomotor change, and brief death or suicide thoughts.",
     "serviceId": "service.history.standard",
     "repeatable": false,
     "soapSection": "subjective",

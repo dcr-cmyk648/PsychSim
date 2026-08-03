@@ -6,6 +6,7 @@ import {
   type AdmittedTemplateLocationBindingArtifact,
   type CapacityBoundLocationTemplateSelectionCertificateArtifact,
   type CatalogInstanceCompileRequest,
+  type ConditionClinicalDurationAttachmentArtifact,
   type FindingDefinition,
   type FindingPipelineAuditArtifact,
   type FindingPipelineAuditDownstreamRequest,
@@ -16,6 +17,7 @@ import {
   type LocationTemplateSelectionArtifact,
   type PatientSlotFillSeedAuthorityArtifact,
   type ResolvedConditionSource,
+  type ResolvedPatientState,
   type ResolvedPatientStateCompositionArtifact,
   type WeightedFindingTendencyApplicabilityArtifact,
   type WeightedFindingTendencyArtifact,
@@ -28,6 +30,7 @@ import {
   verifyCatalogCompiledInstanceIntegrity,
 } from './catalog-instance-compiler';
 import { verifyConditionFindingCardinalityIntegrity } from './condition-finding-cardinality-selector';
+import { verifyConditionClinicalDurationAttachmentIntegrity } from './condition-clinical-duration-attachment';
 import { verifyPatientSlotFillSeedAuthorityIntegrity } from './patient-slot-fill-seed-authority';
 import { verifyPreFindingPatientStateOrchestrationIntegrity } from './pre-finding-patient-state-orchestrator';
 import { compileSharedFindings, type SharedFindingCompileError } from './shared-finding-compiler';
@@ -39,12 +42,13 @@ import {
 } from './weighted-finding-tendency-aggregator';
 import { verifyWeightedFindingTendencyApplicabilityIntegrity } from './weighted-finding-tendency-applicability-compiler';
 
-export const FINDING_PIPELINE_AUDIT_COMPOSER_VERSION = '21.0.0';
+export const FINDING_PIPELINE_AUDIT_COMPOSER_VERSION = '23.0.0';
 
 export type FindingPipelineAuditComposeErrorCode =
   | 'INVALID_REQUEST'
   | 'INVALID_PATIENT_SLOT_FILL_SEED_AUTHORITY'
   | 'INVALID_PRE_FINDING_PATIENT_STATE_ORCHESTRATION'
+  | 'INVALID_CONDITION_CLINICAL_DURATION_ATTACHMENT'
   | 'PATIENT_SEED_CONTEXT_MISMATCH'
   | 'PATIENT_STATE_COMPOSITION_BLOCKED'
   | 'INVALID_CONDITION_FINDING_ARTIFACT'
@@ -306,6 +310,7 @@ const auditInputPayload = (
     | 'requestId'
     | 'patientSlotFillSeedAuthorityArtifact'
     | 'preFindingPatientStateOrchestrationArtifact'
+    | 'conditionClinicalDurationAttachmentArtifact'
     | 'conditionFindingArtifact'
     | 'backgroundFindingArtifact'
     | 'weightedFindingTendencyApplicabilityArtifact'
@@ -332,6 +337,17 @@ const auditInputPayload = (
     payloadFingerprint: request.preFindingPatientStateOrchestrationArtifact.payloadFingerprint,
     status: request.preFindingPatientStateOrchestrationArtifact.status,
   },
+  conditionClinicalDurationAttachmentRef:
+    request.conditionClinicalDurationAttachmentArtifact === null
+      ? null
+      : {
+          id: request.conditionClinicalDurationAttachmentArtifact.id,
+          inputFingerprint: request.conditionClinicalDurationAttachmentArtifact.inputFingerprint,
+          composedPatientStateFingerprint:
+            request.conditionClinicalDurationAttachmentArtifact.composedPatientStateFingerprint,
+          payloadFingerprint:
+            request.conditionClinicalDurationAttachmentArtifact.payloadFingerprint,
+        },
   conditionFindingRef: {
     id: request.conditionFindingArtifact.id,
     payloadFingerprint: request.conditionFindingArtifact.payloadFingerprint,
@@ -368,6 +384,68 @@ const fail = (
   },
 });
 
+const resolveVerifiedPreFindingPatientState = (input: {
+  readonly patientStateComposition: ResolvedPatientStateCompositionArtifact;
+  readonly durationAttachment: ConditionClinicalDurationAttachmentArtifact | null;
+}):
+  | {
+      readonly ok: true;
+      readonly value: {
+        readonly patientState: ResolvedPatientState;
+        readonly durationAttachment: ConditionClinicalDurationAttachmentArtifact | null;
+      };
+    }
+  | { readonly ok: false; readonly message: string } => {
+  const composedPatientState = input.patientStateComposition.composedPatientState;
+  if (input.patientStateComposition.status !== 'composed' || composedPatientState === null) {
+    return {
+      ok: false,
+      message: 'A pre-finding patient state requires one complete D-208 composition.',
+    };
+  }
+  if (input.durationAttachment === null) {
+    return {
+      ok: true,
+      value: {
+        patientState: composedPatientState,
+        durationAttachment: null,
+      },
+    };
+  }
+  const integrity = verifyConditionClinicalDurationAttachmentIntegrity(input.durationAttachment);
+  if (!integrity.ok) {
+    return {
+      ok: false,
+      message: `${integrity.error.code}: ${integrity.error.message}`,
+    };
+  }
+  const attachment = integrity.value;
+  if (
+    !sameCanonicalValue(
+      attachment.attachmentRequest.patientStateCompositionArtifact,
+      input.patientStateComposition,
+    ) ||
+    attachment.patientStateCompositionRef.id !== input.patientStateComposition.id ||
+    attachment.patientStateCompositionRef.payloadFingerprint !==
+      input.patientStateComposition.payloadFingerprint ||
+    attachment.patientStateCompositionRef.composedPatientStateFingerprint !==
+      input.patientStateComposition.composedPatientStateFingerprint
+  ) {
+    return {
+      ok: false,
+      message:
+        'The D-264 duration attachment does not retain the exact D-208 composition nested under this D-223 root.',
+    };
+  }
+  return {
+    ok: true,
+    value: {
+      patientState: attachment.composedPatientState,
+      durationAttachment: attachment,
+    },
+  };
+};
+
 const verifyChain = (
   request: FindingPipelineAuditRequest,
 ):
@@ -379,6 +457,8 @@ const verifyChain = (
         readonly capacityBoundSlotCertificate: CapacityBoundLocationTemplateSelectionCertificateArtifact;
         readonly admittedTemplateLocationBinding: AdmittedTemplateLocationBindingArtifact;
         readonly patientStateComposition: ResolvedPatientStateCompositionArtifact;
+        readonly preFindingPatientState: ResolvedPatientState;
+        readonly conditionClinicalDurationAttachment: ConditionClinicalDurationAttachmentArtifact | null;
         readonly downstream: FindingPipelineAuditDownstreamRequest;
         readonly weightedTendencyRequest: WeightedFindingTendencyRequest | null;
         readonly weightedTendencyArtifact: WeightedFindingTendencyArtifact | null;
@@ -390,6 +470,7 @@ const verifyChain = (
         | 'INVALID_REQUEST'
         | 'INVALID_PATIENT_SLOT_FILL_SEED_AUTHORITY'
         | 'INVALID_PRE_FINDING_PATIENT_STATE_ORCHESTRATION'
+        | 'INVALID_CONDITION_CLINICAL_DURATION_ATTACHMENT'
         | 'PATIENT_SEED_CONTEXT_MISMATCH'
         | 'PATIENT_STATE_COMPOSITION_BLOCKED'
         | 'INVALID_CONDITION_FINDING_ARTIFACT'
@@ -481,6 +562,23 @@ const verifyChain = (
       contentIds: [patientStateComposition.id],
     };
   }
+  const preFindingState = resolveVerifiedPreFindingPatientState({
+    patientStateComposition,
+    durationAttachment: request.conditionClinicalDurationAttachmentArtifact,
+  });
+  if (!preFindingState.ok) {
+    return {
+      ok: false,
+      code: 'INVALID_CONDITION_CLINICAL_DURATION_ATTACHMENT',
+      message: preFindingState.message,
+      contentIds: [
+        patientStateComposition.id,
+        ...(request.conditionClinicalDurationAttachmentArtifact === null
+          ? []
+          : [request.conditionClinicalDurationAttachmentArtifact.id]),
+      ],
+    };
+  }
   const downstream = request.downstream;
   const conditionSource = patientStateComposition.compositionRequest.conditionSource;
   const conditionFindingIntegrity = verifyConditionFindingCardinalityIntegrity(
@@ -522,6 +620,57 @@ const verifyChain = (
   const applicability = applicabilityIntegrity.value;
   const structuredSourceSelection =
     downstream.catalogCompileRecipe.structuredSourceReportSelectionArtifact;
+  const optionalFeatureArtifact =
+    patientStateComposition.compositionRequest.optionalFeatureArtifact;
+  const sourceReportComplexityDefinitionIds =
+    optionalFeatureArtifact.selectionRequest.moduleDefinitions
+      .filter((definition) => definition.moduleKind === 'source_report')
+      .map((definition) => definition.id)
+      .sort(compareStrings);
+  const selectionOptionalFeatureArtifact =
+    structuredSourceSelection?.request.optionalFeatureArtifact;
+  const findingSourceReportPolicy =
+    downstream.catalogCompileRecipe.sharedFindingRecipe.findingSourceReportProjectionPolicy;
+  const findingOptionalFeatureArtifact = findingSourceReportPolicy?.optionalFeatureArtifact;
+  const structuredMappedDefinitionIds = [
+    ...new Set(
+      structuredSourceSelection?.request.selectionProfile.policies.flatMap((policy) =>
+        policy.mode === 'complexity_gated'
+          ? policy.modifiers.map((modifier) => modifier.moduleRef.id)
+          : [],
+      ) ?? [],
+    ),
+  ];
+  const findingMappedDefinitionIds = [
+    ...new Set(
+      findingSourceReportPolicy?.slots.flatMap((slot) =>
+        slot.modifiers.map((modifier) => modifier.moduleRef.id),
+      ) ?? [],
+    ),
+  ];
+  const mappedSourceReportDefinitionIds = [
+    ...new Set([...structuredMappedDefinitionIds, ...findingMappedDefinitionIds]),
+  ].sort(compareStrings);
+  if (
+    (selectionOptionalFeatureArtifact !== undefined &&
+      !sameCanonicalValue(selectionOptionalFeatureArtifact, optionalFeatureArtifact)) ||
+    (findingOptionalFeatureArtifact !== undefined &&
+      !sameCanonicalValue(findingOptionalFeatureArtifact, optionalFeatureArtifact)) ||
+    sourceReportComplexityDefinitionIds.join('\u0000') !==
+      mappedSourceReportDefinitionIds.join('\u0000')
+  ) {
+    return {
+      ok: false,
+      code: 'ARTIFACT_CHAIN_MISMATCH',
+      message:
+        'Every source-report complexity candidate must flow from the one exact D-201 artifact into at least one D-217 structured view or D-258 finding projection; neither path may invent, redraw, omit, or recharge it.',
+      contentIds: [
+        optionalFeatureArtifact.id,
+        ...(structuredSourceSelection === null ? [] : [structuredSourceSelection.id]),
+        ...(findingSourceReportPolicy === undefined ? [] : [findingSourceReportPolicy.id]),
+      ],
+    };
+  }
   const downstreamSeeds = [
     conditionFinding.seed,
     background.seed,
@@ -529,13 +678,22 @@ const verifyChain = (
     ...(structuredSourceSelection === null
       ? []
       : [structuredSourceSelection.seed, structuredSourceSelection.request.seed]),
+    ...(findingOptionalFeatureArtifact === undefined
+      ? []
+      : [
+          findingOptionalFeatureArtifact.seed,
+          findingOptionalFeatureArtifact.selectionRequest.seed,
+        ]),
+    ...(preFindingState.value.durationAttachment?.attachmentRequest.durationResolutionArtifacts.map(
+      (artifact) => artifact.compileRequest.seed,
+    ) ?? []),
   ];
   if (downstreamSeeds.some((seed) => seed !== patientGenerationSeed)) {
     return {
       ok: false,
       code: 'PATIENT_SEED_CONTEXT_MISMATCH',
       message:
-        'D-197, D-198, D-193/D-194, and any D-217 source-report selection must share the one D-233 patient-generation seed.',
+        'D-197, D-198, any D-263/D-264 duration attachment, D-193/D-194, and any D-217/D-258 source-report projection must share the one D-233 patient-generation seed.',
       contentIds: [
         patientSlotFillSeedAuthority.id,
         conditionFinding.id,
@@ -694,6 +852,8 @@ const verifyChain = (
       capacityBoundSlotCertificate,
       admittedTemplateLocationBinding,
       patientStateComposition,
+      preFindingPatientState: preFindingState.value.patientState,
+      conditionClinicalDurationAttachment: preFindingState.value.durationAttachment,
       downstream,
       weightedTendencyRequest,
       weightedTendencyArtifact,
@@ -742,6 +902,7 @@ const candidateUnion = (
 const assembleCatalogRequest = (
   admittedTemplateLocationBinding: AdmittedTemplateLocationBindingArtifact,
   patientStateComposition: ResolvedPatientStateCompositionArtifact,
+  preFindingPatientState: ResolvedPatientState,
   downstream: FindingPipelineAuditDownstreamRequest,
   candidates: readonly FindingResolutionCandidate[],
 ):
@@ -750,21 +911,17 @@ const assembleCatalogRequest = (
   const { sharedFindingRecipe, authoredFindingCandidates, ...catalogRecipe } =
     downstream.catalogCompileRecipe;
   void authoredFindingCandidates;
-  const patientState = patientStateComposition.composedPatientState;
-  if (patientState === null) {
-    return { ok: false, message: 'D-208 did not produce a complete patient state.' };
-  }
   const parsed = CatalogInstanceCompileRequestSchema.safeParse({
     ...catalogRecipe,
     template: admittedTemplateLocationBinding.template,
     location: admittedTemplateLocationBinding.location,
     operationalAdmissionArtifact: admittedTemplateLocationBinding.operationalAdmissionArtifact,
-    basePatientState: patientState,
+    basePatientState: preFindingPatientState,
     conditionBindings: patientStateComposition.conditionBindings,
     sharedFindingRequest: {
       ...sharedFindingRecipe,
-      patientStateId: patientState.id,
-      propositionState: patientState.propositionState,
+      patientStateId: preFindingPatientState.id,
+      propositionState: preFindingPatientState.propositionState,
       candidates,
     },
   });
@@ -799,6 +956,7 @@ const artifactPayload = (
   status: artifact.status,
   patientSlotFillSeedAuthorityArtifact: artifact.patientSlotFillSeedAuthorityArtifact,
   preFindingPatientStateOrchestrationArtifact: artifact.preFindingPatientStateOrchestrationArtifact,
+  conditionClinicalDurationAttachmentArtifact: artifact.conditionClinicalDurationAttachmentArtifact,
   conditionFindingArtifact: artifact.conditionFindingArtifact,
   backgroundFindingArtifact: artifact.backgroundFindingArtifact,
   weightedFindingTendencyApplicabilityArtifact:
@@ -836,6 +994,8 @@ const buildArtifact = (
         patientSlotFillSeedAuthorityArtifact: request.patientSlotFillSeedAuthorityArtifact,
         preFindingPatientStateOrchestrationArtifact:
           request.preFindingPatientStateOrchestrationArtifact,
+        conditionClinicalDurationAttachmentArtifact:
+          request.conditionClinicalDurationAttachmentArtifact,
         conditionFindingArtifact: downstream.conditionFindingArtifact,
         backgroundFindingArtifact: downstream.backgroundFindingArtifact,
         weightedFindingTendencyApplicabilityArtifact:
@@ -854,6 +1014,8 @@ const buildArtifact = (
     patientSlotFillSeedAuthorityArtifact: request.patientSlotFillSeedAuthorityArtifact,
     preFindingPatientStateOrchestrationArtifact:
       request.preFindingPatientStateOrchestrationArtifact,
+    conditionClinicalDurationAttachmentArtifact:
+      request.conditionClinicalDurationAttachmentArtifact,
     conditionFindingArtifact: downstream.conditionFindingArtifact,
     backgroundFindingArtifact: downstream.backgroundFindingArtifact,
     weightedFindingTendencyApplicabilityArtifact:
@@ -885,8 +1047,9 @@ const buildArtifact = (
  * this composer delegates mass pooling, normalization, and the draw to D-199.
  * It requires every patient randomizer to share D-233's one patient-generation
  * seed, derives every D-193/D-194 attachment through D-230's nested
- * D-229/D-228 chain and D-223's verified D-208 result, and never selects or
- * spends the encounter-owned complexity budget again.
+ * D-229/D-228 chain and D-223's verified D-208 result plus optional verified
+ * D-264 state, and never selects or spends the encounter-owned complexity
+ * budget again.
  */
 export const composeFindingPipelineAudit = (input: unknown): FindingPipelineAuditComposeResult => {
   const parsed = FindingPipelineAuditRequestSchema.safeParse(input);
@@ -901,6 +1064,7 @@ export const composeFindingPipelineAudit = (input: unknown): FindingPipelineAudi
   const {
     admittedTemplateLocationBinding,
     patientStateComposition,
+    preFindingPatientState,
     downstream,
     weightedTendencyRequest,
     weightedTendencyArtifact,
@@ -920,6 +1084,7 @@ export const composeFindingPipelineAudit = (input: unknown): FindingPipelineAudi
   const catalogRequest = assembleCatalogRequest(
     admittedTemplateLocationBinding,
     patientStateComposition,
+    preFindingPatientState,
     downstream,
     union.value,
   );
@@ -1016,6 +1181,7 @@ const verifyEmbeddedChain = (
         readonly locationTemplateSelection: LocationTemplateSelectionArtifact;
         readonly capacityBoundSlotCertificate: CapacityBoundLocationTemplateSelectionCertificateArtifact;
         readonly patientStateComposition: ResolvedPatientStateCompositionArtifact;
+        readonly preFindingPatientState: ResolvedPatientState;
         readonly conditionSource: ResolvedConditionSource;
       };
     }
@@ -1056,6 +1222,13 @@ const verifyEmbeddedChain = (
     };
   }
   const conditionSource = patientStateComposition.compositionRequest.conditionSource;
+  const preFindingState = resolveVerifiedPreFindingPatientState({
+    patientStateComposition,
+    durationAttachment: artifact.conditionClinicalDurationAttachmentArtifact,
+  });
+  if (!preFindingState.ok) {
+    return { ok: false, message: preFindingState.message };
+  }
   if (!conditionFinding.ok) return { ok: false, message: conditionFinding.error.message };
   if (!background.ok) return { ok: false, message: background.error.message };
   if (!applicability.ok) return { ok: false, message: applicability.error.message };
@@ -1076,12 +1249,15 @@ const verifyEmbeddedChain = (
       ? []
       : [structuredSourceSelection.seed, structuredSourceSelection.request.seed]),
     ...(artifact.catalogSnapshot === null ? [] : [artifact.catalogSnapshot.patientInstance.seed]),
+    ...(preFindingState.value.durationAttachment?.attachmentRequest.durationResolutionArtifacts.map(
+      (durationArtifact) => durationArtifact.compileRequest.seed,
+    ) ?? []),
   ];
   if (retainedSeeds.some((seed) => seed !== patientGenerationSeed)) {
     return {
       ok: false,
       message:
-        'The embedded D-223, D-197-through-D-199, D-193/D-194, optional D-217, and final patient snapshot do not share the one D-233 patient-generation seed.',
+        'The embedded D-223, optional D-263/D-264 duration path, D-197-through-D-199, D-193/D-194, optional D-217, and final patient snapshot do not share the one D-233 patient-generation seed.',
     };
   }
   if (
@@ -1147,6 +1323,7 @@ const verifyEmbeddedChain = (
       locationTemplateSelection: templateSelection,
       capacityBoundSlotCertificate: capacityCertificate,
       patientStateComposition,
+      preFindingPatientState: preFindingState.value.patientState,
       conditionSource,
     },
   };
@@ -1259,20 +1436,15 @@ export const verifyFindingPipelineAuditIntegrity = (
     };
   }
 
-  const { locationTemplateSelection, patientStateComposition, conditionSource } = chain.value;
+  const {
+    locationTemplateSelection,
+    patientStateComposition,
+    preFindingPatientState,
+    conditionSource,
+  } = chain.value;
   const admittedBinding =
     locationTemplateSelection.locationOwnedPatientSlotSelectionArtifact
       .admittedTemplateLocationBindingArtifact;
-  const composedPatientState = patientStateComposition.composedPatientState;
-  if (composedPatientState === null) {
-    return {
-      ok: false,
-      error: {
-        code: 'UPSTREAM_INTEGRITY_INVALID',
-        message: 'The retained D-208 artifact has no composed patient state.',
-      },
-    };
-  }
   if (
     admittedBinding.template.id !== artifact.catalogCompileRequest.template.id ||
     admittedBinding.template.contentVersion !==
@@ -1288,16 +1460,16 @@ export const verifyFindingPipelineAuditIntegrity = (
       artifact.catalogCompileRequest.template.contentVersion ||
     patientStateComposition.templateFingerprint !==
       fingerprintTemplateConditionSelectionTemplate(artifact.catalogCompileRequest.template) ||
-    !sameCanonicalValue(composedPatientState, artifact.catalogCompileRequest.basePatientState) ||
+    !sameCanonicalValue(preFindingPatientState, artifact.catalogCompileRequest.basePatientState) ||
     !sameCanonicalSet(
       patientStateComposition.conditionBindings,
       artifact.catalogCompileRequest.conditionBindings,
     ) ||
     artifact.catalogCompileRequest.sharedFindingRequest.patientStateId !==
-      composedPatientState.id ||
+      preFindingPatientState.id ||
     !sameCanonicalValue(
       artifact.catalogCompileRequest.sharedFindingRequest.propositionState,
-      composedPatientState.propositionState,
+      preFindingPatientState.propositionState,
     )
   ) {
     return {
@@ -1305,7 +1477,7 @@ export const verifyFindingPipelineAuditIntegrity = (
       error: {
         code: 'COMPILER_CONTEXT_MISMATCH',
         message:
-          'The retained D-193/D-194 request does not derive its exact template, pre-finding patient state, proposition state, and condition bindings from D-208.',
+          'The retained D-193/D-194 request does not derive its exact template, D-208 or verified D-264 pre-finding patient state, proposition state, and condition bindings from the retained upstream chain.',
       },
     };
   }
@@ -1372,7 +1544,7 @@ export const verifyFindingPipelineAuditIntegrity = (
         error: {
           code: 'COMPILER_CONTEXT_MISMATCH',
           message:
-            'The compiled snapshot does not reproduce the exact D-208 → D-193 → D-194 request and condition context.',
+            'The compiled snapshot does not reproduce the exact D-208 → optional D-264 → D-193 → D-194 request and condition context.',
         },
       };
     }

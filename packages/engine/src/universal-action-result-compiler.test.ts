@@ -605,6 +605,7 @@ const attachTargetScopedDuration = (
             value: 9,
             unit: 'week',
             durationProfileId: 'duration-profile.mdd.current-episode',
+            durationProfileContentVersion: '1.0.0',
             durationOptionId: 'duration-option.mdd.nine-weeks',
             relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
             interpretation: 'supports_authored_state',
@@ -636,6 +637,7 @@ const attachTargetScopedDuration = (
     informationActionPayloadFingerprint: fingerprintInformationActionPayload(action),
     valueKind: 'clinical_duration',
     durationProfileId,
+    durationProfileContentVersion: '1.0.0',
     targetSelector: {
       kind: 'condition_definition',
       diagnosisDefinitionId: 'diagnosis.major-depressive-disorder',
@@ -853,7 +855,7 @@ describe('D-213 universal information-action result compiler', () => {
       payloadFingerprint: request.targetScopedPatientValueProjectionArtifact!.payloadFingerprint,
     });
     expect(JSON.stringify(targetSource)).not.toMatch(
-      /targetSelector|conditionStateId|durationProfileId|durationOptionId|criterionId|interpretation|resolution/,
+      /targetSelector|conditionStateId|durationProfileId|durationProfileContentVersion|durationOptionId|criterionId|interpretation|resolution/,
     );
   });
 

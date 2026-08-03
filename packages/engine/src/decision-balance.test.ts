@@ -26,7 +26,11 @@ import {
   deriveNativeSelectedRuleTargets,
   verifyDecisionBalanceCatalogSnapshotIntegrity,
 } from './decision-balance';
-import { adaptDiagnosisInformationPrerequisite } from './diagnosis-information-prerequisite-adapter';
+import {
+  adaptDiagnosisInformationPrerequisite,
+  adaptDiagnosisInformationRecommendation,
+  adaptDiagnosisInformationRequirement,
+} from './diagnosis-information-prerequisite-adapter';
 import { adaptFocusedMedicationRegimenRoute } from './medication-regimen-route-adapter';
 
 const diagnosis = DiagnosisDefinitionSchema.parse(mddDiagnosisJson);
@@ -42,13 +46,32 @@ const reconciliationBalance = balanceCatalog.balances.find(
 const reactionHistoryBalance = balanceCatalog.balances.find(
   (balance) => balance.id === 'balance.mdd-any-medication-reaction-history',
 );
+const episodeCourseBalance = balanceCatalog.balances.find(
+  (balance) => balance.id === 'balance.mdd-initial-episode-course-assessment',
+);
+const depressiveSyndromeBalance = balanceCatalog.balances.find(
+  (balance) => balance.id === 'balance.mdd-initial-depressive-syndrome-assessment',
+);
+const substanceHistoryBalance = balanceCatalog.balances.find(
+  (balance) => balance.id === 'balance.mdd-substance-history',
+);
 if (
   routeBalance === undefined ||
   'balanceKind' in routeBalance ||
   reconciliationBalance === undefined ||
   !('balanceKind' in reconciliationBalance) ||
+  reconciliationBalance.balanceKind !== 'triggered_information_prerequisite' ||
   reactionHistoryBalance === undefined ||
-  !('balanceKind' in reactionHistoryBalance)
+  !('balanceKind' in reactionHistoryBalance) ||
+  reactionHistoryBalance.balanceKind !== 'triggered_information_prerequisite' ||
+  episodeCourseBalance === undefined ||
+  !('balanceKind' in episodeCourseBalance) ||
+  episodeCourseBalance.balanceKind !== 'information_requirement' ||
+  depressiveSyndromeBalance === undefined ||
+  !('balanceKind' in depressiveSyndromeBalance) ||
+  depressiveSyndromeBalance.balanceKind !== 'information_requirement' ||
+  substanceHistoryBalance === undefined ||
+  'balanceKind' in substanceHistoryBalance
 ) {
   throw new Error('The native MDD balance fixture is incomplete.');
 }
@@ -135,7 +158,10 @@ const actionHorizon = DecisionActionHorizonSchema.parse({
   id: 'decision-action-horizon.test.native-mdd-balance',
   informationActionIds: [
     'info.history.allergies-adverse-reactions',
+    'info.history.depressive-symptoms',
     'info.history.medication-reconciliation',
+    'info.history.presenting-problem',
+    'info.history.substance-use',
   ],
   startMedicationIds: reviewedMedicationIds,
   regimenEntryOperations: [],
@@ -238,6 +264,74 @@ const compileRubricWithPrerequisites = (prerequisiteBalanceCatalog = balanceCata
     rubric: compiled.value,
     prerequisites,
     attachedPrerequisites,
+  };
+};
+
+const compileRubricWithAllInformationRequirements = () => {
+  const primary = compileRubric();
+  const triggered = compileRubricWithPrerequisites();
+  const directRequirements = [
+    'rule.diagnosis-mdd.initial-episode-course-assessment',
+    'rule.diagnosis-mdd.initial-depressive-syndrome-assessment',
+  ].map((diagnosisRuleId) =>
+    adaptDiagnosisInformationRequirement({
+      diagnosis,
+      diagnosisRuleId,
+      policy,
+      primaryRoute: route,
+      medicationClasses: regimenCatalog.medicationClasses,
+      classMemberships: regimenCatalog.classMemberships,
+    }),
+  );
+  for (const requirement of directRequirements) {
+    if (!requirement.ok) throw new Error(requirement.error.message);
+  }
+  const attachedRequirements = directRequirements.map((requirement) => {
+    if (!requirement.ok) throw new Error(requirement.error.message);
+    const attached = attachDecisionBalance({
+      candidate: requirement.value,
+      balanceCatalog,
+    });
+    if (!attached.ok) throw new Error(attached.error.message);
+    return attached.value;
+  });
+  const substanceHistory = adaptDiagnosisInformationRecommendation({
+    diagnosis,
+    diagnosisRuleId: 'rule.diagnosis-mdd.substance-history',
+    policy,
+    primaryRoute: route,
+    medicationClasses: regimenCatalog.medicationClasses,
+    classMemberships: regimenCatalog.classMemberships,
+  });
+  if (!substanceHistory.ok) throw new Error(substanceHistory.error.message);
+  const attachedSubstanceHistory = attachDecisionBalance({
+    candidate: substanceHistory.value,
+    balanceCatalog,
+  });
+  if (!attachedSubstanceHistory.ok) {
+    throw new Error(attachedSubstanceHistory.error.message);
+  }
+  const compiled = compileDecisionPolicy({
+    policy,
+    patientState,
+    actionHorizon,
+    rules: [
+      primary.attached,
+      ...triggered.attachedPrerequisites,
+      ...attachedRequirements,
+      attachedSubstanceHistory.value,
+    ],
+  });
+  if (!compiled.ok) throw new Error(compiled.error.message);
+  return {
+    rubric: compiled.value,
+    directRequirements: directRequirements.map((requirement) => {
+      if (!requirement.ok) throw new Error(requirement.error.message);
+      return requirement.value;
+    }),
+    attachedRequirements,
+    substanceHistory: substanceHistory.value,
+    attachedSubstanceHistory: attachedSubstanceHistory.value,
   };
 };
 
@@ -346,6 +440,40 @@ describe('native decision balance', () => {
         ],
       }).success,
     ).toBe(false);
+    expect(
+      DecisionBalanceCatalogSchema.safeParse({
+        ...balanceCatalog,
+        balances: [
+          {
+            ...episodeCourseBalance,
+            outcomes: {
+              ...episodeCourseBalance.outcomes,
+              fulfilled: {
+                ...episodeCourseBalance.outcomes.fulfilled,
+                points: 0,
+              },
+            },
+          },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      DecisionBalanceCatalogSchema.safeParse({
+        ...balanceCatalog,
+        balances: [
+          {
+            ...episodeCourseBalance,
+            outcomes: {
+              ...episodeCourseBalance.outcomes,
+              omitted: {
+                ...episodeCourseBalance.outcomes.omitted,
+                points: 1,
+              },
+            },
+          },
+        ],
+      }).success,
+    ).toBe(false);
   });
 
   it('keeps the route point-free and attaches one exact separate provisional balance', () => {
@@ -353,7 +481,7 @@ describe('native decision balance', () => {
     expect(adapted.balanceRef).toBeNull();
     expect(attached.balanceRef).toEqual({
       id: 'balance.mdd-initial-one-first-line-antidepressant',
-      contentVersion: '1.0.0',
+      contentVersion: '1.1.0',
     });
     expect(rubric.includedRules[0]?.balanceRef).toEqual(attached.balanceRef);
     expect(balanceCatalog.balances[0]).toMatchObject({
@@ -534,26 +662,26 @@ describe('native decision balance', () => {
     expect(attachedPrerequisites.map((prerequisite) => prerequisite.balanceRef)).toEqual([
       {
         id: 'balance.mdd-any-medication-reconciliation',
-        contentVersion: '1.0.0',
+        contentVersion: '1.1.0',
       },
       {
         id: 'balance.mdd-any-medication-reaction-history',
-        contentVersion: '1.0.0',
+        contentVersion: '1.1.0',
       },
     ]);
     expect(rubric.includedRules.map((rule) => rule.balanceRef)).toEqual(
       expect.arrayContaining([
         {
           id: 'balance.mdd-initial-one-first-line-antidepressant',
-          contentVersion: '1.0.0',
+          contentVersion: '1.1.0',
         },
         {
           id: 'balance.mdd-any-medication-reconciliation',
-          contentVersion: '1.0.0',
+          contentVersion: '1.1.0',
         },
         {
           id: 'balance.mdd-any-medication-reaction-history',
-          contentVersion: '1.0.0',
+          contentVersion: '1.1.0',
         },
       ]),
     );
@@ -573,6 +701,210 @@ describe('native decision balance', () => {
         omitted: { impactBand: 'major', points: -40 },
       },
     });
+  });
+
+  it('attaches exact two-outcome balances to both direct MDD history requirements', () => {
+    const {
+      rubric,
+      directRequirements,
+      attachedRequirements,
+      substanceHistory,
+      attachedSubstanceHistory,
+    } = compileRubricWithAllInformationRequirements();
+
+    expect(directRequirements.map((requirement) => requirement.balanceRef)).toEqual([null, null]);
+    expect(attachedRequirements.map((requirement) => requirement.balanceRef)).toEqual([
+      {
+        id: 'balance.mdd-initial-episode-course-assessment',
+        contentVersion: '1.1.0',
+      },
+      {
+        id: 'balance.mdd-initial-depressive-syndrome-assessment',
+        contentVersion: '1.1.0',
+      },
+    ]);
+    expect(substanceHistory.balanceRef).toBeNull();
+    expect(attachedSubstanceHistory.balanceRef).toEqual({
+      id: 'balance.mdd-substance-history',
+      contentVersion: '1.1.0',
+    });
+    expect(rubric.includedRules).toHaveLength(6);
+    expect(episodeCourseBalance).toMatchObject({
+      balanceKind: 'information_requirement',
+      component: 'workup',
+      outcomes: {
+        fulfilled: { impactBand: 'major', points: 35 },
+        omitted: { impactBand: 'major', points: -35 },
+      },
+    });
+    expect(depressiveSyndromeBalance).toMatchObject({
+      balanceKind: 'information_requirement',
+      component: 'workup',
+      outcomes: {
+        fulfilled: { impactBand: 'major', points: 50 },
+        omitted: { impactBand: 'major', points: -50 },
+      },
+    });
+    expect(substanceHistoryBalance).toMatchObject({
+      impactBand: 'moderate',
+      component: 'workup',
+      pointsWhenMatched: 30,
+      unmatchedBehavior: 'not_triggered_zero',
+    });
+
+    const frozen = compileDecisionBalanceCatalogSnapshot({
+      compiledRubric: rubric,
+      balanceCatalog,
+    });
+    expect(frozen.ok).toBe(true);
+    if (!frozen.ok) return;
+    expect(frozen.value.modelVersion).toBe('decision-balance-catalog-snapshot.v2');
+    expect(frozen.value.balances).toHaveLength(6);
+    expect(
+      frozen.value.balances.filter((balance) => balance.balanceKind === 'information_requirement'),
+    ).toHaveLength(2);
+  });
+
+  it('scores obtained and omitted direct histories without a treatment trigger', () => {
+    const { rubric } = compileRubricWithAllInformationRequirements();
+    const allInformationActionIds = [
+      'info.history.allergies-adverse-reactions',
+      'info.history.depressive-symptoms',
+      'info.history.medication-reconciliation',
+      'info.history.presenting-problem',
+      'info.history.substance-use',
+    ];
+    const databasePlanDecision = decisionSelecting(
+      treatmentStarting(['medication.sertraline']),
+      allInformationActionIds,
+    );
+    const scenarios = [
+      {
+        name: 'all histories and one reviewed medication',
+        starts: ['medication.sertraline'],
+        informationActionIds: allInformationActionIds,
+        expectedPoints: 380,
+        episodePoints: 35,
+        syndromePoints: 50,
+      },
+      {
+        name: 'preferred substance history without medication',
+        starts: [] as string[],
+        informationActionIds: ['info.history.substance-use'],
+        expectedPoints: -55,
+        episodePoints: -35,
+        syndromePoints: -50,
+      },
+      {
+        name: 'direct histories without medication',
+        starts: [] as string[],
+        informationActionIds: [
+          'info.history.depressive-symptoms',
+          'info.history.presenting-problem',
+        ],
+        expectedPoints: 85,
+        episodePoints: 35,
+        syndromePoints: 50,
+      },
+      {
+        name: 'medication with treatment-triggered histories but no focused histories',
+        starts: ['medication.sertraline'],
+        informationActionIds: [
+          'info.history.allergies-adverse-reactions',
+          'info.history.medication-reconciliation',
+        ],
+        expectedPoints: 180,
+        episodePoints: -35,
+        syndromePoints: -50,
+      },
+      {
+        name: 'medication without any history',
+        starts: ['medication.sertraline'],
+        informationActionIds: [] as string[],
+        expectedPoints: 50,
+        episodePoints: -35,
+        syndromePoints: -50,
+      },
+    ] as const;
+
+    for (const scenario of scenarios) {
+      const result = compileNativeDecisionPointReport({
+        compiledRubric: rubric,
+        currentRegimen: [],
+        playerDecision: decisionSelecting(treatmentStarting([...scenario.starts]), [
+          ...scenario.informationActionIds,
+        ]),
+        databasePlanDecision,
+        balanceCatalog,
+        medicationRegimenKnowledgeCatalog: regimenCatalog,
+      });
+      expect(result.ok, scenario.name).toBe(true);
+      if (!result.ok) continue;
+      expect(result.value.report.databasePlanPoints).toBe(380);
+      expect(
+        result.value.playerRuleMatches.reduce(
+          (total, evaluation) => total + evaluation.appliedPoints,
+          0,
+        ),
+      ).toBe(scenario.expectedPoints);
+
+      for (const [ruleId, balanceId, expectedPoints, informationActionId] of [
+        [
+          'rule.diagnosis-mdd.initial-episode-course-assessment',
+          'balance.mdd-initial-episode-course-assessment',
+          scenario.episodePoints,
+          'info.history.presenting-problem',
+        ],
+        [
+          'rule.diagnosis-mdd.initial-depressive-syndrome-assessment',
+          'balance.mdd-initial-depressive-syndrome-assessment',
+          scenario.syndromePoints,
+          'info.history.depressive-symptoms',
+        ],
+      ] as const) {
+        const row = result.value.report.ruleTrace.find(
+          (candidate) =>
+            candidate.source.kind === 'compiled_decision_rule' &&
+            candidate.source.ruleRef.id === ruleId,
+        );
+        const fulfilled = scenario.informationActionIds.some(
+          (selectedInformationActionId) => selectedInformationActionId === informationActionId,
+        );
+        expect(row, `${scenario.name}: ${ruleId}`).toMatchObject({
+          balanceRef: { id: balanceId, contentVersion: '1.1.0' },
+          component: 'workup',
+          matched: true,
+          status: 'applied',
+          pointsBeforeCombination: expectedPoints,
+          appliedPoints: expectedPoints,
+          triggeredInformationPrerequisiteEvaluation: null,
+          relatedSelectedActionTargets: fulfilled
+            ? [{ kind: 'information_action', informationActionId }]
+            : [],
+        });
+      }
+
+      const substanceHistoryRow = result.value.report.ruleTrace.find(
+        (candidate) =>
+          candidate.source.kind === 'compiled_decision_rule' &&
+          candidate.source.ruleRef.id === 'rule.diagnosis-mdd.substance-history',
+      );
+      const substanceHistorySelected = scenario.informationActionIds.some(
+        (informationActionId) => informationActionId === 'info.history.substance-use',
+      );
+      expect(substanceHistoryRow, `${scenario.name}: substance history`).toMatchObject({
+        balanceRef: {
+          id: 'balance.mdd-substance-history',
+          contentVersion: '1.1.0',
+        },
+        component: 'workup',
+        matched: substanceHistorySelected,
+        status: substanceHistorySelected ? 'applied' : 'not_triggered',
+        pointsBeforeCombination: substanceHistorySelected ? 30 : 0,
+        appliedPoints: substanceHistorySelected ? 30 : 0,
+        triggeredInformationPrerequisiteEvaluation: null,
+      });
+    }
   });
 
   it('rejects a schema-valid matched balance crossed onto a triggered prerequisite', () => {
@@ -599,6 +931,39 @@ describe('native decision balance', () => {
     expect(
       attachDecisionBalance({
         candidate: reconciliationPrerequisite,
+        balanceCatalog: crossedCatalog,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'BALANCE_SHAPE_MISMATCH' },
+    });
+  });
+
+  it('rejects a schema-valid matched balance crossed onto a direct information requirement', () => {
+    const { directRequirements } = compileRubricWithAllInformationRequirements();
+    const episodeRequirement = directRequirements.find(
+      (candidate) =>
+        candidate.ruleRef.id === 'rule.diagnosis-mdd.initial-episode-course-assessment',
+    );
+    if (episodeRequirement === undefined) {
+      throw new Error('The direct episode-course requirement fixture is missing.');
+    }
+    const crossedCatalog = DecisionBalanceCatalogSchema.parse({
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'decision-balance-catalog.test.direct-shape-crossing',
+      balances: [
+        {
+          ...routeBalance,
+          id: 'balance.test.matched-shape-on-direct-information-requirement',
+          ruleRef: episodeRequirement.ruleRef,
+        },
+      ],
+    });
+
+    expect(
+      attachDecisionBalance({
+        candidate: episodeRequirement,
         balanceCatalog: crossedCatalog,
       }),
     ).toMatchObject({
@@ -857,7 +1222,7 @@ describe('native decision balance', () => {
             candidate.source.ruleRef.id === ruleId,
         );
         expect(row, `${scenario.name}: ${ruleId}`).toMatchObject({
-          balanceRef: { id: balanceId, contentVersion: '1.0.0' },
+          balanceRef: { id: balanceId, contentVersion: '1.1.0' },
           component: 'workup',
           matched: expected.triggerSelected,
           status: expected.triggerSelected ? 'applied' : 'not_triggered',

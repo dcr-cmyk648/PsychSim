@@ -1140,6 +1140,8 @@ describe('prototype content', () => {
   it('requires an explicit criterion for a duration-authored near miss', () => {
     expect(
       ClinicalDurationProfileSchema.safeParse({
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
         id: 'duration-profile.invalid-near-miss',
         relatedDiagnosisId: 'diagnosis.bipolar-spectrum-disorder',
         interpretation: 'designed_below_threshold',

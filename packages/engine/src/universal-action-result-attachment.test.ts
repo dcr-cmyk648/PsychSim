@@ -528,6 +528,7 @@ const makeArtifact = (
       value: 9,
       unit: 'week',
       durationProfileId: 'duration-profile.test.attachment-low-energy',
+      durationProfileContentVersion: '1.0.0',
       durationOptionId: 'duration-option.test.attachment-nine-weeks',
       relatedDiagnosisId: 'diagnosis.test.attachment-mdd',
       interpretation: 'supports_authored_state',
@@ -607,6 +608,7 @@ const makeArtifact = (
           informationActionPayloadFingerprint: fingerprintInformationActionPayload(symptomsAction),
           valueKind: 'clinical_duration',
           durationProfileId: 'duration-profile.test.attachment-low-energy',
+          durationProfileContentVersion: '1.0.0',
           targetSelector: {
             kind: 'finding_definition',
             findingDefinitionId: findingDefinition.id,
@@ -770,10 +772,10 @@ describe('D-214a universal action-result attachment translator', () => {
     const authoringAudit = JSON.stringify(targetArtifact);
     const safeReveal = JSON.stringify(translated.targetScopedPatientValueReveals);
     expect(authoringAudit).toMatch(
-      /canonicalFindingId|recordId|targetSelector|durationProfileId|durationOptionId|interpretation|resolution/,
+      /canonicalFindingId|recordId|targetSelector|durationProfileId|durationProfileContentVersion|durationOptionId|interpretation|resolution/,
     );
     expect(safeReveal).not.toMatch(
-      /canonicalFindingId|recordId|targetSelector|durationProfileId|durationOptionId|relatedDiagnosisId|criterionId|interpretation|resolution|compileRequest|evaluations|projections/,
+      /canonicalFindingId|recordId|targetSelector|durationProfileId|durationProfileContentVersion|durationOptionId|relatedDiagnosisId|criterionId|interpretation|resolution|compileRequest|evaluations|projections/,
     );
 
     const crossedDefinition = structuredClone(artifact);

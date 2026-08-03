@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.2.0",
+  "id": "registry.catalog.universal-action-result-assemblies",
+  "assemblies": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.depressive-symptoms",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.depressive-symptoms",
+        "actions": [
+          {
+            "id": "info.history.depressive-symptoms",
+            "label": "Depressive symptoms",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review mood, interest, sleep, energy, concentration, appetite or weight, guilt or worthlessness, psychomotor change, and brief death or suicide thoughts.",
+            "serviceId": "service.history.standard",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.depressive-symptoms",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.depressive-symptoms",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.depressive-symptoms.fnv1a64.6359e83ae6d42dea",
+          "sourceKinds": ["finding_projections"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.1.0",
+      "id": "universal-action-result-assembly.mdd-initial-assessment-foundation",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.mdd-initial-assessment-foundation",
+        "actions": [
+          {
+            "id": "info.history.presenting-problem",
+            "label": "Presenting problem and timeline",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Clarify the concern, onset, course, triggers, and functional impact.",
+            "serviceId": "service.history.timeline",
+            "repeatable": false
+          },
+          {
+            "id": "info.history.depressive-symptoms",
+            "label": "Depressive symptoms",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review mood, interest, sleep, energy, concentration, appetite or weight, guilt or worthlessness, psychomotor change, and brief death or suicide thoughts.",
+            "serviceId": "service.history.standard",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [],
+      "targetScopedPatientValueProjectionDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.1.0",
+          "id": "target-scoped-definition.history.presenting-problem.mdd-current-episode-duration",
+          "modelVersion": "target-scoped-patient-value-projection.v1",
+          "label": "Current MDD episode duration in the presenting-problem history",
+          "informationActionId": "info.history.presenting-problem",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.presenting-problem.fnv1a64.0b5814ba83c4c117",
+          "targetSelector": {
+            "kind": "condition_definition",
+            "diagnosisDefinitionId": "diagnosis.major-depressive-disorder",
+            "diagnosisDefinitionContentVersion": "1.4.0"
+          },
+          "sourceKind": "patient_report",
+          "timeScopeId": "time-scope.current",
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-duration-profile.2026-08-03"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-08-03T14:35:00.000Z",
+            "sourceUseNoteIds": []
+          },
+          "valueKind": "clinical_duration",
+          "durationProfileId": "duration-profile.mdd.current-episode",
+          "durationProfileContentVersion": "1.0.0",
+          "lifecycle": "approved"
+        }
+      ],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.mdd-initial.presenting-problem",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.presenting-problem",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.presenting-problem.fnv1a64.0b5814ba83c4c117",
+          "sourceKinds": ["target_scoped_patient_value_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        },
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.mdd-initial.depressive-symptoms",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.depressive-symptoms",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.depressive-symptoms.fnv1a64.6359e83ae6d42dea",
+          "sourceKinds": ["finding_projections"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    }
+  ]
+}

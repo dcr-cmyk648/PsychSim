@@ -1,0 +1,281 @@
+import {
+  ConditionEpisodeSeverityDerivationArtifactSchema,
+  type ConditionEpisodeSeverityDerivationRequest,
+  type ConditionFunctionalImpairmentProfile,
+  type ConditionSymptomSeverityLevel,
+  type FunctionalImpairmentLevel,
+} from '@psychsim/schemas';
+import { describe, expect, it } from 'vitest';
+
+import {
+  deriveConditionEpisodeSeverity,
+  verifyConditionEpisodeSeverityDerivationIntegrity,
+} from './condition-episode-severity-derivation';
+import { resolveConditionFunctionalImpairment } from './condition-functional-impairment-profile-resolver';
+
+const conditionState = {
+  schemaVersion: 1 as const,
+  id: 'condition-state.test.current-mdd',
+  diagnosisDefinitionId: 'diagnosis.test.mdd',
+  diagnosisDefinitionContentVersion: '1.0.0',
+  clinicalStateId: 'clinical-state.current-episode',
+  timeScopeId: 'time-scope.current',
+  encounterRelevance: 'focus' as const,
+  severityId: null,
+  specifierIds: [],
+  origin: 'authored' as const,
+  resolution: {
+    origin: 'authored' as const,
+    ownerId: 'patient-template.test.current-mdd',
+    ownerContentVersion: '1.0.0',
+  },
+};
+
+const impairmentArtifact = (level: FunctionalImpairmentLevel) => {
+  const profile: ConditionFunctionalImpairmentProfile = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: `functional-impairment-profile.test.${level}`,
+    relatedDiagnosisId: conditionState.diagnosisDefinitionId,
+    options: [
+      {
+        id: `functional-impairment-option.test.${level}`,
+        level,
+      },
+    ],
+    developerOpinionIds: ['developer-opinion.test.functional-impairment'],
+    review: {
+      status: 'approved',
+      reviewerId: 'reviewer.test',
+      reviewedAt: '2026-08-03T16:00:00.000Z',
+      sourceUseNoteIds: [],
+    },
+  };
+  const result = resolveConditionFunctionalImpairment({
+    schemaVersion: 1,
+    id: `condition-functional-impairment-request.test.${level}`,
+    patientStateId: 'resolved-patient-state.test.severity',
+    conditionState: structuredClone(conditionState),
+    profile,
+    source: {
+      kind: 'patient_report',
+      sourceInstanceId: 'source-instance.patient.test.function',
+    },
+    timeScopeId: conditionState.timeScopeId,
+    seed: `seed.test.functional-impairment.${level}`,
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+const request = (
+  symptomLevel: ConditionSymptomSeverityLevel = 'mild',
+  impairmentLevel: FunctionalImpairmentLevel = 'none',
+): ConditionEpisodeSeverityDerivationRequest => ({
+  schemaVersion: 1,
+  id: `condition-episode-severity-request.test.${symptomLevel}.${impairmentLevel}`,
+  patientStateId: 'resolved-patient-state.test.severity',
+  conditionState: structuredClone(conditionState),
+  derivationOwner: {
+    schemaVersion: 1,
+    diagnosisDefinitionId: conditionState.diagnosisDefinitionId,
+    diagnosisDefinitionContentVersion: conditionState.diagnosisDefinitionContentVersion,
+    severityAxisId: 'severity-axis.test.mdd-episode',
+    derivationPolicy: {
+      id: 'severity-policy.test.higher-of',
+      strategy: 'highest_qualitative_level',
+      inputDimensions: ['symptom_severity', 'condition_attributed_functional_impairment'],
+      review: {
+        status: 'approved',
+        reviewerId: 'reviewer.test',
+        reviewedAt: '2026-08-03T16:00:00.000Z',
+        sourceUseNoteIds: ['source-use.test.severity-higher-of'],
+      },
+    },
+  },
+  symptomSeverity: {
+    schemaVersion: 1,
+    id: `condition-symptom-severity.test.${symptomLevel}`,
+    patientStateId: 'resolved-patient-state.test.severity',
+    target: {
+      kind: 'condition_state',
+      conditionStateId: conditionState.id,
+    },
+    diagnosisDefinitionId: conditionState.diagnosisDefinitionId,
+    diagnosisDefinitionContentVersion: conditionState.diagnosisDefinitionContentVersion,
+    clinicalStateId: conditionState.clinicalStateId,
+    timeScopeId: conditionState.timeScopeId,
+    level: symptomLevel,
+    resolutionOwner: {
+      id: 'condition-symptom-severity-owner.test',
+      contentVersion: '1.0.0',
+      payloadFingerprint:
+        'fingerprint.condition-symptom-severity.synthetic.fnv1a64.0123456789abcdef',
+    },
+  },
+  functionalImpairmentResolution: impairmentArtifact(impairmentLevel),
+});
+
+const deriveOrThrow = (input = request()) => {
+  const result = deriveConditionEpisodeSeverity(input);
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+describe('D-269 condition episode-severity derivation', () => {
+  it.each([
+    ['mild', 'none', 'mild'],
+    ['mild', 'mild', 'mild'],
+    ['mild', 'moderate', 'moderate'],
+    ['mild', 'severe', 'severe'],
+    ['moderate', 'none', 'moderate'],
+    ['moderate', 'mild', 'moderate'],
+    ['moderate', 'moderate', 'moderate'],
+    ['moderate', 'severe', 'severe'],
+    ['severe', 'none', 'severe'],
+    ['severe', 'mild', 'severe'],
+    ['severe', 'moderate', 'severe'],
+    ['severe', 'severe', 'severe'],
+  ] as const)(
+    'uses the higher qualitative level for symptom %s and impairment %s',
+    (symptomLevel, impairmentLevel, expected) => {
+      const artifact = deriveOrThrow(request(symptomLevel, impairmentLevel));
+      expect(artifact.resolvedEpisodeSeverity).toMatchObject({
+        qualitativeLevel: expected,
+        inputLevels: {
+          symptomSeverity: symptomLevel,
+          conditionAttributedFunctionalImpairment: impairmentLevel,
+        },
+        derivationStrategy: 'highest_qualitative_level',
+        attachmentStatus: 'derived_descriptor_only',
+      });
+      expect(artifact.resolvedEpisodeSeverity).not.toHaveProperty('severityId');
+      expect(artifact.resolvedEpisodeSeverity).not.toHaveProperty('points');
+      expect(artifact.resolvedEpisodeSeverity).not.toHaveProperty('complexityCost');
+    },
+  );
+
+  it('freezes the exact same-episode inputs and replays deterministically', () => {
+    const artifact = deriveOrThrow(request('moderate', 'severe'));
+
+    expect(ConditionEpisodeSeverityDerivationArtifactSchema.parse(artifact)).toEqual(artifact);
+    expect(artifact).toMatchObject({
+      patientStateId: request().patientStateId,
+      conditionStateId: conditionState.id,
+      diagnosisOwnerRef: {
+        diagnosisDefinitionId: conditionState.diagnosisDefinitionId,
+        diagnosisDefinitionContentVersion: conditionState.diagnosisDefinitionContentVersion,
+        severityAxisId: 'severity-axis.test.mdd-episode',
+        derivationPolicyId: 'severity-policy.test.higher-of',
+      },
+      resolvedEpisodeSeverity: {
+        patientStateId: request().patientStateId,
+        target: {
+          kind: 'condition_state',
+          conditionStateId: conditionState.id,
+        },
+        clinicalStateId: conditionState.clinicalStateId,
+        timeScopeId: conditionState.timeScopeId,
+      },
+    });
+    expect(deriveOrThrow(request('moderate', 'severe'))).toEqual(artifact);
+    expect(verifyConditionEpisodeSeverityDerivationIntegrity(artifact)).toEqual({
+      ok: true,
+      value: artifact,
+    });
+  });
+
+  it('canonicalizes policy input order without changing the artifact', () => {
+    const first = deriveOrThrow();
+    const reordered = request();
+    reordered.derivationOwner.derivationPolicy.inputDimensions.reverse();
+
+    expect(deriveOrThrow(reordered)).toEqual(first);
+  });
+
+  it('rejects crossed patient, condition, diagnosis, clinical-state, and time inputs', () => {
+    const crossedPatient = request();
+    crossedPatient.symptomSeverity.patientStateId = 'resolved-patient-state.test.other';
+    expect(deriveConditionEpisodeSeverity(crossedPatient)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const crossedCondition = request();
+    crossedCondition.symptomSeverity.target.conditionStateId = 'condition-state.test.other';
+    expect(deriveConditionEpisodeSeverity(crossedCondition)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const crossedDiagnosis = request();
+    crossedDiagnosis.symptomSeverity.diagnosisDefinitionId = 'diagnosis.test.other';
+    expect(deriveConditionEpisodeSeverity(crossedDiagnosis)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const crossedClinicalState = request();
+    crossedClinicalState.symptomSeverity.clinicalStateId = 'clinical-state.historical';
+    expect(deriveConditionEpisodeSeverity(crossedClinicalState)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const crossedTime = request();
+    crossedTime.symptomSeverity.timeScopeId = 'time-scope.historical';
+    expect(deriveConditionEpisodeSeverity(crossedTime)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const crossedImpairmentEpisode = request();
+    crossedImpairmentEpisode.functionalImpairmentResolution.compileRequest.conditionState.clinicalStateId =
+      'clinical-state.historical';
+    expect(deriveConditionEpisodeSeverity(crossedImpairmentEpisode)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+  });
+
+  it('rejects an unapproved policy and an impairment artifact that fails replay', () => {
+    const unapproved = request();
+    unapproved.derivationOwner.derivationPolicy.review = {
+      status: 'unreviewed',
+      reviewerId: null,
+      reviewedAt: null,
+      sourceUseNoteIds: [],
+    };
+    expect(deriveConditionEpisodeSeverity(unapproved)).toMatchObject({
+      ok: false,
+      error: { code: 'UNAPPROVED_POLICY' },
+    });
+
+    const tamperedImpairment = request();
+    tamperedImpairment.functionalImpairmentResolution.compileRequest.seed =
+      'seed.test.functional-impairment.tampered';
+    expect(deriveConditionEpisodeSeverity(tamperedImpairment)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_FUNCTIONAL_IMPAIRMENT_ARTIFACT' },
+    });
+  });
+
+  it('rejects replay tampering in the derived descriptor and retained request', () => {
+    const artifact = deriveOrThrow(request('mild', 'moderate'));
+    const tamperedLevel = structuredClone(artifact);
+    tamperedLevel.resolvedEpisodeSeverity.qualitativeLevel = 'severe';
+    expect(verifyConditionEpisodeSeverityDerivationIntegrity(tamperedLevel)).toMatchObject({
+      ok: false,
+      error: { code: 'REPLAY_MISMATCH' },
+    });
+
+    const tamperedInput = structuredClone(artifact);
+    tamperedInput.compileRequest.symptomSeverity.resolutionOwner.contentVersion = '1.0.1';
+    expect(verifyConditionEpisodeSeverityDerivationIntegrity(tamperedInput)).toMatchObject({
+      ok: false,
+      error: { code: 'REPLAY_MISMATCH' },
+    });
+  });
+});

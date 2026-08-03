@@ -16,6 +16,11 @@ import type { CaseRuleAudit, DeveloperOpinionReferenceNeed } from '@psychsim/con
 import { getPurchasableUpgradeDefinitions, getUpgradeOffer } from '@psychsim/engine';
 
 import { CaseRuleAuditView } from './CaseRuleAuditView';
+import {
+  DeveloperPatientMaker,
+  type DeveloperPatientMakerCaseOption,
+  type DeveloperPatientMakerGenerateResult,
+} from './DeveloperPatientMaker';
 import { DeveloperOpinionQueue } from './DeveloperOpinionQueue';
 import { LazyDisclosure } from './LazyDisclosure';
 import { LiteratureSynthesisProposalView } from './LiteratureSynthesisProposalView';
@@ -48,6 +53,7 @@ interface ClinicHubProps {
   sourceRequests: readonly SourceRequest[];
   literatureSynthesisProposals?: readonly LiteratureSynthesisProposal[];
   ticketLiteratureScoutCatalog?: TicketLiteratureScoutCatalog | null;
+  developerPatientMakerCases?: readonly DeveloperPatientMakerCaseOption[];
   developerKnowledgeWorkbench?: ReactNode;
   sourceReviewFeedHealthy?: boolean;
   onStart: (slotId: string) => void;
@@ -57,6 +63,10 @@ interface ClinicHubProps {
   onRefresh: () => void;
   onRerollDeveloper: (slotId: string) => void;
   onResetDeveloper: () => void;
+  onGenerateDeveloperPatient?: (
+    blueprintId: string,
+    authoredComplexityBudget: number,
+  ) => Promise<DeveloperPatientMakerGenerateResult>;
   onSaveTicketReview: (ticketId: string, reviewerNotes: string) => Promise<void>;
   onWriteTickets: () => void;
   onExportTickets: () => void;
@@ -447,6 +457,7 @@ export function ClinicHub({
   sourceRequests,
   literatureSynthesisProposals = [],
   ticketLiteratureScoutCatalog = null,
+  developerPatientMakerCases = [],
   developerKnowledgeWorkbench = null,
   sourceReviewFeedHealthy = true,
   onStart,
@@ -456,6 +467,10 @@ export function ClinicHub({
   onRefresh,
   onRerollDeveloper,
   onResetDeveloper,
+  onGenerateDeveloperPatient = async () => ({
+    ok: false,
+    message: 'The local Developer Patient Maker is unavailable.',
+  }),
   onSaveTicketReview,
   onWriteTickets,
   onExportTickets,
@@ -711,6 +726,15 @@ export function ClinicHub({
       </section>
 
       <div className="hub-grid">
+        {progressionMode === 'developer' &&
+        !reviewerBuild &&
+        developerPatientMakerCases.length > 0 ? (
+          <DeveloperPatientMaker
+            cases={developerPatientMakerCases}
+            onGenerate={onGenerateDeveloperPatient}
+          />
+        ) : null}
+
         {progressionMode === 'developer' ? (
           <LazyDisclosure
             className="patient-queue patient-queue-disclosure developer-major-disclosure"

@@ -1,0 +1,707 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.1.0",
+  "id": "registry.catalog.condition-finding-profiles",
+  "profiles": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.1.0",
+      "id": "condition-finding-profile.mdd.current-episode",
+      "modelVersion": "condition-finding-dimensions.v1",
+      "conditionScope": {
+        "diagnosisDefinitionId": "diagnosis.major-depressive-disorder",
+        "diagnosisDefinitionContentVersion": "1.4.0",
+        "clinicalStateId": "clinical-state.current",
+        "timeScopeId": "time-scope.current",
+        "severity": {
+          "kind": "any"
+        },
+        "requiredSpecifierIds": []
+      },
+      "requiredOutcomes": [],
+      "minimumSelectedDimensions": 5,
+      "maximumSelectedDimensions": 9,
+      "dimensionCountWeights": [
+        {
+          "schemaVersion": 1,
+          "selectionCount": 5,
+          "gameSelectionWeight": 1
+        },
+        {
+          "schemaVersion": 1,
+          "selectionCount": 6,
+          "gameSelectionWeight": 1
+        },
+        {
+          "schemaVersion": 1,
+          "selectionCount": 7,
+          "gameSelectionWeight": 1
+        },
+        {
+          "schemaVersion": 1,
+          "selectionCount": 8,
+          "gameSelectionWeight": 1
+        },
+        {
+          "schemaVersion": 1,
+          "selectionCount": 9,
+          "gameSelectionWeight": 1
+        }
+      ],
+      "dimensions": [
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.depressed-mood",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.depressed-mood",
+              "findingDefinitionId": "finding.depressive.depressed-mood",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.anhedonia",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.anhedonia",
+              "findingDefinitionId": "finding.history.current-anhedonia",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.appetite-weight",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.reduced-appetite",
+              "findingDefinitionId": "finding.appetite.current-reduced",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.increased-appetite",
+              "findingDefinitionId": "finding.appetite.current-increased",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.weight-gain",
+              "findingDefinitionId": "finding.history.current-unintentional-weight-gain",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.weight-loss",
+              "findingDefinitionId": "finding.history.current-unintentional-weight-loss",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.sleep",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.insomnia",
+              "findingDefinitionId": "finding.sleep.current-insomnia",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.hypersomnia",
+              "findingDefinitionId": "finding.sleep.current-hypersomnia",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.psychomotor",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.reported-slowing",
+              "findingDefinitionId": "finding.history.current-psychomotor-slowing",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.reported-agitation",
+              "findingDefinitionId": "finding.history.current-psychomotor-agitation",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.observed-slowing",
+              "findingDefinitionId": "finding.mse.current-observed-psychomotor-slowing",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.observed-agitation",
+              "findingDefinitionId": "finding.mse.current-observed-psychomotor-agitation",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.energy",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.low-energy",
+              "findingDefinitionId": "finding.history.current-fatigue-low-energy",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.worthlessness-guilt",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.worthlessness",
+              "findingDefinitionId": "finding.history.current-worthlessness",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.excessive-guilt",
+              "findingDefinitionId": "finding.history.current-excessive-guilt",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.concentration-indecision",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.concentration",
+              "findingDefinitionId": "finding.history.current-concentration-difficulty",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.indecision",
+              "findingDefinitionId": "finding.history.current-indecision",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-dimension.mdd.current-episode.death-suicidality",
+          "gameSelectionWeight": 1,
+          "minimumManifestations": 1,
+          "maximumManifestations": 1,
+          "manifestationCountWeights": [
+            {
+              "schemaVersion": 1,
+              "selectionCount": 1,
+              "gameSelectionWeight": 1
+            }
+          ],
+          "manifestations": [
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.passive-death-wish",
+              "findingDefinitionId": "finding.safety.current-passive-death-wish",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            },
+            {
+              "schemaVersion": 1,
+              "id": "condition-finding-manifestation.mdd.current-episode.active-suicidal-ideation",
+              "findingDefinitionId": "finding.safety.current-active-suicidal-ideation",
+              "findingDefinitionContentVersion": "1.0.0",
+              "proposedValue": {
+                "kind": "outcome",
+                "value": "present"
+              },
+              "uncertainty": "none",
+              "developerOpinionIds": [
+                "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+              ],
+              "review": {
+                "status": "approved",
+                "reviewerId": "reviewer.dustin-rowland",
+                "reviewedAt": "2026-07-31T21:06:04.000Z",
+                "sourceUseNoteIds": []
+              },
+              "gameSelectionWeight": 1
+            }
+          ],
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "selectionRequirements": [
+        {
+          "schemaVersion": 1,
+          "id": "condition-finding-requirement.mdd.current-episode.core-mood-or-anhedonia",
+          "dimensionIds": [
+            "condition-finding-dimension.mdd.current-episode.depressed-mood",
+            "condition-finding-dimension.mdd.current-episode.anhedonia"
+          ],
+          "minimumSelections": 1,
+          "maximumSelections": 2,
+          "developerOpinionIds": [
+            "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"
+          ],
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-31T21:06:04.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "developerOpinionIds": ["developer-opinion.mdd-current-episode-dimension-profile.2026-07-31"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-31T21:06:04.000Z",
+        "sourceUseNoteIds": []
+      }
+    }
+  ]
+}

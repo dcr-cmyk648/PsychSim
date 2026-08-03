@@ -3,7 +3,9 @@ import { isAbsolute, relative, resolve } from 'node:path';
 
 import {
   CaseBlueprintSchema,
+  ClinicalDurationProfileCatalogSchema,
   ClinicalReviewTicketSchema,
+  ConditionFindingProfileCatalogSchema,
   DecisionBalanceCatalogSchema,
   DecisionPolicyCatalogSchema,
   DeveloperOpinionCatalogSchema,
@@ -12,14 +14,25 @@ import {
   EvidenceSourceDefinitionSchema,
   ExposureCatalogSchema,
   FindingExpressionBankCatalogSchema,
+  FindingProjectionCatalogSchema,
+  FindingProjectionHorizonCatalogSchema,
   MeasurementCatalogSchema,
   MedicationIdentityDefinitionSchema,
   MedicationRegimenKnowledgeCatalogSchema,
   PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgePilotProfileSchema,
   PersonalKnowledgePrivateSourceCatalogSchema,
+  RaceEthnicityCatalogSchema,
   SourceUseDecisionCatalogSchema,
   SupplementIdentityDefinitionSchema,
+  UniversalActionResultAssemblyCatalogSchema,
+  type ClinicalDurationProfileCatalog,
+  type ConditionFindingProfileCatalog,
+  type FindingExpressionBankCatalog,
+  type FindingProjectionCatalog,
+  type FindingProjectionHorizonCatalog,
+  type RaceEthnicityCatalog,
+  type UniversalActionResultAssemblyCatalog,
 } from '@psychsim/schemas';
 import {
   approvedCaseBlueprints,
@@ -34,7 +47,10 @@ import {
 } from '@psychsim/content-runtime';
 import { reviewerCaseBlueprints } from '@psychsim/content-runtime/reviewer';
 import { resolveClinicForProgressionMode } from '@psychsim/engine';
-import { adaptFocusedMedicationRegimenRoute } from '@psychsim/engine/authoring';
+import {
+  adaptFocusedMedicationRegimenRoute,
+  fingerprintInformationActionPayload,
+} from '@psychsim/engine/authoring';
 import { contentRegistry } from '../../../packages/content-runtime/src/registry';
 import { supplementIdentities } from '../../../packages/content-runtime/src/supplement-identities';
 import {
@@ -119,6 +135,7 @@ const findingExpressionBankIssues: Array<{
   code: string;
   message: string;
 }> = [];
+let findingExpressionBankCatalogForValidation: FindingExpressionBankCatalog | null = null;
 const findingExpressionBankEntries = contentRegistry.entries.filter(
   (entry) => entry.kind === 'finding_expression_bank_catalog',
 );
@@ -139,6 +156,7 @@ if (findingExpressionBankEntries.length !== 1) {
     const catalog = FindingExpressionBankCatalogSchema.parse(
       JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
     );
+    findingExpressionBankCatalogForValidation = catalog;
     if (catalog.id !== entry.id) {
       throw new Error(`${entry.id} resolves to ${catalog.id}.`);
     }
@@ -155,6 +173,652 @@ if (findingExpressionBankEntries.length !== 1) {
         error instanceof Error
           ? error.message
           : 'Finding expression-bank catalog validation failed.',
+    });
+  }
+}
+
+const findingProjectionIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let findingProjectionCatalogForValidation: FindingProjectionCatalog | null = null;
+const findingProjectionEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'finding_projection_catalog',
+);
+if (findingProjectionEntries.length !== 1) {
+  findingProjectionIssues.push({
+    severity: 'error',
+    code: 'FINDING_PROJECTION_CATALOG_COUNT',
+    message: `Expected one finding-projection catalog; found ${findingProjectionEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = findingProjectionEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Finding projections must remain outside the ordinary runtime until a generated encounter freezes their minimized results.',
+      );
+    }
+    const catalog = FindingProjectionCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    findingProjectionCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.projections.map((projection) => projection.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error('Finding-projection registry membership must exactly match its catalog.');
+    }
+    const findingsById = new Map(catalogs.findings.map((finding) => [finding.id, finding]));
+    const informationActionIds = new Set(catalogs.informationActions.map((action) => action.id));
+    const expressionBanksByKey = new Map(
+      (findingExpressionBankCatalogForValidation?.banks ?? []).map((bank) => [
+        `${bank.id}\u0000${bank.contentVersion}`,
+        bank,
+      ]),
+    );
+    const mappingKeys = new Set<string>();
+    for (const projection of catalog.projections) {
+      if (projection.review.status !== 'approved') {
+        throw new Error(`${projection.id} is not approved.`);
+      }
+      if (
+        (projection.developerOpinionIds?.length ?? 0) === 0 &&
+        projection.review.sourceUseNoteIds.length === 0
+      ) {
+        throw new Error(`${projection.id} has no reviewed provenance owner.`);
+      }
+      for (const binding of projection.sourceBindings) {
+        if (binding.kind === 'proposition_evidence') {
+          throw new Error(
+            `${projection.id} uses proposition evidence before a proposition-definition catalog owner exists.`,
+          );
+        }
+        const finding = findingsById.get(binding.findingDefinitionId);
+        if (!finding) {
+          throw new Error(
+            `${projection.id} references unknown finding ${binding.findingDefinitionId}.`,
+          );
+        }
+        if (finding.contentVersion !== binding.findingDefinitionContentVersion) {
+          throw new Error(
+            `${projection.id} pins ${finding.id}@${binding.findingDefinitionContentVersion}, current is ${finding.contentVersion}.`,
+          );
+        }
+        if (finding.valueSpecification.kind !== 'outcome') {
+          throw new Error(
+            `${projection.id} uses outcome states for non-outcome finding ${finding.id}.`,
+          );
+        }
+        const allowedStates = new Set([
+          ...finding.valueSpecification.allowedValues,
+          'unknown',
+          'unassessed',
+        ]);
+        for (const state of binding.allowedStates) {
+          if (!allowedStates.has(state)) {
+            throw new Error(`${projection.id} uses unavailable state ${state} for ${finding.id}.`);
+          }
+        }
+      }
+      if (projection.target.kind === 'information_action') {
+        if (!informationActionIds.has(projection.target.actionId)) {
+          throw new Error(
+            `${projection.id} references unknown information action ${projection.target.actionId}.`,
+          );
+        }
+      } else {
+        throw new Error(
+          `${projection.id} targets an instrument item before an instrument-definition catalog owner exists.`,
+        );
+      }
+      if (
+        projection.expressionBankId !== null &&
+        !expressionBanksByKey.has(
+          `${projection.expressionBankId}\u0000${projection.expressionBankContentVersion}`,
+        )
+      ) {
+        throw new Error(
+          `${projection.id} references unknown expression bank ${projection.expressionBankId}@${projection.expressionBankContentVersion}.`,
+        );
+      }
+      const mappingKey = JSON.stringify({
+        sourceMatch: projection.sourceMatch,
+        sourceBindings: projection.sourceBindings,
+        target: projection.target,
+      });
+      if (mappingKeys.has(mappingKey)) {
+        throw new Error(`${projection.id} duplicates an existing source-to-target mapping.`);
+      }
+      mappingKeys.add(mappingKey);
+    }
+  } catch (error) {
+    findingProjectionIssues.push({
+      severity: 'error',
+      code: 'INVALID_FINDING_PROJECTION_CATALOG',
+      message:
+        error instanceof Error ? error.message : 'Finding-projection catalog validation failed.',
+    });
+  }
+}
+
+const findingProjectionHorizonIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let findingProjectionHorizonCatalogForValidation: FindingProjectionHorizonCatalog | null = null;
+const findingProjectionHorizonEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'finding_projection_horizon_catalog',
+);
+if (findingProjectionHorizonEntries.length !== 1) {
+  findingProjectionHorizonIssues.push({
+    severity: 'error',
+    code: 'FINDING_PROJECTION_HORIZON_CATALOG_COUNT',
+    message: `Expected one finding-projection horizon catalog; found ${findingProjectionHorizonEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = findingProjectionHorizonEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Finding-projection horizons must remain outside the ordinary runtime until an exact generated encounter freezes one.',
+      );
+    }
+    const catalog = FindingProjectionHorizonCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    findingProjectionHorizonCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.horizons.map((horizon) => horizon.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error(
+        'Finding-projection horizon registry membership must exactly match its catalog.',
+      );
+    }
+    if (!findingProjectionCatalogForValidation) {
+      throw new Error('Finding-projection horizons require a valid finding-projection catalog.');
+    }
+    const projectionById = new Map(
+      findingProjectionCatalogForValidation.projections.map((projection) => [
+        projection.id,
+        projection,
+      ]),
+    );
+    const referencedProjectionIds = new Set<string>();
+    for (const definition of catalog.horizons) {
+      if (definition.review.status !== 'approved') {
+        throw new Error(`${definition.id} is not approved.`);
+      }
+      const horizonTargetKeys = new Set(
+        definition.horizon.targets.map((availability) => JSON.stringify(availability.target)),
+      );
+      const usedTargetKeys = new Set<string>();
+      for (const reference of definition.projectionRefs) {
+        const projection = projectionById.get(reference.id);
+        if (!projection) {
+          throw new Error(`${definition.id} references unknown projection ${reference.id}.`);
+        }
+        if (projection.contentVersion !== reference.contentVersion) {
+          throw new Error(
+            `${definition.id} pins ${projection.id}@${reference.contentVersion}, current is ${projection.contentVersion}.`,
+          );
+        }
+        referencedProjectionIds.add(projection.id);
+        const targetKey = JSON.stringify(projection.target);
+        const availability = definition.horizon.targets.find(
+          (candidate) => JSON.stringify(candidate.target) === targetKey,
+        );
+        if (!availability) {
+          throw new Error(
+            `${definition.id} does not make projection target ${targetKey} available.`,
+          );
+        }
+        if (
+          !availability.allowedResponses.some(
+            (response) => JSON.stringify(response) === JSON.stringify(projection.response),
+          )
+        ) {
+          throw new Error(
+            `${definition.id} does not allow response ${JSON.stringify(projection.response)} for ${projection.id}.`,
+          );
+        }
+        usedTargetKeys.add(targetKey);
+      }
+      if (
+        horizonTargetKeys.size !== usedTargetKeys.size ||
+        [...horizonTargetKeys].some((targetKey) => !usedTargetKeys.has(targetKey))
+      ) {
+        throw new Error(`${definition.id} contains a target with no exact projection owner.`);
+      }
+    }
+    const approvedProjectionIds = new Set(
+      findingProjectionCatalogForValidation.projections
+        .filter((projection) => projection.review.status === 'approved')
+        .map((projection) => projection.id),
+    );
+    if (
+      approvedProjectionIds.size !== referencedProjectionIds.size ||
+      [...approvedProjectionIds].some((projectionId) => !referencedProjectionIds.has(projectionId))
+    ) {
+      throw new Error(
+        'Every approved checked-in finding projection must belong to at least one exact horizon.',
+      );
+    }
+  } catch (error) {
+    findingProjectionHorizonIssues.push({
+      severity: 'error',
+      code: 'INVALID_FINDING_PROJECTION_HORIZON_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Finding-projection horizon catalog validation failed.',
+    });
+  }
+}
+
+const clinicalDurationProfileIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let clinicalDurationProfileCatalogForValidation: ClinicalDurationProfileCatalog | null = null;
+const clinicalDurationProfileEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'clinical_duration_profile_catalog',
+);
+if (clinicalDurationProfileEntries.length !== 1) {
+  clinicalDurationProfileIssues.push({
+    severity: 'error',
+    code: 'CLINICAL_DURATION_PROFILE_CATALOG_COUNT',
+    message: `Expected one clinical-duration profile catalog; found ${clinicalDurationProfileEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = clinicalDurationProfileEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Clinical-duration profiles must remain outside the ordinary runtime until an exact generated encounter freezes one.',
+      );
+    }
+    const catalog = ClinicalDurationProfileCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    clinicalDurationProfileCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.profiles.map((profile) => profile.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error(
+        'Clinical-duration profile registry membership must exactly match its catalog.',
+      );
+    }
+    const diagnosesById = new Map(catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis]));
+    const knownSourceUseNoteIds = new Set(
+      catalogs.diagnoses.flatMap((diagnosis) =>
+        diagnosis.sourceUseNotes.map((sourceUseNote) => sourceUseNote.id),
+      ),
+    );
+    for (const profile of catalog.profiles) {
+      if (profile.review.status !== 'approved') {
+        throw new Error(`${profile.id} is not approved.`);
+      }
+      if (
+        (profile.developerOpinionIds?.length ?? 0) === 0 &&
+        profile.review.sourceUseNoteIds.length === 0
+      ) {
+        throw new Error(`${profile.id} has no reviewed provenance owner.`);
+      }
+      for (const sourceUseNoteId of profile.review.sourceUseNoteIds) {
+        if (!knownSourceUseNoteIds.has(sourceUseNoteId)) {
+          throw new Error(`${profile.id} references unknown source-use note ${sourceUseNoteId}.`);
+        }
+      }
+      if (profile.relatedDiagnosisId !== null && !diagnosesById.has(profile.relatedDiagnosisId)) {
+        throw new Error(
+          `${profile.id} references unknown related diagnosis ${profile.relatedDiagnosisId}.`,
+        );
+      }
+      if (profile.id === 'duration-profile.mdd.current-episode') {
+        if (
+          profile.relatedDiagnosisId !== 'diagnosis.major-depressive-disorder' ||
+          profile.interpretation !== 'supports_authored_state' ||
+          profile.criterionId !== null ||
+          profile.options.some((option) => option.unit !== 'week' || option.value < 2)
+        ) {
+          throw new Error(
+            `${profile.id} must remain a within-state current-MDD profile with week values at or above two and no inferred criterion.`,
+          );
+        }
+      }
+    }
+  } catch (error) {
+    clinicalDurationProfileIssues.push({
+      severity: 'error',
+      code: 'INVALID_CLINICAL_DURATION_PROFILE_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Clinical-duration profile catalog validation failed.',
+    });
+  }
+}
+
+const universalActionResultAssemblyIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let universalActionResultAssemblyCatalogForValidation: UniversalActionResultAssemblyCatalog | null =
+  null;
+const universalActionResultAssemblyEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'universal_action_result_assembly_catalog',
+);
+if (universalActionResultAssemblyEntries.length !== 1) {
+  universalActionResultAssemblyIssues.push({
+    severity: 'error',
+    code: 'UNIVERSAL_ACTION_RESULT_ASSEMBLY_CATALOG_COUNT',
+    message: `Expected one universal action-result assembly catalog; found ${universalActionResultAssemblyEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = universalActionResultAssemblyEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Universal action-result assemblies must remain outside the ordinary runtime until a generated template freezes one.',
+      );
+    }
+    const catalog = UniversalActionResultAssemblyCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    universalActionResultAssemblyCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.assemblies.map((assembly) => assembly.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error(
+        'Universal action-result assembly registry membership must exactly match its catalog.',
+      );
+    }
+    const actionsById = new Map(catalogs.informationActions.map((action) => [action.id, action]));
+    const durationProfilesByKey = new Map(
+      (clinicalDurationProfileCatalogForValidation?.profiles ?? []).map((profile) => [
+        `${profile.id}\u0000${profile.contentVersion}`,
+        profile,
+      ]),
+    );
+    const knownSourceUseNoteIds = new Set(
+      catalogs.diagnoses.flatMap((diagnosis) =>
+        diagnosis.sourceUseNotes.map((sourceUseNote) => sourceUseNote.id),
+      ),
+    );
+    const findingProjectionActionIds = new Set(
+      (findingProjectionHorizonCatalogForValidation?.horizons ?? []).flatMap((definition) =>
+        definition.horizon.targets.flatMap((availability) =>
+          availability.target.kind === 'information_action' ? [availability.target.actionId] : [],
+        ),
+      ),
+    );
+    const assembledFindingProjectionActionIds = new Set<string>();
+    const referencedDurationProfileKeys = new Set<string>();
+    for (const assembly of catalog.assemblies) {
+      for (const action of assembly.actionCatalog.actions) {
+        const canonicalAction = actionsById.get(action.id);
+        if (!canonicalAction) {
+          throw new Error(`${assembly.id} embeds unknown information action ${action.id}.`);
+        }
+        if (
+          fingerprintInformationActionPayload(action) !==
+          fingerprintInformationActionPayload(canonicalAction)
+        ) {
+          throw new Error(`${assembly.id} embeds stale information action ${action.id}.`);
+        }
+      }
+      for (const definition of assembly.targetScopedPatientValueProjectionDefinitions) {
+        const action = actionsById.get(definition.informationActionId);
+        if (!action) {
+          throw new Error(
+            `${definition.id} references unknown action ${definition.informationActionId}.`,
+          );
+        }
+        if (
+          definition.informationActionPayloadFingerprint !==
+          fingerprintInformationActionPayload(action)
+        ) {
+          throw new Error(`${definition.id} has a stale information-action fingerprint.`);
+        }
+        if (definition.review.status !== 'approved') {
+          throw new Error(`${definition.id} is not approved.`);
+        }
+        if (
+          (definition.developerOpinionIds?.length ?? 0) === 0 &&
+          definition.review.sourceUseNoteIds.length === 0
+        ) {
+          throw new Error(`${definition.id} has no reviewed provenance owner.`);
+        }
+        for (const sourceUseNoteId of definition.review.sourceUseNoteIds) {
+          if (!knownSourceUseNoteIds.has(sourceUseNoteId)) {
+            throw new Error(
+              `${definition.id} references unknown source-use note ${sourceUseNoteId}.`,
+            );
+          }
+        }
+        if (definition.valueKind === 'clinical_duration') {
+          const profileKey = `${definition.durationProfileId}\u0000${definition.durationProfileContentVersion}`;
+          const profile = durationProfilesByKey.get(profileKey);
+          if (!profile) {
+            throw new Error(
+              `${definition.id} references unknown clinical-duration profile ${definition.durationProfileId}@${definition.durationProfileContentVersion}.`,
+            );
+          }
+          if (
+            definition.targetSelector.kind === 'condition_definition' &&
+            profile.relatedDiagnosisId !== null &&
+            profile.relatedDiagnosisId !== definition.targetSelector.diagnosisDefinitionId
+          ) {
+            throw new Error(
+              `${definition.id} crosses duration profile ${profile.id} to unrelated diagnosis ${definition.targetSelector.diagnosisDefinitionId}.`,
+            );
+          }
+          referencedDurationProfileKeys.add(profileKey);
+        }
+      }
+      for (const recipe of assembly.recipes) {
+        const action = actionsById.get(recipe.informationActionId);
+        if (!action) {
+          throw new Error(`${recipe.id} references unknown action ${recipe.informationActionId}.`);
+        }
+        if (
+          recipe.informationActionPayloadFingerprint !== fingerprintInformationActionPayload(action)
+        ) {
+          throw new Error(`${recipe.id} has a stale information-action fingerprint.`);
+        }
+        if (recipe.sourceKinds.includes('finding_projections')) {
+          if (!findingProjectionActionIds.has(recipe.informationActionId)) {
+            throw new Error(
+              `${recipe.id} declares finding projections without an exact checked-in horizon.`,
+            );
+          }
+          assembledFindingProjectionActionIds.add(recipe.informationActionId);
+        }
+        if (recipe.sourceKinds.includes('target_scoped_patient_value_reveals')) {
+          if (
+            !assembly.targetScopedPatientValueProjectionDefinitions.some(
+              (definition) => definition.informationActionId === recipe.informationActionId,
+            )
+          ) {
+            throw new Error(
+              `${recipe.id} declares target-scoped patient values without an exact checked-in definition.`,
+            );
+          }
+        }
+      }
+    }
+    if (
+      findingProjectionActionIds.size !== assembledFindingProjectionActionIds.size ||
+      [...findingProjectionActionIds].some(
+        (actionId) => !assembledFindingProjectionActionIds.has(actionId),
+      )
+    ) {
+      throw new Error(
+        'Every checked-in finding-projection action requires a static universal result recipe.',
+      );
+    }
+    const approvedDurationProfileKeys = new Set(
+      (clinicalDurationProfileCatalogForValidation?.profiles ?? [])
+        .filter((profile) => profile.review.status === 'approved')
+        .map((profile) => `${profile.id}\u0000${profile.contentVersion}`),
+    );
+    if (
+      approvedDurationProfileKeys.size !== referencedDurationProfileKeys.size ||
+      [...approvedDurationProfileKeys].some(
+        (profileKey) => !referencedDurationProfileKeys.has(profileKey),
+      )
+    ) {
+      throw new Error(
+        'Every approved checked-in clinical-duration profile requires an exact D-240 projection definition.',
+      );
+    }
+  } catch (error) {
+    universalActionResultAssemblyIssues.push({
+      severity: 'error',
+      code: 'INVALID_UNIVERSAL_ACTION_RESULT_ASSEMBLY_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Universal action-result assembly catalog validation failed.',
+    });
+  }
+}
+
+const conditionFindingProfileIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let conditionFindingProfileCatalogForValidation: ConditionFindingProfileCatalog | null = null;
+const conditionFindingProfileEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'condition_finding_profile_catalog',
+);
+if (conditionFindingProfileEntries.length !== 1) {
+  conditionFindingProfileIssues.push({
+    severity: 'error',
+    code: 'CONDITION_FINDING_PROFILE_CATALOG_COUNT',
+    message: `Expected one condition-finding profile catalog; found ${conditionFindingProfileEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = conditionFindingProfileEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Condition-finding profiles must remain authoring-only until an exact patient template binds them.',
+      );
+    }
+    const catalog = ConditionFindingProfileCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    conditionFindingProfileCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.profiles.map((profile) => profile.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error(
+        'Condition-finding profile registry membership must exactly match its catalog.',
+      );
+    }
+    const diagnosesById = new Map(catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis]));
+    const findingsById = new Map(catalogs.findings.map((finding) => [finding.id, finding]));
+    const knownSourceUseNoteIds = new Set(
+      catalogs.diagnoses.flatMap((diagnosis) =>
+        diagnosis.sourceUseNotes.map((sourceUseNote) => sourceUseNote.id),
+      ),
+    );
+    for (const profile of catalog.profiles) {
+      const diagnosis = diagnosesById.get(profile.conditionScope.diagnosisDefinitionId);
+      if (!diagnosis) {
+        throw new Error(
+          `${profile.id} references unknown diagnosis ${profile.conditionScope.diagnosisDefinitionId}.`,
+        );
+      }
+      if (diagnosis.contentVersion !== profile.conditionScope.diagnosisDefinitionContentVersion) {
+        throw new Error(
+          `${profile.id} pins ${diagnosis.id}@${profile.conditionScope.diagnosisDefinitionContentVersion}, current is ${diagnosis.contentVersion}.`,
+        );
+      }
+      const reviewedMappings =
+        profile.modelVersion === 'condition-finding-dimensions.v1'
+          ? [
+              profile,
+              ...profile.requiredOutcomes,
+              ...profile.dimensions,
+              ...profile.dimensions.flatMap((dimension) => dimension.manifestations),
+              ...profile.selectionRequirements,
+            ]
+          : [
+              ...profile.requiredOutcomes,
+              ...profile.cardinalityGroups,
+              ...profile.cardinalityGroups.flatMap((group) => group.members),
+            ];
+      for (const mapping of reviewedMappings) {
+        for (const sourceUseNoteId of mapping.review.sourceUseNoteIds) {
+          if (!knownSourceUseNoteIds.has(sourceUseNoteId)) {
+            throw new Error(
+              `${mapping.id} references unknown diagnosis source-use note ${sourceUseNoteId}.`,
+            );
+          }
+        }
+      }
+      const findingMappings =
+        profile.modelVersion === 'condition-finding-dimensions.v1'
+          ? [
+              ...profile.requiredOutcomes,
+              ...profile.dimensions.flatMap((dimension) => dimension.manifestations),
+            ]
+          : [
+              ...profile.requiredOutcomes,
+              ...profile.cardinalityGroups.flatMap((group) => group.members),
+            ];
+      for (const mapping of findingMappings) {
+        const finding = findingsById.get(mapping.findingDefinitionId);
+        if (!finding) {
+          throw new Error(
+            `${mapping.id} references unknown finding ${mapping.findingDefinitionId}.`,
+          );
+        }
+        if (finding.contentVersion !== mapping.findingDefinitionContentVersion) {
+          throw new Error(
+            `${mapping.id} pins ${finding.id}@${mapping.findingDefinitionContentVersion}, current is ${finding.contentVersion}.`,
+          );
+        }
+        if (
+          finding.valueSpecification.kind !== 'outcome' ||
+          !finding.valueSpecification.allowedValues.includes(mapping.proposedValue.value)
+        ) {
+          throw new Error(
+            `${mapping.id} proposes invalid value ${mapping.proposedValue.value} for ${finding.id}.`,
+          );
+        }
+      }
+    }
+  } catch (error) {
+    conditionFindingProfileIssues.push({
+      severity: 'error',
+      code: 'INVALID_CONDITION_FINDING_PROFILE_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Condition-finding profile catalog validation failed.',
     });
   }
 }
@@ -402,6 +1066,87 @@ for (const source of allEvidenceSourcesById.values()) {
       severity: 'error',
       code: 'EVIDENCE_SOURCE_WITHOUT_USE_DECISION',
       message: source.id,
+    });
+  }
+}
+
+const raceEthnicityCatalogIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let raceEthnicityCatalogForValidation: RaceEthnicityCatalog | null = null;
+const raceEthnicityEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'race_ethnicity_catalog',
+);
+if (raceEthnicityEntries.length !== 1) {
+  raceEthnicityCatalogIssues.push({
+    severity: 'error',
+    code: 'RACE_ETHNICITY_CATALOG_COUNT',
+    message: `Expected one race/ethnicity authoring catalog; found ${raceEthnicityEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = raceEthnicityEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Race/ethnicity identity content must remain outside ordinary runtime until generated-patient activation is reviewed.',
+      );
+    }
+    if (entry.dependsOnIds.includes('registry.catalog.variant-pools')) {
+      throw new Error(
+        'Race/ethnicity identity must never be inferred from fictional name or other cosmetic variant pools.',
+      );
+    }
+    const catalog = RaceEthnicityCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    raceEthnicityCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.categories.map((category) => category.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error('Race/ethnicity registry membership must exactly match its catalog.');
+    }
+    const expectedCategories = new Map([
+      ['race-ethnicity.american-indian-or-alaska-native', 'American Indian or Alaska Native'],
+      ['race-ethnicity.asian', 'Asian'],
+      ['race-ethnicity.black-or-african-american', 'Black or African American'],
+      ['race-ethnicity.hispanic-or-latino', 'Hispanic or Latino'],
+      ['race-ethnicity.middle-eastern-or-north-african', 'Middle Eastern or North African'],
+      ['race-ethnicity.native-hawaiian-or-pacific-islander', 'Native Hawaiian or Pacific Islander'],
+      ['race-ethnicity.white', 'White'],
+    ]);
+    if (
+      catalog.categories.length !== expectedCategories.size ||
+      catalog.categories.some((category) => expectedCategories.get(category.id) !== category.label)
+    ) {
+      throw new Error(
+        'The first race/ethnicity catalog must contain exactly the seven 2024 OMB minimum categories.',
+      );
+    }
+    const source = allEvidenceSourcesById.get(catalog.standard.evidenceSourceId);
+    const sourceUse = sourceUseDecisionCatalog.decisions.find(
+      (decision) => decision.id === catalog.standard.sourceUseDecisionId,
+    );
+    if (
+      source?.id !== 'evidence.omb.spd15.2024' ||
+      sourceUse?.evidenceSourceId !== source.id ||
+      sourceUse.decisionStatus !== 'permitted_with_conditions' ||
+      !sourceUse.permissions.derivedClinicalContent ||
+      !sourceUse.allowedContributionTypes.includes('classification_mapping')
+    ) {
+      throw new Error(
+        'The race/ethnicity catalog requires the exact source-cleared 2024 OMB classification mapping.',
+      );
+    }
+  } catch (error) {
+    raceEthnicityCatalogIssues.push({
+      severity: 'error',
+      code: 'INVALID_RACE_ETHNICITY_CATALOG',
+      message: error instanceof Error ? error.message : 'Race/ethnicity catalog validation failed.',
     });
   }
 }
@@ -937,7 +1682,10 @@ if (decisionBalanceEntries.length !== 1) {
         ownerId: string;
         ownerContentVersion: string;
         reviewStatus: string;
-        requiresTriggeredInformationPrerequisiteBalance: boolean;
+        requiredBalanceKind:
+          | 'matched_rule'
+          | 'triggered_information_prerequisite'
+          | 'information_requirement';
       }
     >();
     for (const diagnosis of catalogs.diagnoses) {
@@ -951,11 +1699,18 @@ if (decisionBalanceEntries.length !== 1) {
           ownerId: diagnosis.id,
           ownerContentVersion: diagnosis.contentVersion,
           reviewStatus: rule.review.status,
-          requiresTriggeredInformationPrerequisiteBalance:
+          requiredBalanceKind:
             rule.target.kind === 'information_action' &&
             rule.stance === 'required' &&
             rule.selectionWhen?.type === 'anyMedicationStarted' &&
-            rule.patientWhen?.type === 'clinicalTagPresent',
+            rule.patientWhen?.type === 'clinicalTagPresent'
+              ? 'triggered_information_prerequisite'
+              : rule.target.kind === 'information_action' &&
+                  rule.stance === 'required' &&
+                  rule.selectionWhen === null &&
+                  rule.patientWhen?.type === 'clinicalTagPresent'
+                ? 'information_requirement'
+                : 'matched_rule',
         });
       }
     }
@@ -969,7 +1724,7 @@ if (decisionBalanceEntries.length !== 1) {
               ownerId: route.owner.id,
               ownerContentVersion: route.owner.contentVersion,
               reviewStatus: route.review.status,
-              requiresTriggeredInformationPrerequisiteBalance: false,
+              requiredBalanceKind: 'matched_rule' as const,
             },
           ] as const,
       ),
@@ -982,7 +1737,7 @@ if (decisionBalanceEntries.length !== 1) {
               ownerId: contributor.owner.id,
               ownerContentVersion: contributor.owner.contentVersion,
               reviewStatus: contributor.review.status,
-              requiresTriggeredInformationPrerequisiteBalance: false,
+              requiredBalanceKind: 'matched_rule' as const,
             },
           ] as const,
       ),
@@ -1007,12 +1762,9 @@ if (decisionBalanceEntries.length !== 1) {
           `${balance.id} cannot assign points to ${target.reviewStatus} qualitative rule ${balance.ruleRef.id}.`,
         );
       }
-      const usesTriggeredInformationPrerequisiteBalance =
-        'balanceKind' in balance && balance.balanceKind === 'triggered_information_prerequisite';
-      if (
-        usesTriggeredInformationPrerequisiteBalance !==
-        target.requiresTriggeredInformationPrerequisiteBalance
-      ) {
+      const actualBalanceKind =
+        'balanceKind' in balance ? balance.balanceKind : ('matched_rule' as const);
+      if (actualBalanceKind !== target.requiredBalanceKind) {
         throw new Error(
           `${balance.id} does not use the balance shape required by ${balance.ruleRef.id}.`,
         );
@@ -1528,6 +2280,14 @@ if (developerOpinionEntries.length !== 1) {
     }
     const targetKindById = new Map<string, string>([
       ...catalogs.diagnoses.map((diagnosis) => [diagnosis.id, 'diagnosis'] as const),
+      ...catalogs.diagnoses.flatMap((diagnosis) =>
+        diagnosis.severityAxis?.derivationPolicy
+          ? [[diagnosis.severityAxis.derivationPolicy.id, 'clinical_rule'] as const]
+          : [],
+      ),
+      ...catalogs.diagnoses.flatMap((diagnosis) =>
+        diagnosis.specifiers.map((specifier) => [specifier.id, 'clinical_rule'] as const),
+      ),
       ...medicationIdentities.map((medication) => [medication.id, 'medication'] as const),
       ...catalogs.treatments
         .filter((treatment) => treatment.kind === 'nonmedication')
@@ -1550,6 +2310,26 @@ if (developerOpinionEntries.length !== 1) {
       ...(decisionBalanceCatalogForValidation?.balances.map(
         (balance) => [balance.id, 'clinical_rule'] as const,
       ) ?? []),
+      ...(conditionFindingProfileCatalogForValidation?.profiles.map(
+        (profile) => [profile.id, 'clinical_rule'] as const,
+      ) ?? []),
+      ...(findingProjectionCatalogForValidation
+        ? [[findingProjectionCatalogForValidation.id, 'clinical_rule'] as const]
+        : []),
+      ...(findingProjectionHorizonCatalogForValidation?.horizons.map(
+        (horizon) => [horizon.id, 'clinical_rule'] as const,
+      ) ?? []),
+      ...(clinicalDurationProfileCatalogForValidation?.profiles.map(
+        (profile) => [profile.id, 'clinical_rule'] as const,
+      ) ?? []),
+      ...(universalActionResultAssemblyCatalogForValidation?.assemblies.flatMap((assembly) =>
+        assembly.targetScopedPatientValueProjectionDefinitions.map(
+          (definition) => [definition.id, 'clinical_rule'] as const,
+        ),
+      ) ?? []),
+      ...(raceEthnicityCatalogForValidation
+        ? [[raceEthnicityCatalogForValidation.id, 'clinical_rule'] as const]
+        : []),
     ]);
     for (const opinion of catalog.opinions) {
       for (const target of opinion.targets) {
@@ -1570,6 +2350,168 @@ if (developerOpinionEntries.length !== 1) {
       }
     }
     const developerOpinionById = new Map(catalog.opinions.map((opinion) => [opinion.id, opinion]));
+    if (raceEthnicityCatalogForValidation) {
+      const opinion = developerOpinionById.get(
+        raceEthnicityCatalogForValidation.authoringReview.developerOpinionId,
+      );
+      if (
+        !opinion ||
+        opinion.developerReview.status !== 'accepted' ||
+        !opinion.targets.some(
+          (target) =>
+            target.targetKind === 'clinical_rule' &&
+            target.targetContentId === raceEthnicityCatalogForValidation?.id,
+        )
+      ) {
+        throw new Error(
+          `${raceEthnicityCatalogForValidation.id} lacks its exact accepted Developer-opinion guardrail.`,
+        );
+      }
+    }
+    for (const profile of clinicalDurationProfileCatalogForValidation?.profiles ?? []) {
+      for (const developerOpinionId of profile.developerOpinionIds ?? []) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${profile.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === profile.id,
+          )
+        ) {
+          throw new Error(
+            `${developerOpinionId} does not target clinical-duration profile ${profile.id}.`,
+          );
+        }
+        if (opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${profile.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+          );
+        }
+      }
+    }
+    for (const definition of (
+      universalActionResultAssemblyCatalogForValidation?.assemblies ?? []
+    ).flatMap((assembly) => assembly.targetScopedPatientValueProjectionDefinitions)) {
+      for (const developerOpinionId of definition.developerOpinionIds ?? []) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${definition.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === definition.id,
+          )
+        ) {
+          throw new Error(
+            `${developerOpinionId} does not target target-scoped projection ${definition.id}.`,
+          );
+        }
+        if (opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${definition.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+          );
+        }
+      }
+    }
+    for (const horizon of findingProjectionHorizonCatalogForValidation?.horizons ?? []) {
+      for (const developerOpinionId of horizon.developerOpinionIds) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${horizon.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === horizon.id,
+          )
+        ) {
+          throw new Error(
+            `${developerOpinionId} does not target finding-projection horizon ${horizon.id}.`,
+          );
+        }
+        if (opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${horizon.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+          );
+        }
+      }
+    }
+    for (const projection of findingProjectionCatalogForValidation?.projections ?? []) {
+      for (const developerOpinionId of projection.developerOpinionIds ?? []) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${projection.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' &&
+              target.targetContentId === findingProjectionCatalogForValidation?.id,
+          )
+        ) {
+          throw new Error(
+            `${developerOpinionId} does not target finding-projection catalog ${findingProjectionCatalogForValidation?.id}.`,
+          );
+        }
+        if (opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${projection.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+          );
+        }
+      }
+    }
+    for (const profile of conditionFindingProfileCatalogForValidation?.profiles ?? []) {
+      const reviewedMappings =
+        profile.modelVersion === 'condition-finding-dimensions.v1'
+          ? [
+              profile,
+              ...profile.requiredOutcomes,
+              ...profile.dimensions,
+              ...profile.dimensions.flatMap((dimension) => dimension.manifestations),
+              ...profile.selectionRequirements,
+            ]
+          : [
+              ...profile.requiredOutcomes,
+              ...profile.cardinalityGroups,
+              ...profile.cardinalityGroups.flatMap((group) => group.members),
+            ];
+      for (const mapping of reviewedMappings) {
+        for (const developerOpinionId of mapping.developerOpinionIds) {
+          const opinion = developerOpinionById.get(developerOpinionId);
+          if (!opinion) {
+            throw new Error(
+              `${mapping.id} references unknown Developer opinion ${developerOpinionId}.`,
+            );
+          }
+          if (
+            !opinion.targets.some(
+              (target) =>
+                target.targetKind === 'clinical_rule' && target.targetContentId === profile.id,
+            )
+          ) {
+            throw new Error(
+              `${developerOpinionId} does not target condition-finding profile ${profile.id}.`,
+            );
+          }
+          if (opinion.developerReview.status !== 'accepted') {
+            throw new Error(
+              `${mapping.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+            );
+          }
+        }
+      }
+    }
     for (const prior of exposureCatalogForValidation?.misuseGenerationPriors ?? []) {
       for (const developerOpinionId of prior.developerOpinionIds) {
         const opinion = developerOpinionById.get(developerOpinionId);
@@ -1716,6 +2658,41 @@ const reports = [
     },
   ],
   [
+    'finding-projections',
+    {
+      valid: findingProjectionIssues.length === 0,
+      issues: findingProjectionIssues,
+    },
+  ],
+  [
+    'finding-projection-horizons',
+    {
+      valid: findingProjectionHorizonIssues.length === 0,
+      issues: findingProjectionHorizonIssues,
+    },
+  ],
+  [
+    'clinical-duration-profiles',
+    {
+      valid: clinicalDurationProfileIssues.length === 0,
+      issues: clinicalDurationProfileIssues,
+    },
+  ],
+  [
+    'universal-action-result-assemblies',
+    {
+      valid: universalActionResultAssemblyIssues.length === 0,
+      issues: universalActionResultAssemblyIssues,
+    },
+  ],
+  [
+    'condition-finding-profiles',
+    {
+      valid: conditionFindingProfileIssues.length === 0,
+      issues: conditionFindingProfileIssues,
+    },
+  ],
+  [
     'measurements',
     {
       valid: measurementCatalogIssues.length === 0,
@@ -1734,6 +2711,13 @@ const reports = [
     {
       valid: sourceUseDecisionIssues.length === 0,
       issues: sourceUseDecisionIssues,
+    },
+  ],
+  [
+    'race-ethnicity',
+    {
+      valid: raceEthnicityCatalogIssues.length === 0,
+      issues: raceEthnicityCatalogIssues,
     },
   ],
   [

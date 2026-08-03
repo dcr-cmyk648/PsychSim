@@ -1,6 +1,7 @@
 import {
   CanonicalFindingResolutionEnvelopeSchema,
   CompiledSharedFindingSetSchema,
+  FindingResolutionCandidateSchema,
   FindingProjectionResolutionEnvelopeSchema,
   SharedFindingCompileRequestSchema,
   type CompiledSharedFindingSet,
@@ -11,6 +12,7 @@ import {
   type FindingProjectionResponseValue,
   type FindingProjectionHorizon,
   type FindingProjectionSourceBinding,
+  type FindingSourceReportProjectionSelectionTrace,
   type FindingProjectionTarget,
   type FindingResolutionCandidate,
   type ResolvedCanonicalFinding,
@@ -20,9 +22,10 @@ import {
   type SharedFindingCompileRequest,
 } from '@psychsim/schemas';
 
+import { verifyOptionalFeatureBudgetSelectionIntegrity } from './optional-feature-budget-selector';
 import { seededUnit } from './rng';
 
-export const SHARED_FINDING_COMPILER_VERSION = '1.0.0';
+export const SHARED_FINDING_COMPILER_VERSION = '1.2.0';
 
 export type SharedFindingCompileErrorCode =
   | 'INVALID_REQUEST'
@@ -39,6 +42,7 @@ export type SharedFindingCompileErrorCode =
   | 'STALE_EXPRESSION_BANK'
   | 'EXPRESSION_BANK_NOT_APPROVED'
   | 'EXPRESSION_CHANNEL_MISMATCH'
+  | 'INVALID_SOURCE_REPORT_COMPLEXITY_ARTIFACT'
   | 'COMPILED_OUTPUT_INVALID';
 
 export interface SharedFindingCompileError {
@@ -186,6 +190,149 @@ const responseKey = (response: FindingProjectionResponseValue): string =>
 
 const stableId = (prefix: string, payload: unknown): string =>
   `${prefix}.${hashToHex64(JSON.stringify(canonicalize(payload)))}`;
+
+interface FindingSourceReportProjectionActivation {
+  readonly governedProjectionKeys: ReadonlySet<string>;
+  readonly activeProjectionTraceByKey: ReadonlyMap<
+    string,
+    FindingSourceReportProjectionSelectionTrace
+  >;
+}
+
+const projectionRefKey = (reference: {
+  readonly id: string;
+  readonly contentVersion: string;
+}): string => `${reference.id}\u0000${reference.contentVersion}`;
+
+const resolveFindingSourceReportProjectionActivation = (
+  request: SharedFindingCompileRequest,
+): FindingSourceReportProjectionActivation => {
+  const policy = request.findingSourceReportProjectionPolicy;
+  if (policy === undefined) {
+    return {
+      governedProjectionKeys: new Set(),
+      activeProjectionTraceByKey: new Map(),
+    };
+  }
+  const evaluationByDefinitionId = new Map(
+    policy.optionalFeatureArtifact.candidateEvaluations.map((evaluation) => [
+      evaluation.moduleRef.id,
+      evaluation,
+    ]),
+  );
+  const governedProjectionKeys = new Set<string>();
+  const activeProjectionTraceByKey = new Map<string, FindingSourceReportProjectionSelectionTrace>();
+  for (const slot of [...policy.slots].sort((left, right) => compareStrings(left.id, right.id))) {
+    const selectedModifier = slot.modifiers.find(
+      (modifier) => evaluationByDefinitionId.get(modifier.moduleRef.id)?.disposition === 'selected',
+    );
+    governedProjectionKeys.add(projectionRefKey(slot.baseProjectionRef));
+    for (const modifier of slot.modifiers) {
+      governedProjectionKeys.add(projectionRefKey(modifier.projectionRef));
+    }
+    const activeRef = selectedModifier?.projectionRef ?? slot.baseProjectionRef;
+    const selectedEvaluation =
+      selectedModifier === undefined
+        ? undefined
+        : evaluationByDefinitionId.get(selectedModifier.moduleRef.id);
+    activeProjectionTraceByKey.set(projectionRefKey(activeRef), {
+      slotId: slot.id,
+      source: { ...slot.source },
+      timeScopeId: slot.timeScopeId,
+      claimOriginId: slot.claimOriginId,
+      dependencyGroupIds: [...slot.dependencyGroupIds].sort(compareStrings),
+      complexityModule:
+        selectedModifier === undefined || selectedEvaluation === undefined
+          ? null
+          : {
+              moduleRef: { ...selectedModifier.moduleRef },
+              moduleFingerprint: selectedModifier.moduleFingerprint,
+              optionalFeatureBindingId: selectedModifier.optionalFeatureBindingId,
+              selectedModuleId: selectedModifier.selectedModuleId,
+              cost: selectedEvaluation.moduleSnapshot.cost,
+              selectionOrdinal: selectedEvaluation.selectionOrdinal!,
+              stableDrawId: selectedEvaluation.stableDrawId!,
+            },
+    });
+  }
+  return { governedProjectionKeys, activeProjectionTraceByKey };
+};
+
+const deriveClosedAssessmentAbsenceCandidates = (
+  request: SharedFindingCompileRequest,
+): FindingResolutionCandidate[] => {
+  const sourceReportProjectionActivation = resolveFindingSourceReportProjectionActivation(request);
+  const definitionsWithApprovedValues = new Set(
+    request.candidates.flatMap((candidate) =>
+      candidate.review.status === 'approved' &&
+      candidate.kind !== 'no_opinion' &&
+      candidate.proposedValue !== null
+        ? [candidate.findingDefinitionId]
+        : [],
+    ),
+  );
+
+  return request.projections
+    .filter((projection) => {
+      const projectionKey = projectionRefKey(projection);
+      return (
+        !sourceReportProjectionActivation.governedProjectionKeys.has(projectionKey) ||
+        sourceReportProjectionActivation.activeProjectionTraceByKey.has(projectionKey)
+      );
+    })
+    .filter(
+      (projection) =>
+        projection.deriveAbsentWhenNoCandidate === true && projection.review.status === 'approved',
+    )
+    .sort((left, right) => compareStrings(left.id, right.id))
+    .flatMap((projection): FindingResolutionCandidate[] => {
+      const binding = projection.sourceBindings[0];
+      if (
+        binding?.kind !== 'canonical_finding' ||
+        definitionsWithApprovedValues.has(binding.findingDefinitionId)
+      ) {
+        return [];
+      }
+      const identity = {
+        patientStateId: request.patientStateId,
+        projectionId: projection.id,
+        projectionContentVersion: projection.contentVersion,
+        findingDefinitionId: binding.findingDefinitionId,
+        findingDefinitionContentVersion: binding.findingDefinitionContentVersion,
+      };
+      return [
+        FindingResolutionCandidateSchema.parse({
+          schemaVersion: 1,
+          id: stableId('candidate.closed-assessment-absence', identity),
+          findingDefinitionId: binding.findingDefinitionId,
+          findingDefinitionContentVersion: binding.findingDefinitionContentVersion,
+          kind: 'background_variation',
+          proposedValue: { kind: 'outcome', value: 'absent' },
+          uncertainty: 'none',
+          contributions: [
+            {
+              schemaVersion: 1,
+              id: stableId('contribution.closed-assessment-absence', identity),
+              ownerKind: 'patient_state',
+              ownerId: request.patientStateId,
+              ownerContentVersion: null,
+              role: 'derivation',
+              provenanceIds: uniqueSorted(projection.review.sourceUseNoteIds),
+            },
+          ],
+          resolution: {
+            origin: 'authored',
+            ownerId: projection.id,
+            ownerContentVersion: projection.contentVersion,
+          },
+          review: {
+            ...projection.review,
+            sourceUseNoteIds: uniqueSorted(projection.review.sourceUseNoteIds),
+          },
+        }),
+      ];
+    });
+};
 
 const normalizeCandidateSnapshot = (
   candidate: FindingResolutionCandidate,
@@ -501,6 +648,7 @@ const compileProjections = (
   );
   const diagnostics: SharedFindingCompilationDiagnostic[] = [];
   const compiled: ResolvedFindingProjection[] = [];
+  const sourceReportProjectionActivation = resolveFindingSourceReportProjectionActivation(request);
   const failure = (
     code: SharedFindingCompileErrorCode,
     message: string,
@@ -522,6 +670,15 @@ const compileProjections = (
   for (const projection of [...request.projections].sort((left, right) =>
     compareStrings(left.id, right.id),
   )) {
+    const projectionKey = projectionRefKey(projection);
+    if (
+      sourceReportProjectionActivation.governedProjectionKeys.has(projectionKey) &&
+      !sourceReportProjectionActivation.activeProjectionTraceByKey.has(projectionKey)
+    ) {
+      continue;
+    }
+    const sourceReportSelection =
+      sourceReportProjectionActivation.activeProjectionTraceByKey.get(projectionKey);
     if (projection.review.status !== 'approved') {
       diagnostics.push({
         code: 'projection_not_approved',
@@ -659,6 +816,7 @@ const compileProjections = (
       contributingResolvedFindingIds,
       propositionIds,
       evidenceIds,
+      ...(sourceReportSelection === undefined ? {} : { sourceReportSelection }),
     };
     const sortedVariants = expressionBank
       ? [...expressionBank.variants].sort((left, right) => compareStrings(left.id, right.id))
@@ -714,6 +872,7 @@ const compileProjections = (
           compilerVersion: SHARED_FINDING_COMPILER_VERSION,
           inputFingerprint,
           stableDrawId,
+          ...(sourceReportSelection === undefined ? {} : { sourceReportSelection }),
         },
       },
       expressionBank,
@@ -868,6 +1027,9 @@ export const verifyCompiledSharedFindingSeedContext = (input: {
         contributingResolvedFindingIds: projection.contributingResolvedFindingIds,
         propositionIds: projection.propositionIds,
         evidenceIds: projection.evidenceIds,
+        ...(projection.resolution.sourceReportSelection === undefined
+          ? {}
+          : { sourceReportSelection: projection.resolution.sourceReportSelection }),
         seedFingerprint: hashToHex64(input.seed),
       });
       return projection.resolution.stableDrawId !== expectedDrawId;
@@ -899,6 +1061,18 @@ export const compileSharedFindings = (input: unknown): SharedFindingCompileResul
     );
   }
   const request = parsed.data;
+  if (request.findingSourceReportProjectionPolicy !== undefined) {
+    const optionalIntegrity = verifyOptionalFeatureBudgetSelectionIntegrity(
+      request.findingSourceReportProjectionPolicy.optionalFeatureArtifact,
+    );
+    if (!optionalIntegrity.ok) {
+      return compileFailure(
+        'INVALID_SOURCE_REPORT_COMPLEXITY_ARTIFACT',
+        `${optionalIntegrity.error.code}: ${optionalIntegrity.error.message}`,
+        [request.findingSourceReportProjectionPolicy.optionalFeatureArtifact.id],
+      );
+    }
+  }
   const inputFingerprint = fingerprint('input', request);
   const failure = (
     code: SharedFindingCompileErrorCode,
@@ -911,7 +1085,29 @@ export const compileSharedFindings = (input: unknown): SharedFindingCompileResul
   );
   const definitionsById = new Map(definitions.map((definition) => [definition.id, definition]));
 
-  for (const candidate of request.candidates) {
+  const candidates = [
+    ...request.candidates,
+    ...deriveClosedAssessmentAbsenceCandidates(request),
+  ].sort((left, right) => compareStrings(left.id, right.id));
+  if (
+    new Set(candidates.map((candidate) => candidate.id)).size !== candidates.length ||
+    new Set(
+      candidates.flatMap((candidate) =>
+        candidate.contributions.map((contribution) => contribution.id),
+      ),
+    ).size !==
+      candidates.flatMap((candidate) =>
+        candidate.contributions.map((contribution) => contribution.id),
+      ).length
+  ) {
+    return failure(
+      'INVALID_REQUEST',
+      'Closed-assessment absence derivation collided with an existing candidate or contribution ID.',
+      [request.id],
+    );
+  }
+
+  for (const candidate of candidates) {
     const definition = definitionsById.get(candidate.findingDefinitionId);
     if (!definition || definition.contentVersion !== candidate.findingDefinitionContentVersion) {
       return failure(
@@ -940,7 +1136,7 @@ export const compileSharedFindings = (input: unknown): SharedFindingCompileResul
       request,
       inputFingerprint,
       definition,
-      request.candidates.filter((candidate) => candidate.findingDefinitionId === definition.id),
+      candidates.filter((candidate) => candidate.findingDefinitionId === definition.id),
     );
     if ('ok' in resolution) return resolution;
     findings.push(resolution.finding);

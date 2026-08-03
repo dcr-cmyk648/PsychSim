@@ -293,8 +293,16 @@ total number of dimensions under nonoverlapping core/cluster constraints and the
 more manifestations per dimension. The dimension counts once while every manifestation remains a
 separate candidate. The artifact retains all selected and unselected mappings, requirements,
 dimensions, manifestations, reviews/provenance, stable draws, profile fingerprints, and unbound
-selected conditions. An unselected mapping is unknown, not absent. Overlapping condition
-contributions remain distinct and D-193 alone resolves agreement or reports a literal conflict.
+selected conditions. An unselected mapping does not itself emit an absent finding. Condition,
+texture, override, and other applicable generators first compose a sparse set of positive or
+otherwise deliberately authored values. Only after that composition is complete may a finite,
+versioned assessment horizon derive an ungenerated member as negative for that assessment. This
+closed-horizon projection is not a D-198 baseline, does not compete with later generators, does
+not imply anything outside the assessment's exact member set, and does not make an unrevealed
+result known to the player. A separately authored explicit negative remains available only for a
+reviewed exclusion or literal incompatibility and participates in conflict validation.
+Overlapping condition contributions remain distinct and D-193 alone resolves agreement or
+reports a literal conflict.
 No real diagnostic criteria, background variation, soft-tendency combination, diagnosis
 inference, clinical probability, or points are enabled.
 
@@ -453,7 +461,7 @@ reviewed behavior, D-215 applies it after final patient truth, D-194 derives D-2
 responses, and D-213/D-214 attach the complete result audit plus presentation-safe structured and
 instrument views. The snapshot pins matching care setting, exact horizons, shared findings, the
 D-219 operational artifact, source-report artifacts, the root and nested D-220 audit, nested D-240
-audit, result audit, and compiled-rubric payloads. D-213 `3.0.0` and D-200 composer `21.0.0`
+audit, result audit, and compiled-rubric payloads. D-213 `3.0.0` and D-200 composer `23.0.0`
 retain the complete chain. Finding-scoped duration and burden are staged by finding-definition
 version, then D-240 resolves them after D-193 creates the target ID. Structural, stale, tampered,
 or incomplete operational/result
@@ -933,6 +941,143 @@ normalizes and draws independently, so unrelated sources cannot perturb it. The 
 the exact source coordinate and complete D-215 compatibility before selection. It consumes no
 patient facts and performs no D-201 selection or spending.
 
+D-257 narrows how real inaccurate self-report reaches that selector. Accurate/aligned reporting is
+the fixed zero-complexity base. An inaccurate, partial, minimizing, exaggerating, or otherwise
+discordant self-report pattern is an optional `source_report` module selected and charged once by
+D-201. D-208 carries that selection as deferred post-truth presentation rather than mutating
+patient state. A reviewed D-217 `complexity_gated` policy maps the exact module and template
+binding to one complete alternative D-215 profile, reusing D-201's ordinal and stable draw with no
+second selection or cost. One module may modify several exact views; two modifiers cannot control
+one slot unless D-201 already makes them mutually exclusive. D-200 exact-matches the retained
+D-201 artifact across D-208 and D-217. No motive, global reliability, clinical probability, or
+point value is inferred.
+
+That route governs D-215 structured non-finding lanes. D-258 now reuses the same exact D-201
+artifact for symptom and other canonical-finding responses compiled through D-193. A reviewed
+finding-report slot pins one accurate base projection and exact module-specific alternatives.
+Every projection in the slot must share the same hidden finding predicate and target, so selection
+can change only the displayed response. D-193 preserves hidden finding → exact D-201 module
+binding/cost/ordinal/draw → selected projection → displayed response provenance without a second
+draw or charge.
+
+D-256 closed-assessment absence closure sees only the active projection in each governed slot.
+Inactive report variants cannot create latent candidates or otherwise influence patient truth.
+D-200 verifies exact D-201 artifact equality and complete `source_report` module coverage across
+the D-217 structured-view and D-258 finding-projection paths. The bridge is therefore complete
+mechanically, but no real inaccurate-report profile, module cost/frequency, motive, point rule, or
+runtime patient has been activated.
+
+D-259 adds the first real, runtime-excluded projection content to that existing machinery.
+`registry.catalog.finding-projections` maps 17 exact patient-report findings into
+`info.history.depressive-symptoms`: depressed mood, anhedonia, four appetite/weight directions,
+two sleep directions, two self-reported psychomotor directions, fatigue, worthlessness, guilt,
+concentration difficulty, indecision, passive death wish, and active suicidal ideation. Every
+finding has explicit present and D-256 closed-absent projections. The 15 nonsafety findings also
+map hidden `subthreshold` to displayed `present`; their canonical values remain subthreshold.
+Focused Sleep and Suicide/self-harm actions retain deeper detail and do not create duplicate
+truth or automatic duplicate points. The catalog has no real inaccurate-report variant and is not
+yet bound to a PatientTemplate.
+
+D-260 supplies the two static owners needed before that template. One exact
+`FindingProjectionHorizonDefinition` pins all 49 D-259 mappings and permits only present/absent
+display responses for the compact action. One `universal-action-result-assembly.v3` embeds the
+current action payload and declares only `finding_projections`; D-213 therefore routes every
+resolved in-horizon projection without a finding-level filter. Content validation cross-checks
+projection versions, target/response availability, current action fingerprints, and complete
+horizon-to-assembly coverage. The real checked-in content now compiles to one complete 17-source
+D-213 binding, but no PatientTemplate or generated instance consumes it yet.
+
+D-261 makes clinical-duration meaning historical rather than ID-relative. Every duration profile
+has an exact content version; compatibility resolution, future resolved/deferred patient records,
+and D-240 projection definitions retain that version. D-240 matches only an exact profile
+ID/version pair, while its minimized reveal continues to omit authoring profile identity. No real
+duration options or generation distribution were selected by this mechanical checkpoint.
+
+D-262 supplies the first checked-in profile and result route, but still no duration generator. The
+current-MDD profile offers 13 exact values from 2 through 52 weeks only within the already
+authored episode state. A later deterministic resolver may choose one option using the recipe and
+seed, then must freeze its profile/version, option ID, value/unit, condition target, source/time,
+and resolution trace. D-240 can then project that record through Presenting problem and timeline
+beside the existing compact symptom action in one static D-213 assembly. The profile does not
+consume optional complexity, select severity or impairment, classify persistent depression,
+invent treatment history, affect treatment or points, or authorize a PatientTemplate.
+
+D-263 adds the standalone deterministic resolver for that pre-attachment step. It binds one exact
+condition state to one exact profile/source/time coordinate, canonicalizes array ordering, performs
+one unweighted seeded choice, and freezes all option evaluations plus the selected
+`ResolvedClinicalDuration`. Its verifier replays the full stored request and rejects crossed
+diagnosis/time state, stale/tampered output, or unapproved provenance. It remains detached from
+D-200/D-194 and spends no optional-complexity budget. The next attachment must consume this
+artifact rather than let a caller hand-author the same condition duration in base patient state.
+
+D-264 supplies that narrow attachment. It begins only after D-208 has produced a verified composed
+state, then replays every D-263 input and requires each to target the exact composed patient and an
+unchanged included condition. It canonicalizes artifact order, rejects duplicate or preexisting
+condition/profile owners, and appends the exact duration records without selecting again. No
+durations is a state-preserving identity path; any attachment produces a new deterministic
+patient-state identity and a complete replay artifact. This step neither spends nor refunds the
+D-201 budget and does not yet enter D-200/D-194.
+
+D-266 connects that artifact to the frozen finding pipeline. D-200 `23.0.0` accepts either the
+unchanged D-208 state or one fully verified D-264 result, never a parallel caller-authored
+duration. A D-264 result must retain the exact D-208 composition under D-223 and every D-263 draw
+must share the D-233 patient-generation seed. D-200 passes the selected state through the existing
+D-193/D-194 request, retains the entire proof, and replays it during integrity validation. D-240
+therefore receives a genuine condition duration after final state exists, with no second draw,
+complexity spend, probability, points, or runtime activation.
+
+D-265 supplies the demographic identity foundation needed before a realistic generator can freeze
+race/ethnicity. The engine eventually chooses only from the exact versioned, self-identified OMB
+category horizon and saves the complete multiselect response in `ResolvedPatientDemographicsV3`;
+it must never derive that response from a fictional name. The checked-in foundation intentionally
+contains no selection distribution. Later epidemiologic evidence can modify positive relative
+mass only for optional selection among otherwise eligible candidates; it cannot override a
+case-required diagnosis or make an allowed patient impossible. Uncommon demographic/diagnosis
+combinations remain generatable by design.
+
+Race/ethnicity is base demographic context and does not spend the optional-complexity budget.
+Any inaccurate or incomplete report about it would require an explicit source-report complexity
+owner rather than changing hidden identity. Any symptom-report or pharmacology association must
+be separately reviewed and population-matched; no current compiler, rule, balance, or point trace
+uses the newly indexable category facts.
+
+D-267 establishes the neutral generator-side owner for condition-attributed functional impairment
+without yet putting it into a generated patient. One exact reviewed profile may offer a finite
+subset of `none`, `mild`, `moderate`, and `severe` for one diagnosis. Given one exact condition
+state, source, time scope, patient identity, and internal seed, the standalone resolver makes one
+canonicalized unweighted draw and freezes the full selection/replay artifact. This variation
+mechanic does not claim a population distribution.
+
+Functional impairment remains distinct from symptom selection, symptom intensity, subjective
+burden, and a patient's coarse report of functional impact. It spends no D-201 optional-complexity
+budget and does not derive an MDD severity label. No real profile, attachment, projection,
+PatientTemplate, or runtime generator path exists yet; those require the pending clinical review
+and a separately validated exact-state attachment.
+
+D-268 approves how those future inputs combine for MDD but still does not generate them. Once one
+exact symptom-severity owner and one exact D-267 condition-attributed impairment record exist for
+the same episode, the MDD dossier may use the higher qualitative level as internal current-episode
+severity. Until exact boundary profiles and an attachment compiler are reviewed, all three MDD
+level branches remain disabled and no patient may acquire a generated level from this policy.
+
+Internal severity does not spend optional complexity and does not change the player diagnosis
+identity. Mild, moderate, and severe presentations all submit as MDD. Psychotic features is a
+separate named specifier and may reframe a future encounter, so it must be explicitly required or
+selected by the encounter recipe outside optional texture; severity alone cannot create it.
+
+D-269 proves only the already-approved same-episode combination. A strict symptom-severity input
+envelope identifies its future upstream owner and payload fingerprint without pretending to
+derive a level from symptoms. The pure authoring compiler requires that envelope and one
+replay-valid D-267 impairment artifact to share the exact patient, condition, diagnosis version,
+clinical state, and time scope, then emits their higher qualitative level. It has no draw and
+freezes the complete request, policy projection, child identities, fingerprints, and replay.
+
+The output is explicitly `derived_descriptor_only`: it contains no `severityId` and is not added
+to `ResolvedPatientState`, `ConditionState`, D-200, persistence, or runtime. This closes only the
+combination algorithm. A reviewed symptom-severity owner, exact real impairment profile,
+attachments for both inputs, and an enabled diagnosis-level mapping remain necessary before an
+MDD patient can acquire a generated severity.
+
 D-218 now applies that exact selection only after D-193 freezes patient truth. Catalog compiler
 `4.0.0` resolves the selected profiles, runs D-215 against every template-pinned D-212 definition,
 passes only those generated envelopes through D-213/D-214, and retains both full authoring
@@ -955,6 +1100,39 @@ attachment without rerolling the patient or touching D-201. `attachment_only.v4`
 `5.0.0`, and D-200 `8.0.0` retain and replay the exact artifact. No cost, points, clinical
 winnability, cheapest-method selection, real non-outpatient location, persistence, generated
 queue, or UI was added.
+
+D-270 consumes that exact D-219 treatment topology only at generated-attempt settlement. It freezes
+the full intervention/disposition owners and the normalized service-price owners, then derives one
+least-cost equal-quality charge for each selected option that explicitly names a fulfillment
+service. Service-free options and medication/regimen actions receive no invented price. This
+changes no patient fact, treatment eligibility, clinical rule, care point, generation draw,
+complexity budget, or source provenance.
+
+D-271 consumes the waiting patient's exact template fingerprint and the exact D-227 clinic
+projection only at generated-attempt settlement. It freezes a separate provisional economy policy
+for that template, the current ClinicState, and the versioned satisfaction curve. Bank-before and
+raw satisfaction come from clinic state; the multiplier is rederived and must agree; base
+reimbursement and challenge bonus come only from the explicit economy policy. Diagnosis,
+severity, care setting, and D-201 complexity cannot synthesize any of those values. No real
+template economy policy or runtime behavior is enabled by the structural owner.
+
+D-272 separately closes player diagnosis-qualifier validation after a generated patient is
+frozen. The exact diagnosis horizon is joined to every and only its exact
+`DiagnosisDefinition` owners, then projected into a minimized replay set containing family versus
+severity selection mode and reviewed selectable qualifier identities. It does not feed patient
+generation or change hidden `ConditionState`. MDD's internal mild/moderate/severe descriptor
+therefore never becomes a player qualifier; the named psychotic-features specifier remains a
+separate reviewed identity. Missing, stale, crossed, internal-only, unreviewed, or mutually
+exclusive qualifiers fail before submission is accepted.
+
+D-273 separately resolves launcher presentation without changing patient truth. It independently
+draws a fictional first name, fictional last name, optional middle initial, eligible short
+chief-complaint bank, and stable complaint variant from exact versioned inputs. The same request
+and seed replay byte-equivalently, catalog order cannot change the result, and changing complaint
+content does not reroll the name. Names receive no demographic or clinical inputs. Complaint
+specificity is an explicit content-override hierarchy; equal-priority banks can deliberately mix
+general and condition-specific wording. The output is not yet part of D-200 or a waiting slot, so
+this checkpoint generates no player and changes no queue behavior.
 
 D-220 adds the standalone authoring-only item-response compiler after D-193. An
 `instrument-item-response-only.v1` definition owns one rights-boundary ID and each item's exact
@@ -1066,12 +1244,21 @@ lifecycle-approved prototype content may still be medically unreviewed. D-231 do
 setting, location, pool, diagnosis, dependency coverage, queue history, weights, points, or
 complexity.
 
-A future local Developer Patient Maker is a thin authoring client over this same graph. It may let
-the reviewer choose an exact template/recipe, an admitted care setting/location, and a bounded
-complexity envelope, then request one deterministic seed and show retained diagnostics. It must
-not fabricate a patient file, bypass D-226 admission, manually edit hidden truth, activate
-unreviewed clinical mappings, or create a second generator. The UI remains deferred until one
-real source-controlled vertical can compile.
+D-274 adds a deliberately transitional local Developer Patient Maker over the existing finite
+compatibility-case graph. Its allowlist is computed only from approved/review `CaseBlueprint`s
+that pass the complete content validator and own a measured complexity profile. The reviewer
+chooses one exact authored budget and one matching case; the control filters rather than edits the
+budget. Generation delegates to ordinary `instantiateCase`, endgame/Developer eligibility, and
+the persisted Developer queue. It does not call D-201, materialize optional modules, or claim to
+exercise the database-generated `PatientTemplate` chain.
+
+The future generalized maker remains a thin authoring client over D-226/D-201/D-200. After one
+real source-controlled vertical can compile, it may let the reviewer choose an exact
+template/recipe, admitted setting/location, and adjustable bounded complexity envelope, then
+request one deterministic seed and show retained diagnostics. It must not fabricate a patient
+file, bypass admission, manually edit hidden truth, activate unreviewed clinical mappings, or
+create a second generator. The two maker paths must remain explicitly distinguishable until the
+compatibility path can be retired.
 
 D-226 `3.0.0` removes its raw template input and derives every matrix row from the verified D-231
 artifact. It adds one authoring-only admission matrix before patient selection and before any D-201
@@ -1201,7 +1388,7 @@ order. It
 stops at a retained blocker unless a later caller extends the exact transcript with an explicit
 authorization naming that blocker; the next attempt starts at the blocker-advanced ordinal with
 new seeds. Current versions are D-233 occupancy `1.0.0`, seed
-authority `2.0.0`, atomic fill `2.0.0`, D-200 `21.0.0`, facility migration `3.0.0`, and D-234
+authority `2.0.0`, atomic fill `2.0.0`, D-200 `23.0.0`, facility migration `3.0.0`, and D-234
 transition/reconciliation `2.0.0`.
 
 D-230 chooses the template but does not construct a patient; D-233 owns only the deterministic

@@ -37,6 +37,8 @@
     "Cannot relax since it happened"
   ],
   "durationProfile": {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "duration-profile.review-ptsd-initial.current-symptoms",
     "relatedDiagnosisId": "diagnosis.posttraumatic-stress-disorder",
     "interpretation": "supports_authored_state",

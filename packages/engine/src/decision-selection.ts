@@ -12,16 +12,20 @@ import {
   type DecisionTriggeredInformationPrerequisite,
   type DiagnosisSelectionHorizon,
   type GeneratedEncounterDecisionSelection,
+  type GeneratedDiagnosisSelectionOwnerSetSnapshot,
   type GeneratedEncounterTreatmentSelection,
   type MedicationRegimenEntryV2,
   type PlayerDiagnosisSelections,
 } from '@psychsim/schemas';
+
+import { validateGeneratedDiagnosisSelections } from './generated-diagnosis-selection-owner';
 
 export type GeneratedDecisionSelectionErrorCode =
   | 'INVALID_SELECTION'
   | 'INVALID_SNAPSHOT'
   | 'INFORMATION_ACTION_OUTSIDE_HORIZON'
   | 'DIAGNOSIS_OUTSIDE_HORIZON'
+  | 'DIAGNOSIS_QUALIFIER_OUTSIDE_HORIZON'
   | 'TREATMENT_OUTSIDE_HORIZON';
 
 export type GeneratedDecisionSelectionResult =
@@ -38,6 +42,7 @@ export type GeneratedDecisionSelectionResult =
 export interface GeneratedDecisionSelectionHorizonContext {
   readonly decisionActionHorizon: DecisionActionHorizon;
   readonly diagnosisSelectionHorizon: DiagnosisSelectionHorizon;
+  readonly diagnosisSelectionOwners: GeneratedDiagnosisSelectionOwnerSetSnapshot;
   readonly currentRegimen: readonly MedicationRegimenEntryV2[];
 }
 
@@ -191,8 +196,48 @@ export const validateGeneratedEncounterDecisionSelectionAgainstHorizon = (
   const context: GeneratedDecisionSelectionHorizonContext = {
     decisionActionHorizon: decisionActionHorizon.data,
     diagnosisSelectionHorizon: diagnosisSelectionHorizon.data,
+    diagnosisSelectionOwners: contextInput.diagnosisSelectionOwners,
     currentRegimen: currentRegimen.data,
   };
+  if (
+    context.diagnosisSelectionOwners.diagnosisSelectionHorizonRef.id !==
+    context.diagnosisSelectionHorizon.id
+  ) {
+    return fail(
+      'INVALID_SNAPSHOT',
+      'The generated diagnosis-selection owner set targets another diagnosis horizon.',
+      [
+        context.diagnosisSelectionOwners.diagnosisSelectionHorizonRef.id,
+        context.diagnosisSelectionHorizon.id,
+      ],
+    );
+  }
+  const diagnosisOptionsById = new Map(
+    context.diagnosisSelectionHorizon.options.map((option) => [
+      option.diagnosisDefinitionId,
+      option,
+    ]),
+  );
+  if (
+    context.diagnosisSelectionOwners.owners.length !== diagnosisOptionsById.size ||
+    context.diagnosisSelectionOwners.owners.some((owner) => {
+      const option = diagnosisOptionsById.get(owner.diagnosisRef.id);
+      return (
+        option === undefined ||
+        option.id !== owner.diagnosisOptionId ||
+        option.diagnosisDefinitionContentVersion !== owner.diagnosisRef.contentVersion
+      );
+    })
+  ) {
+    return fail(
+      'INVALID_SNAPSHOT',
+      'The generated diagnosis-selection owner set does not cover the exact diagnosis horizon.',
+      [
+        ...context.diagnosisSelectionHorizon.options.map((option) => option.diagnosisDefinitionId),
+        ...context.diagnosisSelectionOwners.owners.map((owner) => owner.diagnosisRef.id),
+      ],
+    );
+  }
   const informationHorizon = new Set(context.decisionActionHorizon.informationActionIds);
   const unavailableInformationAction = selection.data.informationActionIds.find(
     (actionId) => !informationHorizon.has(actionId),
@@ -204,17 +249,19 @@ export const validateGeneratedEncounterDecisionSelectionAgainstHorizon = (
       [unavailableInformationAction],
     );
   }
-  const diagnosisHorizon = new Set(
-    context.diagnosisSelectionHorizon.options.map((option) => option.diagnosisDefinitionId),
-  );
-  const unavailableDiagnosis = selection.data.diagnosisSelections.find(
-    (diagnosis) => !diagnosisHorizon.has(diagnosis.diagnosisId),
-  );
-  if (unavailableDiagnosis) {
+  const diagnosisValidation = validateGeneratedDiagnosisSelections({
+    selections: selection.data.diagnosisSelections,
+    ownerSnapshot: context.diagnosisSelectionOwners,
+  });
+  if (!diagnosisValidation.ok) {
     return fail(
-      'DIAGNOSIS_OUTSIDE_HORIZON',
-      `Diagnosis ${unavailableDiagnosis.diagnosisId} is outside the frozen diagnosis-selection horizon.`,
-      [unavailableDiagnosis.diagnosisId],
+      diagnosisValidation.error.code === 'DIAGNOSIS_QUALIFIER_OUTSIDE_HORIZON'
+        ? 'DIAGNOSIS_QUALIFIER_OUTSIDE_HORIZON'
+        : diagnosisValidation.error.code === 'DIAGNOSIS_OUTSIDE_HORIZON'
+          ? 'DIAGNOSIS_OUTSIDE_HORIZON'
+          : 'INVALID_SNAPSHOT',
+      diagnosisValidation.error.message,
+      diagnosisValidation.error.contentIds,
     );
   }
   const treatmentError = treatmentSelectionError(selection.data.treatmentSelection, context);
@@ -234,6 +281,7 @@ export const validateGeneratedEncounterDecisionSelectionAgainstSnapshot = (
   return validateGeneratedEncounterDecisionSelectionAgainstHorizon(selectionInput, {
     decisionActionHorizon: snapshot.data.encounterInstance.decisionActionHorizon,
     diagnosisSelectionHorizon: snapshot.data.encounterInstance.diagnosisSelectionHorizon,
+    diagnosisSelectionOwners: snapshot.data.diagnosisSelectionOwners,
     currentRegimen: snapshot.data.patientInstance.patientState.medicationRegimenEntries,
   });
 };

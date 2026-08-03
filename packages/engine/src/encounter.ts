@@ -258,6 +258,15 @@ export const updateDiagnosisSelections = (
         message: `Severity ${selection.severityId} does not belong to ${definition.label}.`,
       });
     }
+    if (
+      selection.severityId !== null &&
+      definition.severityAxis?.playerSelectionMode === 'family_only'
+    ) {
+      return err({
+        code: 'INVALID_DIAGNOSIS_SELECTION',
+        message: `${definition.label} severity is internal generation state, not a player-facing diagnosis qualifier.`,
+      });
+    }
     const selectedSpecifiers = definition.specifiers.filter((specifier) =>
       selection.specifierIds.includes(specifier.id),
     );
@@ -265,6 +274,12 @@ export const updateDiagnosisSelections = (
       return err({
         code: 'INVALID_DIAGNOSIS_SELECTION',
         message: `A selected specifier does not belong to ${definition.label}.`,
+      });
+    }
+    if (selectedSpecifiers.some((specifier) => !specifier.playerSelectable)) {
+      return err({
+        code: 'INVALID_DIAGNOSIS_SELECTION',
+        message: `A selected ${definition.label} specifier is internal generation state.`,
       });
     }
     const exclusiveGroups = selectedSpecifiers

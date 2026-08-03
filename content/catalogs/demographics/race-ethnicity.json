@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "race-ethnicity-catalog.omb-spd15-2024-minimum",
+  "standard": {
+    "id": "race-ethnicity-standard.omb-spd15-2024",
+    "contentVersion": "1.0.0",
+    "label": "2024 Statistical Policy Directive No. 15 minimum race and ethnicity categories",
+    "issuingOrganization": "U.S. Office of Management and Budget",
+    "jurisdiction": "United States",
+    "effectiveDate": "2024-03-28",
+    "collectionFormat": "combined_race_ethnicity",
+    "responseMode": "select_all_that_apply",
+    "classificationBasis": "self_identified_sociopolitical",
+    "granularity": "minimum_categories_only",
+    "evidenceSourceId": "evidence.omb.spd15.2024",
+    "sourceUseDecisionId": "source-use.omb.spd15.2024",
+    "categoryIds": [
+      "race-ethnicity.american-indian-or-alaska-native",
+      "race-ethnicity.asian",
+      "race-ethnicity.black-or-african-american",
+      "race-ethnicity.hispanic-or-latino",
+      "race-ethnicity.middle-eastern-or-north-african",
+      "race-ethnicity.native-hawaiian-or-pacific-islander",
+      "race-ethnicity.white"
+    ]
+  },
+  "categories": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "race-ethnicity.american-indian-or-alaska-native",
+      "label": "American Indian or Alaska Native"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "race-ethnicity.asian",
+      "label": "Asian"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "race-ethnicity.black-or-african-american",
+      "label": "Black or African American"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "race-ethnicity.hispanic-or-latino",
+      "label": "Hispanic or Latino"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "race-ethnicity.middle-eastern-or-north-african",
+      "label": "Middle Eastern or North African"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "race-ethnicity.native-hawaiian-or-pacific-islander",
+      "label": "Native Hawaiian or Pacific Islander"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "race-ethnicity.white",
+      "label": "White"
+    }
+  ],
+  "authoringReview": {
+    "status": "accepted",
+    "scope": "identity_and_collection_only",
+    "reviewerId": "reviewer.dustin-rowland",
+    "reviewedAt": "2026-08-03T15:11:39.000Z",
+    "developerOpinionId": "developer-opinion.race-ethnicity-generation-guardrails.2026-08-03",
+    "note": "Approved as an authoring identity foundation only. It supplies no prevalence, diagnosis, symptom-report, pharmacology, treatment, or point modifier and does not activate patient generation."
+  },
+  "medicalReviewStatus": "unreviewed"
+}

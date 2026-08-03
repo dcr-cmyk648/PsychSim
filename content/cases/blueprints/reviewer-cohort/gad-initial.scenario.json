@@ -42,6 +42,8 @@
     "Nervous all the time"
   ],
   "durationProfile": {
+    "schemaVersion": 1,
+    "contentVersion": "1.0.0",
     "id": "duration-profile.review-gad-initial.current-symptoms",
     "relatedDiagnosisId": "diagnosis.generalized-anxiety-disorder",
     "interpretation": "supports_authored_state",

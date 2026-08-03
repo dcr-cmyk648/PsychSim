@@ -1,10 +1,13 @@
 import {
+  type ClinicalDurationProfile,
+  type ConditionClinicalDurationAttachmentArtifact,
   FindingPipelineAuditArtifactSchema,
   FindingPipelineAuditRequestSchema,
   FacilityMoveWaitingSlotMigrationArtifactSchema,
   EmptyAuthorizedPatientSlotFillArtifactSchema,
   GeneratedCompletedEncounterAttemptPersistenceRecordSchema,
   GeneratedCompletedEncounterAttemptSchema,
+  GeneratedEncounterSettlementInputSchema,
   LocationPatientSlotOccupancySnapshotArtifactSchema,
   PatientSlotLifecycleTransitionArtifactSchema,
   PatientSlotRefillReconciliationArtifactSchema,
@@ -79,6 +82,11 @@ import {
   fingerprintCatalogInstanceRecipe,
   verifyCatalogCompiledInstanceIntegrity,
 } from './catalog-instance-compiler';
+import { resolveConditionClinicalDuration } from './clinical-duration-profile-resolver';
+import {
+  attachConditionClinicalDurations,
+  verifyConditionClinicalDurationAttachmentIntegrity,
+} from './condition-clinical-duration-attachment';
 import {
   fingerprintConditionFindingCardinalityProfile,
   selectConditionFindingCardinalityCandidates,
@@ -96,6 +104,7 @@ import {
   verifyGeneratedCompletedEncounterAttemptIntegrity,
   verifyGeneratedCompletedEncounterAttemptPersistenceRecord,
 } from './generated-completed-attempt-compiler';
+import { calculateSatisfactionState } from './satisfaction';
 import {
   compileEmptyAuthorizedPatientSlotFill,
   verifyEmptyAuthorizedPatientSlotFillContext,
@@ -744,6 +753,7 @@ const makeTemplate = (
   recipeFingerprints: ReturnType<typeof fingerprintCatalogInstanceRecipe>,
   includeOptionalComorbidity = false,
   includeOptionalFindingTexture = false,
+  includeOptionalSourceReport = false,
 ): PatientTemplate => ({
   schemaVersion: 1,
   contentVersion: '1.0.0',
@@ -818,8 +828,14 @@ const makeTemplate = (
   complexityProfile: {
     modelVersion: 'additional-feature-budget.v1',
     measurementStatus: 'budget_only',
-    additionalFeatureBudget: includeOptionalComorbidity || includeOptionalFindingTexture ? 1 : 0,
-    maximumSelectedModules: includeOptionalComorbidity || includeOptionalFindingTexture ? 1 : 0,
+    additionalFeatureBudget:
+      includeOptionalComorbidity || includeOptionalFindingTexture || includeOptionalSourceReport
+        ? 1
+        : 0,
+    maximumSelectedModules:
+      includeOptionalComorbidity || includeOptionalFindingTexture || includeOptionalSourceReport
+        ? 1
+        : 0,
     selectedModules: [],
     targetEnvelope: null,
   },
@@ -967,6 +983,153 @@ const selectFindingTextureOptionalFeature = (
     );
   }
   return result.value;
+};
+
+const selectFindingSourceReportOptionalFeature = (
+  template: PatientTemplate,
+  seed = 'seed.d201.selected-finding-source-report',
+): OptionalFeatureBudgetSelectionArtifact => {
+  const moduleDefinition: PatientOptionalFeatureModuleDefinition = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'optional-feature.test.pipeline-finding-source-report',
+    label: 'Synthetic low-energy self-report minimization',
+    moduleKind: 'source_report',
+    lifecycle: 'approved',
+    medicalReviewStatus: 'approved',
+    review: approvedReview,
+  };
+  const moduleFingerprint = fingerprintOptionalFeatureModuleDefinition(moduleDefinition);
+  const result = selectOptionalFeaturesWithinBudget({
+    schemaVersion: 1,
+    id: 'optional-feature-budget-request.test.pipeline-finding-source-report',
+    template: structuredClone(template),
+    moduleDefinitions: [moduleDefinition],
+    profile: {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'optional-feature-profile.test.pipeline-finding-source-report',
+      modelVersion: 'weighted-optional-feature-budget-selection.v1',
+      templateRef: {
+        id: template.id,
+        contentVersion: template.contentVersion,
+      },
+      templateFingerprint: fingerprintTemplateConditionSelectionTemplate(template),
+      countWeights: [
+        { schemaVersion: 1, selectionCount: 0, gameSelectionWeight: 1 },
+        { schemaVersion: 1, selectionCount: 1, gameSelectionWeight: 10_000 },
+      ],
+      candidateBindings: [
+        {
+          schemaVersion: 1,
+          id: 'optional-feature-binding.test.pipeline-finding-source-report',
+          moduleRef: {
+            id: moduleDefinition.id,
+            contentVersion: moduleDefinition.contentVersion,
+          },
+          moduleFingerprint,
+          selectedModuleId: 'patient-optional-feature.test.pipeline-finding-source-report',
+          cost: 1,
+          impact: 'fit_modifier',
+          complexityContributions: [
+            {
+              id: 'complexity-contribution.test.pipeline-finding-source-report',
+              label: 'Synthetic inaccurate patient report',
+              dimension: 'information',
+              weight: 1,
+              review: approvedReview,
+            },
+          ],
+          gameSelectionWeight: 10_000,
+          review: approvedReview,
+        },
+      ],
+      incompatibilities: [],
+      review: approvedReview,
+    },
+    seed,
+  });
+  if (!result.ok || result.value.selectedCount !== 1) {
+    throw new Error(
+      result.ok
+        ? 'Expected one selected synthetic finding source-report module.'
+        : result.error.message,
+    );
+  }
+  return result.value;
+};
+
+const prepareFindingSourceReportProjections = (
+  sharedFindingRecipe: FindingPipelineSharedFindingRecipe,
+): void => {
+  const baseProjection = sharedFindingRecipe.projections[0]!;
+  const inaccurateProjection = {
+    ...structuredClone(baseProjection),
+    id: 'finding-projection.test.pipeline-low-energy-minimized',
+    response: {
+      kind: 'finding_outcome' as const,
+      outcome: 'absent' as const,
+    },
+    expressionBankId: null,
+    expressionBankContentVersion: null,
+  };
+  sharedFindingRecipe.projections.push(inaccurateProjection);
+  sharedFindingRecipe.projectionHorizon.targets[0]!.allowedResponses.push({
+    kind: 'finding_outcome',
+    outcome: 'absent',
+  });
+};
+
+const attachFindingSourceReportProjectionPolicy = (
+  sharedFindingRecipe: FindingPipelineSharedFindingRecipe,
+  optionalArtifact: OptionalFeatureBudgetSelectionArtifact,
+): void => {
+  const baseProjection = sharedFindingRecipe.projections.find(
+    (projection) => projection.id === 'finding-projection.test.pipeline-low-energy',
+  )!;
+  const inaccurateProjection = sharedFindingRecipe.projections.find(
+    (projection) => projection.id === 'finding-projection.test.pipeline-low-energy-minimized',
+  )!;
+  const binding = optionalArtifact.selectionRequest.profile.candidateBindings[0]!;
+  sharedFindingRecipe.findingSourceReportProjectionPolicy = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'finding-source-report-policy.test.pipeline-low-energy',
+    modelVersion: 'finding-source-report-projection.v1',
+    optionalFeatureArtifact: optionalArtifact,
+    slots: [
+      {
+        schemaVersion: 1,
+        id: 'finding-source-report-slot.test.pipeline-low-energy-present',
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: 'source-instance.test.pipeline-patient-history',
+        },
+        timeScopeId: 'time-scope.current',
+        claimOriginId: 'claim-origin.test.pipeline-patient',
+        dependencyGroupIds: [],
+        baseProjectionRef: {
+          id: baseProjection.id,
+          contentVersion: baseProjection.contentVersion,
+        },
+        modifiers: [
+          {
+            moduleRef: { ...binding.moduleRef },
+            moduleFingerprint: binding.moduleFingerprint,
+            optionalFeatureBindingId: binding.id,
+            selectedModuleId: binding.selectedModuleId,
+            projectionRef: {
+              id: inaccurateProjection.id,
+              contentVersion: inaccurateProjection.contentVersion,
+            },
+          },
+        ],
+      },
+    ],
+    developerOpinionIds: ['developer-opinion.test.pipeline-finding-source-report'],
+    lifecycle: 'approved',
+    review: approvedReview,
+  };
 };
 
 const makeFindingTextureBridgeInput = (
@@ -1497,7 +1660,9 @@ interface PipelineRequestOptions {
   readonly includeStructuredReport?: boolean;
   readonly includeInstrument?: boolean;
   readonly includeTargetScopedDuration?: boolean;
+  readonly includeConditionScopedDuration?: boolean;
   readonly includeFindingTextureBridge?: boolean;
+  readonly includeFindingSourceReportBridge?: boolean;
   readonly capacityBaseSlotCount?: number;
   readonly capacitySlotOrdinal?: number;
   readonly generationRoot?: string;
@@ -1508,7 +1673,68 @@ interface PipelineRequestOptions {
   readonly occupiedWaitingSlots?: readonly FrozenGeneratedWaitingSlot[];
   readonly locationLabel?: string;
   readonly decisionRules?: readonly DecisionRuleCandidateDefinition[];
+  readonly includeServiceBackedIntervention?: boolean;
 }
+
+const makeConditionDurationAttachment = (
+  patientStateCompositionArtifact: ResolvedPatientStateCompositionArtifact,
+  seed: string,
+): ConditionClinicalDurationAttachmentArtifact => {
+  const patientState = patientStateCompositionArtifact.composedPatientState;
+  if (patientState === null) throw new Error('Expected a composed D-208 patient state.');
+  const conditionState = patientState.conditionStates.find(
+    (condition) => condition.diagnosisDefinitionId === 'diagnosis.major-depressive-disorder',
+  );
+  if (conditionState === undefined) {
+    throw new Error('Expected the synthetic MDD condition state.');
+  }
+  const profile: ClinicalDurationProfile = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'duration-profile.test.pipeline-mdd-current',
+    relatedDiagnosisId: conditionState.diagnosisDefinitionId,
+    interpretation: 'supports_authored_state',
+    criterionId: null,
+    options: [
+      {
+        id: 'duration-option.test.pipeline-mdd-current.four-weeks',
+        value: 4,
+        unit: 'week',
+        displayValueVariants: ['four weeks'],
+      },
+      {
+        id: 'duration-option.test.pipeline-mdd-current.eight-weeks',
+        value: 8,
+        unit: 'week',
+        displayValueVariants: ['eight weeks'],
+      },
+    ],
+    developerOpinionIds: ['developer-opinion.test.pipeline-mdd-duration'],
+    review: approvedReview,
+  };
+  const resolution = resolveConditionClinicalDuration({
+    schemaVersion: 1,
+    id: 'condition-duration-request.test.pipeline-mdd-current',
+    patientStateId: patientState.id,
+    conditionState,
+    profile,
+    source: {
+      kind: 'patient_report',
+      sourceInstanceId: 'source-instance.test.pipeline-history',
+    },
+    timeScopeId: 'time-scope.current',
+    seed,
+  });
+  if (!resolution.ok) throw new Error(resolution.error.message);
+  const attachment = attachConditionClinicalDurations({
+    schemaVersion: 1,
+    id: 'condition-duration-attachment-request.test.pipeline',
+    patientStateCompositionArtifact,
+    durationResolutionArtifacts: [resolution.value],
+  });
+  if (!attachment.ok) throw new Error(attachment.error.message);
+  return attachment.value;
+};
 
 const makeRequestFixture = (
   options: PipelineRequestOptions = {},
@@ -1521,13 +1747,18 @@ const makeRequestFixture = (
     softTarget !== coreFinding,
     'seed.pending-d233-authority',
   );
+  if (options.includeFindingSourceReportBridge === true) {
+    prepareFindingSourceReportProjections(sharedFindingRecipe);
+  }
   const decisionActionHorizon: CatalogInstanceCompileRequest['decisionActionHorizon'] = {
     schemaVersion: 1,
     id: 'decision-action-horizon.test.pipeline',
     informationActionIds: ['info.history.test-depressive-symptoms'],
     startMedicationIds: ['medication.bupropion'],
     regimenEntryOperations: [],
-    interventionIds: [],
+    interventionIds: options.includeServiceBackedIntervention
+      ? ['intervention.test.pipeline-brief-counseling']
+      : [],
     dispositionIds: ['disposition.outpatient'],
   };
   const diagnosisSelectionHorizon: CatalogInstanceCompileRequest['diagnosisSelectionHorizon'] = {
@@ -1549,6 +1780,7 @@ const makeRequestFixture = (
         fingerprintInformationActionPayload(depressiveSymptomsAction),
       valueKind: 'clinical_duration',
       durationProfileId: 'duration-profile.test.pipeline-low-energy',
+      durationProfileContentVersion: '1.0.0',
       targetSelector: {
         kind: 'finding_definition',
         findingDefinitionId: coreFinding.id,
@@ -1562,6 +1794,39 @@ const makeRequestFixture = (
     universalActionResultAssemblyRecipe.recipes[0]!.sourceKinds.push(
       'target_scoped_patient_value_reveals',
     );
+  }
+  if (options.includeConditionScopedDuration) {
+    universalActionResultAssemblyRecipe.targetScopedPatientValueProjectionDefinitions.push({
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'target-scoped-definition.test.pipeline-mdd-duration',
+      modelVersion: 'target-scoped-patient-value-projection.v1',
+      label: 'Current depressive episode duration',
+      informationActionId: depressiveSymptomsAction.id,
+      informationActionPayloadFingerprint:
+        fingerprintInformationActionPayload(depressiveSymptomsAction),
+      valueKind: 'clinical_duration',
+      durationProfileId: 'duration-profile.test.pipeline-mdd-current',
+      durationProfileContentVersion: '1.0.0',
+      targetSelector: {
+        kind: 'condition_definition',
+        diagnosisDefinitionId: 'diagnosis.major-depressive-disorder',
+        diagnosisDefinitionContentVersion: '1.0.0',
+      },
+      sourceKind: 'patient_report',
+      timeScopeId: 'time-scope.current',
+      lifecycle: 'approved',
+      review: approvedReview,
+    });
+    if (
+      !universalActionResultAssemblyRecipe.recipes[0]!.sourceKinds.includes(
+        'target_scoped_patient_value_reveals',
+      )
+    ) {
+      universalActionResultAssemblyRecipe.recipes[0]!.sourceKinds.push(
+        'target_scoped_patient_value_reveals',
+      );
+    }
   }
   if (options.includeInstrument) {
     addSyntheticInstrumentResponse(sharedFindingRecipe, universalActionResultAssemblyRecipe);
@@ -1583,6 +1848,7 @@ const makeRequestFixture = (
     }),
     options.conditionSourceKind === 'd202',
     options.includeFindingTextureBridge === true,
+    options.includeFindingSourceReportBridge === true,
   );
   const location = {
     schemaVersion: 1 as const,
@@ -1628,7 +1894,9 @@ const makeRequestFixture = (
           const optionalFeatureArtifact =
             options.includeFindingTextureBridge === true
               ? selectFindingTextureOptionalFeature(template, patientGenerationSeed)
-              : selectEmptyOptionalFeatures(template, patientGenerationSeed);
+              : options.includeFindingSourceReportBridge === true
+                ? selectFindingSourceReportOptionalFeature(template, patientGenerationSeed)
+                : selectEmptyOptionalFeatures(template, patientGenerationSeed);
           const conditionSource: ResolvedConditionSource = {
             schemaVersion: 1,
             sourceKind: 'template_condition_selection',
@@ -1639,6 +1907,12 @@ const makeRequestFixture = (
             optionalFeatureArtifact,
           };
         })();
+  if (options.includeFindingSourceReportBridge === true) {
+    attachFindingSourceReportProjectionPolicy(
+      sharedFindingRecipe,
+      conditionSetup.optionalFeatureArtifact,
+    );
+  }
   const preFindingPatientStateOrchestrationArtifact = orchestratePatientState({
     requestId: 'pre-finding-request.test.finding-pipeline',
     conditionSource: conditionSetup.conditionSource,
@@ -1653,6 +1927,10 @@ const makeRequestFixture = (
   if (patientStateCompositionArtifact.composedPatientState === null) {
     throw new Error('Expected a composed D-208 fixture.');
   }
+  const conditionClinicalDurationAttachmentArtifact =
+    options.includeConditionScopedDuration === true
+      ? makeConditionDurationAttachment(patientStateCompositionArtifact, patientGenerationSeed)
+      : null;
   const conditionFinding = selectConditionFindings(
     preFindingPatientStateOrchestrationArtifact.conditionSource,
     patientGenerationSeed,
@@ -1684,6 +1962,7 @@ const makeRequestFixture = (
       id: 'finding-pipeline-audit-request.test.synthetic',
       patientSlotFillSeedAuthorityArtifact: slotSelection.patientSlotFillSeedAuthorityArtifact,
       preFindingPatientStateOrchestrationArtifact,
+      conditionClinicalDurationAttachmentArtifact,
       downstream: {
         conditionFindingArtifact: conditionFinding,
         backgroundFindingArtifact: background,
@@ -1707,6 +1986,7 @@ const makeRequestFixture = (
                   value: 8,
                   unit: 'week',
                   durationProfileId: 'duration-profile.test.pipeline-low-energy',
+                  durationProfileContentVersion: '1.0.0',
                   durationOptionId: 'duration-option.test.pipeline-eight-weeks',
                   relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
                   interpretation: 'context_only',
@@ -1898,6 +2178,27 @@ const compilePipelineSlotSelection = (input: {
           },
         ],
       },
+      ...(input.decisionActionHorizon.interventionIds.includes(
+        'intervention.test.pipeline-brief-counseling',
+      )
+        ? [
+            {
+              schemaVersion: 1 as const,
+              contentVersion: '1.0.0',
+              id: 'service.test.pipeline-brief-counseling',
+              fulfillmentMethods: [
+                {
+                  id: 'fulfillment.test.pipeline-brief-counseling.outside',
+                  requiredCapabilities: [],
+                },
+                {
+                  id: 'fulfillment.test.pipeline-brief-counseling.in-house',
+                  requiredCapabilities: [],
+                },
+              ],
+            },
+          ]
+        : []),
     ],
     medications: [
       {
@@ -1906,6 +2207,24 @@ const compilePipelineSlotSelection = (input: {
       },
     ],
     treatments: [
+      ...(input.decisionActionHorizon.interventionIds.includes(
+        'intervention.test.pipeline-brief-counseling',
+      )
+        ? [
+            {
+              schemaVersion: 1 as const,
+              contentVersion: '1.0.0',
+              id: 'intervention.test.pipeline-brief-counseling',
+              label: 'Synthetic brief counseling',
+              searchAliases: [],
+              kind: 'nonmedication' as const,
+              category: 'behavioral' as const,
+              safeReferral: false,
+              requiredCapabilities: [],
+              fulfillmentServiceId: 'service.test.pipeline-brief-counseling',
+            },
+          ]
+        : []),
       {
         schemaVersion: 1,
         contentVersion: '1.0.0',
@@ -2187,11 +2506,93 @@ const generatedServicePricingForWaiting = (waitingSlot: FrozenGeneratedWaitingSl
       fulfillmentMethods: service.fulfillmentMethods.map((method) => ({
         ...method,
         label: `Synthetic fulfillment ${method.id}`,
-        kind: 'in_house' as const,
-        operatingCost: 25,
+        kind: method.id.endsWith('.outside')
+          ? ('outside_referral' as const)
+          : ('in_house' as const),
+        operatingCost: method.id.endsWith('.outside')
+          ? 60
+          : method.id.endsWith('.in-house')
+            ? 20
+            : 25,
         qualityModifier: 1,
       })),
     })),
+  };
+};
+
+const generatedSettlementForWaiting = (
+  waitingSlot: FrozenGeneratedWaitingSlot,
+  options: {
+    readonly baseReimbursement?: number;
+    readonly challengeBonus?: number;
+    readonly clinicPoints?: number;
+    readonly lifetimePointsEarned?: number;
+    readonly satisfaction?: number;
+  } = {},
+): GeneratedCompletedEncounterAttemptCompileInput['settlement'] => {
+  const audit = waitingSlot.findingPipelineAuditArtifact;
+  const snapshot = audit.catalogSnapshot;
+  if (snapshot === null) throw new Error('Expected a compiled catalog snapshot.');
+  const operationalContext =
+    snapshot.operationalAdmissionArtifact.compileRequest.selectedLocationResourceArtifact
+      .compileRequest.clinicOperationalContext;
+  const satisfactionConfiguration = {
+    schemaVersion: 1 as const,
+    contentVersion: '1.0.0',
+    curve: 'rational_half_saturation' as const,
+    halfSaturationPoints: 20,
+    multiplierCap: 1.15,
+  };
+  const satisfaction = options.satisfaction ?? 0;
+  const satisfactionState = calculateSatisfactionState(satisfaction, satisfactionConfiguration);
+  return {
+    producerRef: {
+      id: 'engine.generated-settlement.test',
+      contentVersion: '1.0.0',
+    },
+    economyPolicy: {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: `economy-policy.test.${snapshot.template.id}`,
+      modelVersion: 'generated-encounter-economy-policy.v1',
+      label: 'Synthetic generated-encounter economy',
+      templateRef: {
+        id: snapshot.template.id,
+        contentVersion: snapshot.template.contentVersion,
+      },
+      templateFingerprint: audit.patientSlotFillSeedAuthorityArtifact.selectedTemplateFingerprint,
+      balanceStatus: 'provisional_balance',
+      baseReimbursement: options.baseReimbursement ?? 400,
+      challengeBonus: options.challengeBonus ?? 0,
+    },
+    clinicState: {
+      schemaVersion: operationalContext.schemaVersion,
+      id: operationalContext.clinicStateId,
+      label: 'Synthetic generated-attempt clinic',
+      facilityId: operationalContext.facilityId,
+      facilityTier: operationalContext.facilityTier,
+      locationIds: [...operationalContext.locationIds],
+      activeLocationId: snapshot.location.id,
+      departmentIds: [...operationalContext.departmentIds],
+      capabilities: [],
+      ownedUpgradeIds: [...operationalContext.ownedUpgradeIds],
+      ownedEquipmentIds: [...operationalContext.ownedEquipmentIds],
+      staffConfigurations: structuredClone(operationalContext.staffConfigurations),
+      formularyIds: [...operationalContext.formularyIds],
+      clinicPoints: options.clinicPoints ?? 0,
+      lifetimePointsEarned: options.lifetimePointsEarned ?? 0,
+      debugUnlocksAllProgression:
+        audit.patientSlotFillSeedAuthorityArtifact.coordinates.mode !== 'standard',
+      satisfaction: satisfactionState.rawPoints,
+      satisfactionMultiplier: satisfactionState.multiplier,
+    },
+    satisfactionConfigurationOwner: {
+      ownerRef: {
+        id: 'registry.catalog.decor.test',
+        contentVersion: satisfactionConfiguration.contentVersion,
+      },
+      configuration: satisfactionConfiguration,
+    },
   };
 };
 
@@ -2201,6 +2602,7 @@ const createNativeGeneratedAttempt = (input: {
   readonly frozenWaitingSlot: FrozenGeneratedWaitingSlot;
   readonly actionEvents?: readonly GeneratedEncounterActionEventInput[];
   readonly pointDerivation?: GeneratedCompletedEncounterAttemptCompileInput['pointDerivation'];
+  readonly settlement?: GeneratedCompletedEncounterAttemptCompileInput['settlement'];
 }) => {
   const snapshot = input.frozenWaitingSlot.findingPipelineAuditArtifact.catalogSnapshot;
   if (snapshot === null) throw new Error('Expected a compiled catalog snapshot.');
@@ -2217,6 +2619,7 @@ const createNativeGeneratedAttempt = (input: {
       settlementEngineVersion: '1.0.0',
     },
     actionEvents: [...(input.actionEvents ?? [])],
+    diagnosisSelectionOwners: { definitions: [] },
     servicePricing: generatedServicePricingForWaiting(input.frozenWaitingSlot),
     pointDerivation: input.pointDerivation ?? {
       balanceCatalog: {
@@ -2253,18 +2656,7 @@ const createNativeGeneratedAttempt = (input: {
         },
       },
     },
-    settlement: {
-      producerRef: {
-        id: 'engine.generated-settlement.test',
-        contentVersion: '1.0.0',
-      },
-      baseReimbursement: 400,
-      challengeBonus: 0,
-      satisfactionMultiplier: 1,
-      treatmentCharges: [],
-      persistentPointsBefore: 0,
-      lifetimePointsBefore: 0,
-    },
+    settlement: input.settlement ?? generatedSettlementForWaiting(input.frozenWaitingSlot),
   });
   if (!compiled.ok) {
     throw new Error(`${compiled.error.code}: ${compiled.error.message}`);
@@ -2732,6 +3124,7 @@ const makeSelectedOtherBlockedRequest = (): FindingPipelineAuditRequest => {
     id: 'finding-pipeline-audit-request.test.blocked-other',
     patientSlotFillSeedAuthorityArtifact: slotSelection.patientSlotFillSeedAuthorityArtifact,
     preFindingPatientStateOrchestrationArtifact,
+    conditionClinicalDurationAttachmentArtifact: null,
     downstream: null,
   };
 };
@@ -2766,6 +3159,7 @@ const makeConditionConflictBlockedRequest = (): FindingPipelineAuditRequest => {
     id: 'finding-pipeline-audit-request.test.blocked-condition-conflict',
     patientSlotFillSeedAuthorityArtifact: slotSelection.patientSlotFillSeedAuthorityArtifact,
     preFindingPatientStateOrchestrationArtifact,
+    conditionClinicalDurationAttachmentArtifact: null,
     downstream: null,
   };
 };
@@ -2781,12 +3175,13 @@ describe('finding pipeline audit composer', () => {
     if (artifact.catalogSnapshot === null) {
       throw new Error('Expected the compiled D-200 fixture to retain a D-194 snapshot.');
     }
-    expect(artifact.composerVersion).toBe('21.0.0');
+    expect(artifact.composerVersion).toBe('23.0.0');
     expect(artifact.patientSlotFillSeedAuthorityArtifact).toEqual(
       request.patientSlotFillSeedAuthorityArtifact,
     );
     expect(preFindingOf(artifact)).toEqual(preFindingOf(request));
     expect(patientStateCompositionOf(artifact)).toEqual(patientStateCompositionOf(request));
+    expect(artifact.conditionClinicalDurationAttachmentArtifact).toBeNull();
     expect(Object.hasOwn(artifact, 'patientStateCompositionArtifact')).toBe(false);
     expect(Object.hasOwn(request, 'patientStateCompositionArtifact')).toBe(false);
     expect(artifact.conditionFindingArtifact).toEqual(downstream.conditionFindingArtifact);
@@ -2867,6 +3262,64 @@ describe('finding pipeline audit composer', () => {
     });
   });
 
+  it('reuses one D-201 source-report cost to alter only the exact D-193 patient-report projection', () => {
+    const request = makeRequest({ includeFindingSourceReportBridge: true });
+    const optionalArtifact =
+      preFindingOf(request).patientStateCompositionArtifact.compositionRequest
+        .optionalFeatureArtifact;
+    expect(optionalArtifact.selectedCount).toBe(1);
+    expect(optionalArtifact.totalSpent).toBe(1);
+
+    const artifact = expectComposed(request);
+    if (artifact.catalogSnapshot === null) {
+      throw new Error('Expected the D-258 fixture to retain one compiled catalog snapshot.');
+    }
+    const finding = artifact.catalogSnapshot.patientInstance.sharedFindingCompilation.findings.find(
+      (entry) => entry.definitionId === coreFinding.id,
+    );
+    const projection =
+      artifact.catalogSnapshot.patientInstance.sharedFindingCompilation.projections.find(
+        (entry) => entry.projectionId === 'finding-projection.test.pipeline-low-energy-minimized',
+      );
+    expect(finding?.value).toEqual({ kind: 'outcome', value: 'present' });
+    expect(projection).toMatchObject({
+      response: { kind: 'finding_outcome', outcome: 'absent' },
+      resolution: {
+        sourceReportSelection: {
+          complexityModule: {
+            cost: 1,
+            stableDrawId: optionalArtifact.candidateEvaluations[0]!.stableDrawId,
+          },
+        },
+      },
+    });
+    expect(
+      patientStateCompositionOf(artifact).selectedModuleAudits.find(
+        (entry) => entry.moduleKind === 'source_report',
+      ),
+    ).toMatchObject({
+      materializationStatus: 'deferred_to_post_truth',
+      cost: 1,
+      materializedRecordIds: [],
+    });
+    expect(
+      artifact.catalogCompileRequest.sharedFindingRequest.findingSourceReportProjectionPolicy
+        ?.optionalFeatureArtifact,
+    ).toEqual(optionalArtifact);
+    expect(verifyFindingPipelineAuditIntegrity(artifact)).toEqual({
+      ok: true,
+      value: artifact,
+    });
+
+    const omitted = makeRequest({ includeFindingSourceReportBridge: true });
+    delete downstreamOf(omitted).catalogCompileRecipe.sharedFindingRecipe
+      .findingSourceReportProjectionPolicy;
+    expect(composeFindingPipelineAudit(omitted)).toMatchObject({
+      ok: false,
+      error: { code: 'ARTIFACT_CHAIN_MISMATCH' },
+    });
+  });
+
   it('retains, replays, and rejects tampering of a nonempty D-240 attachment', () => {
     const request = makeRequest({ includeTargetScopedDuration: true });
     const artifact = expectComposed(request);
@@ -2935,6 +3388,100 @@ describe('finding pipeline audit composer', () => {
     tampered.catalogSnapshot!.patientInstance.targetScopedPatientValueReveals[0]!.values[0]!.timeScopeId =
       'time-scope.tampered';
     expect(verifyFindingPipelineAuditIntegrity(tampered).ok).toBe(false);
+  });
+
+  it('routes one verified D-264 condition duration through D-194 and D-240', () => {
+    const request = makeRequest({ includeConditionScopedDuration: true });
+    const durationAttachment = request.conditionClinicalDurationAttachmentArtifact;
+    if (durationAttachment === null) {
+      throw new Error('Expected one D-264 condition-duration attachment.');
+    }
+    expect(verifyConditionClinicalDurationAttachmentIntegrity(durationAttachment)).toEqual({
+      ok: true,
+      value: durationAttachment,
+    });
+    expect(patientStateCompositionOf(request).composedPatientState?.clinicalDurations).toEqual([]);
+
+    const artifact = expectComposed(request);
+    if (artifact.catalogSnapshot === null) {
+      throw new Error('Expected D-200 to retain one compiled D-194 snapshot.');
+    }
+    const snapshot = artifact.catalogSnapshot;
+    const resolvedDuration = durationAttachment.composedPatientState.clinicalDurations[0];
+    const targetArtifact =
+      snapshot.universalActionResultArtifact.compileRequest
+        .targetScopedPatientValueProjectionArtifact;
+    const reveal = snapshot.patientInstance.targetScopedPatientValueReveals[0];
+
+    expect(artifact.conditionClinicalDurationAttachmentArtifact).toEqual(durationAttachment);
+    expect(artifact.catalogCompileRequest.basePatientState).toEqual(
+      durationAttachment.composedPatientState,
+    );
+    expect(artifact.catalogCompileRequest.sharedFindingRequest.patientStateId).toBe(
+      durationAttachment.composedPatientState.id,
+    );
+    expect(snapshot.patientInstance.patientState.clinicalDurations).toContainEqual(
+      resolvedDuration,
+    );
+    expect(targetArtifact?.compileRequest.patientState).toEqual(
+      snapshot.patientInstance.patientState,
+    );
+    expect(targetArtifact?.evaluations).toContainEqual(
+      expect.objectContaining({
+        definitionId: 'target-scoped-definition.test.pipeline-mdd-duration',
+        status: 'complete',
+      }),
+    );
+    expect(reveal).toEqual(targetArtifact?.frozenReveals[0]);
+    expect(reveal?.values).toContainEqual(
+      expect.objectContaining({
+        kind: 'clinical_duration',
+        value: resolvedDuration?.value,
+        unit: resolvedDuration?.unit,
+        sourceKind: 'patient_report',
+      }),
+    );
+    expect(
+      durationAttachment.attachmentRequest.patientStateCompositionArtifact.compositionRequest
+        .optionalFeatureArtifact.totalSpent,
+    ).toBe(
+      patientStateCompositionOf(request).compositionRequest.optionalFeatureArtifact.totalSpent,
+    );
+    expect(verifyFindingPipelineAuditIntegrity(artifact)).toEqual({
+      ok: true,
+      value: artifact,
+    });
+    expect(verifyFindingPipelineAuditContext({ artifact, request })).toEqual({
+      ok: true,
+      value: artifact,
+    });
+
+    const wrongSeedRequest = makeRequest({ includeConditionScopedDuration: true });
+    wrongSeedRequest.conditionClinicalDurationAttachmentArtifact = makeConditionDurationAttachment(
+      patientStateCompositionOf(wrongSeedRequest),
+      'seed.test.pipeline-wrong-duration-root',
+    );
+    expect(composeFindingPipelineAudit(wrongSeedRequest)).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_SEED_CONTEXT_MISMATCH' },
+    });
+
+    const crossedRequest = makeRequest({ includeConditionScopedDuration: true });
+    crossedRequest.conditionClinicalDurationAttachmentArtifact = makeRequest({
+      includeConditionScopedDuration: true,
+      generationRoot: 'generation-root.test.crossed-duration',
+    }).conditionClinicalDurationAttachmentArtifact;
+    expect(composeFindingPipelineAudit(crossedRequest)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const droppedAttachment = structuredClone(artifact);
+    droppedAttachment.conditionClinicalDurationAttachmentArtifact = null;
+    expect(verifyFindingPipelineAuditIntegrity(droppedAttachment)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_SCHEMA' },
+    });
   });
 
   it('requires one intact capacity authorization for the exact D-230 coordinate', () => {
@@ -3229,7 +3776,7 @@ describe('finding pipeline audit composer', () => {
     });
     const artifact = expectComposed(request);
     const conditionSource = conditionSourceOf(request);
-    expect(artifact.composerVersion).toBe('21.0.0');
+    expect(artifact.composerVersion).toBe('23.0.0');
     expect(conditionSource.sourceKind).toBe('optional_comorbidity_bridge');
     if (
       conditionSource.sourceKind !== 'optional_comorbidity_bridge' ||
@@ -4208,6 +4755,7 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
       },
     });
     expect(attempt).toMatchObject({
+      diagnosisQualifierValidation: 'exact_frozen_qualifier_owners',
       replaySnapshot: {
         patientInstance: {
           id: fixture.waitingSlot.findingPipelineAuditArtifact.catalogSnapshot!.patientInstance.id,
@@ -4226,9 +4774,9 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
         },
       ],
       pointReport: {
-        modelVersion: 'generated-encounter-point-report.v6',
+        modelVersion: 'generated-encounter-point-report.v7',
         balanceCatalogSnapshot: {
-          modelVersion: 'decision-balance-catalog-snapshot.v1',
+          modelVersion: 'decision-balance-catalog-snapshot.v2',
           balances: [],
         },
         playerDecision: {
@@ -4270,6 +4818,208 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
     });
     expect(firstRecord.attempt.replayFingerprint).toBe(secondRecord.attempt.replayFingerprint);
     expect(firstRecord.recordFingerprint).not.toBe(secondRecord.recordFingerprint);
+  });
+
+  it('derives service-backed treatment charges from frozen owners and rejects charge tampering', () => {
+    const fixture = makeFillFixture({
+      mode: 'standard',
+      includeServiceBackedIntervention: true,
+    });
+    const fill = expectFillCompiled(fixture.input);
+    const waitingSlot = fill.frozenWaitingSlotProposal;
+    if (waitingSlot === null) throw new Error('Expected one frozen waiting patient.');
+    const treatmentEvent: GeneratedEncounterActionEventInput = {
+      id: 'generated-action-event.test.treatment-service',
+      type: 'TreatmentSelectionsChanged',
+      selections: {
+        schemaVersion: 1,
+        selectionVersion: 2,
+        medicationTransition: {
+          selectionVersion: 2,
+          startMedicationIds: [],
+          adjustments: [],
+        },
+        interventionIds: ['intervention.test.pipeline-brief-counseling'],
+        dispositionId: 'disposition.outpatient',
+      },
+    };
+    const attempt = createNativeGeneratedAttempt({
+      attemptId: 'generated-completed-attempt.test.treatment-service',
+      mode: 'standard',
+      frozenWaitingSlot: waitingSlot,
+      actionEvents: [treatmentEvent],
+    });
+
+    expect(attempt.replaySnapshot).toMatchObject({
+      modelVersion: 'generated-encounter-replay-snapshot.v5',
+      treatmentPricingOwners: [
+        {
+          treatment: {
+            id: 'disposition.outpatient',
+            fulfillmentServiceId: null,
+          },
+        },
+        {
+          treatment: {
+            id: 'intervention.test.pipeline-brief-counseling',
+            fulfillmentServiceId: 'service.test.pipeline-brief-counseling',
+          },
+        },
+      ],
+    });
+    expect(attempt.replaySnapshot.treatmentRuntimeHorizon).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          treatmentRef: expect.objectContaining({
+            id: 'intervention.test.pipeline-brief-counseling',
+          }),
+          availableFulfillmentMethodIds: [
+            'fulfillment.test.pipeline-brief-counseling.in-house',
+            'fulfillment.test.pipeline-brief-counseling.outside',
+          ],
+        }),
+      ]),
+    );
+    expect(attempt.settlement).toMatchObject({
+      modelVersion: 'generated-encounter-settlement.v4',
+      treatmentCharges: [
+        {
+          actionTarget: {
+            kind: 'intervention',
+            interventionId: 'intervention.test.pipeline-brief-counseling',
+          },
+          fulfillmentMethodId: 'fulfillment.test.pipeline-brief-counseling.in-house',
+          operatingCost: 20,
+          externalCostAvoided: 40,
+          upgradeSavings: 0,
+          pricingDerivation: 'native_versioned_treatment_service_quote.v1',
+        },
+      ],
+      treatmentExpenses: 20,
+      projectedNetPointsEarned: 380,
+      bankedPointsEarned: 380,
+    });
+    expect(verifyGeneratedCompletedEncounterAttemptIntegrity(attempt)).toEqual({
+      ok: true,
+      value: attempt,
+    });
+
+    const unselected = createNativeGeneratedAttempt({
+      attemptId: 'generated-completed-attempt.test.treatment-service-unselected',
+      mode: 'standard',
+      frozenWaitingSlot: waitingSlot,
+    });
+    expect(unselected.settlement.treatmentCharges).toEqual([]);
+    expect(unselected.settlement.treatmentExpenses).toBe(0);
+
+    const chargeTamper = structuredClone(attempt);
+    chargeTamper.settlement.treatmentCharges[0]!.operatingCost += 1;
+    chargeTamper.settlement.treatmentExpenses += 1;
+    chargeTamper.settlement.operatingExpenses += 1;
+    chargeTamper.settlement.calculatedPayout -= 1;
+    chargeTamper.settlement.projectedNetPointsEarned -= 1;
+    chargeTamper.settlement.bankedPointsEarned -= 1;
+    chargeTamper.settlement.persistentPointsAfter -= 1;
+    chargeTamper.settlement.lifetimePointsAfter -= 1;
+    expect(verifyGeneratedCompletedEncounterAttemptIntegrity(chargeTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'REPLAY_MISMATCH' },
+    });
+  });
+
+  it('derives reimbursement, satisfaction, and bank state from exact frozen owners', () => {
+    const fixture = makeFillFixture({ mode: 'standard' });
+    const fill = expectFillCompiled(fixture.input);
+    const waitingSlot = fill.frozenWaitingSlotProposal;
+    if (waitingSlot === null) throw new Error('Expected one frozen waiting patient.');
+    const settlement = generatedSettlementForWaiting(waitingSlot, {
+      baseReimbursement: 500,
+      challengeBonus: 25,
+      clinicPoints: 125,
+      lifetimePointsEarned: 2_000,
+      satisfaction: 20,
+    });
+    const attempt = createNativeGeneratedAttempt({
+      attemptId: 'generated-completed-attempt.test.native-settlement-context',
+      mode: 'standard',
+      frozenWaitingSlot: waitingSlot,
+      settlement,
+    });
+
+    expect(attempt.replaySnapshot.settlementContext).toMatchObject({
+      modelVersion: 'generated-encounter-settlement-context.v1',
+      economyPolicy: {
+        id: settlement.economyPolicy.id,
+        baseReimbursement: 500,
+        challengeBonus: 25,
+      },
+      clinicState: {
+        id: settlement.clinicState.id,
+        clinicPoints: 125,
+        lifetimePointsEarned: 2_000,
+        satisfaction: 20,
+      },
+      derivedSatisfactionMultiplier: 1.075,
+    });
+    expect(attempt.settlement).toMatchObject({
+      settlementDerivation:
+        'native_economy_policy_clinic_state_satisfaction_and_service_pricing.v1',
+      baseReimbursement: 500,
+      challengeBonus: 25,
+      satisfactionMultiplier: 1.075,
+      grossPayout: 564,
+      projectedNetPointsEarned: 564,
+      bankedPointsEarned: 564,
+      persistentPointsBefore: 125,
+      persistentPointsAfter: 689,
+      lifetimePointsBefore: 2_000,
+      lifetimePointsAfter: 2_564,
+    });
+    expect(verifyGeneratedCompletedEncounterAttemptIntegrity(attempt)).toEqual({
+      ok: true,
+      value: attempt,
+    });
+
+    expect(
+      GeneratedEncounterSettlementInputSchema.safeParse({
+        producerRef: settlement.producerRef,
+        baseReimbursement: 500,
+        challengeBonus: 25,
+        satisfactionMultiplier: 1.075,
+        persistentPointsBefore: 125,
+        lifetimePointsBefore: 2_000,
+      }).success,
+    ).toBe(false);
+
+    const crossedPolicy = structuredClone(settlement);
+    crossedPolicy.economyPolicy.templateFingerprint =
+      waitingSlot.findingPipelineAuditArtifact.patientSlotFillSeedAuthorityArtifact.coordinates.locationFingerprint;
+    expect(() =>
+      createNativeGeneratedAttempt({
+        attemptId: 'generated-completed-attempt.test.crossed-economy-policy',
+        mode: 'standard',
+        frozenWaitingSlot: waitingSlot,
+        settlement: crossedPolicy,
+      }),
+    ).toThrow(/exact waiting-patient template/i);
+
+    const staleSatisfaction = structuredClone(settlement);
+    staleSatisfaction.clinicState.satisfaction = 0;
+    expect(() =>
+      createNativeGeneratedAttempt({
+        attemptId: 'generated-completed-attempt.test.stale-satisfaction',
+        mode: 'standard',
+        frozenWaitingSlot: waitingSlot,
+        settlement: staleSatisfaction,
+      }),
+    ).toThrow(/stored clinic satisfaction multiplier/i);
+
+    const contextTamper = structuredClone(attempt);
+    contextTamper.replaySnapshot.settlementContext.clinicState.clinicPoints += 1;
+    expect(verifyGeneratedCompletedEncounterAttemptIntegrity(contextTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'REPLAY_MISMATCH' },
+    });
   });
 
   it('replays chained native rule combination and rejects status, target, or source-row tampering', () => {
@@ -4579,6 +5329,7 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
           settlementEngineVersion: '1.0.0',
         },
         actionEvents: [first, second],
+        diagnosisSelectionOwners: { definitions: [] },
         servicePricing: generatedServicePricingForWaiting(fixture.waitingSlot),
         pointDerivation: {
           balanceCatalog: {
@@ -4615,18 +5366,7 @@ describe('D-235 native generated completed-attempt persistence contract', () => 
             },
           },
         },
-        settlement: {
-          producerRef: {
-            id: 'engine.generated-settlement.test',
-            contentVersion: '1.0.0',
-          },
-          baseReimbursement: 400,
-          challengeBonus: 0,
-          satisfactionMultiplier: 1,
-          treatmentCharges: [],
-          persistentPointsBefore: 0,
-          lifetimePointsBefore: 0,
-        },
+        settlement: generatedSettlementForWaiting(fixture.waitingSlot),
       }),
     ).toMatchObject({
       ok: false,
@@ -4791,7 +5531,7 @@ describe('D-234 post-encounter patient-slot lifecycle', () => {
     });
     expect(transition.completionRecord).not.toBeNull();
     expect(transition.completionRecord!.completionProof.attemptSnapshot).toMatchObject({
-      modelVersion: 'generated-completed-encounter-attempt.v2',
+      modelVersion: 'generated-completed-encounter-attempt.v5',
       id: 'generated-encounter-attempt.test.endgame',
       replaySnapshot: {
         waitingSlotRef: { id: fixture.waitingSlot.id },

@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   DeveloperDatabaseKnowledgeProjectionSchema,
   DeveloperOpinionCatalogSchema,
+  EvidenceSourceDefinitionSchema,
   PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgeWorkbenchProjectionSchema,
   SourceUseDecisionCatalogSchema,
@@ -16,6 +17,8 @@ import { catalogs } from '@psychsim/content-runtime';
 
 import sourceUseDecisionsJson from '../../../content/catalogs/evidence/source-use-decisions.json';
 import developerOpinionsJson from '../../../content/catalogs/evidence/opinions/developer-opinions.json';
+import nimhMentalHealthTopicsJson from '../../../content/catalogs/evidence/formal/nimh-mental-health-topics.evidence.json';
+import ombSpd15Json from '../../../content/catalogs/evidence/formal/omb-spd15-2024.evidence.json';
 import {
   appleNoteSurfaces,
   buildQueueStateByRevision,
@@ -69,7 +72,11 @@ const buildInput = (
   ],
   aliasCatalog,
   workbench: null,
-  evidenceSources: catalogs.evidenceSources,
+  evidenceSources: [
+    ...catalogs.evidenceSources,
+    EvidenceSourceDefinitionSchema.parse(nimhMentalHealthTopicsJson),
+    EvidenceSourceDefinitionSchema.parse(ombSpd15Json),
+  ],
   sourceUseDecisions: SourceUseDecisionCatalogSchema.parse(sourceUseDecisionsJson).decisions,
   developerOpinions: [],
   opinionEvidenceRelationships: [],
@@ -164,7 +171,14 @@ describe('Developer database knowledge compiler', () => {
         opinion.evidenceRelationships.map((relationship) => relationship.evidenceSource.id),
       ),
     ).toContain('evidence.fda.abilify-maintena-label.2025-01');
-    expect(projection.summary.acceptedOpinions).toBe(4);
+    expect(projection.summary.acceptedOpinions).toBe(
+      new Set(
+        projection.records.flatMap((record) =>
+          record.developerOpinions.map((opinion) => opinion.id),
+        ),
+      ).size,
+    );
+    expect(projection.summary.acceptedOpinions).toBeGreaterThanOrEqual(4);
     expect(
       projection.records
         .find((record) => record.entryId === 'diagnosis.major-depressive-disorder')

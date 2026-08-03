@@ -158,6 +158,7 @@ const resolveFinding = (
       durationProfile && durationOption
         ? {
             profileId: durationProfile.id,
+            profileContentVersion: durationProfile.contentVersion,
             optionId: durationOption.id,
             value: durationOption.value,
             unit: durationOption.unit,

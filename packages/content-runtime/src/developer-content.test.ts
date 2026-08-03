@@ -1,18 +1,41 @@
 import { describe, expect, it } from 'vitest';
 import { SourceRequestSchema } from '@psychsim/schemas';
 
-import { catalogs } from './content';
+import { catalogs, startingClinic } from './content';
 import {
   developerCaseBlueprints,
   developerClinicalAuditTickets,
   developerLiteratureSynthesisProposals,
   developerOpinionReferenceNeeds,
+  developerPatientMakerCases,
   developerSourceRequests,
   developerTicketLiteratureScoutCatalog,
 } from './developer-content';
+import { validateCaseBlueprint } from './validation';
 import { validateSourceRequests } from './source-requests';
 
 describe('developer clinical audit queue', () => {
+  it('exposes only completely validated, measured cases to the local Patient Maker', () => {
+    expect(developerPatientMakerCases.length).toBeGreaterThan(0);
+    expect(new Set(developerPatientMakerCases.map((candidate) => candidate.blueprintId)).size).toBe(
+      developerPatientMakerCases.length,
+    );
+    for (const candidate of developerPatientMakerCases) {
+      const blueprint = developerCaseBlueprints.find((entry) => entry.id === candidate.blueprintId);
+      expect(blueprint).toBeDefined();
+      expect(validateCaseBlueprint(blueprint, catalogs, startingClinic)).toEqual({
+        valid: true,
+        issues: [],
+      });
+      expect(candidate).toMatchObject({
+        contentVersion: blueprint?.contentVersion,
+        authoredComplexityBudget:
+          blueprint?.patientRecord.complexityProfile.additionalFeatureBudget,
+        maximumSelectedModules: blueprint?.patientRecord.complexityProfile.maximumSelectedModules,
+      });
+    }
+  });
+
   it('loads the WHO-linked MDD scaffold only in the Developer content pool', () => {
     expect(
       developerCaseBlueprints.find(
@@ -33,7 +56,6 @@ describe('developer clinical audit queue', () => {
     for (const id of [
       'ticket.source.canmat-mdd.psychotherapy-catalog',
       'ticket.source.canmat-mdd.disposition-severity',
-      'ticket.source.mdd.severity-generator-policy',
       'ticket.source.mdd.antidepressant-sleep-fit',
       'ticket.source.mdd.tsh-workup-threshold',
       'ticket.source.mdd.antidepressant-weight-fit',
@@ -53,6 +75,14 @@ describe('developer clinical audit queue', () => {
         resolution: null,
       });
     }
+    expect(byId.get('ticket.source.mdd.severity-generator-policy')).toMatchObject({
+      status: 'resolved',
+      requiresClinicalAcumen: true,
+      resolution: {
+        disposition: 'applied',
+        resolvedBy: 'reviewer.dustin-rowland',
+      },
+    });
     expect(byId.get('ticket.source.canmat-mdd.antidepressant-baseline')).toMatchObject({
       status: 'resolved',
       requiresClinicalAcumen: true,
@@ -261,7 +291,7 @@ describe('developer clinical audit queue', () => {
         expect.objectContaining({ id: 'source-request.mdd.severity-thresholds' }),
         expect.objectContaining({
           id: 'source-request.mdd.current-episode-dimensions',
-          status: 'source_received',
+          status: 'resolved',
           receivedEvidenceSourceIds: expect.arrayContaining([
             'evidence.canmat.mdd-adults.2023-update',
             'evidence.nimh.mental-health-topics.current',

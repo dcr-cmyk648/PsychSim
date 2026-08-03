@@ -17,7 +17,10 @@ import {
   verifyEncounterOperationalAdmissionContext,
   verifyEncounterOperationalAdmissionIntegrity,
 } from './encounter-operational-admission-compiler';
-import { compileGeneratedInformationServicePricing } from './generated-service-quote';
+import {
+  compileGeneratedEncounterServicePricing,
+  compileGeneratedInformationServicePricing,
+} from './generated-service-quote';
 import {
   compileSelectedLocationOperationalResourceContext,
   fingerprintSelectedLocationFormularyOwner,
@@ -655,6 +658,99 @@ describe('encounter operational admission compiler', () => {
     ).toMatchObject({
       ok: false,
       error: { code: 'SERVICE_TOPOLOGY_MISMATCH' },
+    });
+  });
+
+  it('compiles one exact native service-pricing horizon for information and treatments', () => {
+    const request = makeRequest();
+    request.treatments[0]!.fulfillmentServiceId = 'service.test.psychotherapy';
+    request.services.push({
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'service.test.psychotherapy',
+      fulfillmentMethods: [
+        {
+          id: 'fulfillment.test.psychotherapy.outside',
+          requiredCapabilities: [],
+        },
+        {
+          id: 'fulfillment.test.psychotherapy.in-house',
+          requiredCapabilities: [],
+        },
+      ],
+    });
+    const artifact = compile(request);
+    const historyOwner = pricingOwnerFor(artifact.compileRequest.services[0]!, [
+      {
+        id: 'fulfillment.test.history',
+        label: 'Office interview',
+        kind: 'in_house',
+        operatingCost: 20,
+      },
+    ]);
+    const psychotherapyOwner = pricingOwnerFor(artifact.compileRequest.services[1]!, [
+      {
+        id: 'fulfillment.test.psychotherapy.outside',
+        label: 'Outside psychotherapy',
+        kind: 'outside_referral',
+        operatingCost: 80,
+      },
+      {
+        id: 'fulfillment.test.psychotherapy.in-house',
+        label: 'In-house psychotherapy',
+        kind: 'in_house',
+        operatingCost: 30,
+      },
+    ]);
+    const result = compileGeneratedEncounterServicePricing({
+      servicePricing: { services: [psychotherapyOwner, historyOwner] },
+      operationalAdmission: artifact,
+      informationActionIds: ['info.history.test.timeline'],
+      interventionIds: ['treatment.test.cbt'],
+      dispositionIds: ['disposition.test.outpatient'],
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        servicePricingOwners: [
+          { service: { id: 'service.test.history' } },
+          { service: { id: 'service.test.psychotherapy' } },
+        ],
+        treatmentPricingOwners: [
+          { treatment: { id: 'disposition.test.outpatient' } },
+          { treatment: { id: 'treatment.test.cbt' } },
+        ],
+        treatmentPricingHorizon: [
+          {
+            treatmentRef: { id: 'disposition.test.outpatient' },
+            fulfillmentServiceRef: null,
+            availableFulfillmentMethodIds: [],
+          },
+          {
+            treatmentRef: { id: 'treatment.test.cbt' },
+            fulfillmentServiceRef: { id: 'service.test.psychotherapy' },
+            availableFulfillmentMethodIds: [
+              'fulfillment.test.psychotherapy.in-house',
+              'fulfillment.test.psychotherapy.outside',
+            ],
+          },
+        ],
+      },
+    });
+
+    const unequalQuality = structuredClone(psychotherapyOwner);
+    unequalQuality.fulfillmentMethods[1]!.qualityModifier = 0.9;
+    expect(
+      compileGeneratedEncounterServicePricing({
+        servicePricing: { services: [historyOwner, unequalQuality] },
+        operationalAdmission: artifact,
+        informationActionIds: ['info.history.test.timeline'],
+        interventionIds: ['treatment.test.cbt'],
+        dispositionIds: ['disposition.test.outpatient'],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'UNEQUAL_METHOD_QUALITY' },
     });
   });
 

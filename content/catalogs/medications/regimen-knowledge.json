@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "registry.catalog.medication-regimen-knowledge",
   "medicationClasses": [
     {
@@ -115,19 +115,19 @@
   "focusedRoutes": [
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
       "label": "Start one reviewed first-line antidepressant",
       "owner": {
         "kind": "diagnosis_route",
         "id": "diagnosis.major-depressive-disorder",
-        "contentVersion": "1.3.0"
+        "contentVersion": "1.4.0"
       },
       "qualitativeDiagnosisRuleRef": {
         "id": "rule.diagnosis-mdd.initial-first-line-antidepressant",
-        "contentVersion": "1.3.0",
+        "contentVersion": "1.4.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.3.0"
+        "ownerContentVersion": "1.4.0"
       },
       "routeMeaning": "initial_treatment",
       "patientWhen": {
@@ -136,14 +136,14 @@
           {
             "recordKind": "condition",
             "identityId": "diagnosis.major-depressive-disorder",
-            "identityContentVersion": "1.3.0",
+            "identityContentVersion": "1.4.0",
             "attributeId": "condition.presence",
             "valueId": "state.present"
           },
           {
             "recordKind": "condition",
             "identityId": "diagnosis.major-depressive-disorder",
-            "identityContentVersion": "1.3.0",
+            "identityContentVersion": "1.4.0",
             "attributeId": "condition.encounter-relevance",
             "valueId": "condition-relevance.focus"
           }

@@ -147,7 +147,10 @@ describe('runtime boundaries', () => {
       categoryIds: [
         'balance.mdd-any-medication-reaction-history',
         'balance.mdd-any-medication-reconciliation',
+        'balance.mdd-initial-depressive-syndrome-assessment',
+        'balance.mdd-initial-episode-course-assessment',
         'balance.mdd-initial-one-first-line-antidepressant',
+        'balance.mdd-substance-history',
       ],
     });
   });
@@ -615,7 +618,7 @@ describe('runtime boundaries', () => {
       /\b(?:seededUnit|Math\.random|window|document|indexedDB|localStorage)\b/,
     );
     expect(structuredSourceReportBehaviorSelectorSource).not.toMatch(
-      /from\s+['"].*(catalog-instance-compiler|finding-pipeline-audit-composer|optional-feature-budget-selector|scoring|economy|receipt).*['"]/,
+      /from\s+['"].*(catalog-instance-compiler|finding-pipeline-audit-composer|scoring|economy|receipt).*['"]/,
     );
     expect(structuredSourceReportBehaviorSelectorSource).not.toContain(
       'selectOptionalFeaturesWithinBudget',

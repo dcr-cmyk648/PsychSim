@@ -132,6 +132,7 @@ const makePatientState = (): ResolvedPatientState =>
         value: 9,
         unit: 'week',
         durationProfileId: 'duration-profile.mdd.current-episode',
+        durationProfileContentVersion: '1.0.0',
         durationOptionId: 'duration-option.mdd.nine-weeks',
         relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
         interpretation: 'supports_authored_state',
@@ -153,6 +154,7 @@ const makePatientState = (): ResolvedPatientState =>
         value: 5,
         unit: 'week',
         durationProfileId: 'duration-profile.finding.fatigue',
+        durationProfileContentVersion: '1.0.0',
         durationOptionId: 'duration-option.finding.five-weeks',
         relatedDiagnosisId: null,
         interpretation: 'context_only',
@@ -174,6 +176,7 @@ const makePatientState = (): ResolvedPatientState =>
         value: 2,
         unit: 'month',
         durationProfileId: 'duration-profile.proposition.work-change',
+        durationProfileContentVersion: '1.0.0',
         durationOptionId: 'duration-option.proposition.two-months',
         relatedDiagnosisId: null,
         interpretation: 'context_only',
@@ -242,6 +245,7 @@ const durationDefinition = (
     informationActionPayloadFingerprint: fingerprintInformationActionPayload(action),
     valueKind: 'clinical_duration',
     durationProfileId: 'duration-profile.mdd.current-episode',
+    durationProfileContentVersion: '1.0.0',
     targetSelector: {
       kind: 'condition_definition',
       diagnosisDefinitionId: 'diagnosis.major-depressive-disorder',
@@ -295,6 +299,7 @@ const propositionDefinition = (
   informationActionPayloadFingerprint: fingerprintInformationActionPayload(action),
   valueKind: 'clinical_duration',
   durationProfileId: 'duration-profile.proposition.work-change',
+  durationProfileContentVersion: '1.0.0',
   targetSelector: {
     kind: 'proposition_definition',
     propositionDefinitionId: 'proposition-definition.work-change',
@@ -331,6 +336,7 @@ describe('D-240 target-scoped patient-value projection compiler', () => {
       durationDefinition('target-scoped-definition.test.mdd-duration', presentingAction),
       durationDefinition('target-scoped-definition.test.fatigue-duration', findingAction, {
         durationProfileId: 'duration-profile.finding.fatigue',
+        durationProfileContentVersion: '1.0.0',
         targetSelector: {
           kind: 'finding_definition',
           findingDefinitionId: 'finding.fatigue-low-energy',
@@ -358,6 +364,7 @@ describe('D-240 target-scoped patient-value projection compiler', () => {
           value: 9,
           unit: 'week',
           durationProfileId: 'duration-profile.mdd.current-episode',
+          durationProfileContentVersion: '1.0.0',
           durationOptionId: 'duration-option.mdd.nine-weeks',
         }),
         expect.objectContaining({
@@ -440,16 +447,29 @@ describe('D-240 target-scoped patient-value projection compiler', () => {
       }),
       durationDefinition('target-scoped-definition.test.wrong-profile', recordsAction, {
         durationProfileId: 'duration-profile.other',
+        durationProfileContentVersion: '1.0.0',
       }),
+      durationDefinition(
+        'target-scoped-definition.test.wrong-profile-content-version',
+        presentingAction,
+        {
+          durationProfileContentVersion: '2.0.0',
+        },
+      ),
     ];
     const artifact = compileOrThrow(
       makeRequest(definitions, [presentingAction, findingAction, recordsAction]),
     );
-    expect(artifact.evaluations.map((evaluation) => evaluation.status)).toEqual([
-      'missing_required_value',
-      'missing_required_value',
-      'not_applicable',
-    ]);
+    expect(
+      Object.fromEntries(
+        artifact.evaluations.map((evaluation) => [evaluation.definitionId, evaluation.status]),
+      ),
+    ).toEqual({
+      'target-scoped-definition.test.wrong-profile': 'missing_required_value',
+      'target-scoped-definition.test.wrong-profile-content-version': 'missing_required_value',
+      'target-scoped-definition.test.wrong-time': 'missing_required_value',
+      'target-scoped-definition.test.wrong-version': 'not_applicable',
+    });
   });
 
   it('rejects a stale information-action payload fingerprint', () => {

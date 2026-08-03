@@ -1,7 +1,12 @@
 import {
+  ConditionClinicalDurationAttachmentArtifactSchema,
+  ConditionClinicalDurationAttachmentRequestSchema,
   ResolvedPatientStateCompositionArtifactSchema,
   ResolvedPatientStateCompositionRequestSchema,
+  type ClinicalDurationProfile,
   type ClinicalRuleReview,
+  type ConditionClinicalDurationResolutionArtifact,
+  type ConditionState,
   type OptionalComorbidityBridgeProfile,
   type OptionalExposureBudgetBridgeProfile,
   type OptionalExposureContribution,
@@ -24,6 +29,11 @@ import {
 } from '@psychsim/schemas';
 import { describe, expect, it } from 'vitest';
 
+import {
+  attachConditionClinicalDurations,
+  verifyConditionClinicalDurationAttachmentIntegrity,
+} from './condition-clinical-duration-attachment';
+import { resolveConditionClinicalDuration } from './clinical-duration-profile-resolver';
 import {
   bridgeOptionalComorbiditiesFromBudget,
   fingerprintOptionalComorbidityBridgeProfile,
@@ -69,6 +79,7 @@ const moduleIds = {
   reaction: 'optional-feature.test.composition.reaction',
   priorTreatment: 'optional-feature.test.composition.prior-treatment',
   exposure: 'optional-feature.test.composition.exposure',
+  sourceReport: 'optional-feature.test.composition.source-report',
   other: 'optional-feature.test.composition.other',
 } as const;
 
@@ -167,7 +178,13 @@ const makeTemplate = (): PatientTemplate => ({
 
 const moduleDefinition = (
   id: string,
-  moduleKind: 'allergy_reaction' | 'prior_treatment' | 'comorbidity' | 'substance_use' | 'other',
+  moduleKind:
+    | 'allergy_reaction'
+    | 'prior_treatment'
+    | 'comorbidity'
+    | 'substance_use'
+    | 'source_report'
+    | 'other',
 ): PatientOptionalFeatureModuleDefinition => ({
   schemaVersion: 1,
   contentVersion: '1.0.0',
@@ -184,6 +201,7 @@ const definitions = (): PatientOptionalFeatureModuleDefinition[] => [
   moduleDefinition(moduleIds.reaction, 'allergy_reaction'),
   moduleDefinition(moduleIds.priorTreatment, 'prior_treatment'),
   moduleDefinition(moduleIds.exposure, 'substance_use'),
+  moduleDefinition(moduleIds.sourceReport, 'source_report'),
   moduleDefinition(moduleIds.other, 'other'),
 ];
 
@@ -864,6 +882,36 @@ describe('resolved patient-state composer', () => {
     });
   });
 
+  it('preserves one selected source-report modifier for post-truth projection without changing truth', () => {
+    const { request } = makeScenario([moduleIds.sourceReport]);
+    const coreState = structuredClone(request.corePatientState);
+    const artifact = expectComposition(request);
+
+    expect(artifact.status).toBe('composed');
+    expect({
+      ...artifact.composedPatientState,
+      id: coreState.id,
+      clinicalTagIds: coreState.clinicalTagIds,
+    }).toEqual(coreState);
+    expect(artifact.blockers).toEqual([]);
+    expect(artifact.compositionRequest.optionalFeatureArtifact.totalSpent).toBe(1);
+    expect(artifact.compositionRequest.optionalFeatureArtifact.remainingBudget).toBe(2);
+    expect(artifact.selectedModuleAudits).toEqual([
+      expect.objectContaining({
+        moduleDefinitionId: moduleIds.sourceReport,
+        moduleKind: 'source_report',
+        ownerKind: 'source_report_selection',
+        materializationStatus: 'deferred_to_post_truth',
+        materializedRecordIds: [],
+        cost: 1,
+      }),
+    ]);
+    expect(verifyResolvedPatientStateCompositionIntegrity(artifact)).toEqual({
+      ok: true,
+      value: artifact,
+    });
+  });
+
   it('rejects core and optional record collisions rather than deduplicating them', () => {
     const { request } = makeScenario([moduleIds.priorTreatment]);
     request.corePatientState.treatmentHistory.medicationTrials[0] = {
@@ -951,6 +999,331 @@ describe('resolved patient-state composer', () => {
     ).toMatchObject({
       ok: false,
       error: { code: 'CONTEXT_MISMATCH' },
+    });
+  });
+});
+
+const makeDurationProfile = (
+  condition: ConditionState,
+  profileSuffix: string,
+): ClinicalDurationProfile => ({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: `duration-profile.test.attachment.${profileSuffix}`,
+  relatedDiagnosisId: condition.diagnosisDefinitionId,
+  interpretation: 'supports_authored_state',
+  criterionId: null,
+  options: [
+    {
+      id: `duration-option.test.attachment.${profileSuffix}.two-weeks`,
+      value: 2,
+      unit: 'week',
+      displayValueVariants: ['two weeks'],
+    },
+    {
+      id: `duration-option.test.attachment.${profileSuffix}.eight-weeks`,
+      value: 8,
+      unit: 'week',
+      displayValueVariants: ['eight weeks'],
+    },
+  ],
+  developerOpinionIds: ['developer-opinion.test.duration-attachment'],
+  review: approvedReview,
+});
+
+const expectDurationResolution = (input: {
+  readonly patientStateId: string;
+  readonly condition: ConditionState;
+  readonly profileSuffix: string;
+  readonly requestSuffix: string;
+  readonly seed: string;
+}): ConditionClinicalDurationResolutionArtifact => {
+  const result = resolveConditionClinicalDuration({
+    schemaVersion: 1,
+    id: `condition-duration-request.test.attachment.${input.requestSuffix}`,
+    patientStateId: input.patientStateId,
+    conditionState: structuredClone(input.condition),
+    profile: makeDurationProfile(input.condition, input.profileSuffix),
+    source: {
+      kind: 'patient_report',
+      sourceInstanceId: `source-instance.patient.test.attachment.${input.requestSuffix}`,
+    },
+    timeScopeId: input.condition.timeScopeId,
+    seed: input.seed,
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+const expectDurationAttachment = (
+  patientStateCompositionArtifact: ReturnType<typeof expectComposition>,
+  durationResolutionArtifacts: readonly ConditionClinicalDurationResolutionArtifact[],
+) => {
+  const result = attachConditionClinicalDurations({
+    schemaVersion: 1,
+    id: 'condition-duration-attachment-request.test',
+    patientStateCompositionArtifact,
+    durationResolutionArtifacts,
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+describe('D-264 post-composition condition-duration attachment', () => {
+  it('preserves the exact D-208 state when there are no duration resolutions', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const before = JSON.stringify(composition);
+    const attachment = expectDurationAttachment(composition, []);
+
+    expect(JSON.stringify(composition)).toBe(before);
+    expect(
+      ConditionClinicalDurationAttachmentRequestSchema.parse(attachment.attachmentRequest),
+    ).toEqual(attachment.attachmentRequest);
+    expect(ConditionClinicalDurationAttachmentArtifactSchema.parse(attachment)).toEqual(attachment);
+    expect(attachment.composedPatientState).toEqual(composition.composedPatientState);
+    expect(attachment.durationResolutionRefs).toEqual([]);
+    expect(attachment.attachedDurationIds).toEqual([]);
+    expect(verifyConditionClinicalDurationAttachmentIntegrity(attachment)).toEqual({
+      ok: true,
+      value: attachment,
+    });
+  });
+
+  it('attaches one genuine D-263 result without another draw or complexity charge', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const resolution = expectDurationResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'focus-current',
+      requestSuffix: 'focus-current',
+      seed: 'seed.test.duration-attachment.focus',
+    });
+    const attachment = expectDurationAttachment(composition, [resolution]);
+
+    expect(attachment.composedPatientState.id).not.toBe(baseState.id);
+    expect(attachment.composedPatientState.clinicalDurations).toEqual([
+      resolution.resolvedDuration,
+    ]);
+    expect(attachment.durationResolutionRefs).toEqual([
+      {
+        id: resolution.id,
+        payloadFingerprint: resolution.payloadFingerprint,
+        patientStateId: baseState.id,
+        conditionStateId: resolution.conditionStateId,
+        profileRef: resolution.profileRef,
+        resolvedDurationId: resolution.resolvedDuration.id,
+      },
+    ]);
+    expect(
+      attachment.attachmentRequest.patientStateCompositionArtifact.compositionRequest
+        .optionalFeatureArtifact.totalSpent,
+    ).toBe(composition.compositionRequest.optionalFeatureArtifact.totalSpent);
+    expect(
+      attachment.attachmentRequest.patientStateCompositionArtifact.compositionRequest
+        .optionalFeatureArtifact.selectionDraws,
+    ).toEqual(composition.compositionRequest.optionalFeatureArtifact.selectionDraws);
+  });
+
+  it('normalizes multiple exact condition/profile attachments without losing their targets', () => {
+    const composition = expectComposition(makeScenario([moduleIds.comorbidity]).request);
+    const baseState = composition.composedPatientState!;
+    expect(baseState.conditionStates).toHaveLength(2);
+    const resolutions = baseState.conditionStates.map((condition, index) =>
+      expectDurationResolution({
+        patientStateId: baseState.id,
+        condition,
+        profileSuffix: index === 0 ? 'condition-a' : 'condition-b',
+        requestSuffix: index === 0 ? 'condition-a' : 'condition-b',
+        seed: `seed.test.duration-attachment.condition-${index}`,
+      }),
+    );
+    const forward = expectDurationAttachment(composition, resolutions);
+    const reversed = expectDurationAttachment(composition, [...resolutions].reverse());
+
+    expect(reversed).toEqual(forward);
+    expect(forward.composedPatientState.clinicalDurations).toHaveLength(2);
+    expect(
+      forward.composedPatientState.clinicalDurations
+        .map((duration) =>
+          duration.target.kind === 'condition_state' ? duration.target.conditionStateId : null,
+        )
+        .sort(),
+    ).toEqual(
+      [...baseState.conditionStates]
+        .sort((left, right) => left.id.localeCompare(right.id))
+        .map((condition) => condition.id),
+    );
+  });
+
+  it('rejects crossed patient and condition coordinates plus non-composed D-208 state', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const wrongPatient = expectDurationResolution({
+      patientStateId: 'resolved-patient-state.test.other',
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'wrong-patient',
+      requestSuffix: 'wrong-patient',
+      seed: 'seed.test.duration-attachment.wrong-patient',
+    });
+    expect(
+      attachConditionClinicalDurations({
+        schemaVersion: 1,
+        id: 'condition-duration-attachment-request.test.wrong-patient',
+        patientStateCompositionArtifact: composition,
+        durationResolutionArtifacts: [wrongPatient],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+
+    const changedCondition = {
+      ...baseState.conditionStates[0]!,
+      clinicalStateId: 'clinical-state.test.changed',
+    };
+    const wrongCondition = expectDurationResolution({
+      patientStateId: baseState.id,
+      condition: changedCondition,
+      profileSuffix: 'wrong-condition',
+      requestSuffix: 'wrong-condition',
+      seed: 'seed.test.duration-attachment.wrong-condition',
+    });
+    expect(
+      attachConditionClinicalDurations({
+        schemaVersion: 1,
+        id: 'condition-duration-attachment-request.test.wrong-condition',
+        patientStateCompositionArtifact: composition,
+        durationResolutionArtifacts: [wrongCondition],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'CONDITION_CONTEXT_MISMATCH' },
+    });
+
+    const notComposed = expectComposition(makeScenario([moduleIds.other]).request);
+    expect(
+      attachConditionClinicalDurations({
+        schemaVersion: 1,
+        id: 'condition-duration-attachment-request.test.not-composed',
+        patientStateCompositionArtifact: notComposed,
+        durationResolutionArtifacts: [],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_NOT_COMPOSED' },
+    });
+  });
+
+  it('rejects duplicate assignments and replacement of an existing condition/profile duration', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const first = expectDurationResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'duplicate',
+      requestSuffix: 'duplicate-a',
+      seed: 'seed.test.duration-attachment.duplicate-a',
+    });
+    const second = expectDurationResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'duplicate',
+      requestSuffix: 'duplicate-b',
+      seed: 'seed.test.duration-attachment.duplicate-b',
+    });
+    expect(
+      attachConditionClinicalDurations({
+        schemaVersion: 1,
+        id: 'condition-duration-attachment-request.test.duplicate',
+        patientStateCompositionArtifact: composition,
+        durationResolutionArtifacts: [first, second],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const scenarioWithDuration = makeScenario([]);
+    const coreState = scenarioWithDuration.request.corePatientState;
+    const coreResolution = expectDurationResolution({
+      patientStateId: coreState.id,
+      condition: coreState.conditionStates[0]!,
+      profileSuffix: 'existing',
+      requestSuffix: 'existing-core',
+      seed: 'seed.test.duration-attachment.existing-core',
+    });
+    coreState.clinicalDurations = [coreResolution.resolvedDuration];
+    const compositionWithDuration = expectComposition(scenarioWithDuration.request);
+    const composedState = compositionWithDuration.composedPatientState!;
+    const replacement = expectDurationResolution({
+      patientStateId: composedState.id,
+      condition: composedState.conditionStates[0]!,
+      profileSuffix: 'existing',
+      requestSuffix: 'existing-replacement',
+      seed: 'seed.test.duration-attachment.existing-replacement',
+    });
+    expect(
+      attachConditionClinicalDurations({
+        schemaVersion: 1,
+        id: 'condition-duration-attachment-request.test.existing',
+        patientStateCompositionArtifact: compositionWithDuration,
+        durationResolutionArtifacts: [replacement],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'DURATION_ASSIGNMENT_COLLISION' },
+    });
+  });
+
+  it('verifies both upstream artifacts and detects attachment replay tampering', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const resolution = expectDurationResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'integrity',
+      requestSuffix: 'integrity',
+      seed: 'seed.test.duration-attachment.integrity',
+    });
+
+    const crossedComposition = structuredClone(composition);
+    crossedComposition.compositionRequest.corePatientState.demographics.ageYears += 1;
+    expect(
+      attachConditionClinicalDurations({
+        schemaVersion: 1,
+        id: 'condition-duration-attachment-request.test.invalid-composition',
+        patientStateCompositionArtifact: crossedComposition,
+        durationResolutionArtifacts: [resolution],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_COMPOSITION_INVALID' },
+    });
+
+    const crossedResolution = structuredClone(resolution);
+    crossedResolution.compileRequest.seed = 'seed.test.duration-attachment.changed';
+    expect(
+      attachConditionClinicalDurations({
+        schemaVersion: 1,
+        id: 'condition-duration-attachment-request.test.invalid-resolution',
+        patientStateCompositionArtifact: composition,
+        durationResolutionArtifacts: [crossedResolution],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'DURATION_RESOLUTION_INVALID' },
+    });
+
+    const attachment = expectDurationAttachment(composition, [resolution]);
+    const tampered = structuredClone(attachment);
+    tampered.inputFingerprint =
+      'fingerprint.condition-clinical-duration-attachment.input.fnv1a64.0000000000000000';
+    expect(verifyConditionClinicalDurationAttachmentIntegrity(tampered)).toMatchObject({
+      ok: false,
+      error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
     });
   });
 });

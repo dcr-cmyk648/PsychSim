@@ -161,7 +161,7 @@
   },
   {
     "schemaVersion": 1,
-    "contentVersion": "1.1.0",
+    "contentVersion": "1.2.0",
     "id": "source-request.mdd.severity-thresholds",
     "title": "Structured mild, moderate, and severe MDD generation",
     "question": "Which current authoritative criteria should PsychSim use to distinguish mild, moderate, and severe depressive episodes using symptom count, symptom intensity, distress, functional impairment, psychosis, and safety findings?",
@@ -213,9 +213,9 @@
     ],
     "sourceUseNoteIds": [],
     "status": "source_received",
-    "resolutionNote": "CANMAT's source-cleared conventions section supplies one current, explicit severity scaffold: retain depressive symptom severity and depression-attributable functional impairment as separate dimensions and use the higher qualitative rating as the overall mild, moderate, or severe descriptor. It also demonstrates that the two dimensions may disagree. The source does not supply universal numeric boundaries. The source-cleared Mavranezouli review uses depression-scale cutoffs only to define less- and more-severe treatment-analysis populations, reinforcing that research strata are not diagnostic or generator thresholds. The preliminary adjunct search found no recent validation study that closes the remaining gap. Screening cutoffs, instrument bands, trial-entry thresholds, psychosis, safety, course, and treatment resistance therefore remain separate facts rather than silent severity proxies. Exact branch envelopes still require psychiatrist review; no generator profile, treatment rule, or point value is authorized.",
+    "resolutionNote": "CANMAT's source-cleared conventions section supplies one current, explicit severity scaffold: retain depressive symptom severity and depression-attributable functional impairment as separate dimensions and use the higher qualitative rating as the overall mild, moderate, or severe descriptor. Dustin Rowland approved that qualitative relationship on 2026-08-03, with severity used only as backend generation state; the player-facing family diagnosis remains MDD, and with psychotic features is the one currently named MDD variant. CANMAT does not supply universal numeric boundaries. The source-cleared Mavranezouli review uses depression-scale cutoffs only to define less- and more-severe treatment-analysis populations, reinforcing that research strata are not diagnostic or generator thresholds. Screening cutoffs, instrument bands, trial-entry thresholds, psychosis, safety, course, and treatment resistance remain separate facts. This request remains source_received because exact symptom-severity and impairment boundary profiles are still unresolved; no level generation, treatment rule, distribution, or point value is authorized.",
     "createdAt": "2026-07-23T00:00:00.000Z",
-    "updatedAt": "2026-07-31T14:21:08.000Z"
+    "updatedAt": "2026-08-03T16:03:25.000Z"
   },
   {
     "schemaVersion": 1,
@@ -283,10 +283,10 @@
       "source-chunk.412aade56104fd394503.9"
     ],
     "sourceUseNoteIds": [],
-    "status": "source_received",
-    "resolutionNote": "CANMAT Q.1.c-e and the current NIMH depression publication provide source-cleared scaffolding for the core pair, duration, broad symptom palette, and separation of screening from diagnosis. The 2022 VA/DoD guideline is registered as a current official comparator, but its DSM-labeled criteria sidebar remains metadata/context only under the current source-use decision. Exact cardinality, manifestation grouping, and the roles of pessimism and suicidality remain a psychiatrist-review decision; no executable profile is authorized.",
+    "status": "resolved",
+    "resolutionNote": "CANMAT Q.1.c-e and the current NIMH depression publication provide source-cleared scaffolding for the core pair, duration, broad symptom palette, and separation of screening from diagnosis. The 2022 VA/DoD guideline remains metadata/context only because its relevant sidebar is DSM-labeled. On 2026-07-31 the psychiatrist reviewer approved an original nine-dimension, five-total, one-of-two-core mapping; pessimism remains non-counting texture, suicidality remains independently safety-auditable, and duration, impairment, and exclusions remain separate typed constraints. The exact mapping is retained as Developer opinion with NIMH and CANMAT relationships rather than attributed to the sources alone.",
     "createdAt": "2026-07-31T13:04:04.000Z",
-    "updatedAt": "2026-07-31T16:30:00.000Z"
+    "updatedAt": "2026-07-31T21:06:04.000Z"
   },
   {
     "schemaVersion": 1,

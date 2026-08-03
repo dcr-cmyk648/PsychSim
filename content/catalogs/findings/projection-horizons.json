@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.finding-projection-horizons",
+  "horizons": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection-horizon.history.depressive-symptoms",
+      "horizon": {
+        "schemaVersion": 1,
+        "id": "finding-projection-horizon.history.depressive-symptoms",
+        "targets": [
+          {
+            "target": {
+              "kind": "information_action",
+              "actionId": "info.history.depressive-symptoms"
+            },
+            "allowedResponses": [
+              {
+                "kind": "finding_outcome",
+                "outcome": "present"
+              },
+              {
+                "kind": "finding_outcome",
+                "outcome": "absent"
+              }
+            ],
+            "expressionDisplayChannel": null
+          }
+        ]
+      },
+      "projectionRefs": [
+        {
+          "id": "finding-projection.history.depressive-symptoms.depressed-mood.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.depressed-mood.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.depressed-mood.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.anhedonia.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.anhedonia.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.anhedonia.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.increased-appetite.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.increased-appetite.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.increased-appetite.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.reduced-appetite.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.reduced-appetite.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.reduced-appetite.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-gain.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-gain.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-gain.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-loss.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-loss.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-loss.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.insomnia.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.insomnia.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.insomnia.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.hypersomnia.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.hypersomnia.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.hypersomnia.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.worthlessness.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.worthlessness.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.worthlessness.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.excessive-guilt.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.excessive-guilt.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.excessive-guilt.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.indecision.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.indecision.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.indecision.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.passive-death-wish.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.passive-death-wish.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.active-suicidal-ideation.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.active-suicidal-ideation.absent",
+          "contentVersion": "1.0.0"
+        }
+      ],
+      "developerOpinionIds": [
+        "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    }
+  ]
+}

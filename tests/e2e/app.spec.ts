@@ -501,6 +501,32 @@ test('saves a Developer case review with the exact patient, options, choices, an
   expect(persistedNote).toBe(reviewNote);
 });
 
+test('uses the local Patient Maker to freeze a validated case at its exact authored complexity', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Developer' }).click();
+
+  await expect(page.getByLabel('Complexity budget')).toHaveCount(0);
+  await page.getByText('Patient Maker', { exact: true }).click();
+  await page.getByLabel('Complexity budget').selectOption('4');
+  await expect(page.getByLabel('Playable case')).toHaveValue('case.restless-after-augmentation');
+  await expect(page.getByText(/filters cases by that exact value/i)).toBeVisible();
+  await page.getByRole('button', { name: 'Generate and open patient' }).click();
+
+  await expect(page.locator('#patient-chart-title')).toBeVisible();
+  const generatedPatient = (await page.locator('#patient-chart-title').textContent()) ?? '';
+  expect(generatedPatient).not.toBe('');
+  await page.getByRole('button', { name: /Clinic/ }).click();
+  await page.getByText('Patient queue', { exact: true }).click();
+  await expect(page.getByRole('heading', { name: generatedPatient })).toBeVisible();
+
+  await page.reload();
+  await page.getByText('Patient queue', { exact: true }).click();
+  await expect(page.getByRole('heading', { name: generatedPatient })).toBeVisible();
+});
+
 test('keeps Endgame practice rewards out of the standard point bank', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Endgame' }).click();

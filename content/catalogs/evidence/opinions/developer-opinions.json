@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.4.0",
+  "contentVersion": "1.11.0",
   "id": "developer-opinions.psychsim",
   "opinions": [
     {
@@ -99,7 +99,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.2.0",
+      "contentVersion": "1.3.0",
       "id": "developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27",
       "summary": "For a focused, uncomplicated adult MDD snapshot already routed to medication treatment, one reviewed first-line antidepressant should receive the same dominant primary-route credit. Medication-specific fit, safety, interactions, prior response, preference, feasibility, and formulary availability remain separate, smaller contributors; exact game-point magnitudes are provisional balance values.",
       "developerId": "reviewer.dustin-rowland",
@@ -186,7 +186,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.2.0",
       "id": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
       "summary": "Information requirements should follow the focused patient problem and the treatment actually selected rather than a universal psychiatric checklist. For an initial MDD medication decision, episode characterization and depressive symptoms are central; antidepressant selection makes mania history important; starting any medication makes medication reconciliation and allergy/adverse-reaction history important. Substance-use history is broadly rewarded in depression and other commonly substance-induced presentations. A known prior reaction to a selected medication affects treatment safety even when the player did not reveal it, because patient facts are resolved before play.",
       "developerId": "reviewer.dustin-rowland",
@@ -217,6 +217,27 @@
           "targetContentId": "balance.mdd-any-medication-reaction-history",
           "role": "affected_rule",
           "rationale": "The separate provisional balance owner implements the accepted treatment-triggered reaction-history weighting without changing the qualitative diagnosis rule."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-initial-episode-course-assessment",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the accepted focused episode-course assessment weighting without changing the qualitative diagnosis rule."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-initial-depressive-syndrome-assessment",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the accepted focused depressive-syndrome assessment weighting without changing the qualitative diagnosis rule."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-substance-history",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the accepted preferred substance-history reward without creating an omission penalty or changing the qualitative diagnosis rule."
         }
       ],
       "developerReview": {
@@ -227,6 +248,220 @@
       },
       "supersedesOpinionIds": [],
       "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31",
+      "summary": "The starting adult current-MDD episode profile uses nine diagnosis-level dimensions, selects at least five, and requires depressed mood or anhedonia. Appetite or weight, sleep, psychomotor change, worthlessness or guilt, concentration or indecision, and death or suicidality each count once even when their concrete facts remain distinct. Pessimism remains non-counting associated texture. Duration, impairment, and exclusions remain separate typed constraints. This profile is patient-generation truth only and assigns no points.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "diagnosis_logic", "safety", "teaching_point"],
+      "asOfDate": "2026-07-31",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.major-depressive-disorder",
+          "role": "subject",
+          "rationale": "The opinion supplies the reviewed current-episode finding composition for the reusable adult MDD dossier."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "condition-finding-profile.mdd.current-episode",
+          "role": "affected_rule",
+          "rationale": "The authoring profile implements the reviewed dimension and manifestation grouping without defining treatment or point behavior."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-31T21:06:04.000Z",
+        "note": "Approved after reviewing the source comparison. Equal profile weights are game-authoring variety controls only, not prevalence or probability. The first profile emits one concrete manifestation per selected dimension so it cannot create same-scope directional contradictions before a separate coexistence model is reviewed. This does not prevent the engine schema from supporting multiple independently auditable manifestations later."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [
+        "opinion-evidence.mdd-current-episode.nimh-current",
+        "opinion-evidence.mdd-current-episode.canmat-2023"
+      ],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mdd-depressive-symptom-assessment-horizon.2026-08-03",
+      "summary": "The compact Depressive symptoms history includes brief presence-or-absence items spanning the reviewed MDD dimensions, including insomnia or hypersomnia and passive death wish or current suicidal ideation. Dedicated Sleep and Suicide and self-harm actions retain deeper assessment. A subthreshold symptom is displayed as present in this compact history while its hidden canonical value remains subthreshold.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "safety", "context_only"],
+      "asOfDate": "2026-08-03",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.major-depressive-disorder",
+          "role": "context",
+          "rationale": "The first compact assessment horizon packages the already reviewed current-MDD symptom dimensions."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "condition-finding-profile.mdd.current-episode",
+          "role": "context",
+          "rationale": "The action horizon exposes the distinct atomic manifestations selected by the reusable MDD profile without changing that profile."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "registry.catalog.finding-projections",
+          "role": "affected_rule",
+          "rationale": "The finding-projection catalog implements the approved compact history grouping and display semantics without assigning points."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "finding-projection-horizon.history.depressive-symptoms",
+          "role": "affected_rule",
+          "rationale": "The exact projection horizon freezes the approved 17-finding compact action membership and its two lawful display outcomes."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "note": "Approved in the canonical PsychSim thread. Keep deeper Sleep and Suicide and self-harm actions separate. This approval governs action packaging and display only; it does not approve a PatientTemplate, generation frequency, scoring rule, action cost, disposition inference, or treatment consequence."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mdd-current-episode-duration-profile.2026-08-03",
+      "summary": "The first reusable adult current-MDD duration profile contains only values at or above two weeks and varies duration within that already-authored episode state. The duration does not by itself determine severity, functional impairment, chronic-depression classification, treatment history, treatment choice, or points.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "diagnosis_logic", "workup", "context_only"],
+      "asOfDate": "2026-08-03",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.major-depressive-disorder",
+          "role": "context",
+          "rationale": "The duration profile supplies one separate current-episode constraint for the reusable MDD dossier."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "duration-profile.mdd.current-episode",
+          "role": "affected_rule",
+          "rationale": "The profile implements only reviewed within-state duration variation and carries no severity, treatment, or point inference."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "target-scoped-definition.history.presenting-problem.mdd-current-episode-duration",
+          "role": "affected_rule",
+          "rationale": "The D-240 definition exposes the already-resolved episode duration through the presenting-problem history without changing it."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T14:35:00.000Z",
+        "note": "Applied from the previously approved current-MDD episode architecture and the explicit requirement for randomized structured duration. The first option bank is neutral game-authoring variation only. Revisit separately before adding below-threshold states, persistent-depression relationships, severity inference, or duration-dependent treatment logic."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": ["opinion-evidence.mdd-current-episode-duration.nimh-current"],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mdd-backend-severity-and-named-variant.2026-08-03",
+      "summary": "For gameplay, patients with major depressive disorder use the family diagnosis MDD rather than separate mild, moderate, or severe diagnosis choices. Episode severity remains backend generation state derived from separately auditable symptom severity and depression-attributable functional impairment, using the higher qualitative level. Exact level boundaries remain disabled. With psychotic features is the one currently meaningful named MDD variant.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["diagnosis_logic", "teaching_point", "context_only"],
+      "asOfDate": "2026-08-03",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.major-depressive-disorder",
+          "role": "subject",
+          "rationale": "The opinion governs how the reusable MDD dossier separates internal generation severity from the player-facing family diagnosis."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "severity-policy.mdd.current-episode-higher-of",
+          "role": "affected_rule",
+          "rationale": "The policy records the approved higher-of relationship while leaving both input owners and their unresolved boundaries separate."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "specifier.mdd.psychotic-features",
+          "role": "affected_rule",
+          "rationale": "The specifier is the one currently named MDD variant exposed by this gameplay policy."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T16:03:25.000Z",
+        "note": "Approved in the canonical PsychSim thread. Do not expose mild, moderate, or severe as separate player diagnosis choices. Keep exact boundary descriptions, symptom-severity generation, impairment-profile content, treatment consequences, points, and UI activation disabled until their own dependencies are reviewed."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": ["opinion-evidence.mdd-backend-severity.canmat-2023"],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.race-ethnicity-generation-guardrails.2026-08-03",
+      "summary": "PsychSim models only self-identified race and ethnicity as its additional demographic dimension, using a combined multiselect field. Names never infer identity. Population-matched evidence may later adjust diagnosis-generation weights, but no otherwise eligible diagnosis may become impossible. Symptom-report effects require robust evidence; pharmacology effects require very strong, population-matched evidence and must remain distinct from ancestry or genetics. Every modifier requires separate provenance, review, and audit.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["classification_mapping", "context_only"],
+      "asOfDate": "2026-08-03",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "race-ethnicity-catalog.omb-spd15-2024-minimum",
+          "role": "affected_rule",
+          "rationale": "The catalog is the exact authoring identity boundary governed by these collection and future-use safeguards."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T15:11:39.000Z",
+        "note": "Approved in the canonical PsychSim thread. This review does not approve a prevalence table, diagnosis sampler, symptom-report modifier, pharmacology modifier, point value, PatientTemplate, runtime generation, or player-facing inference."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": ["opinion-evidence.race-ethnicity.omb-spd15-2024"],
       "ruleEligibility": "opinion_only"
     }
   ],
@@ -341,6 +576,119 @@
         "reviewerId": "reviewer.dustin-rowland",
         "reviewedAt": "2026-07-27T16:55:53.000Z",
         "note": "Accepted as formal support for the broad option set while retaining exact game membership and point balance as Developer opinion."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.mdd-current-episode.nimh-current",
+      "opinionId": "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31",
+      "evidenceSourceId": "evidence.nimh.mental-health-topics.current",
+      "sourceUseDecisionId": "source-use.nimh.mental-health-topics.current",
+      "relationType": "partially_supports",
+      "relationshipSummary": "The current NIMH depression material supports the two-week episode frame, the depressed-mood or loss-of-interest gateway, and a broad symptom palette. The exact nine-dimension mapping and five-dimension threshold remain the reviewed Developer interpretation.",
+      "sourceLocation": "Depression topic page, signs and symptoms and diagnosis sections; accessed July 2026.",
+      "applicabilityLimitations": [
+        "The public-facing topic page is not a complete diagnostic classification manual.",
+        "It does not supply all grouping, exclusion, impairment, or exact threshold semantics used by the profile."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-31T21:06:04.000Z",
+        "note": "Accepted as source-cleared support for the episode frame, core pair, and symptom palette, with the exact executable mapping retained as Developer opinion."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.mdd-current-episode.canmat-2023",
+      "opinionId": "developer-opinion.mdd-current-episode-dimension-profile.2026-07-31",
+      "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+      "sourceUseDecisionId": "source-use.canmat.mdd-adults.2023-update",
+      "relationType": "contextualizes",
+      "relationshipSummary": "CANMAT supports the depressed or down or hopeless and anhedonia screening pair, distinguishes screening from diagnosis, and emphasizes comprehensive emotional, cognitive, somatic, safety, course, and functional assessment. It does not independently define PsychSim's exact nine-dimension profile.",
+      "sourceLocation": "Questions 1.c through 1.e and associated assessment tables.",
+      "applicabilityLimitations": [
+        "The guideline directs diagnosis to a recognized classification system rather than restating a complete diagnostic definition.",
+        "Decision-relevant symptom dimensions do not automatically establish criterion counting or generation frequency."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-31T21:06:04.000Z",
+        "note": "Accepted as assessment context while retaining the exact grouping, count, and pessimism decision as Developer opinion."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.mdd-current-episode-duration.nimh-current",
+      "opinionId": "developer-opinion.mdd-current-episode-duration-profile.2026-08-03",
+      "evidenceSourceId": "evidence.nimh.mental-health-topics.current",
+      "sourceUseDecisionId": "source-use.nimh.mental-health-topics.current",
+      "relationType": "partially_supports",
+      "relationshipSummary": "The current NIMH depression material supports a two-week episode frame. The finite two-through-fifty-two-week option bank and the decision to keep duration separate from severity, impairment, treatment history, treatment choice, and points remain Developer opinion and game-authoring design.",
+      "sourceLocation": "Depression topic page, signs and symptoms and diagnosis sections; accessed July 2026.",
+      "applicabilityLimitations": [
+        "The public-facing topic page is not a complete diagnostic classification manual.",
+        "It does not validate PsychSim's finite option bank or a uniform game-selection distribution.",
+        "It does not resolve persistent-depression overlap, severity, impairment, exclusions, or treatment consequences."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T14:35:00.000Z",
+        "note": "Accepted only as support for the two-week frame. The remaining implementation semantics are retained as Developer opinion."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.mdd-backend-severity.canmat-2023",
+      "opinionId": "developer-opinion.mdd-backend-severity-and-named-variant.2026-08-03",
+      "evidenceSourceId": "evidence.canmat.mdd-adults.2023-update",
+      "sourceUseDecisionId": "source-use.canmat.mdd-adults.2023-update",
+      "relationType": "partially_supports",
+      "relationshipSummary": "CANMAT supports separately rating depressive symptom severity and depression-attributable functional impairment and using the higher qualitative rating as the overall episode descriptor. It also keeps psychotic features clinically separate. The family-only player diagnosis design, named-variant policy, and unresolved generator boundaries remain Developer opinion.",
+      "sourceLocation": "Conventions and severity discussion represented by source-document.412aade56104fd394503 chunks 6 and 7.",
+      "applicabilityLimitations": [
+        "The convention is not a validated universal numeric boundary algorithm.",
+        "The source does not define PsychSim's player-facing diagnosis taxonomy or UI.",
+        "Psychosis, safety, course, treatment exposure, and impairment from other conditions remain separate facts."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T16:03:25.000Z",
+        "note": "Accepted as support for the higher-of relationship and separation of dimensions. Exact generation boundaries and the gameplay presentation policy remain Developer opinion."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.race-ethnicity.omb-spd15-2024",
+      "opinionId": "developer-opinion.race-ethnicity-generation-guardrails.2026-08-03",
+      "evidenceSourceId": "evidence.omb.spd15.2024",
+      "sourceUseDecisionId": "source-use.omb.spd15.2024",
+      "relationType": "contextualizes",
+      "relationshipSummary": "The 2024 OMB standard supports a combined multiselect structure, seven co-equal minimum categories, self-identification, and treatment of the categories as sociopolitical rather than biological or genetic. It does not support any psychiatric prevalence, symptom-report, pharmacology, treatment, or point modifier.",
+      "sourceLocation": "89 FR 22182, especially Sections A and C and the revised Statistical Policy Directive No. 15.",
+      "applicabilityLimitations": [
+        "The standard governs United States federal statistical classification rather than psychiatric epidemiology or treatment.",
+        "Its broad minimum categories contain substantial within-category heterogeneity.",
+        "Any future clinical association requires a separate population-matched source and clinical review."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T15:11:39.000Z",
+        "note": "Accepted only for classification identity and collection structure; all future clinical use remains unreviewed."
       }
     }
   ]

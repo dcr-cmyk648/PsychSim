@@ -1,20 +1,26 @@
 import {
   EncounterOperationalAdmissionArtifactSchema,
   GeneratedEncounterReplaySnapshotSchema,
+  GeneratedEncounterTreatmentSelectionSchema,
   GeneratedInformationPurchaseInputSchema,
   GeneratedInformationPurchaseSnapshotSchema,
   GeneratedServicePricingInputSchema,
+  GeneratedTreatmentChargeSchema,
   type CatalogInstanceVersionedReference,
   type EncounterOperationalAdmissionArtifact,
   type GeneratedEncounterAttemptFingerprint,
   type GeneratedEncounterReplaySnapshot,
+  type GeneratedEncounterTreatmentSelection,
   type GeneratedInformationPurchaseInput,
   type GeneratedInformationPurchaseSnapshot,
   type GeneratedServicePricingInput,
   type GeneratedServicePricingOwnerSnapshot,
+  type GeneratedTreatmentCharge,
+  type GeneratedTreatmentPricingOwnerSnapshot,
   type OperationalServiceDefinition,
   type ServiceDefinition,
   type ServiceFulfillmentMethod,
+  type TreatmentOption,
 } from '@psychsim/schemas';
 
 import { verifyEncounterOperationalAdmissionIntegrity } from './encounter-operational-admission-compiler';
@@ -24,6 +30,8 @@ export const NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION = '1.0.0';
 export type GeneratedServiceQuoteCompileErrorCode =
   | 'INVALID_INPUT'
   | 'INVALID_OPERATIONAL_ADMISSION'
+  | 'MISSING_TREATMENT_OWNER'
+  | 'STALE_TREATMENT_OWNER'
   | 'MISSING_SERVICE_OWNER'
   | 'EXTRA_SERVICE_OWNER'
   | 'STALE_SERVICE_OWNER'
@@ -39,12 +47,25 @@ export interface GeneratedInformationActionPricingHorizonEntry {
   readonly availableFulfillmentMethodIds: readonly string[];
 }
 
+export interface GeneratedTreatmentPricingHorizonEntry {
+  readonly treatmentRef: CatalogInstanceVersionedReference;
+  readonly treatmentPricingOwnerFingerprint: GeneratedEncounterAttemptFingerprint;
+  readonly actionTarget:
+    | { readonly kind: 'intervention'; readonly interventionId: string }
+    | { readonly kind: 'disposition'; readonly dispositionId: string };
+  readonly fulfillmentServiceRef: CatalogInstanceVersionedReference | null;
+  readonly servicePricingOwnerFingerprint: GeneratedEncounterAttemptFingerprint | null;
+  readonly availableFulfillmentMethodIds: readonly string[];
+}
+
 export type GeneratedServiceQuoteCompileResult =
   | {
       readonly ok: true;
       readonly value: {
         readonly servicePricingOwners: readonly GeneratedServicePricingOwnerSnapshot[];
+        readonly treatmentPricingOwners: readonly GeneratedTreatmentPricingOwnerSnapshot[];
         readonly informationActionPricingHorizon: readonly GeneratedInformationActionPricingHorizonEntry[];
+        readonly treatmentPricingHorizon: readonly GeneratedTreatmentPricingHorizonEntry[];
       };
     }
   | {
@@ -59,6 +80,9 @@ export type GeneratedServiceQuoteCompileResult =
 type GeneratedInformationPurchaseQuoteErrorCode =
   | 'INVALID_INPUT'
   | 'ACTION_OUTSIDE_PRICING_HORIZON'
+  | 'TREATMENT_OUTSIDE_PRICING_HORIZON'
+  | 'TREATMENT_PRICING_OWNER_MISSING'
+  | 'TREATMENT_PRICING_OWNER_STALE'
   | 'SERVICE_PRICING_OWNER_MISSING'
   | 'SERVICE_PRICING_OWNER_STALE'
   | 'AVAILABLE_METHOD_MISSING'
@@ -87,6 +111,10 @@ export type NativeGeneratedServiceQuoteResult =
 
 export type GeneratedInformationPurchaseQuoteResult =
   | { readonly ok: true; readonly value: GeneratedInformationPurchaseSnapshot }
+  | GeneratedInformationPurchaseQuoteFailure;
+
+export type GeneratedTreatmentChargeQuoteResult =
+  | { readonly ok: true; readonly value: readonly GeneratedTreatmentCharge[] }
   | GeneratedInformationPurchaseQuoteFailure;
 
 const compareStrings = (left: string, right: string): number =>
@@ -125,6 +153,9 @@ const fingerprint = (scope: string, value: unknown): GeneratedEncounterAttemptFi
     JSON.stringify(canonicalizeObjectKeys(value)),
   )}`;
 
+const stableId = (prefix: string, value: unknown): string =>
+  `${prefix}.${hashToHex64(JSON.stringify(canonicalizeObjectKeys(value)))}`;
+
 const normalizeMethod = (method: ServiceFulfillmentMethod): ServiceFulfillmentMethod => ({
   ...method,
   requiredCapabilities: uniqueSorted(method.requiredCapabilities),
@@ -138,6 +169,12 @@ const normalizeService = (service: ServiceDefinition): ServiceDefinition => ({
   fulfillmentMethods: [...service.fulfillmentMethods]
     .map(normalizeMethod)
     .sort((left, right) => compareStrings(left.id, right.id)),
+});
+
+const normalizeTreatment = (treatment: TreatmentOption): TreatmentOption => ({
+  ...treatment,
+  searchAliases: uniqueSorted(treatment.searchAliases),
+  requiredCapabilities: uniqueSorted(treatment.requiredCapabilities),
 });
 
 export const projectServicePricingOwnerToOperationalDefinition = (
@@ -160,6 +197,11 @@ export const fingerprintGeneratedServicePricingOwner = (
   service: ServiceDefinition,
 ): GeneratedEncounterAttemptFingerprint =>
   fingerprint('service-pricing-owner', normalizeService(service));
+
+export const fingerprintGeneratedTreatmentPricingOwner = (
+  treatment: TreatmentOption,
+): GeneratedEncounterAttemptFingerprint =>
+  fingerprint('treatment-pricing-owner', normalizeTreatment(treatment));
 
 const fail = (
   code: GeneratedServiceQuoteCompileErrorCode,
@@ -218,6 +260,8 @@ export const compileGeneratedInformationServicePricing = (input: {
   readonly servicePricing: GeneratedServicePricingInput;
   readonly operationalAdmission: EncounterOperationalAdmissionArtifact;
   readonly informationActionIds: readonly string[];
+  readonly interventionIds?: readonly string[];
+  readonly dispositionIds?: readonly string[];
 }): GeneratedServiceQuoteCompileResult => {
   const parsedPricing = GeneratedServicePricingInputSchema.safeParse(input.servicePricing);
   const parsedOperational = EncounterOperationalAdmissionArtifactSchema.safeParse(
@@ -237,11 +281,23 @@ export const compileGeneratedInformationServicePricing = (input: {
   }
   const operational = operationalIntegrity.value;
   const actionIds = uniqueSorted(input.informationActionIds);
-  if (actionIds.length !== input.informationActionIds.length) {
+  const interventionIds = uniqueSorted(input.interventionIds ?? []);
+  const dispositionIds = uniqueSorted(input.dispositionIds ?? []);
+  const treatmentIds = uniqueSorted([...interventionIds, ...dispositionIds]);
+  if (
+    actionIds.length !== input.informationActionIds.length ||
+    interventionIds.length !== (input.interventionIds ?? []).length ||
+    dispositionIds.length !== (input.dispositionIds ?? []).length ||
+    treatmentIds.length !== interventionIds.length + dispositionIds.length
+  ) {
     return fail(
       'INVALID_INPUT',
-      'An information-action pricing horizon requires unique action IDs.',
-      input.informationActionIds,
+      'A generated pricing horizon requires unique information-action and treatment IDs.',
+      [
+        ...input.informationActionIds,
+        ...(input.interventionIds ?? []),
+        ...(input.dispositionIds ?? []),
+      ],
     );
   }
   const evaluationsByActionId = new Map(
@@ -271,9 +327,75 @@ export const compileGeneratedInformationServicePricing = (input: {
       missingServiceActions,
     );
   }
-  const requiredServiceIds = uniqueSorted(
-    requiredServiceRefs.flatMap(({ serviceRef }) => (serviceRef === null ? [] : [serviceRef.id])),
+  const treatmentEvaluationsById = new Map(
+    operational.treatmentEvaluations.map((evaluation) => [evaluation.treatmentId, evaluation]),
   );
+  const treatmentsById = new Map(
+    operational.compileRequest.treatments.map((treatment) => [treatment.id, treatment]),
+  );
+  const requiredTreatmentOwners = [
+    ...interventionIds.map((treatmentId) => ({
+      treatmentId,
+      expectedKind: 'nonmedication' as const,
+    })),
+    ...dispositionIds.map((treatmentId) => ({
+      treatmentId,
+      expectedKind: 'disposition' as const,
+    })),
+  ].map(({ treatmentId, expectedKind }) => {
+    const evaluation = treatmentEvaluationsById.get(treatmentId);
+    const treatment = treatmentsById.get(treatmentId);
+    return { treatmentId, expectedKind, evaluation, treatment };
+  });
+  const missingTreatmentIds = requiredTreatmentOwners
+    .filter(
+      ({ expectedKind, evaluation, treatment }) =>
+        treatment === undefined ||
+        treatment.kind !== expectedKind ||
+        evaluation?.expectedKind !== expectedKind ||
+        evaluation.availability !== 'available_at_selected_location' ||
+        evaluation.treatmentOwner === null,
+    )
+    .map(({ treatmentId }) => treatmentId);
+  if (missingTreatmentIds.length > 0) {
+    return fail(
+      'MISSING_TREATMENT_OWNER',
+      'Every generated treatment-pricing entry requires one exact available operational treatment owner.',
+      missingTreatmentIds,
+    );
+  }
+  const treatmentServiceRefs = requiredTreatmentOwners.flatMap(
+    ({ treatmentId, treatment, evaluation }) => {
+      if (treatment === undefined || evaluation === undefined) return [];
+      if (treatment.fulfillmentServiceId === null) {
+        return evaluation.fulfillmentServiceOwner === null
+          ? []
+          : [{ treatmentId, serviceRef: evaluation.fulfillmentServiceOwner.ref }];
+      }
+      return evaluation.fulfillmentServiceOwner === null
+        ? []
+        : [{ treatmentId, serviceRef: evaluation.fulfillmentServiceOwner.ref }];
+    },
+  );
+  const missingTreatmentServiceIds = requiredTreatmentOwners
+    .filter(
+      ({ treatment, evaluation }) =>
+        treatment?.fulfillmentServiceId !== null && evaluation?.fulfillmentServiceOwner === null,
+    )
+    .map(({ treatmentId }) => treatmentId);
+  if (missingTreatmentServiceIds.length > 0) {
+    return fail(
+      'MISSING_SERVICE_OWNER',
+      'Every service-backed treatment requires one exact available operational service owner.',
+      missingTreatmentServiceIds,
+    );
+  }
+  const requiredServiceIds = uniqueSorted([
+    ...requiredServiceRefs.flatMap(({ serviceRef }) =>
+      serviceRef === null ? [] : [serviceRef.id],
+    ),
+    ...treatmentServiceRefs.map(({ serviceRef }) => serviceRef.id),
+  ]);
   const normalizedServices = parsedPricing.data.services
     .map(normalizeService)
     .sort((left, right) => compareStrings(left.id, right.id));
@@ -373,6 +495,91 @@ export const compileGeneratedInformationServicePricing = (input: {
       availableFulfillmentMethodIds,
     });
   }
+  const treatmentPricingOwners = requiredTreatmentOwners.map(({ treatment }) => {
+    if (treatment === undefined) {
+      throw new Error('A required treatment owner disappeared after validation.');
+    }
+    const normalized = normalizeTreatment(treatment);
+    return {
+      schemaVersion: 1 as const,
+      compilerVersion: NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION,
+      treatment: normalized,
+      ownerFingerprint: fingerprintGeneratedTreatmentPricingOwner(normalized),
+    };
+  });
+  const treatmentPricingHorizon: GeneratedTreatmentPricingHorizonEntry[] = [];
+  for (const { treatmentId, expectedKind, evaluation, treatment } of requiredTreatmentOwners) {
+    if (evaluation === undefined || treatment === undefined) {
+      return fail(
+        'MISSING_TREATMENT_OWNER',
+        `Treatment ${treatmentId} lacks its exact operational owner.`,
+        [treatmentId],
+      );
+    }
+    const normalizedTreatment = normalizeTreatment(treatment);
+    const actionTarget =
+      expectedKind === 'nonmedication'
+        ? ({ kind: 'intervention', interventionId: treatmentId } as const)
+        : ({ kind: 'disposition', dispositionId: treatmentId } as const);
+    if (treatment.fulfillmentServiceId === null) {
+      treatmentPricingHorizon.push({
+        treatmentRef: {
+          id: treatment.id,
+          contentVersion: treatment.contentVersion,
+        },
+        treatmentPricingOwnerFingerprint:
+          fingerprintGeneratedTreatmentPricingOwner(normalizedTreatment),
+        actionTarget,
+        fulfillmentServiceRef: null,
+        servicePricingOwnerFingerprint: null,
+        availableFulfillmentMethodIds: [],
+      });
+      continue;
+    }
+    const serviceRef = evaluation.fulfillmentServiceOwner?.ref;
+    const service = serviceRef === undefined ? undefined : servicesById.get(serviceRef.id);
+    if (
+      serviceRef === undefined ||
+      service === undefined ||
+      service.contentVersion !== serviceRef.contentVersion ||
+      service.id !== treatment.fulfillmentServiceId
+    ) {
+      return fail(
+        'STALE_SERVICE_OWNER',
+        `Treatment ${treatmentId} references a missing or stale service-pricing owner.`,
+        [treatmentId, treatment.fulfillmentServiceId],
+      );
+    }
+    const availableFulfillmentMethodIds = evaluation.fulfillmentMethods
+      .filter((method) => method.availability === 'available_at_selected_location')
+      .map((method) => method.methodId)
+      .sort(compareStrings);
+    if (availableFulfillmentMethodIds.length === 0) {
+      return fail(
+        'MISSING_AVAILABLE_METHOD',
+        `Treatment ${treatmentId} has no mechanically available fulfillment method.`,
+        [treatmentId, service.id],
+      );
+    }
+    const equivalenceError = assertEquivalentAvailableMethods(
+      treatmentId,
+      service,
+      availableFulfillmentMethodIds,
+    );
+    if (equivalenceError !== null) return equivalenceError;
+    treatmentPricingHorizon.push({
+      treatmentRef: {
+        id: treatment.id,
+        contentVersion: treatment.contentVersion,
+      },
+      treatmentPricingOwnerFingerprint:
+        fingerprintGeneratedTreatmentPricingOwner(normalizedTreatment),
+      actionTarget,
+      fulfillmentServiceRef: serviceRef,
+      servicePricingOwnerFingerprint: fingerprintGeneratedServicePricingOwner(service),
+      availableFulfillmentMethodIds,
+    });
+  }
   const servicePricingOwners = normalizedServices.map((service) => ({
     schemaVersion: 1 as const,
     compilerVersion: NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION,
@@ -383,12 +590,26 @@ export const compileGeneratedInformationServicePricing = (input: {
     ok: true,
     value: {
       servicePricingOwners,
+      treatmentPricingOwners: treatmentPricingOwners.sort((left, right) =>
+        compareStrings(left.treatment.id, right.treatment.id),
+      ),
       informationActionPricingHorizon: informationActionPricingHorizon.sort((left, right) =>
         compareStrings(left.informationActionId, right.informationActionId),
+      ),
+      treatmentPricingHorizon: treatmentPricingHorizon.sort((left, right) =>
+        compareStrings(left.treatmentRef.id, right.treatmentRef.id),
       ),
     },
   };
 };
+
+export const compileGeneratedEncounterServicePricing = (input: {
+  readonly servicePricing: GeneratedServicePricingInput;
+  readonly operationalAdmission: EncounterOperationalAdmissionArtifact;
+  readonly informationActionIds: readonly string[];
+  readonly interventionIds: readonly string[];
+  readonly dispositionIds: readonly string[];
+}): GeneratedServiceQuoteCompileResult => compileGeneratedInformationServicePricing(input);
 
 const quoteFail = (
   code: GeneratedInformationPurchaseQuoteErrorCode,
@@ -414,14 +635,14 @@ const availableMethodsFor = (input: {
   if (available.length !== input.availableMethodIds.length) {
     return quoteFail(
       'AVAILABLE_METHOD_MISSING',
-      `Information action ${input.actionId} references a fulfillment method absent from its frozen pricing owner.`,
+      `Priced item ${input.actionId} references a fulfillment method absent from its frozen pricing owner.`,
       [input.actionId, input.service.id, ...input.availableMethodIds],
     );
   }
   if (new Set(available.map((method) => method.qualityModifier)).size > 1) {
     return quoteFail(
       'UNEQUAL_METHOD_QUALITY',
-      `Information action ${input.actionId} has unequal frozen fulfillment quality and cannot be quoted automatically.`,
+      `Priced item ${input.actionId} has unequal frozen fulfillment quality and cannot be quoted automatically.`,
       [input.actionId, input.service.id],
     );
   }
@@ -445,7 +666,7 @@ export const resolveNativeGeneratedServiceQuote = (input: {
   if (method === undefined) {
     return quoteFail(
       'AVAILABLE_METHOD_MISSING',
-      `Information action ${input.actionId} has no frozen available fulfillment method.`,
+      `Priced item ${input.actionId} has no frozen available fulfillment method.`,
       [input.actionId, input.service.id],
     );
   }
@@ -548,6 +769,135 @@ export const quoteGeneratedInformationPurchase = (input: {
       );
 };
 
+export const quoteGeneratedTreatmentCharges = (input: {
+  readonly treatmentSelection: GeneratedEncounterTreatmentSelection;
+  readonly replaySnapshot: GeneratedEncounterReplaySnapshot;
+}): GeneratedTreatmentChargeQuoteResult => {
+  const selection = GeneratedEncounterTreatmentSelectionSchema.safeParse(input.treatmentSelection);
+  const snapshot = GeneratedEncounterReplaySnapshotSchema.safeParse(input.replaySnapshot);
+  if (!selection.success || !snapshot.success) {
+    return quoteFail(
+      'INVALID_INPUT',
+      'Generated treatment charges require one strict final treatment selection and valid frozen replay snapshot.',
+    );
+  }
+  const selectedTargets = [
+    ...uniqueSorted(selection.data.interventionIds).map((interventionId) => ({
+      kind: 'intervention' as const,
+      interventionId,
+    })),
+    ...(selection.data.dispositionId === null
+      ? []
+      : [
+          {
+            kind: 'disposition' as const,
+            dispositionId: selection.data.dispositionId,
+          },
+        ]),
+  ];
+  const treatmentOwnersById = new Map(
+    snapshot.data.treatmentPricingOwners.map((owner) => [owner.treatment.id, owner]),
+  );
+  const serviceOwnersById = new Map(
+    snapshot.data.servicePricingOwners.map((owner) => [owner.service.id, owner]),
+  );
+  const runtimeByTreatmentId = new Map(
+    snapshot.data.treatmentRuntimeHorizon.map((entry) => [entry.treatmentRef.id, entry]),
+  );
+  const charges: GeneratedTreatmentCharge[] = [];
+  for (const actionTarget of selectedTargets) {
+    const treatmentId =
+      actionTarget.kind === 'intervention'
+        ? actionTarget.interventionId
+        : actionTarget.dispositionId;
+    const runtime = runtimeByTreatmentId.get(treatmentId);
+    if (runtime === undefined || !sameCanonicalValue(runtime.actionTarget, actionTarget)) {
+      return quoteFail(
+        'TREATMENT_OUTSIDE_PRICING_HORIZON',
+        `Selected treatment ${treatmentId} is outside its exact frozen pricing horizon.`,
+        [treatmentId],
+      );
+    }
+    const treatmentOwner = treatmentOwnersById.get(treatmentId);
+    if (treatmentOwner === undefined) {
+      return quoteFail(
+        'TREATMENT_PRICING_OWNER_MISSING',
+        `Selected treatment ${treatmentId} lacks its frozen treatment owner.`,
+        [treatmentId],
+      );
+    }
+    const expectedTreatmentFingerprint = fingerprintGeneratedTreatmentPricingOwner(
+      treatmentOwner.treatment,
+    );
+    if (
+      treatmentOwner.compilerVersion !== NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION ||
+      treatmentOwner.treatment.contentVersion !== runtime.treatmentRef.contentVersion ||
+      treatmentOwner.ownerFingerprint !== runtime.treatmentPricingOwnerFingerprint ||
+      treatmentOwner.ownerFingerprint !== expectedTreatmentFingerprint
+    ) {
+      return quoteFail(
+        'TREATMENT_PRICING_OWNER_STALE',
+        `Selected treatment ${treatmentId} does not match its exact frozen treatment owner.`,
+        [treatmentId],
+      );
+    }
+    if (runtime.fulfillmentServiceRef === null) continue;
+    const serviceOwner = serviceOwnersById.get(runtime.fulfillmentServiceRef.id);
+    if (
+      serviceOwner === undefined ||
+      runtime.servicePricingOwnerFingerprint === null ||
+      serviceOwner.compilerVersion !== NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION ||
+      serviceOwner.service.contentVersion !== runtime.fulfillmentServiceRef.contentVersion ||
+      serviceOwner.ownerFingerprint !== runtime.servicePricingOwnerFingerprint ||
+      serviceOwner.ownerFingerprint !==
+        fingerprintGeneratedServicePricingOwner(serviceOwner.service)
+    ) {
+      return quoteFail(
+        'SERVICE_PRICING_OWNER_STALE',
+        `Selected treatment ${treatmentId} does not match its exact frozen service-pricing owner.`,
+        [treatmentId, runtime.fulfillmentServiceRef.id],
+      );
+    }
+    const resolved = resolveNativeGeneratedServiceQuote({
+      actionId: treatmentId,
+      service: serviceOwner.service,
+      availableMethodIds: runtime.availableFulfillmentMethodIds,
+    });
+    if (!resolved.ok) return resolved;
+    const { method, externalCostAvoided, upgradeSavings } = resolved.value;
+    const chargeWithoutId = {
+      actionTarget,
+      treatmentRef: runtime.treatmentRef,
+      treatmentPricingOwnerFingerprint: treatmentOwner.ownerFingerprint,
+      serviceRef: runtime.fulfillmentServiceRef,
+      servicePricingOwnerFingerprint: serviceOwner.ownerFingerprint,
+      fulfillmentMethodId: method.id,
+      fulfillmentLabel: method.label,
+      label: treatmentOwner.treatment.label,
+      operatingCost: method.operatingCost,
+      externalCostAvoided,
+      upgradeSavings,
+      pricingDerivation: 'native_versioned_treatment_service_quote.v1' as const,
+    };
+    const quoted = GeneratedTreatmentChargeSchema.safeParse({
+      id: stableId('generated-treatment-charge', chargeWithoutId),
+      ...chargeWithoutId,
+    });
+    if (!quoted.success) {
+      return quoteFail(
+        'INVALID_OUTPUT',
+        `Native generated treatment charge ${treatmentId} failed its output schema.`,
+        [treatmentId],
+      );
+    }
+    charges.push(quoted.data);
+  }
+  return {
+    ok: true,
+    value: charges.sort((left, right) => compareStrings(left.id, right.id)),
+  };
+};
+
 export const verifyGeneratedServicePricingReplaySnapshot = (
   value: unknown,
 ): { readonly ok: true } | { readonly ok: false; readonly message: string } => {
@@ -561,6 +911,9 @@ export const verifyGeneratedServicePricingReplaySnapshot = (
   const ownersById = new Map(
     parsed.data.servicePricingOwners.map((owner) => [owner.service.id, owner]),
   );
+  const treatmentOwnersById = new Map(
+    parsed.data.treatmentPricingOwners.map((owner) => [owner.treatment.id, owner]),
+  );
   for (const owner of parsed.data.servicePricingOwners) {
     if (
       owner.compilerVersion !== NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION ||
@@ -569,6 +922,17 @@ export const verifyGeneratedServicePricingReplaySnapshot = (
       return {
         ok: false,
         message: `Frozen pricing owner ${owner.service.id} does not match its exact normalized payload.`,
+      };
+    }
+  }
+  for (const owner of parsed.data.treatmentPricingOwners) {
+    if (
+      owner.compilerVersion !== NATIVE_GENERATED_SERVICE_QUOTE_COMPILER_VERSION ||
+      owner.ownerFingerprint !== fingerprintGeneratedTreatmentPricingOwner(owner.treatment)
+    ) {
+      return {
+        ok: false,
+        message: `Frozen treatment owner ${owner.treatment.id} does not match its exact normalized payload.`,
       };
     }
   }
@@ -594,6 +958,65 @@ export const verifyGeneratedServicePricingReplaySnapshot = (
         ok: false,
         message: available.ok
           ? `Frozen action ${runtime.informationActionId} has no available price method.`
+          : available.error.message,
+      };
+    }
+  }
+  for (const runtime of parsed.data.treatmentRuntimeHorizon) {
+    const treatmentOwner = treatmentOwnersById.get(runtime.treatmentRef.id);
+    const expectedKind =
+      runtime.actionTarget.kind === 'intervention' ? 'nonmedication' : 'disposition';
+    const targetId =
+      runtime.actionTarget.kind === 'intervention'
+        ? runtime.actionTarget.interventionId
+        : runtime.actionTarget.dispositionId;
+    if (
+      treatmentOwner === undefined ||
+      treatmentOwner.treatment.contentVersion !== runtime.treatmentRef.contentVersion ||
+      treatmentOwner.ownerFingerprint !== runtime.treatmentPricingOwnerFingerprint ||
+      treatmentOwner.treatment.kind !== expectedKind ||
+      targetId !== runtime.treatmentRef.id
+    ) {
+      return {
+        ok: false,
+        message: `Frozen treatment ${runtime.treatmentRef.id} does not match its exact treatment owner.`,
+      };
+    }
+    if (runtime.fulfillmentServiceRef === null) {
+      if (
+        treatmentOwner.treatment.fulfillmentServiceId !== null ||
+        runtime.servicePricingOwnerFingerprint !== null ||
+        runtime.availableFulfillmentMethodIds.length > 0
+      ) {
+        return {
+          ok: false,
+          message: `Frozen treatment ${runtime.treatmentRef.id} has an inconsistent no-service pricing binding.`,
+        };
+      }
+      continue;
+    }
+    const serviceOwner = ownersById.get(runtime.fulfillmentServiceRef.id);
+    if (
+      treatmentOwner.treatment.fulfillmentServiceId !== runtime.fulfillmentServiceRef.id ||
+      serviceOwner === undefined ||
+      serviceOwner.service.contentVersion !== runtime.fulfillmentServiceRef.contentVersion ||
+      serviceOwner.ownerFingerprint !== runtime.servicePricingOwnerFingerprint
+    ) {
+      return {
+        ok: false,
+        message: `Frozen treatment ${runtime.treatmentRef.id} does not match its service-pricing owner.`,
+      };
+    }
+    const available = availableMethodsFor({
+      actionId: runtime.treatmentRef.id,
+      service: serviceOwner.service,
+      availableMethodIds: runtime.availableFulfillmentMethodIds,
+    });
+    if (!available.ok || available.value.length === 0) {
+      return {
+        ok: false,
+        message: available.ok
+          ? `Frozen treatment ${runtime.treatmentRef.id} has no available price method.`
           : available.error.message,
       };
     }

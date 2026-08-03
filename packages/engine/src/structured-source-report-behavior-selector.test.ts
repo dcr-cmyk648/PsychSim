@@ -4,6 +4,9 @@ import {
   type ClinicalRuleReview,
   type EncounterCareSetting,
   type InformationActionDefinition,
+  type OptionalFeatureBudgetSelectionArtifact,
+  type OptionalFeatureBudgetSelectionRequest,
+  type PatientOptionalFeatureModuleDefinition,
   type PatientTemplate,
   type StructuredPatientStateRevealDefinition,
   type StructuredSourceReportProfile,
@@ -14,6 +17,10 @@ import {
 } from '@psychsim/schemas';
 import { describe, expect, it } from 'vitest';
 
+import {
+  fingerprintOptionalFeatureModuleDefinition,
+  selectOptionalFeaturesWithinBudget,
+} from './optional-feature-budget-selector';
 import {
   fingerprintStructuredSourceReportDefinition,
   fingerprintStructuredSourceReportProfile,
@@ -30,6 +37,7 @@ import {
   fingerprintInformationActionPayload,
   fingerprintUniversalActionResultAssemblyRecipe,
 } from './universal-action-result-compiler';
+import { fingerprintTemplateConditionSelectionTemplate } from './template-condition-selector';
 
 const approvedReview: ClinicalRuleReview = {
   status: 'approved',
@@ -211,8 +219,15 @@ type SlotFixture = {
   readonly definition: StructuredPatientStateRevealDefinition;
   readonly source: StructuredSourceReportProfile['source'];
   readonly profiles: readonly StructuredSourceReportProfile[];
-  readonly mode: 'fixed' | 'weighted';
+  readonly mode: 'fixed' | 'weighted' | 'complexity_gated';
   readonly weights?: readonly number[];
+  readonly complexityModifiers?: readonly {
+    readonly moduleRef: { readonly id: string; readonly contentVersion: string };
+    readonly moduleFingerprint: string;
+    readonly optionalFeatureBindingId: string;
+    readonly selectedModuleId: string;
+    readonly profile: StructuredSourceReportProfile;
+  }[];
 };
 
 const makeRequest = (input: {
@@ -222,6 +237,8 @@ const makeRequest = (input: {
   readonly careSetting?: EncounterCareSetting;
   readonly horizonId?: string;
   readonly selectionProfileId?: string;
+  readonly template?: PatientTemplate;
+  readonly optionalFeatureArtifact?: OptionalFeatureBudgetSelectionArtifact;
 }): StructuredSourceReportSelectionRequest => {
   const definitions = [
     ...new Map(input.slots.map((slot) => [slot.definition.id, slot.definition])).values(),
@@ -275,18 +292,43 @@ const makeRequest = (input: {
               profileFingerprint: fingerprintStructuredSourceReportProfile(slot.profiles[0]!),
             },
           }
-        : {
-            slotId: slot.id,
-            mode: 'weighted' as const,
-            candidates: slot.profiles.map((profile, index) => ({
-              profileRef: {
-                id: profile.id,
-                contentVersion: profile.contentVersion,
+        : slot.mode === 'weighted'
+          ? {
+              slotId: slot.id,
+              mode: 'weighted' as const,
+              candidates: slot.profiles.map((profile, index) => ({
+                profileRef: {
+                  id: profile.id,
+                  contentVersion: profile.contentVersion,
+                },
+                profileFingerprint: fingerprintStructuredSourceReportProfile(profile),
+                gameGenerationWeight: slot.weights?.[index] ?? 1,
+              })),
+            }
+          : {
+              slotId: slot.id,
+              mode: 'complexity_gated' as const,
+              baseCandidate: {
+                profileRef: {
+                  id: slot.profiles[0]!.id,
+                  contentVersion: slot.profiles[0]!.contentVersion,
+                },
+                profileFingerprint: fingerprintStructuredSourceReportProfile(slot.profiles[0]!),
               },
-              profileFingerprint: fingerprintStructuredSourceReportProfile(profile),
-              gameGenerationWeight: slot.weights?.[index] ?? 1,
-            })),
-          },
+              modifiers: (slot.complexityModifiers ?? []).map((modifier) => ({
+                moduleRef: { ...modifier.moduleRef },
+                moduleFingerprint: modifier.moduleFingerprint,
+                optionalFeatureBindingId: modifier.optionalFeatureBindingId,
+                selectedModuleId: modifier.selectedModuleId,
+                candidate: {
+                  profileRef: {
+                    id: modifier.profile.id,
+                    contentVersion: modifier.profile.contentVersion,
+                  },
+                  profileFingerprint: fingerprintStructuredSourceReportProfile(modifier.profile),
+                },
+              })),
+            },
     ),
     developerOpinionIds: ['developer-opinion.test.source-report-selection'],
     lifecycle: 'approved',
@@ -296,11 +338,14 @@ const makeRequest = (input: {
     schemaVersion: 1,
     id: 'source-report-selection-request.test',
     seed: input.seed ?? 'source-report-selection-seed',
-    template: makeTemplate(assembly, input.careSetting),
+    template: input.template ?? makeTemplate(assembly, input.careSetting),
     assemblyRecipe: assembly,
     horizon,
     selectionProfile,
     profiles: input.slots.flatMap((slot) => slot.profiles),
+    ...(input.optionalFeatureArtifact === undefined
+      ? {}
+      : { optionalFeatureArtifact: input.optionalFeatureArtifact }),
   });
 };
 
@@ -331,6 +376,125 @@ const makeBasicFixture = (seed = 'source-report-selection-seed') => {
       },
     ],
     seed,
+  });
+};
+
+const makeSourceReportOptionalArtifact = (
+  template: PatientTemplate,
+  selected: boolean,
+): OptionalFeatureBudgetSelectionArtifact => {
+  const definition: PatientOptionalFeatureModuleDefinition = {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'optional-feature.test.source-report.inaccurate-treatment-history',
+    label: 'Synthetic inaccurate treatment-history self-report',
+    moduleKind: 'source_report',
+    lifecycle: 'approved',
+    medicalReviewStatus: 'approved',
+    review: approvedReview,
+  };
+  const moduleFingerprint = fingerprintOptionalFeatureModuleDefinition(definition);
+  const baseRequest = {
+    schemaVersion: 1 as const,
+    id: 'optional-feature-budget-request.test.source-report-selection',
+    template,
+    moduleDefinitions: [definition],
+    profile: {
+      schemaVersion: 1 as const,
+      contentVersion: '1.0.0',
+      id: 'optional-feature-profile.test.source-report-selection',
+      modelVersion: 'weighted-optional-feature-budget-selection.v1' as const,
+      templateRef: { id: template.id, contentVersion: template.contentVersion },
+      templateFingerprint: fingerprintTemplateConditionSelectionTemplate(template),
+      countWeights: [0, 1].map((selectionCount) => ({
+        schemaVersion: 1 as const,
+        selectionCount,
+        gameSelectionWeight: 1,
+      })),
+      candidateBindings: [
+        {
+          schemaVersion: 1 as const,
+          id: 'optional-feature-binding.test.source-report.inaccurate-treatment-history',
+          moduleRef: { id: definition.id, contentVersion: definition.contentVersion },
+          moduleFingerprint,
+          selectedModuleId:
+            'patient-optional-feature.test.source-report.inaccurate-treatment-history',
+          cost: 1,
+          impact: 'fit_modifier' as const,
+          complexityContributions: [
+            {
+              id: 'complexity-contribution.test.source-report.inaccurate-treatment-history',
+              label: 'Inaccurate treatment-history self-report',
+              dimension: 'information' as const,
+              weight: 1,
+              review: approvedReview,
+            },
+          ],
+          gameSelectionWeight: 1,
+          review: approvedReview,
+        },
+      ],
+      incompatibilities: [],
+      review: approvedReview,
+    },
+    seed: '',
+  } satisfies OptionalFeatureBudgetSelectionRequest;
+
+  for (let index = 0; index < 512; index += 1) {
+    const request: OptionalFeatureBudgetSelectionRequest = {
+      ...baseRequest,
+      seed: `source-report-complexity-seed-${index}`,
+    };
+    const result = selectOptionalFeaturesWithinBudget(request);
+    if (result.ok && (result.value.selectedCount === 1) === selected) return result.value;
+  }
+  throw new Error(
+    `Could not find a D-201 ${selected ? 'selected' : 'base'} source-report fixture.`,
+  );
+};
+
+const makeComplexityGatedFixture = (selected: boolean) => {
+  const action = makeAction('complexity-gated-treatment-history');
+  const definition = makeDefinition('complexity-gated-treatment-history', action);
+  const baseProfile = makeProfile(
+    definition,
+    'complexity-gated-treatment-history.accurate',
+    'report_all',
+  );
+  const inaccurateProfile = makeProfile(
+    definition,
+    'complexity-gated-treatment-history.inaccurate',
+    'none_reported',
+  );
+  const assembly = makeAssembly([definition], [action]);
+  const template = makeTemplate(assembly);
+  template.complexityProfile.additionalFeatureBudget = 1;
+  template.complexityProfile.maximumSelectedModules = 1;
+  const optionalFeatureArtifact = makeSourceReportOptionalArtifact(template, selected);
+  const binding = optionalFeatureArtifact.selectionRequest.profile.candidateBindings[0]!;
+  return makeRequest({
+    seed: optionalFeatureArtifact.seed,
+    actions: [action],
+    template: optionalFeatureArtifact.selectionRequest.template,
+    optionalFeatureArtifact,
+    slots: [
+      {
+        id: 'source-view-slot.test.complexity-gated-treatment-history',
+        definition,
+        source: baseProfile.source,
+        profiles: [baseProfile, inaccurateProfile],
+        mode: 'complexity_gated',
+        complexityModifiers: [
+          {
+            moduleRef: binding.moduleRef,
+            moduleFingerprint: binding.moduleFingerprint,
+            optionalFeatureBindingId: binding.id,
+            selectedModuleId: binding.selectedModuleId,
+            profile: inaccurateProfile,
+          },
+        ],
+      },
+    ],
   });
 };
 
@@ -408,6 +572,72 @@ describe('D-217 structured source-report behavior selector', () => {
     expect(first.selections[0]!.selectedProfileRef).toEqual(
       second.selections[0]!.selectedProfileRef,
     );
+  });
+
+  it('uses accurate self-report as the no-cost base when D-201 selects no report modifier', () => {
+    const request = makeComplexityGatedFixture(false);
+    const artifact = compileOrThrow(request);
+    const selection = artifact.selections[0]!;
+
+    expect(request.optionalFeatureArtifact?.selectedCount).toBe(0);
+    expect(request.optionalFeatureArtifact?.totalSpent).toBe(0);
+    expect(selection.mode).toBe('complexity_gated');
+    expect(selection.selectedProfileRef.id).toContain('.accurate');
+    expect(selection.stableDrawId).toBeNull();
+    expect(
+      selection.candidateEvaluations.find((candidate) => candidate.complexityModule !== undefined)
+        ?.complexityModule,
+    ).toMatchObject({
+      selectedInComplexityBudget: false,
+      selectionOrdinal: null,
+      stableDrawId: null,
+      cost: 1,
+    });
+  });
+
+  it('applies one D-201-selected inaccurate self-report modifier without a second draw or charge', () => {
+    const request = makeComplexityGatedFixture(true);
+    const artifact = compileOrThrow(request);
+    const selection = artifact.selections[0]!;
+    const optionalEvaluation = request.optionalFeatureArtifact!.candidateEvaluations[0]!;
+    const modifierEvaluation = selection.candidateEvaluations.find(
+      (candidate) => candidate.complexityModule !== undefined,
+    )!;
+
+    expect(request.optionalFeatureArtifact?.selectedCount).toBe(1);
+    expect(request.optionalFeatureArtifact?.totalSpent).toBe(1);
+    expect(selection.selectedProfileRef.id).toContain('.inaccurate');
+    expect(selection.stableDrawId).toBe(optionalEvaluation.stableDrawId);
+    expect(modifierEvaluation.selected).toBe(true);
+    expect(modifierEvaluation.complexityModule).toMatchObject({
+      optionalFeatureBindingId: optionalEvaluation.bindingId,
+      selectedModuleId: optionalEvaluation.moduleSnapshot.id,
+      selectedInComplexityBudget: true,
+      selectionOrdinal: optionalEvaluation.selectionOrdinal,
+      stableDrawId: optionalEvaluation.stableDrawId,
+      cost: 1,
+    });
+    expect(verifyStructuredSourceReportBehaviorSelectionIntegrity(artifact)).toEqual({
+      ok: true,
+      value: artifact,
+    });
+  });
+
+  it('rejects a complexity artifact that is not mapped through a complexity-gated slot', () => {
+    const request = makeComplexityGatedFixture(true);
+    const policy = request.selectionProfile.policies[0]!;
+    if (policy.mode !== 'complexity_gated') throw new Error('Expected complexity-gated fixture.');
+    request.selectionProfile.policies[0] = {
+      slotId: policy.slotId,
+      mode: 'fixed',
+      candidate: policy.baseCandidate,
+    };
+    request.profiles = [request.profiles[0]!];
+
+    expect(selectStructuredSourceReportBehaviors(request)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
   });
 
   it('replays the same weighted request deterministically', () => {

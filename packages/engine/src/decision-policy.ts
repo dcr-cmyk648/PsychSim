@@ -322,6 +322,21 @@ export const collectDecisionPatientFacts = (
     'demographics.sex-for-reference',
     enumValueId('sex-for-reference', state.demographics.sexForReference),
   );
+  if (
+    state.demographics.recordVersion === 3 &&
+    state.demographics.raceEthnicity.collectionStatus === 'provided'
+  ) {
+    for (const categoryId of state.demographics.raceEthnicity.categoryIds) {
+      add(
+        'demographics',
+        stateBindingId('demographics', state.id),
+        state.demographics.raceEthnicity.standardId,
+        state.demographics.raceEthnicity.standardContentVersion,
+        'demographics.race-ethnicity-category',
+        categoryId,
+      );
+    }
+  }
 
   for (const condition of state.conditionStates) {
     const common = [

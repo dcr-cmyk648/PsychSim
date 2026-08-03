@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.clinical-duration-profiles",
+  "profiles": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "duration-profile.mdd.current-episode",
+      "relatedDiagnosisId": "diagnosis.major-depressive-disorder",
+      "interpretation": "supports_authored_state",
+      "criterionId": null,
+      "options": [
+        {
+          "id": "duration-option.mdd.current-episode.two-weeks",
+          "value": 2,
+          "unit": "week",
+          "displayValueVariants": ["two weeks", "about two weeks"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.three-weeks",
+          "value": 3,
+          "unit": "week",
+          "displayValueVariants": ["three weeks", "about three weeks"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.four-weeks",
+          "value": 4,
+          "unit": "week",
+          "displayValueVariants": ["four weeks", "about a month"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.five-weeks",
+          "value": 5,
+          "unit": "week",
+          "displayValueVariants": ["five weeks", "a little over a month"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.six-weeks",
+          "value": 6,
+          "unit": "week",
+          "displayValueVariants": ["six weeks", "about six weeks"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.eight-weeks",
+          "value": 8,
+          "unit": "week",
+          "displayValueVariants": ["eight weeks", "about two months"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.ten-weeks",
+          "value": 10,
+          "unit": "week",
+          "displayValueVariants": ["ten weeks", "about ten weeks"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.twelve-weeks",
+          "value": 12,
+          "unit": "week",
+          "displayValueVariants": ["twelve weeks", "about three months"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.sixteen-weeks",
+          "value": 16,
+          "unit": "week",
+          "displayValueVariants": ["sixteen weeks", "about four months"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.twenty-weeks",
+          "value": 20,
+          "unit": "week",
+          "displayValueVariants": ["twenty weeks", "about five months"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.twenty-six-weeks",
+          "value": 26,
+          "unit": "week",
+          "displayValueVariants": ["twenty-six weeks", "about six months"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.thirty-nine-weeks",
+          "value": 39,
+          "unit": "week",
+          "displayValueVariants": ["thirty-nine weeks", "about nine months"]
+        },
+        {
+          "id": "duration-option.mdd.current-episode.fifty-two-weeks",
+          "value": 52,
+          "unit": "week",
+          "displayValueVariants": ["fifty-two weeks", "about a year"]
+        }
+      ],
+      "developerOpinionIds": ["developer-opinion.mdd-current-episode-duration-profile.2026-08-03"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T14:35:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    }
+  ]
+}

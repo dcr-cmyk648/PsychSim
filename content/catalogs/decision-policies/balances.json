@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.1.0",
+  "contentVersion": "1.4.0",
   "id": "registry.catalog.decision-balances",
   "balances": [
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "balance.mdd-initial-one-first-line-antidepressant",
       "ruleRef": {
         "kind": "medication_regimen_route",
         "id": "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
-        "contentVersion": "1.0.0",
+        "contentVersion": "1.1.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.3.0"
+        "ownerContentVersion": "1.4.0"
       },
       "balanceStatus": "provisional_balance",
       "impactBand": "dominant_primary_route",
@@ -28,15 +28,15 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "balance.mdd-any-medication-reconciliation",
       "balanceKind": "triggered_information_prerequisite",
       "ruleRef": {
         "kind": "diagnosis_rule",
         "id": "rule.diagnosis-mdd.any-medication-reconciliation",
-        "contentVersion": "1.3.0",
+        "contentVersion": "1.4.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.3.0"
+        "ownerContentVersion": "1.4.0"
       },
       "balanceStatus": "provisional_balance",
       "component": "workup",
@@ -63,15 +63,15 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "balance.mdd-any-medication-reaction-history",
       "balanceKind": "triggered_information_prerequisite",
       "ruleRef": {
         "kind": "diagnosis_rule",
         "id": "rule.diagnosis-mdd.any-medication-reaction-history",
-        "contentVersion": "1.3.0",
+        "contentVersion": "1.4.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.3.0"
+        "ownerContentVersion": "1.4.0"
       },
       "balanceStatus": "provisional_balance",
       "component": "workup",
@@ -92,6 +92,91 @@
         }
       },
       "rationale": "The three values are provisional PsychSim balance from the accepted treatment-triggered history policy and existing prototype tuning. They do not change the qualitative diagnosis rule or derive magnitude from evidence certainty.",
+      "developerOpinionIds": [
+        "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.1.0",
+      "id": "balance.mdd-initial-episode-course-assessment",
+      "balanceKind": "information_requirement",
+      "ruleRef": {
+        "kind": "diagnosis_rule",
+        "id": "rule.diagnosis-mdd.initial-episode-course-assessment",
+        "contentVersion": "1.4.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.4.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "component": "workup",
+      "outcomes": {
+        "fulfilled": {
+          "impactBand": "major",
+          "points": 35,
+          "explanation": "The current episode course and functional effect were characterized."
+        },
+        "omitted": {
+          "impactBand": "major",
+          "points": -35,
+          "explanation": "The current episode course and functional effect were not characterized."
+        }
+      },
+      "rationale": "The two values are provisional PsychSim balance from the accepted focused-assessment policy and existing prototype tuning. They do not change the qualitative diagnosis rule or derive magnitude from evidence certainty.",
+      "developerOpinionIds": [
+        "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.1.0",
+      "id": "balance.mdd-initial-depressive-syndrome-assessment",
+      "balanceKind": "information_requirement",
+      "ruleRef": {
+        "kind": "diagnosis_rule",
+        "id": "rule.diagnosis-mdd.initial-depressive-syndrome-assessment",
+        "contentVersion": "1.4.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.4.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "component": "workup",
+      "outcomes": {
+        "fulfilled": {
+          "impactBand": "major",
+          "points": 50,
+          "explanation": "The depressive symptom cluster was characterized."
+        },
+        "omitted": {
+          "impactBand": "major",
+          "points": -50,
+          "explanation": "The depressive symptom cluster was not characterized."
+        }
+      },
+      "rationale": "The two values are provisional PsychSim balance from the accepted focused-assessment policy and existing prototype tuning. They do not change the qualitative diagnosis rule or derive magnitude from evidence certainty.",
+      "developerOpinionIds": [
+        "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.1.0",
+      "id": "balance.mdd-substance-history",
+      "ruleRef": {
+        "kind": "diagnosis_rule",
+        "id": "rule.diagnosis-mdd.substance-history",
+        "contentVersion": "1.4.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.4.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "impactBand": "moderate",
+      "component": "workup",
+      "pointsWhenMatched": 30,
+      "unmatchedBehavior": "not_triggered_zero",
+      "matchedExplanation": "Substance use was assessed as a possible contributor to the depressive presentation.",
+      "unmatchedExplanation": "Substance-use history was not obtained; this preferred assessment adds no points but creates no separate omission penalty.",
+      "rationale": "The +30 value is provisional PsychSim balance from the accepted focused-assessment policy and existing prototype tuning. It does not change the qualitative diagnosis rule or derive magnitude from evidence certainty.",
       "developerOpinionIds": [
         "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27"
       ]

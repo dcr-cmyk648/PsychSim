@@ -1143,10 +1143,53 @@ by the compiled rubric while separately fingerprinting the full source catalog. 
 pre-combination magnitude and explanation from that snapshot. Same-ID/version retuning changes the
 snapshot fingerprints. No SaveData, runtime queue, clinical rule, or point magnitude was added.
 
+D-270 closes the caller-authored treatment-charge seam for service-backed interventions and
+dispositions. The same exact service owners used by D-239 now join the complete D-219 treatment
+horizon; replay snapshot v3 freezes treatment owners, nullable service bindings, and available
+equal-quality methods. The submitted decision derives and replays one least-cost quote per selected
+service-backed option. Service-free treatments and medication/regimen actions receive no invented
+price. Base reimbursement, challenge, satisfaction, and prior-bank inputs remain the next
+settlement-ownership work; SaveData and runtime activation remain deferred.
+
+D-271 closes that structural settlement-owner work. One exact-template provisional economy policy
+owns base reimbursement and challenge bonus; the current ClinicState owns bank-before,
+lifetime-before, and raw satisfaction; and one exact versioned satisfaction configuration derives
+the multiplier. The full owner set is frozen in replay snapshot v4 and must match the same D-227
+clinic projection that admitted the patient. Real economy-policy records and balance review are
+still required before a generated template can activate; no value is derived from diagnosis,
+severity, setting, or optional complexity.
+
+D-272 closes the already-identified generated diagnosis-qualifier seam without widening clinical
+content. Every diagnosis horizon option must resolve to one exact selectable diagnosis-definition
+owner. A pure compiler projects only the option/diagnosis versions, source-definition fingerprint,
+family-versus-severity player mode, reviewed enabled severity allowlist, and reviewed
+player-selectable specifiers with exclusivity groups. Generated decision validation now rejects
+MDD severity qualifiers while retaining the reviewed psychotic-features identity as an available
+future named qualifier. Replay snapshot and attempt v5 retain and verify that minimized owner set;
+no diagnosis rule, hierarchy score, answer key, severity generation, PatientTemplate, runtime, or
+UI is activated.
+
+D-273 closes the standalone cosmetic launcher-resolution contract. A versioned profile references
+exact curated fictional-name pools and reusable short chief-complaint banks. Independent stable
+draws resolve first name, last name, optional middle initial, complaint bank, and complaint
+variant, while the audit retains every exact input and fingerprint. Names never receive
+race/ethnicity or clinical inputs; complaint wording never becomes a diagnosis, finding, rule, or
+point signal. Equal-priority general and condition-specific banks may mix; higher priority is an
+explicit authoring override. Real content, D-200 attachment, persistence, and UI remain later
+bounded items.
+
+D-274 adds only the requested transitional local Patient Maker for already playable compatibility
+cases. Complete case validation creates its finite allowlist; the complexity selector filters on
+an exact authored budget; and ordinary deterministic instantiation/eligibility persists the
+selected CaseInstance in one reserved Developer queue slot. It does not make a real
+PatientTemplate, consume D-201 modules, attach D-273 to D-200, or change the database-generation
+readiness result below.
+
 D-246 re-audits the first real MDD compile slice without creating another readiness framework.
 The D-223/D-200 chain is executable, but all of its template, core-state, generation-profile,
-projection, universal-result, source-report, and complete-presentation inputs remain synthetic or
-absent. Compatibility patients remain compatibility-only. The authoritative dependency ticket and
+projection, universal-result, source-report, and real launcher-profile/content attachment inputs
+remain synthetic or absent; the standalone D-273 resolver contract does not fill those inputs.
+Compatibility patients remain compatibility-only. The authoritative dependency ticket and
 audit now identify a real `PatientTemplate` as the first executable blocker and the MDD episode
 finding/cardinality owner plus finding-identity completeness review as its first clinical
 dependency.

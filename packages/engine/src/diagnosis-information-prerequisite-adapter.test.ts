@@ -8,7 +8,11 @@ import { describe, expect, it } from 'vitest';
 import mddDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/major-depressive-disorder.diagnosis.json';
 import decisionPolicyCatalogJson from '../../../content/catalogs/decision-policies/catalog.json';
 import medicationRegimenCatalogJson from '../../../content/catalogs/medications/regimen-knowledge.json';
-import { adaptDiagnosisInformationPrerequisite } from './diagnosis-information-prerequisite-adapter';
+import {
+  adaptDiagnosisInformationPrerequisite,
+  adaptDiagnosisInformationRecommendation,
+  adaptDiagnosisInformationRequirement,
+} from './diagnosis-information-prerequisite-adapter';
 
 const diagnosis = DiagnosisDefinitionSchema.parse(mddDiagnosisJson);
 const policyCatalog = DecisionPolicyCatalogSchema.parse(decisionPolicyCatalogJson);
@@ -31,6 +35,78 @@ const adapt = (
   });
 
 describe('diagnosis information-prerequisite adapter', () => {
+  it('losslessly adapts both approved direct MDD information requirements', () => {
+    for (const [ruleId, informationActionId] of [
+      ['rule.diagnosis-mdd.initial-episode-course-assessment', 'info.history.presenting-problem'],
+      [
+        'rule.diagnosis-mdd.initial-depressive-syndrome-assessment',
+        'info.history.depressive-symptoms',
+      ],
+    ] as const) {
+      const adapted = adaptDiagnosisInformationRequirement({
+        diagnosis,
+        diagnosisRuleId: ruleId,
+        policy,
+        primaryRoute,
+        medicationClasses: regimenCatalog.medicationClasses,
+        classMemberships: regimenCatalog.classMemberships,
+      });
+      expect(adapted.ok).toBe(true);
+      if (!adapted.ok) continue;
+      expect(adapted.value).toMatchObject({
+        ruleRef: {
+          kind: 'diagnosis_rule',
+          id: ruleId,
+          contentVersion: diagnosis.contentVersion,
+          ownerId: diagnosis.id,
+          ownerContentVersion: diagnosis.contentVersion,
+        },
+        ruleKind: 'prerequisite',
+        discoveryLane: 'automatic_guardrail',
+        actionWhen: {
+          match: 'any',
+          targets: [{ kind: 'information_action', informationActionId }],
+        },
+        triggeredInformationPrerequisite: null,
+        balanceRef: null,
+      });
+      expect(adapted.value.patientWhen).toEqual(primaryRoute.patientWhen);
+      expect(JSON.stringify(adapted.value)).not.toContain('clinicalTagPresent');
+    }
+  });
+
+  it('adapts the approved preferred substance history without inventing an omission trigger', () => {
+    const adapted = adaptDiagnosisInformationRecommendation({
+      diagnosis,
+      diagnosisRuleId: 'rule.diagnosis-mdd.substance-history',
+      policy,
+      primaryRoute,
+      medicationClasses: regimenCatalog.medicationClasses,
+      classMemberships: regimenCatalog.classMemberships,
+    });
+    expect(adapted.ok).toBe(true);
+    if (!adapted.ok) return;
+    expect(adapted.value).toMatchObject({
+      ruleRef: {
+        kind: 'diagnosis_rule',
+        id: 'rule.diagnosis-mdd.substance-history',
+      },
+      ruleKind: 'prerequisite',
+      stance: 'preferred',
+      actionWhen: {
+        match: 'any',
+        targets: [
+          {
+            kind: 'information_action',
+            informationActionId: 'info.history.substance-use',
+          },
+        ],
+      },
+      triggeredInformationPrerequisite: null,
+      balanceRef: null,
+    });
+  });
+
   it('losslessly adapts both approved any-medication-start MDD prerequisites', () => {
     for (const [ruleId, informationActionId] of [
       [
@@ -87,6 +163,22 @@ describe('diagnosis information-prerequisite adapter', () => {
 
   it('rejects the compatibility-tag antidepressant trigger instead of inferring class membership', () => {
     expect(adapt('rule.diagnosis-mdd.antidepressant-mania-history')).toMatchObject({
+      ok: false,
+      error: { code: 'UNSUPPORTED_SELECTION_TRIGGER' },
+    });
+  });
+
+  it('rejects treatment-triggered rules as direct information requirements', () => {
+    expect(
+      adaptDiagnosisInformationRequirement({
+        diagnosis,
+        diagnosisRuleId: 'rule.diagnosis-mdd.any-medication-reconciliation',
+        policy,
+        primaryRoute,
+        medicationClasses: regimenCatalog.medicationClasses,
+        classMemberships: regimenCatalog.classMemberships,
+      }),
+    ).toMatchObject({
       ok: false,
       error: { code: 'UNSUPPORTED_SELECTION_TRIGGER' },
     });

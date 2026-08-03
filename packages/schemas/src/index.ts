@@ -1032,6 +1032,90 @@ export const VariantPoolDefinitionSchema = z
   .strict();
 export type VariantPoolDefinition = z.infer<typeof VariantPoolDefinitionSchema>;
 
+export const RaceEthnicityCategoryDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(120),
+  })
+  .strict();
+export type RaceEthnicityCategoryDefinition = z.infer<typeof RaceEthnicityCategoryDefinitionSchema>;
+
+export const RaceEthnicityCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    standard: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        label: z.string().trim().min(1).max(240),
+        issuingOrganization: z.string().trim().min(1).max(200),
+        jurisdiction: z.string().trim().min(1).max(120),
+        effectiveDate: PartialPublicationDateSchema,
+        collectionFormat: z.literal('combined_race_ethnicity'),
+        responseMode: z.literal('select_all_that_apply'),
+        classificationBasis: z.literal('self_identified_sociopolitical'),
+        granularity: z.literal('minimum_categories_only'),
+        evidenceSourceId: StableIdSchema,
+        sourceUseDecisionId: StableIdSchema,
+        categoryIds: z.array(StableIdSchema).min(1),
+      })
+      .strict(),
+    categories: z.array(RaceEthnicityCategoryDefinitionSchema).min(1),
+    authoringReview: z
+      .object({
+        status: z.literal('accepted'),
+        scope: z.literal('identity_and_collection_only'),
+        reviewerId: StableIdSchema,
+        reviewedAt: z.string().datetime(),
+        developerOpinionId: StableIdSchema,
+        note: z.string().trim().min(1).max(1200),
+      })
+      .strict(),
+    medicalReviewStatus: z.literal('unreviewed'),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const categoryIds = catalog.categories.map((category) => category.id);
+    if (
+      new Set(categoryIds).size !== categoryIds.length ||
+      new Set(catalog.standard.categoryIds).size !== catalog.standard.categoryIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['categories'],
+        message: 'Race/ethnicity category identities must be unique.',
+      });
+    }
+    if ([...categoryIds].sort().join('|') !== [...catalog.standard.categoryIds].sort().join('|')) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['standard', 'categoryIds'],
+        message: 'The classification standard must name exactly its cataloged categories.',
+      });
+    }
+    if (catalog.standard.contentVersion !== catalog.contentVersion) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['standard', 'contentVersion'],
+        message: 'The race/ethnicity standard and catalog must advance together.',
+      });
+    }
+    catalog.categories.forEach((category, index) => {
+      if (category.contentVersion !== catalog.contentVersion) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['categories', index, 'contentVersion'],
+          message: 'Race/ethnicity category versions must match the catalog version.',
+        });
+      }
+    });
+  });
+export type RaceEthnicityCatalog = z.infer<typeof RaceEthnicityCatalogSchema>;
+
 export const NumericRangeSchema = z
   .object({ minimum: z.number(), maximum: z.number() })
   .strict()
@@ -2111,6 +2195,7 @@ export const ContentRegistryEntrySchema = z
       'location_catalog',
       'facility_catalog',
       'variant_pool_catalog',
+      'race_ethnicity_catalog',
       'test_catalog',
       'reference_interval_catalog',
       'reaction_concept_catalog',
@@ -2119,6 +2204,10 @@ export const ContentRegistryEntrySchema = z
       'diagnosis_catalog',
       'finding_catalog',
       'finding_expression_bank_catalog',
+      'finding_projection_catalog',
+      'finding_projection_horizon_catalog',
+      'condition_finding_profile_catalog',
+      'clinical_duration_profile_catalog',
       'measurement_catalog',
       'exposure_catalog',
       'diagnosis_classification_catalog',
@@ -2126,6 +2215,7 @@ export const ContentRegistryEntrySchema = z
       'medication_regimen_knowledge_catalog',
       'decision_policy_catalog',
       'decision_balance_catalog',
+      'universal_action_result_assembly_catalog',
       'supplement_identity_catalog',
       'personal_knowledge_pilot_profile',
       'personal_knowledge_alias_catalog',
@@ -2486,10 +2576,51 @@ export const DiagnosisSeverityLevelSchema = z
   });
 export type DiagnosisSeverityLevel = z.infer<typeof DiagnosisSeverityLevelSchema>;
 
+export const DiagnosisSeverityDerivationInputSchema = z.enum([
+  'symptom_severity',
+  'condition_attributed_functional_impairment',
+]);
+export type DiagnosisSeverityDerivationInput = z.infer<
+  typeof DiagnosisSeverityDerivationInputSchema
+>;
+
+/**
+ * The first reviewed derivation shape keeps both inputs independently
+ * auditable and names only their qualitative combination. It does not define
+ * how either input is generated or where mild/moderate/severe boundaries lie.
+ */
+export const DiagnosisSeverityDerivationPolicySchema = z
+  .object({
+    id: StableIdSchema,
+    strategy: z.literal('highest_qualitative_level'),
+    inputDimensions: z.array(DiagnosisSeverityDerivationInputSchema).length(2),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict()
+  .superRefine((policy, context) => {
+    const expected = new Set(DiagnosisSeverityDerivationInputSchema.options);
+    const actual = new Set(policy.inputDimensions);
+    if (
+      actual.size !== expected.size ||
+      [...expected].some((dimension) => !actual.has(dimension))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['inputDimensions'],
+        message:
+          'The highest-qualitative-level policy requires separate symptom-severity and condition-attributed-functional-impairment inputs.',
+      });
+    }
+  });
+export type DiagnosisSeverityDerivationPolicy = z.infer<
+  typeof DiagnosisSeverityDerivationPolicySchema
+>;
+
 export const DiagnosisSpecifierSchema = z
   .object({
     id: StableIdSchema,
     label: z.string().min(1).max(180),
+    playerSelectable: z.boolean().default(true),
     exclusiveGroupId: StableIdSchema.nullable(),
     addedClinicalTagIds: z.array(StableIdSchema),
     rules: z.array(DiagnosisRecommendationRuleSchema),
@@ -2544,6 +2675,8 @@ export const DiagnosisDefinitionSchema = z
       .object({
         id: StableIdSchema,
         label: z.string().min(1).max(180),
+        playerSelectionMode: z.enum(['family_only', 'severity_selectable']),
+        derivationPolicy: DiagnosisSeverityDerivationPolicySchema.nullable(),
         levels: z.array(DiagnosisSeverityLevelSchema).min(2),
       })
       .strict()
@@ -3533,8 +3666,10 @@ export const FindingRevealProjectionSchema = z
     sourceBindings: z.array(FindingProjectionSourceBindingSchema).min(1),
     target: FindingProjectionTargetSchema,
     response: FindingProjectionResponseValueSchema,
+    deriveAbsentWhenNoCandidate: z.boolean().optional(),
     expressionBankId: StableIdSchema.nullable(),
     expressionBankContentVersion: ContentVersionSchema.nullable(),
+    developerOpinionIds: z.array(StableIdSchema).optional(),
     review: ClinicalRuleReviewSchema,
   })
   .strict()
@@ -3598,13 +3733,99 @@ export const FindingRevealProjectionSchema = z
         message: 'A projection must pin both expression-bank ID and content version, or neither.',
       });
     }
+    if (
+      projection.developerOpinionIds !== undefined &&
+      new Set(projection.developerOpinionIds).size !== projection.developerOpinionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Projection Developer-opinion references must be unique.',
+      });
+    }
+    if (projection.deriveAbsentWhenNoCandidate === true) {
+      const binding = projection.sourceBindings[0];
+      if (
+        projection.sourceMatch !== 'all' ||
+        projection.sourceBindings.length !== 1 ||
+        binding?.kind !== 'canonical_finding' ||
+        binding.allowedStates.length !== 1 ||
+        binding.allowedStates[0] !== 'absent'
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['deriveAbsentWhenNoCandidate'],
+          message:
+            'A closed-assessment absence projection must have one exact canonical-finding source that matches only absent.',
+        });
+      }
+    }
   });
 export type FindingRevealProjection = z.infer<typeof FindingRevealProjectionSchema>;
+
+export const FindingProjectionCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    projections: z.array(FindingRevealProjectionSchema).min(1).max(2048),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const projectionIds = catalog.projections.map((projection) => projection.id);
+    if (new Set(projectionIds).size !== projectionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['projections'],
+        message: 'Finding-projection catalog IDs must be unique.',
+      });
+    }
+  });
+export type FindingProjectionCatalog = z.infer<typeof FindingProjectionCatalogSchema>;
 
 export const FindingCompilerFingerprintSchema = z
   .string()
   .regex(/^fingerprint\.finding\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
 export type FindingCompilerFingerprint = z.infer<typeof FindingCompilerFingerprintSchema>;
+
+export const FindingSourceReportProjectionSelectionTraceSchema = z
+  .object({
+    slotId: StableIdSchema,
+    source: z
+      .object({
+        kind: z.literal('patient_report'),
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+    timeScopeId: StableIdSchema,
+    claimOriginId: StableIdSchema,
+    dependencyGroupIds: z.array(StableIdSchema).max(64),
+    complexityModule: z
+      .object({
+        moduleRef: z.lazy(() => CatalogInstanceVersionedReferenceSchema),
+        moduleFingerprint: z.lazy(() => OptionalFeatureBudgetFingerprintSchema),
+        optionalFeatureBindingId: StableIdSchema,
+        selectedModuleId: StableIdSchema,
+        cost: z.number().int().min(1).max(3),
+        selectionOrdinal: z.number().int().min(0).max(2),
+        stableDrawId: StableIdSchema,
+      })
+      .strict()
+      .nullable(),
+  })
+  .strict()
+  .superRefine((trace, context) => {
+    if (new Set(trace.dependencyGroupIds).size !== trace.dependencyGroupIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['dependencyGroupIds'],
+        message: 'A finding source-report trace requires unique dependency-group identities.',
+      });
+    }
+  });
+export type FindingSourceReportProjectionSelectionTrace = z.infer<
+  typeof FindingSourceReportProjectionSelectionTraceSchema
+>;
 
 export const FindingProjectionCompilationTraceSchema = z
   .object({
@@ -3612,6 +3833,7 @@ export const FindingProjectionCompilationTraceSchema = z
     compilerVersion: ContentVersionSchema,
     inputFingerprint: FindingCompilerFingerprintSchema,
     stableDrawId: StableIdSchema.nullable(),
+    sourceReportSelection: FindingSourceReportProjectionSelectionTraceSchema.optional(),
   })
   .strict();
 export type FindingProjectionCompilationTrace = z.infer<
@@ -3965,6 +4187,255 @@ export const FindingProjectionHorizonSchema = z
   });
 export type FindingProjectionHorizon = z.infer<typeof FindingProjectionHorizonSchema>;
 
+export const FindingProjectionHorizonDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    horizon: FindingProjectionHorizonSchema,
+    projectionRefs: z
+      .array(
+        z
+          .object({
+            id: StableIdSchema,
+            contentVersion: ContentVersionSchema,
+          })
+          .strict(),
+      )
+      .min(1),
+    developerOpinionIds: z.array(StableIdSchema).min(1),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((definition, context) => {
+    if (definition.horizon.id !== definition.id) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['horizon', 'id'],
+        message: 'A finding-projection horizon definition and its horizon must share one ID.',
+      });
+    }
+    const referenceKeys = definition.projectionRefs.map(
+      (reference) => `${reference.id}\u0000${reference.contentVersion}`,
+    );
+    if (
+      new Set(referenceKeys).size !== referenceKeys.length ||
+      new Set(definition.developerOpinionIds).size !== definition.developerOpinionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A finding-projection horizon requires unique exact projection and Developer-opinion references.',
+      });
+    }
+  });
+export type FindingProjectionHorizonDefinition = z.infer<
+  typeof FindingProjectionHorizonDefinitionSchema
+>;
+
+export const FindingProjectionHorizonCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    horizons: z.array(FindingProjectionHorizonDefinitionSchema).min(1),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const horizonIds = catalog.horizons.map((horizon) => horizon.id);
+    if (new Set(horizonIds).size !== horizonIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['horizons'],
+        message: 'Finding-projection horizon catalog IDs must be unique.',
+      });
+    }
+  });
+export type FindingProjectionHorizonCatalog = z.infer<typeof FindingProjectionHorizonCatalogSchema>;
+
+export const FindingSourceReportProjectionModifierSchema = z
+  .object({
+    moduleRef: z.lazy(() => CatalogInstanceVersionedReferenceSchema),
+    moduleFingerprint: z.lazy(() => OptionalFeatureBudgetFingerprintSchema),
+    optionalFeatureBindingId: StableIdSchema,
+    selectedModuleId: StableIdSchema,
+    projectionRef: z.lazy(() => CatalogInstanceVersionedReferenceSchema),
+  })
+  .strict();
+export type FindingSourceReportProjectionModifier = z.infer<
+  typeof FindingSourceReportProjectionModifierSchema
+>;
+
+/**
+ * One slot governs one exact hidden-finding-state-to-patient-report mapping.
+ * A symptom item may own separate slots for its present and absent hidden
+ * states; only the slot whose source predicate matches can emit a response.
+ */
+export const FindingSourceReportProjectionSlotSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    source: z
+      .object({
+        kind: z.literal('patient_report'),
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+    timeScopeId: StableIdSchema,
+    claimOriginId: StableIdSchema,
+    dependencyGroupIds: z.array(StableIdSchema).max(64),
+    baseProjectionRef: z.lazy(() => CatalogInstanceVersionedReferenceSchema),
+    modifiers: z.array(FindingSourceReportProjectionModifierSchema).min(1).max(32),
+  })
+  .strict()
+  .superRefine((slot, context) => {
+    const moduleKeys = slot.modifiers.map(
+      (modifier) => `${modifier.moduleRef.id}\u0000${modifier.moduleRef.contentVersion}`,
+    );
+    if (
+      new Set(slot.dependencyGroupIds).size !== slot.dependencyGroupIds.length ||
+      new Set(moduleKeys).size !== moduleKeys.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A finding source-report slot requires unique dependency groups and one exact modifier per optional-module identity.',
+      });
+    }
+  });
+export type FindingSourceReportProjectionSlot = z.infer<
+  typeof FindingSourceReportProjectionSlotSchema
+>;
+
+/**
+ * D-258 is a post-truth projection policy, not another selector. It embeds the
+ * one complete D-201 artifact and chooses only between reviewed D-193
+ * projections. The hidden finding, original complexity draw, and cost remain
+ * unchanged.
+ */
+export const FindingSourceReportProjectionPolicySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('finding-source-report-projection.v1'),
+    optionalFeatureArtifact: z.lazy(() => OptionalFeatureBudgetSelectionArtifactSchema),
+    slots: z.array(FindingSourceReportProjectionSlotSchema).min(1).max(256),
+    developerOpinionIds: z.array(StableIdSchema),
+    lifecycle: ContentLifecycleSchema,
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((policy, context) => {
+    const slotIds = policy.slots.map((slot) => slot.id);
+    const projectionKeys = policy.slots.flatMap((slot) => [
+      `${slot.baseProjectionRef.id}\u0000${slot.baseProjectionRef.contentVersion}`,
+      ...slot.modifiers.map(
+        (modifier) => `${modifier.projectionRef.id}\u0000${modifier.projectionRef.contentVersion}`,
+      ),
+    ]);
+    const definitionsById = new Map(
+      policy.optionalFeatureArtifact.selectionRequest.moduleDefinitions.map((definition) => [
+        definition.id,
+        definition,
+      ]),
+    );
+    const bindingsById = new Map(
+      policy.optionalFeatureArtifact.selectionRequest.profile.candidateBindings.map((binding) => [
+        binding.id,
+        binding,
+      ]),
+    );
+    const evaluationsByDefinitionId = new Map(
+      policy.optionalFeatureArtifact.candidateEvaluations.map((evaluation) => [
+        evaluation.moduleRef.id,
+        evaluation,
+      ]),
+    );
+    const incompatibilityPairs = new Set(
+      policy.optionalFeatureArtifact.selectionRequest.profile.incompatibilities.map(
+        (incompatibility) =>
+          `${incompatibility.leftModuleId}\u0000${incompatibility.rightModuleId}`,
+      ),
+    );
+    if (
+      new Set(slotIds).size !== slotIds.length ||
+      new Set(projectionKeys).size !== projectionKeys.length ||
+      new Set(policy.developerOpinionIds).size !== policy.developerOpinionIds.length ||
+      policy.lifecycle !== 'approved' ||
+      policy.review.status !== 'approved' ||
+      (policy.review.sourceUseNoteIds.length === 0 && policy.developerOpinionIds.length === 0)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An executable finding source-report policy requires unique slots/projections, approved review, and formal contribution or Developer-opinion provenance.',
+      });
+    }
+    policy.slots.forEach((slot, slotIndex) => {
+      const selectedModifiers = slot.modifiers.filter(
+        (modifier) =>
+          evaluationsByDefinitionId.get(modifier.moduleRef.id)?.disposition === 'selected',
+      );
+      if (selectedModifiers.length > 1) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['slots', slotIndex, 'modifiers'],
+          message:
+            'At most one D-201-selected source-report modifier may control one exact finding-report slot.',
+        });
+      }
+      for (let leftIndex = 0; leftIndex < slot.modifiers.length; leftIndex += 1) {
+        for (let rightIndex = leftIndex + 1; rightIndex < slot.modifiers.length; rightIndex += 1) {
+          if (
+            policy.optionalFeatureArtifact.selectionRequest.template.complexityProfile
+              .maximumSelectedModules <= 1
+          ) {
+            continue;
+          }
+          const pair = [
+            slot.modifiers[leftIndex]!.moduleRef.id,
+            slot.modifiers[rightIndex]!.moduleRef.id,
+          ].sort();
+          if (!incompatibilityPairs.has(`${pair[0]}\u0000${pair[1]}`)) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['slots', slotIndex, 'modifiers'],
+              message:
+                'Finding-report modifiers sharing one slot must already be mutually incompatible in D-201.',
+            });
+          }
+        }
+      }
+      slot.modifiers.forEach((modifier, modifierIndex) => {
+        const definition = definitionsById.get(modifier.moduleRef.id);
+        const binding = bindingsById.get(modifier.optionalFeatureBindingId);
+        const evaluation = evaluationsByDefinitionId.get(modifier.moduleRef.id);
+        if (
+          definition?.moduleKind !== 'source_report' ||
+          definition.contentVersion !== modifier.moduleRef.contentVersion ||
+          evaluation?.moduleFingerprint !== modifier.moduleFingerprint ||
+          evaluation.bindingId !== modifier.optionalFeatureBindingId ||
+          evaluation.moduleSnapshot.id !== modifier.selectedModuleId ||
+          binding?.moduleRef.id !== modifier.moduleRef.id ||
+          binding.moduleRef.contentVersion !== modifier.moduleRef.contentVersion ||
+          binding.moduleFingerprint !== modifier.moduleFingerprint ||
+          binding.selectedModuleId !== modifier.selectedModuleId
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['slots', slotIndex, 'modifiers', modifierIndex],
+            message:
+              'Each finding-report modifier must pin one exact source_report definition, D-201 binding, selected-record identity, and candidate evaluation.',
+          });
+        }
+      });
+    });
+  });
+export type FindingSourceReportProjectionPolicy = z.infer<
+  typeof FindingSourceReportProjectionPolicySchema
+>;
+
 export const FindingProjectionPropositionDefinitionReferenceSchema = z
   .object({
     id: StableIdSchema,
@@ -3988,6 +4459,9 @@ export const SharedFindingCompileRequestSchema = z
     projections: z.array(FindingRevealProjectionSchema),
     expressionBanks: z.array(FindingExpressionBankSchema),
     projectionHorizon: FindingProjectionHorizonSchema,
+    findingSourceReportProjectionPolicy: z
+      .lazy(() => FindingSourceReportProjectionPolicySchema)
+      .optional(),
   })
   .strict()
   .superRefine((request, context) => {
@@ -4014,6 +4488,66 @@ export const SharedFindingCompileRequestSchema = z
         code: z.ZodIssueCode.custom,
         path: ['candidates'],
         message: 'Finding contribution IDs must be globally unique within one compilation.',
+      });
+    }
+    const policy = request.findingSourceReportProjectionPolicy;
+    if (policy !== undefined) {
+      const projectionsByKey = new Map(
+        request.projections.map((projection) => [
+          `${projection.id}\u0000${projection.contentVersion}`,
+          projection,
+        ]),
+      );
+      if (
+        policy.optionalFeatureArtifact.seed !== request.seed ||
+        policy.optionalFeatureArtifact.selectionRequest.seed !== request.seed
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['findingSourceReportProjectionPolicy', 'optionalFeatureArtifact', 'seed'],
+          message:
+            'A finding source-report policy must reuse the shared patient-generation seed retained by D-201.',
+        });
+      }
+      policy.slots.forEach((slot, slotIndex) => {
+        const base = projectionsByKey.get(
+          `${slot.baseProjectionRef.id}\u0000${slot.baseProjectionRef.contentVersion}`,
+        );
+        if (base === undefined || base.review.status !== 'approved') {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['findingSourceReportProjectionPolicy', 'slots', slotIndex, 'baseProjectionRef'],
+            message:
+              'A finding source-report slot requires one included, exact, approved base projection.',
+          });
+          return;
+        }
+        slot.modifiers.forEach((modifier, modifierIndex) => {
+          const alternative = projectionsByKey.get(
+            `${modifier.projectionRef.id}\u0000${modifier.projectionRef.contentVersion}`,
+          );
+          if (
+            alternative === undefined ||
+            alternative.review.status !== 'approved' ||
+            base.sourceMatch !== alternative.sourceMatch ||
+            JSON.stringify(base.sourceBindings) !== JSON.stringify(alternative.sourceBindings) ||
+            JSON.stringify(base.target) !== JSON.stringify(alternative.target)
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [
+                'findingSourceReportProjectionPolicy',
+                'slots',
+                slotIndex,
+                'modifiers',
+                modifierIndex,
+                'projectionRef',
+              ],
+              message:
+                'A finding-report modifier must name an included approved projection with the exact same hidden source predicate and target as its base.',
+            });
+          }
+        });
       });
     }
   });
@@ -4516,11 +5050,14 @@ export type ClinicalDurationOption = z.infer<typeof ClinicalDurationOptionSchema
 
 export const ClinicalDurationProfileSchema = z
   .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
     id: StableIdSchema,
     relatedDiagnosisId: StableIdSchema.nullable(),
     interpretation: z.enum(['supports_authored_state', 'designed_below_threshold', 'context_only']),
     criterionId: StableIdSchema.nullable(),
     options: z.array(ClinicalDurationOptionSchema).min(2).max(24),
+    developerOpinionIds: z.array(StableIdSchema).optional(),
     review: UnreviewedClinicalRuleSchema,
   })
   .strict()
@@ -4529,6 +5066,16 @@ export const ClinicalDurationProfileSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Clinical duration option IDs must be unique within a profile.',
+      });
+    }
+    if (
+      profile.developerOpinionIds !== undefined &&
+      new Set(profile.developerOpinionIds).size !== profile.developerOpinionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Clinical-duration profile Developer-opinion references must be unique.',
       });
     }
     if (profile.interpretation === 'designed_below_threshold' && !profile.criterionId) {
@@ -4545,6 +5092,90 @@ export const ClinicalDurationProfileSchema = z
     }
   });
 export type ClinicalDurationProfile = z.infer<typeof ClinicalDurationProfileSchema>;
+
+export const ClinicalDurationProfileCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    profiles: z.array(ClinicalDurationProfileSchema).min(1).max(512),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const profileIds = catalog.profiles.map((profile) => profile.id);
+    if (new Set(profileIds).size !== profileIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profiles'],
+        message: 'Clinical-duration profile catalog IDs must be unique.',
+      });
+    }
+  });
+export type ClinicalDurationProfileCatalog = z.infer<typeof ClinicalDurationProfileCatalogSchema>;
+
+/**
+ * Functional impairment is condition-attributed clinical state. It is not a
+ * synonym for subjective burden ("how bothersome") or for a coarse report that
+ * functioning was affected. These qualitative identities intentionally carry
+ * no diagnostic threshold, point value, or player-facing wording.
+ */
+export const FunctionalImpairmentLevelSchema = z.enum(['none', 'mild', 'moderate', 'severe']);
+export type FunctionalImpairmentLevel = z.infer<typeof FunctionalImpairmentLevelSchema>;
+
+export const ConditionFunctionalImpairmentOptionSchema = z
+  .object({
+    id: StableIdSchema,
+    level: FunctionalImpairmentLevelSchema,
+  })
+  .strict();
+export type ConditionFunctionalImpairmentOption = z.infer<
+  typeof ConditionFunctionalImpairmentOptionSchema
+>;
+
+export const ConditionFunctionalImpairmentProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    relatedDiagnosisId: StableIdSchema,
+    options: z.array(ConditionFunctionalImpairmentOptionSchema).min(1).max(4),
+    developerOpinionIds: z.array(StableIdSchema).optional(),
+    review: UnreviewedClinicalRuleSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    const optionIds = profile.options.map((option) => option.id);
+    if (new Set(optionIds).size !== optionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['options'],
+        message: 'Condition-functional-impairment option IDs must be unique within a profile.',
+      });
+    }
+    const levels = profile.options.map((option) => option.level);
+    if (new Set(levels).size !== levels.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['options'],
+        message:
+          'A condition-functional-impairment profile may offer each qualitative level at most once.',
+      });
+    }
+    if (
+      profile.developerOpinionIds !== undefined &&
+      new Set(profile.developerOpinionIds).size !== profile.developerOpinionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message:
+          'Condition-functional-impairment profile Developer-opinion references must be unique.',
+      });
+    }
+  });
+export type ConditionFunctionalImpairmentProfile = z.infer<
+  typeof ConditionFunctionalImpairmentProfileSchema
+>;
 
 export const FindingBlueprintSchema = z
   .object({
@@ -4709,6 +5340,7 @@ export const ResolvedFindingSchema = z
     durationMeasurement: z
       .object({
         profileId: StableIdSchema,
+        profileContentVersion: ContentVersionSchema,
         optionId: StableIdSchema,
         value: z.number().int().positive(),
         unit: ClinicalDurationUnitSchema,
@@ -5559,6 +6191,7 @@ export const PatientOptionalFeatureModuleKindSchema = z.enum([
   'comorbidity',
   'substance_use',
   'finding_texture',
+  'source_report',
   'other',
 ]);
 export type PatientOptionalFeatureModuleKind = z.infer<
@@ -5700,6 +6333,60 @@ export const ResolvedPatientDemographicsV2Schema = z
   })
   .strict();
 export type ResolvedPatientDemographicsV2 = z.infer<typeof ResolvedPatientDemographicsV2Schema>;
+
+const ResolvedPatientRaceEthnicityCommonShape = {
+  recordVersion: z.literal(1),
+  standardId: StableIdSchema,
+  standardContentVersion: ContentVersionSchema,
+  categoryIds: z.array(StableIdSchema).max(7),
+};
+
+export const ResolvedPatientRaceEthnicitySchema = z
+  .discriminatedUnion('collectionStatus', [
+    z
+      .object({
+        ...ResolvedPatientRaceEthnicityCommonShape,
+        collectionStatus: z.literal('provided'),
+        identificationBasis: z.literal('self_identified'),
+        categoryIds: ResolvedPatientRaceEthnicityCommonShape.categoryIds.min(1),
+      })
+      .strict(),
+    z
+      .object({
+        ...ResolvedPatientRaceEthnicityCommonShape,
+        collectionStatus: z.enum(['not_recorded', 'declined_to_answer']),
+        identificationBasis: z.null(),
+        categoryIds: ResolvedPatientRaceEthnicityCommonShape.categoryIds.length(0),
+      })
+      .strict(),
+  ])
+  .superRefine((record, context) => {
+    if (new Set(record.categoryIds).size !== record.categoryIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['categoryIds'],
+        message: 'Provided race/ethnicity categories must be unique.',
+      });
+    }
+  });
+export type ResolvedPatientRaceEthnicity = z.infer<typeof ResolvedPatientRaceEthnicitySchema>;
+
+export const ResolvedPatientDemographicsV3Schema = z
+  .object({
+    recordVersion: z.literal(3),
+    ageYears: z.number().int().min(0).max(120),
+    reviewedAgeBandId: StableIdSchema,
+    sexForReference: z.enum(['female', 'male', 'intersex', 'unspecified']),
+    raceEthnicity: ResolvedPatientRaceEthnicitySchema,
+  })
+  .strict();
+export type ResolvedPatientDemographicsV3 = z.infer<typeof ResolvedPatientDemographicsV3Schema>;
+
+export const ResolvedPatientDemographicsSchema = z.union([
+  ResolvedPatientDemographicsV2Schema,
+  ResolvedPatientDemographicsV3Schema,
+]);
+export type ResolvedPatientDemographics = z.infer<typeof ResolvedPatientDemographicsSchema>;
 
 export const MedicationRegimenEntryV2Schema = z
   .object({
@@ -6151,6 +6838,7 @@ export const ResolvedClinicalDurationSchema = z
     value: z.number().int().positive(),
     unit: ClinicalDurationUnitSchema,
     durationProfileId: StableIdSchema,
+    durationProfileContentVersion: ContentVersionSchema,
     durationOptionId: StableIdSchema,
     relatedDiagnosisId: StableIdSchema.nullable(),
     interpretation: z.enum(['supports_authored_state', 'designed_below_threshold', 'context_only']),
@@ -6178,6 +6866,628 @@ export const ResolvedClinicalDurationSchema = z
   });
 export type ResolvedClinicalDuration = z.infer<typeof ResolvedClinicalDurationSchema>;
 
+export const ClinicalDurationResolutionFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.clinical-duration-resolution\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type ClinicalDurationResolutionFingerprint = z.infer<
+  typeof ClinicalDurationResolutionFingerprintSchema
+>;
+
+/**
+ * This first reusable resolver is deliberately condition-scoped. Finding- and
+ * proposition-scoped duration records retain their existing typed shapes but
+ * require a later exact adapter rather than an implicit generic target.
+ */
+export const ConditionClinicalDurationResolutionRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    conditionState: ConditionStateSchema,
+    profile: ClinicalDurationProfileSchema,
+    source: PatientStateScopedSourceSchema,
+    timeScopeId: StableIdSchema,
+    seed: z.string().min(1).max(512),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    if (
+      request.profile.relatedDiagnosisId === null ||
+      request.profile.relatedDiagnosisId !== request.conditionState.diagnosisDefinitionId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profile', 'relatedDiagnosisId'],
+        message:
+          'A condition-duration profile must name the exact diagnosis owned by its target condition state.',
+      });
+    }
+    if (request.timeScopeId !== request.conditionState.timeScopeId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['timeScopeId'],
+        message: 'A condition-duration request must use its target condition time scope.',
+      });
+    }
+  });
+export type ConditionClinicalDurationResolutionRequest = z.infer<
+  typeof ConditionClinicalDurationResolutionRequestSchema
+>;
+
+export const ClinicalDurationOptionResolutionEvaluationSchema = z
+  .object({
+    optionId: StableIdSchema,
+    value: z.number().int().positive(),
+    unit: ClinicalDurationUnitSchema,
+    selected: z.boolean(),
+  })
+  .strict();
+export type ClinicalDurationOptionResolutionEvaluation = z.infer<
+  typeof ClinicalDurationOptionResolutionEvaluationSchema
+>;
+
+export const ConditionClinicalDurationResolutionArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    resolverVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    conditionStateId: StableIdSchema,
+    profileRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+      })
+      .strict(),
+    profileFingerprint: ClinicalDurationResolutionFingerprintSchema,
+    source: PatientStateScopedSourceSchema,
+    timeScopeId: StableIdSchema,
+    stableDrawId: StableIdSchema,
+    optionEvaluations: z.array(ClinicalDurationOptionResolutionEvaluationSchema).min(2).max(24),
+    resolvedDuration: ResolvedClinicalDurationSchema,
+    compileRequest: ConditionClinicalDurationResolutionRequestSchema,
+    inputFingerprint: ClinicalDurationResolutionFingerprintSchema,
+    payloadFingerprint: ClinicalDurationResolutionFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const selected = artifact.optionEvaluations.filter((evaluation) => evaluation.selected);
+    const request = artifact.compileRequest;
+    const duration = artifact.resolvedDuration;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.conditionStateId !== request.conditionState.id ||
+      artifact.profileRef.id !== request.profile.id ||
+      artifact.profileRef.contentVersion !== request.profile.contentVersion ||
+      artifact.source.kind !== request.source.kind ||
+      artifact.source.sourceInstanceId !== request.source.sourceInstanceId ||
+      artifact.timeScopeId !== request.timeScopeId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A condition-duration artifact must retain its exact request, condition, profile, source, and time coordinate.',
+      });
+    }
+    if (
+      selected.length !== 1 ||
+      selected[0]?.optionId !== duration.durationOptionId ||
+      selected[0]?.value !== duration.value ||
+      selected[0]?.unit !== duration.unit
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['optionEvaluations'],
+        message:
+          'A condition-duration artifact must retain every offered option and exactly one resolved selection.',
+      });
+    }
+    if (
+      duration.target.kind !== 'condition_state' ||
+      duration.target.conditionStateId !== request.conditionState.id ||
+      duration.durationProfileId !== request.profile.id ||
+      duration.durationProfileContentVersion !== request.profile.contentVersion ||
+      duration.relatedDiagnosisId !== request.profile.relatedDiagnosisId ||
+      duration.interpretation !== request.profile.interpretation ||
+      duration.criterionId !== request.profile.criterionId ||
+      duration.source.kind !== request.source.kind ||
+      duration.source.sourceInstanceId !== request.source.sourceInstanceId ||
+      duration.timeScopeId !== request.timeScopeId ||
+      duration.resolution.origin !== 'deterministic_generation' ||
+      duration.resolution.generationProfileId !== request.profile.id ||
+      duration.resolution.generationProfileContentVersion !== request.profile.contentVersion ||
+      duration.resolution.resolverVersion !== artifact.resolverVersion ||
+      duration.resolution.stableDrawId !== artifact.stableDrawId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolvedDuration'],
+        message:
+          'A resolved condition duration must retain its exact target, profile, source, time, and deterministic draw provenance.',
+      });
+    }
+    const expectedId = `clinical-duration-resolution.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A condition-duration artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type ConditionClinicalDurationResolutionArtifact = z.infer<
+  typeof ConditionClinicalDurationResolutionArtifactSchema
+>;
+
+export const ResolvedConditionFunctionalImpairmentSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    target: z
+      .object({
+        kind: z.literal('condition_state'),
+        conditionStateId: StableIdSchema,
+      })
+      .strict(),
+    attribution: z.literal('condition_attributed'),
+    level: FunctionalImpairmentLevelSchema,
+    functionalImpairmentProfileId: StableIdSchema,
+    functionalImpairmentProfileContentVersion: ContentVersionSchema,
+    functionalImpairmentOptionId: StableIdSchema,
+    relatedDiagnosisId: StableIdSchema,
+    source: PatientStateScopedSourceSchema,
+    timeScopeId: StableIdSchema,
+    resolution: PatientStateResolutionTraceSchema,
+  })
+  .strict();
+export type ResolvedConditionFunctionalImpairment = z.infer<
+  typeof ResolvedConditionFunctionalImpairmentSchema
+>;
+
+export const ConditionFunctionalImpairmentResolutionFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.condition-functional-impairment-resolution\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type ConditionFunctionalImpairmentResolutionFingerprint = z.infer<
+  typeof ConditionFunctionalImpairmentResolutionFingerprintSchema
+>;
+
+/**
+ * The first functional-impairment resolver is condition-scoped. It resolves
+ * only explicitly reviewed finite profiles and remains outside the composed
+ * patient state until an exact attachment/projection path is separately
+ * approved.
+ */
+export const ConditionFunctionalImpairmentResolutionRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    conditionState: ConditionStateSchema,
+    profile: ConditionFunctionalImpairmentProfileSchema,
+    source: PatientStateScopedSourceSchema,
+    timeScopeId: StableIdSchema,
+    seed: z.string().min(1).max(512),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    if (request.profile.relatedDiagnosisId !== request.conditionState.diagnosisDefinitionId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profile', 'relatedDiagnosisId'],
+        message:
+          'A condition-functional-impairment profile must name the exact diagnosis owned by its target condition state.',
+      });
+    }
+    if (request.timeScopeId !== request.conditionState.timeScopeId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['timeScopeId'],
+        message:
+          'A condition-functional-impairment request must use its target condition time scope.',
+      });
+    }
+  });
+export type ConditionFunctionalImpairmentResolutionRequest = z.infer<
+  typeof ConditionFunctionalImpairmentResolutionRequestSchema
+>;
+
+export const ConditionFunctionalImpairmentOptionResolutionEvaluationSchema = z
+  .object({
+    optionId: StableIdSchema,
+    level: FunctionalImpairmentLevelSchema,
+    selected: z.boolean(),
+  })
+  .strict();
+export type ConditionFunctionalImpairmentOptionResolutionEvaluation = z.infer<
+  typeof ConditionFunctionalImpairmentOptionResolutionEvaluationSchema
+>;
+
+export const ConditionFunctionalImpairmentResolutionArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    resolverVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    conditionStateId: StableIdSchema,
+    profileRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+      })
+      .strict(),
+    profileFingerprint: ConditionFunctionalImpairmentResolutionFingerprintSchema,
+    source: PatientStateScopedSourceSchema,
+    timeScopeId: StableIdSchema,
+    stableDrawId: StableIdSchema,
+    optionEvaluations: z
+      .array(ConditionFunctionalImpairmentOptionResolutionEvaluationSchema)
+      .min(1)
+      .max(4),
+    resolvedFunctionalImpairment: ResolvedConditionFunctionalImpairmentSchema,
+    compileRequest: ConditionFunctionalImpairmentResolutionRequestSchema,
+    inputFingerprint: ConditionFunctionalImpairmentResolutionFingerprintSchema,
+    payloadFingerprint: ConditionFunctionalImpairmentResolutionFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const selected = artifact.optionEvaluations.filter((evaluation) => evaluation.selected);
+    const request = artifact.compileRequest;
+    const impairment = artifact.resolvedFunctionalImpairment;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.conditionStateId !== request.conditionState.id ||
+      artifact.profileRef.id !== request.profile.id ||
+      artifact.profileRef.contentVersion !== request.profile.contentVersion ||
+      artifact.source.kind !== request.source.kind ||
+      artifact.source.sourceInstanceId !== request.source.sourceInstanceId ||
+      artifact.timeScopeId !== request.timeScopeId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A condition-functional-impairment artifact must retain its exact request, condition, profile, source, and time coordinate.',
+      });
+    }
+    if (
+      selected.length !== 1 ||
+      selected[0]?.optionId !== impairment.functionalImpairmentOptionId ||
+      selected[0]?.level !== impairment.level
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['optionEvaluations'],
+        message:
+          'A condition-functional-impairment artifact must retain every offered option and exactly one resolved selection.',
+      });
+    }
+    if (
+      impairment.target.conditionStateId !== request.conditionState.id ||
+      impairment.attribution !== 'condition_attributed' ||
+      impairment.functionalImpairmentProfileId !== request.profile.id ||
+      impairment.functionalImpairmentProfileContentVersion !== request.profile.contentVersion ||
+      impairment.relatedDiagnosisId !== request.profile.relatedDiagnosisId ||
+      impairment.source.kind !== request.source.kind ||
+      impairment.source.sourceInstanceId !== request.source.sourceInstanceId ||
+      impairment.timeScopeId !== request.timeScopeId ||
+      impairment.resolution.origin !== 'deterministic_generation' ||
+      impairment.resolution.generationProfileId !== request.profile.id ||
+      impairment.resolution.generationProfileContentVersion !== request.profile.contentVersion ||
+      impairment.resolution.resolverVersion !== artifact.resolverVersion ||
+      impairment.resolution.stableDrawId !== artifact.stableDrawId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolvedFunctionalImpairment'],
+        message:
+          'A resolved condition-functional-impairment record must retain its exact target, profile, source, time, and deterministic draw provenance.',
+      });
+    }
+    const expectedId = `condition-functional-impairment-resolution.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A condition-functional-impairment artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type ConditionFunctionalImpairmentResolutionArtifact = z.infer<
+  typeof ConditionFunctionalImpairmentResolutionArtifactSchema
+>;
+
+/**
+ * Symptom severity is a condition-scoped qualitative input derived by a
+ * separate reviewed owner. This compact envelope deliberately does not say
+ * how symptoms, intensity, frequency, or an instrument result produced the
+ * level. Its owner fingerprint keeps that future upstream derivation exact
+ * without letting the episode-severity combiner invent those boundaries.
+ */
+export const ConditionSymptomSeverityLevelSchema = z.enum(['mild', 'moderate', 'severe']);
+export type ConditionSymptomSeverityLevel = z.infer<typeof ConditionSymptomSeverityLevelSchema>;
+
+export const ConditionSymptomSeverityPayloadFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.condition-symptom-severity\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type ConditionSymptomSeverityPayloadFingerprint = z.infer<
+  typeof ConditionSymptomSeverityPayloadFingerprintSchema
+>;
+
+export const ResolvedConditionSymptomSeverityInputSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    target: z
+      .object({
+        kind: z.literal('condition_state'),
+        conditionStateId: StableIdSchema,
+      })
+      .strict(),
+    diagnosisDefinitionId: StableIdSchema,
+    diagnosisDefinitionContentVersion: ContentVersionSchema,
+    clinicalStateId: StableIdSchema,
+    timeScopeId: StableIdSchema,
+    level: ConditionSymptomSeverityLevelSchema,
+    resolutionOwner: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        payloadFingerprint: ConditionSymptomSeverityPayloadFingerprintSchema,
+      })
+      .strict(),
+  })
+  .strict();
+export type ResolvedConditionSymptomSeverityInput = z.infer<
+  typeof ResolvedConditionSymptomSeverityInputSchema
+>;
+
+/**
+ * This is the minimized diagnosis-owned policy projection used by the
+ * point-free same-episode combiner. It is not a second diagnosis catalog and
+ * cannot enable a severity branch.
+ */
+export const ConditionEpisodeSeverityDerivationOwnerSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    diagnosisDefinitionId: StableIdSchema,
+    diagnosisDefinitionContentVersion: ContentVersionSchema,
+    severityAxisId: StableIdSchema,
+    derivationPolicy: DiagnosisSeverityDerivationPolicySchema,
+  })
+  .strict();
+export type ConditionEpisodeSeverityDerivationOwner = z.infer<
+  typeof ConditionEpisodeSeverityDerivationOwnerSchema
+>;
+
+export const ConditionEpisodeSeverityDerivationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.condition-episode-severity-derivation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type ConditionEpisodeSeverityDerivationFingerprint = z.infer<
+  typeof ConditionEpisodeSeverityDerivationFingerprintSchema
+>;
+
+export const ConditionEpisodeSeverityDerivationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    conditionState: ConditionStateSchema,
+    derivationOwner: ConditionEpisodeSeverityDerivationOwnerSchema,
+    symptomSeverity: ResolvedConditionSymptomSeverityInputSchema,
+    functionalImpairmentResolution: ConditionFunctionalImpairmentResolutionArtifactSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const condition = request.conditionState;
+    const owner = request.derivationOwner;
+    const symptomSeverity = request.symptomSeverity;
+    const impairmentResolution = request.functionalImpairmentResolution;
+    const impairment = impairmentResolution.resolvedFunctionalImpairment;
+    const normalizedConditionState = (value: ConditionState): string =>
+      JSON.stringify({
+        ...value,
+        specifierIds: [...value.specifierIds].sort(),
+      });
+    if (
+      owner.diagnosisDefinitionId !== condition.diagnosisDefinitionId ||
+      owner.diagnosisDefinitionContentVersion !== condition.diagnosisDefinitionContentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['derivationOwner'],
+        message:
+          'A condition-episode-severity derivation owner must match the exact diagnosis definition owned by its condition state.',
+      });
+    }
+    if (
+      symptomSeverity.patientStateId !== request.patientStateId ||
+      symptomSeverity.target.conditionStateId !== condition.id ||
+      symptomSeverity.diagnosisDefinitionId !== condition.diagnosisDefinitionId ||
+      symptomSeverity.diagnosisDefinitionContentVersion !==
+        condition.diagnosisDefinitionContentVersion ||
+      symptomSeverity.clinicalStateId !== condition.clinicalStateId ||
+      symptomSeverity.timeScopeId !== condition.timeScopeId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['symptomSeverity'],
+        message:
+          'A symptom-severity input must retain the exact patient, condition, diagnosis, clinical state, and time scope being derived.',
+      });
+    }
+    if (
+      impairmentResolution.patientStateId !== request.patientStateId ||
+      impairmentResolution.conditionStateId !== condition.id ||
+      normalizedConditionState(impairmentResolution.compileRequest.conditionState) !==
+        normalizedConditionState(condition) ||
+      impairment.target.conditionStateId !== condition.id ||
+      impairment.relatedDiagnosisId !== condition.diagnosisDefinitionId ||
+      impairment.timeScopeId !== condition.timeScopeId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['functionalImpairmentResolution'],
+        message:
+          'A functional-impairment input must retain the same patient, condition, diagnosis, and time scope as the symptom-severity input.',
+      });
+    }
+  });
+export type ConditionEpisodeSeverityDerivationRequest = z.infer<
+  typeof ConditionEpisodeSeverityDerivationRequestSchema
+>;
+
+export const ResolvedConditionEpisodeSeveritySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    target: z
+      .object({
+        kind: z.literal('condition_state'),
+        conditionStateId: StableIdSchema,
+      })
+      .strict(),
+    diagnosisDefinitionId: StableIdSchema,
+    diagnosisDefinitionContentVersion: ContentVersionSchema,
+    clinicalStateId: StableIdSchema,
+    timeScopeId: StableIdSchema,
+    qualitativeLevel: ConditionSymptomSeverityLevelSchema,
+    inputLevels: z
+      .object({
+        symptomSeverity: ConditionSymptomSeverityLevelSchema,
+        conditionAttributedFunctionalImpairment: FunctionalImpairmentLevelSchema,
+      })
+      .strict(),
+    severityAxisId: StableIdSchema,
+    derivationPolicyId: StableIdSchema,
+    derivationStrategy: z.literal('highest_qualitative_level'),
+    symptomSeverityInputId: StableIdSchema,
+    symptomSeverityPayloadFingerprint: ConditionSymptomSeverityPayloadFingerprintSchema,
+    functionalImpairmentArtifactId: StableIdSchema,
+    functionalImpairmentPayloadFingerprint:
+      ConditionFunctionalImpairmentResolutionFingerprintSchema,
+    compilerVersion: ContentVersionSchema,
+    attachmentStatus: z.literal('derived_descriptor_only'),
+  })
+  .strict();
+export type ResolvedConditionEpisodeSeverity = z.infer<
+  typeof ResolvedConditionEpisodeSeveritySchema
+>;
+
+export const ConditionEpisodeSeverityDerivationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    conditionStateId: StableIdSchema,
+    diagnosisOwnerRef: z
+      .object({
+        diagnosisDefinitionId: StableIdSchema,
+        diagnosisDefinitionContentVersion: ContentVersionSchema,
+        severityAxisId: StableIdSchema,
+        derivationPolicyId: StableIdSchema,
+      })
+      .strict(),
+    symptomSeverityInputRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ConditionSymptomSeverityPayloadFingerprintSchema,
+      })
+      .strict(),
+    functionalImpairmentArtifactRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ConditionFunctionalImpairmentResolutionFingerprintSchema,
+      })
+      .strict(),
+    resolvedEpisodeSeverity: ResolvedConditionEpisodeSeveritySchema,
+    compileRequest: ConditionEpisodeSeverityDerivationRequestSchema,
+    inputFingerprint: ConditionEpisodeSeverityDerivationFingerprintSchema,
+    payloadFingerprint: ConditionEpisodeSeverityDerivationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const condition = request.conditionState;
+    const owner = request.derivationOwner;
+    const symptomSeverity = request.symptomSeverity;
+    const impairmentArtifact = request.functionalImpairmentResolution;
+    const resolved = artifact.resolvedEpisodeSeverity;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.conditionStateId !== condition.id ||
+      artifact.diagnosisOwnerRef.diagnosisDefinitionId !== owner.diagnosisDefinitionId ||
+      artifact.diagnosisOwnerRef.diagnosisDefinitionContentVersion !==
+        owner.diagnosisDefinitionContentVersion ||
+      artifact.diagnosisOwnerRef.severityAxisId !== owner.severityAxisId ||
+      artifact.diagnosisOwnerRef.derivationPolicyId !== owner.derivationPolicy.id ||
+      artifact.symptomSeverityInputRef.id !== symptomSeverity.id ||
+      artifact.symptomSeverityInputRef.payloadFingerprint !==
+        symptomSeverity.resolutionOwner.payloadFingerprint ||
+      artifact.functionalImpairmentArtifactRef.id !== impairmentArtifact.id ||
+      artifact.functionalImpairmentArtifactRef.payloadFingerprint !==
+        impairmentArtifact.payloadFingerprint
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A condition-episode-severity artifact must retain its exact request, policy owner, and both input artifacts.',
+      });
+    }
+    if (
+      resolved.patientStateId !== request.patientStateId ||
+      resolved.target.conditionStateId !== condition.id ||
+      resolved.diagnosisDefinitionId !== condition.diagnosisDefinitionId ||
+      resolved.diagnosisDefinitionContentVersion !== condition.diagnosisDefinitionContentVersion ||
+      resolved.clinicalStateId !== condition.clinicalStateId ||
+      resolved.timeScopeId !== condition.timeScopeId ||
+      resolved.inputLevels.symptomSeverity !== symptomSeverity.level ||
+      resolved.inputLevels.conditionAttributedFunctionalImpairment !==
+        impairmentArtifact.resolvedFunctionalImpairment.level ||
+      resolved.severityAxisId !== owner.severityAxisId ||
+      resolved.derivationPolicyId !== owner.derivationPolicy.id ||
+      resolved.derivationStrategy !== owner.derivationPolicy.strategy ||
+      resolved.symptomSeverityInputId !== symptomSeverity.id ||
+      resolved.symptomSeverityPayloadFingerprint !==
+        symptomSeverity.resolutionOwner.payloadFingerprint ||
+      resolved.functionalImpairmentArtifactId !== impairmentArtifact.id ||
+      resolved.functionalImpairmentPayloadFingerprint !== impairmentArtifact.payloadFingerprint ||
+      resolved.compilerVersion !== artifact.compilerVersion ||
+      resolved.attachmentStatus !== 'derived_descriptor_only'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolvedEpisodeSeverity'],
+        message:
+          'A resolved condition-episode-severity descriptor must retain the exact same-episode inputs and diagnosis-owned policy.',
+      });
+    }
+    const expectedId = `condition-episode-severity-derivation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A condition-episode-severity artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type ConditionEpisodeSeverityDerivationArtifact = z.infer<
+  typeof ConditionEpisodeSeverityDerivationArtifactSchema
+>;
+
 export const SubjectiveBurdenRecordSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -6202,7 +7512,7 @@ export const ResolvedPatientStateSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     id: StableIdSchema,
-    demographics: ResolvedPatientDemographicsV2Schema,
+    demographics: ResolvedPatientDemographicsSchema,
     conditionStates: z.array(ConditionStateSchema),
     diagnosisRecordEntries: z.array(DiagnosisRecordEntrySchema),
     medicationRegimenEntries: z.array(MedicationRegimenEntryV2Schema),
@@ -10665,7 +11975,11 @@ export const DecisionPatientFactKeySchema = z
   .strict()
   .superRefine((fact, context) => {
     const attributesByRecordKind: Record<DecisionPatientFactRecordKind, readonly string[]> = {
-      demographics: ['demographics.reviewed-age-band', 'demographics.sex-for-reference'],
+      demographics: [
+        'demographics.reviewed-age-band',
+        'demographics.sex-for-reference',
+        'demographics.race-ethnicity-category',
+      ],
       condition: [
         'condition.presence',
         'condition.clinical-state',
@@ -11297,6 +12611,11 @@ const decisionActionPredicateSemanticKey = (predicate: DecisionActionPredicate):
     targets: predicate.targets.map((target) => JSON.stringify(target)).sort(),
   });
 
+const decisionActionPredicateUsesOnlyInformationActions = (
+  predicate: DecisionActionPredicate | null,
+): boolean =>
+  predicate !== null && predicate.targets.every((target) => target.kind === 'information_action');
+
 /**
  * A point-free prerequisite keeps the treatment/intervention trigger separate
  * from the information action that fulfills it. Availability is checked by the
@@ -11530,9 +12849,62 @@ export type DecisionTriggeredInformationPrerequisiteBalanceDefinition = z.infer<
   typeof DecisionTriggeredInformationPrerequisiteBalanceDefinitionSchema
 >;
 
+/**
+ * A focused information requirement has no treatment trigger: once its
+ * reviewed patient/policy scope compiles, it is either obtained or omitted.
+ * The qualitative diagnosis rule remains point-free and the separate balance
+ * owns both explicit outcomes.
+ */
+export const DecisionInformationRequirementBalanceDefinitionSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    balanceKind: z.literal('information_requirement'),
+    ruleRef: DecisionRuleReferenceSchema.extend({
+      kind: z.literal('diagnosis_rule'),
+    }).strict(),
+    balanceStatus: z.literal('provisional_balance'),
+    component: z.literal('workup'),
+    outcomes: z
+      .object({
+        fulfilled: z
+          .object({
+            impactBand: DecisionBalanceImpactBandSchema,
+            points: z.number().int().positive(),
+            explanation: z.string().trim().min(1).max(1_200),
+          })
+          .strict(),
+        omitted: z
+          .object({
+            impactBand: DecisionBalanceImpactBandSchema,
+            points: z.number().int().negative(),
+            explanation: z.string().trim().min(1).max(1_200),
+          })
+          .strict(),
+      })
+      .strict(),
+    rationale: z.string().trim().min(1).max(1_200),
+    developerOpinionIds: z.array(StableIdSchema).min(1),
+  })
+  .strict()
+  .superRefine((balance, context) => {
+    if (new Set(balance.developerOpinionIds).size !== balance.developerOpinionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Decision-balance Developer-opinion references must be unique.',
+      });
+    }
+  });
+export type DecisionInformationRequirementBalanceDefinition = z.infer<
+  typeof DecisionInformationRequirementBalanceDefinitionSchema
+>;
+
 export const DecisionBalanceDefinitionSchema = z.union([
   DecisionMatchedBalanceDefinitionSchema,
   DecisionTriggeredInformationPrerequisiteBalanceDefinitionSchema,
+  DecisionInformationRequirementBalanceDefinitionSchema,
 ]);
 export type DecisionBalanceDefinition = z.infer<typeof DecisionBalanceDefinitionSchema>;
 
@@ -11641,9 +13013,44 @@ export type DecisionTriggeredInformationPrerequisiteBalanceSnapshot = z.infer<
   typeof DecisionTriggeredInformationPrerequisiteBalanceSnapshotSchema
 >;
 
+export const DecisionInformationRequirementBalanceSnapshotSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    balanceKind: z.literal('information_requirement'),
+    ruleRef: DecisionRuleReferenceSchema.extend({
+      kind: z.literal('diagnosis_rule'),
+    }).strict(),
+    component: z.literal('workup'),
+    outcomes: z
+      .object({
+        fulfilled: z
+          .object({
+            impactBand: DecisionBalanceImpactBandSchema,
+            points: z.number().int().positive(),
+            explanation: z.string().trim().min(1).max(1_200),
+          })
+          .strict(),
+        omitted: z
+          .object({
+            impactBand: DecisionBalanceImpactBandSchema,
+            points: z.number().int().negative(),
+            explanation: z.string().trim().min(1).max(1_200),
+          })
+          .strict(),
+      })
+      .strict(),
+  })
+  .strict();
+export type DecisionInformationRequirementBalanceSnapshot = z.infer<
+  typeof DecisionInformationRequirementBalanceSnapshotSchema
+>;
+
 export const DecisionBalanceSnapshotDefinitionSchema = z.discriminatedUnion('balanceKind', [
   DecisionMatchedBalanceSnapshotSchema,
   DecisionTriggeredInformationPrerequisiteBalanceSnapshotSchema,
+  DecisionInformationRequirementBalanceSnapshotSchema,
 ]);
 export type DecisionBalanceSnapshotDefinition = z.infer<
   typeof DecisionBalanceSnapshotDefinitionSchema
@@ -11659,7 +13066,7 @@ export const DecisionBalanceCatalogSnapshotSchema = z
     schemaVersion: z.literal(1),
     compilerVersion: ContentVersionSchema,
     id: StableIdSchema,
-    modelVersion: z.literal('decision-balance-catalog-snapshot.v1'),
+    modelVersion: z.literal('decision-balance-catalog-snapshot.v2'),
     sourceCatalogRef: z
       .object({
         id: StableIdSchema,
@@ -11825,12 +13232,17 @@ export const DecisionRuleCandidateDefinitionSchema = z
     const isDiagnosisInformationPrerequisite =
       candidate.ruleKind === 'prerequisite' && candidate.ruleRef.kind === 'diagnosis_rule';
     if (isDiagnosisInformationPrerequisite && candidate.triggeredInformationPrerequisite === null) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['triggeredInformationPrerequisite'],
-        message:
-          'A diagnosis-owned prerequisite must preserve separate trigger and information-fulfillment predicates.',
-      });
+      if (
+        candidate.patientWhen === null ||
+        !decisionActionPredicateUsesOnlyInformationActions(candidate.actionWhen)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['actionWhen'],
+          message:
+            'A direct diagnosis-owned information requirement needs exact patient scope and an information-only action predicate.',
+        });
+      }
     }
     if (candidate.triggeredInformationPrerequisite !== null) {
       if (!isDiagnosisInformationPrerequisite) {
@@ -12004,12 +13416,17 @@ export const CompiledRubricRuleSchema = z
     const isDiagnosisInformationPrerequisite =
       rule.ruleKind === 'prerequisite' && rule.ruleRef.kind === 'diagnosis_rule';
     if (isDiagnosisInformationPrerequisite && rule.triggeredInformationPrerequisite === null) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['triggeredInformationPrerequisite'],
-        message:
-          'A compiled diagnosis-owned prerequisite must preserve its trigger and fulfillment predicates.',
-      });
+      if (
+        rule.patientWhen === null ||
+        !decisionActionPredicateUsesOnlyInformationActions(rule.actionWhen)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['actionWhen'],
+          message:
+            'A compiled direct diagnosis-owned information requirement needs exact patient scope and an information-only action predicate.',
+        });
+      }
     }
     if (rule.triggeredInformationPrerequisite !== null) {
       if (!isDiagnosisInformationPrerequisite) {
@@ -12153,6 +13570,326 @@ export const CatalogInstanceVersionedReferenceSchema = z
   .strict();
 export type CatalogInstanceVersionedReference = z.infer<
   typeof CatalogInstanceVersionedReferenceSchema
+>;
+
+/**
+ * Chief-complaint text is reusable presentation content, not diagnosis truth.
+ * Stable variants let several encounter recipes share concise wording without
+ * making prose an engine predicate or answer-key hint.
+ */
+export const PatientChiefComplaintVariantSchema = z
+  .object({
+    id: StableIdSchema,
+    text: z.string().trim().min(1).max(80),
+  })
+  .strict();
+export type PatientChiefComplaintVariant = z.infer<typeof PatientChiefComplaintVariantSchema>;
+
+export const PatientChiefComplaintBankSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    label: z.string().trim().min(1).max(160),
+    variants: z.array(PatientChiefComplaintVariantSchema).min(2).max(240),
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((bank, context) => {
+    const variantIds = bank.variants.map((variant) => variant.id);
+    const normalizedText = bank.variants.map((variant) =>
+      variant.text.normalize('NFKC').trim().toLocaleLowerCase('en-US'),
+    );
+    if (
+      new Set(variantIds).size !== variantIds.length ||
+      new Set(normalizedText).size !== normalizedText.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['variants'],
+        message: 'Chief-complaint variant IDs and normalized text must be unique within one bank.',
+      });
+    }
+  });
+export type PatientChiefComplaintBank = z.infer<typeof PatientChiefComplaintBankSchema>;
+
+export const PatientLauncherComplaintBankBindingSchema = z
+  .object({
+    id: StableIdSchema,
+    bankRef: CatalogInstanceVersionedReferenceSchema,
+    specificityPriority: z.number().int().nonnegative().max(10_000),
+    gameSelectionWeight: z.number().int().positive().max(10_000),
+  })
+  .strict();
+export type PatientLauncherComplaintBankBinding = z.infer<
+  typeof PatientLauncherComplaintBankBindingSchema
+>;
+
+/**
+ * A launcher profile owns only cosmetic presentation choices. The 1-in-4
+ * middle-initial rate records the accepted D-112 presentation policy. Complaint
+ * specificity is an authoring override hierarchy, not diagnostic likelihood.
+ */
+export const PatientLauncherPresentationProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('patient-launcher-presentation-profile.v1'),
+    firstNamePoolRef: CatalogInstanceVersionedReferenceSchema,
+    lastNamePoolRef: CatalogInstanceVersionedReferenceSchema,
+    middleInitialProbability: z
+      .object({
+        numerator: z.literal(1),
+        denominator: z.literal(4),
+      })
+      .strict(),
+    complaintBankBindings: z.array(PatientLauncherComplaintBankBindingSchema).min(1).max(64),
+    developerOpinionIds: z.array(StableIdSchema),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    const bindingIds = profile.complaintBankBindings.map((binding) => binding.id);
+    const bankIds = profile.complaintBankBindings.map((binding) => binding.bankRef.id);
+    if (
+      new Set(bindingIds).size !== bindingIds.length ||
+      new Set(bankIds).size !== bankIds.length ||
+      new Set(profile.developerOpinionIds).size !== profile.developerOpinionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Launcher complaint bindings, bank identities, and Developer-opinion references must be unique.',
+      });
+    }
+  });
+export type PatientLauncherPresentationProfile = z.infer<
+  typeof PatientLauncherPresentationProfileSchema
+>;
+
+export const PatientLauncherPresentationFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.patient-launcher-presentation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type PatientLauncherPresentationFingerprint = z.infer<
+  typeof PatientLauncherPresentationFingerprintSchema
+>;
+
+export const PatientLauncherPresentationResolutionRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    seed: z.string().min(1).max(512),
+    profile: PatientLauncherPresentationProfileSchema,
+    firstNamePool: VariantPoolDefinitionSchema,
+    lastNamePool: VariantPoolDefinitionSchema,
+    complaintBanks: z.array(PatientChiefComplaintBankSchema).min(1).max(64),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const firstNamesAreStrings = request.firstNamePool.values.every(
+      (value) => typeof value === 'string',
+    );
+    const lastNamesAreStrings = request.lastNamePool.values.every(
+      (value) => typeof value === 'string',
+    );
+    if (
+      request.firstNamePool.id !== request.profile.firstNamePoolRef.id ||
+      request.firstNamePool.contentVersion !== request.profile.firstNamePoolRef.contentVersion ||
+      request.firstNamePool.kind !== 'fictional_first_name' ||
+      !firstNamesAreStrings
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['firstNamePool'],
+        message:
+          'A launcher presentation requires the exact referenced string-valued fictional first-name pool.',
+      });
+    }
+    if (
+      request.lastNamePool.id !== request.profile.lastNamePoolRef.id ||
+      request.lastNamePool.contentVersion !== request.profile.lastNamePoolRef.contentVersion ||
+      request.lastNamePool.kind !== 'fictional_last_name' ||
+      !lastNamesAreStrings
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['lastNamePool'],
+        message:
+          'A launcher presentation requires the exact referenced string-valued fictional last-name pool.',
+      });
+    }
+    const bankById = new Map(request.complaintBanks.map((bank) => [bank.id, bank]));
+    const expectedBankIds = request.profile.complaintBankBindings
+      .map((binding) => binding.bankRef.id)
+      .sort();
+    const actualBankIds = request.complaintBanks.map((bank) => bank.id).sort();
+    const exactBanks =
+      expectedBankIds.join('\u0000') === actualBankIds.join('\u0000') &&
+      request.profile.complaintBankBindings.every((binding) => {
+        const bank = bankById.get(binding.bankRef.id);
+        return bank?.contentVersion === binding.bankRef.contentVersion;
+      });
+    if (
+      new Set(actualBankIds).size !== actualBankIds.length ||
+      !exactBanks ||
+      request.complaintBanks.some((bank) => bank.lifecycle === 'deprecated')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['complaintBanks'],
+        message:
+          'A launcher request must include every and only the exact nondeprecated complaint banks named by its profile.',
+      });
+    }
+  });
+export type PatientLauncherPresentationResolutionRequest = z.infer<
+  typeof PatientLauncherPresentationResolutionRequestSchema
+>;
+
+export const ResolvedPatientLauncherPresentationSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    fictionalName: z
+      .object({
+        firstName: z.string().trim().min(1).max(120),
+        middleInitial: z
+          .string()
+          .regex(/^[A-Z]$/)
+          .nullable(),
+        lastName: z.string().trim().min(1).max(120),
+        displayName: z.string().trim().min(1).max(260),
+      })
+      .strict(),
+    chiefComplaint: z
+      .object({
+        bankRef: CatalogInstanceVersionedReferenceSchema,
+        variantId: StableIdSchema,
+        text: z.string().trim().min(1).max(80),
+      })
+      .strict(),
+    resolverVersion: ContentVersionSchema,
+  })
+  .strict()
+  .superRefine((presentation, context) => {
+    const expectedDisplayName = `${presentation.fictionalName.firstName}${
+      presentation.fictionalName.middleInitial === null
+        ? ''
+        : ` ${presentation.fictionalName.middleInitial}.`
+    } ${presentation.fictionalName.lastName}`;
+    if (presentation.fictionalName.displayName !== expectedDisplayName) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['fictionalName', 'displayName'],
+        message:
+          'A resolved launcher display name must be derived only from its frozen first, optional middle, and last components.',
+      });
+    }
+  });
+export type ResolvedPatientLauncherPresentation = z.infer<
+  typeof ResolvedPatientLauncherPresentationSchema
+>;
+
+export const PatientLauncherComplaintBankEvaluationSchema = z
+  .object({
+    binding: PatientLauncherComplaintBankBindingSchema,
+    bankFingerprint: PatientLauncherPresentationFingerprintSchema,
+    disposition: z.enum(['eligible_highest_specificity', 'shadowed_lower_specificity']),
+    selected: z.boolean(),
+  })
+  .strict()
+  .superRefine((evaluation, context) => {
+    if (evaluation.selected && evaluation.disposition !== 'eligible_highest_specificity') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A lower-specificity complaint bank cannot be selected.',
+      });
+    }
+  });
+export type PatientLauncherComplaintBankEvaluation = z.infer<
+  typeof PatientLauncherComplaintBankEvaluationSchema
+>;
+
+export const PatientLauncherPresentationResolutionArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    resolverVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    profileRef: CatalogInstanceVersionedReferenceSchema,
+    profileFingerprint: PatientLauncherPresentationFingerprintSchema,
+    firstNamePoolRef: CatalogInstanceVersionedReferenceSchema,
+    firstNamePoolFingerprint: PatientLauncherPresentationFingerprintSchema,
+    lastNamePoolRef: CatalogInstanceVersionedReferenceSchema,
+    lastNamePoolFingerprint: PatientLauncherPresentationFingerprintSchema,
+    complaintBankEvaluations: z.array(PatientLauncherComplaintBankEvaluationSchema).min(1).max(64),
+    firstNameStableDrawId: StableIdSchema,
+    lastNameStableDrawId: StableIdSchema,
+    middleInitialPresenceStableDrawId: StableIdSchema,
+    middleInitialLetterStableDrawId: StableIdSchema,
+    complaintBankStableDrawId: StableIdSchema,
+    complaintVariantStableDrawId: StableIdSchema,
+    resolvedPresentation: ResolvedPatientLauncherPresentationSchema,
+    resolutionRequest: PatientLauncherPresentationResolutionRequestSchema,
+    inputFingerprint: PatientLauncherPresentationFingerprintSchema,
+    payloadFingerprint: PatientLauncherPresentationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.resolutionRequest;
+    const selected = artifact.complaintBankEvaluations.filter((evaluation) => evaluation.selected);
+    const eligible = artifact.complaintBankEvaluations.filter(
+      (evaluation) => evaluation.disposition === 'eligible_highest_specificity',
+    );
+    const selectedBank = selected[0];
+    const selectedSourceBank = selectedBank
+      ? request.complaintBanks.find((bank) => bank.id === selectedBank.binding.bankRef.id)
+      : undefined;
+    const selectedVariant = selectedSourceBank?.variants.find(
+      (variant) => variant.id === artifact.resolvedPresentation.chiefComplaint.variantId,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.profileRef.id !== request.profile.id ||
+      artifact.profileRef.contentVersion !== request.profile.contentVersion ||
+      artifact.firstNamePoolRef.id !== request.firstNamePool.id ||
+      artifact.firstNamePoolRef.contentVersion !== request.firstNamePool.contentVersion ||
+      artifact.lastNamePoolRef.id !== request.lastNamePool.id ||
+      artifact.lastNamePoolRef.contentVersion !== request.lastNamePool.contentVersion ||
+      artifact.resolvedPresentation.patientStateId !== request.patientStateId ||
+      artifact.resolvedPresentation.resolverVersion !== artifact.resolverVersion ||
+      selected.length !== 1 ||
+      eligible.length < 1 ||
+      selectedVariant?.text !== artifact.resolvedPresentation.chiefComplaint.text ||
+      selectedSourceBank?.id !== artifact.resolvedPresentation.chiefComplaint.bankRef.id ||
+      selectedSourceBank?.contentVersion !==
+        artifact.resolvedPresentation.chiefComplaint.bankRef.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A launcher-presentation artifact must retain one exact request, independently drawn name, and highest-specificity complaint variant.',
+      });
+    }
+    const expectedId = `patient-launcher-presentation-resolution.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A launcher-presentation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientLauncherPresentationResolutionArtifact = z.infer<
+  typeof PatientLauncherPresentationResolutionArtifactSchema
 >;
 
 export const PresentationDecisionDriverCategorySchema = z.enum([
@@ -12929,6 +14666,7 @@ export const DeferredFindingScopedDurationSchema = z
     value: z.number().int().positive(),
     unit: ClinicalDurationUnitSchema,
     durationProfileId: StableIdSchema,
+    durationProfileContentVersion: ContentVersionSchema,
     durationOptionId: StableIdSchema,
     relatedDiagnosisId: StableIdSchema.nullable(),
     interpretation: z.enum(['supports_authored_state', 'designed_below_threshold', 'context_only']),
@@ -13786,6 +15524,38 @@ export const ConditionFindingCardinalityProfileSchema = z.union([
 export type ConditionFindingCardinalityProfile = z.infer<
   typeof ConditionFindingCardinalityProfileSchema
 >;
+
+/**
+ * Authoring-only diagnosis-to-finding profiles. Keeping this collection outside
+ * the runtime catalog prevents a reviewed generation profile from becoming an
+ * implicit patient or gameplay rule before an exact PatientTemplate binds it.
+ */
+export const ConditionFindingProfileCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    profiles: z.array(ConditionFindingCardinalityProfileSchema).min(1),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const profileKeys = catalog.profiles.map(
+      (profile) => `${profile.id}\u0000${profile.contentVersion}`,
+    );
+    const profileIds = catalog.profiles.map((profile) => profile.id);
+    if (
+      new Set(profileKeys).size !== profileKeys.length ||
+      new Set(profileIds).size !== profileIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profiles'],
+        message:
+          'A condition-finding profile catalog may contain only one exact current version of each stable profile ID.',
+      });
+    }
+  });
+export type ConditionFindingProfileCatalog = z.infer<typeof ConditionFindingProfileCatalogSchema>;
 
 export const ConditionFindingProfileBindingSchema = z
   .object({
@@ -17688,6 +19458,9 @@ export const FindingPipelineAuditRequestSchema = z
     preFindingPatientStateOrchestrationArtifact: z.lazy(
       () => PreFindingPatientStateOrchestrationArtifactSchema,
     ),
+    conditionClinicalDurationAttachmentArtifact: z
+      .lazy(() => ConditionClinicalDurationAttachmentArtifactSchema)
+      .nullable(),
     downstream: FindingPipelineAuditDownstreamRequestSchema.nullable(),
   })
   .strict()
@@ -17726,8 +19499,29 @@ export const FindingPipelineAuditRequestSchema = z
     }
     const patientStateCompositionArtifact =
       request.preFindingPatientStateOrchestrationArtifact.patientStateCompositionArtifact;
+    const durationAttachment = request.conditionClinicalDurationAttachmentArtifact;
     const expectsDownstream =
       request.preFindingPatientStateOrchestrationArtifact.status === 'composed';
+    if (
+      durationAttachment !== null &&
+      JSON.stringify(durationAttachment.attachmentRequest.patientStateCompositionArtifact) !==
+        JSON.stringify(patientStateCompositionArtifact)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['conditionClinicalDurationAttachmentArtifact'],
+        message:
+          'An optional D-264 duration attachment must retain the exact D-208 composition nested under this D-223 root.',
+      });
+    }
+    if (!expectsDownstream && durationAttachment !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['conditionClinicalDurationAttachmentArtifact'],
+        message:
+          'A blocked D-223 root cannot supply a post-composition condition-duration attachment.',
+      });
+    }
     if (expectsDownstream !== (request.downstream !== null)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -17797,6 +19591,9 @@ export const FindingPipelineAuditArtifactSchema = z
     preFindingPatientStateOrchestrationArtifact: z.lazy(
       () => PreFindingPatientStateOrchestrationArtifactSchema,
     ),
+    conditionClinicalDurationAttachmentArtifact: z
+      .lazy(() => ConditionClinicalDurationAttachmentArtifactSchema)
+      .nullable(),
     conditionFindingArtifact: ConditionFindingCardinalityArtifactSchema,
     backgroundFindingArtifact: BackgroundFindingOutcomeArtifactSchema,
     weightedFindingTendencyApplicabilityArtifact: z.lazy(
@@ -17823,6 +19620,7 @@ export const FindingPipelineAuditArtifactSchema = z
     const capacityCertificate = seedAuthority.capacityBoundSlotCertificateArtifact;
     const patientStateCompositionArtifact =
       artifact.preFindingPatientStateOrchestrationArtifact.patientStateCompositionArtifact;
+    const durationAttachment = artifact.conditionClinicalDurationAttachmentArtifact;
     const candidateIds = artifact.candidateUnion.map((candidate) => candidate.id);
     const contributionIds = artifact.candidateUnion.flatMap((candidate) =>
       candidate.contributions.map((contribution) => contribution.id),
@@ -17900,12 +19698,17 @@ export const FindingPipelineAuditArtifactSchema = z
       });
     }
     const composedState = patientStateCompositionArtifact.composedPatientState;
+    const preFindingPatientState = durationAttachment?.composedPatientState ?? composedState;
     const applicability = artifact.weightedFindingTendencyApplicabilityArtifact;
     const expectsWeighted = applicability.contributorBindings.length > 0;
     if (
       artifact.preFindingPatientStateOrchestrationArtifact.status !== 'composed' ||
       patientStateCompositionArtifact.status !== 'composed' ||
       composedState === null ||
+      preFindingPatientState === null ||
+      (durationAttachment !== null &&
+        JSON.stringify(durationAttachment.attachmentRequest.patientStateCompositionArtifact) !==
+          JSON.stringify(patientStateCompositionArtifact)) ||
       applicability.patientStateCompositionRef.id !== patientStateCompositionArtifact.id ||
       applicability.patientStateCompositionRef.payloadFingerprint !==
         patientStateCompositionArtifact.payloadFingerprint ||
@@ -17919,7 +19722,7 @@ export const FindingPipelineAuditArtifactSchema = z
       expectsWeighted !== (artifact.weightedFindingTendencyRequest !== null) ||
       expectsWeighted !== (artifact.weightedFindingTendencyArtifact !== null) ||
       JSON.stringify(artifact.catalogCompileRequest.basePatientState) !==
-        JSON.stringify(composedState) ||
+        JSON.stringify(preFindingPatientState) ||
       JSON.stringify(
         [...artifact.catalogCompileRequest.conditionBindings].sort((left, right) =>
           left.id.localeCompare(right.id),
@@ -17930,15 +19733,16 @@ export const FindingPipelineAuditArtifactSchema = z
             left.id.localeCompare(right.id),
           ),
         ) ||
-      artifact.catalogCompileRequest.sharedFindingRequest.patientStateId !== composedState.id ||
+      artifact.catalogCompileRequest.sharedFindingRequest.patientStateId !==
+        preFindingPatientState.id ||
       JSON.stringify(artifact.catalogCompileRequest.sharedFindingRequest.propositionState) !==
-        JSON.stringify(composedState.propositionState)
+        JSON.stringify(preFindingPatientState.propositionState)
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['catalogCompileRequest'],
         message:
-          'The retained D-210/D-199/D-194 chain must derive applicability, weighted tendency, complete patient state, condition bindings, and D-193 patient/proposition targets from the exact upstream artifacts.',
+          'The retained D-210/D-199/D-194 chain must derive applicability, weighted tendency, the exact D-208 or verified D-264 pre-finding patient state, condition bindings, and D-193 patient/proposition targets from the exact upstream artifacts.',
       });
     }
     if (
@@ -20988,9 +22792,10 @@ export const PatientStateOptionalModuleMaterializationAuditSchema = z
       'prior_treatment_bridge',
       'exposure_bridge',
       'finding_texture_bridge',
+      'source_report_selection',
       'unowned_other',
     ]),
-    materializationStatus: z.enum(['materialized', 'unsupported']),
+    materializationStatus: z.enum(['materialized', 'deferred_to_post_truth', 'unsupported']),
     materializedRecordIds: z.array(StableIdSchema).max(384),
   })
   .strict()
@@ -21001,18 +22806,21 @@ export const PatientStateOptionalModuleMaterializationAuditSchema = z
       prior_treatment: 'prior_treatment_bridge',
       substance_use: 'exposure_bridge',
       finding_texture: 'finding_texture_bridge',
+      source_report: 'source_report_selection',
       other: 'unowned_other',
     };
-    if (
-      audit.ownerKind !== expectedOwner[audit.moduleKind] ||
-      (audit.moduleKind === 'other'
-        ? audit.materializationStatus !== 'unsupported' || audit.materializedRecordIds.length !== 0
-        : audit.materializationStatus !== 'materialized')
-    ) {
+    const validMaterialization =
+      audit.moduleKind === 'other'
+        ? audit.materializationStatus === 'unsupported' && audit.materializedRecordIds.length === 0
+        : audit.moduleKind === 'source_report'
+          ? audit.materializationStatus === 'deferred_to_post_truth' &&
+            audit.materializedRecordIds.length === 0
+          : audit.materializationStatus === 'materialized';
+    if (audit.ownerKind !== expectedOwner[audit.moduleKind] || !validMaterialization) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          'A selected optional module must route to its exact typed owner, while the unsupported other sentinel cannot materialize records.',
+          'A selected optional module must route to its exact typed owner; source-report texture waits for post-truth projection, while the unsupported other sentinel cannot materialize records.',
       });
     }
     if (new Set(audit.materializedRecordIds).size !== audit.materializedRecordIds.length) {
@@ -21425,6 +23233,228 @@ export const ResolvedPatientStateCompositionArtifactSchema = z
   });
 export type ResolvedPatientStateCompositionArtifact = z.infer<
   typeof ResolvedPatientStateCompositionArtifactSchema
+>;
+
+export const ConditionClinicalDurationAttachmentFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.condition-clinical-duration-attachment\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type ConditionClinicalDurationAttachmentFingerprint = z.infer<
+  typeof ConditionClinicalDurationAttachmentFingerprintSchema
+>;
+
+export const ConditionClinicalDurationAttachmentResolutionReferenceSchema = z
+  .object({
+    id: StableIdSchema,
+    payloadFingerprint: ClinicalDurationResolutionFingerprintSchema,
+    patientStateId: StableIdSchema,
+    conditionStateId: StableIdSchema,
+    profileRef: CatalogInstanceVersionedReferenceSchema,
+    resolvedDurationId: StableIdSchema,
+  })
+  .strict();
+export type ConditionClinicalDurationAttachmentResolutionReference = z.infer<
+  typeof ConditionClinicalDurationAttachmentResolutionReferenceSchema
+>;
+
+/**
+ * D-264 is a post-D-208 authoring seam. It carries genuine D-263 artifacts
+ * rather than caller-authored duration records and performs no selection.
+ */
+export const ConditionClinicalDurationAttachmentRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateCompositionArtifact: ResolvedPatientStateCompositionArtifactSchema,
+    durationResolutionArtifacts: z.array(ConditionClinicalDurationResolutionArtifactSchema).max(64),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const artifactIds = request.durationResolutionArtifacts.map((artifact) => artifact.id);
+    const durationIds = request.durationResolutionArtifacts.map(
+      (artifact) => artifact.resolvedDuration.id,
+    );
+    const assignmentKeys = request.durationResolutionArtifacts.map(
+      (artifact) => `${artifact.conditionStateId}\u0000${artifact.profileRef.id}`,
+    );
+    for (const [path, values] of [
+      ['durationResolutionArtifacts', artifactIds],
+      ['durationResolutionArtifacts', durationIds],
+      ['durationResolutionArtifacts', assignmentKeys],
+    ] as const) {
+      if (new Set(values).size !== values.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message:
+            'A condition-duration attachment request must contain unique artifacts, duration records, and exact condition/profile assignments.',
+        });
+        break;
+      }
+    }
+  });
+export type ConditionClinicalDurationAttachmentRequest = z.infer<
+  typeof ConditionClinicalDurationAttachmentRequestSchema
+>;
+
+export const ConditionClinicalDurationAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    resolverVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateCompositionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+        composedPatientStateFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    basePatientStateRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    durationResolutionRefs: z
+      .array(ConditionClinicalDurationAttachmentResolutionReferenceSchema)
+      .max(64),
+    attachedDurationIds: z.array(StableIdSchema).max(64),
+    composedPatientState: ResolvedPatientStateSchema,
+    composedPatientStateFingerprint: ConditionClinicalDurationAttachmentFingerprintSchema,
+    attachmentRequest: ConditionClinicalDurationAttachmentRequestSchema,
+    inputFingerprint: ConditionClinicalDurationAttachmentFingerprintSchema,
+    payloadFingerprint: ConditionClinicalDurationAttachmentFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.attachmentRequest;
+    const composition = request.patientStateCompositionArtifact;
+    const baseState = composition.composedPatientState;
+    const expectedResolutionRefs = request.durationResolutionArtifacts.map((resolution) => ({
+      id: resolution.id,
+      payloadFingerprint: resolution.payloadFingerprint,
+      patientStateId: resolution.patientStateId,
+      conditionStateId: resolution.conditionStateId,
+      profileRef: resolution.profileRef,
+      resolvedDurationId: resolution.resolvedDuration.id,
+    }));
+    const expectedAttachedIds = request.durationResolutionArtifacts.map(
+      (resolution) => resolution.resolvedDuration.id,
+    );
+    if (
+      composition.status !== 'composed' ||
+      baseState === null ||
+      composition.composedPatientStateFingerprint === null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['attachmentRequest', 'patientStateCompositionArtifact'],
+        message: 'Condition durations may attach only to a completed D-208 patient state.',
+      });
+      return;
+    }
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateCompositionRef.id !== composition.id ||
+      artifact.patientStateCompositionRef.payloadFingerprint !== composition.payloadFingerprint ||
+      artifact.patientStateCompositionRef.composedPatientStateFingerprint !==
+        composition.composedPatientStateFingerprint ||
+      artifact.basePatientStateRef.id !== baseState.id ||
+      artifact.basePatientStateRef.fingerprint !== composition.composedPatientStateFingerprint ||
+      JSON.stringify(artifact.durationResolutionRefs) !== JSON.stringify(expectedResolutionRefs) ||
+      JSON.stringify(artifact.attachedDurationIds) !== JSON.stringify(expectedAttachedIds)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A condition-duration attachment artifact must retain the exact D-208 composition and every exact D-263 artifact once.',
+      });
+    }
+
+    const conditionById = new Map(
+      baseState.conditionStates.map((condition) => [condition.id, condition]),
+    );
+    const sameCondition = (left: ConditionState, right: ConditionState) =>
+      left.id === right.id &&
+      left.diagnosisDefinitionId === right.diagnosisDefinitionId &&
+      left.diagnosisDefinitionContentVersion === right.diagnosisDefinitionContentVersion &&
+      left.clinicalStateId === right.clinicalStateId &&
+      left.timeScopeId === right.timeScopeId &&
+      left.encounterRelevance === right.encounterRelevance &&
+      left.severityId === right.severityId &&
+      JSON.stringify([...left.specifierIds].sort()) ===
+        JSON.stringify([...right.specifierIds].sort()) &&
+      left.origin === right.origin &&
+      JSON.stringify(left.resolution) === JSON.stringify(right.resolution);
+    const baseAssignmentKeys = new Set(
+      baseState.clinicalDurations.flatMap((duration) =>
+        duration.target.kind === 'condition_state'
+          ? [`${duration.target.conditionStateId}\u0000${duration.durationProfileId}`]
+          : [],
+      ),
+    );
+    for (const [resolutionIndex, resolution] of request.durationResolutionArtifacts.entries()) {
+      const targetCondition = conditionById.get(resolution.conditionStateId);
+      const assignmentKey = `${resolution.conditionStateId}\u0000${resolution.profileRef.id}`;
+      if (
+        resolution.patientStateId !== baseState.id ||
+        targetCondition === undefined ||
+        !sameCondition(targetCondition, resolution.compileRequest.conditionState)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['attachmentRequest', 'durationResolutionArtifacts', resolutionIndex],
+          message:
+            'Every D-263 artifact must target this exact composed patient state and one unchanged included condition.',
+        });
+      }
+      if (baseAssignmentKeys.has(assignmentKey)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['attachmentRequest', 'durationResolutionArtifacts', resolutionIndex],
+          message:
+            'A D-263 artifact cannot replace an existing duration for the same exact condition/profile assignment.',
+        });
+      }
+    }
+
+    const expectedDurations = [
+      ...baseState.clinicalDurations,
+      ...request.durationResolutionArtifacts.map((resolution) => resolution.resolvedDuration),
+    ].sort((left, right) => left.id.localeCompare(right.id));
+    const expectedState = {
+      ...baseState,
+      id:
+        request.durationResolutionArtifacts.length === 0
+          ? baseState.id
+          : `resolved-patient-state.condition-durations.${artifact.composedPatientStateFingerprint.slice(
+              -16,
+            )}`,
+      clinicalDurations: expectedDurations,
+    };
+    if (JSON.stringify(artifact.composedPatientState) !== JSON.stringify(expectedState)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['composedPatientState'],
+        message:
+          'The attached patient state must equal the D-208 state plus the exact sorted D-263 durations, with no other mutation.',
+      });
+    }
+    const expectedArtifactId = `condition-clinical-duration-attachment.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedArtifactId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A condition-duration attachment artifact ID must use ${expectedArtifactId}.`,
+      });
+    }
+  });
+export type ConditionClinicalDurationAttachmentArtifact = z.infer<
+  typeof ConditionClinicalDurationAttachmentArtifactSchema
 >;
 
 export const PreFindingPatientStateOrchestrationFingerprintSchema = z
@@ -22625,6 +24655,7 @@ const TargetScopedPatientValueProjectionDefinitionBaseSchema = z.object({
   sourceKind: PatientSceneEvidenceSourceKindSchema,
   timeScopeId: StableIdSchema,
   lifecycle: ContentLifecycleSchema,
+  developerOpinionIds: z.array(StableIdSchema).optional(),
   review: ClinicalRuleReviewSchema,
 });
 
@@ -22634,20 +24665,31 @@ const TargetScopedPatientValueProjectionDefinitionBaseSchema = z.object({
  * This avoids an implicit cross-product in which one available value could
  * mask a different missing requirement.
  */
-export const TargetScopedPatientValueProjectionDefinitionSchema = z.discriminatedUnion(
-  'valueKind',
-  [
+export const TargetScopedPatientValueProjectionDefinitionSchema = z
+  .discriminatedUnion('valueKind', [
     TargetScopedPatientValueProjectionDefinitionBaseSchema.extend({
       valueKind: z.literal('clinical_duration'),
       durationProfileId: StableIdSchema,
+      durationProfileContentVersion: ContentVersionSchema,
     }).strict(),
     TargetScopedPatientValueProjectionDefinitionBaseSchema.extend({
       valueKind: z.literal('subjective_burden'),
       ordinalScaleId: StableIdSchema,
       ordinalScaleContentVersion: ContentVersionSchema,
     }).strict(),
-  ],
-);
+  ])
+  .superRefine((definition, context) => {
+    if (
+      definition.developerOpinionIds !== undefined &&
+      new Set(definition.developerOpinionIds).size !== definition.developerOpinionIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['developerOpinionIds'],
+        message: 'Target-scoped projection Developer-opinion references must be unique.',
+      });
+    }
+  });
 export type TargetScopedPatientValueProjectionDefinition = z.infer<
   typeof TargetScopedPatientValueProjectionDefinitionSchema
 >;
@@ -22665,6 +24707,7 @@ export const TargetScopedPatientValueSchema = z.discriminatedUnion('kind', [
     value: z.number().int().positive(),
     unit: ClinicalDurationUnitSchema,
     durationProfileId: StableIdSchema,
+    durationProfileContentVersion: ContentVersionSchema,
     durationOptionId: StableIdSchema,
   }).strict(),
   TargetScopedPatientValueBaseSchema.extend({
@@ -23287,6 +25330,21 @@ export type StructuredSourceReportSelectionCandidate = z.infer<
   typeof StructuredSourceReportSelectionCandidateSchema
 >;
 
+export const StructuredSourceReportComplexityModifierSchema = z
+  .object({
+    moduleRef: CatalogInstanceVersionedReferenceSchema,
+    moduleFingerprint: OptionalFeatureBudgetFingerprintSchema,
+    optionalFeatureBindingId: StableIdSchema,
+    selectedModuleId: StableIdSchema,
+    candidate: StructuredSourceReportSelectionCandidateSchema.omit({
+      gameGenerationWeight: true,
+    }),
+  })
+  .strict();
+export type StructuredSourceReportComplexityModifier = z.infer<
+  typeof StructuredSourceReportComplexityModifierSchema
+>;
+
 export const StructuredSourceReportSelectionPoolSchema = z
   .object({
     id: StableIdSchema,
@@ -23366,6 +25424,16 @@ export const StructuredSourceReportSelectionPolicySchema = z.discriminatedUnion(
       candidates: z.array(StructuredSourceReportSelectionCandidateSchema).min(2).max(32),
     })
     .strict(),
+  z
+    .object({
+      slotId: StableIdSchema,
+      mode: z.literal('complexity_gated'),
+      baseCandidate: StructuredSourceReportSelectionCandidateSchema.omit({
+        gameGenerationWeight: true,
+      }),
+      modifiers: z.array(StructuredSourceReportComplexityModifierSchema).min(1).max(32),
+    })
+    .strict(),
 ]);
 export type StructuredSourceReportSelectionPolicy = z.infer<
   typeof StructuredSourceReportSelectionPolicySchema
@@ -23414,15 +25482,40 @@ export const StructuredSourceReportSelectionProfileSchema = z
       });
     }
     profile.policies.forEach((policy, policyIndex) => {
-      if (policy.mode !== 'weighted') return;
-      const candidateIds = policy.candidates.map((candidate) => candidate.profileRef.id);
-      if (new Set(candidateIds).size !== candidateIds.length) {
+      if (policy.mode === 'weighted') {
+        const candidateIds = policy.candidates.map((candidate) => candidate.profileRef.id);
+        if (new Set(candidateIds).size === candidateIds.length) return;
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['policies', policyIndex, 'candidates'],
           message:
             'A weighted source-report policy may reference one exact version of each stable behavior-profile ID.',
         });
+        return;
+      }
+      if (policy.mode === 'complexity_gated') {
+        const moduleKeys = policy.modifiers.map(
+          (modifier) => `${modifier.moduleRef.id}\u0000${modifier.moduleRef.contentVersion}`,
+        );
+        const bindingIds = policy.modifiers.map((modifier) => modifier.optionalFeatureBindingId);
+        const selectedModuleIds = policy.modifiers.map((modifier) => modifier.selectedModuleId);
+        const profileIds = [
+          policy.baseCandidate.profileRef.id,
+          ...policy.modifiers.map((modifier) => modifier.candidate.profileRef.id),
+        ];
+        if (
+          new Set(moduleKeys).size !== moduleKeys.length ||
+          new Set(bindingIds).size !== bindingIds.length ||
+          new Set(selectedModuleIds).size !== selectedModuleIds.length ||
+          new Set(profileIds).size !== profileIds.length
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['policies', policyIndex],
+            message:
+              'A complexity-gated source-report slot requires unique module, binding, selected-record, and complete behavior-profile identities.',
+          });
+        }
       }
     });
   });
@@ -23440,6 +25533,7 @@ export const StructuredSourceReportSelectionRequestSchema = z
     horizon: StructuredSourceReportSelectionHorizonSchema,
     selectionProfile: StructuredSourceReportSelectionProfileSchema,
     profiles: z.array(StructuredSourceReportProfileSchema).min(1),
+    optionalFeatureArtifact: OptionalFeatureBudgetSelectionArtifactSchema.optional(),
   })
   .strict()
   .superRefine((request, context) => {
@@ -23450,17 +25544,19 @@ export const StructuredSourceReportSelectionRequestSchema = z
     const policyBySlotId = new Map(
       request.selectionProfile.policies.map((policy) => [policy.slotId, policy]),
     );
-    const candidateKeys = request.selectionProfile.policies.flatMap((policy) =>
+    const candidatesForPolicy = (policy: StructuredSourceReportSelectionPolicy) =>
       policy.mode === 'fixed'
-        ? [`${policy.candidate.profileRef.id}\u0000${policy.candidate.profileRef.contentVersion}`]
-        : policy.candidates.map(
-            (candidate) => `${candidate.profileRef.id}\u0000${candidate.profileRef.contentVersion}`,
-          ),
+        ? [policy.candidate]
+        : policy.mode === 'weighted'
+          ? policy.candidates
+          : [policy.baseCandidate, ...policy.modifiers.map((modifier) => modifier.candidate)];
+    const candidateKeys = request.selectionProfile.policies.flatMap((policy) =>
+      candidatesForPolicy(policy).map(
+        (candidate) => `${candidate.profileRef.id}\u0000${candidate.profileRef.contentVersion}`,
+      ),
     );
     const candidateIds = request.selectionProfile.policies.flatMap((policy) =>
-      policy.mode === 'fixed'
-        ? [policy.candidate.profileRef.id]
-        : policy.candidates.map((candidate) => candidate.profileRef.id),
+      candidatesForPolicy(policy).map((candidate) => candidate.profileRef.id),
     );
     const assemblyDefinitionKeys = request.assemblyRecipe.structuredRevealDefinitions.map(
       (definition) => `${definition.id}\u0000${definition.contentVersion}`,
@@ -23471,6 +25567,27 @@ export const StructuredSourceReportSelectionRequestSchema = z
     const profileByKey = new Map(
       request.profiles.map((profile) => [`${profile.id}\u0000${profile.contentVersion}`, profile]),
     );
+    const complexityPolicies = request.selectionProfile.policies.filter(
+      (
+        policy,
+      ): policy is Extract<StructuredSourceReportSelectionPolicy, { mode: 'complexity_gated' }> =>
+        policy.mode === 'complexity_gated',
+    );
+    const optionalArtifact = request.optionalFeatureArtifact;
+    const sourceReportDefinitions =
+      optionalArtifact?.selectionRequest.moduleDefinitions.filter(
+        (definition) => definition.moduleKind === 'source_report',
+      ) ?? [];
+    const mappedSourceReportIds = [
+      ...new Set(
+        complexityPolicies.flatMap((policy) =>
+          policy.modifiers.map((modifier) => modifier.moduleRef.id),
+        ),
+      ),
+    ].sort();
+    const sourceReportDefinitionIds = sourceReportDefinitions
+      .map((definition) => definition.id)
+      .sort();
     if (
       request.template.careSetting !== request.selectionProfile.careSetting ||
       request.template.universalActionResultAssemblyRecipeRef.id !== request.assemblyRecipe.id ||
@@ -23491,22 +25608,109 @@ export const StructuredSourceReportSelectionRequestSchema = z
       request.horizon.pools.some((pool) => !policyBySlotId.has(pool.id)) ||
       request.selectionProfile.policies.some(
         (policy) => !request.horizon.pools.some((pool) => pool.id === policy.slotId),
-      )
+      ) ||
+      complexityPolicies.length > 0 !== (optionalArtifact !== undefined) ||
+      (optionalArtifact !== undefined &&
+        (optionalArtifact.seed !== request.seed ||
+          optionalArtifact.templateRef.id !== request.template.id ||
+          optionalArtifact.templateRef.contentVersion !== request.template.contentVersion ||
+          JSON.stringify(optionalArtifact.selectionRequest.template) !==
+            JSON.stringify(request.template))) ||
+      mappedSourceReportIds.some((id) => !sourceReportDefinitionIds.includes(id))
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          'A source-report selection request requires one exact template/assembly/horizon/setting context, one policy per slot, complete unique profile membership, and source-view coverage for every assembly definition.',
+          'A source-report selection request requires one exact template/assembly/horizon/setting context, one policy per slot, complete unique profile membership, source-view coverage for every assembly definition, and an exact D-201 artifact for every mapped complexity-gated source-report module.',
+      });
+    }
+    if (optionalArtifact !== undefined) {
+      const definitionsById = new Map(
+        optionalArtifact.selectionRequest.moduleDefinitions.map((definition) => [
+          definition.id,
+          definition,
+        ]),
+      );
+      const bindingsById = new Map(
+        optionalArtifact.selectionRequest.profile.candidateBindings.map((binding) => [
+          binding.id,
+          binding,
+        ]),
+      );
+      const evaluationsByDefinitionId = new Map(
+        optionalArtifact.candidateEvaluations.map((evaluation) => [
+          evaluation.moduleRef.id,
+          evaluation,
+        ]),
+      );
+      const incompatibilityPairs = new Set(
+        optionalArtifact.selectionRequest.profile.incompatibilities.map(
+          (incompatibility) =>
+            `${incompatibility.leftModuleId}\u0000${incompatibility.rightModuleId}`,
+        ),
+      );
+      complexityPolicies.forEach((policy, policyIndex) => {
+        const selectedModifiers = policy.modifiers.filter(
+          (modifier) =>
+            evaluationsByDefinitionId.get(modifier.moduleRef.id)?.disposition === 'selected',
+        );
+        if (selectedModifiers.length > 1) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['selectionProfile', 'policies', policyIndex, 'modifiers'],
+            message:
+              'At most one D-201-selected source-report modifier may control one exact source-view slot.',
+          });
+        }
+        for (let leftIndex = 0; leftIndex < policy.modifiers.length; leftIndex += 1) {
+          for (
+            let rightIndex = leftIndex + 1;
+            rightIndex < policy.modifiers.length;
+            rightIndex += 1
+          ) {
+            if (request.template.complexityProfile.maximumSelectedModules <= 1) continue;
+            const pair = [
+              policy.modifiers[leftIndex]!.moduleRef.id,
+              policy.modifiers[rightIndex]!.moduleRef.id,
+            ].sort();
+            if (!incompatibilityPairs.has(`${pair[0]}\u0000${pair[1]}`)) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['selectionProfile', 'policies', policyIndex, 'modifiers'],
+                message:
+                  'Source-report modifiers sharing one slot must already be mutually incompatible in D-201.',
+              });
+            }
+          }
+        }
+        policy.modifiers.forEach((modifier, modifierIndex) => {
+          const definition = definitionsById.get(modifier.moduleRef.id);
+          const binding = bindingsById.get(modifier.optionalFeatureBindingId);
+          const evaluation = evaluationsByDefinitionId.get(modifier.moduleRef.id);
+          if (
+            definition?.moduleKind !== 'source_report' ||
+            definition.contentVersion !== modifier.moduleRef.contentVersion ||
+            evaluation?.moduleFingerprint !== modifier.moduleFingerprint ||
+            evaluation.bindingId !== modifier.optionalFeatureBindingId ||
+            evaluation.moduleSnapshot.id !== modifier.selectedModuleId ||
+            binding?.moduleRef.id !== modifier.moduleRef.id ||
+            binding.moduleRef.contentVersion !== modifier.moduleRef.contentVersion ||
+            binding.moduleFingerprint !== modifier.moduleFingerprint ||
+            binding.selectedModuleId !== modifier.selectedModuleId
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['selectionProfile', 'policies', policyIndex, 'modifiers', modifierIndex],
+              message:
+                'Each source-report modifier must pin one exact source_report definition, D-201 binding, selected-record identity, and candidate evaluation.',
+            });
+          }
+        });
       });
     }
     request.horizon.pools.forEach((pool, poolIndex) => {
       const policy = policyBySlotId.get(pool.id);
-      const candidates =
-        policy?.mode === 'fixed'
-          ? [policy.candidate]
-          : policy?.mode === 'weighted'
-            ? policy.candidates
-            : [];
+      const candidates = policy === undefined ? [] : candidatesForPolicy(policy);
       candidates.forEach((candidate, candidateIndex) => {
         const profile = profileByKey.get(
           `${candidate.profileRef.id}\u0000${candidate.profileRef.contentVersion}`,
@@ -23558,6 +25762,34 @@ export const StructuredSourceReportNormalizedSelectionProbabilitySchema = z
     }
   });
 
+export const StructuredSourceReportComplexityModuleEvaluationSchema = z
+  .object({
+    moduleRef: CatalogInstanceVersionedReferenceSchema,
+    moduleFingerprint: OptionalFeatureBudgetFingerprintSchema,
+    optionalFeatureBindingId: StableIdSchema,
+    selectedModuleId: StableIdSchema,
+    cost: z.number().int().min(1).max(3),
+    selectedInComplexityBudget: z.boolean(),
+    selectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    stableDrawId: StableIdSchema.nullable(),
+  })
+  .strict()
+  .superRefine((evaluation, context) => {
+    if (
+      evaluation.selectedInComplexityBudget !==
+      (evaluation.selectionOrdinal !== null && evaluation.stableDrawId !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Only a D-201-selected source-report modifier may retain its original selection ordinal and stable draw.',
+      });
+    }
+  });
+export type StructuredSourceReportComplexityModuleEvaluation = z.infer<
+  typeof StructuredSourceReportComplexityModuleEvaluationSchema
+>;
+
 export const StructuredSourceReportSelectionCandidateEvaluationSchema = z
   .object({
     profileRef: CatalogInstanceVersionedReferenceSchema,
@@ -23565,6 +25797,7 @@ export const StructuredSourceReportSelectionCandidateEvaluationSchema = z
     gameGenerationWeight: z.number().int().positive().max(10_000).nullable(),
     normalizedGameSelectionProbability:
       StructuredSourceReportNormalizedSelectionProbabilitySchema.nullable(),
+    complexityModule: StructuredSourceReportComplexityModuleEvaluationSchema.nullable().optional(),
     selected: z.boolean(),
   })
   .strict()
@@ -23593,7 +25826,7 @@ export const StructuredSourceReportPoolSelectionSchema = z
     timeScopeId: StableIdSchema,
     claimOriginId: StableIdSchema,
     dependencyGroupIds: z.array(StableIdSchema).max(64),
-    mode: z.enum(['fixed', 'weighted']),
+    mode: z.enum(['fixed', 'weighted', 'complexity_gated']),
     stableDrawId: StableIdSchema.nullable(),
     candidateEvaluations: z
       .array(StructuredSourceReportSelectionCandidateEvaluationSchema)
@@ -23619,6 +25852,30 @@ export const StructuredSourceReportPoolSelectionSchema = z
           candidate.gameGenerationWeight !== null &&
           candidate.normalizedGameSelectionProbability !== null,
       );
+    const complexityCandidates = selection.candidateEvaluations.filter(
+      (candidate) => candidate.complexityModule != null,
+    );
+    const selectedComplexityCandidates = complexityCandidates.filter(
+      (candidate) => candidate.complexityModule?.selectedInComplexityBudget,
+    );
+    const selectedCandidate = selected[0];
+    const complexityGated =
+      selection.mode === 'complexity_gated' &&
+      selection.candidateEvaluations.length >= 2 &&
+      selection.candidateEvaluations.filter((candidate) => candidate.complexityModule == null)
+        .length === 1 &&
+      complexityCandidates.length === selection.candidateEvaluations.length - 1 &&
+      selection.candidateEvaluations.every(
+        (candidate) =>
+          candidate.gameGenerationWeight === null &&
+          candidate.normalizedGameSelectionProbability === null,
+      ) &&
+      selectedComplexityCandidates.length <= 1 &&
+      (selectedComplexityCandidates.length === 0
+        ? selection.stableDrawId === null && selectedCandidate?.complexityModule == null
+        : selection.stableDrawId ===
+            selectedComplexityCandidates[0]!.complexityModule!.stableDrawId &&
+          selectedCandidate?.complexityModule?.selectedInComplexityBudget === true);
     const totalWeight = selection.candidateEvaluations.reduce(
       (sum, candidate) => sum + (candidate.gameGenerationWeight ?? 0),
       0,
@@ -23648,7 +25905,7 @@ export const StructuredSourceReportPoolSelectionSchema = z
       selected[0]!.profileRef.id !== selection.selectedProfileRef.id ||
       selected[0]!.profileRef.contentVersion !== selection.selectedProfileRef.contentVersion ||
       selected[0]!.profileFingerprint !== selection.selectedProfileFingerprint ||
-      (!fixed && !weighted) ||
+      (!fixed && !weighted && !complexityGated) ||
       (selection.mode === 'weighted' && !weightedArithmeticIsExact) ||
       new Set(selection.dependencyGroupIds).size !== selection.dependencyGroupIds.length
     ) {
@@ -23995,6 +26252,28 @@ export const UniversalActionResultAssemblyRecipeSchema = z
   });
 export type UniversalActionResultAssemblyRecipe = z.infer<
   typeof UniversalActionResultAssemblyRecipeSchema
+>;
+
+export const UniversalActionResultAssemblyCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    assemblies: z.array(UniversalActionResultAssemblyRecipeSchema).min(1),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const assemblyIds = catalog.assemblies.map((assembly) => assembly.id);
+    if (new Set(assemblyIds).size !== assemblyIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['assemblies'],
+        message: 'Universal action-result assembly catalog IDs must be unique.',
+      });
+    }
+  });
+export type UniversalActionResultAssemblyCatalog = z.infer<
+  typeof UniversalActionResultAssemblyCatalogSchema
 >;
 
 /**
@@ -26274,6 +28553,137 @@ export type GeneratedServicePricingOwnerSnapshot = z.infer<
   typeof GeneratedServicePricingOwnerSnapshotSchema
 >;
 
+export const GeneratedTreatmentPricingOwnerSnapshotSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    treatment: TreatmentOptionSchema,
+    ownerFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+  })
+  .strict();
+export type GeneratedTreatmentPricingOwnerSnapshot = z.infer<
+  typeof GeneratedTreatmentPricingOwnerSnapshotSchema
+>;
+
+export const GeneratedDiagnosisSelectionDefinitionOwnersInputSchema = z
+  .object({
+    definitions: z.array(DiagnosisDefinitionSchema).max(512),
+  })
+  .strict()
+  .superRefine((input, context) => {
+    const definitionIds = input.definitions.map((definition) => definition.id);
+    if (new Set(definitionIds).size !== definitionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['definitions'],
+        message:
+          'A generated diagnosis-selection input may include each exact diagnosis owner once.',
+      });
+    }
+  });
+export type GeneratedDiagnosisSelectionDefinitionOwnersInput = z.infer<
+  typeof GeneratedDiagnosisSelectionDefinitionOwnersInputSchema
+>;
+
+export const GeneratedDiagnosisSelectionSpecifierOwnerSchema = z
+  .object({
+    specifierId: StableIdSchema,
+    exclusiveGroupId: StableIdSchema.nullable(),
+  })
+  .strict();
+export type GeneratedDiagnosisSelectionSpecifierOwner = z.infer<
+  typeof GeneratedDiagnosisSelectionSpecifierOwnerSchema
+>;
+
+/**
+ * This is the minimized historical payload needed to validate one submitted
+ * diagnosis qualifier. It deliberately excludes diagnosis prose, rules,
+ * evidence contributions, and backend-only severity details.
+ */
+export const GeneratedDiagnosisSelectionQualifierOwnerSnapshotSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    diagnosisOptionId: StableIdSchema,
+    diagnosisRef: CatalogInstanceVersionedReferenceSchema,
+    sourceDefinitionFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+    playerSeverityMode: z.enum(['family_only', 'severity_selectable']),
+    allowedSeverityIds: z.array(StableIdSchema),
+    allowedSpecifiers: z.array(GeneratedDiagnosisSelectionSpecifierOwnerSchema),
+    payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+  })
+  .strict()
+  .superRefine((owner, context) => {
+    if (
+      new Set(owner.allowedSeverityIds).size !== owner.allowedSeverityIds.length ||
+      new Set(owner.allowedSpecifiers.map((specifier) => specifier.specifierId)).size !==
+        owner.allowedSpecifiers.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A generated diagnosis-selection owner requires unique severity and specifier identities.',
+      });
+    }
+    if (owner.playerSeverityMode === 'family_only' && owner.allowedSeverityIds.length > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedSeverityIds'],
+        message: 'A family-only diagnosis cannot expose player-selectable severity identities.',
+      });
+    }
+    if (
+      owner.playerSeverityMode === 'severity_selectable' &&
+      owner.allowedSeverityIds.length === 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['allowedSeverityIds'],
+        message:
+          'A severity-selectable diagnosis requires at least one exact reviewed player severity.',
+      });
+    }
+  });
+export type GeneratedDiagnosisSelectionQualifierOwnerSnapshot = z.infer<
+  typeof GeneratedDiagnosisSelectionQualifierOwnerSnapshotSchema
+>;
+
+export const GeneratedDiagnosisSelectionOwnerSetSnapshotSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('generated-diagnosis-selection-owner-set.v1'),
+    diagnosisSelectionHorizonRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: CatalogInstanceFingerprintSchema,
+      })
+      .strict(),
+    owners: z.array(GeneratedDiagnosisSelectionQualifierOwnerSnapshotSchema).max(512),
+    payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+  })
+  .strict()
+  .superRefine((snapshot, context) => {
+    const optionIds = snapshot.owners.map((owner) => owner.diagnosisOptionId);
+    const diagnosisIds = snapshot.owners.map((owner) => owner.diagnosisRef.id);
+    if (
+      new Set(optionIds).size !== optionIds.length ||
+      new Set(diagnosisIds).size !== diagnosisIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['owners'],
+        message:
+          'A generated diagnosis-selection owner set requires one unique owner per horizon option and diagnosis.',
+      });
+    }
+  });
+export type GeneratedDiagnosisSelectionOwnerSetSnapshot = z.infer<
+  typeof GeneratedDiagnosisSelectionOwnerSetSnapshotSchema
+>;
+
 export const GeneratedServicePricingInputSchema = z
   .object({
     services: z.array(ServiceDefinitionSchema).max(512),
@@ -26336,6 +28746,79 @@ export const GeneratedServicePricingInputSchema = z
 export type GeneratedServicePricingInput = z.infer<typeof GeneratedServicePricingInputSchema>;
 
 /**
+ * Nonclinical, template-scoped economy balance for one generated encounter
+ * recipe. It owns no care points, clinical rule, complexity interpretation, or
+ * service price.
+ */
+export const GeneratedEncounterEconomyPolicySchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('generated-encounter-economy-policy.v1'),
+    label: z.string().trim().min(1).max(180),
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: PatientTemplateLocationAdmissionMatrixFingerprintSchema,
+    balanceStatus: z.literal('provisional_balance'),
+    baseReimbursement: z.number().int().nonnegative(),
+    challengeBonus: z.number().int().nonnegative(),
+  })
+  .strict();
+export type GeneratedEncounterEconomyPolicy = z.infer<typeof GeneratedEncounterEconomyPolicySchema>;
+
+export const GeneratedSatisfactionConfigurationOwnerInputSchema = z
+  .object({
+    ownerRef: CatalogInstanceVersionedReferenceSchema,
+    configuration: SatisfactionConfigurationSchema,
+  })
+  .strict()
+  .superRefine((owner, context) => {
+    if (owner.ownerRef.contentVersion !== owner.configuration.contentVersion) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ownerRef', 'contentVersion'],
+        message:
+          'A satisfaction-configuration owner reference must pin the exact configuration version.',
+      });
+    }
+  });
+export type GeneratedSatisfactionConfigurationOwnerInput = z.infer<
+  typeof GeneratedSatisfactionConfigurationOwnerInputSchema
+>;
+
+export const GeneratedEncounterSettlementContextSourceSchema = z
+  .object({
+    economyPolicy: GeneratedEncounterEconomyPolicySchema,
+    clinicState: ClinicStateSchema,
+    satisfactionConfigurationOwner: GeneratedSatisfactionConfigurationOwnerInputSchema,
+  })
+  .strict();
+export type GeneratedEncounterSettlementContextSource = z.infer<
+  typeof GeneratedEncounterSettlementContextSourceSchema
+>;
+
+export const GeneratedEncounterSettlementContextSnapshotSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('generated-encounter-settlement-context.v1'),
+    economyPolicy: GeneratedEncounterEconomyPolicySchema,
+    economyPolicyOwnerFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+    clinicState: ClinicStateSchema,
+    clinicStateOwnerFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+    clinicOperationalContext: ClinicOperationalContextSchema,
+    satisfactionConfigurationOwner: GeneratedSatisfactionConfigurationOwnerInputSchema,
+    satisfactionConfigurationOwnerFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+    derivedSatisfactionMultiplier: z.number().min(1).max(2),
+    payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+  })
+  .strict();
+export type GeneratedEncounterSettlementContextSnapshot = z.infer<
+  typeof GeneratedEncounterSettlementContextSnapshotSchema
+>;
+
+/**
  * D-235 persists only the frozen player-facing encounter state needed for
  * deterministic replay. The complete D-200 authoring chain remains attached
  * to the occupied slot and is used by the compiler to derive and verify this
@@ -26345,7 +28828,7 @@ export const GeneratedEncounterReplaySnapshotSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     id: StableIdSchema,
-    modelVersion: z.literal('generated-encounter-replay-snapshot.v2'),
+    modelVersion: z.literal('generated-encounter-replay-snapshot.v5'),
     sourceFindingPipelineAuditRef: z
       .object({
         id: StableIdSchema,
@@ -26365,13 +28848,16 @@ export const GeneratedEncounterReplaySnapshotSchema = z
         mode: ProgressionModeSchema,
         slotCoordinateId: StableIdSchema,
         fillOrdinal: z.number().int().safe().nonnegative(),
+        templateFingerprint: PatientTemplateLocationAdmissionMatrixFingerprintSchema,
         locationRef: CatalogInstanceVersionedReferenceSchema,
         locationFingerprint: PatientTemplateLocationAdmissionMatrixFingerprintSchema,
       })
       .strict(),
     patientInstance: PatientInstanceSchema,
     encounterInstance: EncounterInstanceSchema,
+    diagnosisSelectionOwners: GeneratedDiagnosisSelectionOwnerSetSnapshotSchema,
     servicePricingOwners: z.array(GeneratedServicePricingOwnerSnapshotSchema).max(512),
+    treatmentPricingOwners: z.array(GeneratedTreatmentPricingOwnerSnapshotSchema).max(1_024),
     informationActionRuntimeHorizon: z.array(
       z
         .object({
@@ -26395,6 +28881,56 @@ export const GeneratedEncounterReplaySnapshotSchema = z
           }
         }),
     ),
+    treatmentRuntimeHorizon: z.array(
+      z
+        .object({
+          treatmentRef: CatalogInstanceVersionedReferenceSchema,
+          treatmentPricingOwnerFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+          actionTarget: z.union([
+            z
+              .object({
+                kind: z.literal('intervention'),
+                interventionId: StableIdSchema,
+              })
+              .strict(),
+            z
+              .object({
+                kind: z.literal('disposition'),
+                dispositionId: StableIdSchema,
+              })
+              .strict(),
+          ]),
+          fulfillmentServiceRef: CatalogInstanceVersionedReferenceSchema.nullable(),
+          servicePricingOwnerFingerprint: GeneratedEncounterAttemptFingerprintSchema.nullable(),
+          availableFulfillmentMethodIds: z.array(StableIdSchema),
+        })
+        .strict()
+        .superRefine((entry, context) => {
+          if (
+            new Set(entry.availableFulfillmentMethodIds).size !==
+            entry.availableFulfillmentMethodIds.length
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['availableFulfillmentMethodIds'],
+              message: 'A generated treatment may list each fulfillment method once.',
+            });
+          }
+          if (
+            (entry.fulfillmentServiceRef === null) !==
+              (entry.servicePricingOwnerFingerprint === null) ||
+            (entry.fulfillmentServiceRef === null) !==
+              (entry.availableFulfillmentMethodIds.length === 0)
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                'A generated treatment runtime entry either has one complete service-pricing binding or no service-owned operating charge.',
+            });
+          }
+        }),
+    ),
+    settlementContext: GeneratedEncounterSettlementContextSnapshotSchema,
     payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
   })
   .strict()
@@ -26405,10 +28941,32 @@ export const GeneratedEncounterReplaySnapshotSchema = z
       (entry) => entry.informationActionId,
     );
     const pricingOwnerIds = snapshot.servicePricingOwners.map((entry) => entry.service.id);
+    const treatmentOwnerIds = snapshot.treatmentPricingOwners.map((entry) => entry.treatment.id);
+    const runtimeTreatmentIds = snapshot.treatmentRuntimeHorizon.map(
+      (entry) => entry.treatmentRef.id,
+    );
     const runtimeServiceIds = [
-      ...new Set(snapshot.informationActionRuntimeHorizon.map((entry) => entry.serviceRef.id)),
+      ...new Set([
+        ...snapshot.informationActionRuntimeHorizon.map((entry) => entry.serviceRef.id),
+        ...snapshot.treatmentRuntimeHorizon.flatMap((entry) =>
+          entry.fulfillmentServiceRef === null ? [] : [entry.fulfillmentServiceRef.id],
+        ),
+      ]),
     ].sort();
     const expectedActionIds = encounter.decisionActionHorizon.informationActionIds;
+    const expectedTreatmentIds = [
+      ...encounter.decisionActionHorizon.interventionIds,
+      ...encounter.decisionActionHorizon.dispositionIds,
+    ].sort();
+    const diagnosisOptionsById = new Map(
+      encounter.diagnosisSelectionHorizon.options.map((option) => [
+        option.diagnosisDefinitionId,
+        option,
+      ]),
+    );
+    const treatmentOwnersById = new Map(
+      snapshot.treatmentPricingOwners.map((entry) => [entry.treatment.id, entry]),
+    );
     if (
       patient.id !== encounter.patientInstanceId ||
       patient.templateRef.id !== encounter.templateRef.id ||
@@ -26419,12 +28977,49 @@ export const GeneratedEncounterReplaySnapshotSchema = z
       [...runtimeActionIds].sort().join('\u0000') !==
         [...expectedActionIds].sort().join('\u0000') ||
       new Set(pricingOwnerIds).size !== pricingOwnerIds.length ||
-      [...pricingOwnerIds].sort().join('\u0000') !== runtimeServiceIds.join('\u0000')
+      [...pricingOwnerIds].sort().join('\u0000') !== runtimeServiceIds.join('\u0000') ||
+      new Set(treatmentOwnerIds).size !== treatmentOwnerIds.length ||
+      new Set(runtimeTreatmentIds).size !== runtimeTreatmentIds.length ||
+      snapshot.diagnosisSelectionOwners.diagnosisSelectionHorizonRef.id !==
+        encounter.diagnosisSelectionHorizon.id ||
+      snapshot.diagnosisSelectionOwners.diagnosisSelectionHorizonRef.payloadFingerprint !==
+        encounter.diagnosisSelectionHorizonFingerprint ||
+      snapshot.diagnosisSelectionOwners.owners.length !== diagnosisOptionsById.size ||
+      snapshot.diagnosisSelectionOwners.owners.some((owner) => {
+        const option = diagnosisOptionsById.get(owner.diagnosisRef.id);
+        return (
+          option === undefined ||
+          option.id !== owner.diagnosisOptionId ||
+          option.diagnosisDefinitionContentVersion !== owner.diagnosisRef.contentVersion
+        );
+      }) ||
+      [...treatmentOwnerIds].sort().join('\u0000') !== expectedTreatmentIds.join('\u0000') ||
+      [...runtimeTreatmentIds].sort().join('\u0000') !== expectedTreatmentIds.join('\u0000') ||
+      snapshot.treatmentRuntimeHorizon.some((entry) => {
+        const owner = treatmentOwnersById.get(entry.treatmentRef.id);
+        const targetId =
+          entry.actionTarget.kind === 'intervention'
+            ? entry.actionTarget.interventionId
+            : entry.actionTarget.dispositionId;
+        return (
+          owner === undefined ||
+          owner.treatment.contentVersion !== entry.treatmentRef.contentVersion ||
+          owner.ownerFingerprint !== entry.treatmentPricingOwnerFingerprint ||
+          owner.treatment.kind !==
+            (entry.actionTarget.kind === 'intervention' ? 'nonmedication' : 'disposition') ||
+          targetId !== entry.treatmentRef.id
+        );
+      }) ||
+      snapshot.settlementContext.economyPolicy.templateRef.id !== encounter.templateRef.id ||
+      snapshot.settlementContext.economyPolicy.templateRef.contentVersion !==
+        encounter.templateRef.contentVersion ||
+      snapshot.settlementContext.economyPolicy.templateFingerprint !==
+        snapshot.waitingSlotRef.templateFingerprint
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          'A generated replay snapshot must bind one exact patient, encounter, location, and complete information-action runtime horizon.',
+          'A generated replay snapshot must bind one exact patient, encounter, location, information-action horizon, and treatment-service horizon.',
       });
     }
   });
@@ -26703,7 +29298,7 @@ export const GeneratedEncounterPointReportSchema =
     .extend({
       schemaVersion: SchemaVersionSchema,
       id: StableIdSchema,
-      modelVersion: z.literal('generated-encounter-point-report.v6'),
+      modelVersion: z.literal('generated-encounter-point-report.v7'),
       pointDerivation: z.literal('provisional_balance_snapshot'),
       compiledRubricRef: z
         .object({
@@ -26746,12 +29341,31 @@ export type GeneratedEncounterPointReport = z.infer<typeof GeneratedEncounterPoi
 export const GeneratedTreatmentChargeSchema = z
   .object({
     id: StableIdSchema,
-    actionTarget: DecisionActionTargetSchema,
-    serviceRef: CatalogInstanceVersionedReferenceSchema.nullable(),
-    fulfillmentMethodId: StableIdSchema.nullable(),
+    actionTarget: z.union([
+      z
+        .object({
+          kind: z.literal('intervention'),
+          interventionId: StableIdSchema,
+        })
+        .strict(),
+      z
+        .object({
+          kind: z.literal('disposition'),
+          dispositionId: StableIdSchema,
+        })
+        .strict(),
+    ]),
+    treatmentRef: CatalogInstanceVersionedReferenceSchema,
+    treatmentPricingOwnerFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+    serviceRef: CatalogInstanceVersionedReferenceSchema,
+    servicePricingOwnerFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+    fulfillmentMethodId: StableIdSchema,
+    fulfillmentLabel: z.string().trim().min(1).max(180),
     label: z.string().trim().min(1).max(180),
     operatingCost: z.number().int().nonnegative(),
-    pricingDerivation: z.literal('supplied_unverified_quote_snapshot'),
+    externalCostAvoided: z.number().int().nonnegative(),
+    upgradeSavings: z.number().int().nonnegative(),
+    pricingDerivation: z.literal('native_versioned_treatment_service_quote.v1'),
   })
   .strict();
 export type GeneratedTreatmentCharge = z.infer<typeof GeneratedTreatmentChargeSchema>;
@@ -26759,12 +29373,52 @@ export type GeneratedTreatmentCharge = z.infer<typeof GeneratedTreatmentChargeSc
 export const GeneratedEncounterSettlementInputSchema = z
   .object({
     producerRef: CatalogInstanceVersionedReferenceSchema,
+    ...GeneratedEncounterSettlementContextSourceSchema.shape,
+  })
+  .strict();
+export type GeneratedEncounterSettlementInput = z.infer<
+  typeof GeneratedEncounterSettlementInputSchema
+>;
+
+export const GeneratedEncounterSettlementSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('generated-encounter-settlement.v4'),
+    settlementDerivation: z.literal(
+      'native_economy_policy_clinic_state_satisfaction_and_service_pricing.v1',
+    ),
+    producerRef: CatalogInstanceVersionedReferenceSchema,
+    settlementContextRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+      })
+      .strict(),
     baseReimbursement: z.number().int().nonnegative(),
     challengeBonus: z.number().int().nonnegative(),
     satisfactionMultiplier: z.number().min(1).max(2),
     treatmentCharges: z.array(GeneratedTreatmentChargeSchema),
+    pointReportRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
+      })
+      .strict(),
+    carePoints: z.number().int(),
+    grossPayout: z.number().int().nonnegative(),
+    informationExpenses: z.number().int().nonnegative(),
+    treatmentExpenses: z.number().int().nonnegative(),
+    operatingExpenses: z.number().int().nonnegative(),
+    calculatedPayout: z.number().int(),
+    projectedNetPointsEarned: z.number().int().nonnegative(),
+    bankedPointsEarned: z.number().int().nonnegative(),
+    practiceMode: z.boolean(),
     persistentPointsBefore: z.number().int().nonnegative(),
+    persistentPointsAfter: z.number().int().nonnegative(),
     lifetimePointsBefore: z.number().int().nonnegative(),
+    lifetimePointsAfter: z.number().int().nonnegative(),
+    payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
   })
   .strict()
   .superRefine((settlement, context) => {
@@ -26775,43 +29429,10 @@ export const GeneratedEncounterSettlementInputSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['treatmentCharges'],
-        message: 'A generated settlement may contain each treatment charge once.',
+        message: 'A generated settlement may contain each native treatment charge once.',
       });
     }
   });
-export type GeneratedEncounterSettlementInput = z.infer<
-  typeof GeneratedEncounterSettlementInputSchema
->;
-
-export const GeneratedEncounterSettlementSchema =
-  GeneratedEncounterSettlementInputSchema.innerType()
-    .extend({
-      schemaVersion: SchemaVersionSchema,
-      id: StableIdSchema,
-      modelVersion: z.literal('generated-encounter-settlement.v2'),
-      settlementDerivation: z.literal(
-        'arithmetic_verified_information_pricing_native_treatment_pricing_unverified',
-      ),
-      pointReportRef: z
-        .object({
-          id: StableIdSchema,
-          payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
-        })
-        .strict(),
-      carePoints: z.number().int(),
-      grossPayout: z.number().int().nonnegative(),
-      informationExpenses: z.number().int().nonnegative(),
-      treatmentExpenses: z.number().int().nonnegative(),
-      operatingExpenses: z.number().int().nonnegative(),
-      calculatedPayout: z.number().int(),
-      projectedNetPointsEarned: z.number().int().nonnegative(),
-      bankedPointsEarned: z.number().int().nonnegative(),
-      practiceMode: z.boolean(),
-      persistentPointsAfter: z.number().int().nonnegative(),
-      lifetimePointsAfter: z.number().int().nonnegative(),
-      payloadFingerprint: GeneratedEncounterAttemptFingerprintSchema,
-    })
-    .strict();
 export type GeneratedEncounterSettlement = z.infer<typeof GeneratedEncounterSettlementSchema>;
 
 const GeneratedEncounterSequencedEventBaseShape = {
@@ -26896,7 +29517,7 @@ export const GeneratedCompletedEncounterAttemptSchema = z
     schemaVersion: SchemaVersionSchema,
     compilerVersion: ContentVersionSchema,
     id: StableIdSchema,
-    modelVersion: z.literal('generated-completed-encounter-attempt.v2'),
+    modelVersion: z.literal('generated-completed-encounter-attempt.v5'),
     mode: ProgressionModeSchema,
     engineVersions: z
       .object({
@@ -26910,7 +29531,7 @@ export const GeneratedCompletedEncounterAttemptSchema = z
     events: z.array(GeneratedEncounterEventSchema).min(5).max(2_048),
     purchases: z.array(GeneratedInformationPurchaseSnapshotSchema).max(512),
     submittedDiagnoses: PlayerDiagnosisSelectionsSchema,
-    diagnosisQualifierValidation: z.literal('family_identity_only'),
+    diagnosisQualifierValidation: z.literal('exact_frozen_qualifier_owners'),
     submittedTreatment: GeneratedEncounterTreatmentSelectionSchema,
     pointReport: GeneratedEncounterPointReportSchema,
     settlement: GeneratedEncounterSettlementSchema,
@@ -26959,6 +29580,7 @@ export const GeneratedCompletedEncounterAttemptCompileInputSchema = z
       })
       .strict(),
     actionEvents: z.array(GeneratedEncounterActionEventInputSchema).max(2_043),
+    diagnosisSelectionOwners: GeneratedDiagnosisSelectionDefinitionOwnersInputSchema,
     servicePricing: GeneratedServicePricingInputSchema,
     pointDerivation: z
       .object({

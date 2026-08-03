@@ -34,6 +34,7 @@ import {
   consumePatientSlot,
   emptyPatientQueueState,
   ensurePatientQueues,
+  generateDeveloperPatientSlot,
   refreshPatientQueue,
   rerollDeveloperSlot,
 } from './queue';
@@ -528,6 +529,58 @@ describe('encounter engine', () => {
       }),
     ]);
     expect(bipolarMisclassification.receipt.pointReport.safetyErrors).toHaveLength(1);
+  });
+
+  it('keeps MDD severity internal while allowing its reviewed named psychotic-features variant', () => {
+    const state = startEncounter(
+      instantiateCase(prototypeCaseBlueprint, 'mdd-diagnosis-qualifier-boundary', catalogs),
+      startingClinic,
+      startingClinic.activeLocationId,
+    );
+
+    expect(
+      updateDiagnosisSelections(
+        state,
+        [
+          {
+            diagnosisId: 'diagnosis.major-depressive-disorder',
+            severityId: 'severity.mdd.moderate',
+            specifierIds: [],
+          },
+        ],
+        catalogs,
+      ),
+    ).toMatchObject({
+      ok: false,
+      error: {
+        code: 'INVALID_DIAGNOSIS_SELECTION',
+        message: expect.stringContaining('internal generation state'),
+      },
+    });
+
+    const namedVariant = updateDiagnosisSelections(
+      state,
+      [
+        {
+          diagnosisId: 'diagnosis.major-depressive-disorder',
+          severityId: null,
+          specifierIds: ['specifier.mdd.psychotic-features'],
+        },
+      ],
+      catalogs,
+    );
+    expect(namedVariant).toMatchObject({
+      ok: true,
+      value: {
+        diagnosisSelections: [
+          {
+            diagnosisId: 'diagnosis.major-depressive-disorder',
+            severityId: null,
+            specifierIds: ['specifier.mdd.psychotic-features'],
+          },
+        ],
+      },
+    });
   });
 
   it('grades stopping a contributing medication correctly', () => {
@@ -1513,5 +1566,84 @@ describe('progression and patient queues', () => {
         (candidate) => candidate.caseInstance.blueprintId === slot.caseInstance.blueprintId,
       ),
     ).toBe(false);
+  });
+
+  it('generates one persisted Developer patient only from an exact authored complexity budget', () => {
+    const initial = ensurePatientQueues(
+      emptyPatientQueueState(),
+      startingClinic,
+      endgameClinic,
+      pools,
+      catalogs,
+    );
+    const selected = advancedPrototypeCaseBlueprint;
+    const budget = selected.patientRecord.complexityProfile.additionalFeatureBudget;
+    const first = generateDeveloperPatientSlot(
+      initial,
+      selected.id,
+      budget,
+      endgameClinic,
+      pools.developer,
+      catalogs,
+    );
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect(first.value.slot).toMatchObject({
+      id: 'slot.developer.patient-maker',
+      mode: 'developer',
+      caseInstance: {
+        blueprintId: selected.id,
+        patientRecord: {
+          complexityProfile: {
+            additionalFeatureBudget: budget,
+          },
+        },
+      },
+    });
+    expect(first.value.patientQueues.developerSlots[0]).toEqual(first.value.slot);
+
+    const rerun = generateDeveloperPatientSlot(
+      first.value.patientQueues,
+      selected.id,
+      budget,
+      endgameClinic,
+      pools.developer,
+      catalogs,
+    );
+    expect(rerun.ok).toBe(true);
+    if (!rerun.ok) return;
+    expect(rerun.value.slot.caseInstance.id).not.toBe(first.value.slot.caseInstance.id);
+    expect(
+      rerun.value.patientQueues.developerSlots.filter(
+        (slot) => slot.caseInstance.blueprintId === selected.id,
+      ),
+    ).toHaveLength(1);
+
+    expect(
+      generateDeveloperPatientSlot(
+        initial,
+        selected.id,
+        budget + 1,
+        endgameClinic,
+        pools.developer,
+        catalogs,
+      ),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'COMPLEXITY_BUDGET_MISMATCH' },
+    });
+    expect(
+      generateDeveloperPatientSlot(
+        initial,
+        'case.not-real',
+        0,
+        endgameClinic,
+        pools.developer,
+        catalogs,
+      ),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'UNKNOWN_CASE' },
+    });
   });
 });

@@ -323,3 +323,141 @@ export const resetDeveloperRunHistory = (state: PatientQueueState): PatientQueue
     developerSlots: [],
     developerRunBlueprintIds: [],
   });
+
+export const DEVELOPER_PATIENT_MAKER_SLOT_ID = 'slot.developer.patient-maker';
+
+export type GenerateDeveloperPatientSlotResult =
+  | {
+      readonly ok: true;
+      readonly value: {
+        readonly patientQueues: PatientQueueState;
+        readonly slot: PatientQueueSlot;
+      };
+    }
+  | {
+      readonly ok: false;
+      readonly error: {
+        readonly code:
+          | 'UNKNOWN_CASE'
+          | 'CASE_NOT_PLAYABLE'
+          | 'COMPLEXITY_BUDGET_MISMATCH'
+          | 'NO_ELIGIBLE_LOCATION';
+        readonly message: string;
+      };
+    };
+
+/**
+ * Transitional local-Developer entry point for the finite compatibility-case
+ * engine. It never edits a case's complexity envelope or calls the future
+ * PatientTemplate/D-201 compiler. The selected budget must exactly match the
+ * already-authored playable case so the control cannot imply unimplemented
+ * optional-complication generation.
+ */
+export const generateDeveloperPatientSlot = (
+  state: PatientQueueState,
+  blueprintId: string,
+  authoredComplexityBudget: number,
+  endgameClinic: ClinicState,
+  developerBlueprints: readonly CaseBlueprint[],
+  catalogs: CatalogBundle,
+): GenerateDeveloperPatientSlotResult => {
+  const blueprint = developerBlueprints.find((candidate) => candidate.id === blueprintId);
+  if (!blueprint) {
+    return {
+      ok: false,
+      error: {
+        code: 'UNKNOWN_CASE',
+        message: `Developer Patient Maker cannot find ${blueprintId}.`,
+      },
+    };
+  }
+  if (
+    !['approved', 'review'].includes(blueprint.metadata.lifecycle) ||
+    blueprint.patientRecord.complexityProfile.measurementStatus === 'legacy_unmeasured'
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'CASE_NOT_PLAYABLE',
+        message: `${blueprint.id} is not an explicitly measured approved/review case.`,
+      },
+    };
+  }
+  if (
+    blueprint.patientRecord.complexityProfile.additionalFeatureBudget !== authoredComplexityBudget
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: 'COMPLEXITY_BUDGET_MISMATCH',
+        message: `${blueprint.id} owns complexity budget ${blueprint.patientRecord.complexityProfile.additionalFeatureBudget}, not ${authoredComplexityBudget}.`,
+      },
+    };
+  }
+
+  const nextGeneration = state.generation + 1;
+  const retainedSlots = state.developerSlots.filter(
+    (slot) =>
+      slot.id !== DEVELOPER_PATIENT_MAKER_SLOT_ID && slot.caseInstance.blueprintId !== blueprint.id,
+  );
+  const complaintsInUse = new Set(
+    [
+      ...state.recentChiefComplaints,
+      ...retainedSlots.map((slot) => slot.caseInstance.opening.chiefComplaint),
+    ].map(normalizeComplaint),
+  );
+  const generated = makeSlot(
+    'developer',
+    blueprint,
+    endgameClinic,
+    catalogs,
+    nextGeneration,
+    0,
+    complaintsInUse,
+  );
+  if (!generated) {
+    return {
+      ok: false,
+      error: {
+        code: 'NO_ELIGIBLE_LOCATION',
+        message: `${blueprint.id} cannot be played in the current fully unlocked Developer clinic.`,
+      },
+    };
+  }
+  const makerSlot = PatientQueueSlotSchema.parse({
+    ...generated,
+    id: DEVELOPER_PATIENT_MAKER_SLOT_ID,
+  });
+  const draft = PatientQueueStateSchema.parse({
+    ...state,
+    generation: nextGeneration,
+    developerRunBlueprintIds: state.developerRunBlueprintIds.filter(
+      (candidate) => candidate !== blueprint.id,
+    ),
+    developerSlots: [makerSlot, ...retainedSlots],
+  });
+  const patientQueues = PatientQueueStateSchema.parse({
+    ...draft,
+    developerSlots: fillMode(
+      'developer',
+      draft.developerSlots,
+      draft,
+      endgameClinic,
+      developerBlueprints,
+      catalogs,
+    ),
+  });
+  const slot = patientQueues.developerSlots.find(
+    (candidate) => candidate.id === DEVELOPER_PATIENT_MAKER_SLOT_ID,
+  );
+  if (!slot) {
+    return {
+      ok: false,
+      error: {
+        code: 'NO_ELIGIBLE_LOCATION',
+        message: `${blueprint.id} did not survive the exact Developer queue eligibility pass.`,
+      },
+    };
+  }
+  return { ok: true, value: { patientQueues, slot } };
+};

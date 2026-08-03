@@ -33,20 +33,31 @@ describe('Developer ticket literature scout', () => {
   });
 
   it('rejects a missing active-ticket attachment', () => {
+    const activeTicket = developerClinicalAuditTickets.find(
+      (ticket) =>
+        ticket.status !== 'resolved' &&
+        ticket.status !== 'rejected' &&
+        developerTicketLiteratureScoutCatalog.attachments.some(
+          (attachment) => attachment.ticketId === ticket.id,
+        ),
+    );
+    expect(activeTicket).toBeDefined();
+
     const invalid = structuredClone(developerTicketLiteratureScoutCatalog);
     invalid.attachments = invalid.attachments.filter(
-      (attachment) =>
-        attachment.ticketId !== 'ticket.catalog.diagnoses.mdd-current-episode-finding-profile',
+      (attachment) => attachment.ticketId !== activeTicket!.id,
     );
-    expect(
-      validateTicketLiteratureScoutCatalog(
-        invalid,
-        developerClinicalAuditTickets,
-        developerSourceRequests,
-      ).issues,
-    ).toEqual(
+    const issues = validateTicketLiteratureScoutCatalog(
+      invalid,
+      developerClinicalAuditTickets,
+      developerSourceRequests,
+    ).issues;
+    expect(issues).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ code: 'MISSING_LITERATURE_SCOUT_TICKET_COVERAGE' }),
+        expect.objectContaining({
+          code: 'MISSING_LITERATURE_SCOUT_TICKET_COVERAGE',
+          message: activeTicket!.id,
+        }),
       ]),
     );
   });

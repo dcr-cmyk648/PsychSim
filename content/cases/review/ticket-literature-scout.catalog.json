@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.36",
+  "contentVersion": "1.0.38",
   "id": "ticket-literature-scout.psychsim",
   "references": [
     {
@@ -1531,6 +1531,16 @@
       "ticketId": "ticket.engine.patient-generation.decision-balance-catalog-fingerprint",
       "profileIds": [],
       "exemptionReason": "This is deterministic historical-replay, exact payload-identity, authoring/runtime isolation, and persistence-boundary architecture. Clinical literature cannot determine how a versioned balance catalog is fingerprinted or which minimized source material must be frozen to detect same-ID/version payload drift."
+    },
+    {
+      "ticketId": "ticket.engine.patient-generation.finding-source-report-complexity-bridge",
+      "profileIds": [],
+      "exemptionReason": "This is deterministic exact-artifact routing between the already-approved D-201 optional-complexity selection and one D-193 patient-report projection. Clinical literature and psychiatrist review remain necessary for any real inaccurate-report behavior, motive, frequency, or clinical consequence, but a meta-analysis cannot define the compiler handoff, replay identity, or one-charge complexity contract."
+    },
+    {
+      "ticketId": "ticket.catalog.findings.mdd-depressive-symptom-assessment-horizon",
+      "profileIds": [],
+      "exemptionReason": "The underlying MDD dimensions and atomic findings already retain their separate source and Developer-opinion provenance. This ticket asks the psychiatrist reviewer how PsychSim should package those existing facts across one compact Depressive symptoms action and the separate detailed Sleep and Suicide/self-harm actions; a new literature search cannot decide that player-facing question-bank grouping."
     }
   ]
 }

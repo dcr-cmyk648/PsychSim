@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.11.0",
+  "contentVersion": "1.12.0",
   "id": "source-use-decisions.psychsim",
   "decisions": [
     {
@@ -81,6 +81,42 @@
       "reviewedBy": "reviewer.codex-source-rights-audit",
       "reviewedAt": "2026-07-24T16:00:00.000Z",
       "notes": "CDC states that WHO owns ICD-10 and authorized NCHS to develop ICD-10-CM for U.S. government purposes. WHO's ICD-10 FAQ says noncommercial/research and internal uses may require a license and directs U.S. modification licensing questions to NCHS. The current ICD-11 Creative Commons terms are not imported into this decision. Until NCHS or WHO grants or confirms a broader permission, PsychSim relies only on the recorded narrow U.S. fair-use assessment for a private local cache."
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "source-use.omb.spd15.2024",
+      "evidenceSourceId": "evidence.omb.spd15.2024",
+      "decisionStatus": "permitted_with_conditions",
+      "legalBasis": "public_domain",
+      "permissions": {
+        "bibliographicMetadata": true,
+        "localFullTextStorage": true,
+        "localTextExtraction": true,
+        "localStructuredIndexing": true,
+        "aiAssistedProcessing": true,
+        "derivedClinicalContent": true,
+        "runtimeRedistribution": true,
+        "commercialDistribution": true
+      },
+      "allowedContributionTypes": ["classification_mapping", "context_only"],
+      "territories": ["Global"],
+      "attributionStatement": "Source: U.S. Office of Management and Budget, 2024 Statistical Policy Directive No. 15.",
+      "requiredNotices": [
+        "Treat the categories as self-identified sociopolitical classifications, not biological or genetic identities.",
+        "Do not imply Office of Management and Budget, Federal Register, or United States government endorsement.",
+        "The standard supports category identity and collection structure only; it does not support psychiatric prevalence, symptom-report, pharmacology, treatment, or scoring claims.",
+        "Preserve the standard version and United States jurisdiction when the categories are reused."
+      ],
+      "nonCommercialOnly": false,
+      "shareAlikeRequired": false,
+      "thirdPartyMaterialPolicy": "excluded",
+      "fairUseAssessment": null,
+      "permissionEvidence": null,
+      "reviewBasis": "engineering_risk_assessment",
+      "reviewedBy": "reviewer.codex-source-rights-audit",
+      "reviewedAt": "2026-08-03T15:11:39.000Z",
+      "notes": "The fixed 2024 OMB directive is United States government material. PsychSim may reuse its factual minimum category identities and combined multiselect collection structure. Any clinical association or generation weight requires a different population-matched evidence source plus explicit clinical review."
     },
     {
       "schemaVersion": 1,

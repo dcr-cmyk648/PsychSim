@@ -19,12 +19,13 @@ import {
   fingerprintStructuredSourceReportProfile,
   normalizeStructuredSourceReportProfile,
 } from './structured-source-report-compiler';
+import { verifyOptionalFeatureBudgetSelectionIntegrity } from './optional-feature-budget-selector';
 import {
   fingerprintUniversalActionResultAssemblyRecipe,
   normalizeUniversalActionResultAssemblyRecipe,
 } from './universal-action-result-compiler';
 
-export const STRUCTURED_SOURCE_REPORT_BEHAVIOR_SELECTOR_VERSION = '1.0.0';
+export const STRUCTURED_SOURCE_REPORT_BEHAVIOR_SELECTOR_VERSION = '2.0.0';
 
 export type StructuredSourceReportBehaviorSelectionResult =
   | { readonly ok: true; readonly value: StructuredSourceReportSelectionArtifact }
@@ -38,6 +39,7 @@ export type StructuredSourceReportBehaviorSelectionResult =
           | 'STALE_HORIZON_FINGERPRINT'
           | 'STALE_DEFINITION_FINGERPRINT'
           | 'STALE_PROFILE_FINGERPRINT'
+          | 'OPTIONAL_FEATURE_ARTIFACT_INVALID'
           | 'SOURCE_KIND_NOT_ALLOWED'
           | 'PROFILE_BEHAVIOR_COVERAGE_MISMATCH'
           | 'PROFILE_SLOT_CONTEXT_MISMATCH'
@@ -183,20 +185,43 @@ const normalizeSelectionProfile = (
               profileRef: { ...policy.candidate.profileRef },
             },
           }
-        : {
-            ...policy,
-            candidates: [...policy.candidates]
-              .map((candidate) => ({
-                ...candidate,
-                profileRef: { ...candidate.profileRef },
-              }))
-              .sort((left, right) =>
-                compareStrings(
-                  `${left.profileRef.id}@${left.profileRef.contentVersion}`,
-                  `${right.profileRef.id}@${right.profileRef.contentVersion}`,
+        : policy.mode === 'weighted'
+          ? {
+              ...policy,
+              candidates: [...policy.candidates]
+                .map((candidate) => ({
+                  ...candidate,
+                  profileRef: { ...candidate.profileRef },
+                }))
+                .sort((left, right) =>
+                  compareStrings(
+                    `${left.profileRef.id}@${left.profileRef.contentVersion}`,
+                    `${right.profileRef.id}@${right.profileRef.contentVersion}`,
+                  ),
                 ),
-              ),
-          },
+            }
+          : {
+              ...policy,
+              baseCandidate: {
+                ...policy.baseCandidate,
+                profileRef: { ...policy.baseCandidate.profileRef },
+              },
+              modifiers: [...policy.modifiers]
+                .map((modifier) => ({
+                  ...modifier,
+                  moduleRef: { ...modifier.moduleRef },
+                  candidate: {
+                    ...modifier.candidate,
+                    profileRef: { ...modifier.candidate.profileRef },
+                  },
+                }))
+                .sort((left, right) =>
+                  compareStrings(
+                    `${left.moduleRef.id}@${left.moduleRef.contentVersion}`,
+                    `${right.moduleRef.id}@${right.moduleRef.contentVersion}`,
+                  ),
+                ),
+            },
     )
     .sort((left, right) => compareStrings(left.slotId, right.slotId)),
   developerOpinionIds: uniqueSorted(profile.developerOpinionIds),
@@ -217,6 +242,7 @@ const normalizeRequest = (
       .sort((left, right) =>
         compareStrings(`${left.id}@${left.contentVersion}`, `${right.id}@${right.contentVersion}`),
       ),
+    optionalFeatureArtifact: request.optionalFeatureArtifact,
   });
 
 export const fingerprintStructuredSourceReportSelectionTemplate = (
@@ -349,6 +375,73 @@ const buildArtifact = (
       continue;
     }
 
+    if (policy.mode === 'complexity_gated') {
+      const optionalEvaluations = new Map(
+        request.optionalFeatureArtifact!.candidateEvaluations.map((evaluation) => [
+          evaluation.moduleRef.id,
+          evaluation,
+        ]),
+      );
+      const selectedModifier = policy.modifiers.find(
+        (modifier) => optionalEvaluations.get(modifier.moduleRef.id)?.disposition === 'selected',
+      );
+      const selected = selectedModifier?.candidate ?? policy.baseCandidate;
+      const selectedOptionalEvaluation =
+        selectedModifier === undefined
+          ? undefined
+          : optionalEvaluations.get(selectedModifier.moduleRef.id);
+      selections.push({
+        poolId: pool.id,
+        definitionRef: { ...pool.definitionRef },
+        definitionFingerprint: pool.definitionFingerprint,
+        source: { ...pool.source },
+        timeScopeId: pool.timeScopeId,
+        claimOriginId: pool.claimOriginId,
+        dependencyGroupIds: [...pool.dependencyGroupIds],
+        mode: 'complexity_gated',
+        stableDrawId: selectedOptionalEvaluation?.stableDrawId ?? null,
+        candidateEvaluations: [
+          {
+            profileRef: { ...policy.baseCandidate.profileRef },
+            profileFingerprint: policy.baseCandidate.profileFingerprint,
+            gameGenerationWeight: null,
+            normalizedGameSelectionProbability: null,
+            selected: selectedModifier === undefined,
+          },
+          ...policy.modifiers.map((modifier) => {
+            const optionalEvaluation = optionalEvaluations.get(modifier.moduleRef.id)!;
+            const selectedInComplexityBudget = optionalEvaluation.disposition === 'selected';
+            return {
+              profileRef: { ...modifier.candidate.profileRef },
+              profileFingerprint: modifier.candidate.profileFingerprint,
+              gameGenerationWeight: null,
+              normalizedGameSelectionProbability: null,
+              complexityModule: {
+                moduleRef: { ...modifier.moduleRef },
+                moduleFingerprint: modifier.moduleFingerprint,
+                optionalFeatureBindingId: modifier.optionalFeatureBindingId,
+                selectedModuleId: modifier.selectedModuleId,
+                cost: optionalEvaluation.moduleSnapshot.cost,
+                selectedInComplexityBudget,
+                selectionOrdinal: optionalEvaluation.selectionOrdinal,
+                stableDrawId: optionalEvaluation.stableDrawId,
+              },
+              selected:
+                selectedModifier?.moduleRef.id === modifier.moduleRef.id &&
+                selectedModifier.moduleRef.contentVersion === modifier.moduleRef.contentVersion,
+            };
+          }),
+        ],
+        selectedProfileRef: { ...selected.profileRef },
+        selectedProfileFingerprint: selected.profileFingerprint,
+      });
+      selectedProfileRefs.push({
+        ...selected.profileRef,
+        fingerprint: selected.profileFingerprint,
+      });
+      continue;
+    }
+
     const draw = slotDrawContext({ request, pool, policy });
     const selected = weightedChoice(policy.candidates, seededUnit(request.seed, draw.key));
     const totalWeight = policy.candidates.reduce(
@@ -433,8 +526,10 @@ const buildArtifact = (
  * Selects one complete reviewed D-215 behavior profile for every exact
  * source-view slot. Fixed slots do not draw. Weighted slots normalize only
  * their own mutually exclusive alternatives and use independent stable
- * substreams. No patient truth, D-201 accounting, action cost, score, economy,
- * persistence, or runtime state participates.
+ * substreams. Complexity-gated slots reuse an already-selected D-201
+ * source-report module and its original cost/draw without selecting or
+ * spending again. No patient truth, action cost, score, economy, persistence,
+ * or runtime state participates.
  */
 export const selectStructuredSourceReportBehaviors = (
   input: unknown,
@@ -479,6 +574,18 @@ export const selectStructuredSourceReportBehaviors = (
       [request.selectionProfile.id, request.horizon.id],
     );
   }
+  if (request.optionalFeatureArtifact !== undefined) {
+    const optionalIntegrity = verifyOptionalFeatureBudgetSelectionIntegrity(
+      request.optionalFeatureArtifact,
+    );
+    if (!optionalIntegrity.ok) {
+      return fail(
+        'OPTIONAL_FEATURE_ARTIFACT_INVALID',
+        `${optionalIntegrity.error.code}: ${optionalIntegrity.error.message}`,
+        [request.optionalFeatureArtifact.id],
+      );
+    }
+  }
 
   const definitionsByKey = new Map(
     request.assemblyRecipe.structuredRevealDefinitions.map(
@@ -504,7 +611,12 @@ export const selectStructuredSourceReportBehaviors = (
       );
     }
     const policy = policiesBySlotId.get(pool.id)!;
-    const candidates = policy.mode === 'fixed' ? [policy.candidate] : policy.candidates;
+    const candidates =
+      policy.mode === 'fixed'
+        ? [policy.candidate]
+        : policy.mode === 'weighted'
+          ? policy.candidates
+          : [policy.baseCandidate, ...policy.modifiers.map((modifier) => modifier.candidate)];
     for (const candidate of candidates) {
       const profile = profilesByKey.get(versionedKey(candidate.profileRef));
       if (

@@ -845,6 +845,7 @@ const addTargetScopedMddDuration = (request: CatalogInstanceCompileRequest): voi
     value: 9,
     unit: 'week',
     durationProfileId: 'duration-profile.test.mdd-current-episode',
+    durationProfileContentVersion: '1.0.0',
     durationOptionId: 'duration-option.test.mdd-nine-weeks',
     relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
     interpretation: 'supports_authored_state',
@@ -867,6 +868,7 @@ const addTargetScopedMddDuration = (request: CatalogInstanceCompileRequest): voi
       fingerprintInformationActionPayload(depressiveSymptomsAction),
     valueKind: 'clinical_duration',
     durationProfileId: 'duration-profile.test.mdd-current-episode',
+    durationProfileContentVersion: '1.0.0',
     targetSelector: {
       kind: 'condition_definition',
       diagnosisDefinitionId: 'diagnosis.major-depressive-disorder',
@@ -1263,7 +1265,7 @@ describe('catalog instance compiler', () => {
       ]),
     );
     expect(JSON.stringify(patientReveal)).not.toMatch(
-      /conditionStateId|targetSelector|durationProfileId|durationOptionId|criterionId|interpretation|resolution/,
+      /conditionStateId|targetSelector|durationProfileId|durationProfileContentVersion|durationOptionId|criterionId|interpretation|resolution/,
     );
     expect(verifyCatalogCompiledInstanceIntegrity(snapshot)).toEqual({
       ok: true,
@@ -2078,6 +2080,7 @@ describe('catalog instance compiler', () => {
         value: 8,
         unit: 'week',
         durationProfileId: 'duration-profile.test.low-energy',
+        durationProfileContentVersion: '1.0.0',
         durationOptionId: 'duration-option.test.eight-weeks',
         relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
         interpretation: 'context_only',

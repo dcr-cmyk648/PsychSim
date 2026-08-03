@@ -135,10 +135,15 @@ refresh the fixed gitignored Codex handoff file at
 copy, while JSON export is a backup. The ordinary Player build contains neither these queues nor the
 writable local endpoint.
 
-A future local-only Developer Patient Maker is intentionally deferred until the database can
-compile one realistic source-controlled vertical. It will select an exact encounter recipe,
-admitted setting/location, and bounded complexity envelope, then call the same deterministic
-compiler used by queues; it will not create a second free-form patient generator.
+Local Developer mode now has a collapsed Patient Maker for the finite compatibility-case engine.
+It lists only approved/review cases that pass the complete end-to-end content validator and own a
+measured complexity envelope. Choosing a complexity budget filters to cases that already own that
+exact budget; it does not rewrite a case or invent unreviewed complications. “Generate and open”
+uses the ordinary deterministic case instantiator and eligibility check, freezes the result into a
+persisted Developer queue slot, and then opens the chart. The future database-generated maker
+remains separate and deferred: once a realistic source-controlled `PatientTemplate` vertical is
+ready, it may pass an adjustable envelope through the canonical D-201/D-200 compiler rather than
+creating a second free-form generator.
 
 While a Developer patient is open, the fixed “Case notes” control saves an encounter-scoped draft
 in IndexedDB. On a phone it is a compact bar at the bottom of the viewport; on desktop it opens as

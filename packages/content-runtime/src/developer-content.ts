@@ -19,6 +19,7 @@ import {
   developerTicketLiteratureScoutCatalog,
   validateTicketLiteratureScoutCatalog,
 } from './ticket-literature-scout';
+import { validateCaseBlueprint } from './validation';
 export {
   developerLiteratureSynthesisProposals,
   developerSourceRequests,
@@ -44,6 +45,45 @@ export const developerCaseBlueprints: readonly CaseBlueprint[] = [
   ...reviewCaseBlueprints,
   ...reviewerCaseBlueprints,
 ];
+
+export interface DeveloperPatientMakerCase {
+  readonly blueprintId: string;
+  readonly contentVersion: string;
+  readonly label: string;
+  readonly authoredComplexityBudget: number;
+  readonly maximumSelectedModules: number;
+  readonly settingLabels: readonly string[];
+}
+
+/**
+ * Strict finite allowlist for the transitional local Developer Patient Maker.
+ * A case enters only after the same complete content validator used by the CLI
+ * confirms that it can instantiate, reach its required actions, execute its
+ * reference solutions, score, and settle in every declared location.
+ */
+export const developerPatientMakerCases: readonly DeveloperPatientMakerCase[] =
+  developerCaseBlueprints.flatMap((blueprint) => {
+    const complexity = blueprint.patientRecord.complexityProfile;
+    if (
+      !validateCaseBlueprint(blueprint, catalogs, startingClinic).valid ||
+      complexity.measurementStatus === 'legacy_unmeasured'
+    ) {
+      return [];
+    }
+    return [
+      {
+        blueprintId: blueprint.id,
+        contentVersion: blueprint.contentVersion,
+        label: blueprint.metadata.title,
+        authoredComplexityBudget: complexity.additionalFeatureBudget,
+        maximumSelectedModules: complexity.maximumSelectedModules,
+        settingLabels: blueprint.metadata.compatibleLocationIds.map(
+          (locationId) =>
+            catalogs.locations.find((location) => location.id === locationId)?.label ?? locationId,
+        ),
+      },
+    ];
+  });
 
 export const developerCaseRuleAudits = developerCaseBlueprints.map((blueprint) =>
   buildCaseRuleAudit(blueprint, catalogs, startingClinic),

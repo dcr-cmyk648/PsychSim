@@ -15,6 +15,8 @@ import {
   type DecisionBalanceDefinition,
   type DecisionBalanceSnapshotDefinition,
   type DecisionBalanceSnapshotFingerprint,
+  type DecisionInformationRequirementBalanceDefinition,
+  type DecisionInformationRequirementBalanceSnapshot,
   type DecisionTriggeredInformationPrerequisiteBalanceDefinition,
   type DecisionTriggeredInformationPrerequisiteBalanceSnapshot,
   type DecisionRuleCandidateDefinition,
@@ -35,9 +37,9 @@ import {
 import { evaluateMedicationRegimenTransition } from './medication-regimen-route-adapter';
 import { resolveGeneratedRuleCombination } from './rule-combination';
 
-export const NATIVE_DECISION_BALANCE_COMPILER_VERSION = '5.0.0';
+export const NATIVE_DECISION_BALANCE_COMPILER_VERSION = '6.0.0';
 export const NATIVE_DECISION_BALANCE_PRODUCER_ID = 'engine.native-decision-balance';
-export const DECISION_BALANCE_SNAPSHOT_COMPILER_VERSION = '1.0.0';
+export const DECISION_BALANCE_SNAPSHOT_COMPILER_VERSION = '2.0.0';
 
 export type DecisionBalanceCompileErrorCode =
   | 'INVALID_INPUT'
@@ -177,6 +179,13 @@ const isTriggeredInformationPrerequisiteBalance = (
   | DecisionTriggeredInformationPrerequisiteBalanceSnapshot =>
   'balanceKind' in balance && balance.balanceKind === 'triggered_information_prerequisite';
 
+const isInformationRequirementBalance = (
+  balance: DecisionBalanceDefinition | DecisionBalanceSnapshotDefinition,
+): balance is
+  | DecisionInformationRequirementBalanceDefinition
+  | DecisionInformationRequirementBalanceSnapshot =>
+  'balanceKind' in balance && balance.balanceKind === 'information_requirement';
+
 const ruleUsesTriggeredInformationPrerequisite = (
   rule: Pick<
     DecisionRuleCandidateDefinition | CompiledRubricRule,
@@ -187,15 +196,40 @@ const ruleUsesTriggeredInformationPrerequisite = (
   rule.ruleRef.kind === 'diagnosis_rule' &&
   rule.triggeredInformationPrerequisite !== null;
 
+const ruleUsesDirectInformationAction = (
+  rule: Pick<
+    DecisionRuleCandidateDefinition | CompiledRubricRule,
+    'ruleKind' | 'ruleRef' | 'triggeredInformationPrerequisite' | 'actionWhen'
+  >,
+): boolean =>
+  rule.ruleKind === 'prerequisite' &&
+  rule.ruleRef.kind === 'diagnosis_rule' &&
+  rule.triggeredInformationPrerequisite === null &&
+  rule.actionWhen !== null &&
+  rule.actionWhen.targets.every((target) => target.kind === 'information_action');
+
+const ruleUsesInformationRequirement = (
+  rule: Pick<
+    DecisionRuleCandidateDefinition | CompiledRubricRule,
+    'ruleKind' | 'ruleRef' | 'triggeredInformationPrerequisite' | 'stance' | 'actionWhen'
+  >,
+): boolean => ruleUsesDirectInformationAction(rule) && rule.stance === 'required';
+
 const balanceShapeMatchesRule = (
   balance: DecisionBalanceDefinition | DecisionBalanceSnapshotDefinition,
   rule: Pick<
     DecisionRuleCandidateDefinition | CompiledRubricRule,
-    'ruleKind' | 'ruleRef' | 'triggeredInformationPrerequisite'
+    'ruleKind' | 'ruleRef' | 'triggeredInformationPrerequisite' | 'stance' | 'actionWhen'
   >,
-): boolean =>
-  isTriggeredInformationPrerequisiteBalance(balance) ===
-  ruleUsesTriggeredInformationPrerequisite(rule);
+): boolean => {
+  if (isTriggeredInformationPrerequisiteBalance(balance)) {
+    return ruleUsesTriggeredInformationPrerequisite(rule);
+  }
+  if (isInformationRequirementBalance(balance)) {
+    return ruleUsesInformationRequirement(rule);
+  }
+  return !ruleUsesTriggeredInformationPrerequisite(rule) && !ruleUsesInformationRequirement(rule);
+};
 
 const matchingBalances = (
   catalog: DecisionBalanceCatalog,
@@ -302,6 +336,7 @@ const unbalancedComponent = (
   rule: CompiledRubricRule,
 ): GeneratedRulePointEvaluation['component'] => {
   if (rule.ruleKind === 'disposition') return 'disposition';
+  if (ruleUsesDirectInformationAction(rule)) return 'workup';
   if (
     [
       'reaction',
@@ -472,30 +507,43 @@ const normalizeSourceBalanceCatalog = (catalog: DecisionBalanceCatalog): unknown
 
 const toBalanceSnapshotDefinition = (
   balance: DecisionBalanceDefinition,
-): DecisionBalanceSnapshotDefinition =>
-  isTriggeredInformationPrerequisiteBalance(balance)
-    ? {
-        schemaVersion: balance.schemaVersion,
-        contentVersion: balance.contentVersion,
-        id: balance.id,
-        balanceKind: balance.balanceKind,
-        ruleRef: balance.ruleRef,
-        component: balance.component,
-        outcomes: balance.outcomes,
-      }
-    : {
-        schemaVersion: balance.schemaVersion,
-        contentVersion: balance.contentVersion,
-        id: balance.id,
-        balanceKind: 'matched_rule',
-        ruleRef: balance.ruleRef,
-        impactBand: balance.impactBand,
-        component: balance.component,
-        pointsWhenMatched: balance.pointsWhenMatched,
-        unmatchedBehavior: balance.unmatchedBehavior,
-        matchedExplanation: balance.matchedExplanation,
-        unmatchedExplanation: balance.unmatchedExplanation,
-      };
+): DecisionBalanceSnapshotDefinition => {
+  if (isTriggeredInformationPrerequisiteBalance(balance)) {
+    return {
+      schemaVersion: balance.schemaVersion,
+      contentVersion: balance.contentVersion,
+      id: balance.id,
+      balanceKind: balance.balanceKind,
+      ruleRef: balance.ruleRef,
+      component: balance.component,
+      outcomes: balance.outcomes,
+    };
+  }
+  if (isInformationRequirementBalance(balance)) {
+    return {
+      schemaVersion: balance.schemaVersion,
+      contentVersion: balance.contentVersion,
+      id: balance.id,
+      balanceKind: balance.balanceKind,
+      ruleRef: balance.ruleRef,
+      component: balance.component,
+      outcomes: balance.outcomes,
+    };
+  }
+  return {
+    schemaVersion: balance.schemaVersion,
+    contentVersion: balance.contentVersion,
+    id: balance.id,
+    balanceKind: 'matched_rule',
+    ruleRef: balance.ruleRef,
+    impactBand: balance.impactBand,
+    component: balance.component,
+    pointsWhenMatched: balance.pointsWhenMatched,
+    unmatchedBehavior: balance.unmatchedBehavior,
+    matchedExplanation: balance.matchedExplanation,
+    unmatchedExplanation: balance.unmatchedExplanation,
+  };
+};
 
 const balanceSnapshotPayload = (
   snapshot: Omit<DecisionBalanceCatalogSnapshot, 'id' | 'payloadFingerprint'>,
@@ -632,7 +680,7 @@ export const compileDecisionBalanceCatalogSnapshot = (input: {
   const withoutIdentity = {
     schemaVersion: 1 as const,
     compilerVersion: DECISION_BALANCE_SNAPSHOT_COMPILER_VERSION,
-    modelVersion: 'decision-balance-catalog-snapshot.v1' as const,
+    modelVersion: 'decision-balance-catalog-snapshot.v2' as const,
     sourceCatalogRef: {
       id: parsedCatalog.data.id,
       contentVersion: parsedCatalog.data.contentVersion,
@@ -728,15 +776,16 @@ const evaluateRule = (
         );
   const selectedTargets = deriveNativeSelectedRuleTargets(rule, decision, currentRegimen);
   if (balance === null) {
-    const qualitativeMatched =
-      prerequisiteEvaluation?.triggerSelected ??
-      (rule.ruleRef.kind === 'medication_regimen_route' || rule.actionWhen === null
-        ? false
-        : evaluateSelectedDecisionActionPredicate({
-            predicate: rule.actionWhen,
-            selection: decision,
-            currentRegimen,
-          }));
+    const qualitativeMatched = ruleUsesInformationRequirement(rule)
+      ? true
+      : (prerequisiteEvaluation?.triggerSelected ??
+        (rule.ruleRef.kind === 'medication_regimen_route' || rule.actionWhen === null
+          ? false
+          : evaluateSelectedDecisionActionPredicate({
+              predicate: rule.actionWhen,
+              selection: decision,
+              currentRegimen,
+            })));
     return {
       ok: true,
       trace: {
@@ -807,6 +856,49 @@ const evaluateRule = (
         matched,
         appliedPoints: outcome.points,
         triggeredInformationPrerequisiteEvaluation: prerequisiteEvaluation,
+      },
+    };
+  }
+  if (isInformationRequirementBalance(balance)) {
+    if (!ruleUsesInformationRequirement(rule) || rule.actionWhen === null) {
+      return fail(
+        'BALANCE_SHAPE_MISMATCH',
+        `${balance.id} requires a compiled direct information requirement.`,
+        [rule.ruleRef.id, balance.id],
+      );
+    }
+    const fulfilled = evaluateSelectedDecisionActionPredicate({
+      predicate: rule.actionWhen,
+      selection: decision,
+      currentRegimen,
+    });
+    const outcome = fulfilled ? balance.outcomes.fulfilled : balance.outcomes.omitted;
+    const balanceRef = { id: balance.id, contentVersion: balance.contentVersion };
+    return {
+      ok: true,
+      trace: {
+        id: `generated-point-trace.${rule.ruleRef.id}`,
+        source: { kind: 'compiled_decision_rule', ruleRef: rule.ruleRef },
+        balanceRef,
+        label: rule.label,
+        component: balance.component,
+        matched: true,
+        status: 'applied',
+        pointsBeforeCombination: outcome.points,
+        appliedPoints: outcome.points,
+        resolvedByTraceId: null,
+        combinationExplanation: null,
+        triggeredInformationPrerequisiteEvaluation: null,
+        relatedSelectedActionTargets: selectedTargets,
+        relatedDiagnosisIds: [],
+        explanation: outcome.explanation,
+      },
+      audit: {
+        ruleRef: rule.ruleRef,
+        balanceRef,
+        matched: true,
+        appliedPoints: outcome.points,
+        triggeredInformationPrerequisiteEvaluation: null,
       },
     };
   }

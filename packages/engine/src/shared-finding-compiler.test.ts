@@ -532,6 +532,150 @@ describe('shared finding compiler', () => {
     );
   });
 
+  it('derives a closed-assessment negative only after no approved generator produced the symptom', () => {
+    const request = baseRequest();
+    request.candidates = request.candidates.filter(
+      (candidate) => candidate.findingDefinitionId !== concentrationDefinition.id,
+    );
+    const closedNegativeProjection: FindingRevealProjection = {
+      ...makeProjection(
+        'finding-projection.test.concentration-closed-negative',
+        [findingBinding(concentrationDefinition, ['absent'])],
+        {
+          sourceMatch: 'all',
+          actionId: 'info.history.test-depressive-symptoms',
+        },
+      ),
+      response: { kind: 'finding_outcome', outcome: 'absent' },
+      deriveAbsentWhenNoCandidate: true,
+      expressionBankId: null,
+      expressionBankContentVersion: null,
+    };
+    request.projections.push(closedNegativeProjection);
+    request.projectionHorizon.targets
+      .find(
+        (availability) =>
+          availability.target.kind === 'information_action' &&
+          availability.target.actionId === 'info.history.test-depressive-symptoms',
+      )!
+      .allowedResponses.push({ kind: 'finding_outcome', outcome: 'absent' });
+
+    const negative = expectSuccess(request);
+    expect(
+      negative.findings.find((finding) => finding.definitionId === concentrationDefinition.id)
+        ?.value,
+    ).toEqual({ kind: 'outcome', value: 'absent' });
+    expect(
+      negative.projections.find(
+        (projection) =>
+          projection.projectionId === 'finding-projection.test.concentration-closed-negative',
+      ),
+    ).toBeDefined();
+    expect(
+      negative.candidateEvaluations.find((evaluation) =>
+        evaluation.candidateId.startsWith('candidate.closed-assessment-absence.'),
+      ),
+    ).toMatchObject({
+      findingDefinitionId: concentrationDefinition.id,
+      proposedValue: { kind: 'outcome', value: 'absent' },
+      disposition: 'applied',
+    });
+
+    request.candidates.push(
+      makeCandidate(
+        'finding-candidate.test.concentration-generated-positive',
+        concentrationDefinition,
+        'cardinality_requirement',
+        'present',
+      ),
+    );
+    const positive = expectSuccess(request);
+    expect(
+      positive.findings.find((finding) => finding.definitionId === concentrationDefinition.id)
+        ?.value,
+    ).toEqual({ kind: 'outcome', value: 'present' });
+    expect(
+      positive.candidateEvaluations.some((evaluation) =>
+        evaluation.candidateId.startsWith('candidate.closed-assessment-absence.'),
+      ),
+    ).toBe(false);
+    expect(
+      positive.projections.some(
+        (projection) =>
+          projection.projectionId === 'finding-projection.test.concentration-closed-negative',
+      ),
+    ).toBe(false);
+  });
+
+  it('does not turn an outside-horizon or explicitly unresolved symptom into negative', () => {
+    const outsideHorizon = baseRequest();
+    outsideHorizon.candidates = outsideHorizon.candidates.filter(
+      (candidate) => candidate.findingDefinitionId !== concentrationDefinition.id,
+    );
+    expect(compileSharedFindings(outsideHorizon)).toMatchObject({
+      ok: false,
+      error: { code: 'NO_REVIEWED_VALUE' },
+    });
+
+    const unresolved = baseRequest();
+    unresolved.candidates = unresolved.candidates.map((candidate) =>
+      candidate.findingDefinitionId === concentrationDefinition.id
+        ? {
+            ...candidate,
+            proposedValue: { kind: 'unresolved' as const, state: 'unassessed' as const },
+          }
+        : candidate,
+    );
+    unresolved.projections.push({
+      ...makeProjection(
+        'finding-projection.test.concentration-unresolved-closed-negative',
+        [findingBinding(concentrationDefinition, ['absent'])],
+        {
+          sourceMatch: 'all',
+          actionId: 'info.history.test-depressive-symptoms',
+        },
+      ),
+      response: { kind: 'finding_outcome', outcome: 'absent' },
+      deriveAbsentWhenNoCandidate: true,
+      expressionBankId: null,
+      expressionBankContentVersion: null,
+    });
+    unresolved.projectionHorizon.targets
+      .find(
+        (availability) =>
+          availability.target.kind === 'information_action' &&
+          availability.target.actionId === 'info.history.test-depressive-symptoms',
+      )!
+      .allowedResponses.push({ kind: 'finding_outcome', outcome: 'absent' });
+    const compiled = expectSuccess(unresolved);
+    expect(
+      compiled.findings.find((finding) => finding.definitionId === concentrationDefinition.id)
+        ?.value,
+    ).toEqual({ kind: 'unresolved', state: 'unassessed' });
+    expect(
+      compiled.candidateEvaluations.some((evaluation) =>
+        evaluation.candidateId.startsWith('candidate.closed-assessment-absence.'),
+      ),
+    ).toBe(false);
+  });
+
+  it('rejects a closed-assessment fallback that is not one exact absent binding', () => {
+    const malformed = {
+      ...makeProjection(
+        'finding-projection.test.malformed-closed-negative',
+        [findingBinding(concentrationDefinition, ['present', 'absent'])],
+        { sourceMatch: 'all' },
+      ),
+      deriveAbsentWhenNoCandidate: true,
+    };
+    expect(
+      SharedFindingCompileRequestSchema.safeParse({
+        ...baseRequest(),
+        projections: [...baseRequest().projections, malformed],
+      }).success,
+    ).toBe(false);
+  });
+
   it('supports one-to-many and many-to-one projections without double-resolving facts', () => {
     const compiled = expectSuccess(baseRequest());
     const fatigueId = compiled.findings.find(

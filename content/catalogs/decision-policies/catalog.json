@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "registry.catalog.decision-policies",
   "policies": [
     {
       "schemaVersion": 1,
-      "contentVersion": "1.0.0",
+      "contentVersion": "1.1.0",
       "id": "decision-policy.mdd-initial-medication",
       "label": "Focused initial MDD medication decision",
       "focusedDecisionId": "decision.mdd-initial-treatment",
       "primaryRouteRef": {
         "kind": "medication_regimen_route",
         "id": "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
-        "contentVersion": "1.0.0",
+        "contentVersion": "1.1.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.3.0"
+        "ownerContentVersion": "1.4.0"
       },
       "explicitSupportingRuleRefs": [],
       "developerOpinionIds": [
