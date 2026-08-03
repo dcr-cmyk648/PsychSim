@@ -1,6 +1,6 @@
 # PsychSim project state
 
-Last updated: 2026-07-31
+Last updated: 2026-08-03
 
 ## Operational handoff
 
@@ -12,8 +12,8 @@ Last updated: 2026-07-31
 - Current phase: Milestone 3 is complete. The bounded work is still the pre-Milestone-4
   clinical-authoring, knowledge-database, review, and scoring-engine checkpoint. Do not begin
   departments or longitudinal-care simulation.
-- Current checkpoint implements the D-159 compatibility and D-245/D-252 native generated
-  scoring/replay engines plus accepted architecture Decisions D-160 through D-253. D-163 makes
+- Current checkpoint implements the D-159 compatibility and D-245/D-252/D-255 native generated
+  scoring/replay engines plus accepted architecture Decisions D-160 through D-274. D-163 makes
   the private, sourced knowledge database the
   foundation and the game a focused compiled projection. D-164 establishes one source file with
   many linkable units, primary topical ownership, generated reverse links, and dedicated
@@ -461,9 +461,10 @@ Last updated: 2026-07-31
   D-246 then audits the exact D-223/D-200 request graph against checked-in content. It confirms
   that the real MDD policy/route/balances and shared identities stop before a generation graph:
   every executable template, complete core state, generation profile, projection recipe,
-  universal-result assembly, source-report profile, and complete presentation remains synthetic or
-  absent. The result stays in the existing dependency ticket/audit instead of introducing a
-  duplicate readiness-status model.
+  universal-result assembly, source-report profile, and real launcher-profile/content attachment
+  remains synthetic or absent. D-273 now supplies the standalone launcher resolver contract but
+  not those inputs. The result stays in the existing dependency ticket/audit instead of
+  introducing a duplicate readiness-status model.
   D-247 accepts the atomic symptom-owner model, adds six missing MDD-oriented identity shells, and
   retains weight/BMI as typed numeric measurements. Diagnoses compose those owners through
   declarative profiles and pure compilers rather than executable content.
@@ -484,13 +485,18 @@ Last updated: 2026-07-31
   unknown private rule IDs still fail closed.
   The remaining database architecture choices are dependency-ordered in
   `docs/DATABASE_FIRST_DECISION_QUEUE.md`.
-- Distributed implementation checkpoint:
+- Verified local implementation checkpoint:
+  `891792a646f035fe3c0fba5a95185e7e5bb8a69b` (`Build generated-patient foundations and developer
+maker`). It contains the complete D-254-through-D-274 public code, schema, catalog, test, and
+  documentation batch except this operational handoff update. `main` and `origin/main` remain at
   `ca0fc353bab10c7f7cbe39db2be6a7d003e8dc99` (`Stabilize completion history integration test`).
-  `main`, `origin/main`, `beta`, and `origin/beta` all matched that commit immediately after the
-  verified release. This handoff-sync edit is the only subsequent worktree change before its own
-  beta-only documentation commit and push; confirm the actual local/remote beta HEAD with Git.
-- The current implementation checkpoint includes D-193 through D-253 and is the adjunct's current
-  committed stale-target mapping base.
+  `beta` is one handoff-only `PROJECT_STATE.md` commit beyond the implementation checkpoint once
+  this state is committed; `origin/beta` remains at
+  `a20b63a68be816c3ccfec29075638d6bf54a15f8` until the requested integration push.
+- The next adjunct stale-target mapping base is
+  `891792a646f035fe3c0fba5a95185e7e5bb8a69b`. It is not a usable remote base until the requested
+  `beta` push completes. The later handoff-only state commit does not change canonical schema,
+  catalog, or engine targets.
 - Beta verification run
   `https://github.com/dcr-cmyk648/PsychSim/actions/runs/30644145659` passed the complete Node 22
   gate. Main verification/deployment run
@@ -1902,7 +1908,7 @@ The D-249 optional finding-texture bridge completed locally on 2026-07-31:
 - synthetic tests cover selected/unselected behavior, one-charge accounting, D-193 precedence,
   full D-223/D-200 attachment, deterministic replay, and stale/tampered/illegal-value rejection;
   and
-- the deferred local Developer Patient Maker is recorded as a thin exact-template/setting/
+- the future database-generated Developer Patient Maker is recorded as a thin exact-template/setting/
   complexity client over the canonical compiler, while the adjunct handoff now requires
   source-local takeaways to be atomized into exact owners and reviewed qualitative rules before
   any separate provisional balance.
@@ -1997,11 +2003,447 @@ with local permission. The existing PDF standard-font and Node `module.register(
 advisory. No browser build, E2E suite, Pages check, or server was run because this checkpoint is
 database/engine-only and is a backup rather than a release promotion.
 
+The D-254/D-255 MDD profile-to-scoring checkpoint completed locally on 2026-08-02:
+
+- one runtime-excluded, psychiatrist-approved current-episode MDD finding profile now composes
+  nine reusable dimensions, selects five through nine, and requires depressed mood or anhedonia;
+- every concrete manifestation remains a separate canonical finding; pessimism remains
+  non-counting; equal selection weights are game-variety controls rather than prevalence,
+  probability, evidence strength, clinical importance, or points;
+- NIMH and CANMAT contributions remain source-scoped, while the exact profile mapping is an
+  accepted Developer opinion; the related source request and clinical ticket are resolved;
+- D-255 adds one native direct-information adapter that verifies the focused compatibility tag
+  but emits only the primary route's exact typed patient predicate plus one information-action
+  predicate;
+- separate provisional balances now score episode course `+35/−35`, depressive syndrome
+  `+50/−50`, and preferred substance-use history `+30/0`;
+- native decision balance advances to `6.0.0`, the frozen balance snapshot to
+  `decision-balance-catalog-snapshot.v2`/compiler `2.0.0`, D-235 generated-attempt compilation to
+  `8.0.0`, and the generated point report to v7;
+- the focused native database-plan fixture totals `380`; both required focused histories without
+  medication or substance history total `85`; medication plus both treatment-triggered histories
+  while omitting both focused histories totals `180`; medication with no purchased history totals
+  `50`;
+- replay derives purchase presence only from the frozen decision, retains exact workup rows and
+  balance payloads, and rejects crossed balance shapes or point/explanation tampering; and
+- the antidepressant-tag mania rule and passive-death-wish safety rule remain unbalanced because
+  their exact native class/patient predicates are not yet available. No tag, prose, unselected
+  manifestation, or source certainty was used to infer them.
+
+Focused validation passes 73 assertions across the adapter, native balance, real profile, and full
+finding-pipeline/generated-attempt replay suites. `pnpm typecheck`, `pnpm format:check`, `pnpm
+lint`, `git diff --check`, and `pnpm content:validate` pass. No real `PatientTemplate`, runtime
+patient, SaveData, persistence migration, browser behavior, UI, commit, or remote update was
+added.
+
+The D-256 sparse-positive symptom-closure correction completed locally on 2026-08-03:
+
+- the proposed per-manifestation MDD D-198 `absent` profiles were rejected and not created;
+- condition, texture, override, and other generators remain free to contribute positive or
+  otherwise deliberately authored values before result assembly;
+- D-193 advances to `1.1.0`; one approved negative-result projection may opt into a derived
+  `absent` fallback only when the complete supplied candidate set has no approved value-bearing
+  candidate for its one exact finding;
+- a generated positive, explicit negative, or explicit unresolved value suppresses the fallback;
+  an outside-horizon missing definition retains `NO_REVIEWED_VALUE`;
+- latent assessment truth remains separate from information purchase/reveal and from later
+  patient/collateral/record/examination report behavior; and
+- explicit negative generator constraints remain reserved for separately reviewed exclusions or
+  literal incompatibilities, with no clinical incompatibility inferred from the reviewer's
+  structural example.
+
+Focused shared-finding validation passes 27/27 and the downstream D-200/D-213/D-220 suites pass
+80/80. `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `git diff --check`, and
+`pnpm content:validate` pass. The first sandboxed content-validator attempt was blocked only by
+tsx local IPC (`EPERM`) and passed unchanged with local permission. No real MDD action-result
+projection, source-report profile, patient, persistence change, runtime activation, browser/UI
+change, commit, or remote update was added.
+
+The D-257 source-report complexity correction completed locally on 2026-08-03:
+
+- accurate/aligned self-report is the zero-complexity base; an inaccurate or partial report is a
+  reviewed `source_report` module selected and charged once by D-201;
+- D-208 preserves the selected module's exact binding, cost, ordinal, stable draw, and remaining
+  budget as `deferred_to_post_truth`, without adding or changing hidden patient facts;
+- D-217 advances to `2.0.0` with `complexity_gated` source-view policies over D-215 structured
+  non-finding lanes. No selected module uses the accurate base; a selected module reuses its D-201
+  trace with no second draw or cost;
+- one module may affect several exact structured views for its one cost. A view cannot receive two
+  selected modifiers, and potential same-view alternatives must already be D-201-incompatible;
+- D-200 requires D-217 to retain the exact complete D-201 artifact from its one D-208 root;
+- focused tests prove zero-cost base behavior, one-charge inaccurate behavior, truth-preserving
+  D-208 composition, exact ordinal/draw/cost retention, replay, and rejection of an unmapped or
+  crossed D-201 artifact; and
+- canonical symptom/finding reports use D-193 rather than D-215. D-257 deliberately left that
+  narrow path separate; D-258 now resolves it without a parallel symptom engine.
+
+The focused D-217, D-208, and D-200 suites pass 81/81. `pnpm typecheck`, `pnpm lint`, `pnpm
+format:check`, and `pnpm content:validate` pass; the ticket scout explicitly records that the
+remaining projection bridge is technical and does not invent a literature requirement. The first
+sandboxed content-validator attempt was blocked only by tsx local IPC (`EPERM`) and passed
+unchanged with local permission. No real source-report profile, module cost or frequency,
+symptom-report bridge, point rule, patient, persistence/runtime/UI change, commit, push,
+application build, browser suite, app server, Actions observation, or Pages check was added or
+run.
+
+The D-258 finding source-report projection bridge completed locally on 2026-08-03:
+
+- D-193 advances to `1.2.0`; one approved
+  `finding-source-report-projection.v1` policy retains the complete D-201 artifact and defines
+  exact patient-report slots with an accurate base plus module-specific alternatives;
+- every base/alternative in one slot has the same hidden source predicate and result target. The
+  selected projection may change the displayed response but cannot change canonical finding
+  truth;
+- the exact D-201 module definition/fingerprint/template binding/selected record plus original
+  cost, ordinal, and stable draw remain in the compiled projection trace. No second selection or
+  charge occurs;
+- D-256 closed-assessment absence derivation considers only the active governed projection, so an
+  inactive accurate or inaccurate variant cannot create or influence latent finding candidates;
+- D-200 advances to `22.0.0` and requires every D-201 `source_report` definition to be covered by
+  the union of the D-217 structured-view path and D-258 finding-projection path, with every
+  embedded D-201 artifact exactly equal to the one nested D-208 root; and
+- `ticket.engine.patient-generation.finding-source-report-complexity-bridge` is resolved/applied.
+  Synthetic tests cover zero-cost base behavior, one-charge inaccurate display, unchanged truth,
+  active-projection-only closure, full-root replay, and crossed/tampered artifact rejection.
+
+The focused D-258/D-193 suites pass 31/31, the full D-200 audit suite passes 48/48, and downstream
+D-213/D-214/D-220/catalog attachment suites pass 70/70. `pnpm typecheck`, `pnpm lint`, `pnpm
+format:check`, `pnpm content:validate`, and `git diff --check` pass. The first sandboxed
+content-validator attempt was blocked only by tsx local IPC (`EPERM`) and passed unchanged with
+local permission. No real report profile, module cost/frequency, motive, clinical probability,
+point rule, patient, persistence/runtime/UI change, commit, push, application build, browser
+suite, app server, Actions observation, or Pages check was added or run.
+
+The D-259 through D-264 result-content and duration checkpoint completed locally on
+2026-08-03:
+
+- the reviewer approved brief insomnia/hypersomnia and passive-death-wish/current-active-SI items
+  in the compact Depressive symptoms action while dedicated Sleep and Suicide/self-harm actions
+  retain deeper assessment;
+- `registry.catalog.finding-projections` now owns 49 explicit mappings over 17 atomic findings:
+  present and D-256 closed absent for all 17, plus hidden-subthreshold to displayed-present for
+  the 15 nonsafety findings;
+- `registry.catalog.finding-projection-horizons` pins that exact projection set and
+  `registry.catalog.universal-action-result-assemblies` supplies the current-payload
+  `finding_projections`-only D-213 recipe;
+- checked-in integration tests prove one positive plus 16 derived negatives becomes one complete
+  17-source D-213 binding without changing hidden truth;
+- clinical-duration profiles now carry schema/content versions, compatibility resolution saves
+  the exact profile version, and future resolved/deferred duration records plus D-240 definitions
+  match exact profile ID/version pairs; and
+- `registry.catalog.clinical-duration-profiles` now owns one reviewed current-MDD profile with 13
+  neutral week-valued options from 2 through 52 weeks, while one second static universal assembly
+  routes its already-resolved D-240 Presenting-problem reveal beside the compact 17-finding
+  depressive-symptom result;
+- the NIMH two-week support remains in an accepted authoring-only Developer-opinion evidence
+  relationship rather than leaking an authoring-only source or target into the runtime MDD
+  dossier; and
+- the pure condition-duration resolver canonicalizes one exact reviewed profile and
+  condition/source/time coordinate, makes one unweighted deterministic choice, freezes every
+  offered option plus the selected resolved record and stable draw, and replays the complete
+  stored request;
+- the post-D-208 duration attachment replays the genuine patient-state composition and every
+  genuine duration resolution, requires the exact patient/condition coordinate, rejects duplicate
+  or preexisting condition/profile owners, preserves a zero-resolution identity path, and emits a
+  fingerprinted state without another draw or complexity charge; and
+- no D-200/D-194 integration of that attached state, impairment/exclusion content, inaccurate-report profile,
+  PatientTemplate, generated patient, point rule, runtime/persistence/UI change, commit, or push
+  was added.
+
+Focused D-259/D-260 tests passed 51/51. The D-261 affected-suite run passed 229/231 before two test
+expectations were corrected: one D-240 status map and one pre-existing D-255 direct-information
+contract assertion. The corrected D-240, D-191, and Reviewer duration suites pass 50/50.
+`pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm content:validate`, and
+`git diff --check` pass. The first sandboxed content-validator attempt failed only because tsx
+could not open its local IPC socket (`EPERM`); the unchanged validator passed with local
+permission. D-262's focused duration/profile/assembly suite passes 17/17.
+D-263's focused resolver plus checked-in profile/projection suite passes 23/23, including
+repeatability, content-order invariance, exact-option bounds across 512 checked-in seeds, crossed
+target rejection, and tamper detection.
+D-264's focused D-208/D-263/D-264 suite passes 21/21, including zero-input identity, one and
+multiple exact attachments, input-order invariance, unchanged D-201 draws/accounting, crossed
+patient/condition rejection, duplicate and preexisting-owner rejection, upstream replay, and
+tamper detection. `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm content:validate`, and
+`git diff --check` pass after D-264.
+
+The D-265 race/ethnicity identity foundation completed locally on 2026-08-03:
+
+- one runtime-excluded catalog pins the seven 2024 OMB SPD 15 minimum categories as a combined,
+  select-all-that-apply, self-identified sociopolitical classification;
+- one verified formal-source record and public-domain source-use decision support category
+  identity and collection structure only, with no psychiatric inference;
+- one accepted direct-reviewer Developer opinion records that names never infer identity,
+  diagnosis-generation modifiers may alter only positive relative mass, symptom-report effects
+  require robust population-matched evidence, and pharmacology effects require unusually strong
+  evidence without using social categories as ancestry/genetics proxies;
+- `ResolvedPatientDemographicsV3` adds exact standard/version, provided multiselect,
+  `not_recorded`, and `declined_to_answer` states while historical v2 snapshots remain unchanged;
+- only explicitly provided categories become exact version-pinned demographic decision facts;
+  missing states emit no negative fact; and
+- validation rejects catalog weights/name-pool inference fields, requires exact registry,
+  source-use, OMB-category, and Developer-opinion ownership, and keeps the catalog out of ordinary
+  runtime.
+
+The focused demographic and decision-policy suites pass 37/37. `pnpm typecheck`, `pnpm lint`,
+`pnpm format:check`, `pnpm content:validate`, and `git diff --check` pass after D-265. The first
+sandboxed content-validator run failed only because tsx could not create its local IPC socket
+(`EPERM`); the unchanged validator passed with local permission. D-265 adds no demographic
+distribution, diagnosis sampler, report profile, pharmacology rule, point value, complexity
+spending, PatientTemplate, runtime/persistence/UI change, commit, or push.
+
+The D-266 verified duration-to-finding-pipeline integration completed locally on 2026-08-03:
+
+- D-200 advances to `23.0.0` and owns one nullable
+  `conditionClinicalDurationAttachmentArtifact`;
+- null preserves the exact D-208-only route, while non-null must replay one genuine D-264 artifact
+  whose nested D-208 composition exactly equals the one retained under D-223;
+- every retained D-263 resolution must share the one D-233 patient-generation seed;
+- D-200 passes only the verified D-208 or D-264 resulting state into the unchanged D-194 `9.0.0`
+  base-state path, while D-208 remains the condition-binding and D-210 applicability owner;
+- the full optional D-264 artifact participates in D-200 input/payload fingerprints and standalone
+  replay, so crossed roots, changed seeds, tampering, or silently dropping a duration source fail;
+  and
+- D-240 consumes the frozen condition duration in its existing final-state pass without another
+  draw or complexity charge.
+
+The affected D-200/D-208/D-240/D-194 suites pass 109/109, including the D-208-only compatibility
+route, D-264 attachment replay, exact D-233 seed enforcement, crossed-root rejection, D-194 state
+derivation, target-redacted D-240 reveal, and retained-artifact tamper rejection. D-266 adds no
+profile-selection plan, clinical weight, probability, severity, impairment/exclusion content,
+points, PatientTemplate, runtime/persistence/UI change, commit, or push.
+`pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm content:validate`, and
+`git diff --check` pass after D-266. The first sandboxed content-validator attempt failed only
+because tsx could not create its local IPC socket (`EPERM`); the unchanged validator passed with
+local permission.
+
+The D-267 functional-impairment owner completed locally on 2026-08-03:
+
+- `FunctionalImpairmentLevel` defines only the qualitative
+  `none`/`mild`/`moderate`/`severe` identities;
+- one versioned `ConditionFunctionalImpairmentProfile` binds a finite unique option horizon to one
+  exact diagnosis plus reviewed source-use or accepted Developer-opinion provenance;
+- one pure authoring-only resolver binds that profile to an exact condition state, patient
+  identity, source, time scope, and internal seed, then freezes all options, one selected
+  condition-attributed level, stable draw, full request, and profile/input/payload fingerprints;
+- integrity validation replays the complete request, while crossed diagnosis/time targets,
+  duplicate levels, unapproved provenance, and tampering are rejected; and
+- the new record remains distinct from subjective burden and the coarse current-functional-impact
+  finding.
+
+The focused D-267 suite passes 5/5. `pnpm typecheck`, `pnpm lint`, `pnpm format:check`,
+`pnpm content:validate`, and `git diff --check` pass after D-267. The first sandboxed
+content-validator attempt failed only because tsx could not create its local IPC socket (`EPERM`);
+the unchanged validator passed with local permission. D-267 checks in no real impairment profile
+and adds no resolved-patient attachment, D-200/D-194/D-240 route, MDD severity convention,
+selection weight, probability, prevalence, result wording, complexity cost, treatment, points,
+PatientTemplate, runtime/persistence/UI change, commit, or push.
+
+The D-268 MDD backend-severity and diagnosis-presentation policy completed locally on 2026-08-03:
+
+- `DiagnosisSeverityAxis` now declares whether severity is player-selectable and may own one exact
+  reviewed qualitative derivation policy;
+- the MDD axis is `family_only`, so mild/moderate/severe remains internal generation state and
+  encounter/content validation rejects player-submitted MDD severity qualifiers;
+- the approved MDD policy requires separate symptom-severity and
+  condition-attributed-functional-impairment inputs and names only their higher qualitative level;
+- every MDD severity level remains `disabled_pending_source`, so the policy cannot generate a
+  level or smuggle in unresolved cutoffs;
+- `specifier.mdd.psychotic-features` is a separately reviewed, player-selectable named-variant
+  identity and is not inferred from severity; and
+- the exact user approval is stored as an accepted Developer opinion with a separate CANMAT
+  evidence relationship and source-use notes.
+
+The final focused D-268 engine/diagnosis/content/decision suite passes 170/170. Content validation
+first exposed the intended exact-version cascade from the MDD dossier to its condition-finding
+profile, medication-regimen route, decision policy, balances, and current-duration projection; all
+dependent records now carry new payload identities without changing their clinical meaning or
+point magnitudes. The separate Developer-opinion validator now recognizes exact diagnosis
+severity-policy and specifier targets rather than permitting arbitrary clinical-rule IDs.
+`pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm content:validate`, and
+`git diff --check` pass. The first sandboxed content-validator attempt failed only because tsx
+could not create its local IPC socket (`EPERM`); the unchanged validator passed with local
+permission. D-268 adds no symptom-severity owner, real impairment profile/attachment, level
+boundary, generation distribution, treatment consequence, point value, complexity cost,
+PatientTemplate, generated patient, persistence migration, qualifier UI, commit, or push.
+
+The D-269 same-episode severity-derivation proof completed locally on 2026-08-03:
+
+- `ResolvedConditionSymptomSeverityInput` is a strict external-owner envelope with exact
+  patient/condition/diagnosis-version/clinical-state/time coordinates, qualitative level, owner
+  version, and payload fingerprint; it does not define or authenticate symptom boundaries;
+- one minimized diagnosis owner retains the exact approved D-268 policy without creating another
+  diagnosis catalog or enabling a severity branch;
+- the pure authoring-only compiler requires one exact symptom envelope plus one native
+  replay-valid D-267 impairment artifact for the same episode and emits only their higher
+  qualitative level;
+- the output is explicitly `derived_descriptor_only`, contains no `severityId`, and freezes both
+  input values, owner IDs/versions/fingerprints, complete normalized request, and input/payload
+  fingerprints; and
+- integrity replay rejects crossed patient, condition, diagnosis version, clinical state, time
+  scope, policy, impairment artifact, retained input, and derived-output tampering.
+
+The focused D-267/D-269 suite passes 22/22; the diagnosis/content regression slice passes 85/85.
+`pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm content:validate`, and
+`git diff --check` pass. The first sandboxed content-validator attempt failed only because tsx
+could not create its local IPC socket (`EPERM`); the unchanged validator passed with local
+permission. D-269 adds no symptom-severity generator, real impairment profile/attachment,
+severity-ID mapping, level boundary, probability, complexity cost, treatment consequence, point
+value, PatientTemplate, resolved-patient attachment, runtime/persistence/UI change, commit, or
+push.
+
+The D-270 native service-backed treatment-pricing checkpoint completed locally on 2026-08-03:
+
+- the exact versioned `ServiceDefinition` remains the sole operating-price owner, while replay
+  snapshot v3 now also freezes every exact intervention/disposition owner and nullable
+  fulfillment-service relationship from the verified D-219 horizon;
+- generated-attempt input no longer accepts caller-authored treatment-charge rows;
+- the final selection derives exactly one least-cost equal-quality quote for each selected
+  service-backed treatment, retaining method, cost, outside-service savings, upgrade savings, and
+  exact treatment/service fingerprints;
+- service-free treatments and medication/regimen operations receive no invented charge;
+- settlement v3 independently re-quotes the complete charge set during replay and rejects charge
+  or arithmetic tampering; and
+- D-235 advances to compiler `9.0.0` and completed-attempt v3 without changing care points,
+  treatment availability, price content, the payout floor, complexity, persistence, runtime, or
+  UI.
+
+The focused service/operational tests pass 33/33, and the isolated D-270 generated-attempt
+integration passes 1/1. The complete local checkpoint now also passes all 1,068 Vitest tests across
+107 files, all 10 handoff tests, root lint, root typecheck, formatting, `git diff --check`, and the
+full content validator. The full regression gate exposed and repaired three stale test expectations
+from the already-accepted D-254-through-D-269 ticket/source lifecycle changes plus the matching
+strict Developer knowledge/runtime-boundary allowlists; no production behavior was loosened.
+The content validator required the known local permission rerun because sandboxed `tsx` could not
+create its IPC pipe (`EPERM`), then passed every catalog and case. Base reimbursement, challenge
+bonus, satisfaction multiplier, and pre-encounter bank inputs remain explicit non-native settlement
+inputs. No app build, browser suite, app server, SaveData/IndexedDB migration, runtime activation,
+commit, push, or Pages check is due.
+
+The D-271 native generated-settlement-context checkpoint completed locally on 2026-08-03:
+
+- a separate strict `GeneratedEncounterEconomyPolicy` now owns provisional base reimbursement and
+  challenge bonus for one exact PatientTemplate ID/version/fingerprint, without deriving either
+  value from diagnosis, severity, setting, file order, or optional complexity;
+- the complete current ClinicState now owns clinic/lifetime points before the encounter and raw
+  satisfaction, and must project exactly to the D-227 operational clinic context that admitted the
+  frozen patient;
+- one exact versioned satisfaction-configuration owner rederives the multiplier and rejects a
+  stale stored clinic multiplier;
+- `generated-encounter-settlement-context.v1` freezes all owners, operational projection, derived
+  multiplier, and independent fingerprints in replay snapshot v4;
+- generated-attempt input no longer accepts free base, challenge, multiplier, clinic-points, or
+  lifetime-points scalars; settlement v4 derives those values, payout, zero floor, practice-mode
+  bank behavior, and after-balances from the frozen context; and
+- D-235 advances to compiler `10.0.0` and completed-attempt v4. One focused end-to-end test proves
+  the owner-derived arithmetic, rejects the retired scalar shape, rejects crossed template and
+  stale satisfaction sources, and detects replay-context tampering.
+
+The focused generated-attempt/runtime-boundary suite passes 65/65. The complete local checkpoint
+also passes all 1,069 Vitest tests across 107 files, all 10 handoff tests, root lint, root
+typecheck, formatting, `git diff --check`, and the full content validator. The content validator
+used its existing local-permission path so `tsx` could create the required IPC socket and passed
+every catalog and case.
+
+D-271 adds no real template economy-policy record and changes no production value, compatibility
+case economy, clinical rule, point magnitude, service price, complexity, patient generation,
+SaveData/IndexedDB, runtime, or UI. The next economy step is real balance content only after a real
+PatientTemplate exists; it must not become a reason to invent a template prematurely.
+
+The D-272 generated diagnosis-qualifier checkpoint completed locally on 2026-08-03:
+
+- a new strict compiler consumes the exact diagnosis-selection horizon plus full source diagnosis
+  definitions at the authoring boundary and freezes only the minimized qualifier facts needed to
+  validate a submitted diagnosis;
+- each minimized owner pins the exact diagnosis identity/version and full source-definition
+  fingerprint, family-only versus severity-selectable behavior, reviewed player-selectable
+  specifiers, exclusive groups, and its own payload fingerprint;
+- MDD therefore rejects player-entered mild/moderate/severe qualifiers while accepting the exact
+  reviewed psychotic-features specifier; internal or unavailable specifiers, unsupported severity
+  identities, and same-exclusive-group collisions fail closed;
+- both player and database-plan snapshots are checked against that same frozen owner set, and
+  replay verifies its exact horizon and payload rather than persisting full diagnosis dossiers;
+  and
+- D-235 advances to compiler `11.0.0`, replay snapshot v5, and completed-attempt v5 while settlement
+  remains v4 and generated point report remains v7. The completed-attempt audit field now records
+  `exact_frozen_qualifier_owners` instead of the superseded family-identity-only label.
+
+D-272 adds no diagnosis inference, diagnosis points, severity derivation, qualifier UI, real
+PatientTemplate, clinical rule, persistence migration, runtime activation, or player-facing
+content. A future severity-selectable diagnosis must provide exact reviewed enabled level owners;
+the current MDD diagnosis remains family-only as approved.
+
+The focused diagnosis-owner/selection/runtime-boundary gate passes 23/23. The complete local
+checkpoint passes all 1,073 Vitest tests across 108 files, all 10 handoff tests, root lint, root
+typecheck, formatting, `git diff --check`, and the full content validator. The validator used its
+existing local-permission path so `tsx` could create the required IPC socket and passed every
+catalog and case. No app build, browser suite, app server, SaveData/IndexedDB migration, runtime
+activation, commit, push, or Pages check is due.
+
+The D-273 standalone launcher-presentation checkpoint completed locally on 2026-08-03:
+
+- new strict schemas define reusable short chief-complaint banks, exact profile bindings to
+  fictional first/last-name pools, the literal 25% middle-initial policy, complete resolution
+  audit, and a minimized player-safe resolved presentation;
+- the pure resolver uses independent stable substreams for first name, last name, middle-initial
+  presence, middle-initial letter, complaint-bank selection, and complaint-variant selection;
+- first and last names receive no race/ethnicity, sex, diagnosis, or complaint inputs, while
+  complaint text remains separate from clinical truth, rules, points, and eligibility;
+- equal-priority complaint banks can mix general and condition-specific wording, while a higher
+  priority is an explicit specific-over-general authoring override and same-level weights mean
+  synthetic game variety only; and
+- deterministic integrity replay covers the exact profile, pools, banks, eligible/shadowed
+  bindings, stable draws, resolved display, and fingerprints. The minimized presentation contains
+  no seed, diagnosis, source prose, authoring rationale, or score data.
+
+The focused D-273 resolver/runtime-boundary gate passes 19/19. The complete local checkpoint
+passes all 1,078 Vitest tests across 109 files, all 10 handoff tests, root lint, root typecheck,
+formatting, `git diff --check`, and the full content validator. The validator used its existing
+local-permission path so `tsx` could create the required IPC socket. D-273 adds no real
+complaint-bank/profile content, PatientInstance or D-200/D-235 attachment, waiting-slot/save
+migration, historical debrief projection, runtime activation, browser/UI work, commit, push, or
+Pages check.
+
+The D-274 transitional local Developer Patient Maker checkpoint completed locally on 2026-08-03:
+
+- the Developer content subpath now projects only approved/review CaseBlueprints that pass the
+  complete canonical content validator and own a nonlegacy measured complexity profile;
+- the collapsed local-only UI lets the reviewer select one exact authored complexity budget and
+  one matching playable case, with responsive single-column controls on a phone;
+- the budget is a strict filter and cannot edit the CaseBlueprint, materialize D-201 modules,
+  change hidden facts, or imply that the future database-generated PatientTemplate path is active;
+- the pure queue entry point reuses ordinary deterministic case instantiation and eligibility,
+  replaces a prior maker/same-case slot, explicitly re-enables a selected previously run case,
+  preserves/refills other Developer cases through the canonical queue algorithm, and freezes the
+  result at `slot.developer.patient-maker` before the chart opens; and
+- completed attempts, case notes, review tickets, and export continue through the existing
+  Developer workflow, while Normal, Endgame, and portable Reviewer content receive no maker
+  allowlist.
+
+Focused engine/content/component coverage passes 69/69. The dedicated 390-by-844 Patient Maker
+browser check passes 1/1. The complete local integration gate also passes:
+
+- all 1,081 Vitest tests across 110 files and all 10 handoff tests;
+- root lint, strict typecheck, formatting, and `git diff --check`;
+- the complete content, source-boundary, diagnosis, and private cross-reference validators after
+  deterministically refreshing the ignored local Developer knowledge projection;
+- both existing reference-run families with their established efficient/alternative/shotgun/
+  unsafe ordering;
+- sequential Player and portable Reviewer production builds plus their bundle-isolation scans;
+- all six Player/local-Developer Chromium tests, including Patient Maker generation, queue
+  persistence, and reload at phone width; and
+- all four portable Reviewer phone tests at Pixel 7 and 320-pixel widths.
+
+The first unit invocation was incorrectly run concurrently with lint, TypeScript, and formatting,
+causing three existing five-second stress tests to time out under CPU contention; the required
+standalone `pnpm test` gate then passed all 1,081 tests. Local validation used Node 26.3.0 because
+Node 22 is not installed on this Mac. The project-required Node 22 certification and requested
+GitHub `beta` backup remain pending at the remote integration checkpoint.
+
 ## Files to read before continuing
 
 Always read the startup contract files named in `AGENTS.md`. For the current checkpoint also read:
 
-- `docs/DECISIONS.md` through D-252
+- `docs/DECISIONS.md` through D-274
 - `docs/ARCHITECTURE.md`
 - `docs/CONTENT_MODEL.md`
 - `docs/CONTENT_REVIEW.md`
@@ -2020,13 +2462,22 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `packages/engine/src/decision-balance.ts`
 - `packages/engine/src/decision-selection.ts`
 - `packages/engine/src/decision-selection.test.ts`
+- `packages/engine/src/generated-diagnosis-selection-owner.ts`
+- `packages/engine/src/generated-diagnosis-selection-owner.test.ts`
+- `packages/engine/src/patient-launcher-presentation-resolver.ts`
+- `packages/engine/src/patient-launcher-presentation-resolver.test.ts`
+- `packages/engine/src/queue.ts`
+- `packages/engine/src/engine.test.ts`
 - `packages/engine/src/diagnosis-information-prerequisite-adapter.ts`
 - `packages/engine/src/diagnosis-information-prerequisite-adapter.test.ts`
 - `packages/engine/src/medication-regimen-route-adapter.ts`
 - `packages/engine/src/shared-finding-compiler.ts`
+- `packages/engine/src/finding-source-report-projection.test.ts`
 - `packages/engine/src/catalog-instance-compiler.ts`
 - `packages/engine/src/encounter-operational-admission-compiler.ts`
 - `packages/engine/src/encounter-operational-admission-compiler.test.ts`
+- `packages/engine/src/generated-service-quote.ts`
+- `packages/engine/src/generated-completed-attempt-compiler.ts`
 - `packages/engine/src/instrument-item-response-compiler.ts`
 - `packages/engine/src/instrument-item-response-compiler.test.ts`
 - `packages/engine/src/presentation-richness.ts`
@@ -2060,6 +2511,13 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `packages/engine/src/structured-source-report-behavior-selector.test.ts`
 - `packages/engine/src/target-scoped-patient-value-projection.ts`
 - `packages/engine/src/target-scoped-patient-value-projection.test.ts`
+- `packages/engine/src/clinical-duration-profile-resolver.ts`
+- `packages/engine/src/clinical-duration-profile-resolver.test.ts`
+- `packages/engine/src/condition-clinical-duration-attachment.ts`
+- `packages/engine/src/condition-episode-severity-derivation.ts`
+- `packages/engine/src/condition-episode-severity-derivation.test.ts`
+- `packages/engine/src/condition-functional-impairment-profile-resolver.ts`
+- `packages/engine/src/condition-functional-impairment-profile-resolver.test.ts`
 - `packages/engine/src/catalog-instance-compiler.test.ts`
 - `packages/engine/src/finding-pipeline-audit-composer.test.ts`
 - `packages/engine/src/location-owned-patient-slot-selection-compiler.ts`
@@ -2069,6 +2527,7 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `packages/engine/src/empty-authorized-patient-slot-fill-compiler.ts`
 - `packages/engine/src/generated-completed-attempt-compiler.ts`
 - `packages/engine/src/generated-service-quote.ts`
+- `packages/engine/src/generated-settlement-context.ts`
 - `packages/engine/src/patient-slot-post-encounter-lifecycle-compiler.ts`
 - `packages/engine/src/facility-move-waiting-slot-migration-compiler.ts`
 - `packages/engine/src/patient-template-location-admission-compiler.test.ts`
@@ -2076,41 +2535,115 @@ Always read the startup contract files named in `AGENTS.md`. For the current che
 - `packages/schemas/src/index.ts`
 - `packages/schemas/src/structured-patient-state-reveal-projection.test.ts`
 - `packages/content-runtime/src/reviewer-policies.ts`
+- `packages/content-runtime/src/developer-content.ts`
+- `packages/content-runtime/src/developer-content.test.ts`
 - `tools/content-cli/src/developer-database-knowledge.ts`
 - `tools/content-cli/src/google-drive-sync.ts`
 - `apps/web/src/components/DeveloperDatabaseKnowledge.tsx`
 - `apps/web/src/components/PersonalKnowledgeWorkbench.tsx`
 - `apps/web/src/components/ReceiptView.tsx`
+- `apps/web/src/components/DeveloperPatientMaker.tsx`
+- `apps/web/src/components/DeveloperPatientMaker.test.tsx`
 - `content/catalogs/authoring/personal-knowledge/cross-reference-aliases.json`
 - `content/catalogs/authoring/personal-knowledge/private-source-catalog.json`
 - `content/catalogs/decision-policies/catalog.json`
 - `content/catalogs/decision-policies/balances.json`
+- `content/catalogs/findings/projections.json`
+- `content/catalogs/findings/projection-horizons.json`
+- `content/catalogs/actions/universal-action-result-assemblies.json`
+- `content/catalogs/demographics/race-ethnicity.json`
+- `content/catalogs/evidence/formal/omb-spd15-2024.evidence.json`
 - `content/catalogs/medications/regimen-knowledge.json`
 - `content/cases/review/database-driven-patient-generation.tickets.json`
+- `content/cases/review/ticket-literature-scout.catalog.json`
 - `content/cases/review/drive-reviewer-feedback-2026-07-27.tickets.json`
 
 ## Exact next action
 
-1. Treat the current adjunct MDD dimensions, severity, TSH, antidepressant-fit, and regimen
-   combination packets as preliminary. They may expose missing typed owners or review questions,
-   but cannot supply real profiles, probabilities, qualitative rules, balances, or points.
-2. The next clinical decision remains
-   `ticket.catalog.diagnoses.mdd-current-episode-finding-profile`. Do not invent its exact core
-   constraint, total dimensional cardinality, manifestation groupings, or
-   pessimism/suicidality roles. The source request is received, but the preliminary packet still
-   requires canonical source-use validation and psychiatrist interpretation.
-3. In the absence of that clinical decision, continue only bounded dependency work that is
-   clinical-neutral. Current candidates are: formal-source metadata/rights registration;
-   broad-category and unspecified diagnosis identities with explicit reviewed ancestry queued
-   separately; real-owner inventory for source reports/action recipes; and audit of the eventual
-   generated-to-review projection. Do not author a real patient template yet.
-4. Real ED, inpatient-psychiatry, and consultation-liaison runtime locations remain deferred until
-   their typed location, department, capability, service, formulary, disposition, action, and
-   assignment owners exist. Setting labels never grant those resources.
-5. Treatment-charge ownership, severity/specifier diagnosis validation, real finding/result/
-   source/presentation content, SaveData, compatibility queue migration, IndexedDB, review/export
-   projection, automatic Standard refill, Developer Patient Maker, and UI remain deliberately
-   unactivated until one realistic source-controlled vertical is ready.
+`ticket.source.mdd.severity-generator-policy` is resolved by D-268 and its point-free same-episode
+combination is proven by D-269. Preserve family-level MDD diagnosis selection, the detached
+higher-of descriptor, and the separate named psychotic-features specifier. The remaining source
+request concerns exact backend input boundaries, not whether mild/moderate/severe should become
+player diagnoses.
+
+D-274 now closes the requested transitional local Developer Patient Maker over the finite
+compatibility-case engine. The complete local integration gate and implementation commit
+`891792a646f035fe3c0fba5a95185e7e5bb8a69b` are complete. The exact next action is to commit this
+operational handoff, push `beta` for backup and evaluation, and require the remote Node 22 gate to
+pass. Do not promote `main` without a separate explicit release instruction.
+
+After that checkpoint, resume the database-first dependency work by auditing the smallest safe
+attachment boundary from D-273's minimized presentation to the generated patient/waiting-slot
+chain. Implement that later attachment only if it preserves the existing sole seed authority,
+adds no second clinical or complexity owner, retains the full audit outside the player-safe
+projection, and does not pretend that real complaint-bank/profile content already exists.
+
+1. Treat remaining adjunct MDD severity, TSH, antidepressant-fit, and regimen-combination packets
+   as preliminary. They may expose missing typed owners or review questions, but cannot supply real
+   generation probabilities, qualitative rules, balances, or points.
+2. D-256 through D-260 now supply one sparse-positive, exact 17-finding compact depressive-symptom
+   result path. Preserve its hidden/display split, exact projection set, and static D-213 recipe;
+   do not add per-manifestation D-198 absence baselines, infer open-world negatives, or duplicate
+   scoring merely because focused Sleep or Suicide/self-harm actions can later reveal overlapping
+   atomic facts.
+3. D-257/D-258 resolve source-report routing: accurate reporting is the zero-cost base, while an
+   inaccurate/partial report is an individual D-201 `source_report` complexity module. The exact
+   one-charge selection can govern D-215 structured views and D-193 canonical-finding report
+   projections without changing truth; D-200 `23.0.0` retains complete union coverage. No real
+   inaccurate-report profile or module cost/frequency is approved yet.
+4. D-261–D-266 make every duration semantic owner exact-versioned, supply one checked-in
+   runtime-excluded current-MDD profile and exact D-240 Presenting-problem route, resolve one
+   option through a pure replayable artifact, and attach genuine resolutions to a verified D-208
+   state without another draw or complexity charge. D-200 `23.0.0` now accepts that optional exact
+   D-264 artifact, preserves the D-208-only compatibility path, and routes only its verified state
+   through D-194/D-240. Do not add a profile-selection plan, weights, prevalence, probability,
+   severity, impairment, persistent-depression exclusion, treatment history, points, a
+   PatientTemplate, runtime activation, or UI merely because this structural route now exists.
+5. D-265 makes race/ethnicity a sourced, self-identified, multiselect authoring identity only.
+   Preserve every eligible diagnosis at positive generation mass; never infer identity from
+   names; do not add a prevalence table, report modifier, pharmacology modifier, or point rule
+   without a separate population-matched source and clinical review. Keep social classification
+   distinct from ancestry, genetics, and metabolizer phenotype.
+6. D-267 supplies only the standalone condition-functional-impairment profile/resolver contract.
+   Preserve its separation from subjective burden and coarse functional-impact findings. Do not
+   check in a real MDD impairment profile, attach it to resolved patient state or D-200/D-240,
+   infer severity, or add probabilities/points until the pending clinical packet and exact
+   downstream path are reviewed.
+7. D-268 permits only the qualitative higher-of relationship. Keep every MDD severity level
+   disabled until exact symptom-severity and impairment boundaries are reviewed. Do not expose
+   severity as a player qualifier or infer psychotic features from it.
+8. D-269 may combine only one exact external symptom-severity envelope and one replay-valid D-267
+   artifact for the same episode. Its output remains `derived_descriptor_only`; do not treat the
+   envelope as an authenticated upstream derivation, map the descriptor to `severityId`, or attach
+   it to patient state before the exact source-controlled owners and enabled level mapping exist.
+9. D-270 natively owns only service-backed intervention/disposition operating charges. Preserve
+   exact treatment/service/method replay and never infer a medication, regimen, or service-free
+   treatment price. D-271 owns the remaining settlement scalars only through an exact
+   template-economy policy, current ClinicState, matching D-227 projection, and versioned
+   satisfaction curve. Do not author a real economy policy before its real PatientTemplate exists
+   or derive balance from diagnosis, severity, setting, or optional complexity.
+10. D-272 owns only minimized exact player diagnosis-qualifier validation. Keep MDD severity
+    backend-only, permit only explicitly reviewed player-selectable specifiers, and do not infer
+    qualifiers, diagnosis ancestry, diagnosis points, or clinical meaning from labels or file
+    order.
+11. D-273 owns only standalone launcher presentation resolution. Preserve independent
+    name/complaint substreams, the fixed one-quarter middle-initial policy, and the
+    seed/diagnosis/rule/point-free minimized output. Do not check in a real complaint profile,
+    attach it to PatientInstance/D-200/D-235 or a waiting slot, or migrate persistence/runtime/UI
+    until a real PatientTemplate and complete presentation content exist.
+12. D-274 owns only the transitional local compatibility-case Patient Maker. Preserve its finite
+    completely validated approved/review allowlist, exact authored complexity-budget filtering,
+    ordinary deterministic CaseInstance/eligibility path, and persisted reserved Developer slot.
+    Do not describe its budget control as optional-module generation, expose the allowlist to
+    Player or portable Reviewer builds, or reuse it as the future PatientTemplate maker.
+13. Keep the antidepressant-mania prerequisite unbalanced until an exact reviewed native
+    antidepressant class or focused class mapping exists. Keep the passive-death-wish safety rule
+    unbalanced until its exact positive and relevant negative patient facts can be represented;
+    never translate either compatibility tag directly into scoring.
+14. Real ED, inpatient-psychiatry, and consultation-liaison runtime locations, real PatientTemplate
+    activation and economy-policy content, generated SaveData and compatibility migration,
+    generalized PatientTemplate Patient Maker, qualifier UI, and other generated-patient UI remain
+    deliberately unactivated until one realistic source-controlled vertical is ready.
 
 The sibling PsychSimDataAdjunct remains read-only and operates its own concept-first evidence
 horizon; PsychSim tickets are inputs, not its queue authority. A general proposal may remain an
@@ -2145,8 +2678,11 @@ routes it to the smallest exact owner or a retained candidate bin, separates emu
 clinical judgment, and asks for only the unresolved psychiatrist interpretation. An accepted
 qualitative rule and its provisional balance remain two distinct later records.
 
-The deferred local Developer Patient Maker may eventually choose an exact template/recipe,
-admitted care setting/location, and bounded complexity envelope and request one deterministic
-patient from the canonical compiler. It must not bypass admission, expose hidden truth, or create
-a parallel generator. Do not build it until the first realistic source-controlled generation
-vertical is complete enough to audit.
+The D-274 transitional local Developer Patient Maker is active only over completely validated
+compatibility CaseBlueprints and treats the selected budget as an exact filter over pre-authored
+case complexity. The future generalized PatientTemplate maker remains deferred: it may eventually
+choose an exact template/recipe, admitted care setting/location, and bounded complexity envelope
+and request one deterministic patient from the canonical compiler. It must not bypass admission,
+expose hidden truth, create a parallel generator, or reuse D-274's CaseBlueprint compatibility
+path as if it exercised D-201/D-200. Do not build that generated path until the first realistic
+source-controlled generation vertical is complete enough to audit.
