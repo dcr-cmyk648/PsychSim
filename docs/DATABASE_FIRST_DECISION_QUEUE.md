@@ -480,6 +480,11 @@ optional-feature budget. The richness envelope separately controls expected-but-
 associations, ordinary background findings, optional condition modules, and unrelated
 distractors. There is no scalar patient “level” or one global realism count.
 
+D-275 implements the scalable authoring boundary without changing that policy: historical v1
+profiles remain fixed, while v2 stores a template-owned required-state baseline separately from
+up to 24 independently traced optional modules. The baseline is an audit/accounting summary of
+the exact template premise, not a difficulty tier or substitute for its required owners.
+
 **P3 — Make prior history match the specialty population.** A prolonged, severe, or
 specialty-level template requires multiple structured prior efforts by default—medications,
 therapy, prior clinical contact, OTC or supplement use, coping attempts, substance-related

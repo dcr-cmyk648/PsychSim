@@ -87,6 +87,46 @@ describe('runtime boundaries', () => {
     expect(authoringEntries.every((entry) => entry.runtimeIncluded === false)).toBe(true);
   });
 
+  it('keeps patient-scene source roles and report profiles outside Player and Reviewer runtimes', async () => {
+    const [runtimeEntry, runtimeIndex, reviewerEntry, registryText] = await Promise.all([
+      readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
+      readFile(resolve('content/registry.json'), 'utf8'),
+    ]);
+    const runtimeSource = `${runtimeEntry}\n${runtimeIndex}\n${reviewerEntry}`;
+    expect(runtimeSource).not.toContain('content/catalogs/patient-scene-sources');
+    expect(runtimeSource).not.toContain('registry.catalog.patient-scene-source-definitions');
+    expect(runtimeSource).not.toContain('registry.catalog.structured-source-report-profiles');
+
+    const registry = JSON.parse(registryText) as {
+      entries: Array<{
+        id: string;
+        kind: string;
+        path: string;
+        runtimeIncluded: boolean;
+      }>;
+    };
+    expect(
+      registry.entries.find(
+        (entry) => entry.id === 'registry.catalog.patient-scene-source-definitions',
+      ),
+    ).toMatchObject({
+      kind: 'patient_scene_source_definition_catalog',
+      path: 'content/catalogs/patient-scene-sources/definitions.json',
+      runtimeIncluded: false,
+    });
+    expect(
+      registry.entries.find(
+        (entry) => entry.id === 'registry.catalog.structured-source-report-profiles',
+      ),
+    ).toMatchObject({
+      kind: 'structured_source_report_profile_catalog',
+      path: 'content/catalogs/patient-scene-sources/structured-report-profiles',
+      runtimeIncluded: false,
+    });
+  });
+
   it('keeps ticket literature scouting out of the Player runtime entry', async () => {
     const [runtimeEntry, runtimeIndex, registryText] = await Promise.all([
       readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
@@ -105,6 +145,7 @@ describe('runtime boundaries', () => {
       kind: 'ticket_literature_scout_catalog',
       path: 'content/cases/review/ticket-literature-scout.catalog.json',
       runtimeIncluded: false,
+      categoryIds: [],
       dependsOnIds: ['registry.review.source-requests'],
     });
   });
@@ -147,9 +188,11 @@ describe('runtime boundaries', () => {
       categoryIds: [
         'balance.mdd-any-medication-reaction-history',
         'balance.mdd-any-medication-reconciliation',
+        'balance.mdd-antidepressant-mania-history',
         'balance.mdd-initial-depressive-syndrome-assessment',
         'balance.mdd-initial-episode-course-assessment',
         'balance.mdd-initial-one-first-line-antidepressant',
+        'balance.mdd-passive-death-wish-safety-assessment',
         'balance.mdd-substance-history',
       ],
     });
@@ -187,6 +230,46 @@ describe('runtime boundaries', () => {
     });
   });
 
+  it('keeps checked-in launcher presentation banks outside Player and Reviewer runtimes', async () => {
+    const [runtimeEntry, runtimeIndex, reviewerEntry, registryText] = await Promise.all([
+      readFile(resolve('packages/content-runtime/src/content.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/index.ts'), 'utf8'),
+      readFile(resolve('packages/content-runtime/src/reviewer-content.ts'), 'utf8'),
+      readFile(resolve('content/registry.json'), 'utf8'),
+    ]);
+    const runtimeSource = `${runtimeEntry}\n${runtimeIndex}\n${reviewerEntry}`;
+    expect(runtimeSource).not.toContain('content/catalogs/presentations');
+    expect(runtimeSource).not.toContain('registry.catalog.patient-launcher-presentations');
+    expect(runtimeSource).not.toContain(
+      'patient-launcher-presentation-profile.mdd-current-episode',
+    );
+
+    const registry = JSON.parse(registryText) as {
+      entries: Array<{
+        id: string;
+        kind: string;
+        path: string;
+        runtimeIncluded: boolean;
+        categoryIds?: string[];
+      }>;
+    };
+    expect(
+      registry.entries.find(
+        (entry) => entry.id === 'registry.catalog.patient-launcher-presentations',
+      ),
+    ).toMatchObject({
+      kind: 'patient_launcher_presentation_catalog',
+      path: 'content/catalogs/presentations/launcher-presentations.json',
+      runtimeIncluded: false,
+      categoryIds: [
+        'patient-chief-complaint-bank.energy-sleep-function',
+        'patient-chief-complaint-bank.general-psychiatry.nonspecific',
+        'patient-chief-complaint-bank.mood-interest',
+        'patient-launcher-presentation-profile.mdd-current-episode',
+      ],
+    });
+  });
+
   it('keeps catalog-compiled patient instances synthetic and outside content runtimes', async () => {
     const [
       runtimeEntry,
@@ -199,6 +282,8 @@ describe('runtime boundaries', () => {
       locationPatientSlotCapacitySource,
       locationTemplateSelectionSource,
       backgroundFindingSource,
+      bodyMassIndexDerivationSource,
+      bodyMassIndexMaterializerSource,
       compilerSource,
       richnessSource,
       conditionFindingCardinalitySource,
@@ -211,6 +296,7 @@ describe('runtime boundaries', () => {
       findingPipelineAuditSource,
       generatedCompletedAttemptSource,
       generatedServiceQuoteSource,
+      generatedWaitingSlotLauncherPresentationSource,
       instrumentItemResponseSource,
       informationActionFingerprintSource,
       medicationRegimenRouteAdapterSource,
@@ -220,6 +306,12 @@ describe('runtime boundaries', () => {
       optionalPriorTreatmentSource,
       optionalReactionHistorySource,
       modePatientTemplateHorizonSource,
+      patientTemplateClinicalResultAttachmentOrchestrationSource,
+      patientTemplateClinicalResultFindingPipelineOrchestrationSource,
+      patientTemplateClinicalResultMaterializationSource,
+      patientTemplateClinicalResultMaterializationContextSource,
+      patientTemplateClinicalResultResourceCoverageSource,
+      patientTemplatePostCompositionAssemblyOrchestrationSource,
       patientSlotFillSeedAuthoritySource,
       patientSlotPostEncounterLifecycleSource,
       patientTemplateLocationAdmissionSource,
@@ -228,7 +320,10 @@ describe('runtime boundaries', () => {
       resolvedPatientStateNormalizerSource,
       resolvedPatientStateComposerSource,
       selectedLocationOperationalResourceSource,
+      structuredPatientStateRecordProjectionSource,
       structuredSourceReportBehaviorSelectorSource,
+      structuredSourceReportRecordProjectionSource,
+      structuredSourceReportResultAttachmentSource,
       structuredSourceReportSource,
       targetScopedPatientValueProjectionSource,
       universalActionResultAttachmentSource,
@@ -252,6 +347,8 @@ describe('runtime boundaries', () => {
       readFile(resolve('packages/engine/src/location-patient-slot-capacity-compiler.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/location-template-selector.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/background-finding-outcome-selector.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/body-mass-index-derivation-compiler.ts'), 'utf8'),
+      readFile(resolve('packages/engine/src/body-mass-index-measurement-materializer.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/catalog-instance-compiler.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/presentation-richness.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/condition-finding-cardinality-selector.ts'), 'utf8'),
@@ -273,6 +370,10 @@ describe('runtime boundaries', () => {
       readFile(resolve('packages/engine/src/finding-pipeline-audit-composer.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/generated-completed-attempt-compiler.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/generated-service-quote.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/generated-waiting-slot-launcher-presentation-attachment.ts'),
+        'utf8',
+      ),
       readFile(resolve('packages/engine/src/instrument-item-response-compiler.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/information-action-fingerprint.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/medication-regimen-route-adapter.ts'), 'utf8'),
@@ -282,6 +383,36 @@ describe('runtime boundaries', () => {
       readFile(resolve('packages/engine/src/optional-prior-treatment-bridge.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/optional-reaction-history-bridge.ts'), 'utf8'),
       readFile(resolve('packages/engine/src/mode-patient-template-horizon-compiler.ts'), 'utf8'),
+      readFile(
+        resolve('packages/engine/src/patient-template-clinical-result-attachment-orchestrator.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve(
+          'packages/engine/src/patient-template-clinical-result-finding-pipeline-orchestrator.ts',
+        ),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/patient-template-clinical-result-materialization-compiler.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve(
+          'packages/engine/src/patient-template-clinical-result-materialization-context-compiler.ts',
+        ),
+        'utf8',
+      ),
+      readFile(
+        resolve(
+          'packages/engine/src/patient-template-clinical-result-resource-coverage-compiler.ts',
+        ),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/patient-template-post-composition-assembly-orchestrator.ts'),
+        'utf8',
+      ),
       readFile(resolve('packages/engine/src/patient-slot-fill-seed-authority.ts'), 'utf8'),
       readFile(
         resolve('packages/engine/src/patient-slot-post-encounter-lifecycle-compiler.ts'),
@@ -300,7 +431,19 @@ describe('runtime boundaries', () => {
         'utf8',
       ),
       readFile(
+        resolve('packages/engine/src/structured-patient-state-record-projection.ts'),
+        'utf8',
+      ),
+      readFile(
         resolve('packages/engine/src/structured-source-report-behavior-selector.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/structured-source-report-record-projection.ts'),
+        'utf8',
+      ),
+      readFile(
+        resolve('packages/engine/src/structured-source-report-result-attachment.ts'),
         'utf8',
       ),
       readFile(resolve('packages/engine/src/structured-source-report-compiler.ts'), 'utf8'),
@@ -317,6 +460,8 @@ describe('runtime boundaries', () => {
     for (const authoringModule of [
       'admitted-template-location-binding-compiler',
       'background-finding-outcome-selector',
+      'body-mass-index-derivation-compiler',
+      'body-mass-index-measurement-materializer',
       'catalog-instance-compiler',
       'condition-finding-cardinality-selector',
       'decision-balance',
@@ -329,6 +474,7 @@ describe('runtime boundaries', () => {
       'finding-pipeline-audit-composer',
       'generated-completed-attempt-compiler',
       'generated-service-quote',
+      'generated-waiting-slot-launcher-presentation-attachment',
       'instrument-item-response-compiler',
       'information-action-fingerprint',
       'location-owned-patient-slot-selection-compiler',
@@ -343,6 +489,12 @@ describe('runtime boundaries', () => {
       'optional-reaction-history-bridge',
       'patient-slot-fill-seed-authority',
       'patient-slot-post-encounter-lifecycle-compiler',
+      'patient-template-clinical-result-attachment-orchestrator',
+      'patient-template-clinical-result-finding-pipeline-orchestrator',
+      'patient-template-clinical-result-materialization-compiler',
+      'patient-template-clinical-result-materialization-context-compiler',
+      'patient-template-clinical-result-resource-coverage-compiler',
+      'patient-template-post-composition-assembly-orchestrator',
       'patient-template-location-admission-compiler',
       'pre-finding-patient-state-orchestrator',
       'presentation-richness',
@@ -351,8 +503,11 @@ describe('runtime boundaries', () => {
       'resolved-patient-state-composer',
       'selected-location-operational-resource-compiler',
       'shared-finding-compiler',
+      'structured-patient-state-record-projection',
       'structured-source-report-behavior-selector',
       'structured-source-report-compiler',
+      'structured-source-report-record-projection',
+      'structured-source-report-result-attachment',
       'target-scoped-patient-value-projection',
       'template-condition-selector',
       'universal-action-result-attachment',
@@ -372,6 +527,8 @@ describe('runtime boundaries', () => {
       locationPatientSlotCapacitySource,
       locationTemplateSelectionSource,
       backgroundFindingSource,
+      bodyMassIndexDerivationSource,
+      bodyMassIndexMaterializerSource,
       compilerSource,
       richnessSource,
       conditionFindingCardinalitySource,
@@ -384,6 +541,7 @@ describe('runtime boundaries', () => {
       findingPipelineAuditSource,
       generatedCompletedAttemptSource,
       generatedServiceQuoteSource,
+      generatedWaitingSlotLauncherPresentationSource,
       informationActionFingerprintSource,
       instrumentItemResponseSource,
       medicationRegimenRouteAdapterSource,
@@ -393,6 +551,12 @@ describe('runtime boundaries', () => {
       optionalPriorTreatmentSource,
       optionalReactionHistorySource,
       modePatientTemplateHorizonSource,
+      patientTemplateClinicalResultAttachmentOrchestrationSource,
+      patientTemplateClinicalResultFindingPipelineOrchestrationSource,
+      patientTemplateClinicalResultMaterializationSource,
+      patientTemplateClinicalResultMaterializationContextSource,
+      patientTemplateClinicalResultResourceCoverageSource,
+      patientTemplatePostCompositionAssemblyOrchestrationSource,
       patientSlotFillSeedAuthoritySource,
       patientSlotPostEncounterLifecycleSource,
       patientTemplateLocationAdmissionSource,
@@ -401,7 +565,10 @@ describe('runtime boundaries', () => {
       resolvedPatientStateNormalizerSource,
       resolvedPatientStateComposerSource,
       selectedLocationOperationalResourceSource,
+      structuredPatientStateRecordProjectionSource,
       structuredSourceReportBehaviorSelectorSource,
+      structuredSourceReportRecordProjectionSource,
+      structuredSourceReportResultAttachmentSource,
       structuredSourceReportSource,
       targetScopedPatientValueProjectionSource,
       universalActionResultAttachmentSource,
@@ -747,12 +914,12 @@ describe('runtime boundaries', () => {
   });
 
   it('keeps identity-only medications out of gameplay catalogs and patient content', () => {
-    expect(medicationIdentities).toHaveLength(53);
+    expect(medicationIdentities).toHaveLength(125);
     expect(catalogs.medications).toHaveLength(13);
     const identityOnlyIds = medicationIdentities
       .filter((identity) => identity.authoringStatus === 'identity_only')
       .map((identity) => identity.id);
-    expect(identityOnlyIds).toHaveLength(40);
+    expect(identityOnlyIds).toHaveLength(112);
     const gameplayMedicationIds = new Set([
       ...catalogs.medications.map((medication) => medication.id),
       ...catalogs.formularies.flatMap((formulary) => formulary.medicationIds),

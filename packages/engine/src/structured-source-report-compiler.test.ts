@@ -3,6 +3,7 @@ import {
   StructuredPatientStateRevealProjectionEnvelopeSchema,
   StructuredSourceReportCompileRequestSchema,
   StructuredSourceReportProfileSchema,
+  StructuredSourceReportSourceValidationArtifactSchema,
   type ClinicalRuleReview,
   type ResolvedPatientState,
   type StructuredPatientStateRevealDefinition,
@@ -17,6 +18,11 @@ import {
   fingerprintStructuredSourceReportDefinition,
   verifyStructuredSourceReportArtifactIntegrity,
 } from './structured-source-report-compiler';
+import { compilePatientSceneSourceInstances } from './patient-scene-source-instance-compiler';
+import {
+  validateStructuredSourceReportSources,
+  verifyStructuredSourceReportSourceValidationIntegrity,
+} from './structured-source-report-source-validation';
 
 const authoredResolution = {
   origin: 'authored',
@@ -227,6 +233,38 @@ const compileOrThrow = (request: StructuredSourceReportCompileRequest) => {
   expect(result.ok).toBe(true);
   if (!result.ok) throw new Error(result.error.message);
   return result.value;
+};
+
+const compileSourceHorizon = (
+  patientStateId = 'resolved-patient-state.test.source-report',
+  sourceKinds: readonly ('patient_report' | 'record_review')[] = [
+    'patient_report',
+    'record_review',
+  ],
+) => {
+  const result = compilePatientSceneSourceInstances({
+    schemaVersion: 1,
+    id: `patient-scene-source-instance-request.test.source-report.${patientStateId}`,
+    patientStateId,
+    definitions: sourceKinds.map((kind) => ({
+      schemaVersion: 1 as const,
+      contentVersion: '1.0.0',
+      id: `patient-scene-source-definition.test.source-report.${kind}`,
+      kind,
+    })),
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+const sourceInstanceId = (
+  horizon: ReturnType<typeof compileSourceHorizon>,
+  kind: 'patient_report' | 'record_review',
+): string => {
+  const instance = horizon.sourceInstances.find((candidate) => candidate.kind === kind);
+  if (!instance) throw new Error(`Expected ${kind} source instance.`);
+  return instance.id;
 };
 
 describe('D-215 structured source-report compiler', () => {
@@ -746,5 +784,182 @@ describe('D-215 structured source-report compiler', () => {
     ]) {
       expect(serialized).not.toContain(forbidden);
     }
+  });
+});
+
+describe('D-299 structured source-report source validation', () => {
+  const completeFixture = () => {
+    const sourceInstanceCompilation = compileSourceHorizon();
+    const patientDefinition = makeDefinition('source-validated-patient', ['medication_trials']);
+    const recordDefinition = makeDefinition(
+      'source-validated-record',
+      ['diagnosis_record_entries'],
+      [],
+      ['record_review'],
+    );
+    const patientProfile = makeProfile(
+      patientDefinition,
+      'source-validated-patient',
+      [{ lane: 'medication_trials', behavior: 'report_all' }],
+      [],
+      {
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: sourceInstanceId(sourceInstanceCompilation, 'patient_report'),
+        },
+      },
+    );
+    const recordProfile = makeProfile(
+      recordDefinition,
+      'source-validated-record',
+      [{ lane: 'diagnosis_record_entries', behavior: 'report_all' }],
+      [],
+      {
+        source: {
+          kind: 'record_review',
+          sourceInstanceId: sourceInstanceId(sourceInstanceCompilation, 'record_review'),
+        },
+      },
+    );
+    const structuredSourceReport = compileOrThrow(
+      makeRequest([recordDefinition, patientDefinition], [recordProfile, patientProfile]),
+    );
+    return { sourceInstanceCompilation, structuredSourceReport };
+  };
+
+  it('validates each exact D-215 profile/projection source and retains detached D-212 recipes', () => {
+    const fixture = completeFixture();
+    const result = validateStructuredSourceReportSources({
+      schemaVersion: 1,
+      id: 'structured-source-report-source-validation-request.test.complete',
+      ...fixture,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    expect(StructuredSourceReportSourceValidationArtifactSchema.parse(result.value)).toEqual(
+      result.value,
+    );
+    expect(result.value.validatedSourceBindings).toHaveLength(2);
+    expect(result.value.validatedSourceBindings.map((binding) => binding.sourceKind)).toEqual([
+      'patient_report',
+      'record_review',
+    ]);
+    expect(
+      result.value.validatedSourceBindings.map((binding) => binding.sourceDefinitionId),
+    ).toEqual([
+      'patient-scene-source-definition.test.source-report.patient_report',
+      'patient-scene-source-definition.test.source-report.record_review',
+    ]);
+    expect(result.value.projectionRecipes).toEqual(
+      fixture.structuredSourceReport.projectionRecipes,
+    );
+    expect(verifyStructuredSourceReportSourceValidationIntegrity(result.value)).toEqual({
+      ok: true,
+      value: result.value,
+    });
+  });
+
+  it('rejects missing, wrong-kind, and crossed-patient source horizons', () => {
+    const fixture = completeFixture();
+    const missingRecordSource = compileSourceHorizon('resolved-patient-state.test.source-report', [
+      'patient_report',
+    ]);
+    expect(
+      validateStructuredSourceReportSources({
+        schemaVersion: 1,
+        id: 'structured-source-report-source-validation-request.test.missing',
+        structuredSourceReport: fixture.structuredSourceReport,
+        sourceInstanceCompilation: missingRecordSource,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const wrongKindReport = structuredClone(fixture.structuredSourceReport);
+    const recordProfile = wrongKindReport.compileRequest.profiles.find(
+      (profile) => profile.source.kind === 'record_review',
+    );
+    if (!recordProfile) throw new Error('Expected record profile.');
+    recordProfile.source.sourceInstanceId = sourceInstanceId(
+      fixture.sourceInstanceCompilation,
+      'patient_report',
+    );
+    const recompiledWrongKind = compileStructuredSourceReports(wrongKindReport.compileRequest);
+    if (!recompiledWrongKind.ok) throw new Error(recompiledWrongKind.error.message);
+    expect(
+      validateStructuredSourceReportSources({
+        schemaVersion: 1,
+        id: 'structured-source-report-source-validation-request.test.wrong-kind',
+        structuredSourceReport: recompiledWrongKind.value,
+        sourceInstanceCompilation: fixture.sourceInstanceCompilation,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const crossedPatient = compileSourceHorizon('resolved-patient-state.test.other');
+    expect(
+      validateStructuredSourceReportSources({
+        schemaVersion: 1,
+        id: 'structured-source-report-source-validation-request.test.crossed',
+        structuredSourceReport: fixture.structuredSourceReport,
+        sourceInstanceCompilation: crossedPatient,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+  });
+
+  it('rejects invalid upstream artifacts and detects retained binding/recipe tampering', () => {
+    const fixture = completeFixture();
+    const changedReport = structuredClone(fixture.structuredSourceReport);
+    changedReport.inputFingerprint =
+      'fingerprint.structured-source-report.input.fnv1a64.0000000000000000';
+    expect(
+      validateStructuredSourceReportSources({
+        schemaVersion: 1,
+        id: 'structured-source-report-source-validation-request.test.bad-report',
+        structuredSourceReport: changedReport,
+        sourceInstanceCompilation: fixture.sourceInstanceCompilation,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'STRUCTURED_SOURCE_REPORT_INVALID' },
+    });
+
+    const changedHorizon = structuredClone(fixture.sourceInstanceCompilation);
+    changedHorizon.inputFingerprint =
+      'fingerprint.patient-scene-source-instance-compilation.input.fnv1a64.0000000000000000';
+    expect(
+      validateStructuredSourceReportSources({
+        schemaVersion: 1,
+        id: 'structured-source-report-source-validation-request.test.bad-horizon',
+        structuredSourceReport: fixture.structuredSourceReport,
+        sourceInstanceCompilation: changedHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_HORIZON_INVALID' },
+    });
+
+    const compiled = validateStructuredSourceReportSources({
+      schemaVersion: 1,
+      id: 'structured-source-report-source-validation-request.test.tamper',
+      ...fixture,
+    });
+    if (!compiled.ok) throw new Error(compiled.error.message);
+
+    const changedBinding = structuredClone(compiled.value);
+    changedBinding.validatedSourceBindings[0]!.sourceKind = 'collateral_report';
+    expect(verifyStructuredSourceReportSourceValidationIntegrity(changedBinding).ok).toBe(false);
+
+    const changedRecipe = structuredClone(compiled.value);
+    changedRecipe.projectionRecipes[0]!.resolved.claimOriginId =
+      'claim-origin.test.source-validation-tampered';
+    expect(verifyStructuredSourceReportSourceValidationIntegrity(changedRecipe).ok).toBe(false);
   });
 });

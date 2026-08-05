@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.nlm.rxnorm-api.2026-08-03",
+  "authority": "formal_publication",
+  "sourceType": "structured_database",
+  "title": "RxNorm API Current Data Version",
+  "authors": [],
+  "organization": "U.S. National Library of Medicine",
+  "publicationYear": 2026,
+  "publicationDate": "2026-08-03",
+  "lastReviewedDate": "2026-08-03",
+  "versionLabel": "RxNorm data version 03-Aug-2026; API version 3.1.354",
+  "containerTitle": "RxNav",
+  "volume": null,
+  "issue": null,
+  "pages": null,
+  "doi": null,
+  "pmid": null,
+  "url": "https://lhncbc.nlm.nih.gov/RxNav/APIs/RxNormAPIs.html",
+  "citation": "U.S. National Library of Medicine. RxNorm API current data version 03-Aug-2026; API version 3.1.354.",
+  "knownContentHashes": [],
+  "jurisdictions": ["United States"],
+  "populations": ["Not population-specific; normalized RxNorm ingredient concept identities"],
+  "settings": ["Developer medication-identity authoring and normalization"],
+  "sourceRelations": [
+    {
+      "sourceId": "evidence.nlm.rxnorm-cpc.2026-07-06",
+      "relationType": "updates",
+      "note": "This dated API snapshot supplies later normalized ingredient identity checks while preserving the older Current Prescribable Content snapshot used by existing records."
+    }
+  ],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "public_domain",
+    "adaptationStatus": "permitted",
+    "commercialUseStatus": "permitted",
+    "aiUseStatus": "permitted",
+    "localExtractionStatus": "allowed",
+    "licenseLabel": "U.S. government public-domain RxNorm normalized names and codes",
+    "licenseUrl": null,
+    "termsUrl": "https://lhncbc.nlm.nih.gov/RxNav/TermsofService.html",
+    "note": "NLM identifies RxNorm normalized names and codes as U.S. government public-domain data. PsychSim records only the dated API version and exact RXNORM ingredient properties needed for identity normalization. It excludes proprietary source-vocabulary content, retains NLM attribution, avoids endorsement implications, and does not treat identity metadata as a clinical claim."
+  },
+  "metadataReviewedAt": "2026-08-03T23:40:33.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.11.0",
+  "contentVersion": "1.26.0",
   "id": "developer-opinions.psychsim",
   "opinions": [
     {
@@ -99,7 +99,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.3.0",
+      "contentVersion": "1.6.0",
       "id": "developer-opinion.mdd-initial-first-line-antidepressant-baseline.2026-07-27",
       "summary": "For a focused, uncomplicated adult MDD snapshot already routed to medication treatment, one reviewed first-line antidepressant should receive the same dominant primary-route credit. Medication-specific fit, safety, interactions, prior response, preference, feasibility, and formulary availability remain separate, smaller contributors; exact game-point magnitudes are provisional balance values.",
       "developerId": "reviewer.dustin-rowland",
@@ -186,7 +186,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.2.0",
+      "contentVersion": "1.3.0",
       "id": "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27",
       "summary": "Information requirements should follow the focused patient problem and the treatment actually selected rather than a universal psychiatric checklist. For an initial MDD medication decision, episode characterization and depressive symptoms are central; antidepressant selection makes mania history important; starting any medication makes medication reconciliation and allergy/adverse-reaction history important. Substance-use history is broadly rewarded in depression and other commonly substance-induced presentations. A known prior reaction to a selected medication affects treatment safety even when the player did not reveal it, because patient facts are resolved before play.",
       "developerId": "reviewer.dustin-rowland",
@@ -221,6 +221,13 @@
         {
           "resolution": "resolved",
           "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-antidepressant-mania-history",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the accepted treatment-triggered mania-history weighting over the exact reviewed initial-MDD medication class."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
           "targetContentId": "balance.mdd-initial-episode-course-assessment",
           "role": "affected_rule",
           "rationale": "The separate provisional balance owner implements the accepted focused episode-course assessment weighting without changing the qualitative diagnosis rule."
@@ -238,6 +245,27 @@
           "targetContentId": "balance.mdd-substance-history",
           "role": "affected_rule",
           "rationale": "The separate provisional balance owner implements the accepted preferred substance-history reward without creating an omission penalty or changing the qualitative diagnosis rule."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "structured-reveal-definition.history.medication-reconciliation",
+          "role": "affected_rule",
+          "rationale": "The structured reveal definition implements the accepted focused medication-reconciliation boundary by exposing exact current regimen entries without deciding their clinical meaning."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "structured-reveal-definition.history.allergies-adverse-reactions",
+          "role": "affected_rule",
+          "rationale": "The structured reveal definition exposes exact reaction records plus explicit overall and medication-assessment statuses while preserving recorded labels separately from clinical interpretation."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "structured-reveal-definition.history.substance-use",
+          "role": "affected_rule",
+          "rationale": "The structured reveal definition exposes exact patient-reported positive-use records while preserving objective use truth and all later clinical interpretation separately."
         }
       ],
       "developerReview": {
@@ -462,6 +490,412 @@
       },
       "supersedesOpinionIds": [],
       "evidenceRelationshipIds": ["opinion-evidence.race-ethnicity.omb-spd15-2024"],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.patient-launcher-cosmetic-variation.2026-08-03",
+      "summary": "A waiting patient is introduced only by an independently randomized fictional name, exact setting, and brief chief complaint. First and last names are drawn independently, with a one-in-four chance of a middle initial. Complaint wording is reusable cosmetic presentation data: general and mood, interest, energy, sleep, or function banks may overlap across clinical causes and must never establish a diagnosis, finding, rule, point value, or answer hint.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["classification_mapping", "context_only"],
+      "asOfDate": "2026-08-03",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "patient-launcher-presentation-profile.mdd-current-episode",
+          "role": "affected_rule",
+          "rationale": "The profile is the exact cosmetic authoring owner for the first MDD generation vertical."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T21:09:16.000Z",
+        "note": "Recorded from the accepted launcher and variation decisions. This does not approve clinical content, complaint-to-diagnosis inference, a PatientTemplate, persistence, runtime generation, or UI activation."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.passive-death-wish-safety-assessment.2026-07-27",
+      "summary": "A brief depressive-symptom review may reveal a current passive wish for death, but that clue does not make a disposition decision. When the resolved patient fact is present, obtaining the separate detailed suicide and self-harm assessment is a central focused-history action. The patient fact, purchased assessment, rule trace, and provisional point balance remain independently auditable.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["workup", "safety", "scoring", "teaching_point"],
+      "asOfDate": "2026-07-27",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "diagnosis",
+          "targetContentId": "diagnosis.major-depressive-disorder",
+          "role": "context",
+          "rationale": "The first executable application is the reviewed focused MDD safety-assessment rule."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "rule.diagnosis-mdd.passive-death-wish-safety-assessment",
+          "role": "affected_rule",
+          "rationale": "The diagnosis rule owns the reviewed qualitative relationship between the resolved passive-death-wish fact and the detailed assessment."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "balance.mdd-passive-death-wish-safety-assessment",
+          "role": "affected_rule",
+          "rationale": "The separate provisional balance owner implements the accepted conditional safety-assessment weighting without changing the qualitative rule."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "note": "Recorded from the accepted routine-screen versus detailed-assessment policy. Use the exact pre-generated patient fact, never a compatibility tag, in native compilation. Exact point values remain provisional game balance and may be retuned without changing the clinical meaning."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25",
+      "summary": "The detailed Suicide and self-harm assessment keeps passive death wish, active suicidal ideation, suicidal intent, a specific plan, current preparatory behavior, a recent attempt, self-reported access to identified suicide means, prior attempts, and prior preparatory behavior as separate auditable patient facts. The compact player result may group them, but it does not calculate risk, decide disposition, or replace separately modeled acute modifiers, protective factors, or safety-planning ability.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "safety", "context_only"],
+      "asOfDate": "2026-07-25",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "registry.catalog.finding-projections",
+          "role": "affected_rule",
+          "rationale": "The projection catalog preserves each detailed safety fact separately while packaging them under one searchable History action."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "finding-projection-horizon.history.suicide-safety",
+          "role": "affected_rule",
+          "rationale": "The exact action horizon freezes the first reviewed detailed-safety fact set and its lawful present-or-absent display responses."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "note": "Recorded from the accepted staged safety-history contract. This governs factual packaging only and adds no risk category, probability, disposition conclusion, generation rate, point value, treatment implication, or medical approval."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.safety-planning-ability-result.2026-07-27",
+      "summary": "The Safety-planning ability history action reveals only whether the patient reports feeling able, unable, or uncertain about participating in safety planning. It does not establish that a written plan exists, create or revise a plan, formulate suicide risk, or determine disposition.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "safety", "context_only"],
+      "asOfDate": "2026-07-27",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "structured-reveal-definition.history.safety-planning-ability",
+          "role": "affected_rule",
+          "rationale": "The structured reveal definition is the exact static owner that exposes the existing typed patient report through the legacy-compatible action ID."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "note": "Recorded from the accepted D-130 correction. This factual projection adds no risk formulation, disposition rule, intervention, probability, point value, or medical approval."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.treatment-history-result-boundaries.2026-07-24",
+      "summary": "Focused prior medication trials and full psychiatric treatment history are separate player actions. Prior medication trials contains medication trials only. Full treatment history may include medication trials, psychotherapy trials, current treatment providers, and prior levels of care. Psychotherapy is never presented as a medication trial. Player-facing medication-trial detail should show observed duration and highest reported dose rather than declaring that a trial was adequate.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "context_only", "teaching_point"],
+      "asOfDate": "2026-07-24",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "structured-reveal-definition.history.prior-medication-trials",
+          "role": "affected_rule",
+          "rationale": "The focused definition exposes only the medication-trial lane."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "structured-reveal-definition.history.full-treatment-history",
+          "role": "affected_rule",
+          "rationale": "The full-history definition exposes the four independently typed historical treatment lanes without combining their record types."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T01:14:06.000Z",
+        "note": "Recorded from accepted D-121. The structured owners route exact records only. A separate player-safe field projection must enforce the duration/max-dose display before runtime activation."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.medication-effects-result-boundary.2026-08-04",
+      "summary": "Medication effects history keeps patient-reported benefit, tolerability, current dose position, and the timing of medication changes as separate exact-regimen-entry records. Temporal order does not establish causality, sparse missing records do not become negative answers, and none of these records by itself decides a treatment change.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "context_only", "teaching_point"],
+      "asOfDate": "2026-08-04",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "structured-reveal-definition.history.medication-effects",
+          "role": "affected_rule",
+          "rationale": "The structured definition groups the four separately typed current-medication effect lanes under the shared action without merging their meanings."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-05T12:38:47.000Z",
+        "note": "Recorded from accepted D-278 through D-281. This is a result-packaging decision only and adds no medication-specific probability, causal inference, treatment rule, point value, or medical approval."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mania-history-source-time-result-boundary.2026-07-28",
+      "summary": "One compact Mania/Hypomania History action may reveal current and past episodic patient-reported symptom dimensions together, but every current and historical finding retains its own stable identity, resolved value, time scope, and contributors. MSE observations remain separate, and this result alone does not establish a manic or hypomanic episode or a bipolar diagnosis.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "context_only", "teaching_point"],
+      "asOfDate": "2026-07-28",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "registry.catalog.finding-projections",
+          "role": "affected_rule",
+          "rationale": "The projection catalog packages independently resolved current and past history findings into one compact player action without merging their hidden state."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "finding-projection-horizon.history.mania-hypomania",
+          "role": "affected_rule",
+          "rationale": "The exact horizon pins the current and historical symptom identities and their lawful visible status outcomes."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "note": "Applied from the accepted grandiosity source/time decision and the instruction to generalize that pattern across symptom clusters. This approval governs atomic identity and compact result packaging only; it adds no criterion counting, episode inference, diagnosis, generation frequency, probability, treatment implication, point value, or medical approval."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.psychosis-history-result-boundary.2026-07-28",
+      "summary": "One compact Psychotic symptoms history may reveal current patient reports of hallucinations, delusional beliefs, suspiciousness or mistrust, ideas of reference, persecutory ideation, and thought disorganization. Paranoia remains umbrella presentation vocabulary rather than one Boolean fact; proposition truth, belief appraisal, and MSE observations remain separate. The result alone does not establish psychosis or a diagnosis.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "context_only", "teaching_point"],
+      "asOfDate": "2026-07-28",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "registry.catalog.finding-projections",
+          "role": "affected_rule",
+          "rationale": "The projection catalog packages the six separately resolved current patient-report findings under one compact action without merging their hidden state."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "finding-projection-horizon.history.psychotic-symptoms",
+          "role": "affected_rule",
+          "rationale": "The exact horizon pins the approved report-only identities and lawful visible status outcomes while excluding MSE and proposition appraisal."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "note": "Applied from the accepted paranoia/persecution and report-versus-observation decisions. This governs identity and compact result packaging only; it adds no psychosis criterion, diagnosis inference, truth adjudication, belief appraisal, source reliability, generation probability, treatment implication, point value, or medical approval."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mdd-presenting-problem-functional-impact-result-boundary.2026-07-27",
+      "summary": "For the focused initial-MDD snapshot, Presenting problem and timeline may reveal both an already-resolved current episode duration and the patient's broad current report of functional impact. The broad reported-impact finding remains distinct from condition-attributed functional impairment and does not itself establish MDD severity, diagnosis, or treatment correctness.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "context_only", "teaching_point"],
+      "asOfDate": "2026-07-27",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "registry.catalog.finding-projections",
+          "role": "affected_rule",
+          "rationale": "The projection catalog exposes the broad current self-reported functional-impact finding under the existing presenting-problem action without attributing it to a diagnosis."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "finding-projection-horizon.mdd-initial-assessment-foundation",
+          "role": "affected_rule",
+          "rationale": "The exact two-action horizon joins the reported-impact projection to the existing duration and depressive-symptom result foundation while preserving their separate source records."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "note": "Applied from accepted D-155 P2 and its initial-MDD episode-course and functional-effect rule. This approval governs result packaging only; it adds no condition attribution, impairment level, severity, diagnosis inference, generation probability, treatment implication, point value, or medical approval."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.accurate-patient-structured-history-base.2026-08-03",
+      "summary": "Accurate current patient self-report is the zero-complexity baseline for structured medication reconciliation, reaction history, and substance-use history. It mirrors the already frozen patient state, including explicit unassessed reaction status and an empty positive-use inventory, without converting either into a clinical negative. Partial or inaccurate reporting requires a separately selected complexity module.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "workup", "context_only"],
+      "asOfDate": "2026-08-03",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "source-report-profile.patient.current-medication-regimen.accurate",
+          "role": "affected_rule",
+          "rationale": "The profile reports the exact frozen current-regimen lane without adding report complexity."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "source-report-profile.patient.reaction-history.accurate",
+          "role": "affected_rule",
+          "rationale": "The profile mirrors reaction records and both explicit assessment statuses without treating unassessed as documented none."
+        },
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "source-report-profile.patient.substance-use.accurate",
+          "role": "affected_rule",
+          "rationale": "The profile reports the frozen positive-use inventory without inferring lifetime nonuse or a diagnosis."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T18:10:21.000Z",
+        "note": "Recorded from accepted D-257 and the later instruction to treat inaccurate self-report as an individual complexity modifier. This approval adds no source probability, reliability weight, clinical inference, point value, or runtime behavior."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [],
+      "ruleEligibility": "opinion_only"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "developer-opinion.mdd-outpatient-current-functional-impact-generation.2026-08-05",
+      "summary": "For the first outpatient-MDD generation vertical, broad current self-reported functional impact may use a provisional binary game-generation profile with 1,244 absent mass and 8,756 present mass. This transports a current NHANES PHQ-score-10-or-higher perceived-difficulty observation for game variety; it is not psychiatric-clinic prevalence and does not determine diagnosis-attributed impairment, MDD severity, complexity, treatment, or points.",
+      "developerId": "reviewer.dustin-rowland",
+      "originKind": "direct_reviewer_statement",
+      "originSourceUnitIds": [],
+      "originCandidateIds": [],
+      "contributionTypes": ["patient_fact", "context_only"],
+      "asOfDate": "2026-08-05",
+      "currentness": "current",
+      "targets": [
+        {
+          "resolution": "resolved",
+          "targetKind": "clinical_rule",
+          "targetContentId": "background-finding-profile.mdd-outpatient.current-functional-impact",
+          "role": "affected_rule",
+          "rationale": "The exact profile owns only a coarse background draw for the existing broad current self-reported impact finding."
+        }
+      ],
+      "developerReview": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-05T21:42:45.000Z",
+        "note": "Accepted in the canonical PsychSim thread after reviewing the NHANES-versus-STAR*D distinction. The approval is limited to a provisional outpatient-MDD broad self-report profile and explicitly excludes condition-attributed impairment, severity, diagnosis inference, complexity, treatment, rules, points, and clinical prevalence claims."
+      },
+      "supersedesOpinionIds": [],
+      "evidenceRelationshipIds": [
+        "opinion-evidence.mdd-outpatient-current-functional-impact.nhanes-2021-2023"
+      ],
       "ruleEligibility": "opinion_only"
     }
   ],
@@ -689,6 +1123,30 @@
         "reviewerId": "reviewer.dustin-rowland",
         "reviewedAt": "2026-08-03T15:11:39.000Z",
         "note": "Accepted only for classification identity and collection structure; all future clinical use remains unreviewed."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "opinion-evidence.mdd-outpatient-current-functional-impact.nhanes-2021-2023",
+      "opinionId": "developer-opinion.mdd-outpatient-current-functional-impact-generation.2026-08-05",
+      "evidenceSourceId": "evidence.cdc-nchs.nhanes-2021-2023-depression-screener",
+      "sourceUseDecisionId": "source-use.cdc-nchs.nhanes-2021-2023-depression-screener",
+      "relationType": "partially_supports",
+      "relationshipSummary": "The adult NHANES score-10-or-higher subgroup supplies the 12.44% no-difficulty and 87.56% at-least-some-difficulty aggregate used as source-conditioned synthetic mass. Applying that community screen-positive observation to an outpatient-MDD game template remains Developer opinion.",
+      "sourceLocation": "DPQ_L variables DPQ010-DPQ100 and DEMO_L variables WTMEC2YR, SDMVSTRA, SDMVPSU, and RIDAGEYR; independent adult design-weighted analysis over the August 2021-August 2023 public-use files.",
+      "applicabilityLimitations": [
+        "PHQ-9 score 10 or higher is a screening subgroup rather than an adjudicated MDD diagnosis.",
+        "The sample is civilian and noninstitutionalized and is not a psychiatric-clinic cohort.",
+        "DPQ100 combines work, home, and interpersonal perceived difficulty and does not measure observed performance or diagnosis-attributed impairment.",
+        "The binary PsychSim mapping collapses somewhat, very, and extreme difficulty into one present state."
+      ],
+      "stillExpertBridge": true,
+      "review": {
+        "status": "accepted",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-05T21:42:45.000Z",
+        "note": "Accepted only for the provisional broad current self-report generation profile. Source population and construct limitations remain visible and no condition-attributed impairment, severity, treatment, or point inference is authorized."
       }
     }
   ]

@@ -232,6 +232,9 @@ const makeCoreState = (): ResolvedPatientState => ({
     priorLevelsOfCare: [],
   },
   medicationTolerabilityFindings: [],
+  currentMedicationReportedBenefits: [],
+  currentMedicationDosePositions: [],
+  medicationChangeTemporalRelationships: [],
   reactionHistory: {
     status: 'unassessed',
     medicationAssessmentStatus: 'unassessed',
@@ -243,6 +246,7 @@ const makeCoreState = (): ResolvedPatientState => ({
   structuredTestResults: [],
   clinicalContexts: [],
   clinicalDurations: [],
+  functionalImpairments: [],
   subjectiveBurdenRecords: [],
   propositionState: {
     schemaVersion: 1,

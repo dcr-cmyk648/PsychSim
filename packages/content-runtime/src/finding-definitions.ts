@@ -28,9 +28,12 @@ import currentSelfReportedIdeasOfReferenceJson from '../../../content/catalogs/f
 import currentSelfReportedImpulsivityJson from '../../../content/catalogs/findings/definitions/current-self-reported-impulsivity.finding.json';
 import currentSelfReportedPersecutoryIdeationJson from '../../../content/catalogs/findings/definitions/current-self-reported-persecutory-ideation.finding.json';
 import currentSelfReportedPsychomotorAgitationJson from '../../../content/catalogs/findings/definitions/current-self-reported-psychomotor-agitation.finding.json';
+import currentSelfReportedAccessToSuicideMeansJson from '../../../content/catalogs/findings/definitions/current-self-reported-access-to-suicide-means.finding.json';
 import currentSelfReportedSuspiciousnessJson from '../../../content/catalogs/findings/definitions/current-self-reported-suspiciousness.finding.json';
 import currentSelfReportedThoughtDisorganizationJson from '../../../content/catalogs/findings/definitions/current-self-reported-thought-disorganization.finding.json';
 import currentSelfReportedWeaponAccessJson from '../../../content/catalogs/findings/definitions/current-self-reported-weapon-access.finding.json';
+import currentSpecificSuicidePlanJson from '../../../content/catalogs/findings/definitions/current-specific-suicide-plan.finding.json';
+import currentSuicidalIntentJson from '../../../content/catalogs/findings/definitions/current-suicidal-intent.finding.json';
 import currentSuicidePreparatoryBehaviorJson from '../../../content/catalogs/findings/definitions/current-suicide-preparatory-behavior.finding.json';
 import currentUnintentionalWeightGainJson from '../../../content/catalogs/findings/definitions/current-unintentional-weight-gain.finding.json';
 import currentUnintentionalWeightLossJson from '../../../content/catalogs/findings/definitions/current-unintentional-weight-loss.finding.json';
@@ -42,7 +45,15 @@ import difficultyControllingWorryJson from '../../../content/catalogs/findings/d
 import excessiveWorryJson from '../../../content/catalogs/findings/definitions/excessive-worry.finding.json';
 import muscleTensionJson from '../../../content/catalogs/findings/definitions/muscle-tension.finding.json';
 import panicAttacksJson from '../../../content/catalogs/findings/definitions/panic-attacks.finding.json';
+import pastEpisodicDecreasedSleepNeedJson from '../../../content/catalogs/findings/definitions/past-episodic-decreased-sleep-need.finding.json';
+import pastEpisodicElevatedIrritableMoodJson from '../../../content/catalogs/findings/definitions/past-episodic-elevated-irritable-mood.finding.json';
 import pastEpisodicGrandiosityJson from '../../../content/catalogs/findings/definitions/past-episodic-grandiosity.finding.json';
+import pastEpisodicHighRiskSpendingJson from '../../../content/catalogs/findings/definitions/past-episodic-high-risk-spending.finding.json';
+import pastEpisodicIncreasedGoalDirectedActivityJson from '../../../content/catalogs/findings/definitions/past-episodic-increased-goal-directed-activity.finding.json';
+import pastEpisodicPressuredSpeechJson from '../../../content/catalogs/findings/definitions/past-episodic-pressured-speech.finding.json';
+import pastEpisodicRacingThoughtsJson from '../../../content/catalogs/findings/definitions/past-episodic-racing-thoughts.finding.json';
+import pastEpisodicSelfReportedImpulsivityJson from '../../../content/catalogs/findings/definitions/past-episodic-self-reported-impulsivity.finding.json';
+import recentSuicideAttemptJson from '../../../content/catalogs/findings/definitions/recent-suicide-attempt.finding.json';
 import recentViolentBehaviorJson from '../../../content/catalogs/findings/definitions/recent-violent-behavior.finding.json';
 import reportedDelusionalBeliefsJson from '../../../content/catalogs/findings/definitions/reported-delusional-beliefs.finding.json';
 import reportedHallucinationsJson from '../../../content/catalogs/findings/definitions/reported-hallucinations.finding.json';
@@ -81,9 +92,12 @@ export const findingDefinitions: FindingDefinition[] = FindingDefinitionSchema.a
     currentSelfReportedImpulsivityJson,
     currentSelfReportedPersecutoryIdeationJson,
     currentSelfReportedPsychomotorAgitationJson,
+    currentSelfReportedAccessToSuicideMeansJson,
     currentSelfReportedSuspiciousnessJson,
     currentSelfReportedThoughtDisorganizationJson,
     currentSelfReportedWeaponAccessJson,
+    currentSpecificSuicidePlanJson,
+    currentSuicidalIntentJson,
     currentSuicidePreparatoryBehaviorJson,
     currentUnintentionalWeightGainJson,
     currentUnintentionalWeightLossJson,
@@ -95,7 +109,15 @@ export const findingDefinitions: FindingDefinition[] = FindingDefinitionSchema.a
     excessiveWorryJson,
     muscleTensionJson,
     panicAttacksJson,
+    pastEpisodicDecreasedSleepNeedJson,
+    pastEpisodicElevatedIrritableMoodJson,
     pastEpisodicGrandiosityJson,
+    pastEpisodicHighRiskSpendingJson,
+    pastEpisodicIncreasedGoalDirectedActivityJson,
+    pastEpisodicPressuredSpeechJson,
+    pastEpisodicRacingThoughtsJson,
+    pastEpisodicSelfReportedImpulsivityJson,
+    recentSuicideAttemptJson,
     recentViolentBehaviorJson,
     reportedDelusionalBeliefsJson,
     reportedHallucinationsJson,

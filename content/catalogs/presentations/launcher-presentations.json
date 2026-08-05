@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.patient-launcher-presentations",
+  "complaintBanks": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-chief-complaint-bank.general-psychiatry.nonspecific",
+      "label": "Brief nonspecific psychiatry complaints",
+      "variants": [
+        {
+          "id": "patient-chief-complaint.general.not-feeling-like-myself",
+          "text": "Not feeling like myself"
+        },
+        {
+          "id": "patient-chief-complaint.general.not-doing-well",
+          "text": "Not doing well"
+        },
+        {
+          "id": "patient-chief-complaint.general.need-some-help",
+          "text": "I need some help"
+        },
+        {
+          "id": "patient-chief-complaint.general.having-a-hard-time",
+          "text": "Having a hard time"
+        },
+        {
+          "id": "patient-chief-complaint.general.feeling-off",
+          "text": "Feeling off"
+        },
+        {
+          "id": "patient-chief-complaint.general.things-are-getting-harder",
+          "text": "Things are getting harder"
+        },
+        {
+          "id": "patient-chief-complaint.general.cannot-keep-up",
+          "text": "I can't keep up"
+        },
+        {
+          "id": "patient-chief-complaint.general.struggling-lately",
+          "text": "Struggling lately"
+        },
+        {
+          "id": "patient-chief-complaint.general.feel-different",
+          "text": "I feel different"
+        },
+        {
+          "id": "patient-chief-complaint.general.not-sure-what-is-wrong",
+          "text": "Not sure what's wrong"
+        },
+        {
+          "id": "patient-chief-complaint.general.overwhelmed",
+          "text": "Feeling overwhelmed"
+        },
+        {
+          "id": "patient-chief-complaint.general.need-to-talk",
+          "text": "I need to talk"
+        },
+        {
+          "id": "patient-chief-complaint.general.cannot-manage",
+          "text": "I can't manage this"
+        },
+        {
+          "id": "patient-chief-complaint.general.everything-feels-difficult",
+          "text": "Everything feels difficult"
+        },
+        {
+          "id": "patient-chief-complaint.general.worried-about-how-doing",
+          "text": "Worried about how I'm doing"
+        },
+        {
+          "id": "patient-chief-complaint.general.want-to-feel-normal",
+          "text": "I want to feel normal"
+        }
+      ],
+      "lifecycle": "approved",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-chief-complaint-bank.mood-interest",
+      "label": "Brief mood and interest complaints",
+      "variants": [
+        {
+          "id": "patient-chief-complaint.mood.low-mood",
+          "text": "Low mood"
+        },
+        {
+          "id": "patient-chief-complaint.mood.feeling-down",
+          "text": "Feeling down"
+        },
+        {
+          "id": "patient-chief-complaint.mood.depression",
+          "text": "Depression"
+        },
+        {
+          "id": "patient-chief-complaint.mood.loss-of-interest",
+          "text": "Loss of interest"
+        },
+        {
+          "id": "patient-chief-complaint.mood.anhedonia",
+          "text": "Anhedonia"
+        },
+        {
+          "id": "patient-chief-complaint.mood.no-enjoyment",
+          "text": "Not enjoying anything"
+        },
+        {
+          "id": "patient-chief-complaint.mood.no-motivation",
+          "text": "No motivation"
+        },
+        {
+          "id": "patient-chief-complaint.mood.feeling-empty",
+          "text": "Feeling empty"
+        },
+        {
+          "id": "patient-chief-complaint.mood.feeling-sad",
+          "text": "Feeling sad"
+        },
+        {
+          "id": "patient-chief-complaint.mood.cannot-get-interested",
+          "text": "Can't get interested in things"
+        },
+        {
+          "id": "patient-chief-complaint.mood.nothing-feels-fun",
+          "text": "Nothing feels fun"
+        },
+        {
+          "id": "patient-chief-complaint.mood.lost-my-drive",
+          "text": "Lost my drive"
+        },
+        {
+          "id": "patient-chief-complaint.mood.do-not-care-about-things",
+          "text": "I don't care about things"
+        },
+        {
+          "id": "patient-chief-complaint.mood.feeling-flat",
+          "text": "Feeling flat"
+        },
+        {
+          "id": "patient-chief-complaint.mood.mood-has-changed",
+          "text": "My mood has changed"
+        },
+        {
+          "id": "patient-chief-complaint.mood.not-enjoying-life",
+          "text": "Not enjoying life"
+        }
+      ],
+      "lifecycle": "approved",
+      "medicalReviewStatus": "unreviewed"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-chief-complaint-bank.energy-sleep-function",
+      "label": "Brief energy, sleep, and function complaints",
+      "variants": [
+        {
+          "id": "patient-chief-complaint.function.always-tired",
+          "text": "Always tired"
+        },
+        {
+          "id": "patient-chief-complaint.function.no-energy",
+          "text": "No energy"
+        },
+        {
+          "id": "patient-chief-complaint.function.cannot-focus",
+          "text": "Can't focus"
+        },
+        {
+          "id": "patient-chief-complaint.function.trouble-sleeping",
+          "text": "Trouble sleeping"
+        },
+        {
+          "id": "patient-chief-complaint.function.sleeping-too-much",
+          "text": "Sleeping too much"
+        },
+        {
+          "id": "patient-chief-complaint.function.cannot-get-going",
+          "text": "Can't get going"
+        },
+        {
+          "id": "patient-chief-complaint.function.falling-behind",
+          "text": "Falling behind"
+        },
+        {
+          "id": "patient-chief-complaint.function.cannot-get-things-done",
+          "text": "Can't get things done"
+        },
+        {
+          "id": "patient-chief-complaint.function.exhausted",
+          "text": "Feeling exhausted"
+        },
+        {
+          "id": "patient-chief-complaint.function.sleep-is-a-mess",
+          "text": "My sleep is a mess"
+        },
+        {
+          "id": "patient-chief-complaint.function.low-energy-and-mood",
+          "text": "Low energy and mood"
+        },
+        {
+          "id": "patient-chief-complaint.function.tired-and-sad",
+          "text": "Tired and sad"
+        },
+        {
+          "id": "patient-chief-complaint.function.cannot-concentrate",
+          "text": "Can't concentrate"
+        },
+        {
+          "id": "patient-chief-complaint.function.everything-takes-effort",
+          "text": "Everything takes effort"
+        },
+        {
+          "id": "patient-chief-complaint.function.not-functioning",
+          "text": "Not functioning well"
+        },
+        {
+          "id": "patient-chief-complaint.function.missing-work",
+          "text": "Missing work"
+        }
+      ],
+      "lifecycle": "approved",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ],
+  "profiles": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-launcher-presentation-profile.mdd-current-episode",
+      "modelVersion": "patient-launcher-presentation-profile.v1",
+      "firstNamePoolRef": {
+        "id": "variant-pool.fictional-first-names.general-adult",
+        "contentVersion": "2.0.0"
+      },
+      "lastNamePoolRef": {
+        "id": "variant-pool.fictional-last-names.general-adult",
+        "contentVersion": "2.0.0"
+      },
+      "middleInitialProbability": {
+        "numerator": 1,
+        "denominator": 4
+      },
+      "complaintBankBindings": [
+        {
+          "id": "patient-launcher-complaint-binding.mdd.nonspecific",
+          "bankRef": {
+            "id": "patient-chief-complaint-bank.general-psychiatry.nonspecific",
+            "contentVersion": "1.0.0"
+          },
+          "specificityPriority": 100,
+          "gameSelectionWeight": 1
+        },
+        {
+          "id": "patient-launcher-complaint-binding.mdd.mood-interest",
+          "bankRef": {
+            "id": "patient-chief-complaint-bank.mood-interest",
+            "contentVersion": "1.0.0"
+          },
+          "specificityPriority": 100,
+          "gameSelectionWeight": 1
+        },
+        {
+          "id": "patient-launcher-complaint-binding.mdd.energy-sleep-function",
+          "bankRef": {
+            "id": "patient-chief-complaint-bank.energy-sleep-function",
+            "contentVersion": "1.0.0"
+          },
+          "specificityPriority": 100,
+          "gameSelectionWeight": 1
+        }
+      ],
+      "developerOpinionIds": ["developer-opinion.patient-launcher-cosmetic-variation.2026-08-03"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-03T21:09:16.000Z",
+        "sourceUseNoteIds": []
+      }
+    }
+  ]
+}

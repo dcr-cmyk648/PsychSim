@@ -164,6 +164,41 @@ const makePatientState = (): ResolvedPatientState => ({
       sourceRateProfileId: null,
     },
   ],
+  currentMedicationReportedBenefits: [
+    {
+      recordVersion: 1,
+      id: 'current-medication-benefit.test.sertraline',
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen-entry.test.sertraline',
+      },
+      reportedBenefit: 'partial',
+      source: {
+        kind: 'patient_report',
+        sourceInstanceId: 'source-instance.test.patient',
+      },
+      timeScopeId: 'time-scope.current',
+    },
+  ],
+  currentMedicationDosePositions: [
+    {
+      recordVersion: 1,
+      id: 'current-medication-dose-position.test.sertraline',
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen-entry.test.sertraline',
+      },
+      position: 'below_maximum',
+      source: {
+        kind: 'record_review',
+        sourceInstanceId: 'source-instance.test.prescriber-record',
+      },
+      timeScopeId: 'time-scope.current',
+    },
+  ],
+  medicationChangeTemporalRelationships: [],
   reactionHistory: {
     status: 'entries_present',
     medicationAssessmentStatus: 'entries_present',
@@ -190,6 +225,7 @@ const makePatientState = (): ResolvedPatientState => ({
   structuredTestResults: [],
   clinicalContexts: [],
   clinicalDurations: [],
+  functionalImpairments: [],
   subjectiveBurdenRecords: [],
   propositionState: {
     schemaVersion: 1,
@@ -429,6 +465,214 @@ describe('D-212 structured patient-state reveal projection foundation', () => {
     expect(explicitNegative.resolved.laneStatements).not.toEqual(
       unassessed.resolved.laneStatements,
     );
+  });
+
+  it('routes current-medication benefit as its own source-view lane', () => {
+    const patientState = ResolvedPatientStateSchema.parse(makePatientState());
+    const definition = makeDefinition({
+      id: 'structured-reveal-definition.test.medication-effects',
+      label: 'Medication effects',
+      informationActionId: 'info.history.medication-effects',
+      informationActionPayloadFingerprint:
+        'fingerprint.information-action.medication-effects.fnv1a64.0123456789abcdef',
+      lanes: ['current_medication_reported_benefits'],
+    });
+    const envelope = {
+      definition,
+      patientState,
+      resolved: {
+        schemaVersion: 1,
+        id: 'structured-reveal.test.medication-effects.patient',
+        definitionId: definition.id,
+        definitionContentVersion: definition.contentVersion,
+        informationActionId: definition.informationActionId,
+        informationActionPayloadFingerprint: definition.informationActionPayloadFingerprint,
+        patientStateId: patientState.id,
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: 'source-instance.test.patient',
+        },
+        timeScopeId: 'time-scope.current',
+        claimOriginId: 'claim-origin.test.medication-effects.patient',
+        dependencyGroupIds: [],
+        laneStatements: [
+          {
+            lane: 'current_medication_reported_benefits',
+            presentationStatus: 'items_present',
+            includedTruthRecordIds: ['current-medication-benefit.test.sertraline'],
+            omittedTruthRecordIds: [],
+            relationshipToTruth: 'aligned',
+          },
+        ],
+        singletonStatements: [],
+        resolution: authoredResolution,
+      },
+    } as const;
+
+    expect(StructuredPatientStateRevealProjectionEnvelopeSchema.safeParse(envelope).success).toBe(
+      true,
+    );
+    expect(patientState.currentMedicationReportedBenefits[0]).toMatchObject({
+      reportedBenefit: 'partial',
+      subject: {
+        regimenEntryId: 'regimen-entry.test.sertraline',
+      },
+    });
+  });
+
+  it('routes an exact medication-change relationship without admitting a compatibility target', () => {
+    const patientStateInput = makePatientState();
+    patientStateInput.categoricalObservations = [
+      {
+        schemaVersion: 1,
+        id: 'categorical-observation.test.pacing',
+        definitionId: 'categorical-observation-definition.test.pacing',
+        definitionContentVersion: '1.0.0',
+        valueId: 'categorical-observation-value.present',
+        displayValue: 'Pacing observed',
+        timeScopeId: 'time-scope.current',
+        source: {
+          kind: 'clinician_observation',
+          sourceInstanceId: 'source-instance.test.clinician',
+        },
+        interpretationIds: [],
+        resolution: authoredResolution,
+      },
+    ];
+    patientStateInput.medicationChangeTemporalRelationships = [
+      {
+        recordVersion: 1,
+        id: 'medication-change-temporal.test.sertraline-increase',
+        subject: {
+          modelVersion: 'finding-record-subject.v1',
+          kind: 'current_regimen_entry',
+          regimenEntryId: 'regimen-entry.test.sertraline',
+        },
+        changeKind: 'increased',
+        changeTimeScopeId: 'time-scope.recent',
+        target: {
+          kind: 'categorical_observation',
+          categoricalObservationId: 'categorical-observation.test.pacing',
+        },
+        targetTimeScopeId: 'time-scope.current',
+        relationship: 'change_before_target',
+        source: {
+          kind: 'record_review',
+          sourceInstanceId: 'source-instance.test.prescriber-record',
+        },
+      },
+    ];
+    const patientState = ResolvedPatientStateSchema.parse(patientStateInput);
+    const definition = makeDefinition({
+      id: 'structured-reveal-definition.test.medication-change',
+      label: 'Medication changes',
+      informationActionId: 'info.history.medication-reconciliation',
+      informationActionPayloadFingerprint:
+        'fingerprint.information-action.medication-change.fnv1a64.0123456789abcdef',
+      allowedSourceKinds: ['record_review'],
+      lanes: ['medication_change_temporal_relationships'],
+    });
+    const envelope = {
+      definition,
+      patientState,
+      resolved: {
+        schemaVersion: 1,
+        id: 'structured-reveal.test.medication-change.record',
+        definitionId: definition.id,
+        definitionContentVersion: definition.contentVersion,
+        informationActionId: definition.informationActionId,
+        informationActionPayloadFingerprint: definition.informationActionPayloadFingerprint,
+        patientStateId: patientState.id,
+        source: {
+          kind: 'record_review',
+          sourceInstanceId: 'source-instance.test.prescriber-record',
+        },
+        timeScopeId: 'time-scope.current',
+        claimOriginId: 'claim-origin.test.medication-change.record',
+        dependencyGroupIds: [],
+        laneStatements: [
+          {
+            lane: 'medication_change_temporal_relationships',
+            presentationStatus: 'items_present',
+            includedTruthRecordIds: ['medication-change-temporal.test.sertraline-increase'],
+            omittedTruthRecordIds: [],
+            relationshipToTruth: 'aligned',
+          },
+        ],
+        singletonStatements: [],
+        resolution: authoredResolution,
+      },
+    } as const;
+
+    expect(StructuredPatientStateRevealProjectionEnvelopeSchema.safeParse(envelope).success).toBe(
+      true,
+    );
+    const compatibilityTarget = structuredClone(patientStateInput);
+    compatibilityTarget.medicationChangeTemporalRelationships[0]!.target = {
+      kind: 'compatibility_finding',
+      informationActionId: 'info.history.presenting-problem',
+      findingId: 'finding.test.pacing',
+    };
+    expect(ResolvedPatientStateSchema.safeParse(compatibilityTarget).success).toBe(false);
+  });
+
+  it('routes current-medication dose position as its own closed source-view lane', () => {
+    const patientState = ResolvedPatientStateSchema.parse(makePatientState());
+    const definition = makeDefinition({
+      id: 'structured-reveal-definition.test.current-medication-dose-position',
+      label: 'Current medication dose position',
+      informationActionId: 'info.history.medication-effects',
+      informationActionPayloadFingerprint:
+        'fingerprint.information-action.medication-dose-position.fnv1a64.0123456789abcdef',
+      allowedSourceKinds: ['record_review'],
+      lanes: ['current_medication_dose_positions'],
+    });
+    const envelope = {
+      definition,
+      patientState,
+      resolved: {
+        schemaVersion: 1,
+        id: 'structured-reveal.test.current-medication-dose-position.record',
+        definitionId: definition.id,
+        definitionContentVersion: definition.contentVersion,
+        informationActionId: definition.informationActionId,
+        informationActionPayloadFingerprint: definition.informationActionPayloadFingerprint,
+        patientStateId: patientState.id,
+        source: {
+          kind: 'record_review',
+          sourceInstanceId: 'source-instance.test.prescriber-record',
+        },
+        timeScopeId: 'time-scope.current',
+        claimOriginId: 'claim-origin.test.current-medication-dose-position.record',
+        dependencyGroupIds: [],
+        laneStatements: [
+          {
+            lane: 'current_medication_dose_positions',
+            presentationStatus: 'items_present',
+            includedTruthRecordIds: ['current-medication-dose-position.test.sertraline'],
+            omittedTruthRecordIds: [],
+            relationshipToTruth: 'aligned',
+          },
+        ],
+        singletonStatements: [],
+        resolution: authoredResolution,
+      },
+    } as const;
+
+    expect(StructuredPatientStateRevealProjectionEnvelopeSchema.safeParse(envelope).success).toBe(
+      true,
+    );
+    expect(patientState.currentMedicationDosePositions[0]).toMatchObject({
+      position: 'below_maximum',
+      subject: {
+        regimenEntryId: 'regimen-entry.test.sertraline',
+      },
+    });
+
+    const missingSubject = structuredClone(patientState);
+    missingSubject.currentMedicationDosePositions[0]!.subject.regimenEntryId =
+      'regimen-entry.test.missing';
+    expect(ResolvedPatientStateSchema.safeParse(missingSubject).success).toBe(false);
   });
 
   it('requires included and omitted IDs to exactly partition one closed truth lane', () => {

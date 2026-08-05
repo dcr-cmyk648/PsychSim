@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.phenelzine",
+  "label": "Phenelzine",
+  "normalizedIngredientName": "phenelzine",
+  "aliases": [],
+  "authoringStatus": "identity_only",
+  "runtimeMedicationDefinitionId": null,
+  "rxnorm": {
+    "rxcui": "8123",
+    "termType": "IN",
+    "suppress": "N",
+    "releaseDate": "2026-08-03",
+    "evidenceSourceId": "evidence.nlm.rxnorm-api.2026-08-03",
+    "sourceUseDecisionId": "source-use.nlm.rxnorm-api.2026-08-03",
+    "verifiedAt": "2026-08-05T22:12:00.000Z"
+  },
+  "medicalReviewStatus": "unreviewed"
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.4.0",
+  "contentVersion": "1.6.0",
   "id": "case.review-cohort.mdd-adherence",
   "internalTitle": "Reviewer cohort: MDD with inconsistent adherence",
   "difficultyTier": 2,

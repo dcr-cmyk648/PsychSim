@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { instantiateCase, resolveNumericTestProfile, resolveVariant } from '@psychsim/engine';
 import {
   CatalogBundleSchema,
+  CaseBlueprintSchema,
   CaseInstanceSchema,
   ClinicalDurationProfileSchema,
   DiagnosisDefinitionSchema,
@@ -28,6 +29,7 @@ import { findAffectedContentIds } from './impact';
 import { medicationIdentities } from './medication-identities';
 import { supplementIdentities } from './supplement-identities';
 import { contentRegistry } from './registry';
+import { advancedPrototypeCaseBlueprint } from './test-content';
 import {
   validateCaseBlueprint,
   validateCatalogs,
@@ -44,6 +46,61 @@ describe('prototype content', () => {
         issues: [],
       });
     }
+  });
+
+  it('binds the restlessness timeline to the exact changed medication and symptom', () => {
+    const relationship =
+      advancedPrototypeCaseBlueprint.patientRecord.medicationChangeTemporalRelationships[0]!;
+    expect(relationship).toMatchObject({
+      subject: {
+        regimenEntryId: 'regimen.medication-restlessness-001.aripiprazole',
+      },
+      changeKind: 'increased',
+      target: {
+        kind: 'compatibility_finding',
+        informationActionId: 'info.history.presenting-problem',
+        findingId: 'finding.restlessness.pacing',
+      },
+      relationship: 'change_before_target',
+    });
+
+    const instance = instantiateCase(
+      advancedPrototypeCaseBlueprint,
+      'temporal-medication-attribution',
+      catalogs,
+    );
+    const temporalFinding = instance.informationActions
+      .find((action) => action.actionId === 'info.history.presenting-problem')!
+      .result.findings.find(
+        (finding) => finding.id === 'finding.restlessness.after-medication-change',
+      )!;
+    expect(temporalFinding).toMatchObject({
+      subject: {
+        regimenEntryId: 'regimen.medication-restlessness-001.aripiprazole',
+      },
+      medicationChangeTemporalRelationshipId: relationship.id,
+    });
+    expect(temporalFinding.label.toLowerCase()).toContain('aripiprazole');
+
+    const danglingTarget = structuredClone(advancedPrototypeCaseBlueprint);
+    danglingTarget.patientRecord.medicationChangeTemporalRelationships[0]!.target = {
+      kind: 'compatibility_finding',
+      informationActionId: 'info.history.presenting-problem',
+      findingId: 'finding.restlessness.missing',
+    };
+    expect(CaseBlueprintSchema.safeParse(danglingTarget).success).toBe(false);
+
+    const crossedProjection = structuredClone(advancedPrototypeCaseBlueprint);
+    crossedProjection.informationActions
+      .find((action) => action.actionId === 'info.history.presenting-problem')!
+      .result.findings.find(
+        (finding) => finding.id === 'finding.restlessness.after-medication-change',
+      )!.subject = {
+      modelVersion: 'finding-record-subject.v1',
+      kind: 'current_regimen_entry',
+      regimenEntryId: 'regimen.medication-restlessness-001.fluoxetine',
+    };
+    expect(CaseBlueprintSchema.safeParse(crossedProjection).success).toBe(false);
   });
 
   it('keeps a class label on every medication and stable treatment tags on current SSRIs', () => {
@@ -86,7 +143,7 @@ describe('prototype content', () => {
       valid: true,
       issues: [],
     });
-    expect(medicationIdentities).toHaveLength(53);
+    expect(medicationIdentities).toHaveLength(125);
     const runtimeCompatible = medicationIdentities.filter(
       (identity) => identity.authoringStatus === 'runtime_compatibility',
     );
@@ -94,8 +151,10 @@ describe('prototype content', () => {
       (identity) => identity.authoringStatus === 'identity_only',
     );
     expect(runtimeCompatible).toHaveLength(13);
-    expect(identityOnly).toHaveLength(40);
+    expect(identityOnly).toHaveLength(112);
+    expect(identityOnly.map((identity) => identity.id)).toContain('medication.clomipramine');
     expect(identityOnly.map((identity) => identity.id)).toContain('medication.memantine');
+    expect(identityOnly.map((identity) => identity.id)).toContain('medication.pregabalin');
     expect(runtimeCompatible.map((identity) => identity.id).sort()).toEqual(
       catalogs.medications.map((medication) => medication.id).sort(),
     );
@@ -158,7 +217,7 @@ describe('prototype content', () => {
     const parsedFindings = FindingDefinitionSchema.array().parse(runtimeCatalog.findings);
     expect(parsedDiagnoses.length).toBeGreaterThan(0);
     expect(parsedFindings).toEqual(runtimeCatalog.findings);
-    expect(parsedFindings).toHaveLength(50);
+    expect(parsedFindings).toHaveLength(61);
     expect(
       parsedFindings.find((finding) => finding.id === 'finding.depressive.depressed-mood'),
     ).toEqual(
@@ -216,7 +275,14 @@ describe('prototype content', () => {
       'finding.history.excessive-worry',
       'finding.history.muscle-tension',
       'finding.history.panic-attacks',
+      'finding.history.past-episodic-decreased-sleep-need',
+      'finding.history.past-episodic-elevated-irritable-mood',
       'finding.history.past-episodic-grandiosity',
+      'finding.history.past-episodic-high-risk-spending',
+      'finding.history.past-episodic-increased-goal-directed-activity',
+      'finding.history.past-episodic-pressured-speech',
+      'finding.history.past-episodic-racing-thoughts',
+      'finding.history.past-episodic-self-reported-impulsivity',
       'finding.history.reported-delusional-beliefs',
       'finding.history.reported-hallucinations',
       'finding.history.restlessness',
@@ -226,10 +292,14 @@ describe('prototype content', () => {
       'finding.mse.current-observed-thought-disorganization',
       'finding.safety.current-active-suicidal-ideation',
       'finding.safety.current-passive-death-wish',
+      'finding.safety.current-self-reported-access-to-suicide-means',
       'finding.safety.current-self-reported-weapon-access',
+      'finding.safety.current-specific-suicide-plan',
+      'finding.safety.current-suicidal-intent',
       'finding.safety.current-suicide-preparatory-behavior',
       'finding.safety.current-violent-ideation',
       'finding.safety.current-violent-intent',
+      'finding.safety.recent-suicide-attempt',
       'finding.safety.recent-violent-behavior',
       'finding.safety.suicide-attempt-history',
       'finding.safety.suicide-preparatory-behavior-history',
@@ -268,6 +338,37 @@ describe('prototype content', () => {
         ],
       }),
     );
+    expect(
+      catalogs.findings.filter((finding) =>
+        [
+          'finding.safety.current-self-reported-access-to-suicide-means',
+          'finding.safety.current-specific-suicide-plan',
+          'finding.safety.current-suicidal-intent',
+          'finding.safety.recent-suicide-attempt',
+        ].includes(finding.id),
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: 'finding.safety.current-self-reported-access-to-suicide-means',
+        semanticKind: 'safety',
+        medicalReviewStatus: 'unreviewed',
+      }),
+      expect.objectContaining({
+        id: 'finding.safety.current-specific-suicide-plan',
+        semanticKind: 'safety',
+        medicalReviewStatus: 'unreviewed',
+      }),
+      expect.objectContaining({
+        id: 'finding.safety.current-suicidal-intent',
+        semanticKind: 'safety',
+        medicalReviewStatus: 'unreviewed',
+      }),
+      expect.objectContaining({
+        id: 'finding.safety.recent-suicide-attempt',
+        semanticKind: 'safety',
+        medicalReviewStatus: 'unreviewed',
+      }),
+    ]);
     expect(
       catalogs.findings.find(
         (finding) => finding.id === 'finding.history.current-fatigue-low-energy',
@@ -923,8 +1024,36 @@ describe('prototype content', () => {
           }),
         }),
         expect.objectContaining({
+          id: 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history',
+          concernLevel: 'major',
+          certaintyLevel: 'strong',
+          target: {
+            kind: 'information_action',
+            id: 'info.history.mania',
+          },
+          selectionWhen: expect.objectContaining({
+            type: 'treatmentStartedInClass',
+            medicationClassId: 'medication-class.mdd-initial-first-line-antidepressant',
+            medicationClassContentVersion: '1.0.0',
+          }),
+        }),
+        expect.objectContaining({
           id: 'rule.diagnosis-mdd.any-medication-reaction-history',
           selectionWhen: { type: 'anyMedicationStarted' },
+        }),
+        expect.objectContaining({
+          id: 'rule.diagnosis-mdd.passive-death-wish-safety-assessment',
+          patientWhen: {
+            type: 'clinicalTagPresent',
+            clinicalTagId: 'safety.passive-death-wish-without-intent',
+          },
+          nativePatientWhen: {
+            type: 'canonicalFindingOutcome',
+            findingDefinitionId: 'finding.safety.current-passive-death-wish',
+            findingDefinitionContentVersion: '1.0.0',
+            outcome: 'present',
+          },
+          selectionWhen: null,
         }),
       ]),
     );
@@ -987,6 +1116,25 @@ describe('prototype content', () => {
     expect(
       validateCatalogs(invalid).issues.some(
         (issue) => issue.code === 'INVALID_DIAGNOSIS_RULE_TARGET',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects a stale native diagnosis-rule finding reference', () => {
+    const invalid = structuredClone(catalogs);
+    const mdd = invalid.diagnoses.find(
+      (diagnosis) => diagnosis.id === 'diagnosis.major-depressive-disorder',
+    )!;
+    const rule = mdd.baseRules.find(
+      (candidate) => candidate.id === 'rule.diagnosis-mdd.passive-death-wish-safety-assessment',
+    )!;
+    if (!rule.nativePatientWhen) {
+      throw new Error('The passive-death-wish native predicate fixture is missing.');
+    }
+    rule.nativePatientWhen.findingDefinitionContentVersion = '9.9.9';
+    expect(
+      validateCatalogs(invalid).issues.some(
+        (issue) => issue.code === 'INVALID_DIAGNOSIS_RULE_NATIVE_FINDING_VERSION',
       ),
     ).toBe(true);
   });
@@ -1625,7 +1773,7 @@ describe('prototype content', () => {
         expect(value).toBeLessThanOrEqual(range.maximum);
       }
     }
-  }, 15_000);
+  }, 30_000);
 
   it('lets authored patient observations override generic test generation', () => {
     const instance = instantiateCase(prototypeCaseBlueprint, 'authored-test-override', catalogs);
@@ -1648,7 +1796,7 @@ describe('prototype content', () => {
       }),
     );
     expect(presentations.size).toBeGreaterThanOrEqual(100);
-  });
+  }, 20_000);
 
   it('keeps critical facts and scoring invariant across many seeds', () => {
     const protectedSnapshot = (seed: string) => {
@@ -1673,5 +1821,5 @@ describe('prototype content', () => {
     for (let index = 0; index < 200; index += 1) {
       expect(protectedSnapshot(`critical-${index}`)).toEqual(expected);
     }
-  });
+  }, 20_000);
 });

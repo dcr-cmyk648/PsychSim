@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.4.0",
+  "contentVersion": "1.6.0",
   "id": "registry.catalog.decision-balances",
   "balances": [
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.3.0",
       "id": "balance.mdd-initial-one-first-line-antidepressant",
       "ruleRef": {
         "kind": "medication_regimen_route",
         "id": "medication-regimen-route.mdd-initial-one-first-line-antidepressant",
-        "contentVersion": "1.1.0",
+        "contentVersion": "1.3.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.4.0"
+        "ownerContentVersion": "1.6.0"
       },
       "balanceStatus": "provisional_balance",
       "impactBand": "dominant_primary_route",
@@ -28,15 +28,15 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.3.0",
       "id": "balance.mdd-any-medication-reconciliation",
       "balanceKind": "triggered_information_prerequisite",
       "ruleRef": {
         "kind": "diagnosis_rule",
         "id": "rule.diagnosis-mdd.any-medication-reconciliation",
-        "contentVersion": "1.4.0",
+        "contentVersion": "1.6.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.4.0"
+        "ownerContentVersion": "1.6.0"
       },
       "balanceStatus": "provisional_balance",
       "component": "workup",
@@ -63,15 +63,15 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.3.0",
       "id": "balance.mdd-any-medication-reaction-history",
       "balanceKind": "triggered_information_prerequisite",
       "ruleRef": {
         "kind": "diagnosis_rule",
         "id": "rule.diagnosis-mdd.any-medication-reaction-history",
-        "contentVersion": "1.4.0",
+        "contentVersion": "1.6.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.4.0"
+        "ownerContentVersion": "1.6.0"
       },
       "balanceStatus": "provisional_balance",
       "component": "workup",
@@ -99,14 +99,78 @@
     {
       "schemaVersion": 1,
       "contentVersion": "1.1.0",
+      "id": "balance.mdd-antidepressant-mania-history",
+      "balanceKind": "triggered_information_prerequisite",
+      "ruleRef": {
+        "kind": "diagnosis_rule",
+        "id": "rule.diagnosis-mdd.initial-route-antidepressant-mania-history",
+        "contentVersion": "1.6.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.6.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "component": "workup",
+      "outcomes": {
+        "notTriggered": {
+          "points": 0,
+          "explanation": "No reviewed initial-MDD antidepressant was started, so the treatment-triggered mania-history prerequisite did not apply."
+        },
+        "fulfilled": {
+          "impactBand": "major",
+          "points": 35,
+          "explanation": "Current and prior mania or hypomania were assessed before a reviewed initial-MDD antidepressant was started."
+        },
+        "omitted": {
+          "impactBand": "major",
+          "points": -50,
+          "explanation": "A reviewed initial-MDD antidepressant was started without assessing current and prior mania or hypomania."
+        }
+      },
+      "rationale": "The three values are provisional PsychSim balance from the accepted treatment-triggered history policy. The exact medication set comes from the reviewed initial-MDD class; neither the class nor the clinical evidence supplies these game-point magnitudes.",
+      "developerOpinionIds": [
+        "developer-opinion.treatment-triggered-history-and-prior-reactions.2026-07-27"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "balance.mdd-passive-death-wish-safety-assessment",
+      "balanceKind": "information_requirement",
+      "ruleRef": {
+        "kind": "diagnosis_rule",
+        "id": "rule.diagnosis-mdd.passive-death-wish-safety-assessment",
+        "contentVersion": "1.6.0",
+        "ownerId": "diagnosis.major-depressive-disorder",
+        "ownerContentVersion": "1.6.0"
+      },
+      "balanceStatus": "provisional_balance",
+      "component": "workup",
+      "outcomes": {
+        "fulfilled": {
+          "impactBand": "major",
+          "points": 50,
+          "explanation": "A detailed suicide and self-harm assessment was obtained after the patient reported a current passive wish for death."
+        },
+        "omitted": {
+          "impactBand": "major",
+          "points": -80,
+          "explanation": "A current passive wish for death was present, but the detailed suicide and self-harm assessment was omitted."
+        }
+      },
+      "rationale": "The two values are provisional PsychSim balance from the accepted conditional safety-assessment policy and existing prototype tuning. The resolved finding and reviewed qualitative rule determine applicability; neither clinical evidence nor the finding identity supplies these game-point magnitudes.",
+      "developerOpinionIds": ["developer-opinion.passive-death-wish-safety-assessment.2026-07-27"]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.3.0",
       "id": "balance.mdd-initial-episode-course-assessment",
       "balanceKind": "information_requirement",
       "ruleRef": {
         "kind": "diagnosis_rule",
         "id": "rule.diagnosis-mdd.initial-episode-course-assessment",
-        "contentVersion": "1.4.0",
+        "contentVersion": "1.6.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.4.0"
+        "ownerContentVersion": "1.6.0"
       },
       "balanceStatus": "provisional_balance",
       "component": "workup",
@@ -129,15 +193,15 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.3.0",
       "id": "balance.mdd-initial-depressive-syndrome-assessment",
       "balanceKind": "information_requirement",
       "ruleRef": {
         "kind": "diagnosis_rule",
         "id": "rule.diagnosis-mdd.initial-depressive-syndrome-assessment",
-        "contentVersion": "1.4.0",
+        "contentVersion": "1.6.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.4.0"
+        "ownerContentVersion": "1.6.0"
       },
       "balanceStatus": "provisional_balance",
       "component": "workup",
@@ -160,14 +224,14 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.3.0",
       "id": "balance.mdd-substance-history",
       "ruleRef": {
         "kind": "diagnosis_rule",
         "id": "rule.diagnosis-mdd.substance-history",
-        "contentVersion": "1.4.0",
+        "contentVersion": "1.6.0",
         "ownerId": "diagnosis.major-depressive-disorder",
-        "ownerContentVersion": "1.4.0"
+        "ownerContentVersion": "1.6.0"
       },
       "balanceStatus": "provisional_balance",
       "impactBand": "moderate",

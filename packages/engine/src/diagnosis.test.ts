@@ -85,7 +85,7 @@ describe('diagnosis guidance composition', () => {
     });
 
     expect(withoutFocusedDecision.activeRules).toHaveLength(0);
-    expect(withFocusedDecision.activeRules).toHaveLength(7);
+    expect(withFocusedDecision.activeRules).toHaveLength(8);
     expect(withFocusedDecision.activeRules).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -100,6 +100,18 @@ describe('diagnosis guidance composition', () => {
             selectionWhen: {
               type: 'treatmentStartedWithTag',
               medicationTagId: 'antidepressant',
+              minimumCount: 1,
+              maximumCount: 20,
+            },
+          }),
+        }),
+        expect.objectContaining({
+          rule: expect.objectContaining({
+            id: 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history',
+            selectionWhen: {
+              type: 'treatmentStartedInClass',
+              medicationClassId: 'medication-class.mdd-initial-first-line-antidepressant',
+              medicationClassContentVersion: '1.0.0',
               minimumCount: 1,
               maximumCount: 20,
             },

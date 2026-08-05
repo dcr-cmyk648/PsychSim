@@ -242,7 +242,9 @@ const normalizeRequest = (
       .sort((left, right) =>
         compareStrings(`${left.id}@${left.contentVersion}`, `${right.id}@${right.contentVersion}`),
       ),
-    optionalFeatureArtifact: request.optionalFeatureArtifact,
+    ...(request.optionalFeatureArtifact === undefined
+      ? {}
+      : { optionalFeatureArtifact: request.optionalFeatureArtifact }),
   });
 
 export const fingerprintStructuredSourceReportSelectionTemplate = (

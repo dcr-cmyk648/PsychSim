@@ -22,6 +22,7 @@ import mhraCitalopramQtJson from '../../../content/catalogs/evidence/formal/mhra
 import nhsCyclothymiaJson from '../../../content/catalogs/evidence/formal/nhs-cyclothymia-2023.evidence.json';
 import nhsHeartPalpitationsJson from '../../../content/catalogs/evidence/formal/nhs-heart-palpitations-2026.evidence.json';
 import niceSelfHarmGuidelineJson from '../../../content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json';
+import nlmRxNormApiAugust2026Json from '../../../content/catalogs/evidence/formal/nlm-rxnorm-api-2026-08-03.evidence.json';
 import nlmRxNormCpcJson from '../../../content/catalogs/evidence/formal/nlm-rxnorm-cpc-2026-07-06.evidence.json';
 import roerigClozapineAugmentationJson from '../../../content/catalogs/evidence/formal/roerig-2019-clozapine-augmentation-strategies.evidence.json';
 import tiihonenClozapineAugmentationDoseJson from '../../../content/catalogs/evidence/formal/tiihonen-2025-clozapine-augmentation-dose-cohorts.evidence.json';
@@ -100,7 +101,7 @@ import { findingDefinitions } from './finding-definitions';
 
 export const catalogs = CatalogBundleSchema.parse({
   schemaVersion: 1,
-  contentVersion: '3.23.0',
+  contentVersion: '3.25.0',
   evidenceSources: [
     aceGadGuidelineJson,
     apaBpdGuidelineJson,
@@ -120,6 +121,7 @@ export const catalogs = CatalogBundleSchema.parse({
     nhsHeartPalpitationsJson,
     niceSelfHarmGuidelineJson,
     nlmRxNormCpcJson,
+    nlmRxNormApiAugust2026Json,
     roerigClozapineAugmentationJson,
     tiihonenClozapineAripiprazoleJson,
     tiihonenClozapineAugmentationDoseJson,

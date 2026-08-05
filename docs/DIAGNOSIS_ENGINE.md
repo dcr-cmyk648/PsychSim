@@ -35,7 +35,9 @@ separate and names only their higher qualitative level as an internal episode de
 Psychosis, acute safety, course, treatment history, and nondepressive causes of impairment remain
 separate structured facts, and a PHQ band remains a symptom-burden measurement rather than a
 diagnosis or sole severity definition. D-269 proves the higher-of operation only for two exact
-same-episode inputs and returns a detached qualitative descriptor. It neither authenticates the
+same-episode inputs and returns a detached qualitative descriptor. D-297 makes its D-267
+impairment input structurally source-valid against one independent same-patient D-291 horizon,
+but does not make that source credible or clinically correct. It neither authenticates the
 still-missing symptom-severity owner nor maps the result to a `severityId`; all MDD severity
 branches remain disabled until their exact input boundaries and attachments receive review.
 

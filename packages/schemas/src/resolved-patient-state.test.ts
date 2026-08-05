@@ -308,7 +308,10 @@ const makeState = () => ({
       },
       contextValues: [],
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.scale',
+      source: {
+        kind: 'measurement',
+        sourceInstanceId: 'source-instance.test.scale',
+      },
       interpretation: {
         kind: 'not_interpreted',
       },
@@ -324,7 +327,10 @@ const makeState = () => ({
       valueId: 'observation-value.body-habitus.average',
       displayValue: 'Average body habitus',
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.clinician',
+      source: {
+        kind: 'clinician_observation',
+        sourceInstanceId: 'source-instance.test.clinician',
+      },
       interpretationIds: [],
       resolution: authoredResolution,
     },
@@ -335,7 +341,10 @@ const makeState = () => ({
       id: 'structured-test-result.test.pregnancy',
       testDefinitionId: 'test.lab.pregnancy',
       testDefinitionContentVersion: '1.1.0',
-      sourceInstanceId: 'source-instance.test.laboratory',
+      source: {
+        kind: 'laboratory_result',
+        sourceInstanceId: 'source-instance.test.laboratory',
+      },
       timeScopeId: 'time-scope.current',
       resolution: authoredResolution,
       kind: 'binary',
@@ -374,6 +383,28 @@ const makeState = () => ({
       },
       timeScopeId: 'time-scope.current',
       resolution: generatedResolution('draw.test.duration.low-energy'),
+    },
+  ],
+  functionalImpairments: [
+    {
+      schemaVersion: 1,
+      id: 'functional-impairment.test.mdd',
+      target: {
+        kind: 'condition_state',
+        conditionStateId: 'condition-state.test.mdd',
+      },
+      attribution: 'condition_attributed',
+      level: 'moderate',
+      functionalImpairmentProfileId: 'functional-impairment-profile.test.mdd',
+      functionalImpairmentProfileContentVersion: '1.0.0',
+      functionalImpairmentOptionId: 'functional-impairment-option.test.moderate',
+      relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
+      source: {
+        kind: 'patient_report',
+        sourceInstanceId: 'source-instance.test.patient',
+      },
+      timeScopeId: 'time-scope.current',
+      resolution: generatedResolution('draw.test.functional-impairment.mdd'),
     },
   ],
   subjectiveBurdenRecords: [
@@ -492,11 +523,13 @@ describe('resolved patient-state foundation', () => {
       identityId: 'supplement.magnesium',
       identityContentVersion: '1.0.0',
     });
+    expect(parsed.functionalImpairments).toHaveLength(1);
   });
 
   it('does not require chart claims to activate conditions or conditions to create chart claims', () => {
     const chartOnly = makeState();
     chartOnly.conditionStates = [];
+    chartOnly.functionalImpairments = [];
     expect(ResolvedPatientStateSchema.safeParse(chartOnly).success).toBe(true);
 
     const internalOnly = makeState();
@@ -563,6 +596,26 @@ describe('resolved patient-state foundation', () => {
     tolerabilityState.medicationTolerabilityFindings[0]!.subject.regimenEntryId =
       'regimen-entry.test.missing';
     expect(ResolvedPatientStateSchema.safeParse(tolerabilityState).success).toBe(false);
+  });
+
+  it('requires each condition-attributed impairment to retain its exact condition coordinate', () => {
+    const orphaned = makeState();
+    orphaned.functionalImpairments[0]!.target.conditionStateId = 'condition-state.test.missing';
+    expect(ResolvedPatientStateSchema.safeParse(orphaned).success).toBe(false);
+
+    const wrongDiagnosis = makeState();
+    wrongDiagnosis.functionalImpairments[0]!.relatedDiagnosisId =
+      'diagnosis.generalized-anxiety-disorder';
+    expect(ResolvedPatientStateSchema.safeParse(wrongDiagnosis).success).toBe(false);
+
+    const duplicateAssignment = makeState();
+    duplicateAssignment.functionalImpairments.push({
+      ...structuredClone(duplicateAssignment.functionalImpairments[0]!),
+      id: 'functional-impairment.test.mdd.duplicate',
+      functionalImpairmentOptionId: 'functional-impairment-option.test.mild',
+      level: 'mild',
+    });
+    expect(ResolvedPatientStateSchema.safeParse(duplicateAssignment).success).toBe(false);
   });
 
   it('rejects half-mapped chart diagnoses without judging their accuracy', () => {

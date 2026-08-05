@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { instantiateCase, resolveClinicForProgressionMode } from '@psychsim/engine';
+import { CaseBlueprintSchema } from '@psychsim/schemas';
+import mddAdequateNonresponseScenarioJson from '../../../content/cases/blueprints/reviewer-cohort/mdd-adequate-nonresponse.scenario.json';
 
-import { catalogs, startingClinic } from './content';
+import { catalogs, prototypeCaseBlueprint, startingClinic } from './content';
 import { runReferenceSolution, runReferenceSolutionsForCase } from './reference-runs';
+import { buildReviewCaseCohort } from './review-cohort';
 import { REVIEWER_ASSIGNMENT_ID } from './reviewer-assignment';
 import {
   reviewerCaseBlueprints,
@@ -34,14 +37,14 @@ describe('portable reviewer cohort', () => {
       ),
     ).toEqual({
       'case.review-cohort.mdd-initial': '1.6.0',
-      'case.review-cohort.mdd-adherence': '1.4.0',
-      'case.review-cohort.mdd-adequate-nonresponse': '1.5.0',
-      'case.review-cohort.mdd-prior-good-response': '1.6.0',
-      'case.review-cohort.mdd-prior-intolerance': '1.6.0',
+      'case.review-cohort.mdd-adherence': '1.6.0',
+      'case.review-cohort.mdd-adequate-nonresponse': '1.9.0',
+      'case.review-cohort.mdd-prior-good-response': '1.7.0',
+      'case.review-cohort.mdd-prior-intolerance': '1.7.0',
       'case.review-cohort.gad-initial': '1.4.0',
-      'case.review-cohort.bipolar-depression': '1.5.0',
+      'case.review-cohort.bipolar-depression': '1.6.0',
       'case.review-cohort.acute-mania': '1.4.0',
-      'case.review-cohort.schizophrenia-relapse': '1.4.0',
+      'case.review-cohort.schizophrenia-relapse': '1.6.0',
       'case.review-cohort.ptsd-initial': '1.4.0',
     });
     expect(reviewerDecisionPolicies.map((policy) => policy.id)).toHaveLength(8);
@@ -94,6 +97,258 @@ describe('portable reviewer cohort', () => {
     expect(trialValue).toContain('max 200 mg daily');
     expect(trialValue).toContain('response: none');
     expect(trialValue.toLocaleLowerCase('en-US')).not.toContain('adequate');
+  });
+
+  it('reveals adherence as an interpreted qualified value rather than a binary result', () => {
+    const expectedInterpretations = new Map([
+      ['case.review-cohort.mdd-adequate-nonresponse', 'normal'],
+      ['case.review-cohort.mdd-adherence', 'abnormal'],
+      ['case.review-cohort.schizophrenia-relapse', 'abnormal'],
+    ]);
+
+    for (const [caseId, interpretation] of expectedInterpretations) {
+      const blueprint = reviewerCaseBlueprints.find((candidate) => candidate.id === caseId);
+      if (!blueprint) throw new Error(`Expected reviewer case ${caseId}.`);
+      const instance = instantiateCase(blueprint, `qualified-adherence:${caseId}`, catalogs);
+      const result = instance.informationActions.find(
+        (action) => action.actionId === 'info.history.adherence',
+      )?.result;
+
+      expect(result?.findings).toHaveLength(1);
+      expect(result?.findings[0]).toMatchObject({
+        outcome: 'present',
+        outcomeDisplay: 'value_only',
+        resultSemantics: {
+          modelVersion: 'finding-result-semantics.v1',
+          kind: 'qualified_value',
+          interpretation,
+        },
+        valueText: expect.stringMatching(/^Adherence: /),
+      });
+    }
+  });
+
+  it('reveals sparse patient-reported benefit from the exact current regimen entry', () => {
+    const blueprint = reviewerCaseBlueprints.find(
+      (candidate) => candidate.id === 'case.review-cohort.mdd-adequate-nonresponse',
+    );
+    if (!blueprint) throw new Error('Expected the MDD nonresponse reviewer patient.');
+    expect(blueprint.patientRecord.currentMedicationReportedBenefits).toEqual([
+      {
+        recordVersion: 1,
+        id: 'current-medication-benefit.review-mdd-nonresponse.sertraline',
+        subject: {
+          modelVersion: 'finding-record-subject.v1',
+          kind: 'current_regimen_entry',
+          regimenEntryId: 'regimen.review-mdd-nonresponse.sertraline',
+        },
+        reportedBenefit: 'none',
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: 'source-instance.review-mdd-nonresponse.patient',
+        },
+        timeScopeId: 'time-scope.current',
+      },
+    ]);
+
+    const instance = instantiateCase(blueprint, 'current-medication-benefit', catalogs);
+    const benefitFinding = instance.informationActions
+      .find((action) => action.actionId === 'info.history.medication-effects')
+      ?.result.findings.find(
+        (finding) => finding.groupLabel === 'Patient-reported medication benefit',
+      );
+    expect(benefitFinding).toMatchObject({
+      groupLabel: 'Patient-reported medication benefit',
+      label: 'Sertraline',
+      outcome: 'present',
+      outcomeDisplay: 'value_only',
+      resultSemantics: {
+        modelVersion: 'finding-result-semantics.v1',
+        kind: 'qualified_value',
+        interpretation: 'neutral',
+      },
+      valueText: 'Reported benefit: none',
+    });
+
+    const dangling = structuredClone(blueprint);
+    dangling.patientRecord.currentMedicationReportedBenefits[0]!.subject.regimenEntryId =
+      'regimen.missing.current-benefit';
+    expect(CaseBlueprintSchema.safeParse(dangling).success).toBe(false);
+  });
+
+  it('reveals current-medication tolerability from its exact regimen entry', () => {
+    const blueprint = reviewerCaseBlueprints.find(
+      (candidate) => candidate.id === 'case.review-cohort.mdd-adequate-nonresponse',
+    );
+    if (!blueprint) throw new Error('Expected the MDD nonresponse reviewer patient.');
+    expect(blueprint.patientRecord.medicationTolerabilityFindings).toEqual([
+      {
+        recordVersion: 2,
+        id: 'tolerability.review-mdd-nonresponse.sertraline-other',
+        subject: {
+          kind: 'current_regimen_entry',
+          regimenEntryId: 'regimen.review-mdd-nonresponse.sertraline',
+        },
+        domain: 'other',
+        findingStatus: 'absent',
+        manifestationIds: [],
+        source: 'patient_report',
+        sourceRateProfileId: null,
+      },
+    ]);
+
+    const instance = instantiateCase(blueprint, 'current-medication-tolerability', catalogs);
+    const tolerabilityFinding = instance.informationActions
+      .find((action) => action.actionId === 'info.history.medication-effects')
+      ?.result.findings.find((finding) => finding.groupLabel === 'Medication tolerability');
+    expect(tolerabilityFinding).toMatchObject({
+      label: 'Sertraline',
+      outcome: 'present',
+      outcomeDisplay: 'value_only',
+      resultSemantics: {
+        modelVersion: 'finding-result-semantics.v1',
+        kind: 'qualified_value',
+        interpretation: 'normal',
+      },
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen.review-mdd-nonresponse.sertraline',
+      },
+      valueText: 'Other adverse effects: none reported',
+    });
+
+    const dangling = structuredClone(blueprint);
+    const subject = dangling.patientRecord.medicationTolerabilityFindings[0]!.subject;
+    if (subject.kind !== 'current_regimen_entry') {
+      throw new Error('Expected one current-regimen tolerability subject.');
+    }
+    subject.regimenEntryId = 'regimen.missing.tolerability';
+    expect(CaseBlueprintSchema.safeParse(dangling).success).toBe(false);
+  });
+
+  it('compiles an assessed-unknown dose position without inventing a dose or maximum', () => {
+    const scenario = {
+      ...structuredClone(mddAdequateNonresponseScenarioJson),
+      currentMedicationDosePositions: [
+        {
+          recordVersion: 1,
+          id: 'current-medication-dose-position.test.review-mdd-nonresponse.sertraline',
+          subject: {
+            modelVersion: 'finding-record-subject.v1',
+            kind: 'current_regimen_entry',
+            regimenEntryId: 'regimen.review-mdd-nonresponse.sertraline',
+          },
+          position: 'unknown',
+          source: {
+            kind: 'record_review',
+            sourceInstanceId: 'source-instance.test.review-mdd-nonresponse.record',
+          },
+          timeScopeId: 'time-scope.current',
+        },
+      ],
+    };
+    const matchingPolicies = reviewerDecisionPolicies.filter(
+      (policy) => policy.id === scenario.decisionPolicyId,
+    );
+    const [blueprint] = buildReviewCaseCohort(
+      [scenario],
+      matchingPolicies,
+      prototypeCaseBlueprint,
+      catalogs,
+    );
+    if (!blueprint) throw new Error('Expected one synthetic dose-position compatibility case.');
+
+    expect(blueprint.patientRecord.currentMedicationDosePositions).toHaveLength(1);
+    expect(blueprint.patientRecord.currentMedicationDosePositions[0]).not.toHaveProperty('dose');
+    expect(blueprint.patientRecord.currentMedicationDosePositions[0]).not.toHaveProperty(
+      'maximumDose',
+    );
+    const instance = instantiateCase(blueprint, 'current-medication-dose-position', catalogs);
+    const finding = instance.informationActions
+      .find((action) => action.actionId === 'info.history.medication-effects')
+      ?.result.findings.find(
+        (candidate) => candidate.groupLabel === 'Current medication dose position',
+      );
+    expect(finding).toMatchObject({
+      label: 'Sertraline',
+      outcome: 'present',
+      outcomeDisplay: 'value_only',
+      resultSemantics: {
+        modelVersion: 'finding-result-semantics.v1',
+        kind: 'qualified_value',
+        interpretation: 'indeterminate',
+      },
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen.review-mdd-nonresponse.sertraline',
+      },
+      valueText: 'Dose position unknown',
+    });
+
+    const dangling = structuredClone(blueprint);
+    dangling.patientRecord.currentMedicationDosePositions[0]!.subject.regimenEntryId =
+      'regimen.missing.current-dose-position';
+    expect(CaseBlueprintSchema.safeParse(dangling).success).toBe(false);
+  });
+
+  it('pins medication-related findings to exact regimen and prior-trial records', () => {
+    for (const blueprint of reviewerCaseBlueprints) {
+      const currentEntryIds = blueprint.patientRecord.medicationRegimen
+        .map((entry) => entry.id)
+        .sort();
+      const trialIds = blueprint.patientRecord.priorMedicationTrials
+        .map((trial) => trial.id)
+        .sort();
+      const currentSubjectIds = (actionId: string): string[] =>
+        blueprint.informationActions
+          .find((action) => action.actionId === actionId)
+          ?.result.findings.flatMap((finding) =>
+            finding.subject?.kind === 'current_regimen_entry'
+              ? [finding.subject.regimenEntryId]
+              : [],
+          )
+          .sort() ?? [];
+      const trialSubjectIds = (actionId: string): string[] =>
+        blueprint.informationActions
+          .find((action) => action.actionId === actionId)
+          ?.result.findings.flatMap((finding) =>
+            finding.subject?.kind === 'prior_trial' ? [finding.subject.medicationTrialId] : [],
+          )
+          .sort() ?? [];
+
+      expect(currentSubjectIds('info.history.medication-reconciliation')).toEqual(currentEntryIds);
+      expect(currentSubjectIds('info.history.adherence')).toEqual(currentEntryIds);
+      expect(trialSubjectIds('info.history.prior-trials')).toEqual(trialIds);
+      expect(trialSubjectIds('info.history.treatment-history')).toEqual(trialIds);
+
+      const instance = instantiateCase(blueprint, `record-subjects:${blueprint.id}`, catalogs);
+      expect(
+        instance.informationActions.flatMap((action) =>
+          action.result.findings.flatMap((finding) => (finding.subject ? [finding.subject] : [])),
+        ),
+      ).toEqual(
+        blueprint.informationActions.flatMap((action) =>
+          action.result.findings.flatMap((finding) => (finding.subject ? [finding.subject] : [])),
+        ),
+      );
+    }
+
+    const crossed = structuredClone(
+      reviewerCaseBlueprints.find(
+        (candidate) => candidate.id === 'case.review-cohort.mdd-adherence',
+      )!,
+    );
+    const adherenceFinding = crossed.informationActions
+      .find((action) => action.actionId === 'info.history.adherence')
+      ?.result.findings.find((finding) => finding.subject?.kind === 'current_regimen_entry');
+    if (!adherenceFinding || adherenceFinding.subject?.kind !== 'current_regimen_entry') {
+      throw new Error('Expected one exact current-regimen adherence subject.');
+    }
+    adherenceFinding.subject.regimenEntryId = 'regimen.missing.crossed';
+
+    expect(CaseBlueprintSchema.safeParse(crossed).success).toBe(false);
   });
 
   it('scores every multi-antidepressant start in the initial outpatient MDD snapshot', () => {
@@ -460,5 +715,5 @@ describe('portable reviewer cohort', () => {
         ).toBe(true);
       }
     }
-  }, 15_000);
+  }, 30_000);
 });

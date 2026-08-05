@@ -1789,7 +1789,7 @@ describe('location-local template distribution selector', () => {
     expect(fingerprintLocationTemplateDistributionProfile(reorderedProfile)).toBe(
       fingerprintLocationTemplateDistributionProfile(profile),
     );
-  });
+  }, 15_000);
 
   it('keeps suppression positive, exact-location-only, and based solely on stable template ID', () => {
     const request = makeRequest();

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2.3.0",
+  "contentVersion": "2.4.0",
   "id": "case.restless-after-augmentation",
   "metadata": {
     "title": "Restless After Augmentation",
@@ -105,6 +105,52 @@
       "ageYearsVariantTarget": "patient.age",
       "sexForReference": "unspecified"
     },
+    "medicationRegimen": [
+      {
+        "schemaVersion": 1,
+        "id": "regimen.medication-restlessness-001.fluoxetine",
+        "medicationId": "medication.fluoxetine",
+        "status": "active",
+        "adherence": "consistent",
+        "prescribedForDiagnosisId": null,
+        "source": "patient_report",
+        "knownAtOpening": true
+      },
+      {
+        "schemaVersion": 1,
+        "id": "regimen.medication-restlessness-001.aripiprazole",
+        "medicationId": "medication.aripiprazole",
+        "status": "active",
+        "adherence": "consistent",
+        "prescribedForDiagnosisId": null,
+        "source": "patient_report",
+        "knownAtOpening": true
+      }
+    ],
+    "medicationChangeTemporalRelationships": [
+      {
+        "recordVersion": 1,
+        "id": "medication-change-temporal.medication-restlessness-001.aripiprazole-increase",
+        "subject": {
+          "modelVersion": "finding-record-subject.v1",
+          "kind": "current_regimen_entry",
+          "regimenEntryId": "regimen.medication-restlessness-001.aripiprazole"
+        },
+        "changeKind": "increased",
+        "changeTimeScopeId": "time-scope.recent",
+        "target": {
+          "kind": "compatibility_finding",
+          "informationActionId": "info.history.presenting-problem",
+          "findingId": "finding.restlessness.pacing"
+        },
+        "targetTimeScopeId": "time-scope.current",
+        "relationship": "change_before_target",
+        "source": {
+          "kind": "patient_report",
+          "sourceInstanceId": "source-instance.medication-restlessness-001.patient"
+        }
+      }
+    ],
     "reactionHistory": {
       "status": "entries_present",
       "medicationAssessmentStatus": "documented_none",
@@ -238,8 +284,17 @@
         "findings": [
           {
             "id": "finding.restlessness.after-medication-change",
-            "labelVariants": ["Onset after medication increase", "Symptoms followed dose increase"],
-            "outcome": "present"
+            "labelVariants": [
+              "Restlessness followed aripiprazole increase",
+              "Pacing began after aripiprazole increase"
+            ],
+            "outcome": "present",
+            "subject": {
+              "modelVersion": "finding-record-subject.v1",
+              "kind": "current_regimen_entry",
+              "regimenEntryId": "regimen.medication-restlessness-001.aripiprazole"
+            },
+            "medicationChangeTemporalRelationshipId": "medication-change-temporal.medication-restlessness-001.aripiprazole-increase"
           },
           {
             "id": "finding.restlessness.pacing",
@@ -275,7 +330,12 @@
           {
             "id": "finding.medication.aripiprazole-increased",
             "labelVariants": ["Recent aripiprazole increase", "Aripiprazole recently increased"],
-            "outcome": "present"
+            "outcome": "present",
+            "subject": {
+              "modelVersion": "finding-record-subject.v1",
+              "kind": "current_regimen_entry",
+              "regimenEntryId": "regimen.medication-restlessness-001.aripiprazole"
+            }
           },
           {
             "id": "finding.medication.other-new-product",

@@ -572,6 +572,12 @@ describe('D-217 structured source-report behavior selector', () => {
     expect(first.selections[0]!.selectedProfileRef).toEqual(
       second.selections[0]!.selectedProfileRef,
     );
+    expect(Object.hasOwn(first.request, 'optionalFeatureArtifact')).toBe(false);
+    expect(JSON.parse(JSON.stringify(first))).toEqual(first);
+    expect(verifyStructuredSourceReportBehaviorSelectionIntegrity(first)).toEqual({
+      ok: true,
+      value: first,
+    });
   });
 
   it('uses accurate self-report as the no-cost base when D-201 selects no report modifier', () => {

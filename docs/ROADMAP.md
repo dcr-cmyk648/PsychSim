@@ -112,10 +112,11 @@ relationships, Developer opinions, executable clinical rules, and point balance.
 RxNorm/FDA/NLM sources form the preferred bulk
 factual scaffold; comparative evidence and guidelines remain separately scoped. Proprietary
 references are human-only absent permission, and psychotherapy manuals are not copied. The current
-identity catalog has 52 pinned RxNorm ingredient records: 13 runtime-compatible and 39
+identity catalog has 125 pinned RxNorm ingredient records: 13 runtime-compatible and 112
 identity-only. It includes required public attribution/currentness disclosure and does not change
-formularies, treatments, clinical claims, or scoring. A refresh importer, therapy migration, and
-the remaining knowledge layers are still open.
+formularies, treatments, clinical claims, or scoring. The official NLM-refresh-gated intake and
+generated static-index verifier are implemented; multi-ingredient/formulation ownership, therapy
+migration, and the remaining knowledge layers are still open.
 
 DrugCentral is now registered as an authoring-only `structured_database` seed under a restrictive
 initial CC BY-SA gate: local deterministic indexing and unreviewed derived candidates are allowed,
@@ -169,7 +170,127 @@ retains and replays the complete D-193/D-194 request, and freezes either the ver
 the literal hard-conflict audit without spending the template-owned complexity budget. D-201 adds one authoring-only
 optional-feature selector over that hard maximum, with explicit feasible-count selection,
 remaining-budget/incompatibility look-ahead, complete selected/unselected trace, and no clinical
-payload. D-202 adds an authoring-only bijective bridge from D-201 comorbidity candidates to D-196
+payload. D-275 preserves the historical three-module/six-unit v1 envelope and adds the versioned
+baseline-plus-additional v2 contract for up to 24 independently traced optional modules, granular
+one-to-twelve exact-template costs, and an unchanged required-state baseline. None of those values
+becomes difficulty, points, eligibility, or reimbursement. D-276 adds a migration-safe,
+versioned qualified-result semantic envelope so a resolved categorical value retains a separate
+normal/abnormal/neutral/indeterminate interpretation instead of overloading binary outcome labels;
+the first application corrects Reviewer-cohort adherence display data without creating a rule or
+point value. D-277 adds a migration-safe exact-record subject to medication-related compatibility
+findings, validates it against the containing regimen or prior-trial snapshot, and preserves it
+through deterministic instantiation without parsing labels or prose. D-278 adds one sparse,
+source- and time-scoped current-medication reported-benefit owner for an exact regimen entry,
+keeps explicit no benefit distinct from assessed-but-unknown and absent-record semantics, and
+provides a point-free structured reveal/decision-fact boundary without inferring adequacy,
+causality, rules, or points. D-279 reuses the separate medication-tolerability record in
+compatibility patient/scenario state, validates its exact current-regimen or prior-trial subject,
+and projects its unknown/absent/present status without adding incidence probabilities, causality,
+rules, or points. D-280 adds a separate sparse exact medication-change temporal record, validates
+native versus compatibility target ownership, preserves source and both time scopes, and updates
+the review-only restlessness projection to identify the exact changed aripiprazole entry without
+adding dose amount, causality, diagnosis, probabilities, rules, or points. D-281 adds a sparse
+exact-current-regimen `below_maximum`/`at_maximum`/assessed-`unknown` dose-position owner, a closed
+source-view lane, and point-free exact-subject decision facts without defining medication
+maximums, doses, adequacy, treatment correctness, rules, or points. D-282 adds a standalone
+rights-neutral complete/partial instrument-administration record and optional bounded authored raw
+total without adding real instrument content, calculation, interpretation, rules, or points.
+D-283 adds the standalone exact-D-220 administration compiler, fingerprints, and replay proof
+without attaching the administration to runtime or changing those limits. D-284 adds an
+independently verified, strictly minimized administration projection that redacts item/source
+audit and remains unattached to patient/runtime state. D-285 adds a standalone exact
+patient/action/item-response admission proof without widening `PatientInstance` or runtime.
+D-286 derives that proof from an exact verified catalog snapshot and preserves replay without
+mutating it. D-296 advances both attachment compilers to `2.0.0` and makes the exact D-293
+respondent-source proof their sole administration input, rejecting raw D-283 without adding
+instrument interpretation or runtime attachment. D-297 separately advances D-269 to `2.0.0` and
+requires an exact D-291 source-instance proof for its standalone D-267 impairment input without
+enabling severity or attaching it to runtime. D-298 independently validates every source-bearing
+value that D-240 actually projects against a same-patient D-291 horizon and carries only the
+existing target-redacted reveals forward, without changing D-194/D-213/D-214 or runtime.
+D-299 independently validates every selected D-215 source-view profile against a same-patient
+D-291 horizon and retains only its detached D-212 recipes, again without changing catalog or
+runtime attachment. D-300 advances D-291 to a reusable source-role ID whose patient ownership
+remains enforced by the exact horizon, allowing future static profiles to bind before a patient is
+generated without sharing patient evidence. D-301 then audits every opaque source reference in one
+complete D-208 composed state. D-304 advances that audit to `2.0.0` and moves measurements,
+categorical observations, and structured tests onto explicit typed source references, so every
+current lane now requires exact kind equality. D-305 then provides the authoring-only,
+catalog-fingerprinted adapter from D-303 to a derived same-patient D-291 horizon. D-306 then
+compiles one exact numeric test profile, patient context, seed, interval owner, and catalog-backed
+laboratory source into a frozen typed result. D-307 supplies the complementary exact authored
+profile/result-contract path for patient-owned numeric, categorical, binary, imaging, and
+electrical results. D-308 adds the parallel exact authored measurement-value profile/compiler,
+proven across all nine current measurement definitions with synthetic fixtures while retaining
+`not_interpreted`. D-309 adds the exact authored categorical-observation profile/compiler with
+empty interpretation, proven only with synthetic MSE/physical definitions while the real catalog
+remains empty. D-310 verifies those four result owners under one exact patient/source horizon and
+emits one canonical duplicate-free detached collection. These result owners remain detached from
+runtime. D-311 separately attaches that exact collection to the three empty result lanes of one
+replay-valid D-208 composition, produces a newly fingerprinted authoring state, and rejects any
+caller-authored result merge. D-312 then composes that result branch with an optional
+source-validated D-294 duration branch under their exact common D-208 root, without permitting an
+arbitrary state merge. D-313 advances D-200 to `25.0.0` and makes the nullable replay-valid D-312
+artifact its sole post-composition input, preserving the D-208-only route and passing the
+assembled state into unchanged D-194 without activating runtime content.
+D-314 advances the same seam without adding another snapshot: `ResolvedPatientState` gains an
+exact functional-impairment lane, D-312 `2.0.0` admits only source-validated D-292 impairment
+records alongside D-294 duration and D-311 results, and D-200 `26.0.0` carries the assembled state
+through D-194 while auditing every nested D-267 draw against the D-233 seed. D-301 `3.0.0`
+independently covers the new source-bearing lane. A real impairment profile, player-facing
+result, clinical interpretation, persistence, runtime activation, and scoring remain later gates.
+D-315 advances D-240 and D-298 to `2.0.0` and proves the neutral player-safe projection seam for
+those already-attached impairment records. One future reviewed definition may bind an exact
+condition/profile/source/time value to an exact action; the authoring value retains full
+target/profile/option/source identity while the safe value retains only level, source kind, and
+time scope. The existing D-213/D-214 target-scoped source class routes that minimized shape without
+a parallel result framework. No real definition, profile, action choice, wording, persistence,
+runtime activation, rule, or point is added.
+D-316 then adds one runtime-excluded metric BMI derivation definition and an authoring-only
+compiler over explicitly selected replay-valid D-310 height and weight records. It retains both
+inputs and emits an uninterpreted detached value without inventing source/time provenance or
+choosing a record. Patient-state/action attachment, ranges, body habitus, clinical tags, rules,
+points, persistence, and runtime remain separate gates.
+D-317 materializes that value into the common `ResolvedMeasurement` envelope with explicit
+derived provenance and the selected weight input's time scope. D-301 and D-310 reject/omit this
+new path by contract. D-318 advances D-311 to append replay-valid D-317 BMI only beside the exact
+D-310 input collection retained by D-316; it rejects crossed or duplicate derived records and
+lets the existing D-312 lane carry the result without recursively altering D-310. Action-result
+selection, interpretation, ranges, persistence, and runtime remain separate future gates. D-319
+proves with synthetic content that the unchanged D-213/D-214 direct-measurement route can bind
+that final record by ID; no parallel reveal model or production mapping is added. D-320 adds a
+separate exact-template clinical-result recipe and requires one-to-one ownership of every supplied
+D-310/D-317 artifact without generating values or attaching them to patient state. Its later
+attachment integration remains a separate gate. D-321 closes that gate by making D-320 the only
+D-311 input owner and cross-verifying its full template against D-208; real recipes and runtime
+activation remain separate. D-322 adds an authoring-only finite horizon that exposes exact
+per-template recipe coverage and deterministic resolution while retaining missing coverage as a
+diagnostic; it does not activate those recipes. D-323 advances D-320 so that exact D-322
+resolution is its only recipe input and the legacy raw-recipe request is rejected. D-324 adds a
+finite authoring-only resource-set audit that reports exact missing test, interval, profile,
+measurement, observation, BMI-derivation, or source owners per recipe member without compiling
+values or changing runtime. D-325 binds complete coverage to one exact D-233/D-208 selected
+patient, derives its numeric generation context and catalog source horizon, and still stops before
+result compilation or runtime activation. D-326 consumes only that exact frozen context and
+delegates direct results, collection assembly, BMI derivation/materialization, and exact-template
+binding to D-306-through-D-310/D-316/D-317/D-320. The replay-valid output remains authoring-only;
+D-311 attachment, real content, persistence, and runtime activation remain separate. D-327 closes
+the attachment-selection seam by deriving D-208 and D-320 only from replay-valid D-326 before
+delegating unchanged empty-lane attachment to D-311. D-328 then provides the canonical
+result-enabled D-312 entry: it derives D-208/D-311 from D-327 and preserves optional D-294/D-292
+branches under D-312's exact common-root checks. D-329 advances D-200 to `27.0.0`, requires this
+exact D-328 authority for every result-enabled branch, and preserves the null and
+duration/impairment-only D-312 compatibility paths. D-330 adds one authoring-only orchestration
+from a result-free D-200 request scaffold plus exact D-324 coverage through D-325/D-326/D-327/
+D-328 and the final compiled D-200 audit. The scaffold is not prematurely compiled, prebuilt
+result authority is rejected, and runtime remains separate. D-331 advances the authoring-only
+atomic slot fill so exact D-324 coverage derives D-330 and only its final audit can occupy the
+authorized coordinate; the direct result-free path remains available and runtime remains
+separate.
+D-202 adds an
+authoring-only
+bijective
+bridge from D-201 comorbidity candidates to D-196
 optional conditions and materializes required plus selected condition state without another draw
 or charge. D-203 adds a neutral genuine-D-196-or-D-202 condition-source contract and source-specific
 verification for D-197 while preserving native provenance and performing no new draw. D-204
@@ -411,6 +532,86 @@ middle-initial policy, and reusable brief chief-complaint banks resolve through 
 substreams into a replayable authoring artifact and a minimized safe presentation. No real
 profile/bank content, PatientInstance attachment, queue/save migration, runtime activation, or UI
 is included.
+D-287 adds the authoring-only exact D-194 adapter for that owner: patient identity and seed are
+derived from the verified catalog snapshot, while the caller supplies only reviewed D-273
+presentation content. The wrapper replays deterministically but still activates no real profile,
+queue slot, save, runtime, or UI.
+D-332 closes the content-only portion of that gap with one runtime-excluded catalog containing
+three reusable short complaint banks, 48 variants, and one Developer-approved cosmetic MDD
+profile over the existing fictional-name pools. It adds no PatientInstance/D-200 attachment,
+queue/save migration, runtime activation, UI, clinical inference, rule, point, or formulary
+behavior.
+D-333 then binds that exact content to one successful D-331 frozen waiting-slot proposal through
+the fill's final D-194 snapshot and D-287. The resulting fingerprinted minimized presentation
+remains a detached authoring artifact; SaveData, runtime queue projection, historical-attempt
+projection, launcher UI, and clinical behavior remain deferred.
+D-334 separately adds one runtime-excluded universal action-result assembly for the existing
+weight/BMI action. It pins exact canonical height, weight, and BMI definitions and proves the real
+content route through D-213/D-214 while retaining `not_interpreted` semantics. Real measurement
+profiles, body-habitus observation, ranges/interpretation, persistence, runtime generation, and UI
+remain deferred.
+D-335 then adds the detached authoring-only generated-measurement profile/compiler contract:
+typed context and priority select one reviewed profile, weighted support bands and values resolve
+through separate stable draws, and the common uninterpreted measurement plus complete replay audit
+is frozen. It adds no real distributions, template recipe, persistence, runtime, or UI.
+D-336 advances only the D-310 collection lane to retain D-308 authored and D-335 generated
+measurements as distinct direct member kinds under the same exact patient/source horizon. D-320
+recipe syntax and D-324/D-326 support for generated profiles remain deferred.
+D-337 closes that structural deferral: D-320 pins the complete generated-profile horizon,
+D-324 audits every exact profile resource, and D-326 invokes D-335 from D-325 seed/context before
+using the unchanged D-310/BMI path. Real measurement profiles, ranges/interpretation, body habitus,
+persistence, runtime generation, and UI remain deferred.
+D-338 returns to the reviewed native MDD scoring dependency: one diagnosis predicate pins the
+exact reviewed initial-antidepressant class, the adapter expands approved memberships to concrete
+starts without tag inference, and a separate `0/+35/-50` prerequisite balance scores
+not-triggered/fulfilled/omitted mania history. Compatibility CaseBlueprint scoring remains
+unchanged and generated runtime activation remains deferred.
+
+D-339 closes the reviewed MDD passive-death-wish/safety-assessment scoring seam. One native-only
+diagnosis supplement pins the exact canonical finding outcome; the adapter combines it with the
+primary-route patient scope without emitting the legacy tag; and a separate `+50/-80` direct
+information balance scores detailed assessment obtained versus omitted. No risk score,
+disposition inference, patient generation, compatibility migration, persistence, runtime, or UI
+is added.
+
+D-340/D-341 close the corresponding first detailed-safety result dependency. Four neutral
+identity shells complete the initial fact set, an exact 18-projection horizon preserves nine
+independent present/absent rows, and one universal assembly binds them to the shared
+`Suicide and self-harm assessment` action. Safety-planning ability, protective factors, acute
+modifiers, event details, risk formulation, disposition, generation rates, persistence, runtime,
+and UI remain separate or deferred.
+
+D-342 closes the separate safety-planning-ability result-definition seam. One exact structured
+reveal definition and universal recipe project only the current patient-reported
+`reports_able`/`reports_unable`/`uncertain` value for the shared History action. It adds no written
+plan state, planning intervention, risk or disposition inference, generation profile, points,
+persistence, runtime activation, or UI.
+
+D-343/D-344 close the first medication-history result-definition seams needed by the native MDD
+prerequisites. Medication reconciliation exposes only exact current regimen entries;
+allergy/adverse-reaction history exposes exact reaction records plus explicit overall and
+medication-assessment statuses. Both retain redacted universal bindings and add no source
+probabilities, clinical interpretation, new points, persistence, runtime activation, or UI.
+
+D-345 closes the objective-exposure-to-patient-report substance-history result seam. D-346/D-347
+keep medication-only trials and the four-lane full treatment history distinct. D-348 groups four
+exact current-medication effect lanes without merging benefit, tolerability, dose position, or
+change timing. These checkpoints add no generation profiles, clinical inference, points,
+persistence, runtime activation, or UI. D-349 adds the closed, fingerprinted, replayable minimized
+field-level projection for all twelve structured lanes while withholding internal diagnosis
+mappings, exposure misuse truth, reaction interpretation, trial adequacy, authoring summaries,
+generation traces, and source-alignment internals. Runtime attachment and presentation remain
+deferred.
+
+D-350 then derives that complete safe-view collection only from the independently source-validated
+D-299 report chain, preserving exact patient/definition/action/source/time cross-links and full
+replay while rejecting raw D-215 input. D-218/D-194/D-213/D-214 integration, persistence, runtime,
+and UI remain deferred.
+
+D-351 joins that collection only to a replay-valid D-213 artifact with the same exact patient and
+complete structured-envelope set, derives D-214 mechanically, and verifies each safe record
+projection against its frozen reveal. `PatientInstance`, D-194/D-218 orchestration, persistence,
+runtime activation, and UI remain deferred.
 
 D-240 adds the first missing reusable presentation owner found by auditing that real route:
 clinical duration and subjective burden compile through singular exact
@@ -522,17 +723,90 @@ state-fingerprinted authoring artifact. D-266 advances D-200 to `23.0.0`, retain
 verified D-264 artifact, and passes its resulting state through the unchanged D-194/D-240 path
 while keeping null as the D-208-only compatibility route. D-267 adds the standalone exact
 condition-functional-impairment profile/resolver contract, but deliberately checks in no real
-profile and does not attach it to resolved patient state. D-268 then records MDD's reviewed
+profile. D-289 now proves a separate exact D-208-to-D-267 attachment envelope without modifying
+`ResolvedPatientState`; D-290 derives a strict target/source-instance-redacted projection with
+exact reprojection but still adds no action/result/runtime attachment. Real profile content and
+result/runtime attachment remain absent. D-291 separately establishes a deterministic exact-
+patient source-instance horizon and kind/existence validator without credibility, report
+behavior, action, or runtime semantics. D-292 validates the detached D-289 impairment sources
+against that horizon and carries D-290 forward without adding a result/runtime attachment. D-293
+does the same for D-283's respondent and D-284 while remaining separate from catalog/runtime
+admission. D-296 then advances D-285/D-286 to `2.0.0` and makes D-293 their only administration
+input, preserving the existing context/D-220 checks while closing the respondent-source bypass.
+D-294 validates each newly attached D-264 condition-duration source against its
+base-patient D-291 horizon while retaining the changed composed-state reference separately; it
+adds no D-240 projection, duration semantics, scoring, persistence, or runtime attachment. D-295
+then advances D-200 to `24.0.0`, replaces its raw nullable D-264 input with the exact nullable
+D-294 wrapper, and preserves both the no-duration compatibility route and unchanged D-194/D-240
+consumption. This closes the source-validation bypass without adding real source definitions,
+duration probabilities or thresholds, persistence, runtime activation, or UI. D-268 then records
+MDD's reviewed
 generation-only higher-of severity policy and family-only player diagnosis boundary, plus the
 named psychotic-features specifier identity, while leaving every exact level boundary disabled.
 D-269 adds the replayable authoring-only higher-of combiner over one strict externally owned
 symptom-severity envelope and one native-verified D-267 artifact for the exact same episode. It
 returns only a detached qualitative descriptor and does not create the missing upstream
-symptom-severity derivation or map the result to a diagnosis severity ID. These steps still add no
-PatientTemplate, real impairment result path, symptom-severity owner, exclusion owner, or point
-rule. PatientTemplate
-activation, inaccurate-report content, reviewed impairment content and attachment, exclusion
-owners, points,
+symptom-severity derivation or map the result to a diagnosis severity ID. D-297 advances that
+combiner to `2.0.0`, requires one replay-valid same-patient D-291 horizon, validates the D-267
+source instance and kind, and rejects a raw D-267-only request without adding credibility or
+clinical meaning. D-298 separately adds a replayable same-patient D-240/D-291 proof for every
+projected duration or burden source reference; it derives exact action/record/frozen-value
+bindings and retains only D-240's existing redacted reveals without attaching them anywhere new.
+D-299 similarly adds a replayable D-215/D-291 proof for each selected structured source-report
+profile and retains its detached D-212 recipes without selecting behavior or attaching a result.
+D-300 makes the exact source-definition role ID stable across patient horizons while preserving
+strict patient-horizon validation and exact definition audit. D-301 adds a replayable
+D-208/D-291 composed-state source audit. D-304 advances it to exact source-kind validation for
+every current source-bearing patient-state lane. D-302 adds the corresponding replayable
+D-193/D-291 audit for each direct D-258 finding-report source selection while retaining its full
+slot/projection and optional-complexity trace. D-303 adds the first registry-validated,
+runtime-excluded neutral source-role catalog covering every closed D-291 kind without adding
+availability, reliability, clinical, or scoring semantics. D-305 derives and freezes one
+patient-bound D-291 horizon from that exact catalog through the authoring-only entry. D-306 then
+compiles an exact catalog numeric-test profile, patient context, seed, interval owner, and D-305
+laboratory source horizon into one frozen typed result with complete replay, while remaining
+detached from patient/action/runtime state. D-307 adds the parallel versioned authored-result
+profile and compiler for patient-owned tests, proven only with synthetic fixtures and likewise
+unattached. D-308 adds the exact authored measurement-value profile/compiler, likewise proven
+only with synthetic fixtures and kept `not_interpreted` and unattached. D-309 adds the analogous
+categorical-observation profile/compiler with empty interpretation and synthetic-only domain
+proof. D-310 adds one exact same-patient collection over all four outputs, with full upstream
+replay and no patient-state attachment. D-311 then provides one exact authoring-only
+D-208-plus-D-310 attachment with empty-lane enforcement and complete replay, but does not connect
+the changed state to PatientInstance, action results, persistence, or runtime. D-312 composes that
+branch with D-294 condition durations only when both retain the same empty-lane D-208 root and
+likewise remains unattached. D-313 then integrates only that exact assembly into D-200 `25.0.0`,
+eliminating direct D-294 input and preserving both duration and result lanes through D-194 while
+remaining authoring-only.
+D-314 then adds only the typed, source-validated impairment lane to that same assembly and advances
+D-200 to `26.0.0`; the frozen patient snapshot can now retain duration, impairment, measurement,
+observation, and structured-test records together without activating a player-facing result.
+D-315 then extends D-240/D-298 to the impairment lane and proves the already-generic D-213/D-214
+safe result route with synthetic content. It preserves D-290's target/profile/option/source-instance
+redaction and checks in no real projection definition. D-316 separately adds the exact
+runtime-excluded metric height/weight-to-BMI relationship and a detached replay-valid compiler,
+and D-317 materializes that output only into a detached derived-provenance measurement record.
+D-318 then attaches that record beside its exact direct D-310 inputs through D-311 `2.0.0` and
+the existing D-312 common-root lane without making it a D-310 member. D-319 proves the existing
+D-213/D-214 measurement binding through the final snapshot using synthetic content only. D-320
+then adds exact template/profile ownership over D-310/D-317 as a detached authoring artifact;
+and D-321 advances D-311 so that artifact is its only result-set input. These
+detached seams continue through D-322 recipe coverage, D-324 resource coverage, D-325 context,
+D-326 materialization, D-327 attachment, and D-328 post-composition orchestration. D-329 makes
+D-328 the only result-enabled D-200 `27.0.0` input while retaining result-free legacy paths.
+D-330 then owns the exact result-free-scaffold-plus-D-324 orchestration through those seams and the
+final compiled D-200 audit without activating runtime. D-331 connects that exact chain to the
+authoring-only D-233 atomic fill while keeping persistent queues and automatic refill disabled.
+D-332 separately supplies the first real launcher-profile and complaint-bank content while keeping
+it runtime-excluded and detached from that fill.
+D-333 separately proves the exact successful-fill-to-minimized-presentation relationship without
+changing the slot or activating persistence/runtime.
+These
+steps still add no PatientTemplate,
+real impairment profile or real result mapping,
+symptom-severity owner, exclusion owner, or point rule. PatientTemplate
+activation, inaccurate-report content, reviewed impairment content and downstream projection,
+exclusion owners, points,
 persistence, and UI remain later gates.
 
 D-265 separately adds the runtime-excluded race/ethnicity identity foundation: the current 2024
@@ -669,3 +943,153 @@ Gate: batch validators and seed/property tests scale; every released encounter h
 reviewed reasonable response route without requiring the evidence to converge on hidden truth;
 content review throughput is measured; challenge cases are clueable; offline/static performance
 budgets pass; migrations preserve saves and historical reviews.
+
+## Current database-first checkpoint note
+
+D-352 adds the exact static mania/hypomania-history result content needed by the reviewed
+antidepressant prerequisite: sixteen separately auditable current/past patient-report findings,
+one closed projection horizon, and one universal result recipe. It adds no episode/diagnosis
+inference, generation profile, points, persistence, runtime activation, or UI.
+
+D-353 adds the next static MDD exclusion-assessment dependency: six separately auditable current
+psychosis-history report findings, one closed projection horizon, and one universal result recipe.
+It keeps MSE, truth adjudication, diagnosis, generation, points, persistence, runtime activation,
+and UI outside the checkpoint.
+
+D-354 completes the existing static MDD initial-assessment foundation: Presenting problem and
+timeline now joins current episode duration with one broad self-reported functional-impact finding,
+while Depressive symptoms retains its 17-item result. Condition-attributed impairment, severity,
+generation, points, persistence, runtime activation, and UI remain outside the checkpoint.
+
+D-355 completes the static mixed-result mapping for Weight, BMI, and body habitus: the existing
+action now carries one neutral categorical physical observation beside height, weight, and derived
+BMI. Real value profiles, generation distributions, BMI/body-composition relationships,
+interpretation, rules, points, persistence, runtime activation, and UI remain outside the
+checkpoint.
+
+D-356 adds the detached deterministic generation contract needed for future categorical
+observations. It is synthetic-only and not yet connected to result collection, template recipes,
+real body-habitus profiles, complexity, persistence, runtime, or UI.
+
+D-357 connects that synthetic-capable compiler only to the detached result collection with an
+explicit generated member kind. Template recipes, patient-state attachment, real profiles,
+persistence, runtime, and UI remain deferred.
+
+D-358 adds the explicit generated-observation recipe/resource/materialization path. One template
+member owns the complete exact D-356 profile horizon; D-324 reports missing resources and D-326
+materializes only from frozen D-325 authority. The proof remains synthetic and adds no real
+body-habitus distribution, BMI relationship, complexity, points, persistence, runtime, or UI.
+
+D-359 proves that the existing attachment and frozen-patient chain carries the D-358 result without
+redrawing or relabeling it. No new runtime surface or clinical content is activated.
+
+D-360 proves the checked-in reviewed current-MDD episode-duration profile—not a copied synthetic
+fixture—through D-263, D-294, D-328, D-200, D-240, and deterministic D-330 replay. It changes no
+duration content, clinical relationship, points, persistence, runtime, or UI.
+
+D-361 proves the checked-in reviewed current-MDD symptom-dimension profile through D-197 and
+D-330 together with the exact D-256/D-259/D-260 depressive-history closure/result owners. It adds
+no new clinical content, points, persistence, runtime, or UI.
+
+D-362 proves the checked-in MDD symptom and current-episode duration profiles together in one
+deterministic D-330 patient under one D-233 seed. The full presenting-problem result remains gated
+until broad functional impact has a reviewed generation owner; no absent impact is inferred.
+
+D-363 adds the exact checked-in current/past mania/hypomania-history closure and result recipe to
+that patient. It proves sixteen assessment rows and one action binding without generating a bipolar
+episode, inferring diagnosis or safety, adding points, or activating persistence/runtime/UI.
+
+D-364 adds the exact checked-in six-item current psychosis-history closure and result recipe to the
+same patient. It keeps patient report separate from MSE and proposition truth and adds no
+diagnosis, treatment, points, persistence, runtime, or UI.
+
+D-365 adds the exact checked-in detailed suicide/self-harm assessment and proves that one MDD
+safety manifestation is reused while only the other eight rows close absent. It adds no risk,
+disposition, treatment, points, persistence, runtime, or UI.
+
+D-366 replaces synthetic rubric inputs with the checked-in MDD initial-treatment policy, focused
+route, and passive-death-wish safety requirement. The exact generated fact binds the exact action
+target point-free; balance, attempt scoring, persistence, runtime, and UI remain separate.
+
+D-367 adds the checked-in exact-class antidepressant-triggered mania-history prerequisite. The
+compiled encounter preserves five reviewed medication-start triggers and the distinct
+`info.history.mania` fulfillment action while leaving balance, player evaluation, persistence,
+runtime, and UI separate.
+
+D-368 connects those checked-in D-338/D-339 rules to their existing reviewed balance owners only
+at native generated-attempt evaluation. Fulfilled, omitted, and not-triggered frozen decisions
+produce replay-valid point traces without adding a new scorer, changing the patient, or widening
+runtime/UI.
+
+D-369 adds the checked-in depressive-syndrome direct requirement and its existing +50/−50 balance
+over the already attached 17-item result. Obtained and omitted decisions replay through D-235
+without symptom-count diagnosis inference or runtime/UI widening.
+
+D-370 attaches the existing +200 dominant primary-route balance. The generated score now shows the
+intended primary-route-versus-modifier hierarchy while preserving explicit zero-unmatched behavior
+and leaving comparative fit, diagnosis, disposition, persistence, runtime, and UI outside.
+
+D-371 carries that exact score into the existing standard-mode settlement and proves
+service-derived expenses, gross/net arithmetic, the nonnegative payout floor, positive bank and
+lifetime updates, and no persistent debit on a zero-payout stress case. It adds no new economy
+formula, price, persistence migration, runtime activation, or UI.
+
+D-372 audits the remaining native MDD information rules against the generated encounter and emits
+four exact nonblocking `uncovered_action` diagnostics instead of inventing missing
+presenting-problem, medication-reconciliation, reaction-history, or substance-history state.
+Diagnostics remain point-free and do not invalidate or reroll the patient.
+
+D-373 checks in fixed accurate patient-report profiles for medication reconciliation, reaction
+history, and substance-use history and carries them through the existing generated-patient result
+chain. They consume no optional-complexity budget and preserve empty versus explicitly unassessed
+state exactly. The first three D-372 action gaps therefore close structurally; presenting-problem
+functional impact remains unresolved. No inaccurate-report profile, source probability, point
+value, persistence/runtime activation, or UI is added.
+
+D-374 populates that generated MDD encounter's diagnosis horizon with one exact optional
+family-level MDD choice and carries a submitted MDD identity through native attempt replay without
+diagnosis points. Backend severity remains unavailable to the player and blank submission remains
+valid. The same proof removes an explicit `undefined` from fixed source-report selection so the
+D-373 waiting patient is losslessly JSON-safe. No diagnosis inference, runtime activation,
+persistence migration, or UI is added.
+
+D-375 purchases all three D-373 structured histories through native generated encounter events,
+derives their exact result bindings and service costs, and replays them beside the D-374 diagnosis
+selection. The 75-point expense is itemized while care points remain zero because no new balance
+is authored. No runtime, persistence migration, or UI is added.
+
+D-376 wraps that exact completed attempt in the existing timestamp-separated authoring
+persistence record and proves schema, JSON, attempt-integrity, and record-integrity round trips.
+It does not migrate SaveData or activate IndexedDB/runtime queues.
+
+D-377 binds the complete attempt to its exact waiting patient through the existing D-234
+completion proof and verifies a JSON/integrity round trip. Slot mutation, refill, SaveData, and UI
+remain deferred.
+
+D-378 applies that exact proof through the existing completed-encounter lifecycle transition. One
+location-owned coordinate is vacated and one bounded history entry retains the full patient and
+attempt with integrity/context replay. Canonical refill remains deferred until the new
+seed-dependent clinical payload can be rebuilt from the post-transition authority; no generic
+fixture is treated as that patient-generation step.
+
+D-379 adds an optional complete weighted-selection policy to the existing condition-attributed
+functional-impairment profile. The resolver preserves neutral uniform legacy profiles, but an
+approved weighted profile now freezes exact integer mass and normalized probabilities before one
+deterministic draw and rejects a request outside the policy's exact source kind, time scope, or
+care-setting allowlist. No real MDD profile, source distribution, severity mapping, persistence,
+or UI is activated.
+
+D-380 adds the first reviewed real broad functional-impact background profile and carries it
+through the generated-MDD Presenting problem and timeline result. The explicit NHANES-derived
+binary mass and Developer-opinion transportability bridge remain separate from
+condition-attributed impairment, severity, treatment, and points.
+
+D-381 adds deterministic, read-only adjunct packet inventory and hashing so evidence-horizon
+progress can be checked repeatedly without making the sibling repository a build dependency or
+silently importing preliminary clinical material.
+
+D-382 expands the normalized medication ingredient catalog from 55 to 125 through an official
+NLM RxNorm refresh, one-file-per-ingredient records, a checked-in intake manifest, and a generated
+static import/registry verifier. Only the existing 13 medication definitions remain playable; the
+other 112 identities are neutral authoring bins. Fixed multi-ingredient/formulation modeling is
+the next medication-identity dependency rather than a reason to misuse ingredient records.

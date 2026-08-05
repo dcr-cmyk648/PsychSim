@@ -1391,7 +1391,7 @@ const StructuredTestResultCommonShape = {
   id: StableIdSchema,
   testDefinitionId: StableIdSchema,
   testDefinitionContentVersion: ContentVersionSchema,
-  sourceInstanceId: StableIdSchema,
+  source: z.lazy(() => PatientStateScopedSourceSchema),
   timeScopeId: StableIdSchema,
   resolution: z.lazy(() => PatientStateResolutionTraceSchema),
 };
@@ -2207,8 +2207,12 @@ export const ContentRegistryEntrySchema = z
       'finding_projection_catalog',
       'finding_projection_horizon_catalog',
       'condition_finding_profile_catalog',
+      'background_finding_outcome_profile_catalog',
       'clinical_duration_profile_catalog',
       'measurement_catalog',
+      'patient_scene_source_definition_catalog',
+      'structured_source_report_profile_catalog',
+      'patient_launcher_presentation_catalog',
       'exposure_catalog',
       'diagnosis_classification_catalog',
       'medication_identity_catalog',
@@ -2307,6 +2311,28 @@ export const PatientDiagnosisRoleSchema = z.enum([
 ]);
 export type PatientDiagnosisRole = z.infer<typeof PatientDiagnosisRoleSchema>;
 
+/**
+ * Canonical finding outcomes are deliberately separate from the compatibility
+ * FindingOutcome schema. `subthreshold` is a resolved patient truth, while
+ * unknown/unassessed and encounter reveal state remain distinct concepts.
+ *
+ * This definition lives before diagnosis guidance so a native-only diagnosis
+ * rule supplement can pin one exact canonical finding outcome without widening
+ * the compatibility patient-context predicate.
+ */
+export const CanonicalFindingOutcomeSchema = z.enum([
+  'present',
+  'absent',
+  'subthreshold',
+  'normal',
+  'high',
+  'low',
+  'positive',
+  'negative',
+  'not_applicable',
+]);
+export type CanonicalFindingOutcome = z.infer<typeof CanonicalFindingOutcomeSchema>;
+
 export type PatientContextPredicate =
   | {
       type: 'diagnosisPresent';
@@ -2369,6 +2395,13 @@ export type DiagnosisSelectionPredicate =
   | { type: 'anyMedicationStarted' }
   | { type: 'treatmentStarted'; medicationId: string }
   | {
+      type: 'treatmentStartedInClass';
+      medicationClassId: string;
+      medicationClassContentVersion: string;
+      minimumCount: number;
+      maximumCount: number;
+    }
+  | {
       type: 'treatmentStartedWithTag';
       medicationTagId: string;
       minimumCount: number;
@@ -2391,6 +2424,15 @@ export const DiagnosisSelectionPredicateSchema: z.ZodType<DiagnosisSelectionPred
     z.discriminatedUnion('type', [
       z.object({ type: z.literal('anyMedicationStarted') }).strict(),
       z.object({ type: z.literal('treatmentStarted'), medicationId: StableIdSchema }).strict(),
+      z
+        .object({
+          type: z.literal('treatmentStartedInClass'),
+          medicationClassId: StableIdSchema,
+          medicationClassContentVersion: ContentVersionSchema,
+          minimumCount: z.number().int().nonnegative(),
+          maximumCount: z.number().int().nonnegative(),
+        })
+        .strict(),
       z
         .object({
           type: z.literal('treatmentStartedWithTag'),
@@ -2434,6 +2476,78 @@ export const DiagnosisSelectionPredicateSchema: z.ZodType<DiagnosisSelectionPred
     ]),
 );
 
+/**
+ * Compatibility-case treatment prerequisites use only predicates that the
+ * ordinary encounter scorer can resolve from the submitted treatment
+ * selection and runtime medication tags. Native diagnosis compilation may use
+ * the broader exact-class predicate above, but it must compile that class to
+ * concrete action targets before runtime evaluation.
+ */
+export type CaseTreatmentSelectionPredicate =
+  | { type: 'anyMedicationStarted' }
+  | { type: 'treatmentStarted'; medicationId: string }
+  | {
+      type: 'treatmentStartedWithTag';
+      medicationTagId: string;
+      minimumCount: number;
+      maximumCount: number;
+    }
+  | { type: 'treatmentStopped'; medicationId: string }
+  | { type: 'treatmentContinued'; medicationId: string }
+  | { type: 'interventionSelected'; interventionId: string }
+  | { type: 'dispositionSelected'; dispositionId: string }
+  | { type: 'any'; predicates: CaseTreatmentSelectionPredicate[] }
+  | { type: 'all'; predicates: CaseTreatmentSelectionPredicate[] }
+  | { type: 'not'; predicate: CaseTreatmentSelectionPredicate };
+
+export const CaseTreatmentSelectionPredicateSchema: z.ZodType<CaseTreatmentSelectionPredicate> =
+  z.lazy(() =>
+    z.discriminatedUnion('type', [
+      z.object({ type: z.literal('anyMedicationStarted') }).strict(),
+      z.object({ type: z.literal('treatmentStarted'), medicationId: StableIdSchema }).strict(),
+      z
+        .object({
+          type: z.literal('treatmentStartedWithTag'),
+          medicationTagId: StableIdSchema,
+          minimumCount: z.number().int().nonnegative(),
+          maximumCount: z.number().int().nonnegative(),
+        })
+        .strict(),
+      z.object({ type: z.literal('treatmentStopped'), medicationId: StableIdSchema }).strict(),
+      z.object({ type: z.literal('treatmentContinued'), medicationId: StableIdSchema }).strict(),
+      z
+        .object({
+          type: z.literal('interventionSelected'),
+          interventionId: StableIdSchema,
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('dispositionSelected'),
+          dispositionId: StableIdSchema,
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('any'),
+          predicates: z.array(CaseTreatmentSelectionPredicateSchema).min(1),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('all'),
+          predicates: z.array(CaseTreatmentSelectionPredicateSchema).min(1),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('not'),
+          predicate: CaseTreatmentSelectionPredicateSchema,
+        })
+        .strict(),
+    ]),
+  );
+
 export const DiagnosisRuleTargetSchema = z
   .object({
     kind: z.enum([
@@ -2460,6 +2574,23 @@ export const RecommendationStanceSchema = z.enum([
 export type RecommendationStance = z.infer<typeof RecommendationStanceSchema>;
 
 /**
+ * Native diagnosis compilation may refine the compatibility patient scope
+ * with one exact canonical patient fact. This is intentionally not a general
+ * expression language and is not evaluated by the compatibility scorer.
+ */
+export const DiagnosisNativePatientFactPredicateSchema = z
+  .object({
+    type: z.literal('canonicalFindingOutcome'),
+    findingDefinitionId: StableIdSchema,
+    findingDefinitionContentVersion: ContentVersionSchema,
+    outcome: CanonicalFindingOutcomeSchema,
+  })
+  .strict();
+export type DiagnosisNativePatientFactPredicate = z.infer<
+  typeof DiagnosisNativePatientFactPredicateSchema
+>;
+
+/**
  * Diagnosis-owned guidance is qualitative. A separately versioned balance
  * policy may later map these stances to points; source content never owns an
  * unexplained numeric payout.
@@ -2483,6 +2614,7 @@ export const DiagnosisRecommendationRuleSchema = z
     concernLevel: ClinicalConcernLevelSchema.default('moderate'),
     certaintyLevel: ClinicalCertaintyLevelSchema.default('tentative'),
     patientWhen: PatientContextPredicateSchema.nullable(),
+    nativePatientWhen: DiagnosisNativePatientFactPredicateSchema.optional(),
     selectionWhen: DiagnosisSelectionPredicateSchema.nullable(),
     rationale: z.string().min(1).max(1200),
     review: UnreviewedClinicalRuleSchema,
@@ -2498,6 +2630,21 @@ export const ComplexityDimensionSchema = z.enum([
   'information',
 ]);
 export type ComplexityDimension = z.infer<typeof ComplexityDimensionSchema>;
+
+/**
+ * Compatibility content keeps the original three-module/six-unit envelope.
+ * The v2 limits are authoring safety ceilings, not clinical tiers, encounter
+ * difficulty labels, point values, or targets that generation must exhaust.
+ */
+export const LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_COST = 3;
+export const LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_BUDGET = 6;
+export const LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES = 3;
+export const PATIENT_OPTIONAL_FEATURE_MAX_COST = 12;
+export const PATIENT_OPTIONAL_FEATURE_MAX_BUDGET = 96;
+export const PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES = 24;
+export const PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL =
+  PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES - 1;
+export const PATIENT_COMPLEXITY_MAX_BASELINE_UNITS = 64;
 
 export const ComplexityContributionSchema = z
   .object({
@@ -2806,26 +2953,77 @@ export const FindingOutcomeSchema = z.enum([
 ]);
 export type FindingOutcome = z.infer<typeof FindingOutcomeSchema>;
 
-export const ClinicalDurationUnitSchema = z.enum(['day', 'week', 'month', 'year']);
-export type ClinicalDurationUnit = z.infer<typeof ClinicalDurationUnitSchema>;
-
-/**
- * Canonical finding outcomes are deliberately separate from the compatibility
- * FindingOutcome schema. `subthreshold` is a resolved patient truth, while
- * unknown/unassessed and encounter reveal state remain distinct concepts.
- */
-export const CanonicalFindingOutcomeSchema = z.enum([
-  'present',
-  'absent',
-  'subthreshold',
+export const QualifiedFindingValueInterpretationSchema = z.enum([
+  'neutral',
   'normal',
-  'high',
-  'low',
-  'positive',
-  'negative',
+  'abnormal',
+  'indeterminate',
   'not_applicable',
 ]);
-export type CanonicalFindingOutcome = z.infer<typeof CanonicalFindingOutcomeSchema>;
+export type QualifiedFindingValueInterpretation = z.infer<
+  typeof QualifiedFindingValueInterpretationSchema
+>;
+
+/**
+ * Compatibility findings historically overloaded `outcome` to describe both
+ * binary status and the interpretation of a categorical value. This optional,
+ * versioned semantic envelope lets new content keep those concerns separate
+ * without invalidating already-persisted CaseInstances. A qualified value is
+ * present as a resolved answer; its interpretation independently controls the
+ * later EMR-like normal/abnormal/indeterminate presentation.
+ */
+export const FindingResultSemanticsSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      modelVersion: z.literal('finding-result-semantics.v1'),
+      kind: z.literal('status'),
+    })
+    .strict(),
+  z
+    .object({
+      modelVersion: z.literal('finding-result-semantics.v1'),
+      kind: z.literal('qualified_value'),
+      interpretation: QualifiedFindingValueInterpretationSchema,
+    })
+    .strict(),
+]);
+export type FindingResultSemantics = z.infer<typeof FindingResultSemanticsSchema>;
+
+/**
+ * A compatibility finding may describe one exact medication record from the
+ * containing patient snapshot. The reference is identity-only; medication
+ * labels, finding IDs, array position, and prose never establish ownership.
+ */
+export const CurrentRegimenEntryFindingRecordSubjectSchema = z
+  .object({
+    modelVersion: z.literal('finding-record-subject.v1'),
+    kind: z.literal('current_regimen_entry'),
+    regimenEntryId: StableIdSchema,
+  })
+  .strict();
+export type CurrentRegimenEntryFindingRecordSubject = z.infer<
+  typeof CurrentRegimenEntryFindingRecordSubjectSchema
+>;
+
+export const PriorMedicationTrialFindingRecordSubjectSchema = z
+  .object({
+    modelVersion: z.literal('finding-record-subject.v1'),
+    kind: z.literal('prior_trial'),
+    medicationTrialId: StableIdSchema,
+  })
+  .strict();
+export type PriorMedicationTrialFindingRecordSubject = z.infer<
+  typeof PriorMedicationTrialFindingRecordSubjectSchema
+>;
+
+export const FindingRecordSubjectSchema = z.discriminatedUnion('kind', [
+  CurrentRegimenEntryFindingRecordSubjectSchema,
+  PriorMedicationTrialFindingRecordSubjectSchema,
+]);
+export type FindingRecordSubject = z.infer<typeof FindingRecordSubjectSchema>;
+
+export const ClinicalDurationUnitSchema = z.enum(['day', 'week', 'month', 'year']);
+export type ClinicalDurationUnit = z.infer<typeof ClinicalDurationUnitSchema>;
 
 export const FindingSemanticKindSchema = z.enum([
   'symptom',
@@ -3806,8 +4004,12 @@ export const FindingSourceReportProjectionSelectionTraceSchema = z
         moduleFingerprint: z.lazy(() => OptionalFeatureBudgetFingerprintSchema),
         optionalFeatureBindingId: StableIdSchema,
         selectedModuleId: StableIdSchema,
-        cost: z.number().int().min(1).max(3),
-        selectionOrdinal: z.number().int().min(0).max(2),
+        cost: z.number().int().min(1).max(PATIENT_OPTIONAL_FEATURE_MAX_COST),
+        selectionOrdinal: z
+          .number()
+          .int()
+          .min(0)
+          .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL),
         stableDrawId: StableIdSchema,
       })
       .strict()
@@ -4003,6 +4205,298 @@ export const InstrumentItemResponseSchema = z
     }
   });
 export type InstrumentItemResponse = z.infer<typeof InstrumentItemResponseSchema>;
+
+/**
+ * A separate administration definition may state that an exact reviewed
+ * instrument version admits a raw total and its lawful numeric range. It does
+ * not contain a scoring formula, option weights, thresholds, interpretation,
+ * item wording, or a license decision.
+ */
+export const InstrumentAdministrationDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('instrument-administration.v1'),
+    instrumentDefinitionId: StableIdSchema,
+    instrumentContentVersion: ContentVersionSchema,
+    informationActionId: StableIdSchema,
+    respondentSourceKind: InstrumentRespondentSourceKindSchema,
+    timeScopeId: StableIdSchema,
+    rightsBoundaryId: StableIdSchema,
+    itemIds: z.array(StableIdSchema).min(1),
+    rawTotalRange: z
+      .object({
+        minimum: z.number().finite(),
+        maximum: z.number().finite(),
+      })
+      .strict()
+      .nullable(),
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((definition, context) => {
+    if (new Set(definition.itemIds).size !== definition.itemIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['itemIds'],
+        message: 'An instrument administration may include each item only once.',
+      });
+    }
+    if (
+      definition.rawTotalRange !== null &&
+      definition.rawTotalRange.minimum > definition.rawTotalRange.maximum
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rawTotalRange', 'minimum'],
+        message: 'An instrument raw-total minimum cannot exceed its maximum.',
+      });
+    }
+  });
+export type InstrumentAdministrationDefinition = z.infer<
+  typeof InstrumentAdministrationDefinitionSchema
+>;
+
+export const InstrumentAdministrationRawTotalSchema = z.discriminatedUnion('status', [
+  z
+    .object({
+      status: z.literal('not_calculated'),
+    })
+    .strict(),
+  z
+    .object({
+      status: z.literal('calculated'),
+      value: z.number().finite(),
+    })
+    .strict(),
+]);
+export type InstrumentAdministrationRawTotal = z.infer<
+  typeof InstrumentAdministrationRawTotalSchema
+>;
+
+/**
+ * One already-authored administration retains exact item-response references
+ * and an explicit completeness state. A partial administration cannot carry a
+ * raw total, so missing items are never silently treated as zero.
+ */
+export const InstrumentAdministrationRecordSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    instrumentDefinitionId: StableIdSchema,
+    instrumentContentVersion: ContentVersionSchema,
+    patientStateId: StableIdSchema,
+    informationActionId: StableIdSchema,
+    respondentSourceKind: InstrumentRespondentSourceKindSchema,
+    sourceInstanceId: StableIdSchema,
+    timeScopeId: StableIdSchema,
+    rightsBoundaryId: StableIdSchema,
+    completionStatus: z.enum(['complete', 'partial']),
+    includedItemResponseIds: z.array(StableIdSchema),
+    missingItemIds: z.array(StableIdSchema),
+    rawTotal: InstrumentAdministrationRawTotalSchema,
+  })
+  .strict()
+  .superRefine((record, context) => {
+    if (
+      new Set(record.includedItemResponseIds).size !== record.includedItemResponseIds.length ||
+      new Set(record.missingItemIds).size !== record.missingItemIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Instrument administration response and missing-item references must be unique.',
+      });
+    }
+    if (
+      (record.completionStatus === 'complete' && record.missingItemIds.length > 0) ||
+      (record.completionStatus === 'partial' && record.missingItemIds.length === 0)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['completionStatus'],
+        message: 'Instrument administration completeness must agree with its missing-item list.',
+      });
+    }
+    if (record.completionStatus === 'partial' && record.rawTotal.status !== 'not_calculated') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['rawTotal'],
+        message: 'A partial instrument administration cannot carry a raw total.',
+      });
+    }
+  });
+export type InstrumentAdministrationRecord = z.infer<typeof InstrumentAdministrationRecordSchema>;
+
+/**
+ * Standalone integrity boundary for one already-authored administration. It
+ * validates exact D-220 item-response ownership but does not calculate the raw
+ * total or attach anything to patient/runtime state.
+ */
+export const InstrumentAdministrationResolutionEnvelopeSchema = z
+  .object({
+    instrumentDefinition: InstrumentDefinitionSchema,
+    administrationDefinition: InstrumentAdministrationDefinitionSchema,
+    itemResponses: z.array(InstrumentItemResponseSchema),
+    administration: InstrumentAdministrationRecordSchema,
+  })
+  .strict()
+  .superRefine((envelope, context) => {
+    const { instrumentDefinition, administrationDefinition, itemResponses, administration } =
+      envelope;
+    if (
+      administrationDefinition.instrumentDefinitionId !== instrumentDefinition.id ||
+      administrationDefinition.instrumentContentVersion !== instrumentDefinition.contentVersion ||
+      administrationDefinition.rightsBoundaryId !== instrumentDefinition.rightsBoundaryId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['administrationDefinition'],
+        message:
+          'An administration definition must reference the exact instrument version and rights boundary.',
+      });
+    }
+    if (
+      administration.definitionId !== administrationDefinition.id ||
+      administration.definitionContentVersion !== administrationDefinition.contentVersion ||
+      administration.instrumentDefinitionId !== instrumentDefinition.id ||
+      administration.instrumentContentVersion !== instrumentDefinition.contentVersion ||
+      administration.informationActionId !== administrationDefinition.informationActionId ||
+      administration.respondentSourceKind !== administrationDefinition.respondentSourceKind ||
+      administration.timeScopeId !== administrationDefinition.timeScopeId ||
+      administration.rightsBoundaryId !== administrationDefinition.rightsBoundaryId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['administration'],
+        message:
+          'An instrument administration must retain its exact definition, instrument, action, respondent, time, and rights coordinates.',
+      });
+    }
+
+    const instrumentItems = new Map(
+      instrumentDefinition.items.map((item) => [item.id, item] as const),
+    );
+    for (const [itemIndex, itemId] of administrationDefinition.itemIds.entries()) {
+      const item = instrumentItems.get(itemId);
+      if (!item) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['administrationDefinition', 'itemIds', itemIndex],
+          message: 'An administration item must exist in the exact instrument definition.',
+        });
+        continue;
+      }
+      if (
+        item.informationActionId !== administrationDefinition.informationActionId ||
+        item.respondentSourceKind !== administrationDefinition.respondentSourceKind ||
+        item.timeScopeId !== administrationDefinition.timeScopeId
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['administrationDefinition', 'itemIds', itemIndex],
+          message:
+            'Every administration item must share the definition action, respondent, and time scope.',
+        });
+      }
+    }
+
+    const itemResponsesById = new Map(itemResponses.map((response) => [response.id, response]));
+    if (itemResponsesById.size !== itemResponses.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['itemResponses'],
+        message: 'An administration envelope may include each item response only once.',
+      });
+    }
+    const includedItemIds: string[] = [];
+    for (const [responseIndex, responseId] of administration.includedItemResponseIds.entries()) {
+      const response = itemResponsesById.get(responseId);
+      if (!response) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['administration', 'includedItemResponseIds', responseIndex],
+          message: 'An included item-response ID must exist in this administration envelope.',
+        });
+        continue;
+      }
+      const item = instrumentItems.get(response.itemId);
+      includedItemIds.push(response.itemId);
+      if (
+        !administrationDefinition.itemIds.includes(response.itemId) ||
+        response.instrumentDefinitionId !== instrumentDefinition.id ||
+        response.instrumentContentVersion !== instrumentDefinition.contentVersion ||
+        response.rightsBoundaryId !== instrumentDefinition.rightsBoundaryId ||
+        response.interpretationIds.length > 0 ||
+        response.respondentSourceKind !== administrationDefinition.respondentSourceKind ||
+        response.timeScopeId !== administrationDefinition.timeScopeId ||
+        !item ||
+        response.responseScaleId !== item.responseScaleId ||
+        !item.responseOptionIds.includes(response.responseOptionId)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['itemResponses', responseIndex],
+          message:
+            'An administration item response must retain the exact neutral instrument, item, scale, option, respondent, time, and rights owner.',
+        });
+      }
+    }
+    if (new Set(includedItemIds).size !== includedItemIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['administration', 'includedItemResponseIds'],
+        message: 'One administration may include at most one response per instrument item.',
+      });
+    }
+    if (
+      [...itemResponsesById.keys()].sort().join('\u0000') !==
+      [...administration.includedItemResponseIds].sort().join('\u0000')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['itemResponses'],
+        message:
+          'The envelope item responses must exactly equal the administration response references.',
+      });
+    }
+
+    const expectedItemIds = [...administrationDefinition.itemIds].sort();
+    const partitionedItemIds = [...includedItemIds, ...administration.missingItemIds].sort();
+    if (
+      expectedItemIds.join('\u0000') !== partitionedItemIds.join('\u0000') ||
+      new Set(partitionedItemIds).size !== partitionedItemIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['administration'],
+        message:
+          'Included responses and missing items must exactly partition the administration item set.',
+      });
+    }
+
+    if (administration.rawTotal.status === 'calculated') {
+      const range = administrationDefinition.rawTotalRange;
+      if (
+        range === null ||
+        administration.rawTotal.value < range.minimum ||
+        administration.rawTotal.value > range.maximum
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['administration', 'rawTotal'],
+          message:
+            'A calculated raw total requires an authoring-owned range and must fall within it.',
+        });
+      }
+    }
+  });
+export type InstrumentAdministrationResolutionEnvelope = z.infer<
+  typeof InstrumentAdministrationResolutionEnvelopeSchema
+>;
 
 export const FindingProjectionResolutionEnvelopeSchema = z
   .object({
@@ -4832,6 +5326,115 @@ export const MeasurementDefinitionSchema = z
   });
 export type MeasurementDefinition = z.infer<typeof MeasurementDefinitionSchema>;
 
+export const MeasurementDefinitionVersionedReferenceSchema = z
+  .object({
+    id: StableIdSchema,
+    contentVersion: ContentVersionSchema,
+  })
+  .strict();
+export type MeasurementDefinitionVersionedReference = z.infer<
+  typeof MeasurementDefinitionVersionedReferenceSchema
+>;
+
+/**
+ * One exact mathematical relationship between metric height, weight, and BMI.
+ * It owns no patient value, source, reference range, body-habitus meaning, or
+ * clinical interpretation.
+ */
+export const BodyMassIndexDerivationDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    kind: z.literal('body_mass_index_from_metric_height_weight'),
+    heightMeasurementDefinitionRef: MeasurementDefinitionVersionedReferenceSchema,
+    weightMeasurementDefinitionRef: MeasurementDefinitionVersionedReferenceSchema,
+    outputMeasurementDefinitionRef: MeasurementDefinitionVersionedReferenceSchema,
+    lifecycle: ContentLifecycleSchema,
+    medicalReviewStatus: MedicalReviewStatusSchema,
+  })
+  .strict()
+  .superRefine((definition, context) => {
+    const definitionIds = [
+      definition.heightMeasurementDefinitionRef.id,
+      definition.weightMeasurementDefinitionRef.id,
+      definition.outputMeasurementDefinitionRef.id,
+    ];
+    if (new Set(definitionIds).size !== definitionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A BMI derivation requires distinct height, weight, and output definitions.',
+      });
+    }
+  });
+export type BodyMassIndexDerivationDefinition = z.infer<
+  typeof BodyMassIndexDerivationDefinitionSchema
+>;
+
+export const DerivedMeasurementSourceSchema = z
+  .object({
+    kind: z.literal('derived_measurement'),
+    derivationDefinitionId: StableIdSchema,
+    derivationDefinitionContentVersion: ContentVersionSchema,
+    derivationArtifactId: StableIdSchema,
+    derivationPayloadFingerprint: z
+      .string()
+      .regex(/^fingerprint\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/),
+    inputMeasurementIds: z.array(StableIdSchema).min(1).max(16),
+  })
+  .strict()
+  .superRefine((source, context) => {
+    if (new Set(source.inputMeasurementIds).size !== source.inputMeasurementIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['inputMeasurementIds'],
+        message: 'Derived-measurement input record IDs must be unique.',
+      });
+    }
+  });
+export type DerivedMeasurementSource = z.infer<typeof DerivedMeasurementSourceSchema>;
+
+export const ResolvedMeasurementSourceSchema = z.union([
+  z
+    .object({
+      kind: PatientSceneEvidenceSourceKindSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  DerivedMeasurementSourceSchema,
+]);
+export type ResolvedMeasurementSource = z.infer<typeof ResolvedMeasurementSourceSchema>;
+
+export const DerivedMeasurementResolutionTraceSchema = z
+  .object({
+    origin: z.literal('deterministic_derivation'),
+    derivationDefinitionId: StableIdSchema,
+    derivationDefinitionContentVersion: ContentVersionSchema,
+    resolverVersion: ContentVersionSchema,
+    inputMeasurementIds: z.array(StableIdSchema).min(1).max(16),
+  })
+  .strict()
+  .superRefine((resolution, context) => {
+    if (new Set(resolution.inputMeasurementIds).size !== resolution.inputMeasurementIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['inputMeasurementIds'],
+        message: 'Derived-measurement resolution input record IDs must be unique.',
+      });
+    }
+  });
+export type DerivedMeasurementResolutionTrace = z.infer<
+  typeof DerivedMeasurementResolutionTraceSchema
+>;
+
+export const ResolvedMeasurementResolutionTraceSchema = z.union([
+  PatientStateResolutionTraceSchema,
+  DerivedMeasurementResolutionTraceSchema,
+]);
+export type ResolvedMeasurementResolutionTrace = z.infer<
+  typeof ResolvedMeasurementResolutionTraceSchema
+>;
+
 export const CategoricalObservationDefinitionSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -4904,9 +5507,9 @@ export const ResolvedMeasurementSchema = z
       .strict(),
     contextValues: z.array(MeasurementContextValueSchema),
     timeScopeId: StableIdSchema,
-    sourceInstanceId: StableIdSchema,
+    source: ResolvedMeasurementSourceSchema,
     interpretation: MeasurementInterpretationSchema,
-    resolution: PatientStateResolutionTraceSchema,
+    resolution: ResolvedMeasurementResolutionTraceSchema,
   })
   .strict()
   .superRefine((measurement, context) => {
@@ -4917,6 +5520,36 @@ export const ResolvedMeasurementSchema = z
         path: ['contextValues'],
         message: 'A resolved measurement may specify each context dimension only once.',
       });
+    }
+    if (
+      (measurement.source.kind === 'derived_measurement') !==
+      (measurement.resolution.origin === 'deterministic_derivation')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolution'],
+        message:
+          'A resolved measurement must use derived source and resolution provenance together.',
+      });
+    } else if (
+      measurement.source.kind === 'derived_measurement' &&
+      measurement.resolution.origin === 'deterministic_derivation'
+    ) {
+      if (
+        measurement.source.derivationDefinitionId !==
+          measurement.resolution.derivationDefinitionId ||
+        measurement.source.derivationDefinitionContentVersion !==
+          measurement.resolution.derivationDefinitionContentVersion ||
+        JSON.stringify(measurement.source.inputMeasurementIds) !==
+          JSON.stringify(measurement.resolution.inputMeasurementIds)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['source'],
+          message:
+            'Derived measurement source and resolution must retain the same definition and ordered input records.',
+        });
+      }
     }
   });
 export type ResolvedMeasurement = z.infer<typeof ResolvedMeasurementSchema>;
@@ -4930,7 +5563,7 @@ export const ResolvedCategoricalObservationSchema = z
     valueId: StableIdSchema,
     displayValue: z.string().trim().min(1).max(180),
     timeScopeId: StableIdSchema,
-    sourceInstanceId: StableIdSchema,
+    source: z.lazy(() => PatientStateScopedSourceSchema),
     interpretationIds: z.array(StableIdSchema),
     resolution: PatientStateResolutionTraceSchema,
   })
@@ -4952,12 +5585,14 @@ export const MeasurementCatalogSchema = z
     contentVersion: ContentVersionSchema,
     id: StableIdSchema,
     measurements: z.array(MeasurementDefinitionSchema).min(1),
+    derivations: z.array(BodyMassIndexDerivationDefinitionSchema).default([]),
     categoricalObservations: z.array(CategoricalObservationDefinitionSchema),
   })
   .strict()
   .superRefine((catalog, context) => {
     const allIds = [
       ...catalog.measurements.map((definition) => definition.id),
+      ...catalog.derivations.map((definition) => definition.id),
       ...catalog.categoricalObservations.map((definition) => definition.id),
     ];
     if (new Set(allIds).size !== allIds.length) {
@@ -4965,6 +5600,45 @@ export const MeasurementCatalogSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Measurement and observation definition IDs must be unique across the catalog.',
       });
+    }
+    const measurementsById = new Map(
+      catalog.measurements.map((definition) => [definition.id, definition]),
+    );
+    for (const [index, derivation] of catalog.derivations.entries()) {
+      const height = measurementsById.get(derivation.heightMeasurementDefinitionRef.id);
+      const weight = measurementsById.get(derivation.weightMeasurementDefinitionRef.id);
+      const output = measurementsById.get(derivation.outputMeasurementDefinitionRef.id);
+      if (
+        height === undefined ||
+        height.contentVersion !== derivation.heightMeasurementDefinitionRef.contentVersion ||
+        weight === undefined ||
+        weight.contentVersion !== derivation.weightMeasurementDefinitionRef.contentVersion ||
+        output === undefined ||
+        output.contentVersion !== derivation.outputMeasurementDefinitionRef.contentVersion
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['derivations', index],
+          message:
+            'A BMI derivation must reference exact measurement definitions in the same catalog.',
+        });
+        continue;
+      }
+      if (
+        height.unit.ucumCode !== 'cm' ||
+        weight.unit.ucumCode !== 'kg' ||
+        output.unit.ucumCode !== 'kg/m2' ||
+        height.domain !== 'anthropometric' ||
+        weight.domain !== 'anthropometric' ||
+        output.domain !== 'anthropometric'
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['derivations', index],
+          message:
+            'The current BMI derivation supports anthropometric cm height, kg weight, and kg/m2 output only.',
+        });
+      }
     }
   });
 export type MeasurementCatalog = z.infer<typeof MeasurementCatalogSchema>;
@@ -5132,6 +5806,46 @@ export type ConditionFunctionalImpairmentOption = z.infer<
   typeof ConditionFunctionalImpairmentOptionSchema
 >;
 
+export const ConditionFunctionalImpairmentWeightedSelectionPolicySchema = z
+  .object({
+    modelVersion: z.literal('condition-functional-impairment-weighted-selection.v1'),
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+    timeScopeId: StableIdSchema,
+    careSettings: z.array(EncounterCareSettingSchema).min(1).max(4),
+    optionWeights: z
+      .array(
+        z
+          .object({
+            optionId: StableIdSchema,
+            gameGenerationWeight: z.number().int().positive().max(10_000),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(4),
+  })
+  .strict()
+  .superRefine((policy, context) => {
+    const optionIds = policy.optionWeights.map((entry) => entry.optionId);
+    if (new Set(policy.careSettings).size !== policy.careSettings.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['careSettings'],
+        message: 'Condition-functional-impairment weighted-selection care settings must be unique.',
+      });
+    }
+    if (new Set(optionIds).size !== optionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['optionWeights'],
+        message: 'Condition-functional-impairment weighted-selection option IDs must be unique.',
+      });
+    }
+  });
+export type ConditionFunctionalImpairmentWeightedSelectionPolicy = z.infer<
+  typeof ConditionFunctionalImpairmentWeightedSelectionPolicySchema
+>;
+
 export const ConditionFunctionalImpairmentProfileSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -5139,6 +5853,7 @@ export const ConditionFunctionalImpairmentProfileSchema = z
     id: StableIdSchema,
     relatedDiagnosisId: StableIdSchema,
     options: z.array(ConditionFunctionalImpairmentOptionSchema).min(1).max(4),
+    selectionPolicy: ConditionFunctionalImpairmentWeightedSelectionPolicySchema.optional(),
     developerOpinionIds: z.array(StableIdSchema).optional(),
     review: UnreviewedClinicalRuleSchema,
   })
@@ -5160,6 +5875,21 @@ export const ConditionFunctionalImpairmentProfileSchema = z
         message:
           'A condition-functional-impairment profile may offer each qualitative level at most once.',
       });
+    }
+    if (profile.selectionPolicy !== undefined) {
+      const weightedOptionIds = profile.selectionPolicy.optionWeights.map(
+        (entry) => entry.optionId,
+      );
+      const expectedOptionIds = [...optionIds].sort();
+      const actualOptionIds = [...weightedOptionIds].sort();
+      if (JSON.stringify(expectedOptionIds) !== JSON.stringify(actualOptionIds)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['selectionPolicy', 'optionWeights'],
+          message:
+            'A weighted condition-functional-impairment policy must assign one explicit positive weight to every and only offered option.',
+        });
+      }
     }
     if (
       profile.developerOpinionIds !== undefined &&
@@ -5184,6 +5914,9 @@ export const FindingBlueprintSchema = z
     labelVariants: z.array(z.string().min(1).max(80)).min(1).max(12),
     outcome: z.union([FindingOutcomeSchema, z.literal('variable')]),
     outcomeDisplay: z.enum(['status', 'value_only']).optional(),
+    resultSemantics: FindingResultSemanticsSchema.optional(),
+    subject: FindingRecordSubjectSchema.optional(),
+    medicationChangeTemporalRelationshipId: StableIdSchema.optional(),
     valueTextVariants: z.array(z.string().min(1).max(120)).max(12).optional(),
     durationProfile: ClinicalDurationProfileSchema.optional(),
   })
@@ -5205,6 +5938,37 @@ export const FindingBlueprintSchema = z
         path: ['valueTextVariants'],
         message: 'A value-only finding requires visible value text.',
       });
+    }
+    if (finding.resultSemantics?.kind === 'status' && finding.outcomeDisplay === 'value_only') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resultSemantics'],
+        message: 'A status-semantic finding cannot suppress its status as a value-only result.',
+      });
+    }
+    if (finding.resultSemantics?.kind === 'qualified_value') {
+      if (finding.outcome !== 'present') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['outcome'],
+          message:
+            'A qualified-value finding uses present to mean that its resolved value is available; interpretation is stored separately.',
+        });
+      }
+      if (finding.outcomeDisplay !== 'value_only') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['outcomeDisplay'],
+          message: 'A qualified-value finding must use value-only presentation.',
+        });
+      }
+      if (!finding.valueTextVariants?.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['valueTextVariants'],
+          message: 'A qualified-value finding requires visible value text.',
+        });
+      }
     }
     if (!finding.durationProfile) return;
     if (finding.outcome !== 'present') {
@@ -5335,6 +6099,9 @@ export const ResolvedFindingSchema = z
     label: z.string().min(1).max(120),
     outcome: FindingOutcomeSchema,
     outcomeDisplay: z.enum(['status', 'value_only']).optional(),
+    resultSemantics: FindingResultSemanticsSchema.optional(),
+    subject: FindingRecordSubjectSchema.optional(),
+    medicationChangeTemporalRelationshipId: StableIdSchema.optional(),
     valueText: z.string().min(1).max(240).optional(),
     numericMeasurement: ResolvedNumericMeasurementSchema.optional(),
     durationMeasurement: z
@@ -5374,6 +6141,38 @@ export const ResolvedFindingSchema = z
         path: ['valueText'],
         message: 'A value-only resolved finding requires visible value text.',
       });
+    }
+    if (finding.resultSemantics?.kind === 'status' && finding.outcomeDisplay === 'value_only') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resultSemantics'],
+        message:
+          'A resolved status-semantic finding cannot suppress its status as a value-only result.',
+      });
+    }
+    if (finding.resultSemantics?.kind === 'qualified_value') {
+      if (finding.outcome !== 'present') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['outcome'],
+          message:
+            'A resolved qualified-value finding uses present to mean that its value is available; interpretation is stored separately.',
+        });
+      }
+      if (finding.outcomeDisplay !== 'value_only') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['outcomeDisplay'],
+          message: 'A resolved qualified-value finding must use value-only presentation.',
+        });
+      }
+      if (!finding.valueText) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['valueText'],
+          message: 'A resolved qualified-value finding requires visible value text.',
+        });
+      }
     }
   });
 export type ResolvedFinding = z.infer<typeof ResolvedFindingSchema>;
@@ -5784,7 +6583,7 @@ export const TreatmentWorkupRequirementSchema = z
     ...RuleCombinationSourceShape,
     sourceRuleIds: z.array(StableIdSchema).min(1),
     objectiveId: StableIdSchema,
-    appliesWhen: DiagnosisSelectionPredicateSchema,
+    appliesWhen: CaseTreatmentSelectionPredicateSchema,
     pointsIfMet: z.number().int(),
     pointsIfMissing: z.number().int().max(0),
     safetyCritical: z.boolean(),
@@ -6210,7 +7009,7 @@ export const PatientOptionalFeatureModuleSchema = z
     id: StableIdSchema,
     moduleKind: PatientOptionalFeatureModuleKindSchema,
     moduleId: StableIdSchema,
-    cost: z.number().int().min(1).max(3),
+    cost: z.number().int().min(1).max(PATIENT_OPTIONAL_FEATURE_MAX_COST),
     impact: PatientOptionalFeatureImpactSchema,
     complexityContributions: z.array(ComplexityContributionSchema).min(1).max(5),
   })
@@ -6227,16 +7026,52 @@ const ComplexityRangeSchema = z
     message: 'Complexity range minimum must not exceed its maximum.',
   });
 
-export const PatientComplexityProfileSchema = z
+const PatientComplexityProfileV1ObjectSchema = z
   .object({
     modelVersion: z.literal('additional-feature-budget.v1'),
     measurementStatus: z.enum(['legacy_unmeasured', 'budget_only', 'authored_envelope']),
-    additionalFeatureBudget: z.number().int().min(0).max(6),
-    maximumSelectedModules: z.number().int().min(0).max(3),
-    selectedModules: z.array(PatientOptionalFeatureModuleSchema).max(3),
+    additionalFeatureBudget: z
+      .number()
+      .int()
+      .min(0)
+      .max(LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
+    maximumSelectedModules: z
+      .number()
+      .int()
+      .min(0)
+      .max(LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedModules: z
+      .array(PatientOptionalFeatureModuleSchema)
+      .max(LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     targetEnvelope: z.record(ComplexityDimensionSchema, ComplexityRangeSchema).nullable(),
   })
-  .strict()
+  .strict();
+export type PatientComplexityProfileV1 = z.infer<typeof PatientComplexityProfileV1ObjectSchema>;
+
+const PatientComplexityProfileV2ObjectSchema = z
+  .object({
+    modelVersion: z.literal('baseline-plus-additional-budget.v2'),
+    measurementStatus: z.enum(['budget_only', 'authored_envelope']),
+    baselineComplexityUnits: z.number().int().min(0).max(PATIENT_COMPLEXITY_MAX_BASELINE_UNITS),
+    additionalFeatureBudget: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
+    maximumSelectedModules: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedModules: z
+      .array(PatientOptionalFeatureModuleSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    targetEnvelope: z.record(ComplexityDimensionSchema, ComplexityRangeSchema).nullable(),
+  })
+  .strict();
+export type PatientComplexityProfileV2 = z.infer<typeof PatientComplexityProfileV2ObjectSchema>;
+
+export const PatientComplexityProfileSchema = z
+  .discriminatedUnion('modelVersion', [
+    PatientComplexityProfileV1ObjectSchema,
+    PatientComplexityProfileV2ObjectSchema,
+  ])
   .superRefine((profile, context) => {
     const selectedIds = profile.selectedModules.map((module) => module.id);
     if (new Set(selectedIds).size !== selectedIds.length) {
@@ -6255,6 +7090,16 @@ export const PatientComplexityProfileSchema = z
       });
     }
     for (const [index, module] of profile.selectedModules.entries()) {
+      if (
+        profile.modelVersion === 'additional-feature-budget.v1' &&
+        module.cost > LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_COST
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['selectedModules', index, 'cost'],
+          message: 'Legacy v1 optional features retain the original maximum cost of three.',
+        });
+      }
       const dimensions = module.complexityContributions.map(
         (contribution) => contribution.dimension,
       );
@@ -6282,6 +7127,7 @@ export const PatientComplexityProfileSchema = z
       });
     }
     if (
+      profile.modelVersion === 'additional-feature-budget.v1' &&
       profile.measurementStatus === 'legacy_unmeasured' &&
       (profile.additionalFeatureBudget !== 0 ||
         profile.maximumSelectedModules !== 0 ||
@@ -6552,6 +7398,126 @@ export const MedicationTolerabilityFindingV2Schema = z
     }
   });
 export type MedicationTolerabilityFindingV2 = z.infer<typeof MedicationTolerabilityFindingV2Schema>;
+
+export const MedicationTolerabilityFindingV2RecordsSchema = z
+  .array(MedicationTolerabilityFindingV2Schema)
+  .max(128)
+  .superRefine((records, context) => {
+    const ids = records.map((record) => record.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Medication-tolerability record IDs must be unique.',
+      });
+    }
+  });
+
+/**
+ * One sparse record means that one exact current medication was actually
+ * assessed for perceived benefit from one patient-report source. No record
+ * does not itself mean either "unassessed" or "no benefit"; that distinction
+ * belongs to the source-view/reveal layer. `unknown` means the assessment
+ * occurred but the patient could not characterize benefit, while `none` is
+ * an explicit report of no benefit.
+ *
+ * This is not a formal trial-response, adequacy, adherence, tolerability, or
+ * causal-attribution record.
+ */
+export const CurrentMedicationReportedBenefitSchema = z
+  .object({
+    recordVersion: z.literal(1),
+    id: StableIdSchema,
+    subject: CurrentRegimenEntryFindingRecordSubjectSchema,
+    reportedBenefit: z.enum(['none', 'partial', 'substantial', 'unknown']),
+    source: z
+      .object({
+        kind: z.literal('patient_report'),
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+    timeScopeId: StableIdSchema,
+  })
+  .strict();
+export type CurrentMedicationReportedBenefit = z.infer<
+  typeof CurrentMedicationReportedBenefitSchema
+>;
+
+export const CurrentMedicationReportedBenefitRecordsSchema = z
+  .array(CurrentMedicationReportedBenefitSchema)
+  .max(64)
+  .superRefine((records, context) => {
+    const ids = records.map((record) => record.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Current-medication reported-benefit record IDs must be unique.',
+      });
+    }
+    const coordinates = records.map((record) =>
+      [record.subject.regimenEntryId, record.source.sourceInstanceId, record.timeScopeId].join(
+        '\u0000',
+      ),
+    );
+    if (new Set(coordinates).size !== coordinates.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'One patient-report source may contribute only one current-benefit record per regimen entry and time scope.',
+      });
+    }
+  });
+
+/**
+ * One sparse record states only where one exact current regimen entry sits
+ * relative to the reviewed maximum used by its authoring context. It does not
+ * own that medication-specific maximum, a dose amount, a schedule, trial
+ * adequacy, treatment correctness, or permission to increase.
+ *
+ * Record existence means the position was assessed. `unknown` means it was
+ * assessed but could not be established; an absent record has no inferred
+ * meaning.
+ */
+export const CurrentMedicationDosePositionSchema = z
+  .object({
+    recordVersion: z.literal(1),
+    id: StableIdSchema,
+    subject: CurrentRegimenEntryFindingRecordSubjectSchema,
+    position: z.enum(['below_maximum', 'at_maximum', 'unknown']),
+    source: z
+      .object({
+        kind: z.enum(['patient_report', 'collateral_report', 'record_review']),
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+    timeScopeId: StableIdSchema,
+  })
+  .strict();
+export type CurrentMedicationDosePosition = z.infer<typeof CurrentMedicationDosePositionSchema>;
+
+export const CurrentMedicationDosePositionRecordsSchema = z
+  .array(CurrentMedicationDosePositionSchema)
+  .max(64)
+  .superRefine((records, context) => {
+    const ids = records.map((record) => record.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Current-medication dose-position record IDs must be unique.',
+      });
+    }
+    const coordinates = records.map((record) =>
+      [record.subject.regimenEntryId, record.source.sourceInstanceId, record.timeScopeId].join(
+        '\u0000',
+      ),
+    );
+    if (new Set(coordinates).size !== coordinates.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'One source may contribute only one dose-position record per regimen entry and time scope.',
+      });
+    }
+  });
 
 /**
  * Historical patient state is deliberately richer than a new recommendation.
@@ -6830,6 +7796,71 @@ export const PatientStateScopedSourceSchema = z
   .strict();
 export type PatientStateScopedSource = z.infer<typeof PatientStateScopedSourceSchema>;
 
+/**
+ * One point-free temporal statement keeps a concrete medication change
+ * separate from benefit, tolerability, and causal attribution. The change
+ * names one exact current regimen entry. Its target remains a separately
+ * owned canonical finding/observation in native patient state or one exact
+ * compatibility result finding during migration.
+ */
+export const MedicationChangeTemporalTargetSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('canonical_finding'),
+      canonicalFindingId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('categorical_observation'),
+      categoricalObservationId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('compatibility_finding'),
+      informationActionId: StableIdSchema,
+      findingId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type MedicationChangeTemporalTarget = z.infer<typeof MedicationChangeTemporalTargetSchema>;
+
+export const MedicationChangeTemporalRelationshipSchema = z
+  .object({
+    recordVersion: z.literal(1),
+    id: StableIdSchema,
+    subject: CurrentRegimenEntryFindingRecordSubjectSchema,
+    changeKind: z.enum(['started', 'increased', 'reduced', 'stopped']),
+    changeTimeScopeId: StableIdSchema,
+    target: MedicationChangeTemporalTargetSchema,
+    targetTimeScopeId: StableIdSchema,
+    relationship: z.enum(['change_before_target', 'change_after_target', 'uncertain']),
+    source: z
+      .object({
+        kind: z.enum(['patient_report', 'collateral_report', 'record_review']),
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+  })
+  .strict();
+export type MedicationChangeTemporalRelationship = z.infer<
+  typeof MedicationChangeTemporalRelationshipSchema
+>;
+
+export const MedicationChangeTemporalRelationshipRecordsSchema = z
+  .array(MedicationChangeTemporalRelationshipSchema)
+  .max(128)
+  .superRefine((records, context) => {
+    const ids = records.map((record) => record.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Medication-change temporal-relationship record IDs must be unique.',
+      });
+    }
+  });
+
 export const ResolvedClinicalDurationSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -7070,6 +8101,7 @@ export const ConditionFunctionalImpairmentResolutionRequestSchema = z
     profile: ConditionFunctionalImpairmentProfileSchema,
     source: PatientStateScopedSourceSchema,
     timeScopeId: StableIdSchema,
+    careSetting: EncounterCareSettingSchema.optional(),
     seed: z.string().min(1).max(512),
   })
   .strict()
@@ -7090,6 +8122,21 @@ export const ConditionFunctionalImpairmentResolutionRequestSchema = z
           'A condition-functional-impairment request must use its target condition time scope.',
       });
     }
+    const policy = request.profile.selectionPolicy;
+    if (
+      policy !== undefined &&
+      (request.careSetting === undefined ||
+        !policy.careSettings.includes(request.careSetting) ||
+        policy.sourceKind !== request.source.kind ||
+        policy.timeScopeId !== request.timeScopeId)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profile', 'selectionPolicy'],
+        message:
+          'A weighted condition-functional-impairment request must match its profile policy source, time scope, and one explicitly allowed care setting.',
+      });
+    }
   });
 export type ConditionFunctionalImpairmentResolutionRequest = z.infer<
   typeof ConditionFunctionalImpairmentResolutionRequestSchema
@@ -7099,9 +8146,45 @@ export const ConditionFunctionalImpairmentOptionResolutionEvaluationSchema = z
   .object({
     optionId: StableIdSchema,
     level: FunctionalImpairmentLevelSchema,
+    gameGenerationWeight: z.number().int().positive().max(10_000).nullable(),
+    normalizedGameSelectionProbability: z
+      .object({
+        numerator: z.number().int().positive().max(40_000),
+        denominator: z.number().int().positive().max(40_000),
+        decimal: z.number().min(0).max(1),
+      })
+      .strict()
+      .nullable(),
     selected: z.boolean(),
   })
-  .strict();
+  .strict()
+  .superRefine((evaluation, context) => {
+    if (
+      (evaluation.gameGenerationWeight === null) !==
+      (evaluation.normalizedGameSelectionProbability === null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A condition-functional-impairment option evaluation must either omit or retain both its generation weight and normalized probability.',
+      });
+    }
+    const probability = evaluation.normalizedGameSelectionProbability;
+    if (
+      probability !== null &&
+      (probability.numerator !== evaluation.gameGenerationWeight ||
+        probability.numerator > probability.denominator ||
+        Math.abs(probability.decimal - probability.numerator / probability.denominator) >
+          Number.EPSILON)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['normalizedGameSelectionProbability'],
+        message:
+          'A condition-functional-impairment normalized probability must exactly describe its positive integer generation mass.',
+      });
+    }
+  });
 export type ConditionFunctionalImpairmentOptionResolutionEvaluation = z.infer<
   typeof ConditionFunctionalImpairmentOptionResolutionEvaluationSchema
 >;
@@ -7124,6 +8207,7 @@ export const ConditionFunctionalImpairmentResolutionArtifactSchema = z
     source: PatientStateScopedSourceSchema,
     timeScopeId: StableIdSchema,
     stableDrawId: StableIdSchema,
+    selectionMode: z.enum(['uniform', 'weighted']),
     optionEvaluations: z
       .array(ConditionFunctionalImpairmentOptionResolutionEvaluationSchema)
       .min(1)
@@ -7138,6 +8222,8 @@ export const ConditionFunctionalImpairmentResolutionArtifactSchema = z
     const selected = artifact.optionEvaluations.filter((evaluation) => evaluation.selected);
     const request = artifact.compileRequest;
     const impairment = artifact.resolvedFunctionalImpairment;
+    const expectedSelectionMode =
+      request.profile.selectionPolicy === undefined ? 'uniform' : 'weighted';
     if (
       artifact.requestId !== request.id ||
       artifact.patientStateId !== request.patientStateId ||
@@ -7146,7 +8232,8 @@ export const ConditionFunctionalImpairmentResolutionArtifactSchema = z
       artifact.profileRef.contentVersion !== request.profile.contentVersion ||
       artifact.source.kind !== request.source.kind ||
       artifact.source.sourceInstanceId !== request.source.sourceInstanceId ||
-      artifact.timeScopeId !== request.timeScopeId
+      artifact.timeScopeId !== request.timeScopeId ||
+      artifact.selectionMode !== expectedSelectionMode
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -7165,6 +8252,66 @@ export const ConditionFunctionalImpairmentResolutionArtifactSchema = z
         message:
           'A condition-functional-impairment artifact must retain every offered option and exactly one resolved selection.',
       });
+    }
+    const evaluationIds = artifact.optionEvaluations.map((evaluation) => evaluation.optionId);
+    const profileOptionIds = request.profile.options.map((option) => option.id);
+    if (
+      evaluationIds.length !== profileOptionIds.length ||
+      evaluationIds.some((optionId, index) => optionId !== profileOptionIds[index])
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['optionEvaluations'],
+        message:
+          'A condition-functional-impairment artifact must evaluate every normalized profile option in exact order.',
+      });
+    }
+    if (request.profile.selectionPolicy === undefined) {
+      if (
+        artifact.optionEvaluations.some(
+          (evaluation) =>
+            evaluation.gameGenerationWeight !== null ||
+            evaluation.normalizedGameSelectionProbability !== null,
+        )
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['optionEvaluations'],
+          message: 'An unweighted functional-impairment profile cannot retain invented mass.',
+        });
+      }
+    } else {
+      const weightByOptionId = new Map(
+        request.profile.selectionPolicy.optionWeights.map((entry) => [
+          entry.optionId,
+          entry.gameGenerationWeight,
+        ]),
+      );
+      const totalWeight = request.profile.selectionPolicy.optionWeights.reduce(
+        (sum, entry) => sum + entry.gameGenerationWeight,
+        0,
+      );
+      if (
+        artifact.optionEvaluations.some((evaluation) => {
+          const expectedWeight = weightByOptionId.get(evaluation.optionId);
+          const probability = evaluation.normalizedGameSelectionProbability;
+          return (
+            expectedWeight === undefined ||
+            evaluation.gameGenerationWeight !== expectedWeight ||
+            probability === null ||
+            probability.numerator !== expectedWeight ||
+            probability.denominator !== totalWeight ||
+            Math.abs(probability.decimal - expectedWeight / totalWeight) > Number.EPSILON
+          );
+        })
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['optionEvaluations'],
+          message:
+            'A weighted functional-impairment artifact must retain the exact profile mass and normalized probabilities.',
+        });
+      }
     }
     if (
       impairment.target.conditionStateId !== request.conditionState.id ||
@@ -7283,6 +8430,7 @@ export const ConditionEpisodeSeverityDerivationRequestSchema = z
     derivationOwner: ConditionEpisodeSeverityDerivationOwnerSchema,
     symptomSeverity: ResolvedConditionSymptomSeverityInputSchema,
     functionalImpairmentResolution: ConditionFunctionalImpairmentResolutionArtifactSchema,
+    sourceInstanceCompilation: z.lazy(() => PatientSceneSourceInstanceCompilationArtifactSchema),
   })
   .strict()
   .superRefine((request, context) => {
@@ -7410,6 +8558,18 @@ export const ConditionEpisodeSeverityDerivationArtifactSchema = z
         payloadFingerprint: ConditionFunctionalImpairmentResolutionFingerprintSchema,
       })
       .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: z.lazy(() => PatientSceneSourceInstanceCompilationFingerprintSchema),
+      })
+      .strict(),
+    validatedFunctionalImpairmentSourceBinding: z
+      .object({
+        sourceInstanceId: StableIdSchema,
+        sourceKind: PatientSceneEvidenceSourceKindSchema,
+      })
+      .strict(),
     resolvedEpisodeSeverity: ResolvedConditionEpisodeSeveritySchema,
     compileRequest: ConditionEpisodeSeverityDerivationRequestSchema,
     inputFingerprint: ConditionEpisodeSeverityDerivationFingerprintSchema,
@@ -7422,6 +8582,11 @@ export const ConditionEpisodeSeverityDerivationArtifactSchema = z
     const owner = request.derivationOwner;
     const symptomSeverity = request.symptomSeverity;
     const impairmentArtifact = request.functionalImpairmentResolution;
+    const impairment = impairmentArtifact.resolvedFunctionalImpairment;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    const sourceInstance = sourceHorizon.sourceInstances.find(
+      (instance) => instance.id === impairment.source.sourceInstanceId,
+    );
     const resolved = artifact.resolvedEpisodeSeverity;
     if (
       artifact.requestId !== request.id ||
@@ -7437,12 +8602,22 @@ export const ConditionEpisodeSeverityDerivationArtifactSchema = z
         symptomSeverity.resolutionOwner.payloadFingerprint ||
       artifact.functionalImpairmentArtifactRef.id !== impairmentArtifact.id ||
       artifact.functionalImpairmentArtifactRef.payloadFingerprint !==
-        impairmentArtifact.payloadFingerprint
+        impairmentArtifact.payloadFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      artifact.validatedFunctionalImpairmentSourceBinding.sourceInstanceId !==
+        impairment.source.sourceInstanceId ||
+      artifact.validatedFunctionalImpairmentSourceBinding.sourceKind !== impairment.source.kind ||
+      sourceHorizon.patientStateId !== request.patientStateId ||
+      sourceInstance === undefined ||
+      sourceInstance.patientStateId !== request.patientStateId ||
+      sourceInstance.kind !== impairment.source.kind
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          'A condition-episode-severity artifact must retain its exact request, policy owner, and both input artifacts.',
+          'A condition-episode-severity artifact must retain its exact request, policy owner, both inputs, and independently validated functional-impairment source.',
       });
     }
     if (
@@ -7518,7 +8693,11 @@ export const ResolvedPatientStateSchema = z
     medicationRegimenEntries: z.array(MedicationRegimenEntryV2Schema),
     exposureInventory: ResolvedExposureInventorySchema,
     treatmentHistory: PatientTreatmentHistorySchema,
-    medicationTolerabilityFindings: z.array(MedicationTolerabilityFindingV2Schema),
+    medicationTolerabilityFindings: MedicationTolerabilityFindingV2RecordsSchema,
+    currentMedicationReportedBenefits: CurrentMedicationReportedBenefitRecordsSchema.default([]),
+    currentMedicationDosePositions: CurrentMedicationDosePositionRecordsSchema.default([]),
+    medicationChangeTemporalRelationships:
+      MedicationChangeTemporalRelationshipRecordsSchema.default([]),
     reactionHistory: PatientReactionHistorySchema,
     canonicalFindings: z.array(ResolvedCanonicalFindingSchema),
     measurements: z.array(ResolvedMeasurementSchema),
@@ -7526,6 +8705,7 @@ export const ResolvedPatientStateSchema = z
     structuredTestResults: z.array(StructuredTestResultSchema),
     clinicalContexts: z.array(ResolvedPatientClinicalContextSchema),
     clinicalDurations: z.array(ResolvedClinicalDurationSchema),
+    functionalImpairments: z.array(ResolvedConditionFunctionalImpairmentSchema).default([]),
     subjectiveBurdenRecords: z.array(SubjectiveBurdenRecordSchema),
     propositionState: ResolvedPatientPropositionStateSchema,
     clinicalTagIds: z.array(StableIdSchema),
@@ -7575,6 +8755,18 @@ export const ResolvedPatientStateSchema = z
       state.medicationTolerabilityFindings.map((entry) => entry.id),
     );
     assertUniqueIds(
+      'currentMedicationReportedBenefits',
+      state.currentMedicationReportedBenefits.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'currentMedicationDosePositions',
+      state.currentMedicationDosePositions.map((entry) => entry.id),
+    );
+    assertUniqueIds(
+      'medicationChangeTemporalRelationships',
+      state.medicationChangeTemporalRelationships.map((entry) => entry.id),
+    );
+    assertUniqueIds(
       'canonicalFindings',
       state.canonicalFindings.map((entry) => entry.id),
     );
@@ -7595,6 +8787,10 @@ export const ResolvedPatientStateSchema = z
       state.clinicalDurations.map((entry) => entry.id),
     );
     assertUniqueIds(
+      'functionalImpairments',
+      state.functionalImpairments.map((entry) => entry.id),
+    );
+    assertUniqueIds(
       'subjectiveBurdenRecords',
       state.subjectiveBurdenRecords.map((entry) => entry.id),
     );
@@ -7611,12 +8807,16 @@ export const ResolvedPatientStateSchema = z
       ...state.treatmentHistory.currentProviders.map((entry) => entry.id),
       ...state.treatmentHistory.priorLevelsOfCare.map((entry) => entry.id),
       ...state.medicationTolerabilityFindings.map((entry) => entry.id),
+      ...state.currentMedicationReportedBenefits.map((entry) => entry.id),
+      ...state.currentMedicationDosePositions.map((entry) => entry.id),
+      ...state.medicationChangeTemporalRelationships.map((entry) => entry.id),
       ...state.reactionHistory.records.map((entry) => entry.id),
       ...state.canonicalFindings.map((entry) => entry.id),
       ...state.measurements.map((entry) => entry.id),
       ...state.categoricalObservations.map((entry) => entry.id),
       ...state.structuredTestResults.map((entry) => entry.id),
       ...state.clinicalDurations.map((entry) => entry.id),
+      ...state.functionalImpairments.map((entry) => entry.id),
       ...state.subjectiveBurdenRecords.map((entry) => entry.id),
       state.propositionState.id,
       ...state.propositionState.propositions.map((entry) => entry.id),
@@ -7681,9 +8881,86 @@ export const ResolvedPatientStateSchema = z
         });
       }
     }
+    for (const [benefitIndex, benefit] of state.currentMedicationReportedBenefits.entries()) {
+      if (!regimenEntryIds.has(benefit.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['currentMedicationReportedBenefits', benefitIndex, 'subject'],
+          message: 'Current-medication reported benefit must reference an included regimen entry.',
+        });
+      }
+    }
+    for (const [positionIndex, position] of state.currentMedicationDosePositions.entries()) {
+      if (!regimenEntryIds.has(position.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['currentMedicationDosePositions', positionIndex, 'subject'],
+          message: 'Current-medication dose position must reference an included regimen entry.',
+        });
+      }
+    }
+    const canonicalFindingIds = new Set(state.canonicalFindings.map((entry) => entry.id));
+    const categoricalObservationIds = new Set(
+      state.categoricalObservations.map((entry) => entry.id),
+    );
+    for (const [
+      relationshipIndex,
+      relationship,
+    ] of state.medicationChangeTemporalRelationships.entries()) {
+      const subjectExists = regimenEntryIds.has(relationship.subject.regimenEntryId);
+      const targetExists =
+        relationship.target.kind === 'canonical_finding'
+          ? canonicalFindingIds.has(relationship.target.canonicalFindingId)
+          : relationship.target.kind === 'categorical_observation'
+            ? categoricalObservationIds.has(relationship.target.categoricalObservationId)
+            : false;
+      if (!subjectExists) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationChangeTemporalRelationships', relationshipIndex, 'subject'],
+          message:
+            'A medication-change temporal relationship must reference an included regimen entry.',
+        });
+      }
+      if (!targetExists) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationChangeTemporalRelationships', relationshipIndex, 'target'],
+          message:
+            'A native medication-change temporal relationship must target an included canonical finding or categorical observation.',
+        });
+      }
+    }
 
     const conditionStateIds = new Set(state.conditionStates.map((entry) => entry.id));
-    const canonicalFindingIds = new Set(state.canonicalFindings.map((entry) => entry.id));
+    const conditionStateById = new Map(state.conditionStates.map((entry) => [entry.id, entry]));
+    const functionalImpairmentAssignments = state.functionalImpairments.map(
+      (record) =>
+        `${record.target.conditionStateId}\u0000${record.functionalImpairmentProfileId}\u0000${record.functionalImpairmentProfileContentVersion}`,
+    );
+    if (new Set(functionalImpairmentAssignments).size !== functionalImpairmentAssignments.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['functionalImpairments'],
+        message:
+          'Each exact condition and functional-impairment profile version may resolve only once per patient state.',
+      });
+    }
+    for (const [recordIndex, record] of state.functionalImpairments.entries()) {
+      const condition = conditionStateById.get(record.target.conditionStateId);
+      if (
+        condition === undefined ||
+        record.relatedDiagnosisId !== condition.diagnosisDefinitionId ||
+        record.timeScopeId !== condition.timeScopeId
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['functionalImpairments', recordIndex, 'target'],
+          message:
+            'Condition-attributed functional impairment must target one included condition with the same diagnosis and time scope.',
+        });
+      }
+    }
     const propositionIds = new Set(state.propositionState.propositions.map((entry) => entry.id));
     const targetExists = (target: PatientStateTargetReference) => {
       if (target.kind === 'condition_state') {
@@ -7724,6 +9001,11 @@ export const PatientRecordSchema = z
     generationPolicy: PatientGenerationPolicySchema,
     testGenerationContext: PatientTestGenerationContextSchema,
     medicationRegimen: z.array(MedicationRegimenEntrySchema).default([]),
+    medicationTolerabilityFindings: MedicationTolerabilityFindingV2RecordsSchema.default([]),
+    currentMedicationReportedBenefits: CurrentMedicationReportedBenefitRecordsSchema.default([]),
+    currentMedicationDosePositions: CurrentMedicationDosePositionRecordsSchema.default([]),
+    medicationChangeTemporalRelationships:
+      MedicationChangeTemporalRelationshipRecordsSchema.default([]),
     priorMedicationTrials: z.array(MedicationTrialRecordSchema).default([]),
     treatmentHistory: PatientTreatmentHistorySchema.default({
       medicationTrials: [],
@@ -7748,8 +9030,182 @@ export const PatientRecordSchema = z
     diagnosisComposition: PatientDiagnosisCompositionSchema.nullable().default(null),
     clinicalContextDimensions: z.array(PatientClinicalContextDimensionSchema).max(20).default([]),
   })
-  .strict();
+  .strict()
+  .superRefine((record, context) => {
+    const regimenEntryIds = new Set(record.medicationRegimen.map((entry) => entry.id));
+    const medicationTrialIds = new Set([
+      ...record.priorMedicationTrials.map((trial) => trial.id),
+      ...record.treatmentHistory.medicationTrials.map((trial) => trial.id),
+    ]);
+    record.medicationTolerabilityFindings.forEach((finding, findingIndex) => {
+      const subjectExists =
+        finding.subject.kind === 'current_regimen_entry'
+          ? regimenEntryIds.has(finding.subject.regimenEntryId)
+          : medicationTrialIds.has(finding.subject.medicationTrialId);
+      if (!subjectExists) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationTolerabilityFindings', findingIndex, 'subject'],
+          message:
+            'Medication tolerability must reference an exact regimen entry or prior trial in this patient record.',
+        });
+      }
+    });
+    record.currentMedicationReportedBenefits.forEach((benefit, benefitIndex) => {
+      if (!regimenEntryIds.has(benefit.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['currentMedicationReportedBenefits', benefitIndex, 'subject'],
+          message:
+            'Current-medication reported benefit must reference an exact regimen entry in this patient record.',
+        });
+      }
+    });
+    record.currentMedicationDosePositions.forEach((position, positionIndex) => {
+      if (!regimenEntryIds.has(position.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['currentMedicationDosePositions', positionIndex, 'subject'],
+          message:
+            'Current-medication dose position must reference an exact regimen entry in this patient record.',
+        });
+      }
+    });
+    record.medicationChangeTemporalRelationships.forEach((relationship, relationshipIndex) => {
+      if (!regimenEntryIds.has(relationship.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationChangeTemporalRelationships', relationshipIndex, 'subject'],
+          message:
+            'A medication-change temporal relationship must reference an exact regimen entry in this patient record.',
+        });
+      }
+      if (relationship.target.kind !== 'compatibility_finding') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationChangeTemporalRelationships', relationshipIndex, 'target'],
+          message:
+            'A compatibility patient record must target an exact information-result finding.',
+        });
+      }
+    });
+  });
 export type PatientRecord = z.infer<typeof PatientRecordSchema>;
+
+type FindingRecordSubjectAction = {
+  readonly actionId: string;
+  readonly result: {
+    readonly findings: readonly {
+      readonly id: string;
+      readonly subject?: FindingRecordSubject;
+      readonly medicationChangeTemporalRelationshipId?: string;
+    }[];
+  };
+};
+
+const validateFindingRecordSubjects = (
+  patientRecord: PatientRecord,
+  informationActions: readonly FindingRecordSubjectAction[],
+  context: z.RefinementCtx,
+): void => {
+  const regimenEntryIds = new Set(patientRecord.medicationRegimen.map((entry) => entry.id));
+  const medicationTrialIds = new Set([
+    ...patientRecord.priorMedicationTrials.map((trial) => trial.id),
+    ...patientRecord.treatmentHistory.medicationTrials.map((trial) => trial.id),
+  ]);
+
+  informationActions.forEach((action, actionIndex) => {
+    action.result.findings.forEach((finding, findingIndex) => {
+      if (!finding.subject) return;
+      const subjectExists =
+        finding.subject.kind === 'current_regimen_entry'
+          ? regimenEntryIds.has(finding.subject.regimenEntryId)
+          : medicationTrialIds.has(finding.subject.medicationTrialId);
+      if (!subjectExists) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['informationActions', actionIndex, 'result', 'findings', findingIndex, 'subject'],
+          message:
+            'A finding record subject must reference an exact regimen entry or prior medication trial in this patient snapshot.',
+        });
+      }
+    });
+  });
+};
+
+const validateMedicationChangeTemporalRelationshipProjections = (
+  patientRecord: PatientRecord,
+  informationActions: readonly FindingRecordSubjectAction[],
+  context: z.RefinementCtx,
+): void => {
+  const relationshipsById = new Map(
+    patientRecord.medicationChangeTemporalRelationships.map((relationship) => [
+      relationship.id,
+      relationship,
+    ]),
+  );
+  const findingsByCoordinate = new Map(
+    informationActions.flatMap((action) =>
+      action.result.findings.map(
+        (finding) => [`${action.actionId}\u0000${finding.id}`, finding] as const,
+      ),
+    ),
+  );
+
+  patientRecord.medicationChangeTemporalRelationships.forEach((relationship, relationshipIndex) => {
+    if (relationship.target.kind !== 'compatibility_finding') return;
+    const target = findingsByCoordinate.get(
+      `${relationship.target.informationActionId}\u0000${relationship.target.findingId}`,
+    );
+    if (!target) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [
+          'patientRecord',
+          'medicationChangeTemporalRelationships',
+          relationshipIndex,
+          'target',
+        ],
+        message:
+          'A compatibility medication-change temporal target must reference an exact finding in this case.',
+      });
+    }
+  });
+
+  informationActions.forEach((action, actionIndex) => {
+    action.result.findings.forEach((finding, findingIndex) => {
+      if (!finding.medicationChangeTemporalRelationshipId) return;
+      const relationship = relationshipsById.get(finding.medicationChangeTemporalRelationshipId);
+      if (!relationship) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [
+            'informationActions',
+            actionIndex,
+            'result',
+            'findings',
+            findingIndex,
+            'medicationChangeTemporalRelationshipId',
+          ],
+          message:
+            'A compatibility temporal projection must reference an included medication-change relationship.',
+        });
+        return;
+      }
+      if (
+        finding.subject?.kind !== 'current_regimen_entry' ||
+        finding.subject.regimenEntryId !== relationship.subject.regimenEntryId
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['informationActions', actionIndex, 'result', 'findings', findingIndex, 'subject'],
+          message:
+            'A compatibility temporal projection must retain the exact regimen-entry subject owned by its relationship.',
+        });
+      }
+    });
+  });
+};
 
 const CaseCoreSchema = z.object({
   metadata: CaseMetadataSchema,
@@ -7775,7 +9231,16 @@ export const CaseBlueprintSchema = CaseCoreSchema.extend({
   informationActions: z.array(CaseInformationActionBlueprintSchema).min(1),
   variants: z.array(VariantSpecificationSchema),
   protectedVariantTargets: z.array(z.string()),
-}).strict();
+})
+  .strict()
+  .superRefine((blueprint, context) => {
+    validateFindingRecordSubjects(blueprint.patientRecord, blueprint.informationActions, context);
+    validateMedicationChangeTemporalRelationshipProjections(
+      blueprint.patientRecord,
+      blueprint.informationActions,
+      context,
+    );
+  });
 export type CaseBlueprint = z.infer<typeof CaseBlueprintSchema>;
 
 export const ReviewCaseSourceUseSchema = z
@@ -7866,6 +9331,11 @@ export const ReviewCaseScenarioSchema = z
       .enum(['unreconciled', 'verified_none', 'provided'])
       .default('unreconciled'),
     medicationRegimen: z.array(MedicationRegimenEntrySchema),
+    medicationTolerabilityFindings: MedicationTolerabilityFindingV2RecordsSchema.default([]),
+    currentMedicationReportedBenefits: CurrentMedicationReportedBenefitRecordsSchema.default([]),
+    currentMedicationDosePositions: CurrentMedicationDosePositionRecordsSchema.default([]),
+    medicationChangeTemporalRelationships:
+      MedicationChangeTemporalRelationshipRecordsSchema.default([]),
     priorMedicationTrials: z.array(MedicationTrialRecordSchema),
     treatmentHistory: PatientTreatmentHistorySchema.default({
       medicationTrials: [],
@@ -7881,7 +9351,66 @@ export const ReviewCaseScenarioSchema = z
     informationOverrides: z.array(CaseInformationActionBlueprintSchema),
     decisionPolicyId: StableIdSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((scenario, context) => {
+    const regimenEntryIds = new Set(scenario.medicationRegimen.map((entry) => entry.id));
+    const medicationTrialIds = new Set([
+      ...scenario.priorMedicationTrials.map((trial) => trial.id),
+      ...scenario.treatmentHistory.medicationTrials.map((trial) => trial.id),
+    ]);
+    scenario.medicationTolerabilityFindings.forEach((finding, findingIndex) => {
+      const subjectExists =
+        finding.subject.kind === 'current_regimen_entry'
+          ? regimenEntryIds.has(finding.subject.regimenEntryId)
+          : medicationTrialIds.has(finding.subject.medicationTrialId);
+      if (!subjectExists) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationTolerabilityFindings', findingIndex, 'subject'],
+          message:
+            'Reviewer medication tolerability must reference an exact scenario regimen entry or prior trial.',
+        });
+      }
+    });
+    scenario.currentMedicationReportedBenefits.forEach((benefit, benefitIndex) => {
+      if (!regimenEntryIds.has(benefit.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['currentMedicationReportedBenefits', benefitIndex, 'subject'],
+          message:
+            'A Reviewer current-benefit record must reference an exact scenario regimen entry.',
+        });
+      }
+    });
+    scenario.currentMedicationDosePositions.forEach((position, positionIndex) => {
+      if (!regimenEntryIds.has(position.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['currentMedicationDosePositions', positionIndex, 'subject'],
+          message:
+            'A Reviewer dose-position record must reference an exact scenario regimen entry.',
+        });
+      }
+    });
+    scenario.medicationChangeTemporalRelationships.forEach((relationship, relationshipIndex) => {
+      if (!regimenEntryIds.has(relationship.subject.regimenEntryId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationChangeTemporalRelationships', relationshipIndex, 'subject'],
+          message:
+            'A Reviewer medication-change temporal relationship must reference an exact scenario regimen entry.',
+        });
+      }
+      if (relationship.target.kind !== 'compatibility_finding') {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['medicationChangeTemporalRelationships', relationshipIndex, 'target'],
+          message:
+            'A Reviewer medication-change temporal relationship must target an exact compiled information finding.',
+        });
+      }
+    });
+  });
 export type ReviewCaseScenario = z.infer<typeof ReviewCaseScenarioSchema>;
 
 export const CaseInstanceSchema = CaseCoreSchema.extend({
@@ -7895,7 +9424,16 @@ export const CaseInstanceSchema = CaseCoreSchema.extend({
   resolvedObservations: z.array(PatientObservationSchema),
   opening: ResolvedPatientOpeningSchema,
   informationActions: z.array(CaseInformationActionSchema).min(1),
-}).strict();
+})
+  .strict()
+  .superRefine((instance, context) => {
+    validateFindingRecordSubjects(instance.patientRecord, instance.informationActions, context);
+    validateMedicationChangeTemporalRelationshipProjections(
+      instance.patientRecord,
+      instance.informationActions,
+      context,
+    );
+  });
 export type CaseInstance = z.infer<typeof CaseInstanceSchema>;
 
 export const ClinicStateSchema = z
@@ -11948,6 +13486,8 @@ export const DecisionPatientFactRecordKindSchema = z.enum([
   'current_provider',
   'prior_level_of_care',
   'medication_tolerability',
+  'current_medication_response',
+  'current_medication_dose_position',
   'reaction_history',
   'reaction',
   'canonical_finding',
@@ -12044,6 +13584,22 @@ export const DecisionPatientFactKeySchema = z
         'medication-tolerability.source',
         'medication-tolerability.source-rate-profile',
         'medication-tolerability.manifestation',
+      ],
+      current_medication_response: [
+        'current-medication-response.presence',
+        'current-medication-response.reported-benefit',
+        'current-medication-response.subject-regimen-entry',
+        'current-medication-response.source-kind',
+        'current-medication-response.source-instance',
+        'current-medication-response.time-scope',
+      ],
+      current_medication_dose_position: [
+        'current-medication-dose-position.presence',
+        'current-medication-dose-position.position',
+        'current-medication-dose-position.subject-regimen-entry',
+        'current-medication-dose-position.source-kind',
+        'current-medication-dose-position.source-instance',
+        'current-medication-dose-position.time-scope',
       ],
       reaction_history: [
         'reaction-history.status',
@@ -13323,6 +14879,68 @@ export const DecisionRuleCandidateDefinitionSchema = z
       });
     }
     if (
+      regimenOperationTargets.length > 0 &&
+      decisionPredicateContainsRecordKind(candidate.patientWhen, 'current_medication_response')
+    ) {
+      const requiredSubjectIds = requiredDecisionFactValues(
+        candidate.patientWhen,
+        'current_medication_response',
+        'current-medication-response.subject-regimen-entry',
+      );
+      if (!requiredSubjectIds || requiredSubjectIds.size === 0) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['patientWhen'],
+          message:
+            'A current-medication-response rule targeting a regimen operation must require its exact regimen-entry subject.',
+        });
+      }
+      regimenOperationTargets.forEach((target, index) => {
+        if (
+          target.kind !== 'regimen_entry_operation' ||
+          !requiredSubjectIds?.has(target.regimenEntryId)
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['actionWhen', 'targets', index],
+            message:
+              'A response-linked regimen operation must target the exact required subject entry.',
+          });
+        }
+      });
+    }
+    if (
+      regimenOperationTargets.length > 0 &&
+      decisionPredicateContainsRecordKind(candidate.patientWhen, 'current_medication_dose_position')
+    ) {
+      const requiredSubjectIds = requiredDecisionFactValues(
+        candidate.patientWhen,
+        'current_medication_dose_position',
+        'current-medication-dose-position.subject-regimen-entry',
+      );
+      if (!requiredSubjectIds || requiredSubjectIds.size === 0) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['patientWhen'],
+          message:
+            'A current-medication-dose-position rule targeting a regimen operation must require its exact regimen-entry subject.',
+        });
+      }
+      regimenOperationTargets.forEach((target, index) => {
+        if (
+          target.kind !== 'regimen_entry_operation' ||
+          !requiredSubjectIds?.has(target.regimenEntryId)
+        ) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['actionWhen', 'targets', index],
+            message:
+              'A dose-position-linked regimen operation must target the exact required subject entry.',
+          });
+        }
+      });
+    }
+    if (
       candidate.review.status === 'approved' &&
       candidate.review.sourceUseNoteIds.length === 0 &&
       candidate.developerOpinionIds.length === 0
@@ -13667,6 +15285,65 @@ export const PatientLauncherPresentationProfileSchema = z
   });
 export type PatientLauncherPresentationProfile = z.infer<
   typeof PatientLauncherPresentationProfileSchema
+>;
+
+/**
+ * Checked-in launcher presentation content remains an authoring-only cosmetic
+ * catalog. Complaint banks are reusable wording owners; profiles only select
+ * among those banks and the separately owned fictional-name pools.
+ */
+export const PatientLauncherPresentationCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    complaintBanks: z.array(PatientChiefComplaintBankSchema).min(1).max(256),
+    profiles: z.array(PatientLauncherPresentationProfileSchema).min(1).max(256),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const bankIds = catalog.complaintBanks.map((bank) => bank.id);
+    const profileIds = catalog.profiles.map((profile) => profile.id);
+    if (
+      new Set(bankIds).size !== bankIds.length ||
+      new Set(profileIds).size !== profileIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Launcher presentation bank and profile IDs must be unique.',
+      });
+    }
+
+    const bankById = new Map(catalog.complaintBanks.map((bank) => [bank.id, bank]));
+    const referencedBankIds = new Set<string>();
+    catalog.profiles.forEach((profile, profileIndex) => {
+      profile.complaintBankBindings.forEach((binding, bindingIndex) => {
+        const bank = bankById.get(binding.bankRef.id);
+        if (!bank || bank.contentVersion !== binding.bankRef.contentVersion) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['profiles', profileIndex, 'complaintBankBindings', bindingIndex, 'bankRef'],
+            message:
+              'A launcher presentation profile must reference an exact complaint bank in this catalog.',
+          });
+          return;
+        }
+        referencedBankIds.add(bank.id);
+      });
+    });
+
+    catalog.complaintBanks.forEach((bank, bankIndex) => {
+      if (!referencedBankIds.has(bank.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['complaintBanks', bankIndex, 'id'],
+          message: 'Every launcher complaint bank must be referenced by at least one profile.',
+        });
+      }
+    });
+  });
+export type PatientLauncherPresentationCatalog = z.infer<
+  typeof PatientLauncherPresentationCatalogSchema
 >;
 
 export const PatientLauncherPresentationFingerprintSchema = z
@@ -16400,6 +18077,28 @@ export const BackgroundFindingOutcomeProfileSchema = z
   });
 export type BackgroundFindingOutcomeProfile = z.infer<typeof BackgroundFindingOutcomeProfileSchema>;
 
+export const BackgroundFindingOutcomeProfileCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    profiles: z.array(BackgroundFindingOutcomeProfileSchema),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const profileIds = catalog.profiles.map((profile) => profile.id);
+    if (new Set(profileIds).size !== profileIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profiles'],
+        message: 'Background-finding outcome profiles require unique stable IDs.',
+      });
+    }
+  });
+export type BackgroundFindingOutcomeProfileCatalog = z.infer<
+  typeof BackgroundFindingOutcomeProfileCatalogSchema
+>;
+
 export const BackgroundFindingProfileBindingSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -17264,6 +18963,9 @@ const STRUCTURED_PATIENT_STATE_REVEAL_LANES = [
   'current_treatment_providers',
   'prior_levels_of_care',
   'medication_tolerability_findings',
+  'current_medication_reported_benefits',
+  'current_medication_dose_positions',
+  'medication_change_temporal_relationships',
   'reaction_records',
 ] as const;
 
@@ -17287,7 +18989,7 @@ const STRUCTURED_PATIENT_STATE_REVEAL_PRESENTATION_STATUSES = [
   'unable_to_assess',
 ] as const;
 
-const FrozenStructuredPatientStateRevealSingletonSchema = z.discriminatedUnion('field', [
+export const FrozenStructuredPatientStateRevealSingletonSchema = z.discriminatedUnion('field', [
   z
     .object({
       field: z.literal('reaction_history_status'),
@@ -17375,6 +19077,297 @@ export type FrozenStructuredPatientStateReveal = z.infer<
 >;
 
 /**
+ * D-349 exposes only the concrete, player-revealable fields of records named
+ * by one verified D-212 source view. This is deliberately a closed union
+ * rather than an arbitrary field selector. Hidden truth, authoring
+ * provenance, source-alignment internals, clinical interpretations, and
+ * legacy trial-adequacy labels remain outside this projection.
+ */
+export const FrozenStructuredPatientStateRecordSchema = z
+  .discriminatedUnion('lane', [
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('diagnosis_record_entries'),
+        recordId: StableIdSchema,
+        recordedLabel: z.string().trim().min(1).max(180),
+        assertion: z.enum(['asserted', 'historical', 'rule_out', 'questioned', 'unspecified']),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('medication_regimen_entries'),
+        recordId: StableIdSchema,
+        medicationIdentityId: StableIdSchema,
+        status: z.enum(['active', 'prescribed_not_taking', 'self_discontinued']),
+        adherence: z.enum(['consistent', 'intermittent', 'not_taking', 'unknown']),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('exposure_use_entries'),
+        recordId: StableIdSchema,
+        agent: ExposureAgentReferenceSchema,
+        mostRecentUse: ResolvedExposureRecencySchema,
+        currentAmount: CurrentExposureAmountSchema.nullable(),
+        prescriptionRelationship: z.enum([
+          'prescribed_to_patient',
+          'not_prescribed_to_patient',
+          'not_applicable',
+        ]),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('medication_trials'),
+        recordId: StableIdSchema,
+        medicationId: StableIdSchema,
+        duration: MedicationTrialExposureSchema.shape.duration,
+        highestReportedDose: MedicationTrialExposureSchema.shape.maximumDose,
+        adherence: z.enum(['consistent', 'inconsistent', 'unknown']),
+        response: z.enum(['remission', 'partial', 'none', 'worsened', 'unknown']),
+        tolerability: z.enum(['tolerated', 'limited', 'stopped_adverse_effect', 'unknown']),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('psychotherapy_trials'),
+        recordId: StableIdSchema,
+        interventionId: StableIdSchema,
+        status: z.enum(['ongoing', 'completed', 'discontinued']),
+        response: z.enum(['strong', 'partial', 'none', 'worsened', 'unknown']),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('current_treatment_providers'),
+        recordId: StableIdSchema,
+        providerType: z.enum([
+          'psychiatrist',
+          'therapist',
+          'primary_care',
+          'case_manager',
+          'substance_use_clinician',
+          'other',
+        ]),
+        active: z.boolean(),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('prior_levels_of_care'),
+        recordId: StableIdSchema,
+        level: z.enum([
+          'inpatient_psychiatry',
+          'partial_hospitalization',
+          'intensive_outpatient',
+          'residential',
+          'emergency_evaluation',
+          'detoxification',
+          'substance_use_rehabilitation',
+          'other',
+        ]),
+        occurrenceCount: z.number().int().positive(),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('medication_tolerability_findings'),
+        recordId: StableIdSchema,
+        subject: z.discriminatedUnion('kind', [
+          z
+            .object({
+              kind: z.literal('current_regimen_entry'),
+              regimenEntryId: StableIdSchema,
+            })
+            .strict(),
+          z
+            .object({
+              kind: z.literal('prior_trial'),
+              medicationTrialId: StableIdSchema,
+            })
+            .strict(),
+        ]),
+        domain: z.enum([
+          'sexual_function',
+          'sleep',
+          'appetite_weight',
+          'activation',
+          'sedation',
+          'gastrointestinal',
+          'movement',
+          'other',
+        ]),
+        findingStatus: z.enum(['unknown', 'absent', 'present']),
+        manifestationIds: z.array(StableIdSchema).max(12),
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('current_medication_reported_benefits'),
+        recordId: StableIdSchema,
+        subject: CurrentRegimenEntryFindingRecordSubjectSchema,
+        reportedBenefit: CurrentMedicationReportedBenefitSchema.shape.reportedBenefit,
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('current_medication_dose_positions'),
+        recordId: StableIdSchema,
+        subject: CurrentRegimenEntryFindingRecordSubjectSchema,
+        position: CurrentMedicationDosePositionSchema.shape.position,
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('medication_change_temporal_relationships'),
+        recordId: StableIdSchema,
+        subject: CurrentRegimenEntryFindingRecordSubjectSchema,
+        changeKind: MedicationChangeTemporalRelationshipSchema.shape.changeKind,
+        target: MedicationChangeTemporalTargetSchema,
+        relationship: MedicationChangeTemporalRelationshipSchema.shape.relationship,
+      })
+      .strict(),
+    z
+      .object({
+        schemaVersion: SchemaVersionSchema,
+        lane: z.literal('reaction_records'),
+        recordId: StableIdSchema,
+        trigger: PatientReactionTriggerSchema,
+        recordedAs: z.enum(['allergy', 'intolerance', 'adverse_reaction', 'unspecified']),
+        manifestationIds: z.array(StableIdSchema).min(1).max(8),
+        reportedSeverity: z.enum(['mild', 'moderate', 'severe', 'unknown']),
+        status: z.enum(['active', 'historical']),
+      })
+      .strict(),
+  ])
+  .superRefine((record, context) => {
+    if (
+      record.lane === 'medication_tolerability_findings' &&
+      (record.findingStatus === 'present') !== record.manifestationIds.length > 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['manifestationIds'],
+        message: 'Only a present projected tolerability finding may contain manifestations.',
+      });
+    }
+  });
+export type FrozenStructuredPatientStateRecord = z.infer<
+  typeof FrozenStructuredPatientStateRecordSchema
+>;
+
+export const FrozenStructuredPatientStateRecordLaneStatementSchema = z
+  .object({
+    lane: z.enum(STRUCTURED_PATIENT_STATE_REVEAL_LANES),
+    presentationStatus: z.enum(STRUCTURED_PATIENT_STATE_REVEAL_PRESENTATION_STATUSES),
+    records: z.array(FrozenStructuredPatientStateRecordSchema).max(512),
+  })
+  .strict()
+  .superRefine((statement, context) => {
+    const recordIds = statement.records.map((record) => record.recordId);
+    if (
+      statement.records.some((record) => record.lane !== statement.lane) ||
+      new Set(recordIds).size !== recordIds.length ||
+      JSON.stringify(recordIds) !== JSON.stringify([...recordIds].sort()) ||
+      (statement.presentationStatus === 'items_present') !== statement.records.length > 0
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['records'],
+        message:
+          'A projected structured lane requires matching unique records in stable ID order, present only for an items-present statement.',
+      });
+    }
+  });
+export type FrozenStructuredPatientStateRecordLaneStatement = z.infer<
+  typeof FrozenStructuredPatientStateRecordLaneStatementSchema
+>;
+
+export const StructuredPatientStateRecordProjectionFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.structured-patient-state-record-projection\.payload\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type StructuredPatientStateRecordProjectionFingerprint = z.infer<
+  typeof StructuredPatientStateRecordProjectionFingerprintSchema
+>;
+
+/**
+ * A complete minimized source view for later presentation. The corresponding
+ * D-212 envelope remains the replay authority; this projection contains no
+ * omitted record IDs, truth relation, generation trace, or hidden patient
+ * field.
+ */
+export const FrozenStructuredPatientStateRecordProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    resolvedStructuredRevealId: StableIdSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    informationActionId: StableIdSchema,
+    informationActionPayloadFingerprint: z
+      .string()
+      .regex(/^fingerprint\.information-action\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/),
+    patientStateId: StableIdSchema,
+    source: z
+      .object({
+        kind: z.enum(STRUCTURED_PATIENT_STATE_REVEAL_SOURCE_KINDS),
+        sourceInstanceId: StableIdSchema,
+      })
+      .strict(),
+    timeScopeId: StableIdSchema,
+    laneStatements: z.array(FrozenStructuredPatientStateRecordLaneStatementSchema).max(12),
+    singletonStatements: z.array(FrozenStructuredPatientStateRevealSingletonSchema).max(3),
+    payloadFingerprint: StructuredPatientStateRecordProjectionFingerprintSchema,
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    const lanes = projection.laneStatements.map((statement) => statement.lane);
+    const fields = projection.singletonStatements.map((statement) => statement.field);
+    const allRecordIds = projection.laneStatements.flatMap((statement) =>
+      statement.records.map((record) => record.recordId),
+    );
+    if (
+      new Set(lanes).size !== lanes.length ||
+      JSON.stringify(lanes) !== JSON.stringify([...lanes].sort()) ||
+      new Set(fields).size !== fields.length ||
+      JSON.stringify(fields) !== JSON.stringify([...fields].sort()) ||
+      new Set(allRecordIds).size !== allRecordIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A minimized structured-record projection requires unique lanes, singleton fields, and record IDs in stable order.',
+      });
+    }
+    const expectedId = `structured-patient-state-record-projection.${projection.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (projection.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A minimized structured-record projection ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type FrozenStructuredPatientStateRecordProjection = z.infer<
+  typeof FrozenStructuredPatientStateRecordProjectionSchema
+>;
+
+/**
  * Presentation-safe instrument response attached to a patient instance. The
  * complete D-220 artifact retains provenance and compiler audit separately;
  * this view contains no contributor graph, source claim, interpretation,
@@ -17396,6 +19389,49 @@ export const FrozenInstrumentItemResponseSchema = z
   })
   .strict();
 export type FrozenInstrumentItemResponse = z.infer<typeof FrozenInstrumentItemResponseSchema>;
+
+/**
+ * Strict presentation-safe projection of one verified D-283 administration.
+ * The full authoring artifact retains source-instance identity, item IDs,
+ * ranges, fingerprints, diagnostics, and compile requests.
+ */
+export const FrozenInstrumentAdministrationSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    informationActionId: StableIdSchema,
+    administrationDefinitionId: StableIdSchema,
+    administrationDefinitionContentVersion: ContentVersionSchema,
+    instrumentDefinitionId: StableIdSchema,
+    instrumentContentVersion: ContentVersionSchema,
+    respondentSourceKind: InstrumentRespondentSourceKindSchema,
+    timeScopeId: StableIdSchema,
+    rightsBoundaryId: StableIdSchema,
+    completionStatus: z.enum(['complete', 'partial']),
+    itemCount: z.number().int().positive(),
+    completedItemCount: z.number().int().nonnegative(),
+    missingItemCount: z.number().int().nonnegative(),
+    rawTotal: InstrumentAdministrationRawTotalSchema,
+  })
+  .strict()
+  .superRefine((administration, context) => {
+    if (
+      administration.completedItemCount + administration.missingItemCount !==
+        administration.itemCount ||
+      (administration.completionStatus === 'complete' && administration.missingItemCount !== 0) ||
+      (administration.completionStatus === 'partial' && administration.missingItemCount === 0) ||
+      (administration.completionStatus === 'partial' &&
+        administration.rawTotal.status !== 'not_calculated')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A frozen instrument administration requires an exact complete/partial item count and no calculated partial total.',
+      });
+    }
+  });
+export type FrozenInstrumentAdministration = z.infer<typeof FrozenInstrumentAdministrationSchema>;
 
 export const EncounterResultSourceReferenceSchema = z.discriminatedUnion('kind', [
   z
@@ -19458,8 +21494,11 @@ export const FindingPipelineAuditRequestSchema = z
     preFindingPatientStateOrchestrationArtifact: z.lazy(
       () => PreFindingPatientStateOrchestrationArtifactSchema,
     ),
-    conditionClinicalDurationAttachmentArtifact: z
-      .lazy(() => ConditionClinicalDurationAttachmentArtifactSchema)
+    patientTemplatePostCompositionAssemblyOrchestrationArtifact: z
+      .lazy(() => PatientTemplatePostCompositionAssemblyOrchestrationArtifactSchema)
+      .nullable(),
+    postCompositionPatientStateAssemblyArtifact: z
+      .lazy(() => PostCompositionPatientStateAssemblyArtifactSchema)
       .nullable(),
     downstream: FindingPipelineAuditDownstreamRequestSchema.nullable(),
   })
@@ -19499,27 +21538,64 @@ export const FindingPipelineAuditRequestSchema = z
     }
     const patientStateCompositionArtifact =
       request.preFindingPatientStateOrchestrationArtifact.patientStateCompositionArtifact;
-    const durationAttachment = request.conditionClinicalDurationAttachmentArtifact;
+    const resultOrchestration = request.patientTemplatePostCompositionAssemblyOrchestrationArtifact;
+    const rawPostCompositionAssembly = request.postCompositionPatientStateAssemblyArtifact;
+    const postCompositionAssembly =
+      resultOrchestration?.postCompositionAssembly ?? rawPostCompositionAssembly;
     const expectsDownstream =
       request.preFindingPatientStateOrchestrationArtifact.status === 'composed';
+    if (resultOrchestration !== null && rawPostCompositionAssembly !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['postCompositionPatientStateAssemblyArtifact'],
+        message:
+          'D-200 accepts either one canonical D-328 result-enabled orchestration or one result-free legacy D-312 assembly, never both.',
+      });
+    }
     if (
-      durationAttachment !== null &&
-      JSON.stringify(durationAttachment.attachmentRequest.patientStateCompositionArtifact) !==
+      rawPostCompositionAssembly !== null &&
+      rawPostCompositionAssembly.assemblyRequest.patientClinicalResultAttachmentArtifact !== null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['postCompositionPatientStateAssemblyArtifact'],
+        message:
+          'A result-enabled post-composition branch must enter D-200 through its exact D-328 orchestration rather than a caller-selected raw D-312 artifact.',
+      });
+    }
+    if (
+      resultOrchestration !== null &&
+      JSON.stringify(
+        resultOrchestration.compileRequest.clinicalResultAttachmentOrchestrationArtifact
+          .compileRequest.materializationArtifact.compileRequest.materializationContextArtifact
+          .compileRequest.patientSlotFillSeedAuthorityArtifact,
+      ) !== JSON.stringify(seedAuthority)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['patientTemplatePostCompositionAssemblyOrchestrationArtifact'],
+        message:
+          'The canonical D-328 result branch must retain the exact D-233 seed authority supplied to D-200.',
+      });
+    }
+    if (
+      postCompositionAssembly !== null &&
+      JSON.stringify(postCompositionAssembly.assemblyRequest.patientStateCompositionArtifact) !==
         JSON.stringify(patientStateCompositionArtifact)
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['conditionClinicalDurationAttachmentArtifact'],
+        path: ['postCompositionPatientStateAssemblyArtifact'],
         message:
-          'An optional D-264 duration attachment must retain the exact D-208 composition nested under this D-223 root.',
+          'An optional D-312 post-composition assembly must retain the exact D-208 composition nested under this D-223 root.',
       });
     }
-    if (!expectsDownstream && durationAttachment !== null) {
+    if (!expectsDownstream && postCompositionAssembly !== null) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['conditionClinicalDurationAttachmentArtifact'],
+        path: ['postCompositionPatientStateAssemblyArtifact'],
         message:
-          'A blocked D-223 root cannot supply a post-composition condition-duration attachment.',
+          'A blocked D-223 root cannot supply a D-312 post-composition patient-state assembly.',
       });
     }
     if (expectsDownstream !== (request.downstream !== null)) {
@@ -19591,8 +21667,11 @@ export const FindingPipelineAuditArtifactSchema = z
     preFindingPatientStateOrchestrationArtifact: z.lazy(
       () => PreFindingPatientStateOrchestrationArtifactSchema,
     ),
-    conditionClinicalDurationAttachmentArtifact: z
-      .lazy(() => ConditionClinicalDurationAttachmentArtifactSchema)
+    patientTemplatePostCompositionAssemblyOrchestrationArtifact: z
+      .lazy(() => PatientTemplatePostCompositionAssemblyOrchestrationArtifactSchema)
+      .nullable(),
+    postCompositionPatientStateAssemblyArtifact: z
+      .lazy(() => PostCompositionPatientStateAssemblyArtifactSchema)
       .nullable(),
     conditionFindingArtifact: ConditionFindingCardinalityArtifactSchema,
     backgroundFindingArtifact: BackgroundFindingOutcomeArtifactSchema,
@@ -19620,7 +21699,9 @@ export const FindingPipelineAuditArtifactSchema = z
     const capacityCertificate = seedAuthority.capacityBoundSlotCertificateArtifact;
     const patientStateCompositionArtifact =
       artifact.preFindingPatientStateOrchestrationArtifact.patientStateCompositionArtifact;
-    const durationAttachment = artifact.conditionClinicalDurationAttachmentArtifact;
+    const resultOrchestration =
+      artifact.patientTemplatePostCompositionAssemblyOrchestrationArtifact;
+    const postCompositionAssembly = artifact.postCompositionPatientStateAssemblyArtifact;
     const candidateIds = artifact.candidateUnion.map((candidate) => candidate.id);
     const contributionIds = artifact.candidateUnion.flatMap((candidate) =>
       candidate.contributions.map((contribution) => contribution.id),
@@ -19634,6 +21715,27 @@ export const FindingPipelineAuditArtifactSchema = z
         path: ['candidateUnion'],
         message:
           'The composed candidate union requires globally unique candidate and contribution IDs.',
+      });
+    }
+    if (
+      (resultOrchestration !== null &&
+        (postCompositionAssembly === null ||
+          JSON.stringify(resultOrchestration.postCompositionAssembly) !==
+            JSON.stringify(postCompositionAssembly) ||
+          JSON.stringify(
+            resultOrchestration.compileRequest.clinicalResultAttachmentOrchestrationArtifact
+              .compileRequest.materializationArtifact.compileRequest.materializationContextArtifact
+              .compileRequest.patientSlotFillSeedAuthorityArtifact,
+          ) !== JSON.stringify(artifact.patientSlotFillSeedAuthorityArtifact))) ||
+      (resultOrchestration === null &&
+        postCompositionAssembly !== null &&
+        postCompositionAssembly.assemblyRequest.patientClinicalResultAttachmentArtifact !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['patientTemplatePostCompositionAssemblyOrchestrationArtifact'],
+        message:
+          'A result-enabled D-200 artifact must retain its exact D-328 authority and derived D-312 assembly; a direct D-312 artifact must remain result-free.',
       });
     }
     const requestCandidateIds = artifact.catalogCompileRequest.sharedFindingRequest.candidates
@@ -19698,7 +21800,7 @@ export const FindingPipelineAuditArtifactSchema = z
       });
     }
     const composedState = patientStateCompositionArtifact.composedPatientState;
-    const preFindingPatientState = durationAttachment?.composedPatientState ?? composedState;
+    const preFindingPatientState = postCompositionAssembly?.composedPatientState ?? composedState;
     const applicability = artifact.weightedFindingTendencyApplicabilityArtifact;
     const expectsWeighted = applicability.contributorBindings.length > 0;
     if (
@@ -19706,8 +21808,8 @@ export const FindingPipelineAuditArtifactSchema = z
       patientStateCompositionArtifact.status !== 'composed' ||
       composedState === null ||
       preFindingPatientState === null ||
-      (durationAttachment !== null &&
-        JSON.stringify(durationAttachment.attachmentRequest.patientStateCompositionArtifact) !==
+      (postCompositionAssembly !== null &&
+        JSON.stringify(postCompositionAssembly.assemblyRequest.patientStateCompositionArtifact) !==
           JSON.stringify(patientStateCompositionArtifact)) ||
       applicability.patientStateCompositionRef.id !== patientStateCompositionArtifact.id ||
       applicability.patientStateCompositionRef.payloadFingerprint !==
@@ -19742,7 +21844,7 @@ export const FindingPipelineAuditArtifactSchema = z
         code: z.ZodIssueCode.custom,
         path: ['catalogCompileRequest'],
         message:
-          'The retained D-210/D-199/D-194 chain must derive applicability, weighted tendency, the exact D-208 or verified D-264 pre-finding patient state, condition bindings, and D-193 patient/proposition targets from the exact upstream artifacts.',
+          'The retained D-210/D-199/D-194 chain must derive applicability, weighted tendency, the exact D-208 or verified D-312 pre-finding patient state, condition bindings, and D-193 patient/proposition targets from the exact upstream artifacts.',
       });
     }
     if (
@@ -19827,7 +21929,7 @@ export type PatientOptionalFeatureModuleDefinition = z.infer<
 export const TemplateOptionalFeatureSelectionCountWeightSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
-    selectionCount: z.number().int().min(0).max(3),
+    selectionCount: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     gameSelectionWeight: z.number().int().positive().max(10_000),
   })
   .strict();
@@ -19842,7 +21944,7 @@ export const TemplateOptionalFeatureCandidateBindingSchema = z
     moduleRef: CatalogInstanceVersionedReferenceSchema,
     moduleFingerprint: OptionalFeatureBudgetFingerprintSchema,
     selectedModuleId: StableIdSchema,
-    cost: z.number().int().min(1).max(3),
+    cost: z.number().int().min(1).max(PATIENT_OPTIONAL_FEATURE_MAX_COST),
     impact: PatientOptionalFeatureImpactSchema,
     complexityContributions: z.array(ComplexityContributionSchema).min(1).max(5),
     gameSelectionWeight: z.number().int().positive().max(10_000),
@@ -19918,7 +22020,7 @@ export type TemplateOptionalFeatureIncompatibility = z.infer<
  * Cost consumes only the encounter-owned optional-richness budget.
  * gameSelectionWeight controls only deterministic variety.
  */
-export const TemplateOptionalFeatureSelectionProfileSchema = z
+const TemplateOptionalFeatureSelectionProfileV1Schema = z
   .object({
     schemaVersion: SchemaVersionSchema,
     contentVersion: ContentVersionSchema,
@@ -19926,12 +22028,39 @@ export const TemplateOptionalFeatureSelectionProfileSchema = z
     modelVersion: z.literal('weighted-optional-feature-budget-selection.v1'),
     templateRef: CatalogInstanceVersionedReferenceSchema,
     templateFingerprint: TemplateConditionSelectionFingerprintSchema,
-    countWeights: z.array(TemplateOptionalFeatureSelectionCountWeightSchema).min(1).max(4),
+    countWeights: z
+      .array(TemplateOptionalFeatureSelectionCountWeightSchema)
+      .min(1)
+      .max(LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES + 1),
     candidateBindings: z.array(TemplateOptionalFeatureCandidateBindingSchema).max(64),
     incompatibilities: z.array(TemplateOptionalFeatureIncompatibilitySchema).max(128),
     review: ClinicalRuleReviewSchema,
   })
-  .strict()
+  .strict();
+
+const TemplateOptionalFeatureSelectionProfileV2Schema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    modelVersion: z.literal('weighted-optional-feature-budget-selection.v2'),
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: TemplateConditionSelectionFingerprintSchema,
+    countWeights: z
+      .array(TemplateOptionalFeatureSelectionCountWeightSchema)
+      .min(1)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES + 1),
+    candidateBindings: z.array(TemplateOptionalFeatureCandidateBindingSchema).max(64),
+    incompatibilities: z.array(TemplateOptionalFeatureIncompatibilitySchema).max(128),
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict();
+
+export const TemplateOptionalFeatureSelectionProfileSchema = z
+  .discriminatedUnion('modelVersion', [
+    TemplateOptionalFeatureSelectionProfileV1Schema,
+    TemplateOptionalFeatureSelectionProfileV2Schema,
+  ])
   .superRefine((profile, context) => {
     const counts = profile.countWeights.map((entry) => entry.selectionCount);
     const bindingIds = profile.candidateBindings.map((binding) => binding.id);
@@ -19975,6 +22104,21 @@ export const TemplateOptionalFeatureSelectionProfileSchema = z
         message: 'An executable optional-feature selection profile requires explicit review.',
       });
     }
+    if (
+      profile.modelVersion === 'weighted-optional-feature-budget-selection.v1' &&
+      (profile.countWeights.some(
+        (entry) => entry.selectionCount > LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES,
+      ) ||
+        profile.candidateBindings.some(
+          (binding) => binding.cost > LEGACY_PATIENT_OPTIONAL_FEATURE_MAX_COST,
+        ))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Legacy v1 optional-feature profiles retain the original three-module and three-unit-per-module ceilings.',
+      });
+    }
   });
 export type TemplateOptionalFeatureSelectionProfile = z.infer<
   typeof TemplateOptionalFeatureSelectionProfileSchema
@@ -20014,6 +22158,18 @@ export const OptionalFeatureBudgetSelectionRequestSchema = z
         path: ['profile', 'templateRef'],
         message:
           'An optional-feature selection profile must pin this exact patient-template version.',
+      });
+    }
+    const expectedProfileModel =
+      request.template.complexityProfile.modelVersion === 'additional-feature-budget.v1'
+        ? 'weighted-optional-feature-budget-selection.v1'
+        : 'weighted-optional-feature-budget-selection.v2';
+    if (request.profile.modelVersion !== expectedProfileModel) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['profile', 'modelVersion'],
+        message:
+          'The optional-feature selection profile model must match the exact complexity-profile generation.',
       });
     }
     const expectedCounts = Array.from(
@@ -20098,7 +22254,7 @@ export type OptionalFeatureModuleReference = z.infer<typeof OptionalFeatureModul
 
 export const OptionalFeatureCountEvaluationSchema = z
   .object({
-    selectionCount: z.number().int().min(0).max(3),
+    selectionCount: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     gameSelectionWeight: z.number().int().positive().max(10_000),
     selected: z.boolean(),
   })
@@ -20150,12 +22306,12 @@ export type OptionalFeatureStepCandidateEvaluation = z.infer<
 
 export const OptionalFeatureSelectionDrawSchema = z
   .object({
-    selectionOrdinal: z.number().int().min(0).max(2),
+    selectionOrdinal: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL),
     selectedModuleDefinitionId: StableIdSchema,
     selectedBindingId: StableIdSchema,
     stableDrawId: StableIdSchema,
-    remainingBudgetBefore: z.number().int().min(0).max(6),
-    remainingBudgetAfter: z.number().int().min(0).max(6),
+    remainingBudgetBefore: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
+    remainingBudgetAfter: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
     candidateEvaluations: z.array(OptionalFeatureStepCandidateEvaluationSchema).min(1).max(64),
   })
   .strict()
@@ -20191,7 +22347,12 @@ export const OptionalFeatureCandidateEvaluationSchema = z
     gameSelectionWeight: z.number().int().positive().max(10_000),
     review: ClinicalRuleReviewSchema,
     disposition: z.enum(['selected', 'not_selected']),
-    selectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    selectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     stableDrawId: StableIdSchema.nullable(),
   })
   .strict()
@@ -20230,15 +22391,30 @@ export const OptionalFeatureBudgetSelectionArtifactSchema = z
     profileFingerprint: OptionalFeatureBudgetFingerprintSchema,
     moduleReferences: z.array(OptionalFeatureModuleReferenceSchema).max(64),
     seed: z.string().min(1).max(512),
-    additionalFeatureBudget: z.number().int().min(0).max(6),
-    maximumSelectedModules: z.number().int().min(0).max(3),
-    countEvaluations: z.array(OptionalFeatureCountEvaluationSchema).min(1).max(4),
-    selectedCount: z.number().int().min(0).max(3),
+    baselineComplexityUnits: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_COMPLEXITY_MAX_BASELINE_UNITS)
+      .nullable(),
+    additionalFeatureBudget: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
+    maximumSelectedModules: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    countEvaluations: z
+      .array(OptionalFeatureCountEvaluationSchema)
+      .min(1)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES + 1),
+    selectedCount: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     countStableDrawId: StableIdSchema,
-    selectionDraws: z.array(OptionalFeatureSelectionDrawSchema).max(3),
+    selectionDraws: z
+      .array(OptionalFeatureSelectionDrawSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     candidateEvaluations: z.array(OptionalFeatureCandidateEvaluationSchema).max(64),
-    totalSpent: z.number().int().min(0).max(6),
-    remainingBudget: z.number().int().min(0).max(6),
+    totalSpent: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
+    remainingBudget: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
     resultingComplexityProfile: PatientComplexityProfileSchema,
     selectionRequest: OptionalFeatureBudgetSelectionRequestSchema,
     inputFingerprint: OptionalFeatureBudgetFingerprintSchema,
@@ -20326,20 +22502,31 @@ export const OptionalFeatureBudgetSelectionArtifactSchema = z
       (left, right) => (left.id === right.id ? 0 : left.id < right.id ? -1 : 1),
     );
     const computedSpent = resultingModules.reduce((total, module) => total + module.cost, 0);
+    const requestComplexityProfile = artifact.selectionRequest.template.complexityProfile;
+    const expectedBaselineComplexityUnits =
+      requestComplexityProfile.modelVersion === 'baseline-plus-additional-budget.v2'
+        ? requestComplexityProfile.baselineComplexityUnits
+        : null;
     if (
       selectedCandidateTraces.join('\u0001') !== drawTraces.join('\u0001') ||
       JSON.stringify(selectedSnapshots) !== JSON.stringify(resultingModules) ||
+      artifact.resultingComplexityProfile.modelVersion !== requestComplexityProfile.modelVersion ||
+      artifact.baselineComplexityUnits !== expectedBaselineComplexityUnits ||
       artifact.totalSpent !== computedSpent ||
       artifact.remainingBudget !== artifact.additionalFeatureBudget - artifact.totalSpent ||
       artifact.resultingComplexityProfile.additionalFeatureBudget !==
         artifact.additionalFeatureBudget ||
-      artifact.resultingComplexityProfile.maximumSelectedModules !== artifact.maximumSelectedModules
+      artifact.resultingComplexityProfile.maximumSelectedModules !==
+        artifact.maximumSelectedModules ||
+      (artifact.resultingComplexityProfile.modelVersion === 'baseline-plus-additional-budget.v2' &&
+        artifact.resultingComplexityProfile.baselineComplexityUnits !==
+          expectedBaselineComplexityUnits)
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['resultingComplexityProfile'],
         message:
-          'The selected-module trace, total spent, remaining budget, and resulting complexity profile must agree exactly.',
+          'The recipe baseline, selected-module trace, total spent, remaining budget, and resulting complexity profile must agree exactly.',
       });
     }
     const expectedId = `optional-feature-budget-selection.${artifact.payloadFingerprint.slice(-16)}`;
@@ -20595,7 +22782,12 @@ export const OptionalComorbidityBridgeCandidateEvaluationSchema = z
     templateConditionId: StableIdSchema,
     configuredGameSelectionWeight: z.number().int().positive().max(10_000),
     disposition: z.enum(['selected_by_optional_feature', 'not_selected']),
-    optionalFeatureSelectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    optionalFeatureSelectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     optionalFeatureStableDrawId: StableIdSchema.nullable(),
     conditionStateId: StableIdSchema.nullable(),
   })
@@ -20683,7 +22875,9 @@ export const OptionalComorbidityBridgeArtifactSchema = z
     bridgeProfileRef: CatalogInstanceVersionedReferenceSchema,
     bridgeProfileFingerprint: OptionalComorbidityBridgeFingerprintSchema,
     requiredTemplateConditionIds: z.array(StableIdSchema).min(1),
-    selectedComorbidityModuleDefinitionIds: z.array(StableIdSchema).max(3),
+    selectedComorbidityModuleDefinitionIds: z
+      .array(StableIdSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     groupAudits: z.array(OptionalComorbidityBridgeGroupAuditSchema).max(12),
     conditionStates: z.array(ConditionStateSchema).min(1),
     conditionBindings: z.array(ResolvedTemplateConditionBindingSchema).min(1),
@@ -21119,7 +23313,12 @@ export const OptionalReactionHistoryCandidateEvaluationSchema = z
     selectedModuleId: StableIdSchema,
     reactionRecordIds: z.array(StableIdSchema).max(24),
     disposition: z.enum(['selected_by_optional_feature', 'not_selected']),
-    optionalFeatureSelectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    optionalFeatureSelectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     optionalFeatureStableDrawId: StableIdSchema.nullable(),
   })
   .strict()
@@ -21172,7 +23371,12 @@ export const OptionalReactionHistoryBridgeArtifactSchema = z
     selectedMappingId: StableIdSchema.nullable(),
     selectedOptionalFeatureBindingId: StableIdSchema.nullable(),
     selectedModuleId: StableIdSchema.nullable(),
-    optionalFeatureSelectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    optionalFeatureSelectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     optionalFeatureStableDrawId: StableIdSchema.nullable(),
     materializedReactionHistory: PatientReactionHistorySchema.nullable(),
     materializedReactionRecordIds: z.array(StableIdSchema).max(24),
@@ -21551,7 +23755,12 @@ export const OptionalPriorTreatmentCandidateEvaluationSchema = z
     currentProviderIds: z.array(StableIdSchema).max(32),
     priorLevelOfCareIds: z.array(StableIdSchema).max(64),
     disposition: z.enum(['selected_by_optional_feature', 'not_selected']),
-    optionalFeatureSelectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    optionalFeatureSelectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     optionalFeatureStableDrawId: StableIdSchema.nullable(),
   })
   .strict()
@@ -21586,10 +23795,10 @@ export type OptionalPriorTreatmentCandidateEvaluation = z.infer<
 
 const OptionalPriorTreatmentMaterializedRecordIdsSchema = z
   .object({
-    medicationTrialIds: z.array(StableIdSchema).max(384),
-    psychotherapyTrialIds: z.array(StableIdSchema).max(192),
-    currentProviderIds: z.array(StableIdSchema).max(96),
-    priorLevelOfCareIds: z.array(StableIdSchema).max(192),
+    medicationTrialIds: z.array(StableIdSchema).max(3_072),
+    psychotherapyTrialIds: z.array(StableIdSchema).max(1_536),
+    currentProviderIds: z.array(StableIdSchema).max(768),
+    priorLevelOfCareIds: z.array(StableIdSchema).max(1_536),
   })
   .strict();
 
@@ -21615,10 +23824,14 @@ export const OptionalPriorTreatmentBridgeArtifactSchema = z
     bridgeProfileRef: CatalogInstanceVersionedReferenceSchema,
     bridgeProfileFingerprint: OptionalPriorTreatmentBridgeFingerprintSchema,
     candidateEvaluations: z.array(OptionalPriorTreatmentCandidateEvaluationSchema).max(64),
-    selectedPriorTreatmentModuleDefinitionIds: z.array(StableIdSchema).max(3),
-    selectedMappingIds: z.array(StableIdSchema).max(3),
-    selectedOptionalFeatureBindingIds: z.array(StableIdSchema).max(3),
-    selectedModuleIds: z.array(StableIdSchema).max(3),
+    selectedPriorTreatmentModuleDefinitionIds: z
+      .array(StableIdSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedMappingIds: z.array(StableIdSchema).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedOptionalFeatureBindingIds: z
+      .array(StableIdSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedModuleIds: z.array(StableIdSchema).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     materializedTreatmentHistoryContribution: PatientTreatmentHistorySchema.nullable(),
     materializedRecordIds: OptionalPriorTreatmentMaterializedRecordIdsSchema,
     bridgeRequest: OptionalPriorTreatmentBridgeRequestSchema,
@@ -22120,7 +24333,12 @@ export const OptionalExposureCandidateEvaluationSchema = z
     useEntryIds: z.array(StableIdSchema).min(1).max(64),
     agentRefs: z.array(ExposureAgentReferenceSchema).min(1).max(64),
     disposition: z.enum(['selected_by_optional_feature', 'not_selected']),
-    optionalFeatureSelectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    optionalFeatureSelectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     optionalFeatureStableDrawId: StableIdSchema.nullable(),
   })
   .strict()
@@ -22156,7 +24374,7 @@ export type OptionalExposureCandidateEvaluation = z.infer<
 
 export const OptionalExposureMaterializedContributionSchema = z
   .object({
-    useEntries: z.array(ResolvedExposureUseEntrySchema).min(1).max(192),
+    useEntries: z.array(ResolvedExposureUseEntrySchema).min(1).max(1_536),
   })
   .strict()
   .superRefine((contribution, context) => {
@@ -22203,12 +24421,16 @@ export const OptionalExposureBudgetBridgeArtifactSchema = z
     bridgeProfileRef: CatalogInstanceVersionedReferenceSchema,
     bridgeProfileFingerprint: OptionalExposureBudgetBridgeFingerprintSchema,
     candidateEvaluations: z.array(OptionalExposureCandidateEvaluationSchema).max(64),
-    selectedExposureModuleDefinitionIds: z.array(StableIdSchema).max(3),
-    selectedMappingIds: z.array(StableIdSchema).max(3),
-    selectedOptionalFeatureBindingIds: z.array(StableIdSchema).max(3),
-    selectedModuleIds: z.array(StableIdSchema).max(3),
+    selectedExposureModuleDefinitionIds: z
+      .array(StableIdSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedMappingIds: z.array(StableIdSchema).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedOptionalFeatureBindingIds: z
+      .array(StableIdSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedModuleIds: z.array(StableIdSchema).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     materializedExposureContribution: OptionalExposureMaterializedContributionSchema.nullable(),
-    materializedUseEntryIds: z.array(StableIdSchema).max(192),
+    materializedUseEntryIds: z.array(StableIdSchema).max(1_536),
     bridgeRequest: OptionalExposureBudgetBridgeRequestSchema,
     inputFingerprint: OptionalExposureBudgetBridgeFingerprintSchema,
     payloadFingerprint: OptionalExposureBudgetBridgeFingerprintSchema,
@@ -22612,7 +24834,12 @@ export const OptionalFindingTextureCandidateEvaluationSchema = z
     optionalFeatureBindingId: StableIdSchema,
     selectedModuleId: StableIdSchema,
     disposition: z.enum(['selected_by_optional_feature', 'not_selected']),
-    optionalFeatureSelectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    optionalFeatureSelectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     optionalFeatureStableDrawId: StableIdSchema.nullable(),
     outcomeEvaluations: z.array(OptionalFindingTextureOutcomeEvaluationSchema).min(1).max(8),
   })
@@ -22659,16 +24886,28 @@ export const OptionalFindingTextureBridgeArtifactSchema = z
     referenceHorizonFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
     bridgeProfileRef: CatalogInstanceVersionedReferenceSchema,
     bridgeProfileFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
-    optionalFeatureSelectedCount: z.number().int().min(0).max(3),
-    optionalFeatureTotalSpent: z.number().int().min(0).max(6),
-    optionalFeatureRemainingBudget: z.number().int().min(0).max(6),
+    optionalFeatureSelectedCount: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    optionalFeatureTotalSpent: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
+    optionalFeatureRemainingBudget: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
     candidateEvaluations: z.array(OptionalFindingTextureCandidateEvaluationSchema).min(1).max(64),
-    selectedTextureModuleDefinitionIds: z.array(StableIdSchema).max(3),
-    selectedMappingIds: z.array(StableIdSchema).max(3),
-    selectedOptionalFeatureBindingIds: z.array(StableIdSchema).max(3),
-    selectedModuleIds: z.array(StableIdSchema).max(3),
-    replacedBackgroundFindingDefinitionIds: z.array(StableIdSchema).max(24),
-    candidates: z.array(FindingResolutionCandidateSchema).max(24),
+    selectedTextureModuleDefinitionIds: z
+      .array(StableIdSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedMappingIds: z.array(StableIdSchema).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedOptionalFeatureBindingIds: z
+      .array(StableIdSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    selectedModuleIds: z.array(StableIdSchema).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
+    replacedBackgroundFindingDefinitionIds: z.array(StableIdSchema).max(128),
+    candidates: z.array(FindingResolutionCandidateSchema).max(128),
     bridgeRequest: OptionalFindingTextureBridgeRequestSchema,
     inputFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
     payloadFingerprint: OptionalFindingTextureBridgeFingerprintSchema,
@@ -22781,11 +25020,11 @@ export const PatientStateOptionalModuleMaterializationAuditSchema = z
     moduleKind: PatientOptionalFeatureModuleKindSchema,
     bindingId: StableIdSchema,
     selectedModuleId: StableIdSchema,
-    selectionOrdinal: z.number().int().min(0).max(2),
+    selectionOrdinal: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL),
     stableDrawId: StableIdSchema,
-    cost: z.number().int().min(1).max(3),
-    remainingBudgetBefore: z.number().int().min(0).max(6),
-    remainingBudgetAfter: z.number().int().min(0).max(6),
+    cost: z.number().int().min(1).max(PATIENT_OPTIONAL_FEATURE_MAX_COST),
+    remainingBudgetBefore: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
+    remainingBudgetAfter: z.number().int().min(0).max(PATIENT_OPTIONAL_FEATURE_MAX_BUDGET),
     ownerKind: z.enum([
       'condition_source',
       'reaction_history_bridge',
@@ -23004,10 +25243,14 @@ export const ResolvedPatientStateCompositionArtifactSchema = z
       .strict()
       .nullable(),
     reactionHistoryOwnership: PatientStateReactionHistoryOwnershipSchema,
-    selectedModuleAudits: z.array(PatientStateOptionalModuleMaterializationAuditSchema).max(3),
+    selectedModuleAudits: z
+      .array(PatientStateOptionalModuleMaterializationAuditSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     coverageDiagnostics: z.array(PatientStateCompositionCoverageDiagnosticSchema).max(64),
     conditionBindings: z.array(ResolvedTemplateConditionBindingSchema),
-    blockers: z.array(PatientStateCompositionBlockerSchema).max(4),
+    blockers: z
+      .array(PatientStateCompositionBlockerSchema)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTED_MODULES),
     composedPatientState: ResolvedPatientStateSchema.nullable(),
     composedPatientStateFingerprint: ResolvedPatientStateCompositionFingerprintSchema.nullable(),
     compositionRequest: ResolvedPatientStateCompositionRequestSchema,
@@ -23455,6 +25698,4765 @@ export const ConditionClinicalDurationAttachmentArtifactSchema = z
   });
 export type ConditionClinicalDurationAttachmentArtifact = z.infer<
   typeof ConditionClinicalDurationAttachmentArtifactSchema
+>;
+
+export const ConditionFunctionalImpairmentAttachmentFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.condition-functional-impairment-attachment\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type ConditionFunctionalImpairmentAttachmentFingerprint = z.infer<
+  typeof ConditionFunctionalImpairmentAttachmentFingerprintSchema
+>;
+
+export const ConditionFunctionalImpairmentAttachmentResolutionReferenceSchema = z
+  .object({
+    id: StableIdSchema,
+    payloadFingerprint: ConditionFunctionalImpairmentResolutionFingerprintSchema,
+    patientStateId: StableIdSchema,
+    conditionStateId: StableIdSchema,
+    profileRef: CatalogInstanceVersionedReferenceSchema,
+    resolvedFunctionalImpairmentId: StableIdSchema,
+  })
+  .strict();
+export type ConditionFunctionalImpairmentAttachmentResolutionReference = z.infer<
+  typeof ConditionFunctionalImpairmentAttachmentResolutionReferenceSchema
+>;
+
+/**
+ * D-289 binds genuine D-267 results to one exact completed D-208 patient
+ * state without yet widening ResolvedPatientState or a runtime PatientInstance.
+ */
+export const ConditionFunctionalImpairmentAttachmentRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateCompositionArtifact: ResolvedPatientStateCompositionArtifactSchema,
+    functionalImpairmentResolutionArtifacts: z
+      .array(ConditionFunctionalImpairmentResolutionArtifactSchema)
+      .max(64),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const artifactIds = request.functionalImpairmentResolutionArtifacts.map(
+      (artifact) => artifact.id,
+    );
+    const impairmentIds = request.functionalImpairmentResolutionArtifacts.map(
+      (artifact) => artifact.resolvedFunctionalImpairment.id,
+    );
+    const assignmentKeys = request.functionalImpairmentResolutionArtifacts.map(
+      (artifact) => `${artifact.conditionStateId}\u0000${artifact.profileRef.id}`,
+    );
+    if (
+      new Set(artifactIds).size !== artifactIds.length ||
+      new Set(impairmentIds).size !== impairmentIds.length ||
+      new Set(assignmentKeys).size !== assignmentKeys.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['functionalImpairmentResolutionArtifacts'],
+        message:
+          'A condition-functional-impairment attachment request must contain unique artifacts, resolved records, and exact condition/profile assignments.',
+      });
+    }
+  });
+export type ConditionFunctionalImpairmentAttachmentRequest = z.infer<
+  typeof ConditionFunctionalImpairmentAttachmentRequestSchema
+>;
+
+export const ConditionFunctionalImpairmentAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    resolverVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateCompositionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+        composedPatientStateFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    basePatientStateRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    functionalImpairmentResolutionRefs: z
+      .array(ConditionFunctionalImpairmentAttachmentResolutionReferenceSchema)
+      .max(64),
+    attachedFunctionalImpairments: z.array(ResolvedConditionFunctionalImpairmentSchema).max(64),
+    attachmentRequest: ConditionFunctionalImpairmentAttachmentRequestSchema,
+    inputFingerprint: ConditionFunctionalImpairmentAttachmentFingerprintSchema,
+    payloadFingerprint: ConditionFunctionalImpairmentAttachmentFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.attachmentRequest;
+    const composition = request.patientStateCompositionArtifact;
+    const baseState = composition.composedPatientState;
+    if (
+      composition.status !== 'composed' ||
+      baseState === null ||
+      composition.composedPatientStateFingerprint === null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['attachmentRequest', 'patientStateCompositionArtifact'],
+        message:
+          'Condition-functional-impairment records may attach only to a completed D-208 patient state.',
+      });
+      return;
+    }
+
+    const expectedResolutionRefs = request.functionalImpairmentResolutionArtifacts.map(
+      (resolution) => ({
+        id: resolution.id,
+        payloadFingerprint: resolution.payloadFingerprint,
+        patientStateId: resolution.patientStateId,
+        conditionStateId: resolution.conditionStateId,
+        profileRef: resolution.profileRef,
+        resolvedFunctionalImpairmentId: resolution.resolvedFunctionalImpairment.id,
+      }),
+    );
+    const expectedImpairments = request.functionalImpairmentResolutionArtifacts.map(
+      (resolution) => resolution.resolvedFunctionalImpairment,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateCompositionRef.id !== composition.id ||
+      artifact.patientStateCompositionRef.payloadFingerprint !== composition.payloadFingerprint ||
+      artifact.patientStateCompositionRef.composedPatientStateFingerprint !==
+        composition.composedPatientStateFingerprint ||
+      artifact.basePatientStateRef.id !== baseState.id ||
+      artifact.basePatientStateRef.fingerprint !== composition.composedPatientStateFingerprint ||
+      JSON.stringify(artifact.functionalImpairmentResolutionRefs) !==
+        JSON.stringify(expectedResolutionRefs) ||
+      JSON.stringify(artifact.attachedFunctionalImpairments) !== JSON.stringify(expectedImpairments)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A condition-functional-impairment attachment must retain the exact D-208 composition and every exact D-267 result once.',
+      });
+    }
+
+    const conditionById = new Map(
+      baseState.conditionStates.map((condition) => [condition.id, condition]),
+    );
+    const sameCondition = (left: ConditionState, right: ConditionState) =>
+      left.id === right.id &&
+      left.diagnosisDefinitionId === right.diagnosisDefinitionId &&
+      left.diagnosisDefinitionContentVersion === right.diagnosisDefinitionContentVersion &&
+      left.clinicalStateId === right.clinicalStateId &&
+      left.timeScopeId === right.timeScopeId &&
+      left.encounterRelevance === right.encounterRelevance &&
+      left.severityId === right.severityId &&
+      JSON.stringify([...left.specifierIds].sort()) ===
+        JSON.stringify([...right.specifierIds].sort()) &&
+      left.origin === right.origin &&
+      JSON.stringify(left.resolution) === JSON.stringify(right.resolution);
+    for (const [
+      resolutionIndex,
+      resolution,
+    ] of request.functionalImpairmentResolutionArtifacts.entries()) {
+      const targetCondition = conditionById.get(resolution.conditionStateId);
+      if (
+        resolution.patientStateId !== baseState.id ||
+        targetCondition === undefined ||
+        !sameCondition(targetCondition, resolution.compileRequest.conditionState)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['attachmentRequest', 'functionalImpairmentResolutionArtifacts', resolutionIndex],
+          message:
+            'Every D-267 artifact must target this exact composed patient state and one unchanged included condition.',
+        });
+      }
+    }
+
+    const expectedArtifactId = `condition-functional-impairment-attachment.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedArtifactId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A condition-functional-impairment attachment ID must use ${expectedArtifactId}.`,
+      });
+    }
+  });
+export type ConditionFunctionalImpairmentAttachmentArtifact = z.infer<
+  typeof ConditionFunctionalImpairmentAttachmentArtifactSchema
+>;
+
+/**
+ * Strict target-redacted view of one condition-attributed functional-
+ * impairment result. The complete D-289 attachment remains the only owner of
+ * diagnosis/condition targets, profile and option identities, source-instance
+ * identity, and deterministic-generation audit.
+ */
+export const FrozenConditionFunctionalImpairmentSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    level: FunctionalImpairmentLevelSchema,
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+    timeScopeId: StableIdSchema,
+  })
+  .strict();
+export type FrozenConditionFunctionalImpairment = z.infer<
+  typeof FrozenConditionFunctionalImpairmentSchema
+>;
+
+/**
+ * D-290 projects one complete replay-valid D-289 envelope into a minimized
+ * collection that can later be considered by an independently reviewed result
+ * attachment. It is not itself a PatientInstance or information-action result.
+ */
+export const FrozenConditionFunctionalImpairmentProjectionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    functionalImpairments: z.array(FrozenConditionFunctionalImpairmentSchema).max(64),
+  })
+  .strict()
+  .superRefine((projection, context) => {
+    const ids = projection.functionalImpairments.map((impairment) => impairment.id);
+    if (
+      new Set(ids).size !== ids.length ||
+      JSON.stringify(ids) !== JSON.stringify([...ids].sort())
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['functionalImpairments'],
+        message:
+          'A frozen functional-impairment projection requires unique records in stable ID order.',
+      });
+    }
+  });
+export type FrozenConditionFunctionalImpairmentProjection = z.infer<
+  typeof FrozenConditionFunctionalImpairmentProjectionSchema
+>;
+
+/**
+ * Point-free definition of one patient-scene source role. This establishes
+ * identity and kind only; it does not encode credibility, accuracy,
+ * independence, information-action access, or player-facing wording.
+ */
+export const PatientSceneSourceInstanceDefinitionSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    kind: PatientSceneEvidenceSourceKindSchema,
+  })
+  .strict();
+export type PatientSceneSourceInstanceDefinition = z.infer<
+  typeof PatientSceneSourceInstanceDefinitionSchema
+>;
+
+export const PatientSceneSourceDefinitionCatalogSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    definitions: z.array(PatientSceneSourceInstanceDefinitionSchema).min(1).max(128),
+  })
+  .strict()
+  .superRefine((catalog, context) => {
+    const definitionIds = catalog.definitions.map((definition) => definition.id);
+    if (
+      new Set(definitionIds).size !== definitionIds.length ||
+      JSON.stringify(definitionIds) !== JSON.stringify([...definitionIds].sort())
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['definitions'],
+        message:
+          'A patient-scene source-definition catalog requires unique definitions in stable ID order.',
+      });
+    }
+  });
+export type PatientSceneSourceDefinitionCatalog = z.infer<
+  typeof PatientSceneSourceDefinitionCatalogSchema
+>;
+
+export const PatientSceneSourceInstanceSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    definitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+      })
+      .strict(),
+    kind: PatientSceneEvidenceSourceKindSchema,
+  })
+  .strict();
+export type PatientSceneSourceInstance = z.infer<typeof PatientSceneSourceInstanceSchema>;
+
+export const PatientSceneSourceInstanceCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-scene-source-instance-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientSceneSourceInstanceCompilationFingerprint = z.infer<
+  typeof PatientSceneSourceInstanceCompilationFingerprintSchema
+>;
+
+export const PatientSceneSourceInstanceCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    definitions: z.array(PatientSceneSourceInstanceDefinitionSchema).max(128),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const definitionIds = request.definitions.map((definition) => definition.id);
+    if (new Set(definitionIds).size !== definitionIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['definitions'],
+        message:
+          'A patient-scene source-instance request may include each stable definition ID once.',
+      });
+    }
+  });
+export type PatientSceneSourceInstanceCompilationRequest = z.infer<
+  typeof PatientSceneSourceInstanceCompilationRequestSchema
+>;
+
+/**
+ * D-291 freezes the exact structural source-instance horizon for one patient.
+ * The complete request is authoring audit; downstream records should retain
+ * only the instance ID and matching source kind.
+ */
+export const PatientSceneSourceInstanceCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sourceInstances: z.array(PatientSceneSourceInstanceSchema).max(128),
+    compileRequest: PatientSceneSourceInstanceCompilationRequestSchema,
+    inputFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+    payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const sortedDefinitions = [...request.definitions].sort((left, right) =>
+      `${left.id}@${left.contentVersion}`.localeCompare(`${right.id}@${right.contentVersion}`),
+    );
+    const sourceInstanceIds = artifact.sourceInstances.map((instance) => instance.id);
+    const instanceDefinitionIds = artifact.sourceInstances.map(
+      (instance) => instance.definitionRef.id,
+    );
+    const exactDefinitionBindings = artifact.sourceInstances.every((instance, index) => {
+      const definition = request.definitions[index];
+      return (
+        definition !== undefined &&
+        instance.patientStateId === artifact.patientStateId &&
+        instance.definitionRef.id === definition.id &&
+        instance.definitionRef.contentVersion === definition.contentVersion &&
+        instance.kind === definition.kind
+      );
+    });
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      JSON.stringify(request.definitions) !== JSON.stringify(sortedDefinitions) ||
+      artifact.sourceInstances.length !== request.definitions.length ||
+      new Set(sourceInstanceIds).size !== sourceInstanceIds.length ||
+      new Set(instanceDefinitionIds).size !== instanceDefinitionIds.length ||
+      !exactDefinitionBindings
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A patient-scene source-instance artifact must retain one exact, ordered definition binding for its patient.',
+      });
+    }
+    const expectedId = `patient-scene-source-instance-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A patient-scene source-instance artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientSceneSourceInstanceCompilationArtifact = z.infer<
+  typeof PatientSceneSourceInstanceCompilationArtifactSchema
+>;
+
+export const CatalogPatientSceneSourceInstanceCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.catalog-patient-scene-source-instance-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type CatalogPatientSceneSourceInstanceCompilationFingerprint = z.infer<
+  typeof CatalogPatientSceneSourceInstanceCompilationFingerprintSchema
+>;
+
+/**
+ * Authoring-only D-305 request. The adapter derives D-291's definition
+ * horizon from one exact checked-in source-role catalog rather than accepting
+ * an independently assembled definition array.
+ */
+export const CatalogPatientSceneSourceInstanceCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sourceDefinitionCatalog: PatientSceneSourceDefinitionCatalogSchema,
+  })
+  .strict();
+export type CatalogPatientSceneSourceInstanceCompilationRequest = z.infer<
+  typeof CatalogPatientSceneSourceInstanceCompilationRequestSchema
+>;
+
+export const CatalogPatientSceneSourceInstanceCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sourceDefinitionCatalogRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: CatalogPatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+    compileRequest: CatalogPatientSceneSourceInstanceCompilationRequestSchema,
+    inputFingerprint: CatalogPatientSceneSourceInstanceCompilationFingerprintSchema,
+    payloadFingerprint: CatalogPatientSceneSourceInstanceCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const catalog = request.sourceDefinitionCatalog;
+    const sourceCompilation = artifact.sourceInstanceCompilation;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.sourceDefinitionCatalogRef.id !== catalog.id ||
+      artifact.sourceDefinitionCatalogRef.contentVersion !== catalog.contentVersion ||
+      artifact.sourceInstanceCompilationRef.id !== sourceCompilation.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceCompilation.payloadFingerprint ||
+      sourceCompilation.patientStateId !== request.patientStateId ||
+      JSON.stringify(sourceCompilation.compileRequest.definitions) !==
+        JSON.stringify(catalog.definitions)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A catalog source-instance artifact must retain its exact catalog, patient, and derived D-291 definition horizon.',
+      });
+    }
+    const expectedId = `catalog-patient-scene-source-instance-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A catalog source-instance artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type CatalogPatientSceneSourceInstanceCompilationArtifact = z.infer<
+  typeof CatalogPatientSceneSourceInstanceCompilationArtifactSchema
+>;
+
+export const NumericStructuredTestResultCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.numeric-structured-test-result-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type NumericStructuredTestResultCompilationFingerprint = z.infer<
+  typeof NumericStructuredTestResultCompilationFingerprintSchema
+>;
+
+export const NumericStructuredTestGenerationContextSchema = z
+  .object({
+    ageYears: z.number().int().nonnegative().max(150),
+    sexForReference: z.enum(['female', 'male', 'intersex', 'unspecified']),
+    diagnosisIds: z.array(StableIdSchema).max(64),
+    clinicalTagIds: z.array(StableIdSchema).max(256),
+  })
+  .strict()
+  .superRefine((generationContext, context) => {
+    if (
+      new Set(generationContext.diagnosisIds).size !== generationContext.diagnosisIds.length ||
+      new Set(generationContext.clinicalTagIds).size !== generationContext.clinicalTagIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Numeric test-generation diagnosis and clinical-tag IDs must be unique.',
+      });
+    }
+  });
+export type NumericStructuredTestGenerationContext = z.infer<
+  typeof NumericStructuredTestGenerationContextSchema
+>;
+
+/**
+ * Authoring-only D-306 request. It resolves one noncritical numeric panel from
+ * the existing per-test generation contract and one exact catalog-backed
+ * patient-scene source horizon. Patient-owned or case-defining test results
+ * remain separate authored state.
+ */
+export const NumericStructuredTestResultCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    seed: z.string().min(1).max(512),
+    testDefinition: TestDefinitionSchema,
+    generationContext: NumericStructuredTestGenerationContextSchema,
+    referenceIntervalSets: z.array(ReferenceIntervalSetDefinitionSchema).min(1).max(32),
+    sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    timeScopeId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const test = request.testDefinition;
+    if (test.generator.type !== 'numeric_panel' || test.resultContract.kind !== 'numeric_panel') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['testDefinition'],
+        message:
+          'A numeric structured-test result compilation requires one generated numeric-panel definition.',
+      });
+      return;
+    }
+    const referenceIntervalKeys = request.referenceIntervalSets.map(
+      (definition) => `${definition.id}\u0000${definition.contentVersion}`,
+    );
+    const referenceIntervalIds = request.referenceIntervalSets.map((definition) => definition.id);
+    const referencedIntervalIds = new Set(
+      test.generator.profiles.map((profile) => profile.referenceIntervalSetId),
+    );
+    if (
+      new Set(referenceIntervalKeys).size !== referenceIntervalKeys.length ||
+      new Set(referenceIntervalIds).size !== referenceIntervalIds.length ||
+      [...referencedIntervalIds].some((id) => !referenceIntervalIds.includes(id))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['referenceIntervalSets'],
+        message:
+          'Numeric test generation requires one exact, unique reference-interval owner for every profile reference.',
+      });
+    }
+    const sourceCompilation = request.sourceInstanceCompilation;
+    const sourceCatalog = sourceCompilation.compileRequest.sourceDefinitionCatalog;
+    const sourceDefinition = sourceCatalog.definitions.find(
+      (definition) =>
+        definition.id === request.sourceDefinitionRef.id &&
+        definition.contentVersion === request.sourceDefinitionRef.contentVersion,
+    );
+    const expectedSourceKind =
+      test.category === 'laboratory' ? 'laboratory_result' : 'diagnostic_study_result';
+    if (
+      request.patientStateId !== sourceCompilation.patientStateId ||
+      sourceDefinition === undefined ||
+      sourceDefinition.kind !== expectedSourceKind
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDefinitionRef'],
+        message:
+          'Numeric test generation requires one same-patient catalog source role whose kind matches the test category.',
+      });
+    }
+  });
+export type NumericStructuredTestResultCompilationRequest = z.infer<
+  typeof NumericStructuredTestResultCompilationRequestSchema
+>;
+
+export const NumericStructuredTestResultCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    testDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: NumericStructuredTestResultCompilationFingerprintSchema,
+      })
+      .strict(),
+    selectedProfileRef: z
+      .object({
+        id: StableIdSchema,
+        ownerContentVersion: ContentVersionSchema,
+        fingerprint: NumericStructuredTestResultCompilationFingerprintSchema,
+      })
+      .strict(),
+    referenceIntervalSetRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: NumericStructuredTestResultCompilationFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceRef: z
+      .object({
+        id: StableIdSchema,
+        kind: PatientSceneEvidenceSourceKindSchema,
+        definitionRef: CatalogInstanceVersionedReferenceSchema,
+      })
+      .strict(),
+    result: StructuredTestResultSchema,
+    compileRequest: NumericStructuredTestResultCompilationRequestSchema,
+    inputFingerprint: NumericStructuredTestResultCompilationFingerprintSchema,
+    payloadFingerprint: NumericStructuredTestResultCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const test = request.testDefinition;
+    const selectedProfile =
+      test.generator.type === 'numeric_panel'
+        ? test.generator.profiles.find((profile) => profile.id === artifact.selectedProfileRef.id)
+        : undefined;
+    const referenceIntervalSet = request.referenceIntervalSets.find(
+      (definition) => definition.id === artifact.referenceIntervalSetRef.id,
+    );
+    const sourceInstance =
+      request.sourceInstanceCompilation.sourceInstanceCompilation.sourceInstances.find(
+        (instance) => instance.id === artifact.sourceInstanceRef.id,
+      );
+    const result = artifact.result;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.testDefinitionRef.id !== test.id ||
+      artifact.testDefinitionRef.contentVersion !== test.contentVersion ||
+      selectedProfile === undefined ||
+      artifact.selectedProfileRef.ownerContentVersion !== test.contentVersion ||
+      referenceIntervalSet === undefined ||
+      selectedProfile.referenceIntervalSetId !== referenceIntervalSet.id ||
+      artifact.referenceIntervalSetRef.contentVersion !== referenceIntervalSet.contentVersion ||
+      sourceInstance === undefined ||
+      sourceInstance.patientStateId !== request.patientStateId ||
+      sourceInstance.kind !== artifact.sourceInstanceRef.kind ||
+      sourceInstance.definitionRef.id !== artifact.sourceInstanceRef.definitionRef.id ||
+      sourceInstance.definitionRef.contentVersion !==
+        artifact.sourceInstanceRef.definitionRef.contentVersion ||
+      artifact.sourceInstanceRef.definitionRef.id !== request.sourceDefinitionRef.id ||
+      artifact.sourceInstanceRef.definitionRef.contentVersion !==
+        request.sourceDefinitionRef.contentVersion ||
+      result.kind !== 'numeric_panel' ||
+      result.testDefinitionId !== test.id ||
+      result.testDefinitionContentVersion !== test.contentVersion ||
+      result.source.kind !== artifact.sourceInstanceRef.kind ||
+      result.source.sourceInstanceId !== artifact.sourceInstanceRef.id ||
+      result.timeScopeId !== request.timeScopeId ||
+      result.resolution.origin !== 'deterministic_generation' ||
+      result.resolution.generationProfileId !== artifact.selectedProfileRef.id ||
+      result.resolution.generationProfileContentVersion !== test.contentVersion ||
+      result.resolution.resolverVersion !== artifact.compilerVersion ||
+      result.components.some(
+        (component) =>
+          component.referenceInterval.populationDefinitionId !== referenceIntervalSet.id,
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A numeric structured-test artifact must retain one exact patient, test/profile, reference-interval, source-role, and generated result chain.',
+      });
+    }
+    const expectedId = `numeric-structured-test-result-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A numeric structured-test result artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type NumericStructuredTestResultCompilationArtifact = z.infer<
+  typeof NumericStructuredTestResultCompilationArtifactSchema
+>;
+
+export const PatientOwnedStructuredTestResultPayloadSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('numeric_panel'),
+      components: z.array(NumericStructuredTestResultComponentSchema).min(1),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('categorical_panel'),
+      components: z.array(CategoricalStructuredTestResultComponentSchema).min(1),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('binary'),
+      outcome: z.enum(['positive', 'negative', 'indeterminate']),
+      displayValue: z.string().trim().min(1).max(120),
+      interpretationIds: z.array(StableIdSchema),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('structured_findings'),
+      resultDomain: z.enum(['imaging', 'electrical_study']),
+      findings: z
+        .array(
+          z
+            .object({
+              findingId: StableIdSchema,
+              outcome: z.enum([
+                'present',
+                'absent',
+                'normal',
+                'high',
+                'low',
+                'positive',
+                'negative',
+                'indeterminate',
+              ]),
+              displayValue: z.string().trim().min(1).max(180),
+            })
+            .strict(),
+        )
+        .min(1),
+      overallInterpretationId: StableIdSchema.nullable(),
+    })
+    .strict(),
+]);
+export type PatientOwnedStructuredTestResultPayload = z.infer<
+  typeof PatientOwnedStructuredTestResultPayloadSchema
+>;
+
+/**
+ * An exact authored result profile is the content owner for a patient-owned or
+ * case-defining test result. It contains no patient ID, source instance, action
+ * availability, or point semantics and remains unattached until a later exact
+ * encounter recipe selects it.
+ */
+export const PatientOwnedStructuredTestResultProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    testDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    payload: PatientOwnedStructuredTestResultPayloadSchema,
+    sourceUseNoteIds: z.array(StableIdSchema),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    if (new Set(profile.sourceUseNoteIds).size !== profile.sourceUseNoteIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceUseNoteIds'],
+        message: 'Patient-owned test-result source-use references must be unique.',
+      });
+    }
+    if (profile.medicalReviewStatus !== profile.review.status) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review'],
+        message:
+          'A patient-owned test-result profile medical-review status must match its exact review record.',
+      });
+    }
+  });
+export type PatientOwnedStructuredTestResultProfile = z.infer<
+  typeof PatientOwnedStructuredTestResultProfileSchema
+>;
+
+export const PatientOwnedStructuredTestResultCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-owned-structured-test-result-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientOwnedStructuredTestResultCompilationFingerprint = z.infer<
+  typeof PatientOwnedStructuredTestResultCompilationFingerprintSchema
+>;
+
+export const PatientOwnedStructuredTestResultCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    testDefinition: TestDefinitionSchema,
+    resultProfile: PatientOwnedStructuredTestResultProfileSchema,
+    sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    timeScopeId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const test = request.testDefinition;
+    const profile = request.resultProfile;
+    if (test.generator.type !== 'patient_owned') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['testDefinition', 'generator'],
+        message:
+          'A patient-owned structured-test result compilation requires a patient-owned test definition.',
+      });
+    }
+    if (
+      profile.testDefinitionRef.id !== test.id ||
+      profile.testDefinitionRef.contentVersion !== test.contentVersion ||
+      profile.payload.kind !== test.resultContract.kind
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resultProfile'],
+        message:
+          'A patient-owned result profile must target the exact test definition and result kind.',
+      });
+    }
+    const sourceCompilation = request.sourceInstanceCompilation;
+    const sourceCatalog = sourceCompilation.compileRequest.sourceDefinitionCatalog;
+    const sourceDefinition = sourceCatalog.definitions.find(
+      (definition) =>
+        definition.id === request.sourceDefinitionRef.id &&
+        definition.contentVersion === request.sourceDefinitionRef.contentVersion,
+    );
+    const expectedSourceKind =
+      test.category === 'laboratory' ? 'laboratory_result' : 'diagnostic_study_result';
+    if (
+      request.patientStateId !== sourceCompilation.patientStateId ||
+      sourceDefinition === undefined ||
+      sourceDefinition.kind !== expectedSourceKind
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDefinitionRef'],
+        message:
+          'A patient-owned test result requires one same-patient catalog source role whose kind matches the test category.',
+      });
+    }
+  });
+export type PatientOwnedStructuredTestResultCompilationRequest = z.infer<
+  typeof PatientOwnedStructuredTestResultCompilationRequestSchema
+>;
+
+export const PatientOwnedStructuredTestResultCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    testDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientOwnedStructuredTestResultCompilationFingerprintSchema,
+      })
+      .strict(),
+    resultProfileRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientOwnedStructuredTestResultCompilationFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceRef: z
+      .object({
+        id: StableIdSchema,
+        kind: PatientSceneEvidenceSourceKindSchema,
+        definitionRef: CatalogInstanceVersionedReferenceSchema,
+      })
+      .strict(),
+    result: StructuredTestResultSchema,
+    compileRequest: PatientOwnedStructuredTestResultCompilationRequestSchema,
+    inputFingerprint: PatientOwnedStructuredTestResultCompilationFingerprintSchema,
+    payloadFingerprint: PatientOwnedStructuredTestResultCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const test = request.testDefinition;
+    const profile = request.resultProfile;
+    const sourceInstance =
+      request.sourceInstanceCompilation.sourceInstanceCompilation.sourceInstances.find(
+        (instance) => instance.id === artifact.sourceInstanceRef.id,
+      );
+    const result = artifact.result;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.testDefinitionRef.id !== test.id ||
+      artifact.testDefinitionRef.contentVersion !== test.contentVersion ||
+      artifact.resultProfileRef.id !== profile.id ||
+      artifact.resultProfileRef.contentVersion !== profile.contentVersion ||
+      sourceInstance === undefined ||
+      sourceInstance.patientStateId !== request.patientStateId ||
+      sourceInstance.kind !== artifact.sourceInstanceRef.kind ||
+      sourceInstance.definitionRef.id !== artifact.sourceInstanceRef.definitionRef.id ||
+      sourceInstance.definitionRef.contentVersion !==
+        artifact.sourceInstanceRef.definitionRef.contentVersion ||
+      artifact.sourceInstanceRef.definitionRef.id !== request.sourceDefinitionRef.id ||
+      artifact.sourceInstanceRef.definitionRef.contentVersion !==
+        request.sourceDefinitionRef.contentVersion ||
+      result.testDefinitionId !== test.id ||
+      result.testDefinitionContentVersion !== test.contentVersion ||
+      result.kind !== profile.payload.kind ||
+      result.source.kind !== artifact.sourceInstanceRef.kind ||
+      result.source.sourceInstanceId !== artifact.sourceInstanceRef.id ||
+      result.timeScopeId !== request.timeScopeId ||
+      result.resolution.origin !== 'authored' ||
+      result.resolution.ownerId !== profile.id ||
+      result.resolution.ownerContentVersion !== profile.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A patient-owned structured-test artifact must retain one exact patient, test, authored profile, source role, and result chain.',
+      });
+    }
+    const expectedId = `patient-owned-structured-test-result-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A patient-owned structured-test result artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientOwnedStructuredTestResultCompilationArtifact = z.infer<
+  typeof PatientOwnedStructuredTestResultCompilationArtifactSchema
+>;
+
+/**
+ * One reviewed numeric support band for deterministic measurement generation.
+ * Relative weight controls only selection within its owning profile. It is not
+ * a point value, evidence weight, clinical interpretation, or reference range.
+ */
+export const GeneratedMeasurementValueBandSchema = z
+  .object({
+    id: StableIdSchema,
+    minimum: z.number().finite(),
+    maximum: z.number().finite(),
+    relativeWeight: z.number().positive().max(1_000_000),
+  })
+  .strict()
+  .refine((band) => band.minimum <= band.maximum, {
+    message: 'A generated measurement value-band minimum must not exceed its maximum.',
+  });
+export type GeneratedMeasurementValueBand = z.infer<typeof GeneratedMeasurementValueBandSchema>;
+
+/**
+ * A versioned, reviewed distribution profile for one exact measurement.
+ * It may vary a neutral value by typed patient context, but it cannot interpret
+ * that value or infer a body-habitus, diagnosis, clinical tag, rule, or point.
+ */
+export const GeneratedMeasurementValueProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    measurementDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    priority: z.number().int(),
+    when: TestContextPredicateSchema,
+    valueBands: z.array(GeneratedMeasurementValueBandSchema).min(1).max(128),
+    contextValues: z.array(MeasurementContextValueSchema),
+    sourceUseNoteIds: z.array(StableIdSchema),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    const valueBandIds = profile.valueBands.map((band) => band.id);
+    const contextDimensionIds = profile.contextValues.map((value) => value.dimensionId);
+    if (
+      new Set(valueBandIds).size !== valueBandIds.length ||
+      new Set(contextDimensionIds).size !== contextDimensionIds.length ||
+      new Set(profile.sourceUseNoteIds).size !== profile.sourceUseNoteIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A generated measurement profile requires unique value bands, context dimensions, and source-use references.',
+      });
+    }
+    if (profile.medicalReviewStatus !== profile.review.status) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review'],
+        message:
+          'A generated measurement profile medical-review status must match its exact review record.',
+      });
+    }
+  });
+export type GeneratedMeasurementValueProfile = z.infer<
+  typeof GeneratedMeasurementValueProfileSchema
+>;
+
+export const GeneratedMeasurementCompilationFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.generated-measurement-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type GeneratedMeasurementCompilationFingerprint = z.infer<
+  typeof GeneratedMeasurementCompilationFingerprintSchema
+>;
+
+/**
+ * Authoring-only generated-measurement request. The exact patient seed and
+ * typed context select one reviewed profile and one weighted support band.
+ */
+export const GeneratedMeasurementCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    seed: z.string().min(1).max(512),
+    measurementDefinition: MeasurementDefinitionSchema,
+    generationContext: NumericStructuredTestGenerationContextSchema,
+    generationProfiles: z.array(GeneratedMeasurementValueProfileSchema).min(1).max(128),
+    sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    timeScopeId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const definition = request.measurementDefinition;
+    const profileIds = request.generationProfiles.map(
+      (profile) => `${profile.id}\u0000${profile.contentVersion}`,
+    );
+    if (new Set(profileIds).size !== profileIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['generationProfiles'],
+        message: 'Generated measurement profiles must have unique versioned identities.',
+      });
+    }
+    request.generationProfiles.forEach((profile, index) => {
+      if (
+        profile.measurementDefinitionRef.id !== definition.id ||
+        profile.measurementDefinitionRef.contentVersion !== definition.contentVersion
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['generationProfiles', index, 'measurementDefinitionRef'],
+          message:
+            'Every generated measurement profile must target the exact supplied measurement definition.',
+        });
+      }
+      const allowedContextDimensions = new Set(definition.allowedContextDimensionIds);
+      profile.contextValues.forEach((value, valueIndex) => {
+        if (!allowedContextDimensions.has(value.dimensionId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['generationProfiles', index, 'contextValues', valueIndex, 'dimensionId'],
+            message:
+              'A generated measurement profile may use only context dimensions allowed by its definition.',
+          });
+        }
+      });
+    });
+    const sourceCompilation = request.sourceInstanceCompilation;
+    const sourceDefinition =
+      sourceCompilation.compileRequest.sourceDefinitionCatalog.definitions.find(
+        (candidate) =>
+          candidate.id === request.sourceDefinitionRef.id &&
+          candidate.contentVersion === request.sourceDefinitionRef.contentVersion,
+      );
+    if (
+      request.patientStateId !== sourceCompilation.patientStateId ||
+      sourceDefinition?.kind !== 'measurement'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDefinitionRef'],
+        message:
+          'A generated measurement requires one same-patient catalog source role of kind measurement.',
+      });
+    }
+  });
+export type GeneratedMeasurementCompilationRequest = z.infer<
+  typeof GeneratedMeasurementCompilationRequestSchema
+>;
+
+export const GeneratedMeasurementCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    measurementDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: GeneratedMeasurementCompilationFingerprintSchema,
+      })
+      .strict(),
+    selectedProfileRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: GeneratedMeasurementCompilationFingerprintSchema,
+      })
+      .strict(),
+    selectedValueBandRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: GeneratedMeasurementCompilationFingerprintSchema,
+      })
+      .strict(),
+    generationDraws: z
+      .object({
+        valueBandStableDrawId: StableIdSchema,
+        valueStableDrawId: StableIdSchema,
+      })
+      .strict(),
+    sourceInstanceRef: z
+      .object({
+        id: StableIdSchema,
+        kind: z.literal('measurement'),
+        definitionRef: CatalogInstanceVersionedReferenceSchema,
+      })
+      .strict(),
+    resolvedMeasurement: ResolvedMeasurementSchema,
+    compileRequest: GeneratedMeasurementCompilationRequestSchema,
+    inputFingerprint: GeneratedMeasurementCompilationFingerprintSchema,
+    payloadFingerprint: GeneratedMeasurementCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const definition = request.measurementDefinition;
+    const profile = request.generationProfiles.find(
+      (candidate) =>
+        candidate.id === artifact.selectedProfileRef.id &&
+        candidate.contentVersion === artifact.selectedProfileRef.contentVersion,
+    );
+    const valueBand = profile?.valueBands.find(
+      (candidate) => candidate.id === artifact.selectedValueBandRef.id,
+    );
+    const sourceInstance =
+      request.sourceInstanceCompilation.sourceInstanceCompilation.sourceInstances.find(
+        (instance) => instance.id === artifact.sourceInstanceRef.id,
+      );
+    const resolved = artifact.resolvedMeasurement;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.measurementDefinitionRef.id !== definition.id ||
+      artifact.measurementDefinitionRef.contentVersion !== definition.contentVersion ||
+      profile === undefined ||
+      valueBand === undefined ||
+      sourceInstance === undefined ||
+      sourceInstance.patientStateId !== request.patientStateId ||
+      sourceInstance.kind !== 'measurement' ||
+      sourceInstance.definitionRef.id !== artifact.sourceInstanceRef.definitionRef.id ||
+      sourceInstance.definitionRef.contentVersion !==
+        artifact.sourceInstanceRef.definitionRef.contentVersion ||
+      artifact.sourceInstanceRef.definitionRef.id !== request.sourceDefinitionRef.id ||
+      artifact.sourceInstanceRef.definitionRef.contentVersion !==
+        request.sourceDefinitionRef.contentVersion ||
+      resolved.definitionId !== definition.id ||
+      resolved.definitionContentVersion !== definition.contentVersion ||
+      resolved.source.kind !== 'measurement' ||
+      resolved.source.sourceInstanceId !== artifact.sourceInstanceRef.id ||
+      resolved.timeScopeId !== request.timeScopeId ||
+      resolved.interpretation.kind !== 'not_interpreted' ||
+      resolved.resolution.origin !== 'deterministic_generation' ||
+      resolved.resolution.generationProfileId !== profile.id ||
+      resolved.resolution.generationProfileContentVersion !== profile.contentVersion ||
+      resolved.resolution.resolverVersion !== artifact.compilerVersion ||
+      resolved.resolution.stableDrawId !== artifact.generationDraws.valueStableDrawId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A generated measurement artifact must retain one exact patient, definition, profile, value band, source role, draw chain, and uninterpreted result.',
+      });
+    }
+    const expectedId = `generated-measurement-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A generated measurement artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type GeneratedMeasurementCompilationArtifact = z.infer<
+  typeof GeneratedMeasurementCompilationArtifactSchema
+>;
+
+/**
+ * Exact authored measurement value/context content. Interpretation remains a
+ * separate reviewed owner; this profile cannot mark a value normal or abnormal.
+ */
+export const PatientOwnedMeasurementValueProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    measurementDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    value: z.number().finite(),
+    displayValue: z.string().trim().min(1).max(80),
+    contextValues: z.array(MeasurementContextValueSchema),
+    sourceUseNoteIds: z.array(StableIdSchema),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    const contextDimensionIds = profile.contextValues.map((value) => value.dimensionId);
+    if (
+      new Set(contextDimensionIds).size !== contextDimensionIds.length ||
+      new Set(profile.sourceUseNoteIds).size !== profile.sourceUseNoteIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A patient-owned measurement profile requires unique context dimensions and source-use references.',
+      });
+    }
+    if (profile.medicalReviewStatus !== profile.review.status) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review'],
+        message:
+          'A patient-owned measurement profile medical-review status must match its exact review record.',
+      });
+    }
+  });
+export type PatientOwnedMeasurementValueProfile = z.infer<
+  typeof PatientOwnedMeasurementValueProfileSchema
+>;
+
+export const PatientOwnedMeasurementCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-owned-measurement-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientOwnedMeasurementCompilationFingerprint = z.infer<
+  typeof PatientOwnedMeasurementCompilationFingerprintSchema
+>;
+
+export const PatientOwnedMeasurementCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    measurementDefinition: MeasurementDefinitionSchema,
+    valueProfile: PatientOwnedMeasurementValueProfileSchema,
+    sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    timeScopeId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const definition = request.measurementDefinition;
+    const profile = request.valueProfile;
+    if (
+      profile.measurementDefinitionRef.id !== definition.id ||
+      profile.measurementDefinitionRef.contentVersion !== definition.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['valueProfile', 'measurementDefinitionRef'],
+        message:
+          'A patient-owned measurement profile must target the exact measurement definition.',
+      });
+    }
+    const sourceCompilation = request.sourceInstanceCompilation;
+    const sourceDefinition =
+      sourceCompilation.compileRequest.sourceDefinitionCatalog.definitions.find(
+        (candidate) =>
+          candidate.id === request.sourceDefinitionRef.id &&
+          candidate.contentVersion === request.sourceDefinitionRef.contentVersion,
+      );
+    if (
+      request.patientStateId !== sourceCompilation.patientStateId ||
+      sourceDefinition?.kind !== 'measurement'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDefinitionRef'],
+        message:
+          'A patient-owned measurement requires one same-patient catalog source role of kind measurement.',
+      });
+    }
+  });
+export type PatientOwnedMeasurementCompilationRequest = z.infer<
+  typeof PatientOwnedMeasurementCompilationRequestSchema
+>;
+
+export const PatientOwnedMeasurementCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    measurementDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientOwnedMeasurementCompilationFingerprintSchema,
+      })
+      .strict(),
+    valueProfileRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientOwnedMeasurementCompilationFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceRef: z
+      .object({
+        id: StableIdSchema,
+        kind: z.literal('measurement'),
+        definitionRef: CatalogInstanceVersionedReferenceSchema,
+      })
+      .strict(),
+    resolvedMeasurement: ResolvedMeasurementSchema,
+    compileRequest: PatientOwnedMeasurementCompilationRequestSchema,
+    inputFingerprint: PatientOwnedMeasurementCompilationFingerprintSchema,
+    payloadFingerprint: PatientOwnedMeasurementCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const definition = request.measurementDefinition;
+    const profile = request.valueProfile;
+    const sourceInstance =
+      request.sourceInstanceCompilation.sourceInstanceCompilation.sourceInstances.find(
+        (instance) => instance.id === artifact.sourceInstanceRef.id,
+      );
+    const resolved = artifact.resolvedMeasurement;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.measurementDefinitionRef.id !== definition.id ||
+      artifact.measurementDefinitionRef.contentVersion !== definition.contentVersion ||
+      artifact.valueProfileRef.id !== profile.id ||
+      artifact.valueProfileRef.contentVersion !== profile.contentVersion ||
+      sourceInstance === undefined ||
+      sourceInstance.patientStateId !== request.patientStateId ||
+      sourceInstance.kind !== 'measurement' ||
+      sourceInstance.definitionRef.id !== artifact.sourceInstanceRef.definitionRef.id ||
+      sourceInstance.definitionRef.contentVersion !==
+        artifact.sourceInstanceRef.definitionRef.contentVersion ||
+      artifact.sourceInstanceRef.definitionRef.id !== request.sourceDefinitionRef.id ||
+      artifact.sourceInstanceRef.definitionRef.contentVersion !==
+        request.sourceDefinitionRef.contentVersion ||
+      resolved.definitionId !== definition.id ||
+      resolved.definitionContentVersion !== definition.contentVersion ||
+      resolved.source.kind !== 'measurement' ||
+      resolved.source.sourceInstanceId !== artifact.sourceInstanceRef.id ||
+      resolved.timeScopeId !== request.timeScopeId ||
+      resolved.interpretation.kind !== 'not_interpreted' ||
+      resolved.resolution.origin !== 'authored' ||
+      resolved.resolution.ownerId !== profile.id ||
+      resolved.resolution.ownerContentVersion !== profile.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A patient-owned measurement artifact must retain one exact patient, definition, value profile, source role, and uninterpreted result chain.',
+      });
+    }
+    const expectedId = `patient-owned-measurement-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A patient-owned measurement artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientOwnedMeasurementCompilationArtifact = z.infer<
+  typeof PatientOwnedMeasurementCompilationArtifactSchema
+>;
+
+/**
+ * One weighted neutral value in an exact categorical-observation generation
+ * profile. Relative weight controls only deterministic selection within the
+ * profile; it is not prevalence, evidence strength, interpretation, or points.
+ */
+export const GeneratedCategoricalObservationValueOptionSchema = z
+  .object({
+    id: StableIdSchema,
+    valueId: StableIdSchema,
+    displayValue: z.string().trim().min(1).max(180),
+    relativeWeight: z.number().positive().max(1_000_000),
+  })
+  .strict();
+export type GeneratedCategoricalObservationValueOption = z.infer<
+  typeof GeneratedCategoricalObservationValueOptionSchema
+>;
+
+/**
+ * A reviewed, versioned distribution over the allowed values of one exact
+ * categorical observation. It selects neutral patient state only and cannot
+ * interpret the observation or infer a measurement, diagnosis, tag, or point.
+ */
+export const GeneratedCategoricalObservationValueProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    observationDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    priority: z.number().int(),
+    when: TestContextPredicateSchema,
+    valueOptions: z.array(GeneratedCategoricalObservationValueOptionSchema).min(1).max(128),
+    sourceUseNoteIds: z.array(StableIdSchema),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    const optionIds = profile.valueOptions.map((option) => option.id);
+    const valueIds = profile.valueOptions.map((option) => option.valueId);
+    if (
+      new Set(optionIds).size !== optionIds.length ||
+      new Set(valueIds).size !== valueIds.length ||
+      new Set(profile.sourceUseNoteIds).size !== profile.sourceUseNoteIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A generated categorical-observation profile requires unique option IDs, value IDs, and source-use references.',
+      });
+    }
+    if (profile.medicalReviewStatus !== profile.review.status) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review'],
+        message:
+          'A generated categorical-observation profile medical-review status must match its exact review record.',
+      });
+    }
+  });
+export type GeneratedCategoricalObservationValueProfile = z.infer<
+  typeof GeneratedCategoricalObservationValueProfileSchema
+>;
+
+export const GeneratedCategoricalObservationCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.generated-categorical-observation-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type GeneratedCategoricalObservationCompilationFingerprint = z.infer<
+  typeof GeneratedCategoricalObservationCompilationFingerprintSchema
+>;
+
+/**
+ * Detached authoring request for one deterministic categorical observation.
+ * The exact patient seed and typed context select one reviewed profile and one
+ * weighted allowed value.
+ */
+export const GeneratedCategoricalObservationCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    seed: z.string().min(1).max(512),
+    observationDefinition: CategoricalObservationDefinitionSchema,
+    generationContext: NumericStructuredTestGenerationContextSchema,
+    generationProfiles: z.array(GeneratedCategoricalObservationValueProfileSchema).min(1).max(128),
+    sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    timeScopeId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const definition = request.observationDefinition;
+    const profileIds = request.generationProfiles.map(
+      (profile) => `${profile.id}\u0000${profile.contentVersion}`,
+    );
+    if (new Set(profileIds).size !== profileIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['generationProfiles'],
+        message:
+          'Generated categorical-observation profiles must have unique versioned identities.',
+      });
+    }
+    request.generationProfiles.forEach((profile, profileIndex) => {
+      if (
+        profile.observationDefinitionRef.id !== definition.id ||
+        profile.observationDefinitionRef.contentVersion !== definition.contentVersion
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['generationProfiles', profileIndex, 'observationDefinitionRef'],
+          message:
+            'Every generated categorical-observation profile must target the exact supplied definition.',
+        });
+      }
+      profile.valueOptions.forEach((option, optionIndex) => {
+        if (!definition.allowedValueIds.includes(option.valueId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['generationProfiles', profileIndex, 'valueOptions', optionIndex, 'valueId'],
+            message:
+              'Every generated categorical-observation option must use a value allowed by its definition.',
+          });
+        }
+      });
+    });
+    const sourceCompilation = request.sourceInstanceCompilation;
+    const sourceDefinition =
+      sourceCompilation.compileRequest.sourceDefinitionCatalog.definitions.find(
+        (candidate) =>
+          candidate.id === request.sourceDefinitionRef.id &&
+          candidate.contentVersion === request.sourceDefinitionRef.contentVersion,
+      );
+    if (
+      request.patientStateId !== sourceCompilation.patientStateId ||
+      sourceDefinition?.kind !== 'clinician_observation'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDefinitionRef'],
+        message:
+          'A generated categorical observation requires one same-patient catalog source role of kind clinician_observation.',
+      });
+    }
+  });
+export type GeneratedCategoricalObservationCompilationRequest = z.infer<
+  typeof GeneratedCategoricalObservationCompilationRequestSchema
+>;
+
+export const GeneratedCategoricalObservationCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    observationDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: GeneratedCategoricalObservationCompilationFingerprintSchema,
+      })
+      .strict(),
+    selectedProfileRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: GeneratedCategoricalObservationCompilationFingerprintSchema,
+      })
+      .strict(),
+    selectedValueOptionRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: GeneratedCategoricalObservationCompilationFingerprintSchema,
+      })
+      .strict(),
+    generationDraws: z
+      .object({
+        valueOptionStableDrawId: StableIdSchema,
+      })
+      .strict(),
+    sourceInstanceRef: z
+      .object({
+        id: StableIdSchema,
+        kind: z.literal('clinician_observation'),
+        definitionRef: CatalogInstanceVersionedReferenceSchema,
+      })
+      .strict(),
+    resolvedObservation: ResolvedCategoricalObservationSchema,
+    compileRequest: GeneratedCategoricalObservationCompilationRequestSchema,
+    inputFingerprint: GeneratedCategoricalObservationCompilationFingerprintSchema,
+    payloadFingerprint: GeneratedCategoricalObservationCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const definition = request.observationDefinition;
+    const profile = request.generationProfiles.find(
+      (candidate) =>
+        candidate.id === artifact.selectedProfileRef.id &&
+        candidate.contentVersion === artifact.selectedProfileRef.contentVersion,
+    );
+    const valueOption = profile?.valueOptions.find(
+      (candidate) => candidate.id === artifact.selectedValueOptionRef.id,
+    );
+    const sourceInstance =
+      request.sourceInstanceCompilation.sourceInstanceCompilation.sourceInstances.find(
+        (instance) => instance.id === artifact.sourceInstanceRef.id,
+      );
+    const resolved = artifact.resolvedObservation;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.observationDefinitionRef.id !== definition.id ||
+      artifact.observationDefinitionRef.contentVersion !== definition.contentVersion ||
+      profile === undefined ||
+      valueOption === undefined ||
+      sourceInstance === undefined ||
+      sourceInstance.patientStateId !== request.patientStateId ||
+      sourceInstance.kind !== 'clinician_observation' ||
+      sourceInstance.definitionRef.id !== artifact.sourceInstanceRef.definitionRef.id ||
+      sourceInstance.definitionRef.contentVersion !==
+        artifact.sourceInstanceRef.definitionRef.contentVersion ||
+      artifact.sourceInstanceRef.definitionRef.id !== request.sourceDefinitionRef.id ||
+      artifact.sourceInstanceRef.definitionRef.contentVersion !==
+        request.sourceDefinitionRef.contentVersion ||
+      resolved.definitionId !== definition.id ||
+      resolved.definitionContentVersion !== definition.contentVersion ||
+      resolved.valueId !== valueOption.valueId ||
+      resolved.displayValue !== valueOption.displayValue ||
+      resolved.source.kind !== 'clinician_observation' ||
+      resolved.source.sourceInstanceId !== artifact.sourceInstanceRef.id ||
+      resolved.timeScopeId !== request.timeScopeId ||
+      resolved.interpretationIds.length !== 0 ||
+      resolved.resolution.origin !== 'deterministic_generation' ||
+      resolved.resolution.generationProfileId !== profile.id ||
+      resolved.resolution.generationProfileContentVersion !== profile.contentVersion ||
+      resolved.resolution.resolverVersion !== artifact.compilerVersion ||
+      resolved.resolution.stableDrawId !== artifact.generationDraws.valueOptionStableDrawId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A generated categorical-observation artifact must retain one exact patient, definition, profile, value option, source role, draw, and uninterpreted result.',
+      });
+    }
+    const expectedId = `generated-categorical-observation-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A generated categorical-observation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type GeneratedCategoricalObservationCompilationArtifact = z.infer<
+  typeof GeneratedCategoricalObservationCompilationArtifactSchema
+>;
+
+/**
+ * Exact authored categorical-observation value content. Interpretation remains
+ * a separate reviewed owner and is empty on the compiled neutral observation.
+ */
+export const PatientOwnedCategoricalObservationValueProfileSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    observationDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    valueId: StableIdSchema,
+    displayValue: z.string().trim().min(1).max(180),
+    sourceUseNoteIds: z.array(StableIdSchema),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((profile, context) => {
+    if (new Set(profile.sourceUseNoteIds).size !== profile.sourceUseNoteIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceUseNoteIds'],
+        message: 'Patient-owned observation source-use references must be unique.',
+      });
+    }
+    if (profile.medicalReviewStatus !== profile.review.status) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review'],
+        message:
+          'A patient-owned observation profile medical-review status must match its exact review record.',
+      });
+    }
+  });
+export type PatientOwnedCategoricalObservationValueProfile = z.infer<
+  typeof PatientOwnedCategoricalObservationValueProfileSchema
+>;
+
+export const PatientOwnedCategoricalObservationCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-owned-categorical-observation-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientOwnedCategoricalObservationCompilationFingerprint = z.infer<
+  typeof PatientOwnedCategoricalObservationCompilationFingerprintSchema
+>;
+
+export const PatientOwnedCategoricalObservationCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    observationDefinition: CategoricalObservationDefinitionSchema,
+    valueProfile: PatientOwnedCategoricalObservationValueProfileSchema,
+    sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    timeScopeId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const definition = request.observationDefinition;
+    const profile = request.valueProfile;
+    if (
+      profile.observationDefinitionRef.id !== definition.id ||
+      profile.observationDefinitionRef.contentVersion !== definition.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['valueProfile', 'observationDefinitionRef'],
+        message:
+          'A patient-owned observation profile must target the exact categorical-observation definition.',
+      });
+    }
+    const sourceCompilation = request.sourceInstanceCompilation;
+    const sourceDefinition =
+      sourceCompilation.compileRequest.sourceDefinitionCatalog.definitions.find(
+        (candidate) =>
+          candidate.id === request.sourceDefinitionRef.id &&
+          candidate.contentVersion === request.sourceDefinitionRef.contentVersion,
+      );
+    if (
+      request.patientStateId !== sourceCompilation.patientStateId ||
+      sourceDefinition?.kind !== 'clinician_observation'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceDefinitionRef'],
+        message:
+          'A patient-owned categorical observation requires one same-patient catalog source role of kind clinician_observation.',
+      });
+    }
+  });
+export type PatientOwnedCategoricalObservationCompilationRequest = z.infer<
+  typeof PatientOwnedCategoricalObservationCompilationRequestSchema
+>;
+
+export const PatientOwnedCategoricalObservationCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    observationDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientOwnedCategoricalObservationCompilationFingerprintSchema,
+      })
+      .strict(),
+    valueProfileRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientOwnedCategoricalObservationCompilationFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceRef: z
+      .object({
+        id: StableIdSchema,
+        kind: z.literal('clinician_observation'),
+        definitionRef: CatalogInstanceVersionedReferenceSchema,
+      })
+      .strict(),
+    resolvedObservation: ResolvedCategoricalObservationSchema,
+    compileRequest: PatientOwnedCategoricalObservationCompilationRequestSchema,
+    inputFingerprint: PatientOwnedCategoricalObservationCompilationFingerprintSchema,
+    payloadFingerprint: PatientOwnedCategoricalObservationCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const definition = request.observationDefinition;
+    const profile = request.valueProfile;
+    const sourceInstance =
+      request.sourceInstanceCompilation.sourceInstanceCompilation.sourceInstances.find(
+        (instance) => instance.id === artifact.sourceInstanceRef.id,
+      );
+    const resolved = artifact.resolvedObservation;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.observationDefinitionRef.id !== definition.id ||
+      artifact.observationDefinitionRef.contentVersion !== definition.contentVersion ||
+      artifact.valueProfileRef.id !== profile.id ||
+      artifact.valueProfileRef.contentVersion !== profile.contentVersion ||
+      sourceInstance === undefined ||
+      sourceInstance.patientStateId !== request.patientStateId ||
+      sourceInstance.kind !== 'clinician_observation' ||
+      sourceInstance.definitionRef.id !== artifact.sourceInstanceRef.definitionRef.id ||
+      sourceInstance.definitionRef.contentVersion !==
+        artifact.sourceInstanceRef.definitionRef.contentVersion ||
+      artifact.sourceInstanceRef.definitionRef.id !== request.sourceDefinitionRef.id ||
+      artifact.sourceInstanceRef.definitionRef.contentVersion !==
+        request.sourceDefinitionRef.contentVersion ||
+      resolved.definitionId !== definition.id ||
+      resolved.definitionContentVersion !== definition.contentVersion ||
+      resolved.valueId !== profile.valueId ||
+      resolved.displayValue !== profile.displayValue ||
+      resolved.source.kind !== 'clinician_observation' ||
+      resolved.source.sourceInstanceId !== artifact.sourceInstanceRef.id ||
+      resolved.timeScopeId !== request.timeScopeId ||
+      resolved.interpretationIds.length !== 0 ||
+      resolved.resolution.origin !== 'authored' ||
+      resolved.resolution.ownerId !== profile.id ||
+      resolved.resolution.ownerContentVersion !== profile.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A patient-owned categorical-observation artifact must retain one exact patient, definition, value profile, clinician-observation source role, and uninterpreted result chain.',
+      });
+    }
+    const expectedId = `patient-owned-categorical-observation-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A patient-owned categorical-observation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientOwnedCategoricalObservationCompilationArtifact = z.infer<
+  typeof PatientOwnedCategoricalObservationCompilationArtifactSchema
+>;
+
+export const PatientClinicalResultCollectionCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-clinical-result-collection-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientClinicalResultCollectionCompilationFingerprint = z.infer<
+  typeof PatientClinicalResultCollectionCompilationFingerprintSchema
+>;
+
+export const PatientClinicalResultCollectionMemberSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      kind: z.literal('generated_numeric_test'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: NumericStructuredTestResultCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      kind: z.literal('patient_owned_test'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: PatientOwnedStructuredTestResultCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      kind: z.literal('measurement'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: PatientOwnedMeasurementCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      kind: z.literal('generated_measurement'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: GeneratedMeasurementCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      kind: z.literal('categorical_observation'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: PatientOwnedCategoricalObservationCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      kind: z.literal('generated_categorical_observation'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: GeneratedCategoricalObservationCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type PatientClinicalResultCollectionMember = z.infer<
+  typeof PatientClinicalResultCollectionMemberSchema
+>;
+
+/**
+ * Detached authoring request that gathers already replay-valid D-306 through
+ * D-309, D-335, and D-356 outputs under one exact patient/source horizon. It
+ * does not select, generate, interpret, or attach another value.
+ */
+export const PatientClinicalResultCollectionCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    numericStructuredTestCompilations: z
+      .array(NumericStructuredTestResultCompilationArtifactSchema)
+      .max(64),
+    patientOwnedStructuredTestCompilations: z
+      .array(PatientOwnedStructuredTestResultCompilationArtifactSchema)
+      .max(64),
+    measurementCompilations: z
+      .array(
+        z.union([
+          PatientOwnedMeasurementCompilationArtifactSchema,
+          GeneratedMeasurementCompilationArtifactSchema,
+        ]),
+      )
+      .max(128),
+    categoricalObservationCompilations: z
+      .array(
+        z.union([
+          PatientOwnedCategoricalObservationCompilationArtifactSchema,
+          GeneratedCategoricalObservationCompilationArtifactSchema,
+        ]),
+      )
+      .max(128),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const artifacts = [
+      ...request.numericStructuredTestCompilations,
+      ...request.patientOwnedStructuredTestCompilations,
+      ...request.measurementCompilations,
+      ...request.categoricalObservationCompilations,
+    ];
+    if (artifacts.length === 0 || artifacts.length > 256) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A patient clinical-result collection requires between one and 256 members.',
+      });
+    }
+    const compilationIds = artifacts.map((artifact) => artifact.id);
+    if (new Set(compilationIds).size !== compilationIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A patient clinical-result collection cannot repeat a compilation artifact.',
+      });
+    }
+    if (
+      request.sourceInstanceCompilation.patientStateId !== request.patientStateId ||
+      artifacts.some(
+        (artifact) =>
+          artifact.patientStateId !== request.patientStateId ||
+          artifact.compileRequest.sourceInstanceCompilation.id !==
+            request.sourceInstanceCompilation.id,
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Every patient clinical-result collection member must name the same patient and exact catalog-backed source horizon.',
+      });
+    }
+  });
+export type PatientClinicalResultCollectionCompilationRequest = z.infer<
+  typeof PatientClinicalResultCollectionCompilationRequestSchema
+>;
+
+export const PatientClinicalResultCollectionCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        sourceDefinitionCatalogFingerprint:
+          CatalogPatientSceneSourceInstanceCompilationFingerprintSchema,
+        payloadFingerprint: CatalogPatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    members: z.array(PatientClinicalResultCollectionMemberSchema).min(1).max(256),
+    measurements: z.array(ResolvedMeasurementSchema).max(128),
+    categoricalObservations: z.array(ResolvedCategoricalObservationSchema).max(128),
+    structuredTestResults: z.array(StructuredTestResultSchema).max(128),
+    compileRequest: PatientClinicalResultCollectionCompilationRequestSchema,
+    inputFingerprint: PatientClinicalResultCollectionCompilationFingerprintSchema,
+    payloadFingerprint: PatientClinicalResultCollectionCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const sourceCompilation = request.sourceInstanceCompilation;
+    const memberKey = (member: PatientClinicalResultCollectionMember): string =>
+      `${member.resolvedRecordId}\u0000${member.kind}`;
+    const expectedMembers: PatientClinicalResultCollectionMember[] = [
+      ...request.numericStructuredTestCompilations.map((compilation) => ({
+        schemaVersion: 1 as const,
+        kind: 'generated_numeric_test' as const,
+        compilationRef: {
+          id: compilation.id,
+          payloadFingerprint: compilation.payloadFingerprint,
+        },
+        resolvedRecordId: compilation.result.id,
+        sourceInstanceId: compilation.result.source.sourceInstanceId,
+      })),
+      ...request.patientOwnedStructuredTestCompilations.map((compilation) => ({
+        schemaVersion: 1 as const,
+        kind: 'patient_owned_test' as const,
+        compilationRef: {
+          id: compilation.id,
+          payloadFingerprint: compilation.payloadFingerprint,
+        },
+        resolvedRecordId: compilation.result.id,
+        sourceInstanceId: compilation.result.source.sourceInstanceId,
+      })),
+      ...request.measurementCompilations.map((compilation) => {
+        const generated = 'generationProfiles' in compilation.compileRequest;
+        return {
+          schemaVersion: 1 as const,
+          kind: generated ? ('generated_measurement' as const) : ('measurement' as const),
+          compilationRef: {
+            id: compilation.id,
+            payloadFingerprint: compilation.payloadFingerprint,
+          },
+          resolvedRecordId: compilation.resolvedMeasurement.id,
+          sourceInstanceId:
+            compilation.resolvedMeasurement.source.kind === 'derived_measurement'
+              ? compilation.resolvedMeasurement.source.derivationArtifactId
+              : compilation.resolvedMeasurement.source.sourceInstanceId,
+        };
+      }),
+      ...request.categoricalObservationCompilations.map((compilation) => {
+        const generated = 'generationProfiles' in compilation.compileRequest;
+        return {
+          schemaVersion: 1 as const,
+          kind: generated
+            ? ('generated_categorical_observation' as const)
+            : ('categorical_observation' as const),
+          compilationRef: {
+            id: compilation.id,
+            payloadFingerprint: compilation.payloadFingerprint,
+          },
+          resolvedRecordId: compilation.resolvedObservation.id,
+          sourceInstanceId: compilation.resolvedObservation.source.sourceInstanceId,
+        };
+      }),
+    ].sort((left, right) => memberKey(left).localeCompare(memberKey(right)));
+    const expectedMeasurements = request.measurementCompilations
+      .map((compilation) => compilation.resolvedMeasurement)
+      .sort((left, right) => left.id.localeCompare(right.id));
+    const expectedObservations = request.categoricalObservationCompilations
+      .map((compilation) => compilation.resolvedObservation)
+      .sort((left, right) => left.id.localeCompare(right.id));
+    const expectedTests = [
+      ...request.numericStructuredTestCompilations.map((compilation) => compilation.result),
+      ...request.patientOwnedStructuredTestCompilations.map((compilation) => compilation.result),
+    ].sort((left, right) => left.id.localeCompare(right.id));
+    const requestArraysAreCanonical = [
+      request.numericStructuredTestCompilations,
+      request.patientOwnedStructuredTestCompilations,
+      request.measurementCompilations,
+      request.categoricalObservationCompilations,
+    ].every((compilations) =>
+      compilations.every(
+        (compilation, index) =>
+          index === 0 || compilations[index - 1]!.id.localeCompare(compilation.id) < 0,
+      ),
+    );
+    const resolvedRecordIds = expectedMembers.map((member) => member.resolvedRecordId);
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.sourceInstanceCompilationRef.id !== sourceCompilation.id ||
+      artifact.sourceInstanceCompilationRef.sourceDefinitionCatalogFingerprint !==
+        sourceCompilation.sourceDefinitionCatalogRef.fingerprint ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceCompilation.payloadFingerprint ||
+      !requestArraysAreCanonical ||
+      new Set(resolvedRecordIds).size !== resolvedRecordIds.length ||
+      JSON.stringify(artifact.members) !== JSON.stringify(expectedMembers) ||
+      JSON.stringify(artifact.measurements) !== JSON.stringify(expectedMeasurements) ||
+      JSON.stringify(artifact.categoricalObservations) !== JSON.stringify(expectedObservations) ||
+      JSON.stringify(artifact.structuredTestResults) !== JSON.stringify(expectedTests)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A patient clinical-result collection must retain one exact canonical, duplicate-free D-306-through-D-309/D-335/D-356 result set under its patient source horizon.',
+      });
+    }
+    const expectedId = `patient-clinical-result-collection-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A patient clinical-result collection artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientClinicalResultCollectionCompilationArtifact = z.infer<
+  typeof PatientClinicalResultCollectionCompilationArtifactSchema
+>;
+
+const calculateMetricBodyMassIndexForSchema = (heightCm: number, weightKg: number): number =>
+  weightKg / (heightCm / 100) ** 2;
+
+/**
+ * A detached mathematical value. It deliberately omits patient-scene source,
+ * time scope, and resolution ownership because those belong to a later
+ * derived-measurement attachment decision.
+ */
+export const BodyMassIndexDerivedValueSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    value: z.number().finite().positive(),
+    displayValue: z.string().trim().min(1).max(80),
+    unit: z
+      .object({
+        display: z.string().trim().min(1).max(40),
+        ucumCode: z.literal('kg/m2'),
+      })
+      .strict(),
+    contextValues: z.array(MeasurementContextValueSchema).max(0),
+    interpretation: z.object({ kind: z.literal('not_interpreted') }).strict(),
+  })
+  .strict();
+export type BodyMassIndexDerivedValue = z.infer<typeof BodyMassIndexDerivedValueSchema>;
+
+export const BodyMassIndexDerivationCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.body-mass-index-derivation-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type BodyMassIndexDerivationCompilationFingerprint = z.infer<
+  typeof BodyMassIndexDerivationCompilationFingerprintSchema
+>;
+
+/**
+ * Exact authoring request for one BMI calculation over two already
+ * replay-valid measurements. Record selection is explicit; the compiler never
+ * chooses a "most recent" height or weight.
+ */
+export const BodyMassIndexDerivationCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    derivationDefinition: BodyMassIndexDerivationDefinitionSchema,
+    heightMeasurementDefinition: MeasurementDefinitionSchema,
+    weightMeasurementDefinition: MeasurementDefinitionSchema,
+    outputMeasurementDefinition: MeasurementDefinitionSchema,
+    resultCollectionCompilation: PatientClinicalResultCollectionCompilationArtifactSchema,
+    heightResolvedMeasurementId: StableIdSchema,
+    weightResolvedMeasurementId: StableIdSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const derivation = request.derivationDefinition;
+    const height = request.heightMeasurementDefinition;
+    const weight = request.weightMeasurementDefinition;
+    const output = request.outputMeasurementDefinition;
+    if (
+      derivation.heightMeasurementDefinitionRef.id !== height.id ||
+      derivation.heightMeasurementDefinitionRef.contentVersion !== height.contentVersion ||
+      derivation.weightMeasurementDefinitionRef.id !== weight.id ||
+      derivation.weightMeasurementDefinitionRef.contentVersion !== weight.contentVersion ||
+      derivation.outputMeasurementDefinitionRef.id !== output.id ||
+      derivation.outputMeasurementDefinitionRef.contentVersion !== output.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['derivationDefinition'],
+        message:
+          'A BMI compilation must supply the exact height, weight, and output definitions pinned by its derivation.',
+      });
+    }
+    if (
+      height.domain !== 'anthropometric' ||
+      height.unit.ucumCode !== 'cm' ||
+      weight.domain !== 'anthropometric' ||
+      weight.unit.ucumCode !== 'kg' ||
+      output.domain !== 'anthropometric' ||
+      output.unit.ucumCode !== 'kg/m2'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['derivationDefinition'],
+        message:
+          'The current BMI compiler accepts anthropometric cm height, kg weight, and kg/m2 output only.',
+      });
+    }
+    if (
+      request.resultCollectionCompilation.patientStateId !== request.patientStateId ||
+      request.heightResolvedMeasurementId === request.weightResolvedMeasurementId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A BMI compilation requires one same-patient result collection and two distinct input records.',
+      });
+    }
+  });
+export type BodyMassIndexDerivationCompilationRequest = z.infer<
+  typeof BodyMassIndexDerivationCompilationRequestSchema
+>;
+
+export const BodyMassIndexDerivationCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    derivationDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: BodyMassIndexDerivationCompilationFingerprintSchema,
+      })
+      .strict(),
+    resultCollectionCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientClinicalResultCollectionCompilationFingerprintSchema,
+      })
+      .strict(),
+    heightInput: ResolvedMeasurementSchema,
+    weightInput: ResolvedMeasurementSchema,
+    derivedValue: BodyMassIndexDerivedValueSchema,
+    compileRequest: BodyMassIndexDerivationCompilationRequestSchema,
+    inputFingerprint: BodyMassIndexDerivationCompilationFingerprintSchema,
+    payloadFingerprint: BodyMassIndexDerivationCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const derivation = request.derivationDefinition;
+    const height = request.resultCollectionCompilation.measurements.find(
+      (measurement) => measurement.id === request.heightResolvedMeasurementId,
+    );
+    const weight = request.resultCollectionCompilation.measurements.find(
+      (measurement) => measurement.id === request.weightResolvedMeasurementId,
+    );
+    const expectedValue =
+      height === undefined || weight === undefined
+        ? null
+        : calculateMetricBodyMassIndexForSchema(height.value, weight.value);
+    const expectedDisplay =
+      expectedValue === null || !Number.isFinite(expectedValue)
+        ? null
+        : expectedValue.toFixed(request.outputMeasurementDefinition.unit.displayPrecision);
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.derivationDefinitionRef.id !== derivation.id ||
+      artifact.derivationDefinitionRef.contentVersion !== derivation.contentVersion ||
+      artifact.resultCollectionCompilationRef.id !== request.resultCollectionCompilation.id ||
+      artifact.resultCollectionCompilationRef.payloadFingerprint !==
+        request.resultCollectionCompilation.payloadFingerprint ||
+      height === undefined ||
+      weight === undefined ||
+      height.value <= 0 ||
+      weight.value <= 0 ||
+      height.definitionId !== request.heightMeasurementDefinition.id ||
+      height.definitionContentVersion !== request.heightMeasurementDefinition.contentVersion ||
+      weight.definitionId !== request.weightMeasurementDefinition.id ||
+      weight.definitionContentVersion !== request.weightMeasurementDefinition.contentVersion ||
+      JSON.stringify(artifact.heightInput) !== JSON.stringify(height) ||
+      JSON.stringify(artifact.weightInput) !== JSON.stringify(weight) ||
+      expectedValue === null ||
+      !Number.isFinite(expectedValue) ||
+      artifact.derivedValue.definitionId !== request.outputMeasurementDefinition.id ||
+      artifact.derivedValue.definitionContentVersion !==
+        request.outputMeasurementDefinition.contentVersion ||
+      artifact.derivedValue.value !== expectedValue ||
+      artifact.derivedValue.displayValue !== expectedDisplay ||
+      artifact.derivedValue.unit.display !== request.outputMeasurementDefinition.unit.display ||
+      artifact.derivedValue.unit.ucumCode !== request.outputMeasurementDefinition.unit.ucumCode
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A BMI derivation artifact must retain one exact positive height/weight pair and its deterministic uninterpreted output.',
+      });
+    }
+    const expectedId = `body-mass-index-derivation-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A BMI derivation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type BodyMassIndexDerivationCompilationArtifact = z.infer<
+  typeof BodyMassIndexDerivationCompilationArtifactSchema
+>;
+
+export const BodyMassIndexMeasurementMaterializationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.body-mass-index-measurement-materialization\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type BodyMassIndexMeasurementMaterializationFingerprint = z.infer<
+  typeof BodyMassIndexMeasurementMaterializationFingerprintSchema
+>;
+
+export const BodyMassIndexMeasurementMaterializationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    derivationCompilation: BodyMassIndexDerivationCompilationArtifactSchema,
+  })
+  .strict();
+export type BodyMassIndexMeasurementMaterializationRequest = z.infer<
+  typeof BodyMassIndexMeasurementMaterializationRequestSchema
+>;
+
+/**
+ * Detached D-317 materialization. It proves that a D-316 value can use the
+ * common ResolvedMeasurement shape with derived provenance, but it does not
+ * attach that record to patient state or an information action.
+ */
+export const BodyMassIndexMeasurementMaterializationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    derivationCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: BodyMassIndexDerivationCompilationFingerprintSchema,
+      })
+      .strict(),
+    resolvedMeasurement: ResolvedMeasurementSchema,
+    materializationRequest: BodyMassIndexMeasurementMaterializationRequestSchema,
+    inputFingerprint: BodyMassIndexMeasurementMaterializationFingerprintSchema,
+    payloadFingerprint: BodyMassIndexMeasurementMaterializationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.materializationRequest;
+    const derivation = request.derivationCompilation;
+    const resolved = artifact.resolvedMeasurement;
+    const inputMeasurementIds = [derivation.heightInput.id, derivation.weightInput.id];
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== derivation.patientStateId ||
+      artifact.derivationCompilationRef.id !== derivation.id ||
+      artifact.derivationCompilationRef.payloadFingerprint !== derivation.payloadFingerprint ||
+      resolved.definitionId !== derivation.derivedValue.definitionId ||
+      resolved.definitionContentVersion !== derivation.derivedValue.definitionContentVersion ||
+      resolved.value !== derivation.derivedValue.value ||
+      resolved.displayValue !== derivation.derivedValue.displayValue ||
+      JSON.stringify(resolved.unit) !== JSON.stringify(derivation.derivedValue.unit) ||
+      JSON.stringify(resolved.contextValues) !==
+        JSON.stringify(derivation.derivedValue.contextValues) ||
+      resolved.timeScopeId !== derivation.weightInput.timeScopeId ||
+      resolved.source.kind !== 'derived_measurement' ||
+      resolved.source.derivationDefinitionId !== derivation.derivationDefinitionRef.id ||
+      resolved.source.derivationDefinitionContentVersion !==
+        derivation.derivationDefinitionRef.contentVersion ||
+      resolved.source.derivationArtifactId !== derivation.id ||
+      resolved.source.derivationPayloadFingerprint !== derivation.payloadFingerprint ||
+      JSON.stringify(resolved.source.inputMeasurementIds) !== JSON.stringify(inputMeasurementIds) ||
+      resolved.interpretation.kind !== 'not_interpreted' ||
+      resolved.resolution.origin !== 'deterministic_derivation' ||
+      resolved.resolution.derivationDefinitionId !== derivation.derivationDefinitionRef.id ||
+      resolved.resolution.derivationDefinitionContentVersion !==
+        derivation.derivationDefinitionRef.contentVersion ||
+      resolved.resolution.resolverVersion !== artifact.compilerVersion ||
+      JSON.stringify(resolved.resolution.inputMeasurementIds) !==
+        JSON.stringify(inputMeasurementIds)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A BMI measurement materialization must retain one exact D-316 value, both input records, derived provenance, and the selected weight time scope.',
+      });
+    }
+    const expectedId = `body-mass-index-measurement-materialization.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A BMI measurement materialization artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type BodyMassIndexMeasurementMaterializationArtifact = z.infer<
+  typeof BodyMassIndexMeasurementMaterializationArtifactSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeMemberSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      id: StableIdSchema,
+      kind: z.literal('generated_numeric_test'),
+      testDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      timeScopeId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      id: StableIdSchema,
+      kind: z.literal('patient_owned_test'),
+      testDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      resultProfileRef: CatalogInstanceVersionedReferenceSchema,
+      sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      timeScopeId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      id: StableIdSchema,
+      kind: z.literal('measurement'),
+      measurementDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      valueProfileRef: CatalogInstanceVersionedReferenceSchema,
+      sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      timeScopeId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      id: StableIdSchema,
+      kind: z.literal('generated_measurement'),
+      measurementDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      generationProfileRefs: z
+        .array(CatalogInstanceVersionedReferenceSchema)
+        .min(1)
+        .max(128)
+        .superRefine((references, context) => {
+          const profileKeys = references.map(
+            (reference) => `${reference.id}\u0000${reference.contentVersion}`,
+          );
+          if (new Set(profileKeys).size !== profileKeys.length) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                'A generated-measurement recipe member requires unique exact generation-profile references.',
+            });
+          }
+        }),
+      sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      timeScopeId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      id: StableIdSchema,
+      kind: z.literal('categorical_observation'),
+      observationDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      valueProfileRef: CatalogInstanceVersionedReferenceSchema,
+      sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      timeScopeId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      id: StableIdSchema,
+      kind: z.literal('generated_categorical_observation'),
+      observationDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      generationProfileRefs: z
+        .array(CatalogInstanceVersionedReferenceSchema)
+        .min(1)
+        .max(128)
+        .superRefine((references, context) => {
+          const profileKeys = references.map(
+            (reference) => `${reference.id}\u0000${reference.contentVersion}`,
+          );
+          if (new Set(profileKeys).size !== profileKeys.length) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                'A generated categorical-observation recipe member requires unique exact generation-profile references.',
+            });
+          }
+        }),
+      sourceDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+      timeScopeId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type PatientTemplateClinicalResultRecipeMember = z.infer<
+  typeof PatientTemplateClinicalResultRecipeMemberSchema
+>;
+
+export const PatientTemplateClinicalResultDerivedMeasurementRecipeSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    kind: z.literal('body_mass_index'),
+    derivationDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+    heightMeasurementMemberId: StableIdSchema,
+    weightMeasurementMemberId: StableIdSchema,
+    outputMeasurementDefinitionRef: CatalogInstanceVersionedReferenceSchema,
+  })
+  .strict()
+  .superRefine((recipe, context) => {
+    if (recipe.heightMeasurementMemberId === recipe.weightMeasurementMemberId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A BMI recipe requires distinct height and weight measurement members.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultDerivedMeasurementRecipe = z.infer<
+  typeof PatientTemplateClinicalResultDerivedMeasurementRecipeSchema
+>;
+
+/**
+ * Exact authoring-only ownership for a template's patient-state results. It
+ * selects existing typed profiles and derivations by stable reference only.
+ * Values, generation, interpretation, action availability, points, and
+ * runtime activation remain in their existing independent owners.
+ */
+export const PatientTemplateClinicalResultRecipeSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: ModePatientTemplateHorizonFingerprintSchema,
+    directMembers: z.array(PatientTemplateClinicalResultRecipeMemberSchema).min(1).max(256),
+    derivedMeasurements: z
+      .array(PatientTemplateClinicalResultDerivedMeasurementRecipeSchema)
+      .max(16),
+    medicalReviewStatus: MedicalReviewStatusSchema,
+    review: ClinicalRuleReviewSchema,
+  })
+  .strict()
+  .superRefine((recipe, context) => {
+    const allIds = [
+      ...recipe.directMembers.map((member) => member.id),
+      ...recipe.derivedMeasurements.map((member) => member.id),
+    ];
+    if (new Set(allIds).size !== allIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A template clinical-result recipe requires globally unique member IDs.',
+      });
+    }
+    const directMemberKeys = recipe.directMembers.map((member) => {
+      switch (member.kind) {
+        case 'generated_numeric_test':
+          return [
+            member.kind,
+            member.testDefinitionRef.id,
+            member.testDefinitionRef.contentVersion,
+            member.sourceDefinitionRef.id,
+            member.sourceDefinitionRef.contentVersion,
+            member.timeScopeId,
+          ].join('\u0000');
+        case 'patient_owned_test':
+          return [
+            member.kind,
+            member.testDefinitionRef.id,
+            member.testDefinitionRef.contentVersion,
+            member.resultProfileRef.id,
+            member.resultProfileRef.contentVersion,
+            member.sourceDefinitionRef.id,
+            member.sourceDefinitionRef.contentVersion,
+            member.timeScopeId,
+          ].join('\u0000');
+        case 'measurement':
+          return [
+            member.kind,
+            member.measurementDefinitionRef.id,
+            member.measurementDefinitionRef.contentVersion,
+            member.valueProfileRef.id,
+            member.valueProfileRef.contentVersion,
+            member.sourceDefinitionRef.id,
+            member.sourceDefinitionRef.contentVersion,
+            member.timeScopeId,
+          ].join('\u0000');
+        case 'generated_measurement':
+          return [
+            member.kind,
+            member.measurementDefinitionRef.id,
+            member.measurementDefinitionRef.contentVersion,
+            ...member.generationProfileRefs
+              .map((reference) => `${reference.id}@${reference.contentVersion}`)
+              .sort(),
+            member.sourceDefinitionRef.id,
+            member.sourceDefinitionRef.contentVersion,
+            member.timeScopeId,
+          ].join('\u0000');
+        case 'categorical_observation':
+          return [
+            member.kind,
+            member.observationDefinitionRef.id,
+            member.observationDefinitionRef.contentVersion,
+            member.valueProfileRef.id,
+            member.valueProfileRef.contentVersion,
+            member.sourceDefinitionRef.id,
+            member.sourceDefinitionRef.contentVersion,
+            member.timeScopeId,
+          ].join('\u0000');
+        case 'generated_categorical_observation':
+          return [
+            member.kind,
+            member.observationDefinitionRef.id,
+            member.observationDefinitionRef.contentVersion,
+            ...member.generationProfileRefs
+              .map((reference) => `${reference.id}@${reference.contentVersion}`)
+              .sort(),
+            member.sourceDefinitionRef.id,
+            member.sourceDefinitionRef.contentVersion,
+            member.timeScopeId,
+          ].join('\u0000');
+      }
+    });
+    if (new Set(directMemberKeys).size !== directMemberKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['directMembers'],
+        message: 'A template clinical-result recipe cannot select the same exact owner twice.',
+      });
+    }
+    const directMembersById = new Map(
+      recipe.directMembers.map((member) => [member.id, member] as const),
+    );
+    const derivedOutputKeys = recipe.derivedMeasurements.map(
+      (member) =>
+        `${member.outputMeasurementDefinitionRef.id}\u0000${member.outputMeasurementDefinitionRef.contentVersion}`,
+    );
+    if (new Set(derivedOutputKeys).size !== derivedOutputKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['derivedMeasurements'],
+        message:
+          'A template clinical-result recipe cannot derive the same exact output measurement twice.',
+      });
+    }
+    for (const [index, derived] of recipe.derivedMeasurements.entries()) {
+      const height = directMembersById.get(derived.heightMeasurementMemberId);
+      const weight = directMembersById.get(derived.weightMeasurementMemberId);
+      if (
+        (height?.kind !== 'measurement' && height?.kind !== 'generated_measurement') ||
+        (weight?.kind !== 'measurement' && weight?.kind !== 'generated_measurement')
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['derivedMeasurements', index],
+          message:
+            'A derived BMI recipe must reference two exact authored or generated direct measurement recipe members.',
+        });
+        continue;
+      }
+      const inputDefinitionIds = [
+        height.measurementDefinitionRef.id,
+        weight.measurementDefinitionRef.id,
+      ];
+      if (inputDefinitionIds.includes(derived.outputMeasurementDefinitionRef.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['derivedMeasurements', index, 'outputMeasurementDefinitionRef'],
+          message: 'A derived BMI output must be distinct from both direct input definitions.',
+        });
+      }
+    }
+    if (recipe.medicalReviewStatus !== recipe.review.status) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['review'],
+        message:
+          'A template clinical-result recipe medical-review status must match its exact review record.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipe = z.infer<
+  typeof PatientTemplateClinicalResultRecipeSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeCompilationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-clinical-result-recipe-compilation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplateClinicalResultRecipeCompilationFingerprint = z.infer<
+  typeof PatientTemplateClinicalResultRecipeCompilationFingerprintSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeMemberBindingSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      recipeMemberId: StableIdSchema,
+      kind: z.literal('generated_numeric_test'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: NumericStructuredTestResultCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      recipeMemberId: StableIdSchema,
+      kind: z.literal('patient_owned_test'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: PatientOwnedStructuredTestResultCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      recipeMemberId: StableIdSchema,
+      kind: z.literal('measurement'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: PatientOwnedMeasurementCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      recipeMemberId: StableIdSchema,
+      kind: z.literal('generated_measurement'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: GeneratedMeasurementCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      recipeMemberId: StableIdSchema,
+      kind: z.literal('categorical_observation'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: PatientOwnedCategoricalObservationCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      schemaVersion: SchemaVersionSchema,
+      recipeMemberId: StableIdSchema,
+      kind: z.literal('generated_categorical_observation'),
+      compilationRef: z
+        .object({
+          id: StableIdSchema,
+          payloadFingerprint: GeneratedCategoricalObservationCompilationFingerprintSchema,
+        })
+        .strict(),
+      resolvedRecordId: StableIdSchema,
+      sourceInstanceId: StableIdSchema,
+    })
+    .strict(),
+]);
+export type PatientTemplateClinicalResultRecipeMemberBinding = z.infer<
+  typeof PatientTemplateClinicalResultRecipeMemberBindingSchema
+>;
+
+export const PatientTemplateClinicalResultDerivedMeasurementBindingSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    recipeMemberId: StableIdSchema,
+    materializationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: BodyMassIndexMeasurementMaterializationFingerprintSchema,
+      })
+      .strict(),
+    resolvedMeasurementId: StableIdSchema,
+    inputRecipeMemberIds: z.tuple([StableIdSchema, StableIdSchema]),
+    inputResolvedMeasurementIds: z.tuple([StableIdSchema, StableIdSchema]),
+  })
+  .strict();
+export type PatientTemplateClinicalResultDerivedMeasurementBinding = z.infer<
+  typeof PatientTemplateClinicalResultDerivedMeasurementBindingSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeHorizonFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-clinical-result-recipe-horizon\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplateClinicalResultRecipeHorizonFingerprint = z.infer<
+  typeof PatientTemplateClinicalResultRecipeHorizonFingerprintSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeCompilationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    template: PatientTemplateSchema,
+    recipeHorizonArtifact: z.lazy(() => PatientTemplateClinicalResultRecipeHorizonArtifactSchema),
+    resultCollectionCompilation: PatientClinicalResultCollectionCompilationArtifactSchema,
+    derivedMeasurementMaterializations: z
+      .array(BodyMassIndexMeasurementMaterializationArtifactSchema)
+      .max(16),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    if (
+      request.resultCollectionCompilation.patientStateId !== request.patientStateId ||
+      request.derivedMeasurementMaterializations.some(
+        (materialization) => materialization.patientStateId !== request.patientStateId,
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A template clinical-result recipe compilation requires one exact patient across every result artifact.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipeCompilationRequest = z.infer<
+  typeof PatientTemplateClinicalResultRecipeCompilationRequestSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    templateRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: ModePatientTemplateHorizonFingerprintSchema,
+      })
+      .strict(),
+    recipeRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+      })
+      .strict(),
+    recipeHorizonRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplateClinicalResultRecipeHorizonFingerprintSchema,
+        payloadFingerprint: PatientTemplateClinicalResultRecipeHorizonFingerprintSchema,
+      })
+      .strict(),
+    resultCollectionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientClinicalResultCollectionCompilationFingerprintSchema,
+      })
+      .strict(),
+    directMemberBindings: z
+      .array(PatientTemplateClinicalResultRecipeMemberBindingSchema)
+      .min(1)
+      .max(256),
+    derivedMeasurementBindings: z
+      .array(PatientTemplateClinicalResultDerivedMeasurementBindingSchema)
+      .max(16),
+    compileRequest: PatientTemplateClinicalResultRecipeCompilationRequestSchema,
+    inputFingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+    payloadFingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const horizon = request.recipeHorizonArtifact;
+    const horizonMember = horizon.members.find(
+      (member) =>
+        member.templateRef.id === request.template.id &&
+        member.templateRef.contentVersion === request.template.contentVersion,
+    );
+    const recipe =
+      horizonMember?.recipeRef === null || horizonMember?.recipeRef === undefined
+        ? undefined
+        : horizon.recipes.find(
+            (candidate) =>
+              candidate.id === horizonMember.recipeRef?.id &&
+              candidate.contentVersion === horizonMember.recipeRef.contentVersion,
+          );
+    const directIds = artifact.directMemberBindings.map((binding) => binding.recipeMemberId);
+    const derivedIds = artifact.derivedMeasurementBindings.map((binding) => binding.recipeMemberId);
+    const directCompilationIds = artifact.directMemberBindings.map(
+      (binding) => binding.compilationRef.id,
+    );
+    const derivedCompilationIds = artifact.derivedMeasurementBindings.map(
+      (binding) => binding.materializationRef.id,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.patientStateId ||
+      artifact.templateRef.id !== request.template.id ||
+      artifact.templateRef.contentVersion !== request.template.contentVersion ||
+      horizonMember === undefined ||
+      horizonMember.coverageStatus !== 'bound' ||
+      artifact.templateRef.fingerprint !== horizonMember.templateFingerprint ||
+      recipe === undefined ||
+      recipe.templateFingerprint !== horizonMember.templateFingerprint ||
+      artifact.recipeRef.id !== recipe.id ||
+      artifact.recipeRef.contentVersion !== recipe.contentVersion ||
+      artifact.recipeRef.fingerprint !== horizonMember.recipeRef?.fingerprint ||
+      artifact.recipeHorizonRef.id !== horizon.id ||
+      artifact.recipeHorizonRef.inputFingerprint !== horizon.inputFingerprint ||
+      artifact.recipeHorizonRef.payloadFingerprint !== horizon.payloadFingerprint ||
+      artifact.resultCollectionRef.id !== request.resultCollectionCompilation.id ||
+      artifact.resultCollectionRef.payloadFingerprint !==
+        request.resultCollectionCompilation.payloadFingerprint ||
+      artifact.directMemberBindings.length !== recipe.directMembers.length ||
+      artifact.derivedMeasurementBindings.length !== recipe.derivedMeasurements.length ||
+      new Set(directIds).size !== directIds.length ||
+      new Set(derivedIds).size !== derivedIds.length ||
+      new Set(directCompilationIds).size !== directCompilationIds.length ||
+      new Set(derivedCompilationIds).size !== derivedCompilationIds.length ||
+      directIds.some((id, index) => index > 0 && directIds[index - 1]!.localeCompare(id) >= 0) ||
+      derivedIds.some((id, index) => index > 0 && derivedIds[index - 1]!.localeCompare(id) >= 0)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A template clinical-result recipe artifact must retain one exact template, recipe, collection, and canonical one-to-one binding set.',
+      });
+    }
+    const expectedId = `patient-template-clinical-result-recipe-compilation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A template clinical-result recipe artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipeCompilationArtifact = z.infer<
+  typeof PatientTemplateClinicalResultRecipeCompilationArtifactSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeCoverageStatusSchema = z.enum([
+  'bound',
+  'missing_recipe',
+]);
+export type PatientTemplateClinicalResultRecipeCoverageStatus = z.infer<
+  typeof PatientTemplateClinicalResultRecipeCoverageStatusSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeHorizonMemberSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    templateHorizonMemberId: StableIdSchema,
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: ModePatientTemplateHorizonFingerprintSchema,
+    inclusionBasis: ModePatientTemplateHorizonInclusionBasisSchema,
+    templateMedicalReviewStatus: MedicalReviewStatusSchema,
+    coverageStatus: PatientTemplateClinicalResultRecipeCoverageStatusSchema,
+    recipeRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+      })
+      .strict()
+      .nullable(),
+    recipeMedicalReviewStatus: MedicalReviewStatusSchema.nullable(),
+  })
+  .strict()
+  .superRefine((member, context) => {
+    const bound = member.coverageStatus === 'bound';
+    if (
+      bound !== (member.recipeRef !== null) ||
+      bound !== (member.recipeMedicalReviewStatus !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A template clinical-result recipe-horizon member is bound exactly when it retains one exact recipe and its review status.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipeHorizonMember = z.infer<
+  typeof PatientTemplateClinicalResultRecipeHorizonMemberSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeHorizonRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    templateHorizonArtifact: ModePatientTemplateHorizonArtifactSchema,
+    recipes: z.array(PatientTemplateClinicalResultRecipeSchema).max(512),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const recipeIds = request.recipes.map((recipe) => recipe.id);
+    if (new Set(recipeIds).size !== recipeIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['recipes'],
+        message: 'A recipe-horizon request cannot repeat a stable recipe ID.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipeHorizonRequest = z.infer<
+  typeof PatientTemplateClinicalResultRecipeHorizonRequestSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeHorizonArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    mode: ProgressionModeSchema,
+    sourceBoundary: z.enum(['approved_runtime', 'local_developer']),
+    coverageStatus: z.enum(['complete', 'incomplete']),
+    templateHorizonRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: ModePatientTemplateHorizonFingerprintSchema,
+        payloadFingerprint: ModePatientTemplateHorizonFingerprintSchema,
+      })
+      .strict(),
+    members: z.array(PatientTemplateClinicalResultRecipeHorizonMemberSchema).min(1).max(512),
+    recipes: z.array(PatientTemplateClinicalResultRecipeSchema).max(512),
+    compileRequest: PatientTemplateClinicalResultRecipeHorizonRequestSchema,
+    inputFingerprint: PatientTemplateClinicalResultRecipeHorizonFingerprintSchema,
+    payloadFingerprint: PatientTemplateClinicalResultRecipeHorizonFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const horizon = request.templateHorizonArtifact;
+    const memberTemplateKeys = artifact.members.map(
+      (member) =>
+        `${member.templateRef.id}\u0000${member.templateRef.contentVersion}\u0000${member.templateFingerprint}`,
+    );
+    const recipeIds = artifact.recipes.map((recipe) => recipe.id);
+    const boundRecipeIds = artifact.members.flatMap((member) =>
+      member.recipeRef === null ? [] : [member.recipeRef.id],
+    );
+    const hasMissing = artifact.members.some(
+      (member) => member.coverageStatus === 'missing_recipe',
+    );
+    const membersAreCanonical = artifact.members.every(
+      (member, index) => index === 0 || memberTemplateKeys[index - 1]! < memberTemplateKeys[index]!,
+    );
+    const recipesAreCanonical = artifact.recipes.every((recipe, index) => {
+      if (index === 0) return true;
+      const previous = artifact.recipes[index - 1]!;
+      const previousKey = `${previous.templateRef.id}\u0000${previous.templateRef.contentVersion}\u0000${previous.id}`;
+      const currentKey = `${recipe.templateRef.id}\u0000${recipe.templateRef.contentVersion}\u0000${recipe.id}`;
+      return previousKey < currentKey;
+    });
+    const failedInvariants = [
+      artifact.requestId !== request.id ? 'request' : null,
+      artifact.mode !== horizon.mode ? 'mode' : null,
+      artifact.sourceBoundary !== horizon.sourceBoundary ? 'source-boundary' : null,
+      artifact.templateHorizonRef.id !== horizon.id ||
+      artifact.templateHorizonRef.inputFingerprint !== horizon.inputFingerprint ||
+      artifact.templateHorizonRef.payloadFingerprint !== horizon.payloadFingerprint
+        ? 'template-horizon-reference'
+        : null,
+      artifact.members.length !== horizon.members.length ? 'member-count' : null,
+      artifact.coverageStatus !== (hasMissing ? 'incomplete' : 'complete')
+        ? 'coverage-status'
+        : null,
+      new Set(memberTemplateKeys).size !== memberTemplateKeys.length ? 'member-uniqueness' : null,
+      new Set(recipeIds).size !== recipeIds.length ? 'recipe-uniqueness' : null,
+      new Set(boundRecipeIds).size !== boundRecipeIds.length ? 'bound-recipe-uniqueness' : null,
+      boundRecipeIds.length !== artifact.recipes.length ? 'recipe-coverage' : null,
+      !membersAreCanonical ? 'member-order' : null,
+      !recipesAreCanonical ? 'recipe-order' : null,
+      JSON.stringify(artifact.recipes) !== JSON.stringify(request.recipes)
+        ? 'recipe-retention'
+        : null,
+    ].filter((value): value is string => value !== null);
+    if (failedInvariants.length > 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `A template clinical-result recipe horizon must retain one canonical coverage member per exact mode-template member and every supplied recipe exactly once. Failed: ${failedInvariants.join(', ')}.`,
+      });
+    }
+    const expectedId = `patient-template-clinical-result-recipe-horizon.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A template clinical-result recipe horizon ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipeHorizonArtifact = z.infer<
+  typeof PatientTemplateClinicalResultRecipeHorizonArtifactSchema
+>;
+
+export const PatientClinicalResultResourceSetSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    contentVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    testDefinitions: z.array(TestDefinitionSchema).max(512),
+    referenceIntervalSets: z.array(ReferenceIntervalSetDefinitionSchema).max(512),
+    patientOwnedTestResultProfiles: z.array(PatientOwnedStructuredTestResultProfileSchema).max(512),
+    measurementDefinitions: z.array(MeasurementDefinitionSchema).max(512),
+    patientOwnedMeasurementValueProfiles: z
+      .array(PatientOwnedMeasurementValueProfileSchema)
+      .max(512),
+    generatedMeasurementValueProfiles: z.array(GeneratedMeasurementValueProfileSchema).max(512),
+    categoricalObservationDefinitions: z.array(CategoricalObservationDefinitionSchema).max(512),
+    patientOwnedCategoricalObservationValueProfiles: z
+      .array(PatientOwnedCategoricalObservationValueProfileSchema)
+      .max(512),
+    generatedCategoricalObservationValueProfiles: z
+      .array(GeneratedCategoricalObservationValueProfileSchema)
+      .max(512),
+    bodyMassIndexDerivationDefinitions: z.array(BodyMassIndexDerivationDefinitionSchema).max(64),
+    sourceDefinitionCatalog: PatientSceneSourceDefinitionCatalogSchema,
+  })
+  .strict()
+  .superRefine((resourceSet, context) => {
+    const collections = [
+      ['testDefinitions', resourceSet.testDefinitions],
+      ['referenceIntervalSets', resourceSet.referenceIntervalSets],
+      ['patientOwnedTestResultProfiles', resourceSet.patientOwnedTestResultProfiles],
+      ['measurementDefinitions', resourceSet.measurementDefinitions],
+      ['patientOwnedMeasurementValueProfiles', resourceSet.patientOwnedMeasurementValueProfiles],
+      ['generatedMeasurementValueProfiles', resourceSet.generatedMeasurementValueProfiles],
+      ['categoricalObservationDefinitions', resourceSet.categoricalObservationDefinitions],
+      [
+        'patientOwnedCategoricalObservationValueProfiles',
+        resourceSet.patientOwnedCategoricalObservationValueProfiles,
+      ],
+      [
+        'generatedCategoricalObservationValueProfiles',
+        resourceSet.generatedCategoricalObservationValueProfiles,
+      ],
+      ['bodyMassIndexDerivationDefinitions', resourceSet.bodyMassIndexDerivationDefinitions],
+    ] as const;
+    for (const [path, entries] of collections) {
+      const ids = entries.map((entry) => entry.id);
+      if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [path],
+          message:
+            'An exact clinical-result resource set may retain only one current version per stable resource ID.',
+        });
+      }
+    }
+  });
+export type PatientClinicalResultResourceSet = z.infer<
+  typeof PatientClinicalResultResourceSetSchema
+>;
+
+export const PatientClinicalResultResourceKindSchema = z.enum([
+  'test_definition',
+  'reference_interval_set',
+  'patient_owned_test_result_profile',
+  'measurement_definition',
+  'patient_owned_measurement_value_profile',
+  'generated_measurement_value_profile',
+  'categorical_observation_definition',
+  'patient_owned_categorical_observation_value_profile',
+  'generated_categorical_observation_value_profile',
+  'body_mass_index_derivation_definition',
+  'patient_scene_source_definition',
+]);
+export type PatientClinicalResultResourceKind = z.infer<
+  typeof PatientClinicalResultResourceKindSchema
+>;
+
+export const PatientClinicalResultResourceRequirementSchema = z
+  .object({
+    kind: PatientClinicalResultResourceKindSchema,
+    requestedId: StableIdSchema,
+    requestedContentVersion: ContentVersionSchema.nullable(),
+    status: z.enum(['resolved', 'missing']),
+    resolvedContentVersion: ContentVersionSchema.nullable(),
+  })
+  .strict()
+  .superRefine((requirement, context) => {
+    if (
+      (requirement.status === 'resolved') !== (requirement.resolvedContentVersion !== null) ||
+      (requirement.requestedContentVersion !== null &&
+        requirement.resolvedContentVersion !== null &&
+        requirement.requestedContentVersion !== requirement.resolvedContentVersion)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A clinical-result resource requirement resolves exactly when the requested exact version is present.',
+      });
+    }
+  });
+export type PatientClinicalResultResourceRequirement = z.infer<
+  typeof PatientClinicalResultResourceRequirementSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeResourceMemberCoverageSchema = z
+  .object({
+    recipeMemberId: StableIdSchema,
+    recipeMemberKind: z.enum([
+      'generated_numeric_test',
+      'patient_owned_test',
+      'measurement',
+      'generated_measurement',
+      'categorical_observation',
+      'generated_categorical_observation',
+      'body_mass_index',
+    ]),
+    coverageStatus: z.enum(['complete', 'missing_resources']),
+    requirements: z.array(PatientClinicalResultResourceRequirementSchema).min(1).max(130),
+  })
+  .strict()
+  .superRefine((coverage, context) => {
+    const requirementKeys = coverage.requirements.map(
+      (requirement) =>
+        `${requirement.kind}\u0000${requirement.requestedId}\u0000${
+          requirement.requestedContentVersion ?? ''
+        }`,
+    );
+    const hasMissing = coverage.requirements.some(
+      (requirement) => requirement.status === 'missing',
+    );
+    if (
+      new Set(requirementKeys).size !== requirementKeys.length ||
+      coverage.coverageStatus !== (hasMissing ? 'missing_resources' : 'complete')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A recipe-member resource audit requires unique requirements and a status derived only from exact missing resources.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipeResourceMemberCoverage = z.infer<
+  typeof PatientTemplateClinicalResultRecipeResourceMemberCoverageSchema
+>;
+
+export const PatientTemplateClinicalResultRecipeResourceCoverageSchema = z
+  .object({
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: ModePatientTemplateHorizonFingerprintSchema,
+    recipeRef: CatalogInstanceVersionedReferenceSchema.nullable(),
+    coverageStatus: z.enum(['recipe_missing', 'complete', 'missing_resources']),
+    memberCoverage: z
+      .array(PatientTemplateClinicalResultRecipeResourceMemberCoverageSchema)
+      .max(272),
+  })
+  .strict()
+  .superRefine((coverage, context) => {
+    const memberIds = coverage.memberCoverage.map((member) => member.recipeMemberId);
+    const hasMissing = coverage.memberCoverage.some(
+      (member) => member.coverageStatus === 'missing_resources',
+    );
+    if (
+      new Set(memberIds).size !== memberIds.length ||
+      (coverage.recipeRef === null
+        ? coverage.coverageStatus !== 'recipe_missing' || coverage.memberCoverage.length > 0
+        : coverage.coverageStatus !== (hasMissing ? 'missing_resources' : 'complete'))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A template resource audit distinguishes a missing recipe from complete or resource-incomplete bound-recipe coverage.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultRecipeResourceCoverage = z.infer<
+  typeof PatientTemplateClinicalResultRecipeResourceCoverageSchema
+>;
+
+export const PatientTemplateClinicalResultResourceCoverageFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-clinical-result-resource-coverage\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplateClinicalResultResourceCoverageFingerprint = z.infer<
+  typeof PatientTemplateClinicalResultResourceCoverageFingerprintSchema
+>;
+
+export const PatientTemplateClinicalResultResourceCoverageRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    recipeHorizonArtifact: PatientTemplateClinicalResultRecipeHorizonArtifactSchema,
+    resourceSet: PatientClinicalResultResourceSetSchema,
+  })
+  .strict();
+export type PatientTemplateClinicalResultResourceCoverageRequest = z.infer<
+  typeof PatientTemplateClinicalResultResourceCoverageRequestSchema
+>;
+
+export const PatientTemplateClinicalResultResourceCoverageArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    coverageStatus: z.enum(['complete', 'incomplete']),
+    recipeHorizonRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplateClinicalResultRecipeHorizonFingerprintSchema,
+        payloadFingerprint: PatientTemplateClinicalResultRecipeHorizonFingerprintSchema,
+      })
+      .strict(),
+    resourceSetRef: CatalogInstanceVersionedReferenceSchema,
+    templateCoverage: z
+      .array(PatientTemplateClinicalResultRecipeResourceCoverageSchema)
+      .min(1)
+      .max(512),
+    compileRequest: PatientTemplateClinicalResultResourceCoverageRequestSchema,
+    inputFingerprint: PatientTemplateClinicalResultResourceCoverageFingerprintSchema,
+    payloadFingerprint: PatientTemplateClinicalResultResourceCoverageFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const templateKeys = artifact.templateCoverage.map(
+      (coverage) =>
+        `${coverage.templateRef.id}\u0000${coverage.templateRef.contentVersion}\u0000${coverage.templateFingerprint}`,
+    );
+    const hasIncomplete = artifact.templateCoverage.some(
+      (coverage) => coverage.coverageStatus !== 'complete',
+    );
+    if (
+      artifact.requestId !== request.id ||
+      artifact.recipeHorizonRef.id !== request.recipeHorizonArtifact.id ||
+      artifact.recipeHorizonRef.inputFingerprint !==
+        request.recipeHorizonArtifact.inputFingerprint ||
+      artifact.recipeHorizonRef.payloadFingerprint !==
+        request.recipeHorizonArtifact.payloadFingerprint ||
+      artifact.resourceSetRef.id !== request.resourceSet.id ||
+      artifact.resourceSetRef.contentVersion !== request.resourceSet.contentVersion ||
+      artifact.templateCoverage.length !== request.recipeHorizonArtifact.members.length ||
+      new Set(templateKeys).size !== templateKeys.length ||
+      artifact.coverageStatus !== (hasIncomplete ? 'incomplete' : 'complete')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A clinical-result resource-coverage artifact must retain one exact audit per recipe-horizon template and derive completeness only from those audits.',
+      });
+    }
+    const expectedId = `patient-template-clinical-result-resource-coverage.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A clinical-result resource-coverage artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplateClinicalResultResourceCoverageArtifact = z.infer<
+  typeof PatientTemplateClinicalResultResourceCoverageArtifactSchema
+>;
+
+export const PatientTemplateClinicalResultMaterializationContextFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-clinical-result-materialization-context\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplateClinicalResultMaterializationContextFingerprint = z.infer<
+  typeof PatientTemplateClinicalResultMaterializationContextFingerprintSchema
+>;
+
+/**
+ * D-325 derives one selected patient's result-materialization context from
+ * exact upstream authorities. It does not accept a caller-authored patient
+ * seed, template, generation context, source horizon, or resource list.
+ */
+export const PatientTemplateClinicalResultMaterializationContextRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientSlotFillSeedAuthorityArtifact: z.lazy(() => PatientSlotFillSeedAuthorityArtifactSchema),
+    patientStateCompositionArtifact: ResolvedPatientStateCompositionArtifactSchema,
+    resourceCoverageArtifact: PatientTemplateClinicalResultResourceCoverageArtifactSchema,
+  })
+  .strict();
+export type PatientTemplateClinicalResultMaterializationContextRequest = z.infer<
+  typeof PatientTemplateClinicalResultMaterializationContextRequestSchema
+>;
+
+export const PatientTemplateClinicalResultMaterializationContextArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    templateRef: CatalogInstanceVersionedReferenceSchema,
+    templateFingerprint: ModePatientTemplateHorizonFingerprintSchema,
+    patientGenerationSeed: z.string().min(1).max(512),
+    generationContext: NumericStructuredTestGenerationContextSchema,
+    recipeRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+      })
+      .strict(),
+    resourceCoverageRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplateClinicalResultResourceCoverageFingerprintSchema,
+        payloadFingerprint: PatientTemplateClinicalResultResourceCoverageFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: CatalogPatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilation: CatalogPatientSceneSourceInstanceCompilationArtifactSchema,
+    compileRequest: PatientTemplateClinicalResultMaterializationContextRequestSchema,
+    inputFingerprint: PatientTemplateClinicalResultMaterializationContextFingerprintSchema,
+    payloadFingerprint: PatientTemplateClinicalResultMaterializationContextFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const seedAuthority = request.patientSlotFillSeedAuthorityArtifact;
+    const composition = request.patientStateCompositionArtifact;
+    const coverage = request.resourceCoverageArtifact;
+    const composedState = composition.composedPatientState;
+    const expectedGenerationContext =
+      composedState === null
+        ? null
+        : {
+            ageYears: composedState.demographics.ageYears,
+            sexForReference: composedState.demographics.sexForReference,
+            diagnosisIds: [
+              ...new Set(
+                composedState.conditionStates.map((condition) => condition.diagnosisDefinitionId),
+              ),
+            ].sort(),
+            clinicalTagIds: [...composedState.clinicalTagIds].sort(),
+          };
+    if (
+      artifact.requestId !== request.id ||
+      composedState === null ||
+      artifact.patientStateId !== composedState.id ||
+      artifact.templateRef.id !== seedAuthority.selectedTemplateRef.id ||
+      artifact.templateRef.contentVersion !== seedAuthority.selectedTemplateRef.contentVersion ||
+      artifact.patientGenerationSeed !== seedAuthority.patientGenerationSeed ||
+      JSON.stringify(artifact.generationContext) !== JSON.stringify(expectedGenerationContext) ||
+      artifact.resourceCoverageRef.id !== coverage.id ||
+      artifact.resourceCoverageRef.inputFingerprint !== coverage.inputFingerprint ||
+      artifact.resourceCoverageRef.payloadFingerprint !== coverage.payloadFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== artifact.sourceInstanceCompilation.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        artifact.sourceInstanceCompilation.payloadFingerprint ||
+      artifact.sourceInstanceCompilation.patientStateId !== artifact.patientStateId ||
+      artifact.sourceInstanceCompilation.sourceDefinitionCatalogRef.id !==
+        coverage.compileRequest.resourceSet.sourceDefinitionCatalog.id ||
+      artifact.sourceInstanceCompilation.sourceDefinitionCatalogRef.contentVersion !==
+        coverage.compileRequest.resourceSet.sourceDefinitionCatalog.contentVersion
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A result-materialization context must retain the exact selected template, D-208 patient, D-233 generation seed, derived numeric context, D-324 coverage, and catalog-backed source instances.',
+      });
+    }
+    const expectedId = `patient-template-clinical-result-materialization-context.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A result-materialization context ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplateClinicalResultMaterializationContextArtifact = z.infer<
+  typeof PatientTemplateClinicalResultMaterializationContextArtifactSchema
+>;
+
+export const PatientTemplateClinicalResultMaterializationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-clinical-result-materialization\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplateClinicalResultMaterializationFingerprint = z.infer<
+  typeof PatientTemplateClinicalResultMaterializationFingerprintSchema
+>;
+
+/**
+ * D-326 orchestrates existing typed result compilers from one frozen D-325
+ * context. Raw templates, recipes, resources, patient values, and seeds are
+ * deliberately absent from this request.
+ */
+export const PatientTemplateClinicalResultMaterializationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    materializationContextArtifact:
+      PatientTemplateClinicalResultMaterializationContextArtifactSchema,
+  })
+  .strict();
+export type PatientTemplateClinicalResultMaterializationRequest = z.infer<
+  typeof PatientTemplateClinicalResultMaterializationRequestSchema
+>;
+
+export const PatientTemplateClinicalResultMaterializationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    materializationContextRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplateClinicalResultMaterializationContextFingerprintSchema,
+        payloadFingerprint: PatientTemplateClinicalResultMaterializationContextFingerprintSchema,
+      })
+      .strict(),
+    templateClinicalResultRecipeCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+        payloadFingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+      })
+      .strict(),
+    templateClinicalResultRecipeCompilation:
+      PatientTemplateClinicalResultRecipeCompilationArtifactSchema,
+    compileRequest: PatientTemplateClinicalResultMaterializationRequestSchema,
+    inputFingerprint: PatientTemplateClinicalResultMaterializationFingerprintSchema,
+    payloadFingerprint: PatientTemplateClinicalResultMaterializationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const materializationContext = request.materializationContextArtifact;
+    const recipeCompilation = artifact.templateClinicalResultRecipeCompilation;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== materializationContext.patientStateId ||
+      artifact.materializationContextRef.id !== materializationContext.id ||
+      artifact.materializationContextRef.inputFingerprint !==
+        materializationContext.inputFingerprint ||
+      artifact.materializationContextRef.payloadFingerprint !==
+        materializationContext.payloadFingerprint ||
+      artifact.templateClinicalResultRecipeCompilationRef.id !== recipeCompilation.id ||
+      artifact.templateClinicalResultRecipeCompilationRef.inputFingerprint !==
+        recipeCompilation.inputFingerprint ||
+      artifact.templateClinicalResultRecipeCompilationRef.payloadFingerprint !==
+        recipeCompilation.payloadFingerprint ||
+      recipeCompilation.patientStateId !== artifact.patientStateId ||
+      recipeCompilation.templateRef.id !== materializationContext.templateRef.id ||
+      recipeCompilation.templateRef.contentVersion !==
+        materializationContext.templateRef.contentVersion ||
+      recipeCompilation.templateRef.fingerprint !== materializationContext.templateFingerprint ||
+      recipeCompilation.recipeRef.id !== materializationContext.recipeRef.id ||
+      recipeCompilation.recipeRef.contentVersion !==
+        materializationContext.recipeRef.contentVersion ||
+      recipeCompilation.recipeRef.fingerprint !== materializationContext.recipeRef.fingerprint ||
+      JSON.stringify(
+        recipeCompilation.compileRequest.resultCollectionCompilation.compileRequest
+          .sourceInstanceCompilation,
+      ) !== JSON.stringify(materializationContext.sourceInstanceCompilation)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A result-materialization artifact must retain one exact D-325 context and the D-320 compilation derived from its patient, template, recipe, resources, and source horizon.',
+      });
+    }
+    const expectedId = `patient-template-clinical-result-materialization.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A result-materialization artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplateClinicalResultMaterializationArtifact = z.infer<
+  typeof PatientTemplateClinicalResultMaterializationArtifactSchema
+>;
+
+export const PatientClinicalResultAttachmentFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.patient-clinical-result-attachment\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type PatientClinicalResultAttachmentFingerprint = z.infer<
+  typeof PatientClinicalResultAttachmentFingerprintSchema
+>;
+
+/**
+ * Authoring-only request to attach the exact D-310/D-317 result set owned by
+ * one replay-valid D-320 template recipe to the empty result lanes of one
+ * replay-valid D-208 patient composition. Raw collections and materializations
+ * are deliberately not accepted at this boundary.
+ */
+export const PatientClinicalResultAttachmentRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateCompositionArtifact: ResolvedPatientStateCompositionArtifactSchema,
+    templateClinicalResultRecipeCompilation:
+      PatientTemplateClinicalResultRecipeCompilationArtifactSchema,
+  })
+  .strict();
+export type PatientClinicalResultAttachmentRequest = z.infer<
+  typeof PatientClinicalResultAttachmentRequestSchema
+>;
+
+export const PatientClinicalResultAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateCompositionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+        composedPatientStateFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    basePatientStateRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    templateClinicalResultRecipeCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+        templateRef: z
+          .object({
+            id: StableIdSchema,
+            contentVersion: ContentVersionSchema,
+            fingerprint: ModePatientTemplateHorizonFingerprintSchema,
+          })
+          .strict(),
+        recipeRef: z
+          .object({
+            id: StableIdSchema,
+            contentVersion: ContentVersionSchema,
+            fingerprint: PatientTemplateClinicalResultRecipeCompilationFingerprintSchema,
+          })
+          .strict(),
+      })
+      .strict(),
+    resultCollectionRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientClinicalResultCollectionCompilationFingerprintSchema,
+        payloadFingerprint: PatientClinicalResultCollectionCompilationFingerprintSchema,
+      })
+      .strict(),
+    derivedMeasurementMaterializationRefs: z
+      .array(
+        z
+          .object({
+            id: StableIdSchema,
+            payloadFingerprint: BodyMassIndexMeasurementMaterializationFingerprintSchema,
+            resolvedMeasurementId: StableIdSchema,
+          })
+          .strict(),
+      )
+      .max(16),
+    attachedRecordIds: z
+      .object({
+        measurementIds: z.array(StableIdSchema).max(128),
+        categoricalObservationIds: z.array(StableIdSchema).max(128),
+        structuredTestResultIds: z.array(StableIdSchema).max(128),
+      })
+      .strict(),
+    composedPatientState: ResolvedPatientStateSchema,
+    composedPatientStateFingerprint: PatientClinicalResultAttachmentFingerprintSchema,
+    attachmentRequest: PatientClinicalResultAttachmentRequestSchema,
+    inputFingerprint: PatientClinicalResultAttachmentFingerprintSchema,
+    payloadFingerprint: PatientClinicalResultAttachmentFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.attachmentRequest;
+    const composition = request.patientStateCompositionArtifact;
+    const recipeCompilation = request.templateClinicalResultRecipeCompilation;
+    const collection = recipeCompilation.compileRequest.resultCollectionCompilation;
+    const baseState = composition.composedPatientState;
+    const materializations = recipeCompilation.compileRequest.derivedMeasurementMaterializations;
+    const expectedMaterializationRefs = materializations.map((materialization) => ({
+      id: materialization.id,
+      payloadFingerprint: materialization.payloadFingerprint,
+      resolvedMeasurementId: materialization.resolvedMeasurement.id,
+    }));
+    const expectedMeasurements = [
+      ...collection.measurements,
+      ...materializations.map((materialization) => materialization.resolvedMeasurement),
+    ].sort((left, right) => left.id.localeCompare(right.id));
+    const expectedMeasurementIds = expectedMeasurements.map((record) => record.id);
+    const expectedObservationIds = collection.categoricalObservations.map((record) => record.id);
+    const expectedTestIds = collection.structuredTestResults.map((record) => record.id);
+    const materializationArraysAreCanonical = materializations.every(
+      (materialization, index) =>
+        index === 0 || materializations[index - 1]!.id.localeCompare(materialization.id) < 0,
+    );
+    const materializationRefsAreCanonical = artifact.derivedMeasurementMaterializationRefs.every(
+      (reference, index) =>
+        index === 0 ||
+        artifact.derivedMeasurementMaterializationRefs[index - 1]!.id.localeCompare(reference.id) <
+          0,
+    );
+    const materializationsMatchCollection = materializations.every(
+      (materialization) =>
+        materialization.patientStateId === collection.patientStateId &&
+        JSON.stringify(
+          materialization.materializationRequest.derivationCompilation.compileRequest
+            .resultCollectionCompilation,
+        ) === JSON.stringify(collection),
+    );
+    const attachedArraysAreCanonical = [
+      artifact.attachedRecordIds.measurementIds,
+      artifact.attachedRecordIds.categoricalObservationIds,
+      artifact.attachedRecordIds.structuredTestResultIds,
+    ].every((ids) =>
+      ids.every((id, index) => index === 0 || ids[index - 1]!.localeCompare(id) < 0),
+    );
+    const baseWithoutResultLanes =
+      baseState === null
+        ? null
+        : {
+            ...baseState,
+            id: undefined,
+            measurements: undefined,
+            categoricalObservations: undefined,
+            structuredTestResults: undefined,
+          };
+    const attachedWithoutResultLanes = {
+      ...artifact.composedPatientState,
+      id: undefined,
+      measurements: undefined,
+      categoricalObservations: undefined,
+      structuredTestResults: undefined,
+    };
+    if (
+      baseState === null ||
+      composition.status !== 'composed' ||
+      composition.composedPatientStateFingerprint === null ||
+      baseState.measurements.length !== 0 ||
+      baseState.categoricalObservations.length !== 0 ||
+      baseState.structuredTestResults.length !== 0 ||
+      collection.patientStateId !== baseState.id ||
+      artifact.requestId !== request.id ||
+      artifact.patientStateCompositionRef.id !== composition.id ||
+      artifact.patientStateCompositionRef.payloadFingerprint !== composition.payloadFingerprint ||
+      artifact.patientStateCompositionRef.composedPatientStateFingerprint !==
+        composition.composedPatientStateFingerprint ||
+      artifact.basePatientStateRef.id !== baseState.id ||
+      artifact.basePatientStateRef.fingerprint !== composition.composedPatientStateFingerprint ||
+      artifact.templateClinicalResultRecipeCompilationRef.id !== recipeCompilation.id ||
+      artifact.templateClinicalResultRecipeCompilationRef.payloadFingerprint !==
+        recipeCompilation.payloadFingerprint ||
+      JSON.stringify(artifact.templateClinicalResultRecipeCompilationRef.templateRef) !==
+        JSON.stringify(recipeCompilation.templateRef) ||
+      JSON.stringify(artifact.templateClinicalResultRecipeCompilationRef.recipeRef) !==
+        JSON.stringify(recipeCompilation.recipeRef) ||
+      composition.templateRef.id !== recipeCompilation.templateRef.id ||
+      composition.templateRef.contentVersion !== recipeCompilation.templateRef.contentVersion ||
+      artifact.resultCollectionRef.id !== collection.id ||
+      artifact.resultCollectionRef.inputFingerprint !== collection.inputFingerprint ||
+      artifact.resultCollectionRef.payloadFingerprint !== collection.payloadFingerprint ||
+      !materializationArraysAreCanonical ||
+      !materializationRefsAreCanonical ||
+      !materializationsMatchCollection ||
+      expectedMeasurements.length > 128 ||
+      new Set(expectedMeasurementIds).size !== expectedMeasurementIds.length ||
+      JSON.stringify(artifact.derivedMeasurementMaterializationRefs) !==
+        JSON.stringify(expectedMaterializationRefs) ||
+      !attachedArraysAreCanonical ||
+      JSON.stringify(artifact.attachedRecordIds.measurementIds) !==
+        JSON.stringify(expectedMeasurementIds) ||
+      JSON.stringify(artifact.attachedRecordIds.categoricalObservationIds) !==
+        JSON.stringify(expectedObservationIds) ||
+      JSON.stringify(artifact.attachedRecordIds.structuredTestResultIds) !==
+        JSON.stringify(expectedTestIds) ||
+      JSON.stringify(artifact.composedPatientState.measurements) !==
+        JSON.stringify(expectedMeasurements) ||
+      JSON.stringify(artifact.composedPatientState.categoricalObservations) !==
+        JSON.stringify(collection.categoricalObservations) ||
+      JSON.stringify(artifact.composedPatientState.structuredTestResults) !==
+        JSON.stringify(collection.structuredTestResults) ||
+      JSON.stringify(baseWithoutResultLanes) !== JSON.stringify(attachedWithoutResultLanes)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A patient clinical-result attachment must preserve one exact D-208 base and replace only its empty result lanes with the exact D-320-owned D-310 collection plus canonical D-317 materializations.',
+      });
+    }
+    const expectedPatientStateId = `resolved-patient-state.clinical-results.${artifact.composedPatientStateFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.composedPatientState.id !== expectedPatientStateId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['composedPatientState', 'id'],
+        message: `An attached clinical-result patient state must use ${expectedPatientStateId}.`,
+      });
+    }
+    const expectedArtifactId = `patient-clinical-result-attachment.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedArtifactId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A patient clinical-result attachment artifact ID must use ${expectedArtifactId}.`,
+      });
+    }
+  });
+export type PatientClinicalResultAttachmentArtifact = z.infer<
+  typeof PatientClinicalResultAttachmentArtifactSchema
+>;
+
+export const PatientTemplateClinicalResultAttachmentOrchestrationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-clinical-result-attachment-orchestration\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplateClinicalResultAttachmentOrchestrationFingerprint = z.infer<
+  typeof PatientTemplateClinicalResultAttachmentOrchestrationFingerprintSchema
+>;
+
+/**
+ * D-327 accepts one replay-valid D-326 materialization only. It derives the
+ * D-208 base patient and D-320 result recipe already frozen inside that
+ * artifact before delegating their exact attachment to D-311.
+ */
+export const PatientTemplateClinicalResultAttachmentOrchestrationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    materializationArtifact: PatientTemplateClinicalResultMaterializationArtifactSchema,
+  })
+  .strict();
+export type PatientTemplateClinicalResultAttachmentOrchestrationRequest = z.infer<
+  typeof PatientTemplateClinicalResultAttachmentOrchestrationRequestSchema
+>;
+
+export const PatientTemplateClinicalResultAttachmentOrchestrationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    basePatientStateId: StableIdSchema,
+    attachedPatientStateId: StableIdSchema,
+    materializationRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplateClinicalResultMaterializationFingerprintSchema,
+        payloadFingerprint: PatientTemplateClinicalResultMaterializationFingerprintSchema,
+      })
+      .strict(),
+    patientClinicalResultAttachmentRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientClinicalResultAttachmentFingerprintSchema,
+        payloadFingerprint: PatientClinicalResultAttachmentFingerprintSchema,
+        composedPatientStateFingerprint: PatientClinicalResultAttachmentFingerprintSchema,
+      })
+      .strict(),
+    patientClinicalResultAttachment: PatientClinicalResultAttachmentArtifactSchema,
+    compileRequest: PatientTemplateClinicalResultAttachmentOrchestrationRequestSchema,
+    inputFingerprint: PatientTemplateClinicalResultAttachmentOrchestrationFingerprintSchema,
+    payloadFingerprint: PatientTemplateClinicalResultAttachmentOrchestrationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const materialization = request.materializationArtifact;
+    const materializationContext = materialization.compileRequest.materializationContextArtifact;
+    const composition = materializationContext.compileRequest.patientStateCompositionArtifact;
+    const basePatientState = composition.composedPatientState;
+    const attachment = artifact.patientClinicalResultAttachment;
+    if (
+      basePatientState === null ||
+      artifact.requestId !== request.id ||
+      artifact.basePatientStateId !== basePatientState.id ||
+      artifact.attachedPatientStateId !== attachment.composedPatientState.id ||
+      artifact.materializationRef.id !== materialization.id ||
+      artifact.materializationRef.inputFingerprint !== materialization.inputFingerprint ||
+      artifact.materializationRef.payloadFingerprint !== materialization.payloadFingerprint ||
+      artifact.patientClinicalResultAttachmentRef.id !== attachment.id ||
+      artifact.patientClinicalResultAttachmentRef.inputFingerprint !==
+        attachment.inputFingerprint ||
+      artifact.patientClinicalResultAttachmentRef.payloadFingerprint !==
+        attachment.payloadFingerprint ||
+      artifact.patientClinicalResultAttachmentRef.composedPatientStateFingerprint !==
+        attachment.composedPatientStateFingerprint ||
+      JSON.stringify(attachment.attachmentRequest.patientStateCompositionArtifact) !==
+        JSON.stringify(composition) ||
+      JSON.stringify(attachment.attachmentRequest.templateClinicalResultRecipeCompilation) !==
+        JSON.stringify(materialization.templateClinicalResultRecipeCompilation)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A result-attachment orchestration must retain one exact D-326 artifact and the D-311 attachment derived from its embedded D-208 and D-320 authorities.',
+      });
+    }
+    const expectedId = `patient-template-clinical-result-attachment-orchestration.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A result-attachment orchestration ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplateClinicalResultAttachmentOrchestrationArtifact = z.infer<
+  typeof PatientTemplateClinicalResultAttachmentOrchestrationArtifactSchema
+>;
+
+export const ConditionFunctionalImpairmentSourceValidationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.condition-functional-impairment-source-validation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type ConditionFunctionalImpairmentSourceValidationFingerprint = z.infer<
+  typeof ConditionFunctionalImpairmentSourceValidationFingerprintSchema
+>;
+
+export const ConditionFunctionalImpairmentSourceValidationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    functionalImpairmentAttachment: ConditionFunctionalImpairmentAttachmentArtifactSchema,
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+  })
+  .strict();
+export type ConditionFunctionalImpairmentSourceValidationRequest = z.infer<
+  typeof ConditionFunctionalImpairmentSourceValidationRequestSchema
+>;
+
+export const ConditionFunctionalImpairmentSourceBindingSchema = z
+  .object({
+    resolvedFunctionalImpairmentId: StableIdSchema,
+    sourceInstanceId: StableIdSchema,
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+  })
+  .strict();
+export type ConditionFunctionalImpairmentSourceBinding = z.infer<
+  typeof ConditionFunctionalImpairmentSourceBindingSchema
+>;
+
+/**
+ * D-292 proves every D-289 source reference against one independent D-291
+ * exact-patient horizon and carries forward only the D-290 minimized
+ * projection. It is still not an action result or patient/runtime attachment.
+ */
+export const ConditionFunctionalImpairmentSourceValidationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    functionalImpairmentAttachmentRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ConditionFunctionalImpairmentAttachmentFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    validatedSourceBindings: z.array(ConditionFunctionalImpairmentSourceBindingSchema).max(64),
+    projection: FrozenConditionFunctionalImpairmentProjectionSchema,
+    compileRequest: ConditionFunctionalImpairmentSourceValidationRequestSchema,
+    inputFingerprint: ConditionFunctionalImpairmentSourceValidationFingerprintSchema,
+    payloadFingerprint: ConditionFunctionalImpairmentSourceValidationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const attachment = request.functionalImpairmentAttachment;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    const expectedBindings = attachment.attachedFunctionalImpairments
+      .map((impairment) => ({
+        resolvedFunctionalImpairmentId: impairment.id,
+        sourceInstanceId: impairment.source.sourceInstanceId,
+        sourceKind: impairment.source.kind,
+      }))
+      .sort((left, right) =>
+        left.resolvedFunctionalImpairmentId.localeCompare(right.resolvedFunctionalImpairmentId),
+      );
+    const bindingIds = artifact.validatedSourceBindings.map(
+      (binding) => binding.resolvedFunctionalImpairmentId,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== attachment.basePatientStateRef.id ||
+      artifact.patientStateId !== sourceHorizon.patientStateId ||
+      artifact.functionalImpairmentAttachmentRef.id !== attachment.id ||
+      artifact.functionalImpairmentAttachmentRef.payloadFingerprint !==
+        attachment.payloadFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      JSON.stringify(artifact.validatedSourceBindings) !== JSON.stringify(expectedBindings) ||
+      new Set(bindingIds).size !== bindingIds.length ||
+      artifact.projection.patientStateId !== artifact.patientStateId
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A functional-impairment source-validation artifact must retain its exact D-289 attachment, D-291 horizon, validated source bindings, patient, and D-290 projection.',
+      });
+    }
+    const expectedId = `condition-functional-impairment-source-validation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A functional-impairment source-validation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type ConditionFunctionalImpairmentSourceValidationArtifact = z.infer<
+  typeof ConditionFunctionalImpairmentSourceValidationArtifactSchema
+>;
+
+export const ConditionClinicalDurationSourceValidationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.condition-clinical-duration-source-validation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type ConditionClinicalDurationSourceValidationFingerprint = z.infer<
+  typeof ConditionClinicalDurationSourceValidationFingerprintSchema
+>;
+
+export const ConditionClinicalDurationSourceValidationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    durationAttachment: ConditionClinicalDurationAttachmentArtifactSchema,
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+  })
+  .strict();
+export type ConditionClinicalDurationSourceValidationRequest = z.infer<
+  typeof ConditionClinicalDurationSourceValidationRequestSchema
+>;
+
+export const ConditionClinicalDurationSourceBindingSchema = z
+  .object({
+    resolvedClinicalDurationId: StableIdSchema,
+    sourceInstanceId: StableIdSchema,
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+  })
+  .strict();
+export type ConditionClinicalDurationSourceBinding = z.infer<
+  typeof ConditionClinicalDurationSourceBindingSchema
+>;
+
+/**
+ * D-294 proves every newly attached D-264 duration source against one
+ * independent D-291 exact-patient horizon. It preserves the D-264 composed
+ * state by reference only and creates no action-result projection.
+ */
+export const ConditionClinicalDurationSourceValidationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    durationAttachmentRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ConditionClinicalDurationAttachmentFingerprintSchema,
+      })
+      .strict(),
+    composedPatientStateRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: ConditionClinicalDurationAttachmentFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    validatedSourceBindings: z.array(ConditionClinicalDurationSourceBindingSchema).max(64),
+    compileRequest: ConditionClinicalDurationSourceValidationRequestSchema,
+    inputFingerprint: ConditionClinicalDurationSourceValidationFingerprintSchema,
+    payloadFingerprint: ConditionClinicalDurationSourceValidationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const attachment = request.durationAttachment;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    const expectedBindings = attachment.attachmentRequest.durationResolutionArtifacts
+      .map((resolution) => ({
+        resolvedClinicalDurationId: resolution.resolvedDuration.id,
+        sourceInstanceId: resolution.resolvedDuration.source.sourceInstanceId,
+        sourceKind: resolution.resolvedDuration.source.kind,
+      }))
+      .sort((left, right) =>
+        left.resolvedClinicalDurationId.localeCompare(right.resolvedClinicalDurationId),
+      );
+    const bindingIds = artifact.validatedSourceBindings.map(
+      (binding) => binding.resolvedClinicalDurationId,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== attachment.basePatientStateRef.id ||
+      artifact.patientStateId !== sourceHorizon.patientStateId ||
+      artifact.durationAttachmentRef.id !== attachment.id ||
+      artifact.durationAttachmentRef.payloadFingerprint !== attachment.payloadFingerprint ||
+      artifact.composedPatientStateRef.id !== attachment.composedPatientState.id ||
+      artifact.composedPatientStateRef.fingerprint !== attachment.composedPatientStateFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      JSON.stringify(artifact.validatedSourceBindings) !== JSON.stringify(expectedBindings) ||
+      JSON.stringify(bindingIds) !== JSON.stringify(attachment.attachedDurationIds) ||
+      new Set(bindingIds).size !== bindingIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A condition-duration source-validation artifact must retain its exact D-264 attachment, composed-state reference, D-291 horizon, validated source bindings, and base patient.',
+      });
+    }
+    const expectedId = `condition-clinical-duration-source-validation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A condition-duration source-validation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type ConditionClinicalDurationSourceValidationArtifact = z.infer<
+  typeof ConditionClinicalDurationSourceValidationArtifactSchema
+>;
+
+export const PostCompositionPatientStateAssemblyFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.post-composition-patient-state-assembly\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PostCompositionPatientStateAssemblyFingerprint = z.infer<
+  typeof PostCompositionPatientStateAssemblyFingerprintSchema
+>;
+
+/**
+ * Authoring-only request that composes independently verified, nonoverlapping
+ * post-D-208 lane owners. It is not an arbitrary patient-state merge.
+ */
+export const PostCompositionPatientStateAssemblyRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateCompositionArtifact: ResolvedPatientStateCompositionArtifactSchema,
+    conditionClinicalDurationSourceValidationArtifact:
+      ConditionClinicalDurationSourceValidationArtifactSchema.nullable(),
+    conditionFunctionalImpairmentSourceValidationArtifact:
+      ConditionFunctionalImpairmentSourceValidationArtifactSchema.nullable(),
+    patientClinicalResultAttachmentArtifact:
+      PatientClinicalResultAttachmentArtifactSchema.nullable(),
+  })
+  .strict()
+  .superRefine((request, context) => {
+    if (
+      request.conditionClinicalDurationSourceValidationArtifact === null &&
+      request.conditionFunctionalImpairmentSourceValidationArtifact === null &&
+      request.patientClinicalResultAttachmentArtifact === null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Post-composition patient-state assembly requires at least one typed post-D-208 lane owner.',
+      });
+    }
+  });
+export type PostCompositionPatientStateAssemblyRequest = z.infer<
+  typeof PostCompositionPatientStateAssemblyRequestSchema
+>;
+
+export const PostCompositionPatientStateAssemblyArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateCompositionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+        composedPatientStateFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    basePatientStateRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    conditionClinicalDurationSourceValidationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ConditionClinicalDurationSourceValidationFingerprintSchema,
+      })
+      .strict()
+      .nullable(),
+    conditionFunctionalImpairmentSourceValidationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ConditionFunctionalImpairmentSourceValidationFingerprintSchema,
+      })
+      .strict()
+      .nullable(),
+    patientClinicalResultAttachmentRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientClinicalResultAttachmentFingerprintSchema,
+      })
+      .strict()
+      .nullable(),
+    attachedRecordIds: z
+      .object({
+        clinicalDurationIds: z.array(StableIdSchema).max(64),
+        functionalImpairmentIds: z.array(StableIdSchema).max(64),
+        measurementIds: z.array(StableIdSchema).max(128),
+        categoricalObservationIds: z.array(StableIdSchema).max(128),
+        structuredTestResultIds: z.array(StableIdSchema).max(128),
+      })
+      .strict(),
+    composedPatientState: ResolvedPatientStateSchema,
+    composedPatientStateFingerprint: PostCompositionPatientStateAssemblyFingerprintSchema,
+    assemblyRequest: PostCompositionPatientStateAssemblyRequestSchema,
+    inputFingerprint: PostCompositionPatientStateAssemblyFingerprintSchema,
+    payloadFingerprint: PostCompositionPatientStateAssemblyFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.assemblyRequest;
+    const composition = request.patientStateCompositionArtifact;
+    const baseState = composition.composedPatientState;
+    const durationValidation = request.conditionClinicalDurationSourceValidationArtifact;
+    const durationAttachment = durationValidation?.compileRequest.durationAttachment ?? null;
+    const impairmentValidation = request.conditionFunctionalImpairmentSourceValidationArtifact;
+    const impairmentAttachment =
+      impairmentValidation?.compileRequest.functionalImpairmentAttachment ?? null;
+    const resultAttachment = request.patientClinicalResultAttachmentArtifact;
+    const expectedDurations = durationAttachment?.composedPatientState.clinicalDurations ?? [];
+    const expectedImpairments = impairmentAttachment?.attachedFunctionalImpairments ?? [];
+    const expectedMeasurements = resultAttachment?.composedPatientState.measurements ?? [];
+    const expectedObservations =
+      resultAttachment?.composedPatientState.categoricalObservations ?? [];
+    const expectedTests = resultAttachment?.composedPatientState.structuredTestResults ?? [];
+    const expectedRecordIds = {
+      clinicalDurationIds: expectedDurations.map((record) => record.id),
+      functionalImpairmentIds: expectedImpairments.map((record) => record.id),
+      measurementIds: expectedMeasurements.map((record) => record.id),
+      categoricalObservationIds: expectedObservations.map((record) => record.id),
+      structuredTestResultIds: expectedTests.map((record) => record.id),
+    };
+    const baseWithoutOwnedLanes =
+      baseState === null
+        ? null
+        : {
+            ...baseState,
+            id: undefined,
+            clinicalDurations: undefined,
+            functionalImpairments: undefined,
+            measurements: undefined,
+            categoricalObservations: undefined,
+            structuredTestResults: undefined,
+          };
+    const outputWithoutOwnedLanes = {
+      ...artifact.composedPatientState,
+      id: undefined,
+      clinicalDurations: undefined,
+      functionalImpairments: undefined,
+      measurements: undefined,
+      categoricalObservations: undefined,
+      structuredTestResults: undefined,
+    };
+    const exactOptionalRef = (
+      actual: { id: string; payloadFingerprint: string } | null,
+      expected: { id: string; payloadFingerprint: string } | null,
+    ) => actual?.id === expected?.id && actual?.payloadFingerprint === expected?.payloadFingerprint;
+    const recordArraysAreCanonical = Object.values(artifact.attachedRecordIds).every((ids) =>
+      ids.every((id, index) => index === 0 || ids[index - 1]!.localeCompare(id) < 0),
+    );
+    if (
+      baseState === null ||
+      composition.status !== 'composed' ||
+      composition.composedPatientStateFingerprint === null ||
+      baseState.clinicalDurations.length !== 0 ||
+      baseState.functionalImpairments.length !== 0 ||
+      baseState.measurements.length !== 0 ||
+      baseState.categoricalObservations.length !== 0 ||
+      baseState.structuredTestResults.length !== 0 ||
+      (durationAttachment !== null &&
+        JSON.stringify(durationAttachment.attachmentRequest.patientStateCompositionArtifact) !==
+          JSON.stringify(composition)) ||
+      (impairmentAttachment !== null &&
+        JSON.stringify(impairmentAttachment.attachmentRequest.patientStateCompositionArtifact) !==
+          JSON.stringify(composition)) ||
+      (resultAttachment !== null &&
+        JSON.stringify(resultAttachment.attachmentRequest.patientStateCompositionArtifact) !==
+          JSON.stringify(composition)) ||
+      artifact.requestId !== request.id ||
+      artifact.patientStateCompositionRef.id !== composition.id ||
+      artifact.patientStateCompositionRef.payloadFingerprint !== composition.payloadFingerprint ||
+      artifact.patientStateCompositionRef.composedPatientStateFingerprint !==
+        composition.composedPatientStateFingerprint ||
+      artifact.basePatientStateRef.id !== baseState.id ||
+      artifact.basePatientStateRef.fingerprint !== composition.composedPatientStateFingerprint ||
+      !exactOptionalRef(
+        artifact.conditionClinicalDurationSourceValidationRef,
+        durationValidation,
+      ) ||
+      !exactOptionalRef(
+        artifact.conditionFunctionalImpairmentSourceValidationRef,
+        impairmentValidation,
+      ) ||
+      !exactOptionalRef(artifact.patientClinicalResultAttachmentRef, resultAttachment) ||
+      !recordArraysAreCanonical ||
+      JSON.stringify(artifact.attachedRecordIds) !== JSON.stringify(expectedRecordIds) ||
+      JSON.stringify(artifact.composedPatientState.clinicalDurations) !==
+        JSON.stringify(expectedDurations) ||
+      JSON.stringify(artifact.composedPatientState.functionalImpairments) !==
+        JSON.stringify(expectedImpairments) ||
+      JSON.stringify(artifact.composedPatientState.measurements) !==
+        JSON.stringify(expectedMeasurements) ||
+      JSON.stringify(artifact.composedPatientState.categoricalObservations) !==
+        JSON.stringify(expectedObservations) ||
+      JSON.stringify(artifact.composedPatientState.structuredTestResults) !==
+        JSON.stringify(expectedTests) ||
+      JSON.stringify(baseWithoutOwnedLanes) !== JSON.stringify(outputWithoutOwnedLanes)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A post-composition patient-state artifact must retain one exact empty-lane D-208 base and copy only its exact D-294 duration, D-292 functional-impairment, and D-311 clinical-result owners.',
+      });
+    }
+    const expectedPatientStateId = `resolved-patient-state.post-composition.${artifact.composedPatientStateFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.composedPatientState.id !== expectedPatientStateId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['composedPatientState', 'id'],
+        message: `A post-composition patient state must use ${expectedPatientStateId}.`,
+      });
+    }
+    const expectedArtifactId = `post-composition-patient-state-assembly.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedArtifactId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A post-composition patient-state artifact ID must use ${expectedArtifactId}.`,
+      });
+    }
+  });
+export type PostCompositionPatientStateAssemblyArtifact = z.infer<
+  typeof PostCompositionPatientStateAssemblyArtifactSchema
+>;
+
+export const PatientTemplatePostCompositionAssemblyOrchestrationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-post-composition-assembly-orchestration\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplatePostCompositionAssemblyOrchestrationFingerprint = z.infer<
+  typeof PatientTemplatePostCompositionAssemblyOrchestrationFingerprintSchema
+>;
+
+/**
+ * D-328 supplies the canonical result-enabled D-312 orchestration. D-208 and
+ * D-311 derive only from D-327; the independently optional D-294 and D-292
+ * branches remain explicit and must share D-312's exact root.
+ */
+export const PatientTemplatePostCompositionAssemblyOrchestrationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    clinicalResultAttachmentOrchestrationArtifact:
+      PatientTemplateClinicalResultAttachmentOrchestrationArtifactSchema,
+    conditionClinicalDurationSourceValidationArtifact:
+      ConditionClinicalDurationSourceValidationArtifactSchema.nullable(),
+    conditionFunctionalImpairmentSourceValidationArtifact:
+      ConditionFunctionalImpairmentSourceValidationArtifactSchema.nullable(),
+  })
+  .strict();
+export type PatientTemplatePostCompositionAssemblyOrchestrationRequest = z.infer<
+  typeof PatientTemplatePostCompositionAssemblyOrchestrationRequestSchema
+>;
+
+export const PatientTemplatePostCompositionAssemblyOrchestrationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    basePatientStateId: StableIdSchema,
+    composedPatientStateId: StableIdSchema,
+    clinicalResultAttachmentOrchestrationRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplateClinicalResultAttachmentOrchestrationFingerprintSchema,
+        payloadFingerprint: PatientTemplateClinicalResultAttachmentOrchestrationFingerprintSchema,
+      })
+      .strict(),
+    postCompositionAssemblyRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PostCompositionPatientStateAssemblyFingerprintSchema,
+        payloadFingerprint: PostCompositionPatientStateAssemblyFingerprintSchema,
+        composedPatientStateFingerprint: PostCompositionPatientStateAssemblyFingerprintSchema,
+      })
+      .strict(),
+    postCompositionAssembly: PostCompositionPatientStateAssemblyArtifactSchema,
+    compileRequest: PatientTemplatePostCompositionAssemblyOrchestrationRequestSchema,
+    inputFingerprint: PatientTemplatePostCompositionAssemblyOrchestrationFingerprintSchema,
+    payloadFingerprint: PatientTemplatePostCompositionAssemblyOrchestrationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const orchestration = request.clinicalResultAttachmentOrchestrationArtifact;
+    const materialization = orchestration.compileRequest.materializationArtifact;
+    const composition =
+      materialization.compileRequest.materializationContextArtifact.compileRequest
+        .patientStateCompositionArtifact;
+    const basePatientState = composition.composedPatientState;
+    const assembly = artifact.postCompositionAssembly;
+    if (
+      basePatientState === null ||
+      artifact.requestId !== request.id ||
+      artifact.basePatientStateId !== basePatientState.id ||
+      artifact.composedPatientStateId !== assembly.composedPatientState.id ||
+      artifact.clinicalResultAttachmentOrchestrationRef.id !== orchestration.id ||
+      artifact.clinicalResultAttachmentOrchestrationRef.inputFingerprint !==
+        orchestration.inputFingerprint ||
+      artifact.clinicalResultAttachmentOrchestrationRef.payloadFingerprint !==
+        orchestration.payloadFingerprint ||
+      artifact.postCompositionAssemblyRef.id !== assembly.id ||
+      artifact.postCompositionAssemblyRef.inputFingerprint !== assembly.inputFingerprint ||
+      artifact.postCompositionAssemblyRef.payloadFingerprint !== assembly.payloadFingerprint ||
+      artifact.postCompositionAssemblyRef.composedPatientStateFingerprint !==
+        assembly.composedPatientStateFingerprint ||
+      JSON.stringify(assembly.assemblyRequest.patientStateCompositionArtifact) !==
+        JSON.stringify(composition) ||
+      JSON.stringify(assembly.assemblyRequest.patientClinicalResultAttachmentArtifact) !==
+        JSON.stringify(orchestration.patientClinicalResultAttachment) ||
+      JSON.stringify(assembly.assemblyRequest.conditionClinicalDurationSourceValidationArtifact) !==
+        JSON.stringify(request.conditionClinicalDurationSourceValidationArtifact) ||
+      JSON.stringify(
+        assembly.assemblyRequest.conditionFunctionalImpairmentSourceValidationArtifact,
+      ) !== JSON.stringify(request.conditionFunctionalImpairmentSourceValidationArtifact)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A post-composition orchestration must retain one exact D-327 result branch and the D-312 assembly derived from its D-208/D-311 chain plus the supplied D-294/D-292 branches.',
+      });
+    }
+    const expectedId = `patient-template-post-composition-assembly-orchestration.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A post-composition orchestration ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplatePostCompositionAssemblyOrchestrationArtifact = z.infer<
+  typeof PatientTemplatePostCompositionAssemblyOrchestrationArtifactSchema
+>;
+
+export const PatientTemplateClinicalResultFindingPipelineOrchestrationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.patient-template-clinical-result-finding-pipeline-orchestration\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type PatientTemplateClinicalResultFindingPipelineOrchestrationFingerprint = z.infer<
+  typeof PatientTemplateClinicalResultFindingPipelineOrchestrationFingerprintSchema
+>;
+
+/**
+ * D-330 closes only the authoring orchestration seam from one replay-valid,
+ * result-free D-200 request and exact D-324 coverage through D-325–D-329.
+ * Prebuilt result orchestrations and raw result records are absent.
+ */
+export const PatientTemplateClinicalResultFindingPipelineOrchestrationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    baseFindingPipelineAuditRequest: FindingPipelineAuditRequestSchema,
+    resourceCoverageArtifact: PatientTemplateClinicalResultResourceCoverageArtifactSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const baseRequest = request.baseFindingPipelineAuditRequest;
+    if (baseRequest.patientTemplatePostCompositionAssemblyOrchestrationArtifact !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [
+          'baseFindingPipelineAuditRequest',
+          'patientTemplatePostCompositionAssemblyOrchestrationArtifact',
+        ],
+        message:
+          'D-330 accepts a result-free D-200 request and derives the complete D-325-through-D-329 result chain itself.',
+      });
+    }
+    if (
+      baseRequest.postCompositionPatientStateAssemblyArtifact !== null &&
+      baseRequest.postCompositionPatientStateAssemblyArtifact.assemblyRequest
+        .patientClinicalResultAttachmentArtifact !== null
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['baseFindingPipelineAuditRequest', 'postCompositionPatientStateAssemblyArtifact'],
+        message:
+          'A D-330 base request may retain verified duration/impairment lanes but no prebuilt clinical-result attachment.',
+      });
+    }
+  });
+export type PatientTemplateClinicalResultFindingPipelineOrchestrationRequest = z.infer<
+  typeof PatientTemplateClinicalResultFindingPipelineOrchestrationRequestSchema
+>;
+
+export const PatientTemplateClinicalResultFindingPipelineOrchestrationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    resultPostCompositionOrchestrationRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientTemplatePostCompositionAssemblyOrchestrationFingerprintSchema,
+        payloadFingerprint: PatientTemplatePostCompositionAssemblyOrchestrationFingerprintSchema,
+      })
+      .strict(),
+    findingPipelineAuditRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: FindingPipelineAuditFingerprintSchema,
+        payloadFingerprint: FindingPipelineAuditFingerprintSchema,
+      })
+      .strict(),
+    resultPostCompositionOrchestrationArtifact:
+      PatientTemplatePostCompositionAssemblyOrchestrationArtifactSchema,
+    findingPipelineAuditArtifact: FindingPipelineAuditArtifactSchema,
+    compileRequest: PatientTemplateClinicalResultFindingPipelineOrchestrationRequestSchema,
+    inputFingerprint: PatientTemplateClinicalResultFindingPipelineOrchestrationFingerprintSchema,
+    payloadFingerprint: PatientTemplateClinicalResultFindingPipelineOrchestrationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const baseRequest = request.baseFindingPipelineAuditRequest;
+    const orchestration = artifact.resultPostCompositionOrchestrationArtifact;
+    const finalAudit = artifact.findingPipelineAuditArtifact;
+    const patientState = finalAudit.catalogSnapshot?.patientInstance.patientState ?? null;
+    const downstream = baseRequest.downstream;
+    if (
+      artifact.requestId !== request.id ||
+      finalAudit.status !== 'compiled' ||
+      patientState === null ||
+      downstream === null ||
+      artifact.patientStateId !== patientState.id ||
+      artifact.resultPostCompositionOrchestrationRef.id !== orchestration.id ||
+      artifact.resultPostCompositionOrchestrationRef.inputFingerprint !==
+        orchestration.inputFingerprint ||
+      artifact.resultPostCompositionOrchestrationRef.payloadFingerprint !==
+        orchestration.payloadFingerprint ||
+      artifact.findingPipelineAuditRef.id !== finalAudit.id ||
+      artifact.findingPipelineAuditRef.inputFingerprint !== finalAudit.inputFingerprint ||
+      artifact.findingPipelineAuditRef.payloadFingerprint !== finalAudit.payloadFingerprint ||
+      finalAudit.patientTemplatePostCompositionAssemblyOrchestrationArtifact?.id !==
+        orchestration.id ||
+      finalAudit.patientTemplatePostCompositionAssemblyOrchestrationArtifact?.payloadFingerprint !==
+        orchestration.payloadFingerprint ||
+      JSON.stringify(finalAudit.postCompositionPatientStateAssemblyArtifact) !==
+        JSON.stringify(orchestration.postCompositionAssembly) ||
+      JSON.stringify(finalAudit.patientSlotFillSeedAuthorityArtifact) !==
+        JSON.stringify(baseRequest.patientSlotFillSeedAuthorityArtifact) ||
+      JSON.stringify(finalAudit.preFindingPatientStateOrchestrationArtifact) !==
+        JSON.stringify(baseRequest.preFindingPatientStateOrchestrationArtifact) ||
+      JSON.stringify(finalAudit.conditionFindingArtifact) !==
+        JSON.stringify(downstream.conditionFindingArtifact) ||
+      JSON.stringify(finalAudit.backgroundFindingArtifact) !==
+        JSON.stringify(downstream.backgroundFindingArtifact) ||
+      JSON.stringify(finalAudit.weightedFindingTendencyApplicabilityArtifact) !==
+        JSON.stringify(downstream.weightedFindingTendencyApplicabilityArtifact) ||
+      JSON.stringify(
+        orchestration.compileRequest.clinicalResultAttachmentOrchestrationArtifact.compileRequest
+          .materializationArtifact.compileRequest.materializationContextArtifact.compileRequest
+          .resourceCoverageArtifact,
+      ) !== JSON.stringify(request.resourceCoverageArtifact)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A clinical-result finding-pipeline orchestration must retain the D-328 chain derived from the exact result-free D-200 request scaffold and D-324 coverage plus the final compiled D-200 audit that consumes that authority.',
+      });
+    }
+    const expectedId = `patient-template-clinical-result-finding-pipeline-orchestration.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A clinical-result finding-pipeline orchestration ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type PatientTemplateClinicalResultFindingPipelineOrchestrationArtifact = z.infer<
+  typeof PatientTemplateClinicalResultFindingPipelineOrchestrationArtifactSchema
 >;
 
 export const PreFindingPatientStateOrchestrationFingerprintSchema = z
@@ -24200,7 +31202,7 @@ export const StructuredPatientStateRevealDefinitionSchema = z
     informationActionId: StableIdSchema,
     informationActionPayloadFingerprint: InformationActionPayloadFingerprintSchema,
     allowedSourceKinds: z.array(StructuredPatientStateRevealSourceKindSchema).min(1).max(4),
-    lanes: z.array(StructuredPatientStateRevealLaneSchema).max(9),
+    lanes: z.array(StructuredPatientStateRevealLaneSchema).max(12),
     singletonFields: z.array(StructuredPatientStateRevealSingletonFieldSchema).max(3),
     lifecycle: ContentLifecycleSchema,
     review: ClinicalRuleReviewSchema,
@@ -24398,7 +31400,7 @@ export const ResolvedStructuredPatientStateRevealProjectionSchema = z
     timeScopeId: StableIdSchema,
     claimOriginId: StableIdSchema,
     dependencyGroupIds: z.array(StableIdSchema).max(64),
-    laneStatements: z.array(StructuredPatientStateRevealLaneStatementSchema).max(9),
+    laneStatements: z.array(StructuredPatientStateRevealLaneStatementSchema).max(12),
     singletonStatements: z.array(StructuredPatientStateRevealSingletonStatementSchema).max(3),
     resolution: PatientStateResolutionTraceSchema,
   })
@@ -24459,6 +31461,12 @@ export const getStructuredPatientStateRevealLaneRecordIds = (
       return state.treatmentHistory.priorLevelsOfCare.map((record) => record.id);
     case 'medication_tolerability_findings':
       return state.medicationTolerabilityFindings.map((record) => record.id);
+    case 'current_medication_reported_benefits':
+      return state.currentMedicationReportedBenefits.map((record) => record.id);
+    case 'current_medication_dose_positions':
+      return state.currentMedicationDosePositions.map((record) => record.id);
+    case 'medication_change_temporal_relationships':
+      return state.medicationChangeTemporalRelationships.map((record) => record.id);
     case 'reaction_records':
       return state.reactionHistory.records.map((record) => record.id);
   }
@@ -24598,14 +31606,16 @@ export type StructuredPatientStateRevealProjectionEnvelope = z.infer<
 >;
 
 /**
- * Duration and subjective burden are typed target-scoped patient values, not
- * canonical findings and not whole-lane source reports. One static projection
- * definition names the exact action plus the closed target/source/time
- * horizon through which already-frozen values may be presented.
+ * Duration, subjective burden, and condition-attributed functional impairment
+ * are typed target-scoped patient values, not canonical findings and not
+ * whole-lane source reports. One static projection definition names the exact
+ * action plus the closed target/source/time horizon through which
+ * already-frozen values may be presented.
  */
 export const TargetScopedPatientValueKindSchema = z.enum([
   'clinical_duration',
   'subjective_burden',
+  'condition_functional_impairment',
 ]);
 export type TargetScopedPatientValueKind = z.infer<typeof TargetScopedPatientValueKindSchema>;
 
@@ -24677,6 +31687,11 @@ export const TargetScopedPatientValueProjectionDefinitionSchema = z
       ordinalScaleId: StableIdSchema,
       ordinalScaleContentVersion: ContentVersionSchema,
     }).strict(),
+    TargetScopedPatientValueProjectionDefinitionBaseSchema.extend({
+      valueKind: z.literal('condition_functional_impairment'),
+      functionalImpairmentProfileId: StableIdSchema,
+      functionalImpairmentProfileContentVersion: ContentVersionSchema,
+    }).strict(),
   ])
   .superRefine((definition, context) => {
     if (
@@ -24687,6 +31702,17 @@ export const TargetScopedPatientValueProjectionDefinitionSchema = z
         code: z.ZodIssueCode.custom,
         path: ['developerOpinionIds'],
         message: 'Target-scoped projection Developer-opinion references must be unique.',
+      });
+    }
+    if (
+      definition.valueKind === 'condition_functional_impairment' &&
+      definition.targetSelector.kind !== 'condition_definition'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['targetSelector'],
+        message:
+          'A condition-functional-impairment projection must select one exact condition definition.',
       });
     }
   });
@@ -24715,6 +31741,13 @@ export const TargetScopedPatientValueSchema = z.discriminatedUnion('kind', [
     ordinalScaleId: StableIdSchema,
     ordinalScaleContentVersion: ContentVersionSchema,
     ordinalValueId: StableIdSchema,
+  }).strict(),
+  TargetScopedPatientValueBaseSchema.extend({
+    kind: z.literal('condition_functional_impairment'),
+    level: FunctionalImpairmentLevelSchema,
+    functionalImpairmentProfileId: StableIdSchema,
+    functionalImpairmentProfileContentVersion: ContentVersionSchema,
+    functionalImpairmentOptionId: StableIdSchema,
   }).strict(),
 ]);
 export type TargetScopedPatientValue = z.infer<typeof TargetScopedPatientValueSchema>;
@@ -24758,21 +31791,26 @@ export type ResolvedTargetScopedPatientValueProjection = z.infer<
 const FrozenTargetScopedPatientValueBaseSchema = z.object({
   id: StableIdSchema,
   sourceKind: PatientSceneEvidenceSourceKindSchema,
-  sourceInstanceId: StableIdSchema,
   timeScopeId: StableIdSchema,
 });
 
 export const FrozenTargetScopedPatientValueSchema = z.discriminatedUnion('kind', [
   FrozenTargetScopedPatientValueBaseSchema.extend({
     kind: z.literal('clinical_duration'),
+    sourceInstanceId: StableIdSchema,
     value: z.number().int().positive(),
     unit: ClinicalDurationUnitSchema,
   }).strict(),
   FrozenTargetScopedPatientValueBaseSchema.extend({
     kind: z.literal('subjective_burden'),
+    sourceInstanceId: StableIdSchema,
     ordinalScaleId: StableIdSchema,
     ordinalScaleContentVersion: ContentVersionSchema,
     ordinalValueId: StableIdSchema,
+  }).strict(),
+  FrozenTargetScopedPatientValueBaseSchema.extend({
+    kind: z.literal('condition_functional_impairment'),
+    level: FunctionalImpairmentLevelSchema,
   }).strict(),
 ]);
 export type FrozenTargetScopedPatientValue = z.infer<typeof FrozenTargetScopedPatientValueSchema>;
@@ -24781,8 +31819,11 @@ export type FrozenTargetScopedPatientValue = z.infer<typeof FrozenTargetScopedPa
  * This is the only target-scoped value shape eligible for a future
  * PatientInstance. It deliberately omits raw target references, source
  * authoring interpretation, criteria, resolution, and profile provenance.
- * Source identity remains so independently generated reports stay
- * disentanglable.
+ * Duration and burden retain source-instance identity so independently
+ * generated reports stay disentanglable. Functional impairment deliberately
+ * retains only source kind and time scope, matching D-290's stricter
+ * target/source-instance-redaction boundary; its authoring projection and
+ * D-298 validation still retain the exact hidden source instance.
  */
 export const FrozenTargetScopedPatientValueRevealSchema = z
   .object({
@@ -25038,18 +32079,32 @@ export const TargetScopedPatientValueProjectionArtifactSchema = z
         if (
           sourceValue.kind !== frozenValue.kind ||
           sourceValue.source.kind !== frozenValue.sourceKind ||
-          sourceValue.source.sourceInstanceId !== frozenValue.sourceInstanceId ||
           sourceValue.timeScopeId !== frozenValue.timeScopeId
         ) {
           return true;
         }
-        return sourceValue.kind === 'clinical_duration' && frozenValue.kind === 'clinical_duration'
-          ? sourceValue.value !== frozenValue.value || sourceValue.unit !== frozenValue.unit
-          : sourceValue.kind === 'subjective_burden' && frozenValue.kind === 'subjective_burden'
-            ? sourceValue.ordinalScaleId !== frozenValue.ordinalScaleId ||
+        switch (sourceValue.kind) {
+          case 'clinical_duration':
+            return (
+              frozenValue.kind !== 'clinical_duration' ||
+              sourceValue.source.sourceInstanceId !== frozenValue.sourceInstanceId ||
+              sourceValue.value !== frozenValue.value ||
+              sourceValue.unit !== frozenValue.unit
+            );
+          case 'subjective_burden':
+            return (
+              frozenValue.kind !== 'subjective_burden' ||
+              sourceValue.source.sourceInstanceId !== frozenValue.sourceInstanceId ||
+              sourceValue.ordinalScaleId !== frozenValue.ordinalScaleId ||
               sourceValue.ordinalScaleContentVersion !== frozenValue.ordinalScaleContentVersion ||
               sourceValue.ordinalValueId !== frozenValue.ordinalValueId
-            : true;
+            );
+          case 'condition_functional_impairment':
+            return (
+              frozenValue.kind !== 'condition_functional_impairment' ||
+              sourceValue.level !== frozenValue.level
+            );
+        }
       });
     });
     if (
@@ -25086,6 +32141,184 @@ export const TargetScopedPatientValueProjectionArtifactSchema = z
   });
 export type TargetScopedPatientValueProjectionArtifact = z.infer<
   typeof TargetScopedPatientValueProjectionArtifactSchema
+>;
+
+export const TargetScopedPatientValueSourceValidationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.target-scoped-patient-value-source-validation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type TargetScopedPatientValueSourceValidationFingerprint = z.infer<
+  typeof TargetScopedPatientValueSourceValidationFingerprintSchema
+>;
+
+export const TargetScopedPatientValueSourceValidationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    targetScopedPatientValueProjection: TargetScopedPatientValueProjectionArtifactSchema,
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+  })
+  .strict();
+export type TargetScopedPatientValueSourceValidationRequest = z.infer<
+  typeof TargetScopedPatientValueSourceValidationRequestSchema
+>;
+
+export const TargetScopedPatientValueSourceBindingSchema = z
+  .object({
+    informationActionId: StableIdSchema,
+    recordId: StableIdSchema,
+    frozenValueId: StableIdSchema,
+    sourceInstanceId: StableIdSchema,
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+  })
+  .strict();
+export type TargetScopedPatientValueSourceBinding = z.infer<
+  typeof TargetScopedPatientValueSourceBindingSchema
+>;
+
+/**
+ * D-298 verifies every source-bearing value that D-240 actually projects
+ * against one independently compiled same-patient D-291 horizon. It carries
+ * only the already-minimized frozen reveals forward and is not itself an
+ * information-action or runtime attachment.
+ */
+export const TargetScopedPatientValueSourceValidationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    targetScopedPatientValueProjectionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: TargetScopedPatientValueProjectionFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    validatedSourceBindings: z.array(TargetScopedPatientValueSourceBindingSchema).max(512),
+    frozenReveals: z.array(FrozenTargetScopedPatientValueRevealSchema).max(256),
+    compileRequest: TargetScopedPatientValueSourceValidationRequestSchema,
+    inputFingerprint: TargetScopedPatientValueSourceValidationFingerprintSchema,
+    payloadFingerprint: TargetScopedPatientValueSourceValidationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const projectionArtifact = request.targetScopedPatientValueProjection;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    const projectionById = new Map(
+      projectionArtifact.projections.map((projection) => [projection.id, projection]),
+    );
+    const revealById = new Map(
+      projectionArtifact.frozenReveals.map((reveal) => [reveal.id, reveal]),
+    );
+    let invalidCrossLink = false;
+    const expectedBindings = projectionArtifact.evaluations
+      .flatMap((evaluation) => {
+        if (
+          evaluation.status !== 'complete' ||
+          evaluation.resolvedProjectionId === null ||
+          evaluation.frozenRevealId === null
+        ) {
+          return [];
+        }
+        const projection = projectionById.get(evaluation.resolvedProjectionId);
+        const reveal = revealById.get(evaluation.frozenRevealId);
+        if (projection === undefined || reveal === undefined) {
+          invalidCrossLink = true;
+          return [];
+        }
+        return evaluation.valueBindings.flatMap((binding) => {
+          const sourceValue = projection.values.find(
+            (value) => value.recordId === binding.recordId,
+          );
+          const frozenValue = reveal.values.find((value) => value.id === binding.frozenValueId);
+          if (
+            sourceValue === undefined ||
+            frozenValue === undefined ||
+            sourceValue.kind !== frozenValue.kind ||
+            sourceValue.source.kind !== frozenValue.sourceKind ||
+            (sourceValue.kind !== 'condition_functional_impairment' &&
+              ('sourceInstanceId' in frozenValue
+                ? sourceValue.source.sourceInstanceId !== frozenValue.sourceInstanceId
+                : true))
+          ) {
+            invalidCrossLink = true;
+            return [];
+          }
+          return [
+            {
+              informationActionId: evaluation.informationActionId,
+              recordId: binding.recordId,
+              frozenValueId: binding.frozenValueId,
+              sourceInstanceId: sourceValue.source.sourceInstanceId,
+              sourceKind: sourceValue.source.kind,
+            },
+          ];
+        });
+      })
+      .sort((left, right) =>
+        `${left.informationActionId}\u0000${left.recordId}\u0000${left.frozenValueId}`.localeCompare(
+          `${right.informationActionId}\u0000${right.recordId}\u0000${right.frozenValueId}`,
+        ),
+      );
+    const bindingKeys = artifact.validatedSourceBindings.map(
+      (binding) =>
+        `${binding.informationActionId}\u0000${binding.recordId}\u0000${binding.frozenValueId}`,
+    );
+    const sourceBindingsValid = expectedBindings.every((binding) => {
+      const sourceInstance = sourceHorizon.sourceInstances.find(
+        (instance) => instance.id === binding.sourceInstanceId,
+      );
+      return (
+        sourceInstance !== undefined &&
+        sourceInstance.patientStateId === artifact.patientStateId &&
+        sourceInstance.kind === binding.sourceKind
+      );
+    });
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== projectionArtifact.patientStateId ||
+      artifact.patientStateId !== sourceHorizon.patientStateId ||
+      artifact.targetScopedPatientValueProjectionRef.id !== projectionArtifact.id ||
+      artifact.targetScopedPatientValueProjectionRef.payloadFingerprint !==
+        projectionArtifact.payloadFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      invalidCrossLink ||
+      !sourceBindingsValid ||
+      new Set(bindingKeys).size !== bindingKeys.length ||
+      JSON.stringify(bindingKeys) !== JSON.stringify([...bindingKeys].sort()) ||
+      JSON.stringify(artifact.validatedSourceBindings) !== JSON.stringify(expectedBindings) ||
+      JSON.stringify(artifact.frozenReveals) !== JSON.stringify(projectionArtifact.frozenReveals)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A target-scoped patient-value source-validation artifact must retain its exact D-240 projection, D-291 horizon, action/record/value source bindings, patient, and frozen reveals.',
+      });
+    }
+    const expectedId = `target-scoped-patient-value-source-validation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A target-scoped patient-value source-validation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type TargetScopedPatientValueSourceValidationArtifact = z.infer<
+  typeof TargetScopedPatientValueSourceValidationArtifactSchema
 >;
 
 export const UniversalInformationActionCatalogSchema = z
@@ -25261,7 +32494,7 @@ export const StructuredSourceReportProfileSchema = z
     timeScopeId: StableIdSchema,
     claimOriginId: StableIdSchema,
     dependencyGroupIds: z.array(StableIdSchema).max(64),
-    laneBehaviors: z.array(StructuredSourceReportLaneBehaviorSchema).max(9),
+    laneBehaviors: z.array(StructuredSourceReportLaneBehaviorSchema).max(12),
     singletonBehaviors: z.array(StructuredSourceReportSingletonBehaviorSchema).max(3),
     developerOpinionIds: z.array(StableIdSchema),
     lifecycle: ContentLifecycleSchema,
@@ -25768,9 +33001,14 @@ export const StructuredSourceReportComplexityModuleEvaluationSchema = z
     moduleFingerprint: OptionalFeatureBudgetFingerprintSchema,
     optionalFeatureBindingId: StableIdSchema,
     selectedModuleId: StableIdSchema,
-    cost: z.number().int().min(1).max(3),
+    cost: z.number().int().min(1).max(PATIENT_OPTIONAL_FEATURE_MAX_COST),
     selectedInComplexityBudget: z.boolean(),
-    selectionOrdinal: z.number().int().min(0).max(2).nullable(),
+    selectionOrdinal: z
+      .number()
+      .int()
+      .min(0)
+      .max(PATIENT_OPTIONAL_FEATURE_MAX_SELECTION_ORDINAL)
+      .nullable(),
     stableDrawId: StableIdSchema.nullable(),
   })
   .strict()
@@ -26149,6 +33387,682 @@ export const StructuredSourceReportArtifactSchema = z
     }
   });
 export type StructuredSourceReportArtifact = z.infer<typeof StructuredSourceReportArtifactSchema>;
+
+export const StructuredSourceReportSourceValidationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.structured-source-report-source-validation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type StructuredSourceReportSourceValidationFingerprint = z.infer<
+  typeof StructuredSourceReportSourceValidationFingerprintSchema
+>;
+
+export const StructuredSourceReportSourceValidationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    structuredSourceReport: StructuredSourceReportArtifactSchema,
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+  })
+  .strict();
+export type StructuredSourceReportSourceValidationRequest = z.infer<
+  typeof StructuredSourceReportSourceValidationRequestSchema
+>;
+
+export const StructuredSourceReportValidatedSourceBindingSchema = z
+  .object({
+    profileId: StableIdSchema,
+    profileContentVersion: ContentVersionSchema,
+    definitionId: StableIdSchema,
+    definitionContentVersion: ContentVersionSchema,
+    resolvedProjectionId: StableIdSchema,
+    sourceInstanceId: StableIdSchema,
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+    sourceDefinitionId: StableIdSchema,
+    sourceDefinitionContentVersion: ContentVersionSchema,
+  })
+  .strict();
+export type StructuredSourceReportValidatedSourceBinding = z.infer<
+  typeof StructuredSourceReportValidatedSourceBindingSchema
+>;
+
+/**
+ * D-299 verifies each D-215 source-view profile against one independent
+ * same-patient D-291 source horizon. It retains D-215's detached D-212
+ * projection recipes but is not itself a catalog or runtime attachment.
+ */
+export const StructuredSourceReportSourceValidationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    structuredSourceReportRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: StructuredSourceReportFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    validatedSourceBindings: z.array(StructuredSourceReportValidatedSourceBindingSchema).min(1),
+    projectionRecipes: z.array(StructuredPatientStateRevealProjectionRecipeSchema).min(1),
+    compileRequest: StructuredSourceReportSourceValidationRequestSchema,
+    inputFingerprint: StructuredSourceReportSourceValidationFingerprintSchema,
+    payloadFingerprint: StructuredSourceReportSourceValidationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const report = request.structuredSourceReport;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    const profileByKey = new Map(
+      report.compileRequest.profiles.map((profile) => [
+        `${profile.id}\u0000${profile.contentVersion}`,
+        profile,
+      ]),
+    );
+    const recipeById = new Map(
+      report.projectionRecipes.map((recipe) => [recipe.resolved.id, recipe]),
+    );
+    let invalidCrossLink = false;
+    const expectedBindings = report.profileReferences
+      .flatMap((reference) => {
+        const profile = profileByKey.get(
+          `${reference.profileRef.id}\u0000${reference.profileRef.contentVersion}`,
+        );
+        const recipe = recipeById.get(reference.resolvedProjectionId);
+        if (
+          profile === undefined ||
+          recipe === undefined ||
+          recipe.resolved.definitionId !== reference.definitionRef.id ||
+          recipe.resolved.definitionContentVersion !== reference.definitionRef.contentVersion ||
+          recipe.resolved.source.kind !== profile.source.kind ||
+          recipe.resolved.source.sourceInstanceId !== profile.source.sourceInstanceId
+        ) {
+          invalidCrossLink = true;
+          return [];
+        }
+        const sourceInstance = sourceHorizon.sourceInstances.find(
+          (candidate) => candidate.id === profile.source.sourceInstanceId,
+        );
+        if (
+          sourceInstance === undefined ||
+          sourceInstance.patientStateId !== artifact.patientStateId ||
+          sourceInstance.kind !== profile.source.kind
+        ) {
+          invalidCrossLink = true;
+          return [];
+        }
+        return [
+          {
+            profileId: reference.profileRef.id,
+            profileContentVersion: reference.profileRef.contentVersion,
+            definitionId: reference.definitionRef.id,
+            definitionContentVersion: reference.definitionRef.contentVersion,
+            resolvedProjectionId: reference.resolvedProjectionId,
+            sourceInstanceId: profile.source.sourceInstanceId,
+            sourceKind: profile.source.kind,
+            sourceDefinitionId: sourceInstance.definitionRef.id,
+            sourceDefinitionContentVersion: sourceInstance.definitionRef.contentVersion,
+          },
+        ];
+      })
+      .sort((left, right) =>
+        `${left.profileId}\u0000${left.profileContentVersion}`.localeCompare(
+          `${right.profileId}\u0000${right.profileContentVersion}`,
+        ),
+      );
+    const bindingKeys = artifact.validatedSourceBindings.map(
+      (binding) => `${binding.profileId}\u0000${binding.profileContentVersion}`,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== report.patientStateId ||
+      artifact.patientStateId !== sourceHorizon.patientStateId ||
+      artifact.structuredSourceReportRef.id !== report.id ||
+      artifact.structuredSourceReportRef.payloadFingerprint !== report.payloadFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      invalidCrossLink ||
+      new Set(bindingKeys).size !== bindingKeys.length ||
+      JSON.stringify(bindingKeys) !== JSON.stringify([...bindingKeys].sort()) ||
+      JSON.stringify(artifact.validatedSourceBindings) !== JSON.stringify(expectedBindings) ||
+      JSON.stringify(artifact.projectionRecipes) !== JSON.stringify(report.projectionRecipes)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A structured source-report source-validation artifact must retain its exact D-215 report, D-291 horizon, profile/projection source bindings, patient, and detached D-212 recipes.',
+      });
+    }
+    const expectedId = `structured-source-report-source-validation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A structured source-report source-validation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type StructuredSourceReportSourceValidationArtifact = z.infer<
+  typeof StructuredSourceReportSourceValidationArtifactSchema
+>;
+
+export const StructuredSourceReportRecordProjectionFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.structured-source-report-record-projection\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type StructuredSourceReportRecordProjectionFingerprint = z.infer<
+  typeof StructuredSourceReportRecordProjectionFingerprintSchema
+>;
+
+export const StructuredSourceReportRecordProjectionRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    sourceValidation: StructuredSourceReportSourceValidationArtifactSchema,
+  })
+  .strict();
+export type StructuredSourceReportRecordProjectionRequest = z.infer<
+  typeof StructuredSourceReportRecordProjectionRequestSchema
+>;
+
+/**
+ * D-350 derives every D-349 minimized record view from one independently
+ * source-validated D-299 report. The artifact is still authoring-only and is
+ * not a D-214, PatientInstance, persistence, or runtime attachment.
+ */
+export const StructuredSourceReportRecordProjectionArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sourceValidationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: StructuredSourceReportSourceValidationFingerprintSchema,
+      })
+      .strict(),
+    projections: z.array(FrozenStructuredPatientStateRecordProjectionSchema).min(1),
+    compileRequest: StructuredSourceReportRecordProjectionRequestSchema,
+    inputFingerprint: StructuredSourceReportRecordProjectionFingerprintSchema,
+    payloadFingerprint: StructuredSourceReportRecordProjectionFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const sourceValidation = artifact.compileRequest.sourceValidation;
+    const recipeById = new Map(
+      sourceValidation.projectionRecipes.map((recipe) => [recipe.resolved.id, recipe]),
+    );
+    const bindingByProjectionId = new Map(
+      sourceValidation.validatedSourceBindings.map((binding) => [
+        binding.resolvedProjectionId,
+        binding,
+      ]),
+    );
+    const projectionIds = artifact.projections.map(
+      (projection) => projection.resolvedStructuredRevealId,
+    );
+    const recipeIds = sourceValidation.projectionRecipes.map((recipe) => recipe.resolved.id).sort();
+    let invalidCrossLink = false;
+    for (const projection of artifact.projections) {
+      const recipe = recipeById.get(projection.resolvedStructuredRevealId);
+      const binding = bindingByProjectionId.get(projection.resolvedStructuredRevealId);
+      if (
+        recipe === undefined ||
+        binding === undefined ||
+        projection.patientStateId !== artifact.patientStateId ||
+        projection.definitionId !== recipe.definition.id ||
+        projection.definitionContentVersion !== recipe.definition.contentVersion ||
+        projection.informationActionId !== recipe.definition.informationActionId ||
+        projection.informationActionPayloadFingerprint !==
+          recipe.definition.informationActionPayloadFingerprint ||
+        projection.source.kind !== recipe.resolved.source.kind ||
+        projection.source.sourceInstanceId !== recipe.resolved.source.sourceInstanceId ||
+        projection.timeScopeId !== recipe.resolved.timeScopeId ||
+        binding.definitionId !== recipe.definition.id ||
+        binding.definitionContentVersion !== recipe.definition.contentVersion ||
+        binding.sourceKind !== recipe.resolved.source.kind ||
+        binding.sourceInstanceId !== recipe.resolved.source.sourceInstanceId
+      ) {
+        invalidCrossLink = true;
+      }
+    }
+    if (
+      artifact.requestId !== artifact.compileRequest.id ||
+      artifact.patientStateId !== sourceValidation.patientStateId ||
+      artifact.sourceValidationRef.id !== sourceValidation.id ||
+      artifact.sourceValidationRef.payloadFingerprint !== sourceValidation.payloadFingerprint ||
+      invalidCrossLink ||
+      new Set(projectionIds).size !== projectionIds.length ||
+      JSON.stringify(projectionIds) !== JSON.stringify([...projectionIds].sort()) ||
+      JSON.stringify(projectionIds) !== JSON.stringify(recipeIds)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A source-validated record-projection artifact must retain one exact D-349 projection per D-299 recipe, with the same patient, definition, action, source, and time context.',
+      });
+    }
+    const expectedId = `structured-source-report-record-projection.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A source-validated record-projection artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type StructuredSourceReportRecordProjectionArtifact = z.infer<
+  typeof StructuredSourceReportRecordProjectionArtifactSchema
+>;
+
+export const ResolvedPatientStateSourceReferenceLaneSchema = z.enum([
+  'diagnosis_record',
+  'current_medication_reported_benefit',
+  'current_medication_dose_position',
+  'medication_change_temporal_relationship',
+  'measurement',
+  'categorical_observation',
+  'structured_test_result',
+  'clinical_duration',
+  'functional_impairment',
+  'subjective_burden',
+  'proposition_evidence',
+]);
+export type ResolvedPatientStateSourceReferenceLane = z.infer<
+  typeof ResolvedPatientStateSourceReferenceLaneSchema
+>;
+
+export const ResolvedPatientStateSourceValidationModeSchema = z.literal('source_and_kind');
+export type ResolvedPatientStateSourceValidationMode = z.infer<
+  typeof ResolvedPatientStateSourceValidationModeSchema
+>;
+
+export const ResolvedPatientStateSourceValidationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.resolved-patient-state-source-validation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type ResolvedPatientStateSourceValidationFingerprint = z.infer<
+  typeof ResolvedPatientStateSourceValidationFingerprintSchema
+>;
+
+export const ResolvedPatientStateSourceValidationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateComposition: ResolvedPatientStateCompositionArtifactSchema,
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    if (
+      request.patientStateComposition.composedPatientState?.measurements.some(
+        (measurement) => measurement.source.kind === 'derived_measurement',
+      )
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['patientStateComposition', 'composedPatientState', 'measurements'],
+        message:
+          'D-301 validates patient-scene source instances only; derived measurements require their exact derivation artifact and a separate integration decision.',
+      });
+    }
+  });
+export type ResolvedPatientStateSourceValidationRequest = z.infer<
+  typeof ResolvedPatientStateSourceValidationRequestSchema
+>;
+
+export const ResolvedPatientStateValidatedSourceBindingSchema = z
+  .object({
+    lane: ResolvedPatientStateSourceReferenceLaneSchema,
+    recordId: StableIdSchema,
+    sourceInstanceId: StableIdSchema,
+    sourceKind: PatientSceneEvidenceSourceKindSchema,
+    sourceDefinitionId: StableIdSchema,
+    sourceDefinitionContentVersion: ContentVersionSchema,
+    validationMode: ResolvedPatientStateSourceValidationModeSchema,
+  })
+  .strict();
+export type ResolvedPatientStateValidatedSourceBinding = z.infer<
+  typeof ResolvedPatientStateValidatedSourceBindingSchema
+>;
+
+/**
+ * D-301 proves every opaque source reference already present in one complete
+ * D-208 composed patient state against an independently compiled D-291
+ * same-patient horizon. Every source-bearing record owns one exact source kind
+ * and therefore requires exact patient, source-instance, and kind equality.
+ */
+export const ResolvedPatientStateSourceValidationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    patientStateCompositionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+        composedPatientStateFingerprint: ResolvedPatientStateCompositionFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    validatedSourceBindings: z.array(ResolvedPatientStateValidatedSourceBindingSchema).max(1024),
+    compileRequest: ResolvedPatientStateSourceValidationRequestSchema,
+    inputFingerprint: ResolvedPatientStateSourceValidationFingerprintSchema,
+    payloadFingerprint: ResolvedPatientStateSourceValidationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const composition = request.patientStateComposition;
+    const patientState = composition.composedPatientState;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    type Candidate = {
+      readonly lane: ResolvedPatientStateSourceReferenceLane;
+      readonly recordId: string;
+      readonly sourceInstanceId: string;
+      readonly expectedSourceKind: PatientSceneEvidenceSourceKind;
+    };
+    const exactCandidate = (
+      lane: ResolvedPatientStateSourceReferenceLane,
+      recordId: string,
+      source: PatientStateScopedSource,
+    ): Candidate => ({
+      lane,
+      recordId,
+      sourceInstanceId: source.sourceInstanceId,
+      expectedSourceKind: source.kind,
+    });
+    const candidates: Candidate[] =
+      patientState === null
+        ? []
+        : [
+            ...patientState.diagnosisRecordEntries.map((record) =>
+              exactCandidate('diagnosis_record', record.id, record.source),
+            ),
+            ...patientState.currentMedicationReportedBenefits.map((record) =>
+              exactCandidate('current_medication_reported_benefit', record.id, record.source),
+            ),
+            ...patientState.currentMedicationDosePositions.map((record) =>
+              exactCandidate('current_medication_dose_position', record.id, record.source),
+            ),
+            ...patientState.medicationChangeTemporalRelationships.map((record) =>
+              exactCandidate('medication_change_temporal_relationship', record.id, record.source),
+            ),
+            ...patientState.measurements.flatMap((record) =>
+              record.source.kind === 'derived_measurement'
+                ? []
+                : [exactCandidate('measurement', record.id, record.source)],
+            ),
+            ...patientState.categoricalObservations.map((record) =>
+              exactCandidate('categorical_observation', record.id, record.source),
+            ),
+            ...patientState.structuredTestResults.map((record) =>
+              exactCandidate('structured_test_result', record.id, record.source),
+            ),
+            ...patientState.clinicalDurations.map((record) =>
+              exactCandidate('clinical_duration', record.id, record.source),
+            ),
+            ...patientState.functionalImpairments.map((record) =>
+              exactCandidate('functional_impairment', record.id, record.source),
+            ),
+            ...patientState.subjectiveBurdenRecords.map((record) =>
+              exactCandidate('subjective_burden', record.id, record.source),
+            ),
+            ...patientState.propositionState.evidence.map((record) =>
+              exactCandidate('proposition_evidence', record.id, record.source),
+            ),
+          ];
+    let invalidCrossLink = patientState === null;
+    const expectedBindings = candidates
+      .flatMap((candidate) => {
+        const sourceInstance = sourceHorizon.sourceInstances.find(
+          (instance) => instance.id === candidate.sourceInstanceId,
+        );
+        if (
+          sourceInstance === undefined ||
+          sourceInstance.patientStateId !== artifact.patientStateId ||
+          sourceInstance.kind !== candidate.expectedSourceKind
+        ) {
+          invalidCrossLink = true;
+          return [];
+        }
+        return [
+          {
+            lane: candidate.lane,
+            recordId: candidate.recordId,
+            sourceInstanceId: candidate.sourceInstanceId,
+            sourceKind: sourceInstance.kind,
+            sourceDefinitionId: sourceInstance.definitionRef.id,
+            sourceDefinitionContentVersion: sourceInstance.definitionRef.contentVersion,
+            validationMode: 'source_and_kind' as const,
+          },
+        ];
+      })
+      .sort((left, right) =>
+        `${left.lane}\u0000${left.recordId}`.localeCompare(`${right.lane}\u0000${right.recordId}`),
+      );
+    const bindingKeys = artifact.validatedSourceBindings.map(
+      (binding) => `${binding.lane}\u0000${binding.recordId}`,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      composition.status !== 'composed' ||
+      patientState === null ||
+      composition.composedPatientStateFingerprint === null ||
+      artifact.patientStateId !== patientState?.id ||
+      artifact.patientStateId !== sourceHorizon.patientStateId ||
+      artifact.patientStateCompositionRef.id !== composition.id ||
+      artifact.patientStateCompositionRef.payloadFingerprint !== composition.payloadFingerprint ||
+      artifact.patientStateCompositionRef.composedPatientStateFingerprint !==
+        composition.composedPatientStateFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      invalidCrossLink ||
+      new Set(bindingKeys).size !== bindingKeys.length ||
+      JSON.stringify(bindingKeys) !== JSON.stringify([...bindingKeys].sort()) ||
+      JSON.stringify(artifact.validatedSourceBindings) !== JSON.stringify(expectedBindings)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A resolved patient-state source-validation artifact must retain its exact composed D-208 state, same-patient D-291 horizon, and every typed or opaque source binding.',
+      });
+    }
+    const expectedId = `resolved-patient-state-source-validation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A resolved patient-state source-validation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type ResolvedPatientStateSourceValidationArtifact = z.infer<
+  typeof ResolvedPatientStateSourceValidationArtifactSchema
+>;
+
+export const SharedFindingSourceValidationFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.shared-finding-source-validation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type SharedFindingSourceValidationFingerprint = z.infer<
+  typeof SharedFindingSourceValidationFingerprintSchema
+>;
+
+export const SharedFindingSourceValidationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    sharedFindingRequest: SharedFindingCompileRequestSchema,
+    sharedFindingCompilation: CompiledSharedFindingSetSchema,
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+  })
+  .strict();
+export type SharedFindingSourceValidationRequest = z.infer<
+  typeof SharedFindingSourceValidationRequestSchema
+>;
+
+export const SharedFindingValidatedSourceBindingSchema = z
+  .object({
+    resolvedProjectionId: StableIdSchema,
+    projectionId: StableIdSchema,
+    projectionContentVersion: ContentVersionSchema,
+    sourceReportSelection: FindingSourceReportProjectionSelectionTraceSchema,
+    sourceDefinitionId: StableIdSchema,
+    sourceDefinitionContentVersion: ContentVersionSchema,
+  })
+  .strict();
+export type SharedFindingValidatedSourceBinding = z.infer<
+  typeof SharedFindingValidatedSourceBindingSchema
+>;
+
+/**
+ * D-302 proves every D-193 finding-report selection source against one
+ * independent same-patient D-291 source horizon. It retains the complete
+ * source-report selection trace and exact reusable source-role definition but
+ * does not attach the compiled findings or projections to runtime.
+ */
+export const SharedFindingSourceValidationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sharedFindingCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: FindingCompilerFingerprintSchema,
+        payloadFingerprint: FindingCompilerFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    validatedSourceBindings: z.array(SharedFindingValidatedSourceBindingSchema).max(2048),
+    compileRequest: SharedFindingSourceValidationRequestSchema,
+    inputFingerprint: SharedFindingSourceValidationFingerprintSchema,
+    payloadFingerprint: SharedFindingSourceValidationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const findingRequest = request.sharedFindingRequest;
+    const compiled = request.sharedFindingCompilation;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    const policy = findingRequest.findingSourceReportProjectionPolicy;
+    let invalidCrossLink = false;
+    const expectedBindings = compiled.projections
+      .flatMap((projection) => {
+        const selection = projection.resolution.sourceReportSelection;
+        if (selection === undefined) return [];
+        const slot = policy?.slots.find((candidate) => candidate.id === selection.slotId);
+        const allowedProjectionRefs =
+          slot === undefined
+            ? []
+            : [slot.baseProjectionRef, ...slot.modifiers.map((modifier) => modifier.projectionRef)];
+        const sourceInstance = sourceHorizon.sourceInstances.find(
+          (candidate) => candidate.id === selection.source.sourceInstanceId,
+        );
+        if (
+          slot === undefined ||
+          slot.source.kind !== selection.source.kind ||
+          slot.source.sourceInstanceId !== selection.source.sourceInstanceId ||
+          slot.timeScopeId !== selection.timeScopeId ||
+          slot.claimOriginId !== selection.claimOriginId ||
+          JSON.stringify(slot.dependencyGroupIds) !==
+            JSON.stringify(selection.dependencyGroupIds) ||
+          !allowedProjectionRefs.some(
+            (reference) =>
+              reference.id === projection.projectionId &&
+              reference.contentVersion === projection.projectionContentVersion,
+          ) ||
+          sourceInstance === undefined ||
+          sourceInstance.patientStateId !== artifact.patientStateId ||
+          sourceInstance.kind !== selection.source.kind
+        ) {
+          invalidCrossLink = true;
+          return [];
+        }
+        return [
+          {
+            resolvedProjectionId: projection.id,
+            projectionId: projection.projectionId,
+            projectionContentVersion: projection.projectionContentVersion,
+            sourceReportSelection: selection,
+            sourceDefinitionId: sourceInstance.definitionRef.id,
+            sourceDefinitionContentVersion: sourceInstance.definitionRef.contentVersion,
+          },
+        ];
+      })
+      .sort((left, right) => left.resolvedProjectionId.localeCompare(right.resolvedProjectionId));
+    const bindingIds = artifact.validatedSourceBindings.map(
+      (binding) => binding.resolvedProjectionId,
+    );
+    if (
+      artifact.requestId !== request.id ||
+      findingRequest.id !== compiled.requestId ||
+      artifact.patientStateId !== findingRequest.patientStateId ||
+      artifact.patientStateId !== compiled.patientStateId ||
+      artifact.patientStateId !== sourceHorizon.patientStateId ||
+      artifact.sharedFindingCompilationRef.id !== compiled.id ||
+      artifact.sharedFindingCompilationRef.inputFingerprint !== compiled.inputFingerprint ||
+      artifact.sharedFindingCompilationRef.payloadFingerprint !== compiled.payloadFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      invalidCrossLink ||
+      new Set(bindingIds).size !== bindingIds.length ||
+      JSON.stringify(bindingIds) !== JSON.stringify([...bindingIds].sort()) ||
+      JSON.stringify(artifact.validatedSourceBindings) !== JSON.stringify(expectedBindings)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A shared-finding source-validation artifact must retain its exact D-193 request/output, same-patient D-291 horizon, and every selected finding-report source binding.',
+      });
+    }
+    const expectedId = `shared-finding-source-validation.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A shared-finding source-validation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type SharedFindingSourceValidationArtifact = z.infer<
+  typeof SharedFindingSourceValidationArtifactSchema
+>;
 
 /**
  * Static, reusable input for D-194's D-213 assembly. It contains owner
@@ -26669,6 +34583,208 @@ export const UniversalActionResultArtifactSchema = z
   });
 export type UniversalActionResultArtifact = z.infer<typeof UniversalActionResultArtifactSchema>;
 
+export const StructuredSourceReportResultAttachmentFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.structured-source-report-result-attachment\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type StructuredSourceReportResultAttachmentFingerprint = z.infer<
+  typeof StructuredSourceReportResultAttachmentFingerprintSchema
+>;
+
+export const StructuredSourceReportResultAttachmentRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    sourceValidatedRecordProjection: StructuredSourceReportRecordProjectionArtifactSchema,
+    universalActionResults: UniversalActionResultArtifactSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    const recordProjection = request.sourceValidatedRecordProjection;
+    const sourceValidation = recordProjection.compileRequest.sourceValidation;
+    const patientState =
+      sourceValidation.compileRequest.structuredSourceReport.compileRequest.patientState;
+    const universalResults = request.universalActionResults;
+    const envelopeByRevealId = new Map(
+      universalResults.compileRequest.structuredRevealEnvelopes.map((envelope) => [
+        envelope.resolved.id,
+        envelope,
+      ]),
+    );
+    let invalidEnvelope = false;
+    for (const recipe of sourceValidation.projectionRecipes) {
+      const envelope = envelopeByRevealId.get(recipe.resolved.id);
+      if (
+        envelope === undefined ||
+        JSON.stringify(envelope.definition) !== JSON.stringify(recipe.definition) ||
+        JSON.stringify(envelope.resolved) !== JSON.stringify(recipe.resolved) ||
+        JSON.stringify(envelope.patientState) !== JSON.stringify(patientState)
+      ) {
+        invalidEnvelope = true;
+      }
+    }
+    const sourceValidatedRevealIds = sourceValidation.projectionRecipes
+      .map((recipe) => recipe.resolved.id)
+      .sort();
+    const universalRevealIds = universalResults.compileRequest.structuredRevealEnvelopes
+      .map((envelope) => envelope.resolved.id)
+      .sort();
+    if (
+      recordProjection.patientStateId !== patientState.id ||
+      universalResults.patientStateId !== patientState.id ||
+      JSON.stringify(universalResults.compileRequest.patientState) !==
+        JSON.stringify(patientState) ||
+      invalidEnvelope ||
+      JSON.stringify(sourceValidatedRevealIds) !== JSON.stringify(universalRevealIds)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A structured-report result attachment request requires one exact patient and the same complete D-299/D-213 structured reveal set.',
+      });
+    }
+  });
+export type StructuredSourceReportResultAttachmentRequest = z.infer<
+  typeof StructuredSourceReportResultAttachmentRequestSchema
+>;
+
+/**
+ * D-351 proves that D-350's source-validated safe record fields are the exact
+ * field payloads for the D-214 structured reveals translated from one
+ * replay-valid D-213 artifact. It remains detached from PatientInstance,
+ * persistence, runtime, and UI.
+ */
+export const StructuredSourceReportResultAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    sourceValidatedRecordProjectionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: StructuredSourceReportRecordProjectionFingerprintSchema,
+      })
+      .strict(),
+    universalActionResultRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: UniversalActionResultFingerprintSchema,
+      })
+      .strict(),
+    resultBindingRequests: z.array(EncounterResultBindingRequestSchema).min(1),
+    structuredStateReveals: z.array(FrozenStructuredPatientStateRevealSchema).min(1),
+    structuredStateRecordProjections: z
+      .array(FrozenStructuredPatientStateRecordProjectionSchema)
+      .min(1),
+    instrumentItemResponses: z.array(FrozenInstrumentItemResponseSchema),
+    targetScopedPatientValueReveals: z.array(FrozenTargetScopedPatientValueRevealSchema),
+    compileRequest: StructuredSourceReportResultAttachmentRequestSchema,
+    inputFingerprint: StructuredSourceReportResultAttachmentFingerprintSchema,
+    payloadFingerprint: StructuredSourceReportResultAttachmentFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const recordProjection = request.sourceValidatedRecordProjection;
+    const universalResults = request.universalActionResults;
+    const revealById = new Map(
+      artifact.structuredStateReveals.map((reveal) => [reveal.id, reveal]),
+    );
+    const projectionIds = artifact.structuredStateRecordProjections.map(
+      (projection) => projection.resolvedStructuredRevealId,
+    );
+    const revealIds = artifact.structuredStateReveals.map((reveal) => reveal.id);
+    const selectedRevealIds = artifact.resultBindingRequests
+      .flatMap((binding) =>
+        binding.sources.flatMap((source) =>
+          source.kind === 'structured_state_reveal' ? [source.resolvedProjectionId] : [],
+        ),
+      )
+      .sort();
+    let invalidSafeProjection = false;
+    for (const projection of artifact.structuredStateRecordProjections) {
+      const reveal = revealById.get(projection.resolvedStructuredRevealId);
+      const expectedLanes = projection.laneStatements
+        .map((statement) => ({
+          lane: statement.lane,
+          presentationStatus: statement.presentationStatus,
+          presentedRecordIds: statement.records.map((record) => record.recordId).sort(),
+        }))
+        .sort((left, right) => left.lane.localeCompare(right.lane));
+      const actualLanes = (reveal?.laneStatements ?? [])
+        .map((statement) => ({
+          lane: statement.lane,
+          presentationStatus: statement.presentationStatus,
+          presentedRecordIds: [...statement.presentedRecordIds].sort(),
+        }))
+        .sort((left, right) => left.lane.localeCompare(right.lane));
+      const expectedSingletons = [...projection.singletonStatements].sort((left, right) =>
+        left.field.localeCompare(right.field),
+      );
+      const actualSingletons = [...(reveal?.singletonStatements ?? [])].sort((left, right) =>
+        left.field.localeCompare(right.field),
+      );
+      if (
+        reveal === undefined ||
+        projection.patientStateId !== artifact.patientStateId ||
+        projection.definitionId !== reveal.definitionId ||
+        projection.definitionContentVersion !== reveal.definitionContentVersion ||
+        projection.informationActionId !== reveal.informationActionId ||
+        projection.informationActionPayloadFingerprint !==
+          reveal.informationActionPayloadFingerprint ||
+        projection.source.kind !== reveal.source.kind ||
+        projection.source.sourceInstanceId !== reveal.source.sourceInstanceId ||
+        projection.timeScopeId !== reveal.timeScopeId ||
+        JSON.stringify(expectedLanes) !== JSON.stringify(actualLanes) ||
+        JSON.stringify(expectedSingletons) !== JSON.stringify(actualSingletons)
+      ) {
+        invalidSafeProjection = true;
+      }
+    }
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== recordProjection.patientStateId ||
+      artifact.patientStateId !== universalResults.patientStateId ||
+      artifact.sourceValidatedRecordProjectionRef.id !== recordProjection.id ||
+      artifact.sourceValidatedRecordProjectionRef.payloadFingerprint !==
+        recordProjection.payloadFingerprint ||
+      artifact.universalActionResultRef.id !== universalResults.id ||
+      artifact.universalActionResultRef.payloadFingerprint !==
+        universalResults.payloadFingerprint ||
+      JSON.stringify(artifact.structuredStateRecordProjections) !==
+        JSON.stringify(recordProjection.projections) ||
+      invalidSafeProjection ||
+      new Set(projectionIds).size !== projectionIds.length ||
+      new Set(revealIds).size !== revealIds.length ||
+      JSON.stringify(projectionIds) !== JSON.stringify([...projectionIds].sort()) ||
+      JSON.stringify(revealIds) !== JSON.stringify([...revealIds].sort()) ||
+      JSON.stringify(projectionIds) !== JSON.stringify(revealIds) ||
+      JSON.stringify(selectedRevealIds) !== JSON.stringify([...revealIds].sort())
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A structured-report result attachment must retain the exact D-350 safe fields beside the same complete D-214 structured reveal set.',
+      });
+    }
+    const expectedId = `structured-source-report-result-attachment.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A structured-report result attachment ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type StructuredSourceReportResultAttachmentArtifact = z.infer<
+  typeof StructuredSourceReportResultAttachmentArtifactSchema
+>;
+
 export const InstrumentItemResponseCompilerFingerprintSchema = z
   .string()
   .regex(/^fingerprint\.instrument-item-response\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
@@ -26932,6 +35048,527 @@ export const InstrumentItemResponseCompilationArtifactSchema = z
   });
 export type InstrumentItemResponseCompilationArtifact = z.infer<
   typeof InstrumentItemResponseCompilationArtifactSchema
+>;
+
+export const InstrumentAdministrationCompilerFingerprintSchema = z
+  .string()
+  .regex(/^fingerprint\.instrument-administration\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/);
+export type InstrumentAdministrationCompilerFingerprint = z.infer<
+  typeof InstrumentAdministrationCompilerFingerprintSchema
+>;
+
+/**
+ * A caller may describe only the already-authored administration facts. The
+ * compiler derives patient and administration identity from the exact D-220
+ * artifact instead of accepting a caller-authored patient binding.
+ */
+export const InstrumentAdministrationCompileRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    instrumentItemResponseCompilation: InstrumentItemResponseCompilationArtifactSchema,
+    administrationDefinition: InstrumentAdministrationDefinitionSchema,
+    sourceInstanceId: StableIdSchema,
+    includedItemResponseIds: z.array(StableIdSchema),
+    missingItemIds: z.array(StableIdSchema),
+    rawTotal: InstrumentAdministrationRawTotalSchema,
+  })
+  .strict()
+  .superRefine((request, context) => {
+    if (
+      new Set(request.includedItemResponseIds).size !== request.includedItemResponseIds.length ||
+      new Set(request.missingItemIds).size !== request.missingItemIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Instrument administration compile-request item references must be unique.',
+      });
+    }
+  });
+export type InstrumentAdministrationCompileRequest = z.infer<
+  typeof InstrumentAdministrationCompileRequestSchema
+>;
+
+export const InstrumentAdministrationCompilationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    status: z.literal('complete'),
+    patientStateId: StableIdSchema,
+    instrumentItemResponseCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: InstrumentItemResponseCompilerFingerprintSchema,
+      })
+      .strict(),
+    administrationDefinitionRef: z
+      .object({
+        id: StableIdSchema,
+        contentVersion: ContentVersionSchema,
+        fingerprint: InstrumentAdministrationCompilerFingerprintSchema,
+      })
+      .strict(),
+    administration: InstrumentAdministrationRecordSchema,
+    compileRequest: InstrumentAdministrationCompileRequestSchema,
+    inputFingerprint: InstrumentAdministrationCompilerFingerprintSchema,
+    payloadFingerprint: InstrumentAdministrationCompilerFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.instrumentItemResponseCompilation.patientStateId ||
+      artifact.instrumentItemResponseCompilationRef.id !==
+        request.instrumentItemResponseCompilation.id ||
+      artifact.instrumentItemResponseCompilationRef.payloadFingerprint !==
+        request.instrumentItemResponseCompilation.payloadFingerprint ||
+      artifact.administrationDefinitionRef.id !== request.administrationDefinition.id ||
+      artifact.administrationDefinitionRef.contentVersion !==
+        request.administrationDefinition.contentVersion ||
+      artifact.administration.patientStateId !== artifact.patientStateId ||
+      artifact.administration.definitionId !== request.administrationDefinition.id ||
+      artifact.administration.definitionContentVersion !==
+        request.administrationDefinition.contentVersion ||
+      artifact.administration.sourceInstanceId !== request.sourceInstanceId ||
+      artifact.administration.includedItemResponseIds.join('\u0000') !==
+        request.includedItemResponseIds.join('\u0000') ||
+      artifact.administration.missingItemIds.join('\u0000') !==
+        request.missingItemIds.join('\u0000') ||
+      JSON.stringify(artifact.administration.rawTotal) !== JSON.stringify(request.rawTotal)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An instrument administration artifact must retain its exact D-220 input, definition, patient, source, item partition, and raw-total request.',
+      });
+    }
+    const expectedId = `instrument-administration.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `An instrument administration artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type InstrumentAdministrationCompilationArtifact = z.infer<
+  typeof InstrumentAdministrationCompilationArtifactSchema
+>;
+
+export const InstrumentAdministrationAttachmentFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.instrument-administration-attachment\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type InstrumentAdministrationAttachmentFingerprint = z.infer<
+  typeof InstrumentAdministrationAttachmentFingerprintSchema
+>;
+
+/**
+ * Standalone frozen context for admitting one D-284 projection without
+ * widening PatientInstance. A later catalog compiler must derive this exact
+ * context from its own patient and action owners.
+ */
+export const InstrumentAdministrationAttachmentContextSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientStateId: StableIdSchema,
+    informationActionIds: z.array(StableIdSchema),
+    instrumentItemResponses: z.array(FrozenInstrumentItemResponseSchema),
+  })
+  .strict()
+  .superRefine((attachment, context) => {
+    if (
+      new Set(attachment.informationActionIds).size !== attachment.informationActionIds.length ||
+      new Set(attachment.instrumentItemResponses.map((response) => response.id)).size !==
+        attachment.instrumentItemResponses.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An instrument-administration attachment context requires unique action and response identities.',
+      });
+    }
+    attachment.instrumentItemResponses.forEach((response, index) => {
+      if (!attachment.informationActionIds.includes(response.informationActionId)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['instrumentItemResponses', index, 'informationActionId'],
+          message:
+            'Every frozen instrument response in an attachment context must belong to its exact information-action horizon.',
+        });
+      }
+    });
+  });
+export type InstrumentAdministrationAttachmentContext = z.infer<
+  typeof InstrumentAdministrationAttachmentContextSchema
+>;
+
+export const InstrumentAdministrationAttachmentCompileRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    attachmentContext: InstrumentAdministrationAttachmentContextSchema,
+    administrationSourceValidation: z.lazy(
+      () => InstrumentAdministrationSourceValidationArtifactSchema,
+    ),
+  })
+  .strict();
+export type InstrumentAdministrationAttachmentCompileRequest = z.infer<
+  typeof InstrumentAdministrationAttachmentCompileRequestSchema
+>;
+
+export const InstrumentAdministrationAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    status: z.literal('complete'),
+    patientStateId: StableIdSchema,
+    informationActionId: StableIdSchema,
+    attachmentContextRef: z
+      .object({
+        id: StableIdSchema,
+        fingerprint: InstrumentAdministrationAttachmentFingerprintSchema,
+      })
+      .strict(),
+    administrationSourceValidationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: z.lazy(() => InstrumentAdministrationSourceValidationFingerprintSchema),
+      })
+      .strict(),
+    administration: FrozenInstrumentAdministrationSchema,
+    includedInstrumentItemResponseIds: z.array(StableIdSchema),
+    compileRequest: InstrumentAdministrationAttachmentCompileRequestSchema,
+    inputFingerprint: InstrumentAdministrationAttachmentFingerprintSchema,
+    payloadFingerprint: InstrumentAdministrationAttachmentFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const sourceValidation = request.administrationSourceValidation;
+    const administration = sourceValidation.compileRequest.administrationCompilation.administration;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== request.attachmentContext.patientStateId ||
+      artifact.patientStateId !== sourceValidation.patientStateId ||
+      artifact.informationActionId !== administration.informationActionId ||
+      artifact.attachmentContextRef.id !== request.attachmentContext.id ||
+      artifact.administrationSourceValidationRef.id !== sourceValidation.id ||
+      artifact.administrationSourceValidationRef.payloadFingerprint !==
+        sourceValidation.payloadFingerprint ||
+      JSON.stringify(artifact.administration) !== JSON.stringify(sourceValidation.projection) ||
+      artifact.administration.patientStateId !== artifact.patientStateId ||
+      artifact.administration.informationActionId !== artifact.informationActionId ||
+      artifact.includedInstrumentItemResponseIds.join('\u0000') !==
+        administration.includedItemResponseIds.join('\u0000') ||
+      new Set(artifact.includedInstrumentItemResponseIds).size !==
+        artifact.includedInstrumentItemResponseIds.length
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An instrument-administration attachment artifact must retain its exact context, D-293 source validation, patient, action, projection, and included response identities.',
+      });
+    }
+    const expectedId = `instrument-administration-attachment.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `An instrument-administration attachment artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type InstrumentAdministrationAttachmentArtifact = z.infer<
+  typeof InstrumentAdministrationAttachmentArtifactSchema
+>;
+
+export const InstrumentAdministrationSourceValidationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.instrument-administration-source-validation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type InstrumentAdministrationSourceValidationFingerprint = z.infer<
+  typeof InstrumentAdministrationSourceValidationFingerprintSchema
+>;
+
+export const InstrumentAdministrationSourceValidationRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    administrationCompilation: InstrumentAdministrationCompilationArtifactSchema,
+    sourceInstanceCompilation: PatientSceneSourceInstanceCompilationArtifactSchema,
+  })
+  .strict();
+export type InstrumentAdministrationSourceValidationRequest = z.infer<
+  typeof InstrumentAdministrationSourceValidationRequestSchema
+>;
+
+/**
+ * D-293 verifies D-283's respondent against an independent D-291 exact-patient
+ * source horizon, then derives rather than accepts the D-284 safe view.
+ */
+export const InstrumentAdministrationSourceValidationArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    patientStateId: StableIdSchema,
+    administrationCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: InstrumentAdministrationCompilerFingerprintSchema,
+      })
+      .strict(),
+    sourceInstanceCompilationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientSceneSourceInstanceCompilationFingerprintSchema,
+      })
+      .strict(),
+    validatedSourceBinding: z
+      .object({
+        sourceInstanceId: StableIdSchema,
+        sourceKind: InstrumentRespondentSourceKindSchema,
+      })
+      .strict(),
+    projection: FrozenInstrumentAdministrationSchema,
+    compileRequest: InstrumentAdministrationSourceValidationRequestSchema,
+    inputFingerprint: InstrumentAdministrationSourceValidationFingerprintSchema,
+    payloadFingerprint: InstrumentAdministrationSourceValidationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const administration = request.administrationCompilation;
+    const sourceHorizon = request.sourceInstanceCompilation;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.patientStateId !== administration.patientStateId ||
+      artifact.patientStateId !== sourceHorizon.patientStateId ||
+      artifact.administrationCompilationRef.id !== administration.id ||
+      artifact.administrationCompilationRef.payloadFingerprint !==
+        administration.payloadFingerprint ||
+      artifact.sourceInstanceCompilationRef.id !== sourceHorizon.id ||
+      artifact.sourceInstanceCompilationRef.payloadFingerprint !==
+        sourceHorizon.payloadFingerprint ||
+      artifact.validatedSourceBinding.sourceInstanceId !==
+        administration.administration.sourceInstanceId ||
+      artifact.validatedSourceBinding.sourceKind !==
+        administration.administration.respondentSourceKind ||
+      artifact.projection.patientStateId !== artifact.patientStateId ||
+      artifact.projection.id !== administration.administration.id
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'An instrument-administration source-validation artifact must retain its exact D-283 administration, D-291 horizon, respondent binding, patient, and D-284 projection.',
+      });
+    }
+    const expectedId = `instrument-administration-source-validation.${artifact.payloadFingerprint.slice(
+      -16,
+    )}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `An instrument-administration source-validation artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type InstrumentAdministrationSourceValidationArtifact = z.infer<
+  typeof InstrumentAdministrationSourceValidationArtifactSchema
+>;
+
+export const CatalogInstrumentAdministrationAttachmentFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.catalog-instrument-administration-attachment\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type CatalogInstrumentAdministrationAttachmentFingerprint = z.infer<
+  typeof CatalogInstrumentAdministrationAttachmentFingerprintSchema
+>;
+
+export const CatalogInstrumentAdministrationAttachmentCompileRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    catalogSnapshot: CatalogCompiledInstanceSnapshotSchema,
+    administrationSourceValidation: InstrumentAdministrationSourceValidationArtifactSchema,
+  })
+  .strict();
+export type CatalogInstrumentAdministrationAttachmentCompileRequest = z.infer<
+  typeof CatalogInstrumentAdministrationAttachmentCompileRequestSchema
+>;
+
+export const CatalogInstrumentAdministrationAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    status: z.literal('complete'),
+    catalogSnapshotRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: CatalogInstanceFingerprintSchema,
+      })
+      .strict(),
+    administrationSourceValidationRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: InstrumentAdministrationSourceValidationFingerprintSchema,
+      })
+      .strict(),
+    administrationAttachment: InstrumentAdministrationAttachmentArtifactSchema,
+    compileRequest: CatalogInstrumentAdministrationAttachmentCompileRequestSchema,
+    inputFingerprint: CatalogInstrumentAdministrationAttachmentFingerprintSchema,
+    payloadFingerprint: CatalogInstrumentAdministrationAttachmentFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const sourceValidation = request.administrationSourceValidation;
+    if (
+      artifact.requestId !== request.id ||
+      artifact.catalogSnapshotRef.id !== request.catalogSnapshot.id ||
+      artifact.catalogSnapshotRef.payloadFingerprint !==
+        request.catalogSnapshot.payloadFingerprint ||
+      artifact.administrationSourceValidationRef.id !== sourceValidation.id ||
+      artifact.administrationSourceValidationRef.payloadFingerprint !==
+        sourceValidation.payloadFingerprint ||
+      artifact.administrationAttachment.patientStateId !==
+        request.catalogSnapshot.patientInstance.patientState.id ||
+      artifact.administrationAttachment.administrationSourceValidationRef.id !==
+        sourceValidation.id ||
+      artifact.administrationAttachment.administrationSourceValidationRef.payloadFingerprint !==
+        sourceValidation.payloadFingerprint
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A catalog administration attachment must retain its exact snapshot, D-293 source validation, and derived D-285 proof.',
+      });
+    }
+    const expectedId = `catalog-instrument-administration-attachment.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A catalog administration attachment artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type CatalogInstrumentAdministrationAttachmentArtifact = z.infer<
+  typeof CatalogInstrumentAdministrationAttachmentArtifactSchema
+>;
+
+export const CatalogPatientLauncherPresentationAttachmentFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.catalog-patient-launcher-presentation-attachment\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type CatalogPatientLauncherPresentationAttachmentFingerprint = z.infer<
+  typeof CatalogPatientLauncherPresentationAttachmentFingerprintSchema
+>;
+
+/**
+ * Authoring-only D-287 request. Patient identity and seed are deliberately
+ * absent: the compiler derives both from the exact verified catalog snapshot.
+ */
+export const CatalogPatientLauncherPresentationAttachmentCompileRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    catalogSnapshot: CatalogCompiledInstanceSnapshotSchema,
+    presentationProfile: PatientLauncherPresentationProfileSchema,
+    firstNamePool: VariantPoolDefinitionSchema,
+    lastNamePool: VariantPoolDefinitionSchema,
+    complaintBanks: z.array(PatientChiefComplaintBankSchema).min(1).max(64),
+  })
+  .strict();
+export type CatalogPatientLauncherPresentationAttachmentCompileRequest = z.infer<
+  typeof CatalogPatientLauncherPresentationAttachmentCompileRequestSchema
+>;
+
+export const CatalogPatientLauncherPresentationAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    status: z.literal('complete'),
+    catalogSnapshotRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: CatalogInstanceFingerprintSchema,
+      })
+      .strict(),
+    presentationResolutionRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: PatientLauncherPresentationFingerprintSchema,
+      })
+      .strict(),
+    presentationResolution: PatientLauncherPresentationResolutionArtifactSchema,
+    compileRequest: CatalogPatientLauncherPresentationAttachmentCompileRequestSchema,
+    inputFingerprint: CatalogPatientLauncherPresentationAttachmentFingerprintSchema,
+    payloadFingerprint: CatalogPatientLauncherPresentationAttachmentFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const snapshot = request.catalogSnapshot;
+    const resolution = artifact.presentationResolution;
+    const resolutionRequest = resolution.resolutionRequest;
+    const requestedBankRefs = request.complaintBanks
+      .map((bank) => `${bank.id}@${bank.contentVersion}`)
+      .sort();
+    const resolvedBankRefs = resolutionRequest.complaintBanks
+      .map((bank) => `${bank.id}@${bank.contentVersion}`)
+      .sort();
+    if (
+      artifact.requestId !== request.id ||
+      artifact.catalogSnapshotRef.id !== snapshot.id ||
+      artifact.catalogSnapshotRef.payloadFingerprint !== snapshot.payloadFingerprint ||
+      artifact.presentationResolutionRef.id !== resolution.id ||
+      artifact.presentationResolutionRef.payloadFingerprint !== resolution.payloadFingerprint ||
+      resolution.patientStateId !== snapshot.patientInstance.patientState.id ||
+      resolutionRequest.patientStateId !== snapshot.patientInstance.patientState.id ||
+      resolutionRequest.seed !== snapshot.patientInstance.seed ||
+      resolutionRequest.profile.id !== request.presentationProfile.id ||
+      resolutionRequest.profile.contentVersion !== request.presentationProfile.contentVersion ||
+      resolutionRequest.firstNamePool.id !== request.firstNamePool.id ||
+      resolutionRequest.firstNamePool.contentVersion !== request.firstNamePool.contentVersion ||
+      resolutionRequest.lastNamePool.id !== request.lastNamePool.id ||
+      resolutionRequest.lastNamePool.contentVersion !== request.lastNamePool.contentVersion ||
+      requestedBankRefs.join('\u0000') !== resolvedBankRefs.join('\u0000')
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A catalog launcher-presentation attachment must retain its exact snapshot, derived patient identity and seed, reviewed presentation content, and D-273 resolution.',
+      });
+    }
+    const expectedId = `catalog-patient-launcher-presentation-attachment.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A catalog launcher-presentation attachment artifact ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type CatalogPatientLauncherPresentationAttachmentArtifact = z.infer<
+  typeof CatalogPatientLauncherPresentationAttachmentArtifactSchema
 >;
 
 /**
@@ -30016,6 +38653,10 @@ export type PatientSlotFillSeedAuthorityArtifact = z.infer<
   typeof PatientSlotFillSeedAuthorityArtifactSchema
 >;
 
+/**
+ * D-331 preserves direct result-free D-200 fills and derives every
+ * result-enabled fill from exact D-324 coverage through D-330.
+ */
 export const EmptyAuthorizedPatientSlotFillCompileInputSchema = z
   .object({
     schemaVersion: SchemaVersionSchema,
@@ -30023,11 +38664,14 @@ export const EmptyAuthorizedPatientSlotFillCompileInputSchema = z
     seedAuthorityCompileInput: PatientSlotFillSeedAuthorityCompileInputSchema,
     seedAuthorityArtifact: PatientSlotFillSeedAuthorityArtifactSchema,
     findingPipelineAuditRequest: FindingPipelineAuditRequestSchema,
+    clinicalResultResourceCoverageArtifact:
+      PatientTemplateClinicalResultResourceCoverageArtifactSchema.nullable(),
   })
   .strict()
   .superRefine((input, context) => {
+    const request = input.findingPipelineAuditRequest;
     if (
-      JSON.stringify(input.findingPipelineAuditRequest.patientSlotFillSeedAuthorityArtifact) !==
+      JSON.stringify(request.patientSlotFillSeedAuthorityArtifact) !==
       JSON.stringify(input.seedAuthorityArtifact)
     ) {
       context.addIssue({
@@ -30035,6 +38679,33 @@ export const EmptyAuthorizedPatientSlotFillCompileInputSchema = z
         path: ['findingPipelineAuditRequest', 'patientSlotFillSeedAuthorityArtifact'],
         message:
           'An atomic empty-slot fill must submit D-200 with the exact D-233 seed authority being finalized.',
+      });
+    }
+    const rawAssembly = request.postCompositionPatientStateAssemblyArtifact;
+    const rawClinicalResults =
+      rawAssembly?.assemblyRequest.patientClinicalResultAttachmentArtifact ?? null;
+    if (
+      input.clinicalResultResourceCoverageArtifact === null &&
+      (request.patientTemplatePostCompositionAssemblyOrchestrationArtifact !== null ||
+        rawClinicalResults !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['clinicalResultResourceCoverageArtifact'],
+        message:
+          'A direct D-233 fill path may remain result-free only; generated clinical results require exact D-324 coverage and D-330 orchestration.',
+      });
+    }
+    if (
+      input.clinicalResultResourceCoverageArtifact !== null &&
+      (request.patientTemplatePostCompositionAssemblyOrchestrationArtifact !== null ||
+        rawClinicalResults !== null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['findingPipelineAuditRequest'],
+        message:
+          'A D-331 result-enabled fill accepts a result-free D-200 request scaffold and derives D-330 rather than accepting a prebuilt result orchestration.',
       });
     }
   });
@@ -30077,6 +38748,10 @@ export const EmptyAuthorizedPatientSlotFillArtifactSchema = z
     nextFillOrdinal: z.number().int().safe().positive(),
     seedAuthorityArtifact: PatientSlotFillSeedAuthorityArtifactSchema,
     findingPipelineAuditRequest: FindingPipelineAuditRequestSchema,
+    clinicalResultResourceCoverageArtifact:
+      PatientTemplateClinicalResultResourceCoverageArtifactSchema.nullable(),
+    clinicalResultFindingPipelineOrchestrationArtifact:
+      PatientTemplateClinicalResultFindingPipelineOrchestrationArtifactSchema.nullable(),
     findingPipelineAuditArtifact: FindingPipelineAuditArtifactSchema.nullable(),
     frozenWaitingSlotProposal: FrozenGeneratedWaitingSlotSchema.nullable(),
     proposedOccupancySnapshotArtifact: LocationPatientSlotOccupancySnapshotArtifactSchema,
@@ -30097,6 +38772,8 @@ export const EmptyAuthorizedPatientSlotFillArtifactSchema = z
       (artifact.findingPipelineAuditArtifact === null ||
         artifact.findingPipelineAuditArtifact.status === 'literal_finding_conflict');
     const coordinateId = artifact.slotCoordinate.id;
+    const resourceCoverage = artifact.clinicalResultResourceCoverageArtifact;
+    const resultOrchestration = artifact.clinicalResultFindingPipelineOrchestrationArtifact;
     const proposedEntry = artifact.proposedOccupancySnapshotArtifact.entries.find(
       (entry) => entry.capacityCoordinate.slotCoordinate.id === coordinateId,
     );
@@ -30118,6 +38795,24 @@ export const EmptyAuthorizedPatientSlotFillArtifactSchema = z
         code: z.ZodIssueCode.custom,
         message:
           'An authorized fill consumes exactly one ordinal and atomically proposes either one complete frozen patient or an audited still-empty coordinate.',
+      });
+    }
+    if (
+      (resourceCoverage === null && resultOrchestration !== null) ||
+      (resultOrchestration !== null &&
+        (JSON.stringify(resultOrchestration.compileRequest.baseFindingPipelineAuditRequest) !==
+          JSON.stringify(artifact.findingPipelineAuditRequest) ||
+          JSON.stringify(resultOrchestration.compileRequest.resourceCoverageArtifact) !==
+            JSON.stringify(resourceCoverage) ||
+          JSON.stringify(resultOrchestration.findingPipelineAuditArtifact) !==
+            JSON.stringify(artifact.findingPipelineAuditArtifact))) ||
+      (resourceCoverage !== null && artifact.status === 'filled' && resultOrchestration === null)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['clinicalResultFindingPipelineOrchestrationArtifact'],
+        message:
+          'A result-enabled atomic fill must retain the exact D-330 artifact derived from its result-free D-200 scaffold and D-324 coverage; a failed derivation retains no partial orchestration.',
       });
     }
     if (
@@ -30212,6 +38907,155 @@ export const EmptyAuthorizedPatientSlotFillArtifactSchema = z
   });
 export type EmptyAuthorizedPatientSlotFillArtifact = z.infer<
   typeof EmptyAuthorizedPatientSlotFillArtifactSchema
+>;
+
+export const GeneratedWaitingSlotLauncherPresentationFingerprintSchema = z
+  .string()
+  .regex(
+    /^fingerprint\.generated-waiting-slot-launcher-presentation\.[a-z0-9._-]+\.fnv1a64\.[a-f0-9]{16}$/,
+  );
+export type GeneratedWaitingSlotLauncherPresentationFingerprint = z.infer<
+  typeof GeneratedWaitingSlotLauncherPresentationFingerprintSchema
+>;
+
+/**
+ * D-333 binds D-332 cosmetic content to exactly one successful D-331 proposal.
+ * The full fill and D-287 artifacts stay authoring-only. This minimized record
+ * is still detached content, not a SaveData or runtime queue schema.
+ */
+export const FrozenGeneratedWaitingSlotLauncherPresentationSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    waitingSlotRef: z
+      .object({
+        id: StableIdSchema,
+      })
+      .strict(),
+    patientInstanceRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: CatalogInstanceFingerprintSchema,
+      })
+      .strict(),
+    resolvedPresentation: ResolvedPatientLauncherPresentationSchema,
+    payloadFingerprint: GeneratedWaitingSlotLauncherPresentationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((presentation, context) => {
+    const expectedId = `frozen-generated-waiting-slot-launcher-presentation.${presentation.payloadFingerprint.slice(-16)}`;
+    if (presentation.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A frozen waiting-slot launcher presentation ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type FrozenGeneratedWaitingSlotLauncherPresentation = z.infer<
+  typeof FrozenGeneratedWaitingSlotLauncherPresentationSchema
+>;
+
+export const GeneratedWaitingSlotLauncherPresentationAttachmentCompileRequestSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    id: StableIdSchema,
+    patientSlotFillArtifact: EmptyAuthorizedPatientSlotFillArtifactSchema,
+    presentationProfile: PatientLauncherPresentationProfileSchema,
+    firstNamePool: VariantPoolDefinitionSchema,
+    lastNamePool: VariantPoolDefinitionSchema,
+    complaintBanks: z.array(PatientChiefComplaintBankSchema).min(1).max(64),
+  })
+  .strict();
+export type GeneratedWaitingSlotLauncherPresentationAttachmentCompileRequest = z.infer<
+  typeof GeneratedWaitingSlotLauncherPresentationAttachmentCompileRequestSchema
+>;
+
+export const GeneratedWaitingSlotLauncherPresentationAttachmentArtifactSchema = z
+  .object({
+    schemaVersion: SchemaVersionSchema,
+    compilerVersion: ContentVersionSchema,
+    id: StableIdSchema,
+    requestId: StableIdSchema,
+    status: z.literal('complete'),
+    patientSlotFillArtifactRef: z
+      .object({
+        id: StableIdSchema,
+        inputFingerprint: PatientSlotFillFingerprintSchema,
+        payloadFingerprint: PatientSlotFillFingerprintSchema,
+      })
+      .strict(),
+    catalogPresentationAttachmentRef: z
+      .object({
+        id: StableIdSchema,
+        payloadFingerprint: CatalogPatientLauncherPresentationAttachmentFingerprintSchema,
+      })
+      .strict(),
+    catalogPresentationAttachment: CatalogPatientLauncherPresentationAttachmentArtifactSchema,
+    frozenPresentation: FrozenGeneratedWaitingSlotLauncherPresentationSchema,
+    compileRequest: GeneratedWaitingSlotLauncherPresentationAttachmentCompileRequestSchema,
+    inputFingerprint: GeneratedWaitingSlotLauncherPresentationFingerprintSchema,
+    payloadFingerprint: GeneratedWaitingSlotLauncherPresentationFingerprintSchema,
+  })
+  .strict()
+  .superRefine((artifact, context) => {
+    const request = artifact.compileRequest;
+    const fill = request.patientSlotFillArtifact;
+    const waitingSlot = fill.frozenWaitingSlotProposal;
+    const catalogSnapshot = fill.findingPipelineAuditArtifact?.catalogSnapshot ?? null;
+    const patientInstance = catalogSnapshot?.patientInstance ?? null;
+    const d287 = artifact.catalogPresentationAttachment;
+    const frozen = artifact.frozenPresentation;
+    const requestedBankRefs = request.complaintBanks
+      .map((bank) => `${bank.id}@${bank.contentVersion}`)
+      .sort();
+    const attachedBankRefs = d287.compileRequest.complaintBanks
+      .map((bank) => `${bank.id}@${bank.contentVersion}`)
+      .sort();
+    if (
+      artifact.requestId !== request.id ||
+      fill.status !== 'filled' ||
+      waitingSlot === null ||
+      catalogSnapshot === null ||
+      patientInstance === null ||
+      artifact.patientSlotFillArtifactRef.id !== fill.id ||
+      artifact.patientSlotFillArtifactRef.inputFingerprint !== fill.inputFingerprint ||
+      artifact.patientSlotFillArtifactRef.payloadFingerprint !== fill.payloadFingerprint ||
+      artifact.catalogPresentationAttachmentRef.id !== d287.id ||
+      artifact.catalogPresentationAttachmentRef.payloadFingerprint !== d287.payloadFingerprint ||
+      JSON.stringify(d287.compileRequest.catalogSnapshot) !== JSON.stringify(catalogSnapshot) ||
+      d287.compileRequest.presentationProfile.id !== request.presentationProfile.id ||
+      d287.compileRequest.presentationProfile.contentVersion !==
+        request.presentationProfile.contentVersion ||
+      d287.compileRequest.firstNamePool.id !== request.firstNamePool.id ||
+      d287.compileRequest.firstNamePool.contentVersion !== request.firstNamePool.contentVersion ||
+      d287.compileRequest.lastNamePool.id !== request.lastNamePool.id ||
+      d287.compileRequest.lastNamePool.contentVersion !== request.lastNamePool.contentVersion ||
+      requestedBankRefs.join('\u0000') !== attachedBankRefs.join('\u0000') ||
+      frozen.waitingSlotRef.id !== waitingSlot.id ||
+      frozen.patientInstanceRef.id !== patientInstance.id ||
+      frozen.patientInstanceRef.payloadFingerprint !== patientInstance.payloadFingerprint ||
+      frozen.resolvedPresentation.patientStateId !== patientInstance.patientState.id ||
+      JSON.stringify(frozen.resolvedPresentation) !==
+        JSON.stringify(d287.presentationResolution.resolvedPresentation)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'A generated waiting-slot launcher presentation must retain one exact successful D-331 fill, its final D-194 snapshot, the D-287 attachment derived from that snapshot, and the matching minimized presentation.',
+      });
+    }
+    const expectedId = `generated-waiting-slot-launcher-presentation-attachment.${artifact.payloadFingerprint.slice(-16)}`;
+    if (artifact.id !== expectedId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['id'],
+        message: `A waiting-slot launcher-presentation attachment ID must use ${expectedId}.`,
+      });
+    }
+  });
+export type GeneratedWaitingSlotLauncherPresentationAttachmentArtifact = z.infer<
+  typeof GeneratedWaitingSlotLauncherPresentationAttachmentArtifactSchema
 >;
 
 /**

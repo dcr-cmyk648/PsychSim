@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.background-finding-outcome-profiles",
+  "profiles": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "background-finding-profile.mdd-outpatient.current-functional-impact",
+      "modelVersion": "weighted-background-finding.v1",
+      "findingDefinitionId": "finding.function.self-reported-current-impact",
+      "findingDefinitionContentVersion": "1.0.0",
+      "outcomes": [
+        {
+          "schemaVersion": 1,
+          "id": "background-finding-outcome.mdd-outpatient.current-functional-impact.absent",
+          "proposedValue": {
+            "kind": "outcome",
+            "value": "absent"
+          },
+          "uncertainty": "none",
+          "gameGenerationWeight": 1244
+        },
+        {
+          "schemaVersion": 1,
+          "id": "background-finding-outcome.mdd-outpatient.current-functional-impact.present",
+          "proposedValue": {
+            "kind": "outcome",
+            "value": "present"
+          },
+          "uncertainty": "none",
+          "gameGenerationWeight": 8756
+        }
+      ],
+      "developerOpinionIds": [
+        "developer-opinion.mdd-outpatient-current-functional-impact-generation.2026-08-05"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-08-05T21:42:45.000Z",
+        "sourceUseNoteIds": ["source-use.cdc-nchs.nhanes-2021-2023-depression-screener"]
+      }
+    }
+  ]
+}

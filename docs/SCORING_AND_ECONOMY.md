@@ -152,6 +152,62 @@ medication starts fail the broad route but still activate both prerequisites, pr
 when neither history was purchased. Every trace preserves the three-state result, both component
 Booleans, exact selected targets, component, balance reference, and explanation.
 
+D-338 adds the separately reviewed native antidepressant/mania-history prerequisite that D-243
+left disabled. The trigger is the exact approved five-member initial-MDD medication class expanded
+to concrete starts, not the legacy `antidepressant` tag. Its provisional workup outcomes are `0`
+when not triggered, `+35` when mania history is obtained, and `-50` when it is omitted. These
+magnitudes are an explicit balance choice linked to Developer opinion; class membership and
+clinical evidence determine qualitative scope but do not calculate points. The compatibility
+prototype retains its historical `+45/-70` case-local rule until a separate migration decision.
+With this rule included, the current isolated native database-plan fixture totals `415`.
+
+D-339 adds one fact-conditional direct requirement without turning a compatibility tag into
+patient truth. The native MDD passive-death-wish rule applies only when the frozen canonical
+`finding.safety.current-passive-death-wish@1.0.0` outcome is `present`. The separate detailed
+suicide and self-harm assessment then contributes `+50` when obtained or `−80` when omitted.
+Without that patient fact, the rule is absent and contributes nothing. The otherwise complete
+native MDD fixture therefore remains `415` without the fact, becomes `465` with the fact and
+assessment, and yields `335` when only the detailed assessment is omitted. These are explicit
+provisional game-balance values; the finding identity, concern level, and evidence certainty do
+not calculate them.
+
+D-340/D-341 do not change those values. They add the missing neutral safety fact identities and
+the compact detailed-history result assembly so a future generated encounter can reveal what the
+player purchased. The result's nine present/absent rows are not nine scoring rules, and no count
+or combination of them calculates a risk category or disposition. D-339 remains the separately
+auditable rule that evaluates whether the action was obtained when its exact patient prerequisite
+applies.
+
+D-342 likewise adds no points. It exposes the separately typed report of safety-planning ability
+through `info.history.existing-safety-plan`; neither `reports_able` nor `reports_unable` is itself
+a score, risk classification, or disposition. Any future consequence must be owned by a distinct
+reviewed qualitative rule and, only after that review, a separately auditable balance record.
+
+D-343/D-344 also add no new points. They make the existing medication-reconciliation and
+allergy/adverse-reaction prerequisites capable of revealing structured results in a future
+generated encounter. D-244 still owns the separate `+35/-25` and `+30/-40` prerequisite
+balances; the presence, absence, number, or reported label of result records does not recalculate
+those magnitudes.
+
+D-345 through D-348 likewise add no new balances. D-345 supplies the result path for the existing
+preferred `+30` MDD substance-history rule. Prior treatment, medication benefit, tolerability,
+dose position, and change timing may later feed exact reviewed decision policies, but record
+presence or source-report alignment never manufactures a default reward or penalty.
+
+D-349 also adds no balance. Its minimized record projection changes only which already frozen,
+source-presented fields may later cross the display boundary. Duration, highest reported dose,
+adherence, response, tolerability, or any other projected value has no points unless a separate
+reviewed qualitative rule and balance explicitly consume the exact typed fact.
+
+D-350 adds only independently source-validated authority and replay around that same safe view.
+Neither source validation nor presence in the projection collection manufactures a reward,
+penalty, treatment preference, or certainty multiplier.
+
+D-351 likewise adds no balance. Joining the source-validated fields to the exact D-214 result
+attachment establishes presentation authority only; the presence, absence, content, or source
+alignment of a record cannot create points without a separately reviewed qualitative rule and
+balance.
+
 D-252 freezes the exact point owners used by a native generated attempt. A minimized balance
 snapshot retains only rubric-referenced magnitudes, outcomes, components, impact bands, and
 player-facing explanations while a separate fingerprint identifies the complete validated source
@@ -164,8 +220,8 @@ D-255 adds direct focused information actions without pretending that availabili
 player obtained them. A required action has explicit positive fulfilled and negative omitted
 outcomes; a preferred action has a positive selected outcome and zero unselected outcome. The
 first native MDD values are episode course `+35/−35`, depressive syndrome `+50/−50`, and preferred
-substance-use history `+30/0`. Together with the existing `+200` broad medication route and
-treatment-triggered histories, the current isolated database-plan fixture totals `380`. These
+substance-use history `+30/0`. Together with the existing `+200` broad medication route and all
+three treatment-triggered histories, the current isolated database-plan fixture totals `415`. These
 care-point values do not include information operating costs; settlement still subtracts those
 costs separately.
 
@@ -460,3 +516,108 @@ For an identical database-plan run, ownership changes only fulfillment economics
 | --------- | ----------: | ---------- | ----------: | ---------: | --------------------: |
 | Outside   |       1,140 | identical  |         630 |      1,310 |                     0 |
 | In house  |       1,140 | identical  |         200 |      1,740 |                   430 |
+
+D-352 adds no balance. It supplies the exact result rows that a purchased
+`info.history.mania` action can later reveal, while the separate D-338 three-outcome prerequisite
+remains the sole current point owner. The result content neither triggers that rule nor converts a
+symptom row into a manic episode or bipolar diagnosis.
+
+D-353 likewise adds no balance. Psychosis-history result rows are clinical input content only; no
+current point rule is created merely because the action or a symptom exists. Any later
+treatment-triggered or focused-case relevance must receive its own reviewed qualitative rule and
+separate balance.
+
+D-354 also adds no balance. It makes the already-reviewed presenting-problem action capable of
+showing both current episode duration and broad reported functional impact, while the existing
+`balance.mdd-initial-episode-course-assessment` remains the only current point owner. The result
+rows never calculate their own reward and do not convert broad reported impact into MDD severity.
+
+D-355 adds no balance. Observed body habitus and numeric BMI are separately auditable patient
+results. Neither one grants or deducts points merely for existing or being revealed; any later
+treatment-fit or workup-relevance effect requires its own reviewed qualitative rule and separate
+balance record.
+
+D-356 also adds no balance. A generation profile's `relativeWeight` controls only which neutral
+categorical value is frozen for a patient. It must never be read as a point magnitude, evidence
+weight, risk, prevalence, treatment fit, or clinical importance.
+
+D-357 changes only collection provenance. The authored/generated observation discriminator has no
+scoring meaning and cannot alter a result's points or clinical classification.
+
+D-358 also adds no balance. A template's complete generation-profile horizon determines which
+neutral value-selection inputs D-356 may use; neither the profile set, selected profile, selected
+value, nor resource-coverage status has an intrinsic point value. Any later relevance to treatment
+fit or workup quality requires its own reviewed qualitative rule and separate balance owner.
+
+D-359 changes no scoring behavior. Retaining a generated observation through patient attachment
+does not make the observation point-bearing; it only preserves the exact neutral input that a
+future separately reviewed rule may inspect.
+
+D-360 also adds no balance. A generated episode duration is frozen patient state and a revealable
+input; it does not grant points, establish MDD severity, prove impairment, or change treatment
+fit merely because it came from a reviewed catalog profile.
+
+D-361 adds no balance. Selected MDD manifestations and derived closed-assessment negatives are
+patient/result inputs only. Neither symptom count, an absent row, a core-requirement trace, nor
+action-result completeness grants points without a separate reviewed qualitative rule and
+balance owner.
+
+D-362 likewise adds no balance. Coexisting reviewed symptom state and episode duration make the
+frozen patient richer, but they do not by themselves assign severity, establish impairment,
+select treatment, or award or deduct points.
+
+D-363 adds no balance. A completed mania-history result can later satisfy a separately compiled
+treatment-triggered prerequisite, but the presence of sixteen closed result rows does not itself
+award points or declare antidepressant use appropriate.
+
+D-364 adds no balance. A completed psychosis-history assessment becomes available as future
+rule input, but six absent patient-report rows do not automatically award points or establish an
+uncomplicated-depression pathway.
+
+D-365 adds no balance. It supplies the exact generated fact and purchased-action result needed by
+the already reviewed D-339 conditional safety rule, but neither the positive finding nor result
+binding applies points until that separately balanced rule is compiled and evaluated against a
+frozen player decision.
+
+D-366 completes that rule's qualitative D-191 binding only. The compiled rubric has
+`balanceRef: null` for this integration proof even though a separately reviewed D-339 balance
+record exists in the authoring catalog. This prevents patient generation or rule discovery from
+silently importing a point magnitude.
+
+D-367 applies the same separation to D-338. The generated encounter contains the exact
+treatment-triggered prerequisite with `balanceRef: null`; it has not yet evaluated the player's
+medication start or history purchase. The separately reviewed `notTriggered`/`fulfilled`/`omitted`
+balance can enter only at the later frozen-decision scoring stage.
+
+D-368 performs that later stage for D-338 and D-339 only. Both balances are attached explicitly
+before D-191 compilation and their full canonical payloads are frozen in the completed attempt.
+The database plan and fulfilled player decision each calculate `+35 + +50 = +85`. Starting
+bupropion while omitting both histories calculates `−50 + −80 = −130`. Obtaining detailed safety
+without starting a reviewed antidepressant calculates `0 + +50 = +50`; the zero is an explicit
+`not_triggered` outcome, not a missing rule. The primary route remains unbalanced in this proof, so
+these totals are component-level care points rather than a complete MDD plan score.
+
+D-369 adds the reviewed direct depressive-syndrome balance. The expanded database plan calculates
+`+50 + +35 + +50 = +135`. Omitting only depressive symptoms changes that component from +50 to
+−50, producing +35 while the other two components remain fulfilled. This remains a three-rule
+subtotal; it does not yet include the dominant primary-route balance or a complete encounter
+economy.
+
+D-370 adds the unchanged +200 dominant primary-route balance. The selected-route database/player
+plan calculates `+200 + +50 + +35 + +50 = +335`. With the same three histories but no
+antidepressant start, the route contributes zero and mania history is not triggered, producing
+`0 + +50 + 0 + +50 = +100`. The zero is explicit reviewed unmatched behavior; no penalty is
+inferred from the route's importance.
+
+D-371 applies the existing standard-mode settlement to those exact outcomes. With base
+reimbursement 400 and satisfaction 1.00, the selected-route gross payout is `400 + 335 = 735`;
+the no-route gross payout is `400 + 100 = 500`. Exact information and treatment expenses are then
+subtracted from each gross payout, and only the nonnegative remainder is banked. A separate
+zero-reimbursement/no-action stress input has −130 care points, gross payout zero, net payout zero,
+and leaves the existing bank and lifetime total unchanged. Encounter expenses never directly
+debit persistent points.
+
+D-372 adds no score. An `uncovered_action` row has no points or score fields and keeps its
+qualitative rule outside the compiled rubric. Missing generated/source state therefore cannot
+silently create either an award for a nonexistent assessment or an omission penalty for an action
+the encounter could not actually offer.

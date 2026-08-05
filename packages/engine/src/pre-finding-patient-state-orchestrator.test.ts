@@ -856,6 +856,9 @@ const makeCoreState = (
       priorLevelsOfCare: [],
     },
     medicationTolerabilityFindings: [],
+    currentMedicationReportedBenefits: [],
+    currentMedicationDosePositions: [],
+    medicationChangeTemporalRelationships: [],
     reactionHistory: {
       status: 'documented_none',
       medicationAssessmentStatus: 'documented_none',
@@ -867,6 +870,7 @@ const makeCoreState = (
     structuredTestResults: [],
     clinicalContexts: [],
     clinicalDurations: [],
+    functionalImpairments: [],
     subjectiveBurdenRecords: [],
     propositionState: {
       schemaVersion: 1,

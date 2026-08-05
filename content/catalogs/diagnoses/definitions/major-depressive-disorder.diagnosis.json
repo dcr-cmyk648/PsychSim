@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.4.0",
+  "contentVersion": "1.6.0",
   "id": "diagnosis.major-depressive-disorder",
   "label": "Major depressive disorder",
   "selectableInGameplay": true,
@@ -127,6 +127,39 @@
       }
     },
     {
+      "id": "rule.diagnosis-mdd.initial-route-antidepressant-mania-history",
+      "label": "Assess prior mania or hypomania before starting a reviewed initial-MDD antidepressant",
+      "domain": "safety",
+      "target": {
+        "kind": "information_action",
+        "id": "info.history.mania"
+      },
+      "stance": "required",
+      "concernLevel": "major",
+      "certaintyLevel": "strong",
+      "patientWhen": {
+        "type": "clinicalTagPresent",
+        "clinicalTagId": "decision.mdd-initial-treatment"
+      },
+      "selectionWhen": {
+        "type": "treatmentStartedInClass",
+        "medicationClassId": "medication-class.mdd-initial-first-line-antidepressant",
+        "medicationClassContentVersion": "1.0.0",
+        "minimumCount": 1,
+        "maximumCount": 20
+      },
+      "rationale": "The native generated-patient path resolves the reviewed initial-MDD medication class to exact medication identities before evaluating this prerequisite. This rule preserves the existing compatibility case rule separately so historical case-local tag scoring does not change.",
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": [
+          "source-use.diagnosis-mdd.canmat-focused-assessment",
+          "source-use.diagnosis-mdd.developer-treatment-triggered-assessment"
+        ]
+      }
+    },
+    {
       "id": "rule.diagnosis-mdd.any-medication-reconciliation",
       "label": "Reconcile the medication list before starting a medication",
       "domain": "safety",
@@ -222,6 +255,12 @@
       "patientWhen": {
         "type": "clinicalTagPresent",
         "clinicalTagId": "safety.passive-death-wish-without-intent"
+      },
+      "nativePatientWhen": {
+        "type": "canonicalFindingOutcome",
+        "findingDefinitionId": "finding.safety.current-passive-death-wish",
+        "findingDefinitionContentVersion": "1.0.0",
+        "outcome": "present"
       },
       "selectionWhen": null,
       "rationale": "A resolved passive wish for death makes the detailed safety assessment central to the focused outpatient disposition decision. The underlying findings, rather than a single risk label, remain available for explanation.",
@@ -402,6 +441,7 @@
         "rule.diagnosis-mdd.initial-episode-course-assessment",
         "rule.diagnosis-mdd.initial-depressive-syndrome-assessment",
         "rule.diagnosis-mdd.antidepressant-mania-history",
+        "rule.diagnosis-mdd.initial-route-antidepressant-mania-history",
         "rule.diagnosis-mdd.any-medication-reconciliation",
         "rule.diagnosis-mdd.substance-history"
       ],
@@ -420,6 +460,7 @@
         "rule.diagnosis-mdd.initial-episode-course-assessment",
         "rule.diagnosis-mdd.initial-depressive-syndrome-assessment",
         "rule.diagnosis-mdd.antidepressant-mania-history",
+        "rule.diagnosis-mdd.initial-route-antidepressant-mania-history",
         "rule.diagnosis-mdd.any-medication-reconciliation",
         "rule.diagnosis-mdd.any-medication-reaction-history",
         "rule.diagnosis-mdd.substance-history",

@@ -145,8 +145,11 @@ const authoringClinicalRegistryKinds = new Set([
   'finding_projection_catalog',
   'finding_projection_horizon_catalog',
   'universal_action_result_assembly_catalog',
+  'structured_source_report_profile_catalog',
   'clinical_duration_profile_catalog',
   'condition_finding_profile_catalog',
+  'background_finding_outcome_profile_catalog',
+  'patient_launcher_presentation_catalog',
   'race_ethnicity_catalog',
 ]);
 const authoringClinicalRegistryIds = (

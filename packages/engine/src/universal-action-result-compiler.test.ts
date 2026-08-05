@@ -302,6 +302,9 @@ const makeBasePatientState = (): ResolvedPatientState => ({
     priorLevelsOfCare: [],
   },
   medicationTolerabilityFindings: [],
+  currentMedicationReportedBenefits: [],
+  currentMedicationDosePositions: [],
+  medicationChangeTemporalRelationships: [],
   reactionHistory: {
     status: 'documented_none',
     medicationAssessmentStatus: 'documented_none',
@@ -319,7 +322,10 @@ const makeBasePatientState = (): ResolvedPatientState => ({
       unit: { display: 'kg', ucumCode: 'kg' },
       contextValues: [],
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.scale',
+      source: {
+        kind: 'measurement',
+        sourceInstanceId: 'source-instance.test.scale',
+      },
       interpretation: { kind: 'not_interpreted' },
       resolution: authoredResolution,
     },
@@ -333,7 +339,10 @@ const makeBasePatientState = (): ResolvedPatientState => ({
       valueId: 'observation-value.test.unremarkable',
       displayValue: 'Unremarkable',
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.examiner',
+      source: {
+        kind: 'clinician_observation',
+        sourceInstanceId: 'source-instance.test.examiner',
+      },
       interpretationIds: [],
       resolution: authoredResolution,
     },
@@ -344,7 +353,10 @@ const makeBasePatientState = (): ResolvedPatientState => ({
       id: 'structured-test-result.test.tsh',
       testDefinitionId: testDefinition.id,
       testDefinitionContentVersion: testDefinition.contentVersion,
-      sourceInstanceId: 'source-instance.test.laboratory',
+      source: {
+        kind: 'laboratory_result',
+        sourceInstanceId: 'source-instance.test.laboratory',
+      },
       timeScopeId: 'time-scope.current',
       resolution: authoredResolution,
       kind: 'binary',
@@ -355,6 +367,7 @@ const makeBasePatientState = (): ResolvedPatientState => ({
   ],
   clinicalContexts: [],
   clinicalDurations: [],
+  functionalImpairments: [],
   subjectiveBurdenRecords: [],
   propositionState: {
     schemaVersion: 1,
@@ -676,6 +689,92 @@ const attachTargetScopedDuration = (
     .sourceKinds.push('target_scoped_patient_value_reveals');
 };
 
+const attachTargetScopedFunctionalImpairment = (
+  request: UniversalActionResultCompileRequest,
+): void => {
+  const action = request.actionCatalog.actions.find(
+    (candidate) => candidate.id === actionIds.symptoms,
+  )!;
+  request.patientState = ResolvedPatientStateSchema.parse({
+    ...request.patientState,
+    conditionStates: [
+      {
+        schemaVersion: 1,
+        id: 'condition-state.test.mdd',
+        diagnosisDefinitionId: 'diagnosis.major-depressive-disorder',
+        diagnosisDefinitionContentVersion: '1.0.0',
+        clinicalStateId: 'clinical-state.current',
+        timeScopeId: 'time-scope.current',
+        encounterRelevance: 'focus',
+        severityId: null,
+        specifierIds: [],
+        origin: 'authored',
+        resolution: authoredResolution,
+      },
+    ],
+    functionalImpairments: [
+      {
+        schemaVersion: 1,
+        id: 'condition-functional-impairment.test.mdd',
+        target: {
+          kind: 'condition_state',
+          conditionStateId: 'condition-state.test.mdd',
+        },
+        attribution: 'condition_attributed',
+        level: 'moderate',
+        functionalImpairmentProfileId: 'functional-impairment-profile.test.mdd',
+        functionalImpairmentProfileContentVersion: '1.0.0',
+        functionalImpairmentOptionId: 'functional-impairment-option.test.mdd.moderate',
+        relatedDiagnosisId: 'diagnosis.major-depressive-disorder',
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: 'source-instance.test.patient',
+        },
+        timeScopeId: 'time-scope.current',
+        resolution: authoredResolution,
+      },
+    ],
+  });
+  request.structuredRevealEnvelopes = request.structuredRevealEnvelopes.map((envelope) => ({
+    ...envelope,
+    patientState: request.patientState,
+  }));
+  const projection = compileTargetScopedPatientValueProjections({
+    schemaVersion: 1,
+    id: 'target-scoped-request.test.functional-impairment',
+    patientState: request.patientState,
+    informationActions: [action],
+    definitions: [
+      {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'target-scoped-definition.test.mdd-functional-impairment',
+        modelVersion: 'target-scoped-patient-value-projection.v1',
+        label: 'Current condition-attributed functional impairment',
+        informationActionId: action.id,
+        informationActionPayloadFingerprint: fingerprintInformationActionPayload(action),
+        valueKind: 'condition_functional_impairment',
+        functionalImpairmentProfileId: 'functional-impairment-profile.test.mdd',
+        functionalImpairmentProfileContentVersion: '1.0.0',
+        targetSelector: {
+          kind: 'condition_definition',
+          diagnosisDefinitionId: 'diagnosis.major-depressive-disorder',
+          diagnosisDefinitionContentVersion: '1.0.0',
+        },
+        sourceKind: 'patient_report',
+        timeScopeId: 'time-scope.current',
+        lifecycle: 'approved',
+        review: approvedReview,
+      },
+    ],
+  });
+  if (!projection.ok) throw new Error(projection.error.message);
+  request.targetScopedPatientValueProjectionArtifact = projection.value;
+  request.recipes
+    .find((recipe) => recipe.informationActionId === action.id)!
+    .sourceKinds.push('target_scoped_patient_value_reveals');
+};
+
 describe('D-213 universal information-action result compiler', () => {
   it('requires exactly one recipe for every action in the exact catalog', () => {
     const request = makeRequest();
@@ -856,6 +955,33 @@ describe('D-213 universal information-action result compiler', () => {
     });
     expect(JSON.stringify(targetSource)).not.toMatch(
       /targetSelector|conditionStateId|durationProfileId|durationProfileContentVersion|durationOptionId|criterionId|interpretation|resolution/,
+    );
+  });
+
+  it('routes condition-functional impairment through the generic target-scoped reveal without leaking its target, profile, or source instance', () => {
+    const request = makeRequest();
+    attachTargetScopedFunctionalImpairment(request);
+    const compiled = expectSuccess(request);
+    const targetSource = compiled.bindingCandidates
+      .find((binding) => binding.informationActionId === actionIds.symptoms)
+      ?.sources.find((source) => source.kind === 'target_scoped_patient_value_reveal');
+    const frozenValue =
+      request.targetScopedPatientValueProjectionArtifact?.frozenReveals[0]?.values[0];
+
+    expect(targetSource).toMatchObject({
+      kind: 'target_scoped_patient_value_reveal',
+      definitionId: 'target-scoped-definition.test.mdd-functional-impairment',
+    });
+    expect(frozenValue).toEqual(
+      expect.objectContaining({
+        kind: 'condition_functional_impairment',
+        level: 'moderate',
+        sourceKind: 'patient_report',
+        timeScopeId: 'time-scope.current',
+      }),
+    );
+    expect(JSON.stringify(frozenValue)).not.toMatch(
+      /conditionStateId|diagnosisDefinitionId|functionalImpairmentProfile|functionalImpairmentOption|sourceInstanceId|resolution/,
     );
   });
 

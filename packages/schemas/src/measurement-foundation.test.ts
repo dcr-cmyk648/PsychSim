@@ -16,6 +16,9 @@ const weightDefinition = catalog.measurements.find(
 const heartRateDefinition = catalog.measurements.find(
   (definition) => definition.id === 'measurement.vital.heart-rate',
 )!;
+const bmiDefinition = catalog.measurements.find(
+  (definition) => definition.id === 'measurement.anthropometric.bmi',
+)!;
 
 const authoredResolution = {
   origin: 'authored',
@@ -27,7 +30,47 @@ describe('measurement and categorical-observation foundation', () => {
   it('parses a real identity-only measurement catalog without clinical ranges', () => {
     expect(catalog.id).toBe('registry.catalog.measurements');
     expect(catalog.measurements).toHaveLength(9);
-    expect(catalog.categoricalObservations).toEqual([]);
+    expect(catalog.derivations).toEqual([
+      {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'measurement-derivation.bmi.metric-height-weight',
+        kind: 'body_mass_index_from_metric_height_weight',
+        heightMeasurementDefinitionRef: {
+          id: 'measurement.anthropometric.height',
+          contentVersion: '1.0.0',
+        },
+        weightMeasurementDefinitionRef: {
+          id: 'measurement.anthropometric.weight',
+          contentVersion: '1.0.0',
+        },
+        outputMeasurementDefinitionRef: {
+          id: 'measurement.anthropometric.bmi',
+          contentVersion: '1.0.0',
+        },
+        lifecycle: 'review',
+        medicalReviewStatus: 'unreviewed',
+      },
+    ]);
+    expect(catalog.categoricalObservations).toEqual([
+      {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'observation.physical.body-habitus',
+        label: 'Observed body habitus',
+        domain: 'physical_exam',
+        allowedValueIds: [
+          'observation-value.body-habitus.lower-adiposity',
+          'observation-value.body-habitus.no-marked-adiposity-or-muscularity',
+          'observation-value.body-habitus.increased-adiposity',
+          'observation-value.body-habitus.increased-muscularity',
+          'observation-value.body-habitus.mixed-increased-adiposity-and-muscularity',
+        ],
+        availableThroughActionIds: ['info.physical.weight-bmi'],
+        lifecycle: 'review',
+        medicalReviewStatus: 'unreviewed',
+      },
+    ]);
     expect(measurementCatalogJson).not.toHaveProperty('referenceRanges');
   });
 
@@ -47,7 +90,10 @@ describe('measurement and categorical-observation foundation', () => {
         },
         contextValues: [],
         timeScopeId: 'time-scope.current',
-        sourceInstanceId: 'source-instance.test.scale',
+        source: {
+          kind: 'measurement',
+          sourceInstanceId: 'source-instance.test.scale',
+        },
         interpretation: { kind: 'not_interpreted' },
         resolution: authoredResolution,
       },
@@ -55,6 +101,71 @@ describe('measurement and categorical-observation foundation', () => {
     expect(parsed.resolved.interpretation).toEqual({ kind: 'not_interpreted' });
     expect(parsed.resolved).not.toHaveProperty('bodyHabitus');
     expect(parsed.resolved).not.toHaveProperty('abnormal');
+  });
+
+  it('keeps derived measurement provenance distinct from a patient-scene source instance', () => {
+    const derived = {
+      schemaVersion: 1,
+      id: 'resolved-measurement.test.derived-bmi',
+      definitionId: bmiDefinition.id,
+      definitionContentVersion: bmiDefinition.contentVersion,
+      value: 28.5121107266436,
+      displayValue: '28.5',
+      unit: {
+        display: bmiDefinition.unit.display,
+        ucumCode: bmiDefinition.unit.ucumCode,
+      },
+      contextValues: [],
+      timeScopeId: 'time-scope.current',
+      source: {
+        kind: 'derived_measurement',
+        derivationDefinitionId: 'measurement-derivation.bmi.metric-height-weight',
+        derivationDefinitionContentVersion: '1.0.0',
+        derivationArtifactId: 'body-mass-index-derivation-compilation.test',
+        derivationPayloadFingerprint:
+          'fingerprint.body-mass-index-derivation-compilation.payload.fnv1a64.0000000000000000',
+        inputMeasurementIds: [
+          'resolved-measurement.test.height',
+          'resolved-measurement.test.weight',
+        ],
+      },
+      interpretation: { kind: 'not_interpreted' },
+      resolution: {
+        origin: 'deterministic_derivation',
+        derivationDefinitionId: 'measurement-derivation.bmi.metric-height-weight',
+        derivationDefinitionContentVersion: '1.0.0',
+        resolverVersion: '1.0.0',
+        inputMeasurementIds: [
+          'resolved-measurement.test.height',
+          'resolved-measurement.test.weight',
+        ],
+      },
+    } as const;
+    expect(
+      MeasurementResolutionEnvelopeSchema.safeParse({
+        definition: bmiDefinition,
+        resolved: derived,
+      }).success,
+    ).toBe(true);
+    expect(derived.source).not.toHaveProperty('sourceInstanceId');
+    expect(
+      ResolvedMeasurementSchema.safeParse({
+        ...derived,
+        resolution: {
+          ...derived.resolution,
+          inputMeasurementIds: [...derived.resolution.inputMeasurementIds].reverse(),
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      ResolvedMeasurementSchema.safeParse({
+        ...derived,
+        source: {
+          kind: 'measurement',
+          sourceInstanceId: 'source-instance.test.fake-derived-measurement',
+        },
+      }).success,
+    ).toBe(false);
   });
 
   it('represents orthostatic measurements as separate context-bound values', () => {
@@ -76,7 +187,10 @@ describe('measurement and categorical-observation foundation', () => {
         },
       ],
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.vital-device',
+      source: {
+        kind: 'measurement',
+        sourceInstanceId: 'source-instance.test.vital-device',
+      },
       interpretation: { kind: 'not_interpreted' },
       resolution: authoredResolution,
     } as const;
@@ -115,7 +229,10 @@ describe('measurement and categorical-observation foundation', () => {
       unit: { display: 'lb', ucumCode: '[lb_av]' },
       contextValues: [],
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.scale',
+      source: {
+        kind: 'measurement',
+        sourceInstanceId: 'source-instance.test.scale',
+      },
       interpretation: { kind: 'not_interpreted' },
       resolution: authoredResolution,
     } as const;
@@ -167,7 +284,10 @@ describe('measurement and categorical-observation foundation', () => {
           valueId: 'observation-value.test.unremarkable',
           displayValue: 'Unremarkable',
           timeScopeId: 'time-scope.current',
-          sourceInstanceId: 'source-instance.test.examiner',
+          source: {
+            kind: 'clinician_observation',
+            sourceInstanceId: 'source-instance.test.examiner',
+          },
           interpretationIds: [],
           resolution: authoredResolution,
         },
@@ -196,7 +316,10 @@ describe('measurement and categorical-observation foundation', () => {
         },
         contextValues: [],
         timeScopeId: 'time-scope.current',
-        sourceInstanceId: 'source-instance.test.scale',
+        source: {
+          kind: 'measurement',
+          sourceInstanceId: 'source-instance.test.scale',
+        },
         interpretation: { kind: 'not_interpreted' },
         resolution: authoredResolution,
         points: 10,
@@ -216,7 +339,10 @@ describe('measurement and categorical-observation foundation', () => {
         },
         contextValues: [],
         timeScopeId: 'time-scope.current',
-        sourceInstanceId: 'source-instance.test.scale',
+        source: {
+          kind: 'measurement',
+          sourceInstanceId: 'source-instance.test.scale',
+        },
         interpretation: { kind: 'not_interpreted' },
         resolution: authoredResolution,
         color: 'red',

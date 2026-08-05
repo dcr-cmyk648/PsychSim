@@ -9,8 +9,12 @@ import {
 } from '@psychsim/schemas';
 
 import { verifyConditionFunctionalImpairmentResolutionIntegrity } from './condition-functional-impairment-profile-resolver';
+import {
+  validatePatientStateScopedSource,
+  verifyPatientSceneSourceInstanceCompilationIntegrity,
+} from './patient-scene-source-instance-compiler';
 
-export const CONDITION_EPISODE_SEVERITY_DERIVATION_COMPILER_VERSION = '1.0.0';
+export const CONDITION_EPISODE_SEVERITY_DERIVATION_COMPILER_VERSION = '2.0.0';
 
 export type ConditionEpisodeSeverityDerivationResult =
   | { readonly ok: true; readonly value: ConditionEpisodeSeverityDerivationArtifact }
@@ -20,6 +24,8 @@ export type ConditionEpisodeSeverityDerivationResult =
         readonly code:
           | 'INVALID_REQUEST'
           | 'INVALID_FUNCTIONAL_IMPAIRMENT_ARTIFACT'
+          | 'INVALID_SOURCE_INSTANCE_COMPILATION'
+          | 'FUNCTIONAL_IMPAIRMENT_SOURCE_INVALID'
           | 'UNAPPROVED_POLICY'
           | 'INVALID_OUTPUT';
         readonly message: string;
@@ -141,7 +147,7 @@ const highestQualitativeLevel = (
     : symptomSeverity;
 
 export const deriveConditionEpisodeSeverity = (
-  rawRequest: ConditionEpisodeSeverityDerivationRequest,
+  rawRequest: unknown,
 ): ConditionEpisodeSeverityDerivationResult => {
   const parsed = ConditionEpisodeSeverityDerivationRequestSchema.safeParse(rawRequest);
   if (!parsed.success) {
@@ -161,9 +167,26 @@ export const deriveConditionEpisodeSeverity = (
   if (!impairmentIntegrity.ok) {
     return fail('INVALID_FUNCTIONAL_IMPAIRMENT_ARTIFACT', impairmentIntegrity.error.message);
   }
+  const sourceHorizonIntegrity = verifyPatientSceneSourceInstanceCompilationIntegrity(
+    request.sourceInstanceCompilation,
+  );
+  if (!sourceHorizonIntegrity.ok) {
+    return fail('INVALID_SOURCE_INSTANCE_COMPILATION', sourceHorizonIntegrity.error.message);
+  }
+  const functionalImpairment = impairmentIntegrity.value.resolvedFunctionalImpairment;
+  const sourceValidation = validatePatientStateScopedSource(
+    functionalImpairment.source,
+    request.patientStateId,
+    sourceHorizonIntegrity.value,
+  );
+  if (!sourceValidation.ok) {
+    return fail(
+      'FUNCTIONAL_IMPAIRMENT_SOURCE_INVALID',
+      `${functionalImpairment.id}: ${sourceValidation.error.code}: ${sourceValidation.error.message}`,
+    );
+  }
 
   const symptomSeverity = request.symptomSeverity;
-  const functionalImpairment = request.functionalImpairmentResolution.resolvedFunctionalImpairment;
   const qualitativeLevel = highestQualitativeLevel(
     symptomSeverity.level,
     functionalImpairment.level,
@@ -185,6 +208,8 @@ export const deriveConditionEpisodeSeverity = (
       functionalImpairmentArtifactId: request.functionalImpairmentResolution.id,
       functionalImpairmentPayloadFingerprint:
         request.functionalImpairmentResolution.payloadFingerprint,
+      sourceInstanceCompilationId: sourceHorizonIntegrity.value.id,
+      sourceInstanceCompilationPayloadFingerprint: sourceHorizonIntegrity.value.payloadFingerprint,
       qualitativeLevel,
     }),
     patientStateId: request.patientStateId,
@@ -231,6 +256,14 @@ export const deriveConditionEpisodeSeverity = (
     functionalImpairmentArtifactRef: {
       id: request.functionalImpairmentResolution.id,
       payloadFingerprint: request.functionalImpairmentResolution.payloadFingerprint,
+    },
+    sourceInstanceCompilationRef: {
+      id: sourceHorizonIntegrity.value.id,
+      payloadFingerprint: sourceHorizonIntegrity.value.payloadFingerprint,
+    },
+    validatedFunctionalImpairmentSourceBinding: {
+      sourceInstanceId: functionalImpairment.source.sourceInstanceId,
+      sourceKind: functionalImpairment.source.kind,
     },
     resolvedEpisodeSeverity,
     compileRequest: request,

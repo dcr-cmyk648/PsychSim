@@ -6,6 +6,7 @@ import {
   DecisionPolicyCatalogSchema,
   DecisionRuleCandidateDefinitionSchema,
   DiagnosisDefinitionSchema,
+  FindingDefinitionSchema,
   GeneratedEncounterDecisionSelectionSchema,
   GeneratedEncounterPointReportInputSchema,
   MedicationRegimenEntryV2Schema,
@@ -17,6 +18,7 @@ import { describe, expect, it } from 'vitest';
 import mddDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/major-depressive-disorder.diagnosis.json';
 import balanceCatalogJson from '../../../content/catalogs/decision-policies/balances.json';
 import decisionPolicyCatalogJson from '../../../content/catalogs/decision-policies/catalog.json';
+import passiveDeathWishFindingJson from '../../../content/catalogs/findings/definitions/current-passive-death-wish.finding.json';
 import medicationRegimenCatalogJson from '../../../content/catalogs/medications/regimen-knowledge.json';
 import { compileDecisionPolicy } from './decision-policy';
 import {
@@ -39,12 +41,19 @@ const regimenCatalog = MedicationRegimenKnowledgeCatalogSchema.parse(medicationR
 const policyCatalog = DecisionPolicyCatalogSchema.parse(decisionPolicyCatalogJson);
 const route = regimenCatalog.focusedRoutes[0]!;
 const policy = policyCatalog.policies[0]!;
+const findingDefinitions = [FindingDefinitionSchema.parse(passiveDeathWishFindingJson)];
 const routeBalance = balanceCatalog.balances.find((balance) => !('balanceKind' in balance));
 const reconciliationBalance = balanceCatalog.balances.find(
   (balance) => balance.id === 'balance.mdd-any-medication-reconciliation',
 );
 const reactionHistoryBalance = balanceCatalog.balances.find(
   (balance) => balance.id === 'balance.mdd-any-medication-reaction-history',
+);
+const maniaHistoryBalance = balanceCatalog.balances.find(
+  (balance) => balance.id === 'balance.mdd-antidepressant-mania-history',
+);
+const passiveDeathWishSafetyBalance = balanceCatalog.balances.find(
+  (balance) => balance.id === 'balance.mdd-passive-death-wish-safety-assessment',
 );
 const episodeCourseBalance = balanceCatalog.balances.find(
   (balance) => balance.id === 'balance.mdd-initial-episode-course-assessment',
@@ -64,6 +73,12 @@ if (
   reactionHistoryBalance === undefined ||
   !('balanceKind' in reactionHistoryBalance) ||
   reactionHistoryBalance.balanceKind !== 'triggered_information_prerequisite' ||
+  maniaHistoryBalance === undefined ||
+  !('balanceKind' in maniaHistoryBalance) ||
+  maniaHistoryBalance.balanceKind !== 'triggered_information_prerequisite' ||
+  passiveDeathWishSafetyBalance === undefined ||
+  !('balanceKind' in passiveDeathWishSafetyBalance) ||
+  passiveDeathWishSafetyBalance.balanceKind !== 'information_requirement' ||
   episodeCourseBalance === undefined ||
   !('balanceKind' in episodeCourseBalance) ||
   episodeCourseBalance.balanceKind !== 'information_requirement' ||
@@ -153,17 +168,50 @@ const patientState = ResolvedPatientStateSchema.parse({
   reportedSafetyPlanningAbility: 'unassessed',
 });
 
+const patientStateWithPassiveDeathWish = ResolvedPatientStateSchema.parse({
+  ...patientState,
+  id: 'resolved-patient-state.test.native-mdd-balance.passive-death-wish',
+  canonicalFindings: [
+    {
+      schemaVersion: 1,
+      id: 'resolved-finding.test.passive-death-wish',
+      definitionId: 'finding.safety.current-passive-death-wish',
+      definitionContentVersion: '1.0.0',
+      value: { kind: 'outcome', value: 'present' },
+      resolution: {
+        resolverVersion: '1.0.0',
+        origin: 'authored',
+        uncertainty: 'none',
+        appliedContributionIds: ['finding-contribution.test.passive-death-wish'],
+      },
+      contributions: [
+        {
+          schemaVersion: 1,
+          id: 'finding-contribution.test.passive-death-wish',
+          ownerKind: 'patient_state',
+          ownerId: 'resolved-patient-state.test.native-mdd-balance.passive-death-wish',
+          ownerContentVersion: null,
+          role: 'authored_value',
+          provenanceIds: [],
+        },
+      ],
+    },
+  ],
+});
+
 const actionHorizon = DecisionActionHorizonSchema.parse({
   schemaVersion: 1,
   id: 'decision-action-horizon.test.native-mdd-balance',
   informationActionIds: [
     'info.history.allergies-adverse-reactions',
     'info.history.depressive-symptoms',
+    'info.history.mania',
     'info.history.medication-reconciliation',
     'info.history.presenting-problem',
     'info.history.substance-use',
+    'info.history.suicide-safety',
   ],
-  startMedicationIds: reviewedMedicationIds,
+  startMedicationIds: [...reviewedMedicationIds, 'medication.citalopram'].sort(),
   regimenEntryOperations: [],
   interventionIds: [],
   dispositionIds: [],
@@ -200,7 +248,7 @@ const decisionSelecting = (
   treatmentSelection,
 });
 
-const compileRubric = () => {
+const compileRubric = (state = patientState) => {
   const adapted = adaptFocusedMedicationRegimenRoute({
     route,
     diagnosis,
@@ -215,7 +263,7 @@ const compileRubric = () => {
   if (!attached.ok) throw new Error(attached.error.message);
   const compiled = compileDecisionPolicy({
     policy,
-    patientState,
+    patientState: state,
     actionHorizon,
     rules: [attached.value],
   });
@@ -223,8 +271,11 @@ const compileRubric = () => {
   return { adapted: adapted.value, attached: attached.value, rubric: compiled.value };
 };
 
-const compileRubricWithPrerequisites = (prerequisiteBalanceCatalog = balanceCatalog) => {
-  const primary = compileRubric();
+const compileRubricWithPrerequisites = (
+  prerequisiteBalanceCatalog = balanceCatalog,
+  state = patientState,
+) => {
+  const primary = compileRubric(state);
   const adaptedPrerequisites = [
     'rule.diagnosis-mdd.any-medication-reconciliation',
     'rule.diagnosis-mdd.any-medication-reaction-history',
@@ -236,6 +287,7 @@ const compileRubricWithPrerequisites = (prerequisiteBalanceCatalog = balanceCata
       primaryRoute: route,
       medicationClasses: regimenCatalog.medicationClasses,
       classMemberships: regimenCatalog.classMemberships,
+      findingDefinitions,
     }),
   );
   for (const prerequisite of adaptedPrerequisites) {
@@ -255,7 +307,7 @@ const compileRubricWithPrerequisites = (prerequisiteBalanceCatalog = balanceCata
   });
   const compiled = compileDecisionPolicy({
     policy,
-    patientState,
+    patientState: state,
     actionHorizon,
     rules: [primary.attached, ...attachedPrerequisites],
   });
@@ -267,9 +319,55 @@ const compileRubricWithPrerequisites = (prerequisiteBalanceCatalog = balanceCata
   };
 };
 
-const compileRubricWithAllInformationRequirements = () => {
+const compileRubricWithManiaPrerequisite = () => {
   const primary = compileRubric();
-  const triggered = compileRubricWithPrerequisites();
+  const adapted = adaptDiagnosisInformationPrerequisite({
+    diagnosis,
+    diagnosisRuleId: 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history',
+    policy,
+    primaryRoute: route,
+    medicationClasses: regimenCatalog.medicationClasses,
+    classMemberships: regimenCatalog.classMemberships,
+    findingDefinitions,
+  });
+  if (!adapted.ok) throw new Error(adapted.error.message);
+  const attached = attachDecisionBalance({
+    candidate: adapted.value,
+    balanceCatalog,
+  });
+  if (!attached.ok) throw new Error(attached.error.message);
+  const compiled = compileDecisionPolicy({
+    policy,
+    patientState,
+    actionHorizon,
+    rules: [primary.attached, attached.value],
+  });
+  if (!compiled.ok) throw new Error(compiled.error.message);
+  return {
+    rubric: compiled.value,
+    prerequisite: adapted.value,
+    attachedPrerequisite: attached.value,
+  };
+};
+
+const compileRubricWithAllInformationRequirements = (state = patientState) => {
+  const primary = compileRubric(state);
+  const triggered = compileRubricWithPrerequisites(balanceCatalog, state);
+  const maniaHistory = adaptDiagnosisInformationPrerequisite({
+    diagnosis,
+    diagnosisRuleId: 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history',
+    policy,
+    primaryRoute: route,
+    medicationClasses: regimenCatalog.medicationClasses,
+    classMemberships: regimenCatalog.classMemberships,
+    findingDefinitions,
+  });
+  if (!maniaHistory.ok) throw new Error(maniaHistory.error.message);
+  const attachedManiaHistory = attachDecisionBalance({
+    candidate: maniaHistory.value,
+    balanceCatalog,
+  });
+  if (!attachedManiaHistory.ok) throw new Error(attachedManiaHistory.error.message);
   const directRequirements = [
     'rule.diagnosis-mdd.initial-episode-course-assessment',
     'rule.diagnosis-mdd.initial-depressive-syndrome-assessment',
@@ -281,6 +379,7 @@ const compileRubricWithAllInformationRequirements = () => {
       primaryRoute: route,
       medicationClasses: regimenCatalog.medicationClasses,
       classMemberships: regimenCatalog.classMemberships,
+      findingDefinitions,
     }),
   );
   for (const requirement of directRequirements) {
@@ -302,6 +401,7 @@ const compileRubricWithAllInformationRequirements = () => {
     primaryRoute: route,
     medicationClasses: regimenCatalog.medicationClasses,
     classMemberships: regimenCatalog.classMemberships,
+    findingDefinitions,
   });
   if (!substanceHistory.ok) throw new Error(substanceHistory.error.message);
   const attachedSubstanceHistory = attachDecisionBalance({
@@ -311,20 +411,43 @@ const compileRubricWithAllInformationRequirements = () => {
   if (!attachedSubstanceHistory.ok) {
     throw new Error(attachedSubstanceHistory.error.message);
   }
+  const passiveDeathWishSafety = adaptDiagnosisInformationRequirement({
+    diagnosis,
+    diagnosisRuleId: 'rule.diagnosis-mdd.passive-death-wish-safety-assessment',
+    policy,
+    primaryRoute: route,
+    medicationClasses: regimenCatalog.medicationClasses,
+    classMemberships: regimenCatalog.classMemberships,
+    findingDefinitions,
+  });
+  if (!passiveDeathWishSafety.ok) {
+    throw new Error(passiveDeathWishSafety.error.message);
+  }
+  const attachedPassiveDeathWishSafety = attachDecisionBalance({
+    candidate: passiveDeathWishSafety.value,
+    balanceCatalog,
+  });
+  if (!attachedPassiveDeathWishSafety.ok) {
+    throw new Error(attachedPassiveDeathWishSafety.error.message);
+  }
   const compiled = compileDecisionPolicy({
     policy,
-    patientState,
+    patientState: state,
     actionHorizon,
     rules: [
       primary.attached,
       ...triggered.attachedPrerequisites,
+      attachedManiaHistory.value,
       ...attachedRequirements,
       attachedSubstanceHistory.value,
+      attachedPassiveDeathWishSafety.value,
     ],
   });
   if (!compiled.ok) throw new Error(compiled.error.message);
   return {
     rubric: compiled.value,
+    maniaHistory: maniaHistory.value,
+    attachedManiaHistory: attachedManiaHistory.value,
     directRequirements: directRequirements.map((requirement) => {
       if (!requirement.ok) throw new Error(requirement.error.message);
       return requirement.value;
@@ -332,6 +455,8 @@ const compileRubricWithAllInformationRequirements = () => {
     attachedRequirements,
     substanceHistory: substanceHistory.value,
     attachedSubstanceHistory: attachedSubstanceHistory.value,
+    passiveDeathWishSafety: passiveDeathWishSafety.value,
+    attachedPassiveDeathWishSafety: attachedPassiveDeathWishSafety.value,
   };
 };
 
@@ -481,7 +606,7 @@ describe('native decision balance', () => {
     expect(adapted.balanceRef).toBeNull();
     expect(attached.balanceRef).toEqual({
       id: 'balance.mdd-initial-one-first-line-antidepressant',
-      contentVersion: '1.1.0',
+      contentVersion: '1.3.0',
     });
     expect(rubric.includedRules[0]?.balanceRef).toEqual(attached.balanceRef);
     expect(balanceCatalog.balances[0]).toMatchObject({
@@ -662,26 +787,26 @@ describe('native decision balance', () => {
     expect(attachedPrerequisites.map((prerequisite) => prerequisite.balanceRef)).toEqual([
       {
         id: 'balance.mdd-any-medication-reconciliation',
-        contentVersion: '1.1.0',
+        contentVersion: '1.3.0',
       },
       {
         id: 'balance.mdd-any-medication-reaction-history',
-        contentVersion: '1.1.0',
+        contentVersion: '1.3.0',
       },
     ]);
     expect(rubric.includedRules.map((rule) => rule.balanceRef)).toEqual(
       expect.arrayContaining([
         {
           id: 'balance.mdd-initial-one-first-line-antidepressant',
-          contentVersion: '1.1.0',
+          contentVersion: '1.3.0',
         },
         {
           id: 'balance.mdd-any-medication-reconciliation',
-          contentVersion: '1.1.0',
+          contentVersion: '1.3.0',
         },
         {
           id: 'balance.mdd-any-medication-reaction-history',
-          contentVersion: '1.1.0',
+          contentVersion: '1.3.0',
         },
       ]),
     );
@@ -703,6 +828,90 @@ describe('native decision balance', () => {
     });
   });
 
+  it('scores the exact reviewed antidepressant-class mania prerequisite without tag inference', () => {
+    const { rubric, prerequisite, attachedPrerequisite } = compileRubricWithManiaPrerequisite();
+    expect(prerequisite.balanceRef).toBeNull();
+    expect(attachedPrerequisite.balanceRef).toEqual({
+      id: 'balance.mdd-antidepressant-mania-history',
+      contentVersion: '1.1.0',
+    });
+    expect(maniaHistoryBalance).toMatchObject({
+      component: 'workup',
+      outcomes: {
+        notTriggered: { points: 0 },
+        fulfilled: { impactBand: 'major', points: 35 },
+        omitted: { impactBand: 'major', points: -50 },
+      },
+    });
+
+    for (const scenario of [
+      {
+        name: 'reviewed antidepressant with mania history',
+        startMedicationIds: ['medication.sertraline'],
+        informationActionIds: ['info.history.mania'],
+        expectedPoints: 235,
+        expectedStatus: 'fulfilled',
+      },
+      {
+        name: 'reviewed antidepressant without mania history',
+        startMedicationIds: ['medication.sertraline'],
+        informationActionIds: [],
+        expectedPoints: 150,
+        expectedStatus: 'omitted',
+      },
+      {
+        name: 'nonmember medication without mania history',
+        startMedicationIds: ['medication.citalopram'],
+        informationActionIds: [],
+        expectedPoints: 0,
+        expectedStatus: 'not_triggered',
+      },
+    ] as const) {
+      const decision = GeneratedEncounterDecisionSelectionSchema.parse(
+        decisionSelecting(treatmentStarting([...scenario.startMedicationIds]), [
+          ...scenario.informationActionIds,
+        ]),
+      );
+      const result = compileNativeDecisionPointReport({
+        compiledRubric: rubric,
+        playerDecision: decision,
+        databasePlanDecision: decision,
+        currentRegimen: [],
+        medicationRegimenKnowledgeCatalog: regimenCatalog,
+        balanceCatalog,
+      });
+      if (!result.ok) {
+        throw new Error(`${scenario.name}: ${result.error.code}: ${result.error.message}`);
+      }
+      expect(
+        result.value.playerRuleMatches.reduce(
+          (total, evaluation) => total + evaluation.appliedPoints,
+          0,
+        ),
+        scenario.name,
+      ).toBe(scenario.expectedPoints);
+      const maniaRow = result.value.report.ruleTrace.find(
+        (row) =>
+          row.source.kind === 'compiled_decision_rule' &&
+          row.source.ruleRef.id === 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history',
+      );
+      expect(maniaRow, scenario.name).toMatchObject({
+        balanceRef: {
+          id: 'balance.mdd-antidepressant-mania-history',
+          contentVersion: '1.1.0',
+        },
+        component: 'workup',
+        triggeredInformationPrerequisiteEvaluation: {
+          status: scenario.expectedStatus,
+          triggerSelected: scenario.expectedStatus !== 'not_triggered',
+          fulfillmentSelected: scenario.expectedStatus === 'fulfilled',
+        },
+      });
+      expect(JSON.stringify(maniaRow)).not.toContain('medicationTagId');
+      expect(JSON.stringify(maniaRow)).not.toContain('medicationClassId');
+    }
+  });
+
   it('attaches exact two-outcome balances to both direct MDD history requirements', () => {
     const {
       rubric,
@@ -716,19 +925,19 @@ describe('native decision balance', () => {
     expect(attachedRequirements.map((requirement) => requirement.balanceRef)).toEqual([
       {
         id: 'balance.mdd-initial-episode-course-assessment',
-        contentVersion: '1.1.0',
+        contentVersion: '1.3.0',
       },
       {
         id: 'balance.mdd-initial-depressive-syndrome-assessment',
-        contentVersion: '1.1.0',
+        contentVersion: '1.3.0',
       },
     ]);
     expect(substanceHistory.balanceRef).toBeNull();
     expect(attachedSubstanceHistory.balanceRef).toEqual({
       id: 'balance.mdd-substance-history',
-      contentVersion: '1.1.0',
+      contentVersion: '1.3.0',
     });
-    expect(rubric.includedRules).toHaveLength(6);
+    expect(rubric.includedRules).toHaveLength(7);
     expect(episodeCourseBalance).toMatchObject({
       balanceKind: 'information_requirement',
       component: 'workup',
@@ -759,10 +968,130 @@ describe('native decision balance', () => {
     expect(frozen.ok).toBe(true);
     if (!frozen.ok) return;
     expect(frozen.value.modelVersion).toBe('decision-balance-catalog-snapshot.v2');
-    expect(frozen.value.balances).toHaveLength(6);
+    expect(frozen.value.balances).toHaveLength(7);
     expect(
       frozen.value.balances.filter((balance) => balance.balanceKind === 'information_requirement'),
     ).toHaveLength(2);
+  });
+
+  it('scores the detailed safety assessment only when the exact passive-death-wish fact is present', () => {
+    const absent = compileRubricWithAllInformationRequirements();
+    expect(
+      absent.rubric.includedRules.some(
+        (rule) => rule.ruleRef.id === 'rule.diagnosis-mdd.passive-death-wish-safety-assessment',
+      ),
+    ).toBe(false);
+    expect(absent.rubric.includedRules).toHaveLength(7);
+
+    const { rubric, passiveDeathWishSafety, attachedPassiveDeathWishSafety } =
+      compileRubricWithAllInformationRequirements(patientStateWithPassiveDeathWish);
+    expect(rubric.includedRules).toHaveLength(8);
+    expect(passiveDeathWishSafety.balanceRef).toBeNull();
+    expect(attachedPassiveDeathWishSafety.balanceRef).toEqual({
+      id: 'balance.mdd-passive-death-wish-safety-assessment',
+      contentVersion: '1.0.0',
+    });
+    expect(passiveDeathWishSafety.patientWhen).toEqual({
+      type: 'all',
+      predicates: [
+        route.patientWhen,
+        {
+          type: 'fact',
+          fact: {
+            recordKind: 'canonical_finding',
+            identityId: 'finding.safety.current-passive-death-wish',
+            identityContentVersion: '1.0.0',
+            attributeId: 'finding.outcome',
+            valueId: 'finding-outcome.present',
+          },
+        },
+      ],
+    });
+    expect(JSON.stringify(passiveDeathWishSafety)).not.toContain('clinicalTagPresent');
+    expect(passiveDeathWishSafetyBalance).toMatchObject({
+      balanceKind: 'information_requirement',
+      component: 'workup',
+      outcomes: {
+        fulfilled: { impactBand: 'major', points: 50 },
+        omitted: { impactBand: 'major', points: -80 },
+      },
+    });
+
+    const allOtherInformationActionIds = [
+      'info.history.allergies-adverse-reactions',
+      'info.history.depressive-symptoms',
+      'info.history.mania',
+      'info.history.medication-reconciliation',
+      'info.history.presenting-problem',
+      'info.history.substance-use',
+    ];
+    const databasePlanDecision = decisionSelecting(treatmentStarting(['medication.sertraline']), [
+      ...allOtherInformationActionIds,
+      'info.history.suicide-safety',
+    ]);
+    for (const scenario of [
+      {
+        name: 'detailed assessment obtained',
+        informationActionIds: [...allOtherInformationActionIds, 'info.history.suicide-safety'],
+        expectedPoints: 465,
+        expectedSafetyPoints: 50,
+      },
+      {
+        name: 'detailed assessment omitted',
+        informationActionIds: allOtherInformationActionIds,
+        expectedPoints: 335,
+        expectedSafetyPoints: -80,
+      },
+    ] as const) {
+      const request = {
+        compiledRubric: rubric,
+        currentRegimen: [],
+        playerDecision: decisionSelecting(treatmentStarting(['medication.sertraline']), [
+          ...scenario.informationActionIds,
+        ]),
+        databasePlanDecision,
+        balanceCatalog,
+        medicationRegimenKnowledgeCatalog: regimenCatalog,
+      };
+      const result = compileNativeDecisionPointReport(request);
+      expect(compileNativeDecisionPointReport(request), `${scenario.name}: replay`).toEqual(result);
+      expect(result.ok, scenario.name).toBe(true);
+      if (!result.ok) continue;
+      expect(result.value.report.databasePlanPoints).toBe(465);
+      expect(
+        result.value.playerRuleMatches.reduce(
+          (total, evaluation) => total + evaluation.appliedPoints,
+          0,
+        ),
+      ).toBe(scenario.expectedPoints);
+      expect(
+        result.value.report.ruleTrace.find(
+          (row) =>
+            row.source.kind === 'compiled_decision_rule' &&
+            row.source.ruleRef.id === 'rule.diagnosis-mdd.passive-death-wish-safety-assessment',
+        ),
+      ).toMatchObject({
+        balanceRef: {
+          id: 'balance.mdd-passive-death-wish-safety-assessment',
+          contentVersion: '1.0.0',
+        },
+        component: 'workup',
+        matched: true,
+        status: 'applied',
+        pointsBeforeCombination: scenario.expectedSafetyPoints,
+        appliedPoints: scenario.expectedSafetyPoints,
+        triggeredInformationPrerequisiteEvaluation: null,
+        relatedSelectedActionTargets:
+          scenario.expectedSafetyPoints > 0
+            ? [
+                {
+                  kind: 'information_action',
+                  informationActionId: 'info.history.suicide-safety',
+                },
+              ]
+            : [],
+      });
+    }
   });
 
   it('scores obtained and omitted direct histories without a treatment trigger', () => {
@@ -770,6 +1099,7 @@ describe('native decision balance', () => {
     const allInformationActionIds = [
       'info.history.allergies-adverse-reactions',
       'info.history.depressive-symptoms',
+      'info.history.mania',
       'info.history.medication-reconciliation',
       'info.history.presenting-problem',
       'info.history.substance-use',
@@ -783,7 +1113,7 @@ describe('native decision balance', () => {
         name: 'all histories and one reviewed medication',
         starts: ['medication.sertraline'],
         informationActionIds: allInformationActionIds,
-        expectedPoints: 380,
+        expectedPoints: 415,
         episodePoints: 35,
         syndromePoints: 50,
       },
@@ -813,7 +1143,7 @@ describe('native decision balance', () => {
           'info.history.allergies-adverse-reactions',
           'info.history.medication-reconciliation',
         ],
-        expectedPoints: 180,
+        expectedPoints: 130,
         episodePoints: -35,
         syndromePoints: -50,
       },
@@ -821,7 +1151,7 @@ describe('native decision balance', () => {
         name: 'medication without any history',
         starts: ['medication.sertraline'],
         informationActionIds: [] as string[],
-        expectedPoints: 50,
+        expectedPoints: 0,
         episodePoints: -35,
         syndromePoints: -50,
       },
@@ -840,7 +1170,7 @@ describe('native decision balance', () => {
       });
       expect(result.ok, scenario.name).toBe(true);
       if (!result.ok) continue;
-      expect(result.value.report.databasePlanPoints).toBe(380);
+      expect(result.value.report.databasePlanPoints).toBe(415);
       expect(
         result.value.playerRuleMatches.reduce(
           (total, evaluation) => total + evaluation.appliedPoints,
@@ -871,7 +1201,7 @@ describe('native decision balance', () => {
           (selectedInformationActionId) => selectedInformationActionId === informationActionId,
         );
         expect(row, `${scenario.name}: ${ruleId}`).toMatchObject({
-          balanceRef: { id: balanceId, contentVersion: '1.1.0' },
+          balanceRef: { id: balanceId, contentVersion: '1.3.0' },
           component: 'workup',
           matched: true,
           status: 'applied',
@@ -895,7 +1225,7 @@ describe('native decision balance', () => {
       expect(substanceHistoryRow, `${scenario.name}: substance history`).toMatchObject({
         balanceRef: {
           id: 'balance.mdd-substance-history',
-          contentVersion: '1.1.0',
+          contentVersion: '1.3.0',
         },
         component: 'workup',
         matched: substanceHistorySelected,
@@ -1222,7 +1552,7 @@ describe('native decision balance', () => {
             candidate.source.ruleRef.id === ruleId,
         );
         expect(row, `${scenario.name}: ${ruleId}`).toMatchObject({
-          balanceRef: { id: balanceId, contentVersion: '1.1.0' },
+          balanceRef: { id: balanceId, contentVersion: '1.3.0' },
           component: 'workup',
           matched: expected.triggerSelected,
           status: expected.triggerSelected ? 'applied' : 'not_triggered',

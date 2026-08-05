@@ -104,6 +104,9 @@ const makePatientState = (): ResolvedPatientState => ({
     priorLevelsOfCare: [],
   },
   medicationTolerabilityFindings: [],
+  currentMedicationReportedBenefits: [],
+  currentMedicationDosePositions: [],
+  medicationChangeTemporalRelationships: [],
   reactionHistory: {
     status: 'entries_present',
     medicationAssessmentStatus: 'entries_present',
@@ -152,6 +155,7 @@ const makePatientState = (): ResolvedPatientState => ({
   structuredTestResults: [],
   clinicalContexts: [],
   clinicalDurations: [],
+  functionalImpairments: [],
   subjectiveBurdenRecords: [],
   propositionState: {
     schemaVersion: 1,
@@ -976,6 +980,204 @@ describe('point-free decision-policy compiler', () => {
     ).toBe(true);
   });
 
+  it('projects patient-reported current benefit with an exact regimen-entry subject', () => {
+    const regimenEntry = {
+      recordVersion: 2 as const,
+      id: 'regimen-entry.test.sertraline',
+      medicationIdentityId: 'medication.sertraline',
+      clinicalRole: 'psychiatric' as const,
+      status: 'active' as const,
+      adherence: 'consistent' as const,
+      prescribedForDiagnosisId: 'diagnosis.major-depressive-disorder',
+      source: 'prescriber_record' as const,
+      knownAtOpening: true,
+      impactClassification: 'fit_relevant' as const,
+    };
+    const patientState: ResolvedPatientState = {
+      ...makePatientState(),
+      medicationRegimenEntries: [regimenEntry],
+      currentMedicationReportedBenefits: [
+        {
+          recordVersion: 1,
+          id: 'current-medication-benefit.test.sertraline',
+          subject: {
+            modelVersion: 'finding-record-subject.v1',
+            kind: 'current_regimen_entry',
+            regimenEntryId: regimenEntry.id,
+          },
+          reportedBenefit: 'partial',
+          source: {
+            kind: 'patient_report',
+            sourceInstanceId: 'source-instance.test.patient',
+          },
+          timeScopeId: 'time-scope.current',
+        },
+      ],
+    };
+    const responseFacts = collectDecisionPatientFacts(patientState).filter(
+      ({ key }) => key.recordKind === 'current_medication_response',
+    );
+    expect(
+      Object.fromEntries(responseFacts.map(({ key }) => [key.attributeId, key.valueId])),
+    ).toEqual({
+      'current-medication-response.presence': 'state.present',
+      'current-medication-response.reported-benefit': 'reported-benefit.partial',
+      'current-medication-response.subject-regimen-entry': regimenEntry.id,
+      'current-medication-response.source-kind': 'evidence-source-kind.patient_report',
+      'current-medication-response.source-instance': 'source-instance.test.patient',
+      'current-medication-response.time-scope': 'time-scope.current',
+    });
+    expect(
+      responseFacts.every(({ recordIds }) =>
+        recordIds.includes('current-medication-benefit.test.sertraline'),
+      ),
+    ).toBe(true);
+
+    const benefitFact: DecisionPatientFactKey = {
+      recordKind: 'current_medication_response',
+      identityId: 'medication.sertraline',
+      identityContentVersion: null,
+      attributeId: 'current-medication-response.reported-benefit',
+      valueId: 'reported-benefit.partial',
+    };
+    const subjectFact: DecisionPatientFactKey = {
+      ...benefitFact,
+      attributeId: 'current-medication-response.subject-regimen-entry',
+      valueId: regimenEntry.id,
+    };
+    const exactRule = makeCandidate('rule.test.exact-response-subject', {
+      patientWhen: {
+        type: 'same_record_all',
+        facts: [benefitFact, subjectFact],
+      },
+      actionWhen: {
+        match: 'any',
+        targets: [
+          {
+            kind: 'regimen_entry_operation',
+            regimenEntryId: regimenEntry.id,
+            operation: 'continue',
+          },
+        ],
+      },
+    });
+    expect(DecisionRuleCandidateDefinitionSchema.safeParse(exactRule).success).toBe(true);
+    expect(
+      DecisionRuleCandidateDefinitionSchema.safeParse({
+        ...exactRule,
+        actionWhen: {
+          match: 'any',
+          targets: [
+            {
+              kind: 'regimen_entry_operation',
+              regimenEntryId: 'regimen-entry.test.other',
+              operation: 'continue',
+            },
+          ],
+        },
+      }).success,
+    ).toBe(false);
+  });
+
+  it('projects current dose position and requires the exact regimen subject for an operation', () => {
+    const regimenEntry = {
+      recordVersion: 2 as const,
+      id: 'regimen-entry.test.venlafaxine',
+      medicationIdentityId: 'medication.venlafaxine',
+      clinicalRole: 'psychiatric' as const,
+      status: 'active' as const,
+      adherence: 'consistent' as const,
+      prescribedForDiagnosisId: 'diagnosis.major-depressive-disorder',
+      source: 'prescriber_record' as const,
+      knownAtOpening: true,
+      impactClassification: 'fit_relevant' as const,
+    };
+    const patientState: ResolvedPatientState = {
+      ...makePatientState(),
+      medicationRegimenEntries: [regimenEntry],
+      currentMedicationDosePositions: [
+        {
+          recordVersion: 1,
+          id: 'current-medication-dose-position.test.venlafaxine',
+          subject: {
+            modelVersion: 'finding-record-subject.v1',
+            kind: 'current_regimen_entry',
+            regimenEntryId: regimenEntry.id,
+          },
+          position: 'below_maximum',
+          source: {
+            kind: 'record_review',
+            sourceInstanceId: 'source-instance.test.prescriber-record',
+          },
+          timeScopeId: 'time-scope.current',
+        },
+      ],
+    };
+    const positionFacts = collectDecisionPatientFacts(patientState).filter(
+      ({ key }) => key.recordKind === 'current_medication_dose_position',
+    );
+    expect(
+      Object.fromEntries(positionFacts.map(({ key }) => [key.attributeId, key.valueId])),
+    ).toEqual({
+      'current-medication-dose-position.presence': 'state.present',
+      'current-medication-dose-position.position': 'dose-position.below_maximum',
+      'current-medication-dose-position.subject-regimen-entry': regimenEntry.id,
+      'current-medication-dose-position.source-kind': 'evidence-source-kind.record_review',
+      'current-medication-dose-position.source-instance': 'source-instance.test.prescriber-record',
+      'current-medication-dose-position.time-scope': 'time-scope.current',
+    });
+    expect(
+      positionFacts.every(({ recordIds }) =>
+        recordIds.includes('current-medication-dose-position.test.venlafaxine'),
+      ),
+    ).toBe(true);
+
+    const positionFact: DecisionPatientFactKey = {
+      recordKind: 'current_medication_dose_position',
+      identityId: 'medication.venlafaxine',
+      identityContentVersion: null,
+      attributeId: 'current-medication-dose-position.position',
+      valueId: 'dose-position.below_maximum',
+    };
+    const subjectFact: DecisionPatientFactKey = {
+      ...positionFact,
+      attributeId: 'current-medication-dose-position.subject-regimen-entry',
+      valueId: regimenEntry.id,
+    };
+    const exactRule = makeCandidate('rule.test.exact-dose-position-subject', {
+      patientWhen: {
+        type: 'same_record_all',
+        facts: [positionFact, subjectFact],
+      },
+      actionWhen: {
+        match: 'any',
+        targets: [
+          {
+            kind: 'regimen_entry_operation',
+            regimenEntryId: regimenEntry.id,
+            operation: 'increase',
+          },
+        ],
+      },
+    });
+    expect(DecisionRuleCandidateDefinitionSchema.safeParse(exactRule).success).toBe(true);
+    expect(
+      DecisionRuleCandidateDefinitionSchema.safeParse({
+        ...exactRule,
+        actionWhen: {
+          match: 'any',
+          targets: [
+            {
+              kind: 'regimen_entry_operation',
+              regimenEntryId: 'regimen-entry.test.other',
+              operation: 'increase',
+            },
+          ],
+        },
+      }).success,
+    ).toBe(false);
+  });
+
   it('rejects multiple active versions of one logical rule independent of input order', () => {
     const original = makeCandidate('rule.test.ambiguous-version');
     const newer = {
@@ -1148,6 +1350,61 @@ describe('point-free decision-policy compiler', () => {
     ]);
     expect(compiled.value.coverageDiagnostics[0]).not.toHaveProperty('points');
     expect(compiled.value.coverageDiagnostics[0]).not.toHaveProperty('score');
+  });
+
+  it('diagnoses a missing information action only when its patient scope and treatment trigger apply', () => {
+    const prerequisite = triggeredInformationPrerequisite();
+    const missingInformation = compileDecisionPolicy({
+      policy: makePolicy(),
+      patientState: makePatientState(),
+      actionHorizon: makeHorizon({ informationActionIds: [] }),
+      rules: [...makeRules(), prerequisite],
+    });
+    expect(missingInformation.ok).toBe(true);
+    if (!missingInformation.ok) return;
+    expect(
+      missingInformation.value.includedRules.some(
+        (rule) => rule.ruleRef.id === prerequisite.ruleRef.id,
+      ),
+    ).toBe(false);
+    expect(missingInformation.value.coverageDiagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'uncovered_action',
+        impact: 'nonblocking',
+        affectedContentIds: expect.arrayContaining([
+          makePolicy().id,
+          prerequisite.ruleRef.id,
+          makeHorizon().id,
+          'info.history.medication-reconciliation',
+        ]),
+      }),
+    );
+    const diagnostic = missingInformation.value.coverageDiagnostics.find(
+      (entry) =>
+        entry.code === 'uncovered_action' &&
+        entry.affectedContentIds.includes(prerequisite.ruleRef.id),
+    );
+    expect(diagnostic).not.toHaveProperty('points');
+    expect(diagnostic).not.toHaveProperty('score');
+
+    const triggerUnavailable = compileDecisionPolicy({
+      policy: makePolicy(),
+      patientState: makePatientState(),
+      actionHorizon: makeHorizon({
+        informationActionIds: [],
+        startMedicationIds: [],
+      }),
+      rules: [...makeRules(), prerequisite],
+    });
+    expect(triggerUnavailable.ok).toBe(true);
+    if (!triggerUnavailable.ok) return;
+    expect(
+      triggerUnavailable.value.coverageDiagnostics.some(
+        (entry) =>
+          entry.code === 'uncovered_action' &&
+          entry.affectedContentIds.includes(prerequisite.ruleRef.id),
+      ),
+    ).toBe(false);
   });
 
   it('diagnoses a matching unreviewed discovered rule without compiling it', () => {

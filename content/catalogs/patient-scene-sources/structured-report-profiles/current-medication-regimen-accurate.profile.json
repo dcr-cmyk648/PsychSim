@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "source-report-profile.patient.current-medication-regimen.accurate",
+  "modelVersion": "structured-source-report-profile.v1",
+  "label": "Accurate current patient medication-regimen report",
+  "definitionRef": {
+    "id": "structured-reveal-definition.history.medication-reconciliation",
+    "contentVersion": "1.0.0"
+  },
+  "definitionFingerprint": "fingerprint.structured-source-report.definition.fnv1a64.e39a309d98534f96",
+  "source": {
+    "kind": "patient_report",
+    "sourceInstanceId": "patient-scene-source-instance.05c96264728a9ced"
+  },
+  "timeScopeId": "time-scope.current",
+  "claimOriginId": "claim-origin.patient.current-medication-regimen-report",
+  "dependencyGroupIds": [],
+  "laneBehaviors": [
+    {
+      "lane": "medication_regimen_entries",
+      "behavior": "report_all"
+    }
+  ],
+  "singletonBehaviors": [],
+  "developerOpinionIds": ["developer-opinion.accurate-patient-structured-history-base.2026-08-03"],
+  "lifecycle": "approved",
+  "review": {
+    "status": "approved",
+    "reviewerId": "reviewer.dustin-rowland",
+    "reviewedAt": "2026-08-03T18:10:21.000Z",
+    "sourceUseNoteIds": []
+  }
+}

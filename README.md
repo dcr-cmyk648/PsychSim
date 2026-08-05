@@ -20,10 +20,11 @@ is required to play.
 
 The clinic hub also has a **Database** button on desktop and mobile. It opens a searchable
 public-safe catalog compiled into that exact build: currently 9 modeled condition definitions,
-53 normalized medication identities, 6 supplement identities, 13 therapies/interventions, 3
-dispositions, 40 shared investigations, 14 test definitions, and 26 formal bibliography records.
-Each entry opens in a dedicated full reader with its complete review-safe structured record. Forty medication
-records are identity-only authoring entries and are not selectable in gameplay; the other thirteen retain
+125 normalized medication identities, 6 supplement identities, 13 therapies/interventions, 3
+dispositions, 40 shared investigations, 14 test definitions, and 27 formal bibliography records.
+Each entry opens in a dedicated full reader with its complete review-safe structured record. One
+hundred twelve medication records are identity-only authoring entries and are not selectable in
+gameplay; the other thirteen retain
 the existing runtime compatibility definitions. Developer and portable Reviewer builds can save a
 free-text comment with an immutable entry snapshot and export it to Codex. This is intentionally
 not direct filesystem access or a comprehensive diagnostic manual. Patient answer keys, points,
@@ -65,6 +66,9 @@ pnpm test:handoff
 pnpm test:e2e
 pnpm test:e2e:reviewer
 pnpm content:validate
+pnpm content:adjunct:status
+pnpm content:medications:intake
+pnpm content:medications:index
 pnpm content:sources:validate
 pnpm content:drive:status
 pnpm content:drive:sync
@@ -299,13 +303,36 @@ permission or prohibit AI ingestion. Eight new Developer tickets own those acces
 scope decisions; no recommendation or point rule was activated. See the
 [recommended-guideline intake map](docs/RECOMMENDED_GUIDELINE_SOURCE_MAP.md).
 
-The beta catalog records 53 curated psychiatry-first ingredient identities verified against the
-July 6, 2026 NLM RxNorm Current Prescribable Content release. The Database reader shows the
-dated-snapshot/currentness warning and required NLM attribution. RxNorm supports identity
-normalization only: it does not supply indications, comparative efficacy, contraindications,
-interactions, monitoring, or medical approval. The 40 identity-only records do not expand the
-formulary, patient treatments, scoring, or medication point rules. Developer tickets still own
-therapy identity/fidelity normalization and broader outpatient diagnosis coverage.
+The beta catalog records 125 curated psychiatry-first ingredient identities verified against dated
+NLM RxNorm snapshots, including the August 3, 2026 RxNorm API data release. The Database reader
+shows the dated-snapshot/currentness warning and
+required NLM attribution. RxNorm supports identity normalization only: it does not supply
+indications, comparative efficacy, contraindications, interactions, monitoring, formulary
+placement, or medical approval. The 112 identity-only records do not expand the formulary, patient
+treatments, scoring, or medication point rules. Developer tickets still own therapy
+identity/fidelity normalization and broader outpatient diagnosis coverage.
+
+The identity catalog is maintained without runtime filesystem discovery:
+
+```sh
+pnpm content:medications:intake
+pnpm content:medications:index
+```
+
+Offline mode verifies the pinned manifest, one-file-per-ingredient records, generated static import
+index, and registry. A deliberate refresh uses
+`pnpm content:medications:intake -- --refresh --write` to verify current official NLM RxNorm
+metadata before creating missing identity-only files. Fixed multi-ingredient products remain a
+separate unresolved modeling boundary rather than being mislabeled as ingredients.
+
+The sibling evidence workspace can be observed without becoming a build dependency:
+
+```sh
+pnpm content:adjunct:status
+```
+
+That command produces a read-only, fingerprinted packet inventory and medication-gap queue.
+Preliminary or Developer-reviewed adjunct packets are still not clinical imports.
 
 Local source preparation now has a strict review-packet bridge:
 

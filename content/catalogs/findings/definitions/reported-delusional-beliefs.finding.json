@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "finding.history.reported-delusional-beliefs",
-  "label": "Reported delusional beliefs",
+  "label": "Current self-reported delusional beliefs",
   "aliases": [],
   "semanticKind": "history",
   "valueSpecification": {

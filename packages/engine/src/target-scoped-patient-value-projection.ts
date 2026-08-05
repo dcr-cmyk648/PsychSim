@@ -19,7 +19,7 @@ import {
 import { normalizeResolvedPatientState } from './resolved-patient-state-normalizer';
 import { fingerprintInformationActionPayload } from './information-action-fingerprint';
 
-export const TARGET_SCOPED_PATIENT_VALUE_PROJECTION_COMPILER_VERSION = '1.0.0';
+export const TARGET_SCOPED_PATIENT_VALUE_PROJECTION_COMPILER_VERSION = '2.0.0';
 
 export type TargetScopedPatientValueProjectionCompileResult =
   | { readonly ok: true; readonly value: TargetScopedPatientValueProjectionArtifact }
@@ -202,28 +202,51 @@ const resolveTargetSelector = (
 
 type SourceRecord =
   | ResolvedPatientState['clinicalDurations'][number]
-  | ResolvedPatientState['subjectiveBurdenRecords'][number];
+  | ResolvedPatientState['subjectiveBurdenRecords'][number]
+  | ResolvedPatientState['functionalImpairments'][number];
 
-const recordKind = (record: SourceRecord): TargetScopedPatientValue['kind'] =>
-  'value' in record ? 'clinical_duration' : 'subjective_burden';
+const recordKind = (record: SourceRecord): TargetScopedPatientValue['kind'] => {
+  if ('durationProfileId' in record) return 'clinical_duration';
+  if ('ordinalScaleId' in record) return 'subjective_burden';
+  return 'condition_functional_impairment';
+};
 
 const recordMatchesDefinition = (
   patientState: ResolvedPatientState,
   record: SourceRecord,
   definition: TargetScopedPatientValueProjectionDefinition,
-): boolean =>
-  definition.valueKind === recordKind(record) &&
-  definition.sourceKind === record.source.kind &&
-  definition.timeScopeId === record.timeScopeId &&
-  targetSelectorKey(definition.targetSelector) ===
-    targetSelectorKey(resolveTargetSelector(patientState, record.target)) &&
-  (definition.valueKind === 'clinical_duration'
-    ? 'durationProfileId' in record &&
-      record.durationProfileId === definition.durationProfileId &&
-      record.durationProfileContentVersion === definition.durationProfileContentVersion
-    : !('durationProfileId' in record) &&
-      record.ordinalScaleId === definition.ordinalScaleId &&
-      record.ordinalScaleContentVersion === definition.ordinalScaleContentVersion);
+): boolean => {
+  if (
+    definition.valueKind !== recordKind(record) ||
+    definition.sourceKind !== record.source.kind ||
+    definition.timeScopeId !== record.timeScopeId ||
+    targetSelectorKey(definition.targetSelector) !==
+      targetSelectorKey(resolveTargetSelector(patientState, record.target))
+  ) {
+    return false;
+  }
+  switch (definition.valueKind) {
+    case 'clinical_duration':
+      return (
+        'durationProfileId' in record &&
+        record.durationProfileId === definition.durationProfileId &&
+        record.durationProfileContentVersion === definition.durationProfileContentVersion
+      );
+    case 'subjective_burden':
+      return (
+        'ordinalScaleId' in record &&
+        record.ordinalScaleId === definition.ordinalScaleId &&
+        record.ordinalScaleContentVersion === definition.ordinalScaleContentVersion
+      );
+    case 'condition_functional_impairment':
+      return (
+        'functionalImpairmentProfileId' in record &&
+        record.functionalImpairmentProfileId === definition.functionalImpairmentProfileId &&
+        record.functionalImpairmentProfileContentVersion ===
+          definition.functionalImpairmentProfileContentVersion
+      );
+  }
+};
 
 const targetInstanceIds = (
   patientState: ResolvedPatientState,
@@ -261,9 +284,13 @@ const targetInstanceIds = (
   }
 };
 
-const authoringValue = (record: SourceRecord): TargetScopedPatientValue =>
-  'value' in record
-    ? {
+const authoringValue = (record: SourceRecord): TargetScopedPatientValue => {
+  switch (recordKind(record)) {
+    case 'clinical_duration': {
+      if (!('durationProfileId' in record)) {
+        throw new Error(`Expected ${record.id} to be a clinical-duration record.`);
+      }
+      return {
         kind: 'clinical_duration',
         recordId: record.id,
         target: record.target,
@@ -274,8 +301,13 @@ const authoringValue = (record: SourceRecord): TargetScopedPatientValue =>
         durationProfileId: record.durationProfileId,
         durationProfileContentVersion: record.durationProfileContentVersion,
         durationOptionId: record.durationOptionId,
+      };
+    }
+    case 'subjective_burden': {
+      if (!('ordinalScaleId' in record)) {
+        throw new Error(`Expected ${record.id} to be a subjective-burden record.`);
       }
-    : {
+      return {
         kind: 'subjective_burden',
         recordId: record.id,
         target: record.target,
@@ -285,6 +317,25 @@ const authoringValue = (record: SourceRecord): TargetScopedPatientValue =>
         ordinalScaleContentVersion: record.ordinalScaleContentVersion,
         ordinalValueId: record.ordinalValueId,
       };
+    }
+    case 'condition_functional_impairment': {
+      if (!('functionalImpairmentProfileId' in record)) {
+        throw new Error(`Expected ${record.id} to be a functional-impairment record.`);
+      }
+      return {
+        kind: 'condition_functional_impairment',
+        recordId: record.id,
+        target: record.target,
+        source: record.source,
+        timeScopeId: record.timeScopeId,
+        level: record.level,
+        functionalImpairmentProfileId: record.functionalImpairmentProfileId,
+        functionalImpairmentProfileContentVersion: record.functionalImpairmentProfileContentVersion,
+        functionalImpairmentOptionId: record.functionalImpairmentOptionId,
+      };
+    }
+  }
+};
 
 const frozenValue = (
   definition: TargetScopedPatientValueProjectionDefinition,
@@ -295,8 +346,12 @@ const frozenValue = (
     definitionContentVersion: definition.contentVersion,
     recordId: record.id,
   });
-  return 'value' in record
-    ? {
+  switch (recordKind(record)) {
+    case 'clinical_duration': {
+      if (!('durationProfileId' in record)) {
+        throw new Error(`Expected ${record.id} to be a clinical-duration record.`);
+      }
+      return {
         id,
         kind: 'clinical_duration',
         sourceKind: record.source.kind,
@@ -304,8 +359,13 @@ const frozenValue = (
         timeScopeId: record.timeScopeId,
         value: record.value,
         unit: record.unit,
+      };
+    }
+    case 'subjective_burden': {
+      if (!('ordinalScaleId' in record)) {
+        throw new Error(`Expected ${record.id} to be a subjective-burden record.`);
       }
-    : {
+      return {
         id,
         kind: 'subjective_burden',
         sourceKind: record.source.kind,
@@ -315,6 +375,20 @@ const frozenValue = (
         ordinalScaleContentVersion: record.ordinalScaleContentVersion,
         ordinalValueId: record.ordinalValueId,
       };
+    }
+    case 'condition_functional_impairment': {
+      if (!('functionalImpairmentProfileId' in record)) {
+        throw new Error(`Expected ${record.id} to be a functional-impairment record.`);
+      }
+      return {
+        id,
+        kind: 'condition_functional_impairment',
+        sourceKind: record.source.kind,
+        timeScopeId: record.timeScopeId,
+        level: record.level,
+      };
+    }
+  }
 };
 
 const projectionPayload = (
@@ -330,8 +404,9 @@ const artifactPayload = (
 ): unknown => artifact;
 
 /**
- * Projects already-frozen duration and subjective-burden records through
- * exact action, target-definition, source-kind, and time-scope horizons.
+ * Projects already-frozen duration, subjective-burden, and condition-
+ * attributed functional-impairment records through exact action,
+ * target-definition, source-kind, and time-scope horizons.
  * It does not create truth, wording, clinical interpretation, points,
  * probability, or optional-feature complexity.
  */
@@ -347,6 +422,7 @@ export const compileTargetScopedPatientValueProjections = (
   const allRecords: SourceRecord[] = [
     ...request.patientState.clinicalDurations,
     ...request.patientState.subjectiveBurdenRecords,
+    ...request.patientState.functionalImpairments,
   ];
   const definitionReferences: TargetScopedPatientValueProjectionArtifact['definitionReferences'] =
     [];

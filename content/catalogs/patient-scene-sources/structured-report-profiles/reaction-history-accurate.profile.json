@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "source-report-profile.patient.reaction-history.accurate",
+  "modelVersion": "structured-source-report-profile.v1",
+  "label": "Accurate current patient reaction-history report",
+  "definitionRef": {
+    "id": "structured-reveal-definition.history.allergies-adverse-reactions",
+    "contentVersion": "1.0.0"
+  },
+  "definitionFingerprint": "fingerprint.structured-source-report.definition.fnv1a64.b8aef99ab659db70",
+  "source": {
+    "kind": "patient_report",
+    "sourceInstanceId": "patient-scene-source-instance.05c96264728a9ced"
+  },
+  "timeScopeId": "time-scope.longitudinal",
+  "claimOriginId": "claim-origin.patient.reaction-history-report",
+  "dependencyGroupIds": [],
+  "laneBehaviors": [
+    {
+      "lane": "reaction_records",
+      "behavior": "report_all"
+    }
+  ],
+  "singletonBehaviors": [
+    {
+      "field": "reaction_history_status",
+      "presentation": {
+        "kind": "mirror_truth"
+      }
+    },
+    {
+      "field": "medication_reaction_assessment_status",
+      "presentation": {
+        "kind": "mirror_truth"
+      }
+    }
+  ],
+  "developerOpinionIds": ["developer-opinion.accurate-patient-structured-history-base.2026-08-03"],
+  "lifecycle": "approved",
+  "review": {
+    "status": "approved",
+    "reviewerId": "reviewer.dustin-rowland",
+    "reviewedAt": "2026-08-03T18:10:21.000Z",
+    "sourceUseNoteIds": []
+  }
+}

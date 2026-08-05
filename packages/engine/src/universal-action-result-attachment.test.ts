@@ -11,6 +11,7 @@ import {
   type SharedFindingCompileRequest,
   type StructuredPatientStateRevealProjectionEnvelope,
   type TargetScopedPatientValueProjectionArtifact,
+  type TargetScopedPatientValueProjectionDefinition,
   type TestDefinition,
   type UniversalActionResultCompileRequest,
   type UniversalActionResultRecipe,
@@ -308,6 +309,9 @@ const makeBasePatientState = (): ResolvedPatientState => ({
     priorLevelsOfCare: [],
   },
   medicationTolerabilityFindings: [],
+  currentMedicationReportedBenefits: [],
+  currentMedicationDosePositions: [],
+  medicationChangeTemporalRelationships: [],
   reactionHistory: {
     status: 'documented_none',
     medicationAssessmentStatus: 'documented_none',
@@ -325,7 +329,10 @@ const makeBasePatientState = (): ResolvedPatientState => ({
       unit: { display: 'kg', ucumCode: 'kg' },
       contextValues: [],
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.attachment-scale',
+      source: {
+        kind: 'measurement',
+        sourceInstanceId: 'source-instance.test.attachment-scale',
+      },
       interpretation: { kind: 'not_interpreted' },
       resolution: authoredResolution,
     },
@@ -339,7 +346,10 @@ const makeBasePatientState = (): ResolvedPatientState => ({
       valueId: 'observation-value.test.attachment-unremarkable',
       displayValue: 'Unremarkable',
       timeScopeId: 'time-scope.current',
-      sourceInstanceId: 'source-instance.test.attachment-examiner',
+      source: {
+        kind: 'clinician_observation',
+        sourceInstanceId: 'source-instance.test.attachment-examiner',
+      },
       interpretationIds: [],
       resolution: authoredResolution,
     },
@@ -350,7 +360,10 @@ const makeBasePatientState = (): ResolvedPatientState => ({
       id: 'structured-test-result.test.attachment-tsh',
       testDefinitionId: testDefinition.id,
       testDefinitionContentVersion: testDefinition.contentVersion,
-      sourceInstanceId: 'source-instance.test.attachment-laboratory',
+      source: {
+        kind: 'laboratory_result',
+        sourceInstanceId: 'source-instance.test.attachment-laboratory',
+      },
       timeScopeId: 'time-scope.current',
       resolution: authoredResolution,
       kind: 'binary',
@@ -361,6 +374,7 @@ const makeBasePatientState = (): ResolvedPatientState => ({
   ],
   clinicalContexts: [],
   clinicalDurations: [],
+  functionalImpairments: [],
   subjectiveBurdenRecords: [],
   propositionState: {
     schemaVersion: 1,
@@ -509,6 +523,7 @@ const makeArtifact = (
     duplicateMeasurementUse?: boolean;
     includeInstrument?: boolean;
     includeTargetScoped?: boolean;
+    includeTargetScopedImpairment?: boolean;
   } = {},
 ) => {
   const actions = makeActions();
@@ -533,6 +548,41 @@ const makeArtifact = (
       relatedDiagnosisId: 'diagnosis.test.attachment-mdd',
       interpretation: 'supports_authored_state',
       criterionId: null,
+      source: {
+        kind: 'patient_report',
+        sourceInstanceId: 'source-instance.test.attachment-patient',
+      },
+      timeScopeId: 'time-scope.current',
+      resolution: authoredResolution,
+    });
+  }
+  if (options.includeTargetScopedImpairment) {
+    state.conditionStates.push({
+      schemaVersion: 1,
+      id: 'condition-state.test.attachment-mdd',
+      diagnosisDefinitionId: 'diagnosis.test.attachment-mdd',
+      diagnosisDefinitionContentVersion: '1.0.0',
+      clinicalStateId: 'clinical-state.current',
+      timeScopeId: 'time-scope.current',
+      encounterRelevance: 'focus',
+      severityId: null,
+      specifierIds: [],
+      origin: 'authored',
+      resolution: authoredResolution,
+    });
+    state.functionalImpairments.push({
+      schemaVersion: 1,
+      id: 'condition-functional-impairment.test.attachment-mdd',
+      target: {
+        kind: 'condition_state',
+        conditionStateId: 'condition-state.test.attachment-mdd',
+      },
+      attribution: 'condition_attributed',
+      level: 'moderate',
+      functionalImpairmentProfileId: 'functional-impairment-profile.test.attachment-mdd',
+      functionalImpairmentProfileContentVersion: '1.0.0',
+      functionalImpairmentOptionId: 'functional-impairment-option.test.attachment-mdd.moderate',
+      relatedDiagnosisId: 'diagnosis.test.attachment-mdd',
       source: {
         kind: 'patient_report',
         sourceInstanceId: 'source-instance.test.attachment-patient',
@@ -590,36 +640,64 @@ const makeArtifact = (
   }
   let targetScopedPatientValueProjectionArtifact: TargetScopedPatientValueProjectionArtifact | null =
     null;
-  if (options.includeTargetScoped) {
+  if (options.includeTargetScoped || options.includeTargetScopedImpairment) {
     const symptomsAction = actions.find((action) => action.id === actionIds.symptoms)!;
+    const definitions: TargetScopedPatientValueProjectionDefinition[] =
+      options.includeTargetScopedImpairment
+        ? [
+            {
+              schemaVersion: 1,
+              contentVersion: '1.0.0',
+              id: 'target-scoped-definition.test.attachment-mdd-functional-impairment',
+              modelVersion: 'target-scoped-patient-value-projection.v1',
+              label: 'Current condition-attributed functional impairment',
+              informationActionId: symptomsAction.id,
+              informationActionPayloadFingerprint:
+                fingerprintInformationActionPayload(symptomsAction),
+              valueKind: 'condition_functional_impairment',
+              functionalImpairmentProfileId: 'functional-impairment-profile.test.attachment-mdd',
+              functionalImpairmentProfileContentVersion: '1.0.0',
+              targetSelector: {
+                kind: 'condition_definition',
+                diagnosisDefinitionId: 'diagnosis.test.attachment-mdd',
+                diagnosisDefinitionContentVersion: '1.0.0',
+              },
+              sourceKind: 'patient_report',
+              timeScopeId: 'time-scope.current',
+              lifecycle: 'approved',
+              review: approvedReview,
+            },
+          ]
+        : [
+            {
+              schemaVersion: 1,
+              contentVersion: '1.0.0',
+              id: 'target-scoped-definition.test.attachment-low-energy-duration',
+              modelVersion: 'target-scoped-patient-value-projection.v1',
+              label: 'Current low-energy duration',
+              informationActionId: symptomsAction.id,
+              informationActionPayloadFingerprint:
+                fingerprintInformationActionPayload(symptomsAction),
+              valueKind: 'clinical_duration',
+              durationProfileId: 'duration-profile.test.attachment-low-energy',
+              durationProfileContentVersion: '1.0.0',
+              targetSelector: {
+                kind: 'finding_definition',
+                findingDefinitionId: findingDefinition.id,
+                findingDefinitionContentVersion: findingDefinition.contentVersion,
+              },
+              sourceKind: 'patient_report',
+              timeScopeId: 'time-scope.current',
+              lifecycle: 'approved',
+              review: approvedReview,
+            },
+          ];
     const targetScopedCompilation = compileTargetScopedPatientValueProjections({
       schemaVersion: 1,
       id: 'target-scoped-patient-value-request.test.attachment',
       patientState,
       informationActions: [symptomsAction],
-      definitions: [
-        {
-          schemaVersion: 1,
-          contentVersion: '1.0.0',
-          id: 'target-scoped-definition.test.attachment-low-energy-duration',
-          modelVersion: 'target-scoped-patient-value-projection.v1',
-          label: 'Current low-energy duration',
-          informationActionId: symptomsAction.id,
-          informationActionPayloadFingerprint: fingerprintInformationActionPayload(symptomsAction),
-          valueKind: 'clinical_duration',
-          durationProfileId: 'duration-profile.test.attachment-low-energy',
-          durationProfileContentVersion: '1.0.0',
-          targetSelector: {
-            kind: 'finding_definition',
-            findingDefinitionId: findingDefinition.id,
-            findingDefinitionContentVersion: findingDefinition.contentVersion,
-          },
-          sourceKind: 'patient_report',
-          timeScopeId: 'time-scope.current',
-          lifecycle: 'approved',
-          review: approvedReview,
-        },
-      ],
+      definitions,
     });
     if (!targetScopedCompilation.ok) {
       throw new Error(targetScopedCompilation.error.message);
@@ -805,6 +883,25 @@ describe('D-214a universal action-result attachment translator', () => {
       ok: false,
       error: { code: 'INVALID_ARTIFACT' },
     });
+  });
+
+  it('attaches a condition-functional-impairment reveal without exposing its hidden target, profile, or source instance', () => {
+    const artifact = makeArtifact({ includeTargetScopedImpairment: true });
+    const translated = expectSuccess(translateUniversalActionResultArtifact(artifact));
+    const reveal = translated.targetScopedPatientValueReveals[0]!;
+    const value = reveal.values[0]!;
+
+    expect(value).toEqual(
+      expect.objectContaining({
+        kind: 'condition_functional_impairment',
+        level: 'moderate',
+        sourceKind: 'patient_report',
+        timeScopeId: 'time-scope.current',
+      }),
+    );
+    expect(JSON.stringify(translated.targetScopedPatientValueReveals)).not.toMatch(
+      /conditionStateId|diagnosisDefinitionId|functionalImpairmentProfile|functionalImpairmentOption|sourceInstanceId|resolution|compileRequest|projections/,
+    );
   });
 
   it('preserves an explicit none report and sanitizes only referenced D-212 views', () => {

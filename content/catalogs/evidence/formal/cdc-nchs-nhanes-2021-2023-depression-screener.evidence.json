@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "evidence.cdc-nchs.nhanes-2021-2023-depression-screener",
+  "authority": "formal_publication",
+  "sourceType": "structured_database",
+  "title": "National Health and Nutrition Examination Survey, August 2021-August 2023: Demographic Variables and Sample Weights and Mental Health—Depression Screener",
+  "authors": [],
+  "organization": "National Center for Health Statistics",
+  "publicationYear": 2024,
+  "publicationDate": "2024-09",
+  "lastReviewedDate": "2026-08-05",
+  "versionLabel": "August 2021-August 2023 public-use cycle; DEMO_L and DPQ_L",
+  "containerTitle": "National Health and Nutrition Examination Survey",
+  "volume": null,
+  "issue": null,
+  "pages": null,
+  "doi": null,
+  "pmid": null,
+  "url": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DPQ_L.htm",
+  "citation": "National Center for Health Statistics. National Health and Nutrition Examination Survey, August 2021-August 2023: Demographic Variables and Sample Weights (DEMO_L) and Mental Health—Depression Screener (DPQ_L). Public-use data files and documentation. 2024.",
+  "knownContentHashes": [
+    "ca4374a158b493b8b0163e1388da21d57a18d1b9cecff2aa4e2fa2bec494fe23",
+    "25605a02685035fe997477b31a0991cca2776b0f72f24a8e61ac5b018456304b"
+  ],
+  "jurisdictions": ["United States"],
+  "populations": [
+    "United States civilian noninstitutionalized population eligible for the August 2021-August 2023 NHANES examination"
+  ],
+  "settings": [
+    "Population survey with audio computer-assisted self-interview in the NHANES mobile examination center"
+  ],
+  "sourceRelations": [],
+  "accessPolicy": {
+    "fullTextStatus": "public",
+    "reuseStatus": "public_domain",
+    "adaptationStatus": "permitted",
+    "commercialUseStatus": "permitted",
+    "aiUseStatus": "permitted",
+    "localExtractionStatus": "allowed",
+    "licenseLabel": "United States government public-use data",
+    "licenseUrl": "https://www.cdc.gov/other/public-domain.html",
+    "termsUrl": "https://www.cdc.gov/nchs/nhanes/about/participant-confidentiality.html",
+    "note": "PsychSim retains only independently derived aggregate observations, exact public file hashes, and source locators. It stores no participant-level row, reproduces no instrument, and does not imply CDC or NCHS endorsement. Survey findings are descriptive and do not establish a diagnosis, psychiatric-clinic prevalence, treatment rule, or point value."
+  },
+  "metadataReviewedAt": "2026-08-05T21:42:45.000Z",
+  "bibliographicStatus": "verified",
+  "medicalReviewStatus": "unreviewed"
+}

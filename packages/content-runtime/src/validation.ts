@@ -4,6 +4,7 @@ import {
   type CatalogBundle,
   type ClinicState,
   type ContentRegistry,
+  type DiagnosisSelectionPredicate,
   type EvidenceSourceDefinition,
   type MedicationIdentityDefinition,
   type PatientContextPredicate,
@@ -1862,6 +1863,7 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
     }
   }
   const diagnosisById = new Map(catalogs.diagnoses.map((diagnosis) => [diagnosis.id, diagnosis]));
+  const findingById = new Map(catalogs.findings.map((finding) => [finding.id, finding]));
   const medicationIds = new Set(catalogs.medications.map((medication) => medication.id));
   const medicationTagIds = new Set(catalogs.medications.flatMap((medication) => medication.tags));
   const informationActionIds = new Set(catalogs.informationActions.map((action) => action.id));
@@ -2050,6 +2052,31 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
       }
     }
     for (const rule of rules) {
+      if (rule.nativePatientWhen) {
+        const finding = findingById.get(rule.nativePatientWhen.findingDefinitionId);
+        if (!finding) {
+          issues.push({
+            severity: 'error',
+            code: 'INVALID_DIAGNOSIS_RULE_NATIVE_FINDING_REF',
+            message: `${rule.id}: ${rule.nativePatientWhen.findingDefinitionId}`,
+          });
+        } else {
+          if (finding.contentVersion !== rule.nativePatientWhen.findingDefinitionContentVersion) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_NATIVE_FINDING_VERSION',
+              message: `${rule.id}: ${finding.id}@${rule.nativePatientWhen.findingDefinitionContentVersion} (current ${finding.contentVersion})`,
+            });
+          }
+          if (!finding.valueSpecification.allowedValues.includes(rule.nativePatientWhen.outcome)) {
+            issues.push({
+              severity: 'error',
+              code: 'INVALID_DIAGNOSIS_RULE_NATIVE_FINDING_OUTCOME',
+              message: `${rule.id}: ${finding.id} does not allow ${rule.nativePatientWhen.outcome}`,
+            });
+          }
+        }
+      }
       if (rule.patientWhen) {
         const references = extractPatientContextReferences(rule.patientWhen);
         for (const diagnosisId of references.diagnosisIds) {
@@ -2089,24 +2116,57 @@ export const validateCatalogs = (catalogs: CatalogBundle): ContentValidationRepo
         }
       }
       if (rule.selectionWhen) {
-        const validateCountBounds = (predicate: ScorePredicate): void => {
+        const references = {
+          medicationIds: [] as string[],
+          medicationTagIds: [] as string[],
+          interventionIds: [] as string[],
+          dispositionIds: [] as string[],
+        };
+        const validateAndCollectSelectionReferences = (
+          predicate: DiagnosisSelectionPredicate,
+        ): void => {
           if (
-            predicate.type === 'treatmentStartedWithTag' &&
+            (predicate.type === 'treatmentStartedWithTag' ||
+              predicate.type === 'treatmentStartedInClass') &&
             predicate.minimumCount > predicate.maximumCount
           ) {
             issues.push({
               severity: 'error',
-              code: 'INVALID_DIAGNOSIS_RULE_MEDICATION_TAG_COUNT',
-              message: `${rule.id}: ${predicate.medicationTagId}`,
+              code:
+                predicate.type === 'treatmentStartedWithTag'
+                  ? 'INVALID_DIAGNOSIS_RULE_MEDICATION_TAG_COUNT'
+                  : 'INVALID_DIAGNOSIS_RULE_MEDICATION_CLASS_COUNT',
+              message: `${rule.id}: ${
+                predicate.type === 'treatmentStartedWithTag'
+                  ? predicate.medicationTagId
+                  : predicate.medicationClassId
+              }`,
             });
           }
-          if (predicate.type === 'any' || predicate.type === 'all') {
-            predicate.predicates.forEach(validateCountBounds);
+          if (
+            predicate.type === 'treatmentStarted' ||
+            predicate.type === 'treatmentStopped' ||
+            predicate.type === 'treatmentContinued'
+          ) {
+            references.medicationIds.push(predicate.medicationId);
           }
-          if (predicate.type === 'not') validateCountBounds(predicate.predicate);
+          if (predicate.type === 'treatmentStartedWithTag') {
+            references.medicationTagIds.push(predicate.medicationTagId);
+          }
+          if (predicate.type === 'interventionSelected') {
+            references.interventionIds.push(predicate.interventionId);
+          }
+          if (predicate.type === 'dispositionSelected') {
+            references.dispositionIds.push(predicate.dispositionId);
+          }
+          if (predicate.type === 'any' || predicate.type === 'all') {
+            predicate.predicates.forEach(validateAndCollectSelectionReferences);
+          }
+          if (predicate.type === 'not') {
+            validateAndCollectSelectionReferences(predicate.predicate);
+          }
         };
-        validateCountBounds(rule.selectionWhen);
-        const references = extractPredicateReferences(rule.selectionWhen);
+        validateAndCollectSelectionReferences(rule.selectionWhen);
         for (const medicationId of references.medicationIds) {
           if (!medicationIds.has(medicationId)) {
             issues.push({

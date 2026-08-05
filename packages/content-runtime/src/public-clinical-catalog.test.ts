@@ -27,15 +27,15 @@ describe('public clinical catalog projection', () => {
       ),
     ).toEqual({
       conditions: 9,
-      medications: 53,
+      medications: 125,
       supplements: 6,
       interventions: 13,
       dispositions: 3,
       investigations: 40,
       tests: 14,
-      references: 26,
+      references: 27,
     });
-    expect(publicClinicalCatalog.totalEntryCount).toBe(164);
+    expect(publicClinicalCatalog.totalEntryCount).toBe(237);
 
     expect(
       sorted(
@@ -160,7 +160,7 @@ describe('public clinical catalog projection', () => {
     const identityOnlyEntries = publicClinicalCatalog.entries.filter(
       (entry) => entry.kind === 'medication' && entry.authoringStatus === 'identity_only',
     );
-    expect(identityOnlyEntries).toHaveLength(40);
+    expect(identityOnlyEntries).toHaveLength(112);
     expect(identityOnlyEntries.every((entry) => !runtimeMedicationIds.has(entry.id))).toBe(true);
     expect(
       identityOnlyEntries.every(
@@ -172,7 +172,7 @@ describe('public clinical catalog projection', () => {
         .filter((entry) => entry.kind === 'medication')
         .every(
           (entry) =>
-            entry.identityReleaseDate === '2026-07-06' &&
+            ['2026-07-06', '2026-08-03'].includes(entry.identityReleaseDate) &&
             entry.identityAttribution === NLM_RXNORM_PUBLIC_ATTRIBUTION &&
             entry.identityScopeNotice.includes('may not be current'),
         ),

@@ -150,6 +150,9 @@ const resolveFinding = (
       finding.labelVariants[0]!,
     outcome,
     outcomeDisplay: finding.outcomeDisplay,
+    resultSemantics: finding.resultSemantics,
+    subject: finding.subject,
+    medicationChangeTemporalRelationshipId: finding.medicationChangeTemporalRelationshipId,
     valueText:
       durationDisplay && valueTemplate
         ? valueTemplate.replaceAll('{{duration}}', durationDisplay)

@@ -1,6 +1,7 @@
 import {
   OptionalFeatureBudgetSelectionArtifactSchema,
   OptionalFeatureBudgetSelectionRequestSchema,
+  PatientComplexityProfileSchema,
   type ClinicalRuleReview,
   type OptionalFeatureBudgetSelectionRequest,
   type PatientOptionalFeatureModuleDefinition,
@@ -221,6 +222,54 @@ const findSeedForCount = (
   throw new Error(`Could not find a deterministic seed for count ${selectedCount}`);
 };
 
+const makeV2Request = (seed: string): OptionalFeatureBudgetSelectionRequest => {
+  const definitions = Array.from({ length: 24 }, (_, index) =>
+    moduleDefinition(
+      `optional-feature.test.high-complexity.${String(index + 1).padStart(2, '0')}`,
+      'prior_treatment',
+    ),
+  );
+  const template = makeTemplate();
+  template.contentVersion = '2.0.0';
+  template.complexityProfile = {
+    modelVersion: 'baseline-plus-additional-budget.v2',
+    measurementStatus: 'budget_only',
+    baselineComplexityUnits: 1,
+    additionalFeatureBudget: 96,
+    maximumSelectedModules: 24,
+    selectedModules: [],
+    targetEnvelope: null,
+  };
+  return {
+    schemaVersion: 1,
+    id: 'optional-feature-budget-request.test.high-complexity',
+    template,
+    moduleDefinitions: definitions,
+    profile: {
+      schemaVersion: 1,
+      contentVersion: '2.0.0',
+      id: 'optional-feature-profile.test.high-complexity',
+      modelVersion: 'weighted-optional-feature-budget-selection.v2',
+      templateRef: {
+        id: template.id,
+        contentVersion: template.contentVersion,
+      },
+      templateFingerprint: fingerprintTemplateConditionSelectionTemplate(template),
+      countWeights: Array.from({ length: 25 }, (_, selectionCount) => ({
+        schemaVersion: 1 as const,
+        selectionCount,
+        gameSelectionWeight: selectionCount === 24 ? 10_000 : 1,
+      })),
+      candidateBindings: definitions.map((definition, index) =>
+        bindingFor(definition, index, (index % 6) + 1, 1),
+      ),
+      incompatibilities: [],
+      review: approvedReview,
+    },
+    seed,
+  };
+};
+
 describe('optional feature budget selector', () => {
   it('strictly parses, selects deterministically, preserves input, and verifies replay', () => {
     const request = makeRequest();
@@ -228,6 +277,7 @@ describe('optional feature budget selector', () => {
     const before = JSON.stringify(request);
     const artifact = expectSelected(request);
     expect(JSON.stringify(request)).toBe(before);
+    expect(artifact.baselineComplexityUnits).toBeNull();
     expect(OptionalFeatureBudgetSelectionArtifactSchema.parse(artifact)).toEqual(artifact);
     expect(expectSelected(structuredClone(request))).toEqual(artifact);
     expect(verifyOptionalFeatureBudgetSelectionIntegrity(artifact)).toEqual({
@@ -235,6 +285,55 @@ describe('optional feature budget selector', () => {
       value: artifact,
     });
     expect(verifyOptionalFeatureBudgetSelectionContext({ artifact, request })).toEqual({
+      ok: true,
+      value: artifact,
+    });
+  });
+
+  it('preserves the legacy envelope while accepting a traced 24-module v2 patient', () => {
+    const legacyDefinition = defaultDefinitions()[0]!;
+    const legacyBinding = bindingFor(legacyDefinition, 0, 4, 1);
+    const legacyCostFour = {
+      ...makeRequest().template.complexityProfile,
+      selectedModules: [
+        {
+          id: legacyBinding.selectedModuleId,
+          moduleKind: 'allergy_reaction' as const,
+          moduleId: legacyDefinition.id,
+          cost: legacyBinding.cost,
+          impact: legacyBinding.impact,
+          complexityContributions: legacyBinding.complexityContributions,
+        },
+      ],
+    };
+    expect(PatientComplexityProfileSchema.safeParse(legacyCostFour).success).toBe(false);
+
+    let artifact: ReturnType<typeof expectSelected> | null = null;
+    for (let index = 0; index < 100; index += 1) {
+      const candidate = expectSelected(makeV2Request(`seed.high-complexity.${index}`));
+      if (candidate.selectedCount === 24) {
+        artifact = candidate;
+        break;
+      }
+    }
+    expect(artifact).not.toBeNull();
+    expect(artifact!.resolverVersion).toBe('3.0.0');
+    expect(artifact!.baselineComplexityUnits).toBe(1);
+    expect(artifact!.selectedCount).toBe(24);
+    expect(artifact!.selectionDraws).toHaveLength(24);
+    expect(artifact!.selectionDraws.at(-1)?.selectionOrdinal).toBe(23);
+    expect(artifact!.totalSpent).toBe(84);
+    expect(artifact!.remainingBudget).toBe(12);
+    expect(artifact!.resultingComplexityProfile).toMatchObject({
+      modelVersion: 'baseline-plus-additional-budget.v2',
+      baselineComplexityUnits: 1,
+      additionalFeatureBudget: 96,
+      maximumSelectedModules: 24,
+    });
+    expect(
+      artifact!.candidateEvaluations.every((evaluation) => evaluation.stableDrawId !== null),
+    ).toBe(true);
+    expect(verifyOptionalFeatureBudgetSelectionIntegrity(artifact)).toEqual({
       ok: true,
       value: artifact,
     });
@@ -542,6 +641,9 @@ describe('optional feature budget selector', () => {
     const tamperCases = [
       (candidate: typeof artifact) => {
         candidate.totalSpent = 0;
+      },
+      (candidate: typeof artifact) => {
+        candidate.baselineComplexityUnits = 1;
       },
       (candidate: typeof artifact) => {
         candidate.remainingBudget = 6;

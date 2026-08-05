@@ -16,6 +16,13 @@ import { describe, expect, it } from 'vitest';
 
 import conditionFindingProfilesJson from '../../../content/catalogs/diagnoses/condition-finding-profiles.json';
 
+const mddDiagnosis = catalogs.diagnoses.find(
+  (diagnosis) => diagnosis.id === 'diagnosis.major-depressive-disorder',
+);
+if (mddDiagnosis === undefined) {
+  throw new Error('Expected the checked-in MDD diagnosis definition.');
+}
+
 const approvedReview: ClinicalRuleReview = {
   status: 'approved',
   reviewerId: 'reviewer.test',
@@ -65,7 +72,7 @@ const template: PatientTemplate = {
       schemaVersion: 1,
       id: 'template-condition.test.mdd-current',
       diagnosisDefinitionId: 'diagnosis.major-depressive-disorder',
-      diagnosisDefinitionContentVersion: '1.4.0',
+      diagnosisDefinitionContentVersion: mddDiagnosis.contentVersion,
       clinicalStateId: 'clinical-state.current',
       timeScopeId: 'time-scope.current',
       encounterRelevance: 'focus',

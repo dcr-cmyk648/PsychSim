@@ -1,12 +1,15 @@
 import {
+  CaseTreatmentSelectionPredicateSchema,
   DecisionPolicyCatalogSchema,
   DiagnosisDefinitionSchema,
+  FindingDefinitionSchema,
   MedicationRegimenKnowledgeCatalogSchema,
 } from '@psychsim/schemas';
 import { describe, expect, it } from 'vitest';
 
 import mddDiagnosisJson from '../../../content/catalogs/diagnoses/definitions/major-depressive-disorder.diagnosis.json';
 import decisionPolicyCatalogJson from '../../../content/catalogs/decision-policies/catalog.json';
+import passiveDeathWishFindingJson from '../../../content/catalogs/findings/definitions/current-passive-death-wish.finding.json';
 import medicationRegimenCatalogJson from '../../../content/catalogs/medications/regimen-knowledge.json';
 import {
   adaptDiagnosisInformationPrerequisite,
@@ -19,6 +22,14 @@ const policyCatalog = DecisionPolicyCatalogSchema.parse(decisionPolicyCatalogJso
 const regimenCatalog = MedicationRegimenKnowledgeCatalogSchema.parse(medicationRegimenCatalogJson);
 const policy = policyCatalog.policies[0]!;
 const primaryRoute = regimenCatalog.focusedRoutes[0]!;
+const findingDefinitions = [FindingDefinitionSchema.parse(passiveDeathWishFindingJson)];
+const reviewedMedicationIds = [
+  'medication.bupropion',
+  'medication.escitalopram',
+  'medication.fluoxetine',
+  'medication.mirtazapine',
+  'medication.sertraline',
+];
 
 const adapt = (
   diagnosisRuleId: string,
@@ -31,10 +42,23 @@ const adapt = (
     primaryRoute,
     medicationClasses: regimenCatalog.medicationClasses,
     classMemberships: regimenCatalog.classMemberships,
+    findingDefinitions,
     ...overrides,
   });
 
 describe('diagnosis information-prerequisite adapter', () => {
+  it('keeps exact-class predicates out of compatibility-case workup evaluation', () => {
+    expect(
+      CaseTreatmentSelectionPredicateSchema.safeParse({
+        type: 'treatmentStartedInClass',
+        medicationClassId: 'medication-class.mdd-initial-first-line-antidepressant',
+        medicationClassContentVersion: '1.0.0',
+        minimumCount: 1,
+        maximumCount: 5,
+      }).success,
+    ).toBe(false);
+  });
+
   it('losslessly adapts both approved direct MDD information requirements', () => {
     for (const [ruleId, informationActionId] of [
       ['rule.diagnosis-mdd.initial-episode-course-assessment', 'info.history.presenting-problem'],
@@ -50,6 +74,7 @@ describe('diagnosis information-prerequisite adapter', () => {
         primaryRoute,
         medicationClasses: regimenCatalog.medicationClasses,
         classMemberships: regimenCatalog.classMemberships,
+        findingDefinitions,
       });
       expect(adapted.ok).toBe(true);
       if (!adapted.ok) continue;
@@ -83,6 +108,7 @@ describe('diagnosis information-prerequisite adapter', () => {
       primaryRoute,
       medicationClasses: regimenCatalog.medicationClasses,
       classMemberships: regimenCatalog.classMemberships,
+      findingDefinitions,
     });
     expect(adapted.ok).toBe(true);
     if (!adapted.ok) return;
@@ -104,6 +130,142 @@ describe('diagnosis information-prerequisite adapter', () => {
       },
       triggeredInformationPrerequisite: null,
       balanceRef: null,
+    });
+  });
+
+  it('refines the passive-death-wish requirement with one exact canonical patient fact', () => {
+    const adapted = adaptDiagnosisInformationRequirement({
+      diagnosis,
+      diagnosisRuleId: 'rule.diagnosis-mdd.passive-death-wish-safety-assessment',
+      policy,
+      primaryRoute,
+      medicationClasses: regimenCatalog.medicationClasses,
+      classMemberships: regimenCatalog.classMemberships,
+      findingDefinitions,
+    });
+    expect(adapted.ok).toBe(true);
+    if (!adapted.ok) return;
+    expect(adapted.value).toMatchObject({
+      ruleRef: {
+        kind: 'diagnosis_rule',
+        id: 'rule.diagnosis-mdd.passive-death-wish-safety-assessment',
+        contentVersion: diagnosis.contentVersion,
+        ownerId: diagnosis.id,
+        ownerContentVersion: diagnosis.contentVersion,
+      },
+      ruleKind: 'prerequisite',
+      patientWhen: {
+        type: 'all',
+        predicates: [
+          primaryRoute.patientWhen,
+          {
+            type: 'fact',
+            fact: {
+              recordKind: 'canonical_finding',
+              identityId: 'finding.safety.current-passive-death-wish',
+              identityContentVersion: '1.0.0',
+              attributeId: 'finding.outcome',
+              valueId: 'finding-outcome.present',
+            },
+          },
+        ],
+      },
+      actionWhen: {
+        match: 'any',
+        targets: [
+          {
+            kind: 'information_action',
+            informationActionId: 'info.history.suicide-safety',
+          },
+        ],
+      },
+      triggeredInformationPrerequisite: null,
+      balanceRef: null,
+    });
+    expect(JSON.stringify(adapted.value)).not.toContain('clinicalTagPresent');
+    expect(JSON.stringify(adapted.value)).not.toContain('safety.passive-death-wish-without-intent');
+  });
+
+  it('rejects missing, stale, inactive, or outcome-incompatible native findings', () => {
+    const ruleId = 'rule.diagnosis-mdd.passive-death-wish-safety-assessment';
+    expect(
+      adaptDiagnosisInformationRequirement({
+        diagnosis,
+        diagnosisRuleId: ruleId,
+        policy,
+        primaryRoute,
+        medicationClasses: regimenCatalog.medicationClasses,
+        classMemberships: regimenCatalog.classMemberships,
+        findingDefinitions: [],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'FINDING_DEFINITION_MISSING' },
+    });
+
+    expect(
+      adaptDiagnosisInformationRequirement({
+        diagnosis,
+        diagnosisRuleId: ruleId,
+        policy,
+        primaryRoute,
+        medicationClasses: regimenCatalog.medicationClasses,
+        classMemberships: regimenCatalog.classMemberships,
+        findingDefinitions: findingDefinitions.map((finding) => ({
+          ...finding,
+          contentVersion: '9.9.9',
+        })),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'FINDING_DEFINITION_VERSION_MISMATCH' },
+    });
+
+    expect(
+      adaptDiagnosisInformationRequirement({
+        diagnosis,
+        diagnosisRuleId: ruleId,
+        policy,
+        primaryRoute,
+        medicationClasses: regimenCatalog.medicationClasses,
+        classMemberships: regimenCatalog.classMemberships,
+        findingDefinitions: findingDefinitions.map((finding) => ({
+          ...finding,
+          lifecycle: 'draft' as const,
+        })),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'FINDING_DEFINITION_INACTIVE' },
+    });
+
+    const incompatibleOutcomeDiagnosis = DiagnosisDefinitionSchema.parse({
+      ...diagnosis,
+      baseRules: diagnosis.baseRules.map((rule) =>
+        rule.id === ruleId && rule.nativePatientWhen
+          ? {
+              ...rule,
+              nativePatientWhen: {
+                ...rule.nativePatientWhen,
+                outcome: 'positive',
+              },
+            }
+          : rule,
+      ),
+    });
+    expect(
+      adaptDiagnosisInformationRequirement({
+        diagnosis: incompatibleOutcomeDiagnosis,
+        diagnosisRuleId: ruleId,
+        policy,
+        primaryRoute,
+        medicationClasses: regimenCatalog.medicationClasses,
+        classMemberships: regimenCatalog.classMemberships,
+        findingDefinitions,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'FINDING_DEFINITION_OUTCOME_UNSUPPORTED' },
     });
   });
 
@@ -161,8 +323,121 @@ describe('diagnosis information-prerequisite adapter', () => {
     }
   });
 
-  it('rejects the compatibility-tag antidepressant trigger instead of inferring class membership', () => {
+  it('losslessly expands the approved class-targeted antidepressant prerequisite', () => {
+    const adapted = adapt('rule.diagnosis-mdd.initial-route-antidepressant-mania-history');
+    expect(adapted.ok).toBe(true);
+    if (!adapted.ok) return;
+    expect(adapted.value).toMatchObject({
+      ruleRef: {
+        kind: 'diagnosis_rule',
+        id: 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history',
+        contentVersion: diagnosis.contentVersion,
+        ownerId: diagnosis.id,
+        ownerContentVersion: diagnosis.contentVersion,
+      },
+      actionWhen: {
+        match: 'any',
+        targets: [
+          {
+            kind: 'information_action',
+            informationActionId: 'info.history.mania',
+          },
+        ],
+      },
+      triggeredInformationPrerequisite: {
+        triggerWhen: {
+          match: 'any',
+          targets: reviewedMedicationIds.map((medicationIdentityId) => ({
+            kind: 'medication_start',
+            medicationIdentityId,
+          })),
+        },
+        fulfillmentWhen: {
+          match: 'any',
+          targets: [
+            {
+              kind: 'information_action',
+              informationActionId: 'info.history.mania',
+            },
+          ],
+        },
+      },
+    });
+    expect(JSON.stringify(adapted.value)).not.toContain('medicationTagId');
+    expect(JSON.stringify(adapted.value)).not.toContain('medicationClassId');
+  });
+
+  it('still rejects legacy medication tags and lossy or unreviewed class mappings', () => {
     expect(adapt('rule.diagnosis-mdd.antidepressant-mania-history')).toMatchObject({
+      ok: false,
+      error: { code: 'UNSUPPORTED_SELECTION_TRIGGER' },
+    });
+
+    const staleClassDiagnosis = DiagnosisDefinitionSchema.parse({
+      ...diagnosis,
+      baseRules: diagnosis.baseRules.map((rule) =>
+        rule.id === 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history' &&
+        rule.selectionWhen?.type === 'treatmentStartedInClass'
+          ? {
+              ...rule,
+              selectionWhen: {
+                ...rule.selectionWhen,
+                medicationClassContentVersion: '9.9.9',
+              },
+            }
+          : rule,
+      ),
+    });
+    expect(
+      adapt('rule.diagnosis-mdd.initial-route-antidepressant-mania-history', {
+        diagnosis: staleClassDiagnosis,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'MEDICATION_CLASS_VERSION_MISMATCH' },
+    });
+
+    expect(
+      adapt('rule.diagnosis-mdd.initial-route-antidepressant-mania-history', {
+        classMemberships: regimenCatalog.classMemberships.map((membership, index) =>
+          index === 0
+            ? {
+                ...membership,
+                review: {
+                  status: 'unreviewed',
+                  reviewerId: null,
+                  reviewedAt: null,
+                  sourceUseNoteIds: [],
+                },
+              }
+            : membership,
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PRIMARY_ROUTE_INVALID' },
+    });
+
+    const lossyCardinalityDiagnosis = DiagnosisDefinitionSchema.parse({
+      ...diagnosis,
+      baseRules: diagnosis.baseRules.map((rule) =>
+        rule.id === 'rule.diagnosis-mdd.initial-route-antidepressant-mania-history' &&
+        rule.selectionWhen?.type === 'treatmentStartedInClass'
+          ? {
+              ...rule,
+              selectionWhen: {
+                ...rule.selectionWhen,
+                maximumCount: 1,
+              },
+            }
+          : rule,
+      ),
+    });
+    expect(
+      adapt('rule.diagnosis-mdd.initial-route-antidepressant-mania-history', {
+        diagnosis: lossyCardinalityDiagnosis,
+      }),
+    ).toMatchObject({
       ok: false,
       error: { code: 'UNSUPPORTED_SELECTION_TRIGGER' },
     });
@@ -177,6 +452,7 @@ describe('diagnosis information-prerequisite adapter', () => {
         primaryRoute,
         medicationClasses: regimenCatalog.medicationClasses,
         classMemberships: regimenCatalog.classMemberships,
+        findingDefinitions,
       }),
     ).toMatchObject({
       ok: false,

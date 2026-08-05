@@ -1,0 +1,513 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "authoring.medication-identity-intake.psychotropic-breadth.2026-08-05",
+  "rxnormVersion": "03-Aug-2026",
+  "rxnormReleaseDate": "2026-08-03",
+  "evidenceSourceId": "evidence.nlm.rxnorm-api.2026-08-03",
+  "sourceUseDecisionId": "source-use.nlm.rxnorm-api.2026-08-03",
+  "verifiedAt": "2026-08-05T22:12:00.000Z",
+  "sourcePacketIds": [
+    "adjunct-packet.cross-diagnostic-psychotropic-medication-census.preliminary-v1.2026-08-03",
+    "adjunct-packet.core-antidepressant-comparative-effects-and-fit.preliminary-v1.2026-08-03",
+    "adjunct-packet.core-antipsychotic-comparative-and-medication-breadth.preliminary-v1.2026-08-03",
+    "adjunct-packet.core-mood-stabilizer-and-anticonvulsant-breadth.preliminary-v1.2026-08-03",
+    "adjunct-packet.anxiety-panic-ocd-ptsd-arousal-medication-breadth.preliminary-v1.2026-08-03",
+    "adjunct-packet.insomnia-wakefulness-medication-breadth.preliminary-v1.2026-08-03",
+    "adjunct-packet.substance-use-withdrawal-overdose-tobacco-medication-breadth.preliminary-v1.2026-08-05",
+    "adjunct-packet.cognition-dementia-behavior-and-adverse-effect-treatment-breadth.preliminary-v1.2026-08-05"
+  ],
+  "scopeNote": "The adjunct packets identify useful psychiatry-first bins only. Each materialized record is independently pinned to one exact active NLM RxNorm ingredient concept. Identity presence does not establish current market status, formulation, indication, comparative effect, safety, treatment route, formulary access, generation probability, rule, balance, or point value.",
+  "candidates": [
+    {
+      "id": "medication.acamprosate",
+      "label": "Acamprosate",
+      "normalizedIngredientName": "acamprosate",
+      "aliases": [],
+      "rxcui": "82819"
+    },
+    {
+      "id": "medication.alprazolam",
+      "label": "Alprazolam",
+      "normalizedIngredientName": "alprazolam",
+      "aliases": [],
+      "rxcui": "596"
+    },
+    {
+      "id": "medication.amantadine",
+      "label": "Amantadine",
+      "normalizedIngredientName": "amantadine",
+      "aliases": [],
+      "rxcui": "620"
+    },
+    {
+      "id": "medication.amoxapine",
+      "label": "Amoxapine",
+      "normalizedIngredientName": "amoxapine",
+      "aliases": [],
+      "rxcui": "722"
+    },
+    {
+      "id": "medication.amphetamine",
+      "label": "Amphetamine",
+      "normalizedIngredientName": "amphetamine",
+      "aliases": [],
+      "rxcui": "725"
+    },
+    {
+      "id": "medication.armodafinil",
+      "label": "Armodafinil",
+      "normalizedIngredientName": "armodafinil",
+      "aliases": [],
+      "rxcui": "641465"
+    },
+    {
+      "id": "medication.asenapine",
+      "label": "Asenapine",
+      "normalizedIngredientName": "asenapine",
+      "aliases": [],
+      "rxcui": "784649"
+    },
+    {
+      "id": "medication.brexpiprazole",
+      "label": "Brexpiprazole",
+      "normalizedIngredientName": "brexpiprazole",
+      "aliases": [],
+      "rxcui": "1658314"
+    },
+    {
+      "id": "medication.buprenorphine",
+      "label": "Buprenorphine",
+      "normalizedIngredientName": "buprenorphine",
+      "aliases": [],
+      "rxcui": "1819"
+    },
+    {
+      "id": "medication.chlordiazepoxide",
+      "label": "Chlordiazepoxide",
+      "normalizedIngredientName": "chlordiazepoxide",
+      "aliases": [],
+      "rxcui": "2356"
+    },
+    {
+      "id": "medication.chlorpromazine",
+      "label": "Chlorpromazine",
+      "normalizedIngredientName": "chlorpromazine",
+      "aliases": [],
+      "rxcui": "2403"
+    },
+    {
+      "id": "medication.daridorexant",
+      "label": "Daridorexant",
+      "normalizedIngredientName": "daridorexant",
+      "aliases": [],
+      "rxcui": "2591497"
+    },
+    {
+      "id": "medication.deutetrabenazine",
+      "label": "Deutetrabenazine",
+      "normalizedIngredientName": "deutetrabenazine",
+      "aliases": [],
+      "rxcui": "1876905"
+    },
+    {
+      "id": "medication.dexmethylphenidate",
+      "label": "Dexmethylphenidate",
+      "normalizedIngredientName": "dexmethylphenidate",
+      "aliases": [],
+      "rxcui": "352372"
+    },
+    {
+      "id": "medication.dextroamphetamine",
+      "label": "Dextroamphetamine",
+      "normalizedIngredientName": "dextroamphetamine",
+      "aliases": [],
+      "rxcui": "3288"
+    },
+    {
+      "id": "medication.disulfiram",
+      "label": "Disulfiram",
+      "normalizedIngredientName": "disulfiram",
+      "aliases": [],
+      "rxcui": "3554"
+    },
+    {
+      "id": "medication.donepezil",
+      "label": "Donepezil",
+      "normalizedIngredientName": "donepezil",
+      "aliases": [],
+      "rxcui": "135447"
+    },
+    {
+      "id": "medication.eszopiclone",
+      "label": "Eszopiclone",
+      "normalizedIngredientName": "eszopiclone",
+      "aliases": [],
+      "rxcui": "461016"
+    },
+    {
+      "id": "medication.fluphenazine",
+      "label": "Fluphenazine",
+      "normalizedIngredientName": "fluphenazine",
+      "aliases": [],
+      "rxcui": "4496"
+    },
+    {
+      "id": "medication.galantamine",
+      "label": "Galantamine",
+      "normalizedIngredientName": "galantamine",
+      "aliases": [],
+      "rxcui": "4637"
+    },
+    {
+      "id": "medication.gepirone",
+      "label": "Gepirone",
+      "normalizedIngredientName": "gepirone",
+      "aliases": [],
+      "rxcui": "2672253"
+    },
+    {
+      "id": "medication.guanfacine",
+      "label": "Guanfacine",
+      "normalizedIngredientName": "guanfacine",
+      "aliases": [],
+      "rxcui": "40114"
+    },
+    {
+      "id": "medication.iloperidone",
+      "label": "Iloperidone",
+      "normalizedIngredientName": "iloperidone",
+      "aliases": [],
+      "rxcui": "73178"
+    },
+    {
+      "id": "medication.imipramine",
+      "label": "Imipramine",
+      "normalizedIngredientName": "imipramine",
+      "aliases": [],
+      "rxcui": "5691"
+    },
+    {
+      "id": "medication.isocarboxazid",
+      "label": "Isocarboxazid",
+      "normalizedIngredientName": "isocarboxazid",
+      "aliases": [],
+      "rxcui": "6011"
+    },
+    {
+      "id": "medication.lemborexant",
+      "label": "Lemborexant",
+      "normalizedIngredientName": "lemborexant",
+      "aliases": [],
+      "rxcui": "2272403"
+    },
+    {
+      "id": "medication.levomilnacipran",
+      "label": "Levomilnacipran",
+      "normalizedIngredientName": "levomilnacipran",
+      "aliases": [],
+      "rxcui": "1433212"
+    },
+    {
+      "id": "medication.liothyronine",
+      "label": "Liothyronine",
+      "normalizedIngredientName": "liothyronine",
+      "aliases": [],
+      "rxcui": "10814"
+    },
+    {
+      "id": "medication.lisdexamfetamine",
+      "label": "Lisdexamfetamine",
+      "normalizedIngredientName": "lisdexamfetamine",
+      "aliases": [],
+      "rxcui": "700810"
+    },
+    {
+      "id": "medication.lofexidine",
+      "label": "Lofexidine",
+      "normalizedIngredientName": "lofexidine",
+      "aliases": [],
+      "rxcui": "28863"
+    },
+    {
+      "id": "medication.loxapine",
+      "label": "Loxapine",
+      "normalizedIngredientName": "loxapine",
+      "aliases": [],
+      "rxcui": "6475"
+    },
+    {
+      "id": "medication.lumateperone",
+      "label": "Lumateperone",
+      "normalizedIngredientName": "lumateperone",
+      "aliases": [],
+      "rxcui": "2275602"
+    },
+    {
+      "id": "medication.maprotiline",
+      "label": "Maprotiline",
+      "normalizedIngredientName": "maprotiline",
+      "aliases": [],
+      "rxcui": "6646"
+    },
+    {
+      "id": "medication.metformin",
+      "label": "Metformin",
+      "normalizedIngredientName": "metformin",
+      "aliases": [],
+      "rxcui": "6809"
+    },
+    {
+      "id": "medication.methadone",
+      "label": "Methadone",
+      "normalizedIngredientName": "methadone",
+      "aliases": [],
+      "rxcui": "6813"
+    },
+    {
+      "id": "medication.methylphenidate",
+      "label": "Methylphenidate",
+      "normalizedIngredientName": "methylphenidate",
+      "aliases": [],
+      "rxcui": "6901"
+    },
+    {
+      "id": "medication.midazolam",
+      "label": "Midazolam",
+      "normalizedIngredientName": "midazolam",
+      "aliases": [],
+      "rxcui": "6960"
+    },
+    {
+      "id": "medication.modafinil",
+      "label": "Modafinil",
+      "normalizedIngredientName": "modafinil",
+      "aliases": [],
+      "rxcui": "30125"
+    },
+    {
+      "id": "medication.molindone",
+      "label": "Molindone",
+      "normalizedIngredientName": "molindone",
+      "aliases": [],
+      "rxcui": "7019"
+    },
+    {
+      "id": "medication.naloxone",
+      "label": "Naloxone",
+      "normalizedIngredientName": "naloxone",
+      "aliases": [],
+      "rxcui": "7242"
+    },
+    {
+      "id": "medication.naltrexone",
+      "label": "Naltrexone",
+      "normalizedIngredientName": "naltrexone",
+      "aliases": [],
+      "rxcui": "7243"
+    },
+    {
+      "id": "medication.nicotine",
+      "label": "Nicotine",
+      "normalizedIngredientName": "nicotine",
+      "aliases": [],
+      "rxcui": "7407"
+    },
+    {
+      "id": "medication.oxazepam",
+      "label": "Oxazepam",
+      "normalizedIngredientName": "oxazepam",
+      "aliases": [],
+      "rxcui": "7781"
+    },
+    {
+      "id": "medication.oxcarbazepine",
+      "label": "Oxcarbazepine",
+      "normalizedIngredientName": "oxcarbazepine",
+      "aliases": [],
+      "rxcui": "32624"
+    },
+    {
+      "id": "medication.perphenazine",
+      "label": "Perphenazine",
+      "normalizedIngredientName": "perphenazine",
+      "aliases": [],
+      "rxcui": "8076"
+    },
+    {
+      "id": "medication.phenelzine",
+      "label": "Phenelzine",
+      "normalizedIngredientName": "phenelzine",
+      "aliases": [],
+      "rxcui": "8123"
+    },
+    {
+      "id": "medication.phenobarbital",
+      "label": "Phenobarbital",
+      "normalizedIngredientName": "phenobarbital",
+      "aliases": [],
+      "rxcui": "8134"
+    },
+    {
+      "id": "medication.pimavanserin",
+      "label": "Pimavanserin",
+      "normalizedIngredientName": "pimavanserin",
+      "aliases": [],
+      "rxcui": "1791685"
+    },
+    {
+      "id": "medication.pimozide",
+      "label": "Pimozide",
+      "normalizedIngredientName": "pimozide",
+      "aliases": [],
+      "rxcui": "8331"
+    },
+    {
+      "id": "medication.pitolisant",
+      "label": "Pitolisant",
+      "normalizedIngredientName": "pitolisant",
+      "aliases": [],
+      "rxcui": "2197878"
+    },
+    {
+      "id": "medication.protriptyline",
+      "label": "Protriptyline",
+      "normalizedIngredientName": "protriptyline",
+      "aliases": [],
+      "rxcui": "8886"
+    },
+    {
+      "id": "medication.pyridoxine",
+      "label": "Pyridoxine",
+      "normalizedIngredientName": "pyridoxine",
+      "aliases": [],
+      "rxcui": "684879"
+    },
+    {
+      "id": "medication.ramelteon",
+      "label": "Ramelteon",
+      "normalizedIngredientName": "ramelteon",
+      "aliases": [],
+      "rxcui": "596205"
+    },
+    {
+      "id": "medication.rivastigmine",
+      "label": "Rivastigmine",
+      "normalizedIngredientName": "rivastigmine",
+      "aliases": [],
+      "rxcui": "183379"
+    },
+    {
+      "id": "medication.solriamfetol",
+      "label": "Solriamfetol",
+      "normalizedIngredientName": "solriamfetol",
+      "aliases": [],
+      "rxcui": "2121751"
+    },
+    {
+      "id": "medication.suvorexant",
+      "label": "Suvorexant",
+      "normalizedIngredientName": "suvorexant",
+      "aliases": [],
+      "rxcui": "1547099"
+    },
+    {
+      "id": "medication.temazepam",
+      "label": "Temazepam",
+      "normalizedIngredientName": "temazepam",
+      "aliases": [],
+      "rxcui": "10355"
+    },
+    {
+      "id": "medication.thiothixene",
+      "label": "Thiothixene",
+      "normalizedIngredientName": "thiothixene",
+      "aliases": [],
+      "rxcui": "10510"
+    },
+    {
+      "id": "medication.topiramate",
+      "label": "Topiramate",
+      "normalizedIngredientName": "topiramate",
+      "aliases": [],
+      "rxcui": "38404"
+    },
+    {
+      "id": "medication.tranylcypromine",
+      "label": "Tranylcypromine",
+      "normalizedIngredientName": "tranylcypromine",
+      "aliases": [],
+      "rxcui": "10734"
+    },
+    {
+      "id": "medication.triazolam",
+      "label": "Triazolam",
+      "normalizedIngredientName": "triazolam",
+      "aliases": [],
+      "rxcui": "10767"
+    },
+    {
+      "id": "medication.trifluoperazine",
+      "label": "Trifluoperazine",
+      "normalizedIngredientName": "trifluoperazine",
+      "aliases": [],
+      "rxcui": "10800"
+    },
+    {
+      "id": "medication.trimipramine",
+      "label": "Trimipramine",
+      "normalizedIngredientName": "trimipramine",
+      "aliases": [],
+      "rxcui": "10834"
+    },
+    {
+      "id": "medication.valbenazine",
+      "label": "Valbenazine",
+      "normalizedIngredientName": "valbenazine",
+      "aliases": [],
+      "rxcui": "1918219"
+    },
+    {
+      "id": "medication.varenicline",
+      "label": "Varenicline",
+      "normalizedIngredientName": "varenicline",
+      "aliases": [],
+      "rxcui": "591622"
+    },
+    {
+      "id": "medication.vilazodone",
+      "label": "Vilazodone",
+      "normalizedIngredientName": "vilazodone",
+      "aliases": [],
+      "rxcui": "1086769"
+    },
+    {
+      "id": "medication.vortioxetine",
+      "label": "Vortioxetine",
+      "normalizedIngredientName": "vortioxetine",
+      "aliases": [],
+      "rxcui": "1455099"
+    },
+    {
+      "id": "medication.zaleplon",
+      "label": "Zaleplon",
+      "normalizedIngredientName": "zaleplon",
+      "aliases": [],
+      "rxcui": "74667"
+    },
+    {
+      "id": "medication.zolpidem",
+      "label": "Zolpidem",
+      "normalizedIngredientName": "zolpidem",
+      "aliases": [],
+      "rxcui": "39993"
+    },
+    {
+      "id": "medication.zuranolone",
+      "label": "Zuranolone",
+      "normalizedIngredientName": "zuranolone",
+      "aliases": [],
+      "rxcui": "2669905"
+    }
+  ]
+}

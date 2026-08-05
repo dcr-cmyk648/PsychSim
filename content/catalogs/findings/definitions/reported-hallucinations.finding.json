@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "finding.history.reported-hallucinations",
-  "label": "Reported hallucinations",
+  "label": "Current self-reported hallucinations",
   "aliases": [],
   "semanticKind": "history",
   "valueSpecification": {

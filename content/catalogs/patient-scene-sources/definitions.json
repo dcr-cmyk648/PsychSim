@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "registry.catalog.patient-scene-source-definitions",
+  "definitions": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.clinician.direct-observation",
+      "kind": "clinician_observation"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.collateral.primary-report",
+      "kind": "collateral_report"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.collateral.secondary-report",
+      "kind": "collateral_report"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.diagnostic-study.result",
+      "kind": "diagnostic_study_result"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.instrument.standardized-response",
+      "kind": "instrument_response"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.laboratory.result",
+      "kind": "laboratory_result"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.measurement.direct",
+      "kind": "measurement"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.patient.self-report",
+      "kind": "patient_report"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.record.current-chart",
+      "kind": "record_review"
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "patient-scene-source-role.record.outside-records",
+      "kind": "record_review"
+    }
+  ]
+}

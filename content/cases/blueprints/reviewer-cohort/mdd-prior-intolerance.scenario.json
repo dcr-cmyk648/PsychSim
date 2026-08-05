@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.6.0",
+  "contentVersion": "1.7.0",
   "id": "case.review-cohort.mdd-prior-intolerance",
   "internalTitle": "Reviewer cohort: MDD with prior medication intolerance",
   "difficultyTier": 2,

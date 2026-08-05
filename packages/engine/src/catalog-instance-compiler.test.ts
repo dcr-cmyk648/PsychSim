@@ -7,9 +7,12 @@ import {
   type DecisionRuleCandidateDefinition,
   type FindingDefinition,
   type InformationActionDefinition,
+  type InstrumentAdministrationDefinition,
   type InstrumentDefinition,
   type LocationDefinition,
   type PatientTemplate,
+  type PatientChiefComplaintBank,
+  type PatientLauncherPresentationProfile,
   type ResolvedPatientState,
   type SharedFindingCompileRequest,
   type StructuredSourceReportProfile,
@@ -17,6 +20,7 @@ import {
   type StructuredSourceReportSelectionProfile,
   type TemplateConditionSelectionProfile,
   type UniversalActionResultAssemblyRecipe,
+  type VariantPoolDefinition,
 } from '@psychsim/schemas';
 import { describe, expect, it } from 'vitest';
 
@@ -25,7 +29,18 @@ import {
   fingerprintCatalogInstanceRecipe,
   verifyCatalogCompiledInstanceIntegrity,
 } from './catalog-instance-compiler';
+import {
+  compileCatalogInstrumentAdministrationAttachment,
+  verifyCatalogInstrumentAdministrationAttachmentIntegrity,
+} from './catalog-instrument-administration-attachment';
+import {
+  compileCatalogPatientLauncherPresentationAttachment,
+  verifyCatalogPatientLauncherPresentationAttachmentIntegrity,
+} from './catalog-patient-launcher-presentation-attachment';
 import { compileEncounterOperationalAdmission } from './encounter-operational-admission-compiler';
+import { compileInstrumentAdministration } from './instrument-administration-compiler';
+import { validateInstrumentAdministrationSource } from './instrument-administration-source-validation';
+import { compilePatientSceneSourceInstances } from './patient-scene-source-instance-compiler';
 import { compileSelectedLocationOperationalResourceContext } from './selected-location-operational-resource-compiler';
 import {
   fingerprintStructuredSourceReportSelectionAssembly,
@@ -54,6 +69,87 @@ const authoredResolution = {
   ownerId: 'patient-template.test.mdd',
   ownerContentVersion: '1.0.0',
 } as const;
+
+const makeLauncherPresentationContent = (): {
+  presentationProfile: PatientLauncherPresentationProfile;
+  firstNamePool: VariantPoolDefinition;
+  lastNamePool: VariantPoolDefinition;
+  complaintBanks: PatientChiefComplaintBank[];
+} => {
+  const complaintBanks: PatientChiefComplaintBank[] = [
+    {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'chief-complaint-bank.test.catalog-general',
+      label: 'Synthetic general complaints',
+      variants: [
+        { id: 'chief-complaint-variant.test.catalog-general.one', text: 'Not feeling well' },
+        { id: 'chief-complaint-variant.test.catalog-general.two', text: 'Mood concerns' },
+      ],
+      lifecycle: 'review',
+      medicalReviewStatus: 'unreviewed',
+    },
+    {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'chief-complaint-bank.test.catalog-focused',
+      label: 'Synthetic focused complaints',
+      variants: [
+        { id: 'chief-complaint-variant.test.catalog-focused.one', text: 'Loss of interest' },
+        { id: 'chief-complaint-variant.test.catalog-focused.two', text: 'Low mood' },
+        { id: 'chief-complaint-variant.test.catalog-focused.three', text: 'No motivation' },
+      ],
+      lifecycle: 'review',
+      medicalReviewStatus: 'unreviewed',
+    },
+  ];
+  return {
+    presentationProfile: {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'patient-launcher-presentation-profile.test.catalog',
+      modelVersion: 'patient-launcher-presentation-profile.v1',
+      firstNamePoolRef: {
+        id: 'variant-pool.fictional-first-names.test.catalog',
+        contentVersion: '1.0.0',
+      },
+      lastNamePoolRef: {
+        id: 'variant-pool.fictional-last-names.test.catalog',
+        contentVersion: '1.0.0',
+      },
+      middleInitialProbability: {
+        numerator: 1,
+        denominator: 4,
+      },
+      complaintBankBindings: complaintBanks.map((bank, index) => ({
+        id: `patient-launcher-complaint-binding.test.catalog.${index + 1}`,
+        bankRef: {
+          id: bank.id,
+          contentVersion: bank.contentVersion,
+        },
+        specificityPriority: index === 0 ? 10 : 20,
+        gameSelectionWeight: 10,
+      })),
+      developerOpinionIds: ['developer-opinion.test.patient-launcher'],
+      review: approvedReview,
+    },
+    firstNamePool: {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'variant-pool.fictional-first-names.test.catalog',
+      kind: 'fictional_first_name',
+      values: ['Avery', 'Jordan', 'Morgan', 'Riley'],
+    },
+    lastNamePool: {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'variant-pool.fictional-last-names.test.catalog',
+      kind: 'fictional_last_name',
+      values: ['Garcia', 'Patel', 'Smith', 'Williams'],
+    },
+    complaintBanks,
+  };
+};
 
 const conditionState = (
   id: string,
@@ -124,6 +220,9 @@ const makeBasePatientState = (): ResolvedPatientState => ({
     priorLevelsOfCare: [],
   },
   medicationTolerabilityFindings: [],
+  currentMedicationReportedBenefits: [],
+  currentMedicationDosePositions: [],
+  medicationChangeTemporalRelationships: [],
   reactionHistory: {
     status: 'unassessed',
     medicationAssessmentStatus: 'unassessed',
@@ -135,6 +234,7 @@ const makeBasePatientState = (): ResolvedPatientState => ({
   structuredTestResults: [],
   clinicalContexts: [],
   clinicalDurations: [],
+  functionalImpairments: [],
   subjectiveBurdenRecords: [],
   propositionState: {
     schemaVersion: 1,
@@ -1229,6 +1329,258 @@ describe('catalog instance compiler', () => {
     expect(verifyCatalogCompiledInstanceIntegrity(responseDuplicated)).toMatchObject({
       ok: false,
       error: { code: 'INVALID_SCHEMA' },
+    });
+  });
+
+  it('derives one exact D-285 administration context from the verified catalog snapshot', () => {
+    const request = makeRequest();
+    const instrument = addSyntheticInstrumentResponses(request, 2);
+    const snapshot = expectSuccess(request);
+    const administrationDefinition: InstrumentAdministrationDefinition = {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'instrument-administration-definition.test.catalog-depression-scale',
+      modelVersion: 'instrument-administration.v1',
+      instrumentDefinitionId: instrument.id,
+      instrumentContentVersion: instrument.contentVersion,
+      informationActionId: depressiveSymptomsAction.id,
+      respondentSourceKind: 'patient_report',
+      timeScopeId: 'time-scope.current',
+      rightsBoundaryId: instrument.rightsBoundaryId,
+      itemIds: instrument.items.map((item) => item.id),
+      rawTotalRange: { minimum: 0, maximum: 6 },
+      lifecycle: 'approved',
+      medicalReviewStatus: 'approved',
+    };
+    const sourceHorizon = compilePatientSceneSourceInstances({
+      schemaVersion: 1,
+      id: 'patient-scene-source-instance-request.test.catalog-depression-scale',
+      patientStateId: snapshot.patientInstance.patientState.id,
+      definitions: [
+        {
+          schemaVersion: 1,
+          contentVersion: '1.0.0',
+          id: 'patient-scene-source-definition.test.catalog-depression-scale-patient',
+          kind: 'patient_report',
+        },
+      ],
+    });
+    expect(sourceHorizon.ok).toBe(true);
+    if (!sourceHorizon.ok) throw new Error(sourceHorizon.error.message);
+    const administration = compileInstrumentAdministration({
+      schemaVersion: 1,
+      id: 'instrument-administration-request.test.catalog-depression-scale',
+      instrumentItemResponseCompilation: snapshot.instrumentItemResponseCompilation,
+      administrationDefinition,
+      sourceInstanceId: sourceHorizon.value.sourceInstances[0]!.id,
+      includedItemResponseIds: snapshot.instrumentItemResponseCompilation.responses.map(
+        (response) => response.id,
+      ),
+      missingItemIds: [],
+      rawTotal: { status: 'calculated', value: 2 },
+    });
+    expect(administration.ok).toBe(true);
+    if (!administration.ok) throw new Error(administration.error.message);
+    const sourceValidation = validateInstrumentAdministrationSource({
+      schemaVersion: 1,
+      id: 'instrument-administration-source-validation-request.test.catalog-depression-scale',
+      administrationCompilation: administration.value,
+      sourceInstanceCompilation: sourceHorizon.value,
+    });
+    expect(sourceValidation.ok).toBe(true);
+    if (!sourceValidation.ok) throw new Error(sourceValidation.error.message);
+    expect(
+      compileCatalogInstrumentAdministrationAttachment({
+        schemaVersion: 1,
+        id: 'catalog-instrument-administration-request.test.raw-administration-rejected',
+        catalogSnapshot: snapshot,
+        administrationCompilation: administration.value,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const attached = compileCatalogInstrumentAdministrationAttachment({
+      schemaVersion: 1,
+      id: 'catalog-instrument-administration-request.test.depression-scale',
+      catalogSnapshot: snapshot,
+      administrationSourceValidation: sourceValidation.value,
+    });
+    expect(attached.ok).toBe(true);
+    if (!attached.ok) throw new Error(attached.error.message);
+    expect(attached.value.compilerVersion).toBe('2.0.0');
+    expect(attached.value.administrationSourceValidationRef).toEqual({
+      id: sourceValidation.value.id,
+      payloadFingerprint: sourceValidation.value.payloadFingerprint,
+    });
+    expect(attached.value.administrationAttachment.compileRequest.attachmentContext).toEqual({
+      schemaVersion: 1,
+      id: expect.stringMatching(/^instrument-administration-attachment-context\./),
+      patientStateId: snapshot.patientInstance.patientState.id,
+      informationActionIds: [
+        ...snapshot.encounterInstance.decisionActionHorizon.informationActionIds,
+      ].sort(),
+      instrumentItemResponses: [...snapshot.patientInstance.instrumentItemResponses].sort(
+        (left, right) => left.id.localeCompare(right.id),
+      ),
+    });
+    expect(verifyCatalogInstrumentAdministrationAttachmentIntegrity(attached.value).ok).toBe(true);
+  });
+
+  it('rejects a D-283 administration compiled from another catalog D-220 artifact', () => {
+    const sourceRequest = makeRequest();
+    const sourceInstrument = addSyntheticInstrumentResponses(sourceRequest, 2);
+    const sourceSnapshot = expectSuccess(sourceRequest);
+    const sourceHorizon = compilePatientSceneSourceInstances({
+      schemaVersion: 1,
+      id: 'patient-scene-source-instance-request.test.crossed-catalog',
+      patientStateId: sourceSnapshot.patientInstance.patientState.id,
+      definitions: [
+        {
+          schemaVersion: 1,
+          contentVersion: '1.0.0',
+          id: 'patient-scene-source-definition.test.crossed-catalog-patient',
+          kind: 'patient_report',
+        },
+      ],
+    });
+    if (!sourceHorizon.ok) throw new Error(sourceHorizon.error.message);
+    const administration = compileInstrumentAdministration({
+      schemaVersion: 1,
+      id: 'instrument-administration-request.test.crossed-catalog',
+      instrumentItemResponseCompilation: sourceSnapshot.instrumentItemResponseCompilation,
+      administrationDefinition: {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'instrument-administration-definition.test.crossed-catalog',
+        modelVersion: 'instrument-administration.v1',
+        instrumentDefinitionId: sourceInstrument.id,
+        instrumentContentVersion: sourceInstrument.contentVersion,
+        informationActionId: depressiveSymptomsAction.id,
+        respondentSourceKind: 'patient_report',
+        timeScopeId: 'time-scope.current',
+        rightsBoundaryId: sourceInstrument.rightsBoundaryId,
+        itemIds: sourceInstrument.items.map((item) => item.id),
+        rawTotalRange: null,
+        lifecycle: 'approved',
+        medicalReviewStatus: 'approved',
+      },
+      sourceInstanceId: sourceHorizon.value.sourceInstances[0]!.id,
+      includedItemResponseIds: sourceSnapshot.instrumentItemResponseCompilation.responses.map(
+        (response) => response.id,
+      ),
+      missingItemIds: [],
+      rawTotal: { status: 'not_calculated' },
+    });
+    if (!administration.ok) throw new Error(administration.error.message);
+    const sourceValidation = validateInstrumentAdministrationSource({
+      schemaVersion: 1,
+      id: 'instrument-administration-source-validation-request.test.crossed-catalog',
+      administrationCompilation: administration.value,
+      sourceInstanceCompilation: sourceHorizon.value,
+    });
+    if (!sourceValidation.ok) throw new Error(sourceValidation.error.message);
+
+    const targetRequest = makeRequest();
+    addSyntheticInstrumentResponses(targetRequest, 1);
+    const targetSnapshot = expectSuccess(targetRequest);
+    expect(
+      compileCatalogInstrumentAdministrationAttachment({
+        schemaVersion: 1,
+        id: 'catalog-instrument-administration-request.test.crossed',
+        catalogSnapshot: targetSnapshot,
+        administrationSourceValidation: sourceValidation.value,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'ITEM_RESPONSE_COMPILATION_MISMATCH' },
+    });
+  });
+
+  it('derives D-273 patient identity and seed from one exact verified catalog snapshot', () => {
+    const snapshot = expectSuccess(makeRequest());
+    const content = makeLauncherPresentationContent();
+    const attached = compileCatalogPatientLauncherPresentationAttachment({
+      schemaVersion: 1,
+      id: 'catalog-patient-launcher-presentation-request.test.catalog',
+      catalogSnapshot: snapshot,
+      ...content,
+    });
+    expect(attached.ok).toBe(true);
+    if (!attached.ok) throw new Error(attached.error.message);
+
+    const resolution = attached.value.presentationResolution;
+    expect(resolution.patientStateId).toBe(snapshot.patientInstance.patientState.id);
+    expect(resolution.resolutionRequest.patientStateId).toBe(
+      snapshot.patientInstance.patientState.id,
+    );
+    expect(resolution.resolutionRequest.seed).toBe(snapshot.patientInstance.seed);
+    expect(resolution.resolvedPresentation.patientStateId).toBe(
+      snapshot.patientInstance.patientState.id,
+    );
+    expect(resolution.resolvedPresentation.chiefComplaint.bankRef.id).toBe(
+      'chief-complaint-bank.test.catalog-focused',
+    );
+    expect(resolution.resolvedPresentation).not.toHaveProperty('seed');
+    expect(resolution.resolvedPresentation).not.toHaveProperty('diagnosisId');
+    expect(verifyCatalogPatientLauncherPresentationAttachmentIntegrity(attached.value)).toEqual({
+      ok: true,
+      value: attached.value,
+    });
+
+    const reordered = compileCatalogPatientLauncherPresentationAttachment({
+      schemaVersion: 1,
+      id: 'catalog-patient-launcher-presentation-request.test.catalog',
+      catalogSnapshot: snapshot,
+      presentationProfile: {
+        ...content.presentationProfile,
+        complaintBankBindings: [...content.presentationProfile.complaintBankBindings].reverse(),
+      },
+      firstNamePool: {
+        ...content.firstNamePool,
+        values: [...content.firstNamePool.values].reverse(),
+      },
+      lastNamePool: {
+        ...content.lastNamePool,
+        values: [...content.lastNamePool.values].reverse(),
+      },
+      complaintBanks: [...content.complaintBanks]
+        .reverse()
+        .map((bank) => ({ ...bank, variants: [...bank.variants].reverse() })),
+    });
+    expect(reordered).toEqual(attached);
+  });
+
+  it('rejects caller-supplied launcher identity authority and a tampered catalog snapshot', () => {
+    const snapshot = expectSuccess(makeRequest());
+    const content = makeLauncherPresentationContent();
+    expect(
+      compileCatalogPatientLauncherPresentationAttachment({
+        schemaVersion: 1,
+        id: 'catalog-patient-launcher-presentation-request.test.extra-authority',
+        catalogSnapshot: snapshot,
+        ...content,
+        patientStateId: 'resolved-patient-state.test.caller-supplied',
+        seed: 'caller-supplied-seed',
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const tamperedSnapshot = structuredClone(snapshot);
+    tamperedSnapshot.patientInstance.seed = 'tampered-patient-seed';
+    expect(
+      compileCatalogPatientLauncherPresentationAttachment({
+        schemaVersion: 1,
+        id: 'catalog-patient-launcher-presentation-request.test.tampered-snapshot',
+        catalogSnapshot: tamperedSnapshot,
+        ...content,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'CATALOG_SNAPSHOT_INVALID' },
     });
   });
 

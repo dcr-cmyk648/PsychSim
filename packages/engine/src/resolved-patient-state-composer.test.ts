@@ -1,11 +1,25 @@
 import {
+  BodyMassIndexDerivationDefinitionSchema,
   ConditionClinicalDurationAttachmentArtifactSchema,
   ConditionClinicalDurationAttachmentRequestSchema,
+  ConditionClinicalDurationSourceValidationArtifactSchema,
+  ConditionFunctionalImpairmentAttachmentArtifactSchema,
+  ConditionFunctionalImpairmentAttachmentRequestSchema,
+  ConditionFunctionalImpairmentSourceValidationArtifactSchema,
+  FrozenConditionFunctionalImpairmentProjectionSchema,
+  MeasurementDefinitionSchema,
+  PatientClinicalResultAttachmentArtifactSchema,
+  PatientOwnedMeasurementValueProfileSchema,
+  PatientSceneSourceDefinitionCatalogSchema,
+  PostCompositionPatientStateAssemblyArtifactSchema,
   ResolvedPatientStateCompositionArtifactSchema,
   ResolvedPatientStateCompositionRequestSchema,
+  ResolvedPatientStateSourceValidationArtifactSchema,
   type ClinicalDurationProfile,
   type ClinicalRuleReview,
   type ConditionClinicalDurationResolutionArtifact,
+  type ConditionFunctionalImpairmentProfile,
+  type ConditionFunctionalImpairmentResolutionArtifact,
   type ConditionState,
   type OptionalComorbidityBridgeProfile,
   type OptionalExposureBudgetBridgeProfile,
@@ -20,6 +34,8 @@ import {
   type OptionalReactionHistoryReferenceHorizon,
   type PatientOptionalFeatureModuleDefinition,
   type PatientReactionHistory,
+  type PatientSceneSourceInstanceDefinition,
+  type PatientStateScopedSource,
   type PatientTemplate,
   type PatientTemplateConditionConstraint,
   type ResolvedConditionSource,
@@ -33,7 +49,38 @@ import {
   attachConditionClinicalDurations,
   verifyConditionClinicalDurationAttachmentIntegrity,
 } from './condition-clinical-duration-attachment';
+import {
+  validateConditionClinicalDurationSources,
+  verifyConditionClinicalDurationSourceValidationIntegrity,
+} from './condition-clinical-duration-source-validation';
 import { resolveConditionClinicalDuration } from './clinical-duration-profile-resolver';
+import {
+  attachConditionFunctionalImpairments,
+  verifyConditionFunctionalImpairmentAttachmentIntegrity,
+} from './condition-functional-impairment-attachment';
+import {
+  projectConditionFunctionalImpairmentAttachment,
+  verifyConditionFunctionalImpairmentProjection,
+} from './condition-functional-impairment-projection';
+import { resolveConditionFunctionalImpairment } from './condition-functional-impairment-profile-resolver';
+import {
+  validateConditionFunctionalImpairmentSources,
+  verifyConditionFunctionalImpairmentSourceValidationIntegrity,
+} from './condition-functional-impairment-source-validation';
+import {
+  attachPatientClinicalResults,
+  verifyPatientClinicalResultAttachmentIntegrity,
+} from './patient-clinical-result-attachment';
+import { compileBodyMassIndexDerivation } from './body-mass-index-derivation-compiler';
+import { materializeBodyMassIndexMeasurement } from './body-mass-index-measurement-materializer';
+import { compilePatientClinicalResultCollection } from './patient-clinical-result-collection-compiler';
+import { compilePatientOwnedMeasurement } from './patient-owned-measurement-compiler';
+import { compileTestPatientTemplateClinicalResultRecipe } from './patient-template-clinical-result-recipe-test-fixture';
+import {
+  assemblePostCompositionPatientState,
+  verifyPostCompositionPatientStateAssemblyIntegrity,
+} from './post-composition-patient-state-assembler';
+import { compilePatientSceneSourceInstancesFromCatalog } from './catalog-patient-scene-source-instance-compiler';
 import {
   bridgeOptionalComorbiditiesFromBudget,
   fingerprintOptionalComorbidityBridgeProfile,
@@ -66,6 +113,14 @@ import {
   fingerprintTemplateConditionSelectionProfile,
   fingerprintTemplateConditionSelectionTemplate,
 } from './template-condition-selector';
+import {
+  compilePatientSceneSourceInstances,
+  derivePatientSceneSourceInstanceId,
+} from './patient-scene-source-instance-compiler';
+import {
+  validateResolvedPatientStateSources,
+  verifyResolvedPatientStateSourceValidationIntegrity,
+} from './resolved-patient-state-source-validation';
 
 const approvedReview: ClinicalRuleReview = {
   status: 'approved',
@@ -708,6 +763,9 @@ const makeCoreState = (conditionSource: ResolvedConditionSource): ResolvedPatien
       priorLevelsOfCare: [],
     },
     medicationTolerabilityFindings: [],
+    currentMedicationReportedBenefits: [],
+    currentMedicationDosePositions: [],
+    medicationChangeTemporalRelationships: [],
     reactionHistory: {
       status: 'documented_none',
       medicationAssessmentStatus: 'documented_none',
@@ -719,6 +777,7 @@ const makeCoreState = (conditionSource: ResolvedConditionSource): ResolvedPatien
     structuredTestResults: [],
     clinicalContexts: [],
     clinicalDurations: [],
+    functionalImpairments: [],
     subjectiveBurdenRecords: [],
     propositionState: {
       schemaVersion: 1,
@@ -1037,6 +1096,7 @@ const expectDurationResolution = (input: {
   readonly profileSuffix: string;
   readonly requestSuffix: string;
   readonly seed: string;
+  readonly source?: PatientStateScopedSource;
 }): ConditionClinicalDurationResolutionArtifact => {
   const result = resolveConditionClinicalDuration({
     schemaVersion: 1,
@@ -1044,7 +1104,7 @@ const expectDurationResolution = (input: {
     patientStateId: input.patientStateId,
     conditionState: structuredClone(input.condition),
     profile: makeDurationProfile(input.condition, input.profileSuffix),
-    source: {
+    source: input.source ?? {
       kind: 'patient_report',
       sourceInstanceId: `source-instance.patient.test.attachment.${input.requestSuffix}`,
     },
@@ -1324,6 +1384,2216 @@ describe('D-264 post-composition condition-duration attachment', () => {
     expect(verifyConditionClinicalDurationAttachmentIntegrity(tampered)).toMatchObject({
       ok: false,
       error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
+    });
+  });
+});
+
+const makeFunctionalImpairmentProfile = (
+  condition: ConditionState,
+  profileSuffix: string,
+): ConditionFunctionalImpairmentProfile => ({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: `functional-impairment-profile.test.attachment.${profileSuffix}`,
+  relatedDiagnosisId: condition.diagnosisDefinitionId,
+  options: [
+    {
+      id: `functional-impairment-option.test.attachment.${profileSuffix}.none`,
+      level: 'none',
+    },
+    {
+      id: `functional-impairment-option.test.attachment.${profileSuffix}.moderate`,
+      level: 'moderate',
+    },
+  ],
+  developerOpinionIds: ['developer-opinion.test.functional-impairment-attachment'],
+  review: approvedReview,
+});
+
+const expectFunctionalImpairmentResolution = (input: {
+  readonly patientStateId: string;
+  readonly condition: ConditionState;
+  readonly profileSuffix: string;
+  readonly requestSuffix: string;
+  readonly seed: string;
+  readonly source?: PatientStateScopedSource;
+}): ConditionFunctionalImpairmentResolutionArtifact => {
+  const result = resolveConditionFunctionalImpairment({
+    schemaVersion: 1,
+    id: `condition-functional-impairment-request.test.attachment.${input.requestSuffix}`,
+    patientStateId: input.patientStateId,
+    conditionState: structuredClone(input.condition),
+    profile: makeFunctionalImpairmentProfile(input.condition, input.profileSuffix),
+    source: input.source ?? {
+      kind: 'patient_report',
+      sourceInstanceId: `source-instance.patient.test.functional-impairment.${input.requestSuffix}`,
+    },
+    timeScopeId: input.condition.timeScopeId,
+    seed: input.seed,
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+const expectFunctionalImpairmentAttachment = (
+  patientStateCompositionArtifact: ReturnType<typeof expectComposition>,
+  functionalImpairmentResolutionArtifacts: readonly ConditionFunctionalImpairmentResolutionArtifact[],
+) => {
+  const result = attachConditionFunctionalImpairments({
+    schemaVersion: 1,
+    id: 'condition-functional-impairment-attachment-request.test',
+    patientStateCompositionArtifact,
+    functionalImpairmentResolutionArtifacts,
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+const expectFunctionalImpairmentProjection = (
+  attachment: ReturnType<typeof expectFunctionalImpairmentAttachment>,
+) => {
+  const result = projectConditionFunctionalImpairmentAttachment(attachment);
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+const expectPatientSceneSourceHorizon = (
+  patientStateId: string,
+  definitions: readonly {
+    readonly schemaVersion: 1;
+    readonly contentVersion: string;
+    readonly id: string;
+    readonly kind: PatientStateScopedSource['kind'];
+  }[],
+) => {
+  const result = compilePatientSceneSourceInstances({
+    schemaVersion: 1,
+    id: 'patient-scene-source-instance-request.test.functional-impairment',
+    patientStateId,
+    definitions,
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+describe('D-289 post-composition condition-functional-impairment attachment', () => {
+  it('binds an empty exact collection without mutating the D-208 composition', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const before = JSON.stringify(composition);
+    const attachment = expectFunctionalImpairmentAttachment(composition, []);
+
+    expect(JSON.stringify(composition)).toBe(before);
+    expect(
+      ConditionFunctionalImpairmentAttachmentRequestSchema.parse(attachment.attachmentRequest),
+    ).toEqual(attachment.attachmentRequest);
+    expect(ConditionFunctionalImpairmentAttachmentArtifactSchema.parse(attachment)).toEqual(
+      attachment,
+    );
+    expect(attachment.basePatientStateRef.id).toBe(composition.composedPatientState?.id);
+    expect(attachment.functionalImpairmentResolutionRefs).toEqual([]);
+    expect(attachment.attachedFunctionalImpairments).toEqual([]);
+    expect(verifyConditionFunctionalImpairmentAttachmentIntegrity(attachment)).toEqual({
+      ok: true,
+      value: attachment,
+    });
+  });
+
+  it('attaches one genuine D-267 result without another draw or complexity charge', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const resolution = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'focus-current',
+      requestSuffix: 'focus-current',
+      seed: 'seed.test.functional-impairment-attachment.focus',
+    });
+    const attachment = expectFunctionalImpairmentAttachment(composition, [resolution]);
+
+    expect(attachment.attachedFunctionalImpairments).toEqual([
+      resolution.resolvedFunctionalImpairment,
+    ]);
+    expect(attachment.functionalImpairmentResolutionRefs).toEqual([
+      {
+        id: resolution.id,
+        payloadFingerprint: resolution.payloadFingerprint,
+        patientStateId: baseState.id,
+        conditionStateId: resolution.conditionStateId,
+        profileRef: resolution.profileRef,
+        resolvedFunctionalImpairmentId: resolution.resolvedFunctionalImpairment.id,
+      },
+    ]);
+    expect(
+      attachment.attachmentRequest.patientStateCompositionArtifact.compositionRequest
+        .optionalFeatureArtifact.totalSpent,
+    ).toBe(composition.compositionRequest.optionalFeatureArtifact.totalSpent);
+    expect(
+      attachment.attachmentRequest.patientStateCompositionArtifact.compositionRequest
+        .optionalFeatureArtifact.selectionDraws,
+    ).toEqual(composition.compositionRequest.optionalFeatureArtifact.selectionDraws);
+  });
+
+  it('normalizes multiple exact condition/profile results without losing their targets', () => {
+    const composition = expectComposition(makeScenario([moduleIds.comorbidity]).request);
+    const baseState = composition.composedPatientState!;
+    const resolutions = baseState.conditionStates.map((condition, index) =>
+      expectFunctionalImpairmentResolution({
+        patientStateId: baseState.id,
+        condition,
+        profileSuffix: index === 0 ? 'condition-a' : 'condition-b',
+        requestSuffix: index === 0 ? 'condition-a' : 'condition-b',
+        seed: `seed.test.functional-impairment-attachment.condition-${index}`,
+      }),
+    );
+    const forward = expectFunctionalImpairmentAttachment(composition, resolutions);
+    const reversed = expectFunctionalImpairmentAttachment(composition, [...resolutions].reverse());
+
+    expect(reversed).toEqual(forward);
+    expect(
+      forward.attachedFunctionalImpairments
+        .map((impairment) => impairment.target.conditionStateId)
+        .sort(),
+    ).toEqual(baseState.conditionStates.map((condition) => condition.id).sort());
+  });
+
+  it('rejects crossed patient/condition coordinates and a non-composed D-208 state', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const wrongPatient = expectFunctionalImpairmentResolution({
+      patientStateId: 'resolved-patient-state.test.other',
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'wrong-patient',
+      requestSuffix: 'wrong-patient',
+      seed: 'seed.test.functional-impairment-attachment.wrong-patient',
+    });
+    expect(
+      attachConditionFunctionalImpairments({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-attachment-request.test.wrong-patient',
+        patientStateCompositionArtifact: composition,
+        functionalImpairmentResolutionArtifacts: [wrongPatient],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+
+    const changedCondition = {
+      ...baseState.conditionStates[0]!,
+      clinicalStateId: 'clinical-state.test.changed',
+    };
+    const wrongCondition = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: changedCondition,
+      profileSuffix: 'wrong-condition',
+      requestSuffix: 'wrong-condition',
+      seed: 'seed.test.functional-impairment-attachment.wrong-condition',
+    });
+    expect(
+      attachConditionFunctionalImpairments({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-attachment-request.test.wrong-condition',
+        patientStateCompositionArtifact: composition,
+        functionalImpairmentResolutionArtifacts: [wrongCondition],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'CONDITION_CONTEXT_MISMATCH' },
+    });
+
+    const notComposed = expectComposition(makeScenario([moduleIds.other]).request);
+    expect(
+      attachConditionFunctionalImpairments({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-attachment-request.test.not-composed',
+        patientStateCompositionArtifact: notComposed,
+        functionalImpairmentResolutionArtifacts: [],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_NOT_COMPOSED' },
+    });
+  });
+
+  it('rejects duplicate assignments and detects upstream or replay tampering', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const first = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'duplicate',
+      requestSuffix: 'duplicate-a',
+      seed: 'seed.test.functional-impairment-attachment.duplicate-a',
+    });
+    const second = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'duplicate',
+      requestSuffix: 'duplicate-b',
+      seed: 'seed.test.functional-impairment-attachment.duplicate-b',
+    });
+    expect(
+      attachConditionFunctionalImpairments({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-attachment-request.test.duplicate',
+        patientStateCompositionArtifact: composition,
+        functionalImpairmentResolutionArtifacts: [first, second],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const crossedComposition = structuredClone(composition);
+    crossedComposition.compositionRequest.corePatientState.demographics.ageYears += 1;
+    expect(
+      attachConditionFunctionalImpairments({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-attachment-request.test.invalid-composition',
+        patientStateCompositionArtifact: crossedComposition,
+        functionalImpairmentResolutionArtifacts: [first],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_COMPOSITION_INVALID' },
+    });
+
+    const crossedResolution = structuredClone(first);
+    crossedResolution.compileRequest.seed = 'seed.test.functional-impairment-attachment.changed';
+    expect(
+      attachConditionFunctionalImpairments({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-attachment-request.test.invalid-resolution',
+        patientStateCompositionArtifact: composition,
+        functionalImpairmentResolutionArtifacts: [crossedResolution],
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'FUNCTIONAL_IMPAIRMENT_RESOLUTION_INVALID' },
+    });
+
+    const attachment = expectFunctionalImpairmentAttachment(composition, [first]);
+    const tampered = structuredClone(attachment);
+    tampered.inputFingerprint =
+      'fingerprint.condition-functional-impairment-attachment.input.fnv1a64.0000000000000000';
+    expect(verifyConditionFunctionalImpairmentAttachmentIntegrity(tampered)).toMatchObject({
+      ok: false,
+      error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
+    });
+  });
+});
+
+describe('D-290 target-redacted condition-functional-impairment projection', () => {
+  it('projects an empty exact D-289 binding without manufacturing a result', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const attachment = expectFunctionalImpairmentAttachment(composition, []);
+    const projection = expectFunctionalImpairmentProjection(attachment);
+
+    expect(projection).toEqual({
+      schemaVersion: 1,
+      id: `condition-functional-impairment-projection.${attachment.payloadFingerprint.slice(-16)}`,
+      patientStateId: attachment.basePatientStateRef.id,
+      functionalImpairments: [],
+    });
+    expect(FrozenConditionFunctionalImpairmentProjectionSchema.parse(projection)).toEqual(
+      projection,
+    );
+    expect(verifyConditionFunctionalImpairmentProjection(attachment, projection)).toEqual({
+      ok: true,
+      value: projection,
+    });
+  });
+
+  it('retains only level, source kind, and time while redacting target and generation audit', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const resolution = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'projection',
+      requestSuffix: 'projection',
+      seed: 'seed.test.functional-impairment-projection',
+    });
+    const attachment = expectFunctionalImpairmentAttachment(composition, [resolution]);
+    const projection = expectFunctionalImpairmentProjection(attachment);
+
+    expect(projection.functionalImpairments).toEqual([
+      {
+        schemaVersion: 1,
+        id: resolution.resolvedFunctionalImpairment.id,
+        level: resolution.resolvedFunctionalImpairment.level,
+        sourceKind: 'patient_report',
+        timeScopeId: resolution.timeScopeId,
+      },
+    ]);
+    const frozen = projection.functionalImpairments[0]!;
+    expect(frozen).not.toHaveProperty('target');
+    expect(frozen).not.toHaveProperty('conditionStateId');
+    expect(frozen).not.toHaveProperty('relatedDiagnosisId');
+    expect(frozen).not.toHaveProperty('functionalImpairmentProfileId');
+    expect(frozen).not.toHaveProperty('functionalImpairmentOptionId');
+    expect(frozen).not.toHaveProperty('source');
+    expect(frozen).not.toHaveProperty('sourceInstanceId');
+    expect(frozen).not.toHaveProperty('resolution');
+    expect(frozen).not.toHaveProperty('stableDrawId');
+    expect(projection).not.toHaveProperty('attachmentRequest');
+    expect(projection).not.toHaveProperty('payloadFingerprint');
+  });
+
+  it('uses one stable ID-ordered projection for set-like D-289 inputs', () => {
+    const composition = expectComposition(makeScenario([moduleIds.comorbidity]).request);
+    const baseState = composition.composedPatientState!;
+    const resolutions = baseState.conditionStates.map((condition, index) =>
+      expectFunctionalImpairmentResolution({
+        patientStateId: baseState.id,
+        condition,
+        profileSuffix: `projection-${index}`,
+        requestSuffix: `projection-${index}`,
+        seed: `seed.test.functional-impairment-projection.${index}`,
+      }),
+    );
+    const forward = expectFunctionalImpairmentAttachment(composition, resolutions);
+    const reversed = expectFunctionalImpairmentAttachment(composition, [...resolutions].reverse());
+    const forwardProjection = expectFunctionalImpairmentProjection(forward);
+    const reversedProjection = expectFunctionalImpairmentProjection(reversed);
+
+    expect(reversedProjection).toEqual(forwardProjection);
+    expect(forwardProjection.functionalImpairments.map((record) => record.id)).toEqual(
+      forwardProjection.functionalImpairments.map((record) => record.id).sort(),
+    );
+  });
+
+  it('rejects a tampered D-289 source or a crossed projection', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const resolution = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'tamper',
+      requestSuffix: 'tamper',
+      seed: 'seed.test.functional-impairment-projection.tamper',
+    });
+    const attachment = expectFunctionalImpairmentAttachment(composition, [resolution]);
+    const projection = expectFunctionalImpairmentProjection(attachment);
+
+    const tamperedAttachment = structuredClone(attachment);
+    tamperedAttachment.inputFingerprint =
+      'fingerprint.condition-functional-impairment-attachment.input.fnv1a64.0000000000000000';
+    expect(projectConditionFunctionalImpairmentAttachment(tamperedAttachment)).toMatchObject({
+      ok: false,
+      error: { code: 'FUNCTIONAL_IMPAIRMENT_ATTACHMENT_INVALID' },
+    });
+
+    const invalidProjection = structuredClone(projection);
+    invalidProjection.functionalImpairments.push(projection.functionalImpairments[0]!);
+    expect(
+      verifyConditionFunctionalImpairmentProjection(attachment, invalidProjection),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_PROJECTION' },
+    });
+
+    const crossedProjection = structuredClone(projection);
+    crossedProjection.functionalImpairments[0]!.level =
+      crossedProjection.functionalImpairments[0]!.level === 'severe' ? 'mild' : 'severe';
+    expect(
+      verifyConditionFunctionalImpairmentProjection(attachment, crossedProjection),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PROJECTION_MISMATCH' },
+    });
+  });
+});
+
+describe('D-292 condition-functional-impairment source validation', () => {
+  it('validates an empty D-289 collection against an empty exact-patient D-291 horizon', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const attachment = expectFunctionalImpairmentAttachment(composition, []);
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, []);
+    const result = validateConditionFunctionalImpairmentSources({
+      schemaVersion: 1,
+      id: 'condition-functional-impairment-source-validation-request.test.empty',
+      functionalImpairmentAttachment: attachment,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toEqual([]);
+    expect(result.value.projection.functionalImpairments).toEqual([]);
+    expect(ConditionFunctionalImpairmentSourceValidationArtifactSchema.parse(result.value)).toEqual(
+      result.value,
+    );
+    expect(verifyConditionFunctionalImpairmentSourceValidationIntegrity(result.value)).toEqual({
+      ok: true,
+      value: result.value,
+    });
+  });
+
+  it('proves one D-267 source against the independent D-291 horizon and carries D-290 forward', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, [
+      {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'patient-scene-source-definition.test.functional-impairment.patient-report',
+        kind: 'patient_report',
+      },
+    ]);
+    const sourceInstance = sourceHorizon.sourceInstances[0]!;
+    const resolution = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'source-validation',
+      requestSuffix: 'source-validation',
+      seed: 'seed.test.functional-impairment-source-validation',
+      source: {
+        kind: sourceInstance.kind,
+        sourceInstanceId: sourceInstance.id,
+      },
+    });
+    const attachment = expectFunctionalImpairmentAttachment(composition, [resolution]);
+    const result = validateConditionFunctionalImpairmentSources({
+      schemaVersion: 1,
+      id: 'condition-functional-impairment-source-validation-request.test.complete',
+      functionalImpairmentAttachment: attachment,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toEqual([
+      {
+        resolvedFunctionalImpairmentId: resolution.resolvedFunctionalImpairment.id,
+        sourceInstanceId: sourceInstance.id,
+        sourceKind: 'patient_report',
+      },
+    ]);
+    expect(result.value.projection).toEqual(expectFunctionalImpairmentProjection(attachment));
+    expect(result.value).not.toHaveProperty('credibility');
+    expect(result.value).not.toHaveProperty('accuracy');
+    expect(result.value).not.toHaveProperty('informationActionId');
+  });
+
+  it('rejects a crossed patient horizon, a missing instance, or a crossed source kind', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, [
+      {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'patient-scene-source-definition.test.functional-impairment.patient-report',
+        kind: 'patient_report',
+      },
+    ]);
+    const sourceInstance = sourceHorizon.sourceInstances[0]!;
+    const missingSourceResolution = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'missing-source',
+      requestSuffix: 'missing-source',
+      seed: 'seed.test.functional-impairment-source-validation.missing',
+    });
+    expect(
+      validateConditionFunctionalImpairmentSources({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-source-validation-request.test.missing-source',
+        functionalImpairmentAttachment: expectFunctionalImpairmentAttachment(composition, [
+          missingSourceResolution,
+        ]),
+        sourceInstanceCompilation: sourceHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const crossedKindResolution = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'crossed-kind',
+      requestSuffix: 'crossed-kind',
+      seed: 'seed.test.functional-impairment-source-validation.crossed-kind',
+      source: {
+        kind: 'collateral_report',
+        sourceInstanceId: sourceInstance.id,
+      },
+    });
+    expect(
+      validateConditionFunctionalImpairmentSources({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-source-validation-request.test.crossed-kind',
+        functionalImpairmentAttachment: expectFunctionalImpairmentAttachment(composition, [
+          crossedKindResolution,
+        ]),
+        sourceInstanceCompilation: sourceHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const correctResolution = expectFunctionalImpairmentResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'crossed-patient',
+      requestSuffix: 'crossed-patient',
+      seed: 'seed.test.functional-impairment-source-validation.crossed-patient',
+      source: {
+        kind: sourceInstance.kind,
+        sourceInstanceId: sourceInstance.id,
+      },
+    });
+    expect(
+      validateConditionFunctionalImpairmentSources({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-source-validation-request.test.crossed-patient',
+        functionalImpairmentAttachment: expectFunctionalImpairmentAttachment(composition, [
+          correctResolution,
+        ]),
+        sourceInstanceCompilation: expectPatientSceneSourceHorizon(
+          'resolved-patient-state.test.other',
+          [],
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+  });
+
+  it('detects upstream and retained-artifact tampering', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const attachment = expectFunctionalImpairmentAttachment(composition, []);
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, []);
+    const result = validateConditionFunctionalImpairmentSources({
+      schemaVersion: 1,
+      id: 'condition-functional-impairment-source-validation-request.test.tamper',
+      functionalImpairmentAttachment: attachment,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    const upstreamTamper = structuredClone(sourceHorizon);
+    upstreamTamper.inputFingerprint =
+      'fingerprint.patient-scene-source-instance-compilation.input.fnv1a64.0000000000000000';
+    expect(
+      validateConditionFunctionalImpairmentSources({
+        schemaVersion: 1,
+        id: 'condition-functional-impairment-source-validation-request.test.upstream-tamper',
+        functionalImpairmentAttachment: attachment,
+        sourceInstanceCompilation: upstreamTamper,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_HORIZON_INVALID' },
+    });
+
+    const retainedTamper = structuredClone(result.value);
+    retainedTamper.inputFingerprint =
+      'fingerprint.condition-functional-impairment-source-validation.input.fnv1a64.0000000000000000';
+    expect(
+      verifyConditionFunctionalImpairmentSourceValidationIntegrity(retainedTamper),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
+    });
+  });
+});
+
+describe('D-294 condition-clinical-duration source validation', () => {
+  it('validates an empty D-264 attachment against an empty exact-patient D-291 horizon', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const attachment = expectDurationAttachment(composition, []);
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, []);
+    const result = validateConditionClinicalDurationSources({
+      schemaVersion: 1,
+      id: 'condition-clinical-duration-source-validation-request.test.empty',
+      durationAttachment: attachment,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toEqual([]);
+    expect(result.value.composedPatientStateRef).toEqual({
+      id: attachment.composedPatientState.id,
+      fingerprint: attachment.composedPatientStateFingerprint,
+    });
+    expect(ConditionClinicalDurationSourceValidationArtifactSchema.parse(result.value)).toEqual(
+      result.value,
+    );
+    expect(verifyConditionClinicalDurationSourceValidationIntegrity(result.value)).toEqual({
+      ok: true,
+      value: result.value,
+    });
+  });
+
+  it('proves one D-263 duration source and preserves the exact D-264 composed-state reference', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, [
+      {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'patient-scene-source-definition.test.condition-duration.patient-report',
+        kind: 'patient_report',
+      },
+    ]);
+    const sourceInstance = sourceHorizon.sourceInstances[0]!;
+    const resolution = expectDurationResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'source-validation',
+      requestSuffix: 'source-validation',
+      seed: 'seed.test.condition-duration-source-validation',
+      source: {
+        kind: sourceInstance.kind,
+        sourceInstanceId: sourceInstance.id,
+      },
+    });
+    const attachment = expectDurationAttachment(composition, [resolution]);
+    const result = validateConditionClinicalDurationSources({
+      schemaVersion: 1,
+      id: 'condition-clinical-duration-source-validation-request.test.complete',
+      durationAttachment: attachment,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toEqual([
+      {
+        resolvedClinicalDurationId: resolution.resolvedDuration.id,
+        sourceInstanceId: sourceInstance.id,
+        sourceKind: 'patient_report',
+      },
+    ]);
+    expect(result.value.patientStateId).toBe(baseState.id);
+    expect(result.value.composedPatientStateRef.id).toBe(attachment.composedPatientState.id);
+    expect(result.value.composedPatientStateRef.id).not.toBe(baseState.id);
+    expect(result.value).not.toHaveProperty('credibility');
+    expect(result.value).not.toHaveProperty('probability');
+    expect(result.value).not.toHaveProperty('informationActionId');
+  });
+
+  it('rejects a crossed patient horizon, a missing instance, or a crossed source kind', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, [
+      {
+        schemaVersion: 1,
+        contentVersion: '1.0.0',
+        id: 'patient-scene-source-definition.test.condition-duration.patient-report',
+        kind: 'patient_report',
+      },
+    ]);
+    const sourceInstance = sourceHorizon.sourceInstances[0]!;
+
+    expect(
+      validateConditionClinicalDurationSources({
+        schemaVersion: 1,
+        id: 'condition-clinical-duration-source-validation-request.test.missing',
+        durationAttachment: expectDurationAttachment(composition, [
+          expectDurationResolution({
+            patientStateId: baseState.id,
+            condition: baseState.conditionStates[0]!,
+            profileSuffix: 'missing-source',
+            requestSuffix: 'missing-source',
+            seed: 'seed.test.condition-duration-source-validation.missing',
+          }),
+        ]),
+        sourceInstanceCompilation: sourceHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    expect(
+      validateConditionClinicalDurationSources({
+        schemaVersion: 1,
+        id: 'condition-clinical-duration-source-validation-request.test.crossed-kind',
+        durationAttachment: expectDurationAttachment(composition, [
+          expectDurationResolution({
+            patientStateId: baseState.id,
+            condition: baseState.conditionStates[0]!,
+            profileSuffix: 'crossed-kind',
+            requestSuffix: 'crossed-kind',
+            seed: 'seed.test.condition-duration-source-validation.crossed-kind',
+            source: {
+              kind: 'collateral_report',
+              sourceInstanceId: sourceInstance.id,
+            },
+          }),
+        ]),
+        sourceInstanceCompilation: sourceHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const correctResolution = expectDurationResolution({
+      patientStateId: baseState.id,
+      condition: baseState.conditionStates[0]!,
+      profileSuffix: 'crossed-patient',
+      requestSuffix: 'crossed-patient',
+      seed: 'seed.test.condition-duration-source-validation.crossed-patient',
+      source: {
+        kind: sourceInstance.kind,
+        sourceInstanceId: sourceInstance.id,
+      },
+    });
+    expect(
+      validateConditionClinicalDurationSources({
+        schemaVersion: 1,
+        id: 'condition-clinical-duration-source-validation-request.test.crossed-patient',
+        durationAttachment: expectDurationAttachment(composition, [correctResolution]),
+        sourceInstanceCompilation: expectPatientSceneSourceHorizon(
+          'resolved-patient-state.test.other',
+          [],
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+  });
+
+  it('detects upstream and retained-artifact tampering', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const attachment = expectDurationAttachment(composition, []);
+    const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, []);
+    const result = validateConditionClinicalDurationSources({
+      schemaVersion: 1,
+      id: 'condition-clinical-duration-source-validation-request.test.tamper',
+      durationAttachment: attachment,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    const upstreamTamper = structuredClone(attachment);
+    upstreamTamper.inputFingerprint =
+      'fingerprint.condition-clinical-duration-attachment.input.fnv1a64.0000000000000000';
+    expect(
+      validateConditionClinicalDurationSources({
+        schemaVersion: 1,
+        id: 'condition-clinical-duration-source-validation-request.test.upstream-tamper',
+        durationAttachment: upstreamTamper,
+        sourceInstanceCompilation: sourceHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'DURATION_ATTACHMENT_INVALID' },
+    });
+
+    const retainedTamper = structuredClone(result.value);
+    retainedTamper.inputFingerprint =
+      'fingerprint.condition-clinical-duration-source-validation.input.fnv1a64.0000000000000000';
+    expect(verifyConditionClinicalDurationSourceValidationIntegrity(retainedTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
+    });
+  });
+});
+
+const patientStateSourceDefinitions = (): PatientSceneSourceInstanceDefinition[] => [
+  {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'patient-scene-source-definition.test.composed-state.patient-report',
+    kind: 'patient_report',
+  },
+  {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'patient-scene-source-definition.test.composed-state.collateral-report',
+    kind: 'collateral_report',
+  },
+  {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'patient-scene-source-definition.test.composed-state.record-review',
+    kind: 'record_review',
+  },
+  {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'patient-scene-source-definition.test.composed-state.clinician-observation',
+    kind: 'clinician_observation',
+  },
+  {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'patient-scene-source-definition.test.composed-state.measurement',
+    kind: 'measurement',
+  },
+  {
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'patient-scene-source-definition.test.composed-state.laboratory-result',
+    kind: 'laboratory_result',
+  },
+];
+
+const patientStateSourceId = (
+  definitions: readonly PatientSceneSourceInstanceDefinition[],
+  kind: PatientSceneSourceInstanceDefinition['kind'],
+): string => derivePatientSceneSourceInstanceId(definitions.find((entry) => entry.kind === kind)!);
+
+const makePatientStateSourceValidationScenario = () => {
+  const definitions = patientStateSourceDefinitions();
+  const patientReportSourceId = patientStateSourceId(definitions, 'patient_report');
+  const collateralReportSourceId = patientStateSourceId(definitions, 'collateral_report');
+  const recordReviewSourceId = patientStateSourceId(definitions, 'record_review');
+  const clinicianObservationSourceId = patientStateSourceId(definitions, 'clinician_observation');
+  const measurementSourceId = patientStateSourceId(definitions, 'measurement');
+  const laboratoryResultSourceId = patientStateSourceId(definitions, 'laboratory_result');
+  const base = makeScenario([]).request;
+  const conditionStateId = base.corePatientState.conditionStates[0]!.id;
+  const regimenEntryId = 'medication-regimen-entry.test.composed-state.source-validation';
+  const observationId = 'categorical-observation.test.composed-state.restlessness';
+  const propositionId = 'latent-proposition.test.composed-state.attended-appointment';
+  const corePatientState: ResolvedPatientState = {
+    ...base.corePatientState,
+    diagnosisRecordEntries: [
+      {
+        schemaVersion: 1,
+        id: 'diagnosis-record.test.composed-state.source-validation',
+        mappedDiagnosisDefinitionId: null,
+        mappedDiagnosisDefinitionContentVersion: null,
+        recordedLabel: 'Historical chart diagnosis',
+        assertion: 'historical',
+        source: {
+          kind: 'record_review',
+          sourceInstanceId: recordReviewSourceId,
+        },
+        timeScopeId: 'time-scope.historical',
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.patient-state-composition',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ],
+    medicationRegimenEntries: [
+      {
+        recordVersion: 2,
+        id: regimenEntryId,
+        medicationIdentityId: 'medication.test.composed-state.sertraline',
+        clinicalRole: 'psychiatric',
+        status: 'active',
+        adherence: 'consistent',
+        prescribedForDiagnosisId: null,
+        source: 'patient_report',
+        knownAtOpening: true,
+        impactClassification: 'fit_relevant',
+      },
+    ],
+    currentMedicationReportedBenefits: [
+      {
+        recordVersion: 1,
+        id: 'current-medication-benefit.test.composed-state.source-validation',
+        subject: {
+          kind: 'current_regimen_entry',
+          modelVersion: 'finding-record-subject.v1',
+          regimenEntryId,
+        },
+        reportedBenefit: 'partial',
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: patientReportSourceId,
+        },
+        timeScopeId: 'time-scope.current',
+      },
+    ],
+    currentMedicationDosePositions: [
+      {
+        recordVersion: 1,
+        id: 'current-medication-dose-position.test.composed-state.source-validation',
+        subject: {
+          kind: 'current_regimen_entry',
+          modelVersion: 'finding-record-subject.v1',
+          regimenEntryId,
+        },
+        position: 'below_maximum',
+        source: {
+          kind: 'collateral_report',
+          sourceInstanceId: collateralReportSourceId,
+        },
+        timeScopeId: 'time-scope.current',
+      },
+    ],
+    medicationChangeTemporalRelationships: [
+      {
+        recordVersion: 1,
+        id: 'medication-change-temporal.test.composed-state.source-validation',
+        subject: {
+          kind: 'current_regimen_entry',
+          modelVersion: 'finding-record-subject.v1',
+          regimenEntryId,
+        },
+        changeKind: 'increased',
+        changeTimeScopeId: 'time-scope.recent',
+        target: {
+          kind: 'categorical_observation',
+          categoricalObservationId: observationId,
+        },
+        targetTimeScopeId: 'time-scope.current',
+        relationship: 'change_before_target',
+        source: {
+          kind: 'record_review',
+          sourceInstanceId: recordReviewSourceId,
+        },
+      },
+    ],
+    measurements: [
+      {
+        schemaVersion: 1,
+        id: 'measurement.test.composed-state.weight',
+        definitionId: 'measurement.weight',
+        definitionContentVersion: '1.0.0',
+        value: 82,
+        displayValue: '82 kg',
+        unit: {
+          display: 'kg',
+          ucumCode: 'kg',
+        },
+        contextValues: [],
+        timeScopeId: 'time-scope.current',
+        source: {
+          kind: 'measurement',
+          sourceInstanceId: measurementSourceId,
+        },
+        interpretation: {
+          kind: 'not_interpreted',
+        },
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.patient-state-composition',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ],
+    categoricalObservations: [
+      {
+        schemaVersion: 1,
+        id: observationId,
+        definitionId: 'categorical-observation.test.restlessness',
+        definitionContentVersion: '1.0.0',
+        valueId: 'categorical-value.present',
+        displayValue: 'Restlessness observed',
+        timeScopeId: 'time-scope.current',
+        source: {
+          kind: 'clinician_observation',
+          sourceInstanceId: clinicianObservationSourceId,
+        },
+        interpretationIds: [],
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.patient-state-composition',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ],
+    structuredTestResults: [
+      {
+        schemaVersion: 1,
+        id: 'structured-test-result.test.composed-state.tsh',
+        testDefinitionId: 'test.tsh',
+        testDefinitionContentVersion: '1.0.0',
+        source: {
+          kind: 'laboratory_result',
+          sourceInstanceId: laboratoryResultSourceId,
+        },
+        timeScopeId: 'time-scope.current',
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.patient-state-composition',
+          ownerContentVersion: '1.0.0',
+        },
+        kind: 'binary',
+        outcome: 'negative',
+        displayValue: 'No flagged result',
+        interpretationIds: [],
+      },
+    ],
+    clinicalDurations: [
+      {
+        schemaVersion: 1,
+        id: 'clinical-duration.test.composed-state.current-episode',
+        target: {
+          kind: 'condition_state',
+          conditionStateId,
+        },
+        value: 8,
+        unit: 'week',
+        durationProfileId: 'clinical-duration-profile.test.composed-state',
+        durationProfileContentVersion: '1.0.0',
+        durationOptionId: 'clinical-duration-option.test.eight-weeks',
+        relatedDiagnosisId: base.corePatientState.conditionStates[0]!.diagnosisDefinitionId,
+        interpretation: 'supports_authored_state',
+        criterionId: null,
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: patientReportSourceId,
+        },
+        timeScopeId: 'time-scope.current',
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.patient-state-composition',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ],
+    functionalImpairments: [
+      {
+        schemaVersion: 1,
+        id: 'functional-impairment.test.composed-state.current-episode',
+        target: {
+          kind: 'condition_state',
+          conditionStateId,
+        },
+        attribution: 'condition_attributed',
+        level: 'moderate',
+        functionalImpairmentProfileId:
+          'functional-impairment-profile.test.composed-state.current-episode',
+        functionalImpairmentProfileContentVersion: '1.0.0',
+        functionalImpairmentOptionId:
+          'functional-impairment-option.test.composed-state.current-episode.moderate',
+        relatedDiagnosisId: base.corePatientState.conditionStates[0]!.diagnosisDefinitionId,
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: patientReportSourceId,
+        },
+        timeScopeId: 'time-scope.current',
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.patient-state-composition',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ],
+    subjectiveBurdenRecords: [
+      {
+        schemaVersion: 1,
+        id: 'subjective-burden.test.composed-state.current-episode',
+        target: {
+          kind: 'condition_state',
+          conditionStateId,
+        },
+        ordinalScaleId: 'ordinal-scale.test.subjective-burden',
+        ordinalScaleContentVersion: '1.0.0',
+        ordinalValueId: 'ordinal-value.test.somewhat-bothersome',
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: patientReportSourceId,
+        },
+        timeScopeId: 'time-scope.current',
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.patient-state-composition',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ],
+    propositionState: {
+      schemaVersion: 1,
+      id: 'resolved-proposition-state.test.composed-state.source-validation',
+      propositions: [
+        {
+          schemaVersion: 1,
+          id: propositionId,
+          definitionId: 'latent-proposition-definition.test.attended-appointment',
+          definitionContentVersion: '1.0.0',
+          auditStatement: 'The patient attended the named appointment.',
+          truth: true,
+          resolution: {
+            origin: 'authored',
+            ownerId: 'patient-template.test.patient-state-composition',
+            ownerContentVersion: '1.0.0',
+          },
+        },
+      ],
+      evidence: [
+        {
+          schemaVersion: 1,
+          id: 'proposition-evidence.test.composed-state.patient-report',
+          propositionId,
+          assertion: 'supports',
+          relationshipToTruth: 'aligned',
+          source: {
+            kind: 'patient_report',
+            sourceInstanceId: patientReportSourceId,
+          },
+          timeScopeId: 'time-scope.current',
+          claimOriginId: 'claim-origin.test.composed-state.patient-report',
+          dependencyGroupIds: [],
+          resolution: {
+            origin: 'authored',
+            ownerId: 'patient-template.test.patient-state-composition',
+            ownerContentVersion: '1.0.0',
+          },
+        },
+      ],
+      dependencyGroups: [],
+      beliefAppraisals: [],
+    },
+  };
+  const composition = expectComposition({
+    ...base,
+    id: 'patient-state-composition-request.test.source-validation',
+    corePatientState,
+  });
+  const sourceHorizon = expectPatientSceneSourceHorizon(
+    composition.composedPatientState!.id,
+    definitions,
+  );
+  return {
+    composition,
+    definitions,
+    sourceHorizon,
+  };
+};
+
+describe('D-301 composed patient-state source validation', () => {
+  it('validates an empty source-bearing state against an empty exact-patient horizon', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const sourceHorizon = expectPatientSceneSourceHorizon(composition.composedPatientState!.id, []);
+    const result = validateResolvedPatientStateSources({
+      schemaVersion: 1,
+      id: 'resolved-patient-state-source-validation-request.test.empty',
+      patientStateComposition: composition,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toEqual([]);
+    expect(ResolvedPatientStateSourceValidationArtifactSchema.parse(result.value)).toEqual(
+      result.value,
+    );
+    expect(verifyResolvedPatientStateSourceValidationIntegrity(result.value)).toEqual({
+      ok: true,
+      value: result.value,
+    });
+  });
+
+  it('proves exact-kind ownership for every source-bearing patient-state lane', () => {
+    const { composition, sourceHorizon } = makePatientStateSourceValidationScenario();
+    const result = validateResolvedPatientStateSources({
+      schemaVersion: 1,
+      id: 'resolved-patient-state-source-validation-request.test.complete',
+      patientStateComposition: composition,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toHaveLength(11);
+    expect(
+      result.value.validatedSourceBindings.filter(
+        (binding) => binding.validationMode === 'source_and_kind',
+      ),
+    ).toHaveLength(11);
+    expect(result.value.validatedSourceBindings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          lane: 'categorical_observation',
+          sourceKind: 'clinician_observation',
+        }),
+        expect.objectContaining({
+          lane: 'measurement',
+          sourceKind: 'measurement',
+        }),
+        expect.objectContaining({
+          lane: 'functional_impairment',
+          sourceKind: 'patient_report',
+        }),
+        expect.objectContaining({
+          lane: 'structured_test_result',
+          sourceKind: 'laboratory_result',
+        }),
+      ]),
+    );
+    expect(
+      result.value.validatedSourceBindings.every((binding) => binding.sourceDefinitionId),
+    ).toBe(true);
+    expect(result.value).not.toHaveProperty('credibility');
+    expect(result.value).not.toHaveProperty('accuracy');
+    expect(result.value).not.toHaveProperty('points');
+  });
+
+  it('rejects a crossed patient, missing source, or exact-kind mismatch in every lane', () => {
+    const { composition, definitions } = makePatientStateSourceValidationScenario();
+    expect(
+      validateResolvedPatientStateSources({
+        schemaVersion: 1,
+        id: 'resolved-patient-state-source-validation-request.test.crossed-patient',
+        patientStateComposition: composition,
+        sourceInstanceCompilation: expectPatientSceneSourceHorizon(
+          'resolved-patient-state.test.crossed',
+          definitions,
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+
+    expect(
+      validateResolvedPatientStateSources({
+        schemaVersion: 1,
+        id: 'resolved-patient-state-source-validation-request.test.missing-source',
+        patientStateComposition: composition,
+        sourceInstanceCompilation: expectPatientSceneSourceHorizon(
+          composition.composedPatientState!.id,
+          definitions.filter((definition) => definition.kind !== 'measurement'),
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const measurementMismatchRequest = structuredClone(composition.compositionRequest);
+    measurementMismatchRequest.id =
+      'patient-state-composition-request.test.source-validation.measurement-kind-mismatch';
+    measurementMismatchRequest.corePatientState.measurements[0]!.source.kind = 'laboratory_result';
+    const measurementMismatchComposition = expectComposition(measurementMismatchRequest);
+    expect(
+      validateResolvedPatientStateSources({
+        schemaVersion: 1,
+        id: 'resolved-patient-state-source-validation-request.test.measurement-kind-mismatch',
+        patientStateComposition: measurementMismatchComposition,
+        sourceInstanceCompilation: expectPatientSceneSourceHorizon(
+          measurementMismatchComposition.composedPatientState!.id,
+          definitions,
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const base = makeScenario([]).request;
+    const recordDefinition = definitions.find((definition) => definition.kind === 'record_review')!;
+    const mismatchedComposition = expectComposition({
+      ...base,
+      id: 'patient-state-composition-request.test.source-validation.kind-mismatch',
+      corePatientState: {
+        ...base.corePatientState,
+        diagnosisRecordEntries: [
+          {
+            schemaVersion: 1,
+            id: 'diagnosis-record.test.composed-state.kind-mismatch',
+            mappedDiagnosisDefinitionId: null,
+            mappedDiagnosisDefinitionContentVersion: null,
+            recordedLabel: 'Crossed source-kind fixture',
+            assertion: 'questioned',
+            source: {
+              kind: 'collateral_report',
+              sourceInstanceId: derivePatientSceneSourceInstanceId(recordDefinition),
+            },
+            timeScopeId: 'time-scope.current',
+            resolution: {
+              origin: 'authored',
+              ownerId: 'patient-template.test.patient-state-composition',
+              ownerContentVersion: '1.0.0',
+            },
+          },
+        ],
+      },
+    });
+    expect(
+      validateResolvedPatientStateSources({
+        schemaVersion: 1,
+        id: 'resolved-patient-state-source-validation-request.test.kind-mismatch',
+        patientStateComposition: mismatchedComposition,
+        sourceInstanceCompilation: expectPatientSceneSourceHorizon(
+          mismatchedComposition.composedPatientState!.id,
+          definitions,
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+  });
+
+  it('detects upstream and retained-artifact tampering', () => {
+    const { composition, sourceHorizon } = makePatientStateSourceValidationScenario();
+    const result = validateResolvedPatientStateSources({
+      schemaVersion: 1,
+      id: 'resolved-patient-state-source-validation-request.test.tamper',
+      patientStateComposition: composition,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    const upstreamTamper = structuredClone(composition);
+    upstreamTamper.inputFingerprint =
+      'fingerprint.resolved-patient-state-composition.input.fnv1a64.0000000000000000';
+    expect(
+      validateResolvedPatientStateSources({
+        schemaVersion: 1,
+        id: 'resolved-patient-state-source-validation-request.test.upstream-tamper',
+        patientStateComposition: upstreamTamper,
+        sourceInstanceCompilation: sourceHorizon,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_COMPOSITION_INVALID' },
+    });
+
+    const retainedTamper = structuredClone(result.value);
+    retainedTamper.inputFingerprint =
+      'fingerprint.resolved-patient-state-source-validation.input.fnv1a64.0000000000000000';
+    expect(verifyResolvedPatientStateSourceValidationIntegrity(retainedTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
+    });
+  });
+});
+
+const clinicalResultSourceCatalog = PatientSceneSourceDefinitionCatalogSchema.parse({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'registry.catalog.patient-scene-source-definitions.test.result-attachment',
+  definitions: [
+    {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'patient-scene-source-role.test.result-attachment.measurement',
+      kind: 'measurement',
+    },
+  ],
+});
+
+const clinicalResultMeasurementDefinition = MeasurementDefinitionSchema.parse({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'measurement.test.result-attachment.weight',
+  label: 'Synthetic attachment weight',
+  domain: 'anthropometric',
+  unit: {
+    display: 'kg',
+    ucumCode: 'kg',
+    displayPrecision: 1,
+  },
+  availableThroughActionIds: ['info.physical.weight-bmi'],
+  allowedContextDimensionIds: [],
+  lifecycle: 'review',
+  medicalReviewStatus: 'unreviewed',
+});
+
+const clinicalResultHeightDefinition = MeasurementDefinitionSchema.parse({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'measurement.test.result-attachment.height',
+  label: 'Synthetic attachment height',
+  domain: 'anthropometric',
+  unit: {
+    display: 'cm',
+    ucumCode: 'cm',
+    displayPrecision: 1,
+  },
+  availableThroughActionIds: ['info.physical.weight-bmi'],
+  allowedContextDimensionIds: [],
+  lifecycle: 'review',
+  medicalReviewStatus: 'unreviewed',
+});
+
+const clinicalResultBodyMassIndexDefinition = MeasurementDefinitionSchema.parse({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'measurement.test.result-attachment.bmi',
+  label: 'Synthetic attachment BMI',
+  domain: 'anthropometric',
+  unit: {
+    display: 'kg/m²',
+    ucumCode: 'kg/m2',
+    displayPrecision: 1,
+  },
+  availableThroughActionIds: ['info.physical.weight-bmi'],
+  allowedContextDimensionIds: [],
+  lifecycle: 'review',
+  medicalReviewStatus: 'unreviewed',
+});
+
+const clinicalResultBodyMassIndexDerivation = BodyMassIndexDerivationDefinitionSchema.parse({
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'measurement-derivation.test.result-attachment.bmi',
+  kind: 'body_mass_index_from_metric_height_weight',
+  heightMeasurementDefinitionRef: {
+    id: clinicalResultHeightDefinition.id,
+    contentVersion: clinicalResultHeightDefinition.contentVersion,
+  },
+  weightMeasurementDefinitionRef: {
+    id: clinicalResultMeasurementDefinition.id,
+    contentVersion: clinicalResultMeasurementDefinition.contentVersion,
+  },
+  outputMeasurementDefinitionRef: {
+    id: clinicalResultBodyMassIndexDefinition.id,
+    contentVersion: clinicalResultBodyMassIndexDefinition.contentVersion,
+  },
+  lifecycle: 'review',
+  medicalReviewStatus: 'unreviewed',
+});
+
+const makeClinicalResultCollection = (patientStateId: string) => {
+  const coordinate = patientStateId.split('.').at(-1)!;
+  const sourceCompilation = compilePatientSceneSourceInstancesFromCatalog({
+    schemaVersion: 1,
+    id: `catalog-patient-scene-source-instance-request.test.result-attachment.${coordinate}`,
+    patientStateId,
+    sourceDefinitionCatalog: clinicalResultSourceCatalog,
+  });
+  if (!sourceCompilation.ok) throw new Error(sourceCompilation.error.message);
+  const valueProfile = PatientOwnedMeasurementValueProfileSchema.parse({
+    schemaVersion: 1,
+    contentVersion: '1.0.0',
+    id: 'patient-owned-measurement-profile.test.result-attachment.weight',
+    measurementDefinitionRef: {
+      id: clinicalResultMeasurementDefinition.id,
+      contentVersion: clinicalResultMeasurementDefinition.contentVersion,
+    },
+    value: 82.4,
+    displayValue: '82.4',
+    contextValues: [],
+    sourceUseNoteIds: [],
+    medicalReviewStatus: 'unreviewed',
+    review: {
+      status: 'unreviewed',
+      reviewerId: null,
+      reviewedAt: null,
+      sourceUseNoteIds: [],
+    },
+  });
+  const measurementCompilation = compilePatientOwnedMeasurement({
+    schemaVersion: 1,
+    id: `patient-owned-measurement-request.test.result-attachment.${coordinate}`,
+    patientStateId,
+    measurementDefinition: clinicalResultMeasurementDefinition,
+    valueProfile,
+    sourceDefinitionRef: {
+      id: 'patient-scene-source-role.test.result-attachment.measurement',
+      contentVersion: '1.0.0',
+    },
+    sourceInstanceCompilation: sourceCompilation.value,
+    timeScopeId: 'time-scope.current',
+  });
+  if (!measurementCompilation.ok) throw new Error(measurementCompilation.error.message);
+  const collection = compilePatientClinicalResultCollection({
+    schemaVersion: 1,
+    id: `patient-clinical-result-collection-request.test.result-attachment.${coordinate}`,
+    patientStateId,
+    sourceInstanceCompilation: sourceCompilation.value,
+    numericStructuredTestCompilations: [],
+    patientOwnedStructuredTestCompilations: [],
+    measurementCompilations: [measurementCompilation.value],
+    categoricalObservationCompilations: [],
+  });
+  if (!collection.ok) throw new Error(collection.error.message);
+  return collection.value;
+};
+
+const makeBodyMassIndexClinicalResultFixture = (patientStateId: string, suffix: string) => {
+  const coordinate = `${patientStateId.split('.').at(-1)!}.${suffix}`;
+  const sourceCompilation = compilePatientSceneSourceInstancesFromCatalog({
+    schemaVersion: 1,
+    id: `catalog-patient-scene-source-instance-request.test.result-attachment.bmi.${coordinate}`,
+    patientStateId,
+    sourceDefinitionCatalog: clinicalResultSourceCatalog,
+  });
+  if (!sourceCompilation.ok) throw new Error(sourceCompilation.error.message);
+  const compileMeasurement = (
+    definition: typeof clinicalResultMeasurementDefinition,
+    value: number,
+    label: string,
+  ) => {
+    const valueProfile = PatientOwnedMeasurementValueProfileSchema.parse({
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: `patient-owned-measurement-profile.test.result-attachment.bmi.${suffix}.${label}`,
+      measurementDefinitionRef: {
+        id: definition.id,
+        contentVersion: definition.contentVersion,
+      },
+      value,
+      displayValue: value.toFixed(definition.unit.displayPrecision),
+      contextValues: [],
+      sourceUseNoteIds: [],
+      medicalReviewStatus: 'unreviewed',
+      review: {
+        status: 'unreviewed',
+        reviewerId: null,
+        reviewedAt: null,
+        sourceUseNoteIds: [],
+      },
+    });
+    const compilation = compilePatientOwnedMeasurement({
+      schemaVersion: 1,
+      id: `patient-owned-measurement-request.test.result-attachment.bmi.${coordinate}.${label}`,
+      patientStateId,
+      measurementDefinition: definition,
+      valueProfile,
+      sourceDefinitionRef: {
+        id: 'patient-scene-source-role.test.result-attachment.measurement',
+        contentVersion: '1.0.0',
+      },
+      sourceInstanceCompilation: sourceCompilation.value,
+      timeScopeId: 'time-scope.current',
+    });
+    if (!compilation.ok) throw new Error(compilation.error.message);
+    return compilation.value;
+  };
+  const height = compileMeasurement(clinicalResultHeightDefinition, 170, 'height');
+  const weight = compileMeasurement(clinicalResultMeasurementDefinition, 82.4, 'weight');
+  const collection = compilePatientClinicalResultCollection({
+    schemaVersion: 1,
+    id: `patient-clinical-result-collection-request.test.result-attachment.bmi.${coordinate}`,
+    patientStateId,
+    sourceInstanceCompilation: sourceCompilation.value,
+    numericStructuredTestCompilations: [],
+    patientOwnedStructuredTestCompilations: [],
+    measurementCompilations: [height, weight],
+    categoricalObservationCompilations: [],
+  });
+  if (!collection.ok) throw new Error(collection.error.message);
+  const derivation = compileBodyMassIndexDerivation({
+    schemaVersion: 1,
+    id: `body-mass-index-derivation-request.test.result-attachment.${coordinate}`,
+    patientStateId,
+    derivationDefinition: clinicalResultBodyMassIndexDerivation,
+    heightMeasurementDefinition: clinicalResultHeightDefinition,
+    weightMeasurementDefinition: clinicalResultMeasurementDefinition,
+    outputMeasurementDefinition: clinicalResultBodyMassIndexDefinition,
+    resultCollectionCompilation: collection.value,
+    heightResolvedMeasurementId: height.resolvedMeasurement.id,
+    weightResolvedMeasurementId: weight.resolvedMeasurement.id,
+  });
+  if (!derivation.ok) throw new Error(derivation.error.message);
+  const materialization = materializeBodyMassIndexMeasurement({
+    schemaVersion: 1,
+    id: `body-mass-index-measurement-materialization-request.test.result-attachment.${coordinate}`,
+    derivationCompilation: derivation.value,
+  });
+  if (!materialization.ok) throw new Error(materialization.error.message);
+  return {
+    collection: collection.value,
+    materialization: materialization.value,
+  };
+};
+
+describe('D-311 patient clinical-result attachment', () => {
+  it('replaces only empty D-208 result lanes with one exact D-320-owned result set', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = structuredClone(composition.composedPatientState!);
+    const collection = makeClinicalResultCollection(baseState.id);
+    const recipeCompilation = compileTestPatientTemplateClinicalResultRecipe({
+      coordinate: 'result-attachment.complete',
+      patientStateCompositionArtifact: composition,
+      resultCollectionCompilation: collection,
+    });
+    const request = {
+      schemaVersion: 1 as const,
+      id: 'patient-clinical-result-attachment-request.test.complete',
+      patientStateCompositionArtifact: composition,
+      templateClinicalResultRecipeCompilation: recipeCompilation,
+    };
+    const first = attachPatientClinicalResults(request);
+    const replay = attachPatientClinicalResults(request);
+
+    expect(first.ok).toBe(true);
+    expect(replay).toEqual(first);
+    if (!first.ok) throw new Error(first.error.message);
+    expect(PatientClinicalResultAttachmentArtifactSchema.parse(first.value)).toEqual(first.value);
+    expect(first.value.composedPatientState.id).not.toBe(baseState.id);
+    expect(first.value.composedPatientState.measurements).toEqual(collection.measurements);
+    expect(first.value.composedPatientState.categoricalObservations).toEqual([]);
+    expect(first.value.composedPatientState.structuredTestResults).toEqual([]);
+    expect(first.value.attachedRecordIds).toEqual({
+      measurementIds: collection.measurements.map((record) => record.id),
+      categoricalObservationIds: [],
+      structuredTestResultIds: [],
+    });
+    expect(composition.composedPatientState).toEqual(baseState);
+    expect(verifyPatientClinicalResultAttachmentIntegrity(first.value)).toEqual({
+      ok: true,
+      value: first.value,
+    });
+    expect(JSON.stringify(first.value)).not.toMatch(
+      /patientInstance|informationActionResult|points?|score|clinical correctness/i,
+    );
+  });
+
+  it('attaches D-317 BMI beside the exact D-310 inputs without modifying or nesting the collection', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const fixture = makeBodyMassIndexClinicalResultFixture(baseState.id, 'primary');
+    const frozenCollection = structuredClone(fixture.collection);
+    const recipeCompilation = compileTestPatientTemplateClinicalResultRecipe({
+      coordinate: 'result-attachment.derived-bmi',
+      patientStateCompositionArtifact: composition,
+      resultCollectionCompilation: fixture.collection,
+      derivedMeasurementMaterializations: [fixture.materialization],
+    });
+    const result = attachPatientClinicalResults({
+      schemaVersion: 1,
+      id: 'patient-clinical-result-attachment-request.test.derived-bmi',
+      patientStateCompositionArtifact: composition,
+      templateClinicalResultRecipeCompilation: recipeCompilation,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    expect(fixture.collection).toEqual(frozenCollection);
+    expect(fixture.collection.measurements).toHaveLength(2);
+    expect(result.value.composedPatientState.measurements).toHaveLength(3);
+    expect(
+      result.value.composedPatientState.measurements.find(
+        (measurement) => measurement.source.kind === 'derived_measurement',
+      ),
+    ).toEqual(fixture.materialization.resolvedMeasurement);
+    expect(result.value.derivedMeasurementMaterializationRefs).toEqual([
+      {
+        id: fixture.materialization.id,
+        payloadFingerprint: fixture.materialization.payloadFingerprint,
+        resolvedMeasurementId: fixture.materialization.resolvedMeasurement.id,
+      },
+    ]);
+    expect(verifyPatientClinicalResultAttachmentIntegrity(result.value)).toEqual({
+      ok: true,
+      value: result.value,
+    });
+
+    const assembled = assemblePostCompositionPatientState({
+      schemaVersion: 1,
+      id: 'post-composition-patient-state-assembly-request.test.derived-bmi',
+      patientStateCompositionArtifact: composition,
+      conditionClinicalDurationSourceValidationArtifact: null,
+      conditionFunctionalImpairmentSourceValidationArtifact: null,
+      patientClinicalResultAttachmentArtifact: result.value,
+    });
+    expect(assembled.ok).toBe(true);
+    if (!assembled.ok) throw new Error(assembled.error.message);
+    expect(assembled.value.composedPatientState.measurements).toEqual(
+      result.value.composedPatientState.measurements,
+    );
+  }, 15_000);
+
+  it('rejects a crossed patient, preexisting result lane, raw collection, or invalid recipe', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = composition.composedPatientState!;
+    const collection = makeClinicalResultCollection(baseState.id);
+    const crossedCollection = makeClinicalResultCollection(
+      'resolved-patient-state.test.result-attachment.crossed',
+    );
+    expect(
+      attachPatientClinicalResults({
+        schemaVersion: 1,
+        id: 'patient-clinical-result-attachment-request.test.crossed-patient',
+        patientStateCompositionArtifact: composition,
+        templateClinicalResultRecipeCompilation: compileTestPatientTemplateClinicalResultRecipe({
+          coordinate: 'result-attachment.crossed-patient',
+          patientStateCompositionArtifact: composition,
+          resultCollectionCompilation: crossedCollection,
+        }),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+
+    const preexistingRequest = makeScenario([]).request;
+    preexistingRequest.id = 'patient-state-composition-request.test.result-attachment.preexisting';
+    preexistingRequest.corePatientState.measurements = [
+      {
+        schemaVersion: 1,
+        id: 'measurement.test.result-attachment.preexisting',
+        definitionId: clinicalResultMeasurementDefinition.id,
+        definitionContentVersion: clinicalResultMeasurementDefinition.contentVersion,
+        value: 80,
+        displayValue: '80.0',
+        unit: {
+          display: 'kg',
+          ucumCode: 'kg',
+        },
+        contextValues: [],
+        timeScopeId: 'time-scope.current',
+        source: {
+          kind: 'measurement',
+          sourceInstanceId: 'patient-scene-source-instance.test.result-attachment.preexisting',
+        },
+        interpretation: {
+          kind: 'not_interpreted',
+        },
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.result-attachment.preexisting',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ];
+    const preexistingComposition = expectComposition(preexistingRequest);
+    const preexistingCollection = makeClinicalResultCollection(
+      preexistingComposition.composedPatientState!.id,
+    );
+    expect(
+      attachPatientClinicalResults({
+        schemaVersion: 1,
+        id: 'patient-clinical-result-attachment-request.test.preexisting',
+        patientStateCompositionArtifact: preexistingComposition,
+        templateClinicalResultRecipeCompilation: compileTestPatientTemplateClinicalResultRecipe({
+          coordinate: 'result-attachment.preexisting',
+          patientStateCompositionArtifact: preexistingComposition,
+          resultCollectionCompilation: preexistingCollection,
+        }),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PREEXISTING_RESULT_LANE' },
+    });
+
+    expect(
+      attachPatientClinicalResults({
+        schemaVersion: 1,
+        id: 'patient-clinical-result-attachment-request.test.raw-collection',
+        patientStateCompositionArtifact: composition,
+        resultCollectionCompilation: collection,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const differentTemplate = {
+      ...makeTemplate(),
+      id: 'patient-template.test.patient-state-composition.different',
+      internalLabel: 'Synthetic different template for D-321 mismatch proof',
+    };
+    expect(
+      attachPatientClinicalResults({
+        schemaVersion: 1,
+        id: 'patient-clinical-result-attachment-request.test.template-mismatch',
+        patientStateCompositionArtifact: composition,
+        templateClinicalResultRecipeCompilation: compileTestPatientTemplateClinicalResultRecipe({
+          coordinate: 'result-attachment.template-mismatch',
+          patientStateCompositionArtifact: composition,
+          resultCollectionCompilation: collection,
+          templateOverride: differentTemplate,
+        }),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'TEMPLATE_CONTEXT_MISMATCH' },
+    });
+
+    const invalidRecipe = structuredClone(
+      compileTestPatientTemplateClinicalResultRecipe({
+        coordinate: 'result-attachment.invalid-recipe',
+        patientStateCompositionArtifact: composition,
+        resultCollectionCompilation: collection,
+      }),
+    );
+    invalidRecipe.compileRequest.resultCollectionCompilation.inputFingerprint =
+      'fingerprint.patient-clinical-result-collection-compilation.input.fnv1a64.0000000000000000';
+    expect(
+      attachPatientClinicalResults({
+        schemaVersion: 1,
+        id: 'patient-clinical-result-attachment-request.test.invalid-recipe',
+        patientStateCompositionArtifact: composition,
+        templateClinicalResultRecipeCompilation: invalidRecipe,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'TEMPLATE_CLINICAL_RESULT_RECIPE_INVALID' },
+    });
+  });
+
+  it('detects upstream and retained-output tampering', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const collection = makeClinicalResultCollection(composition.composedPatientState!.id);
+    const result = attachPatientClinicalResults({
+      schemaVersion: 1,
+      id: 'patient-clinical-result-attachment-request.test.tamper',
+      patientStateCompositionArtifact: composition,
+      templateClinicalResultRecipeCompilation: compileTestPatientTemplateClinicalResultRecipe({
+        coordinate: 'result-attachment.tamper',
+        patientStateCompositionArtifact: composition,
+        resultCollectionCompilation: collection,
+      }),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    const upstreamTamper = structuredClone(result.value);
+    upstreamTamper.attachmentRequest.patientStateCompositionArtifact.inputFingerprint =
+      'fingerprint.resolved-patient-state-composition.input.fnv1a64.0000000000000000';
+    expect(verifyPatientClinicalResultAttachmentIntegrity(upstreamTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
+    });
+
+    const retainedTamper = structuredClone(result.value);
+    retainedTamper.composedPatientState.measurements[0]!.value = 91.7;
+    expect(verifyPatientClinicalResultAttachmentIntegrity(retainedTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_SCHEMA' },
+    });
+  });
+});
+
+const makeDurationSourceValidation = (composition: ReturnType<typeof expectComposition>) => {
+  const baseState = composition.composedPatientState!;
+  const coordinate = baseState.id.split('.').at(-1)!;
+  const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, [
+    {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'patient-scene-source-definition.test.post-composition.patient-report',
+      kind: 'patient_report',
+    },
+  ]);
+  const sourceInstance = sourceHorizon.sourceInstances[0]!;
+  const durationResolution = expectDurationResolution({
+    patientStateId: baseState.id,
+    condition: baseState.conditionStates[0]!,
+    profileSuffix: `post-composition-${coordinate}`,
+    requestSuffix: `post-composition-${coordinate}`,
+    seed: 'seed.test.post-composition-duration',
+    source: {
+      kind: sourceInstance.kind,
+      sourceInstanceId: sourceInstance.id,
+    },
+  });
+  const attachment = expectDurationAttachment(composition, [durationResolution]);
+  const sourceValidation = validateConditionClinicalDurationSources({
+    schemaVersion: 1,
+    id: `condition-clinical-duration-source-validation-request.test.post-composition.${coordinate}`,
+    durationAttachment: attachment,
+    sourceInstanceCompilation: sourceHorizon,
+  });
+  if (!sourceValidation.ok) throw new Error(sourceValidation.error.message);
+  return sourceValidation.value;
+};
+
+const makeFunctionalImpairmentSourceValidation = (
+  composition: ReturnType<typeof expectComposition>,
+) => {
+  const baseState = composition.composedPatientState!;
+  const coordinate = baseState.id.split('.').at(-1)!;
+  const sourceHorizon = expectPatientSceneSourceHorizon(baseState.id, [
+    {
+      schemaVersion: 1,
+      contentVersion: '1.0.0',
+      id: 'patient-scene-source-definition.test.post-composition.functional-impairment',
+      kind: 'patient_report',
+    },
+  ]);
+  const sourceInstance = sourceHorizon.sourceInstances[0]!;
+  const impairmentResolution = expectFunctionalImpairmentResolution({
+    patientStateId: baseState.id,
+    condition: baseState.conditionStates[0]!,
+    profileSuffix: `post-composition-${coordinate}`,
+    requestSuffix: `post-composition-${coordinate}`,
+    seed: 'seed.test.post-composition-functional-impairment',
+    source: {
+      kind: sourceInstance.kind,
+      sourceInstanceId: sourceInstance.id,
+    },
+  });
+  const attachment = expectFunctionalImpairmentAttachment(composition, [impairmentResolution]);
+  const sourceValidation = validateConditionFunctionalImpairmentSources({
+    schemaVersion: 1,
+    id: `condition-functional-impairment-source-validation-request.test.post-composition.${coordinate}`,
+    functionalImpairmentAttachment: attachment,
+    sourceInstanceCompilation: sourceHorizon,
+  });
+  if (!sourceValidation.ok) throw new Error(sourceValidation.error.message);
+  return sourceValidation.value;
+};
+
+const makeClinicalResultAttachment = (composition: ReturnType<typeof expectComposition>) => {
+  const baseState = composition.composedPatientState!;
+  const collection = makeClinicalResultCollection(baseState.id);
+  const result = attachPatientClinicalResults({
+    schemaVersion: 1,
+    id: `patient-clinical-result-attachment-request.test.post-composition.${baseState.id
+      .split('.')
+      .at(-1)}`,
+    patientStateCompositionArtifact: composition,
+    templateClinicalResultRecipeCompilation: compileTestPatientTemplateClinicalResultRecipe({
+      coordinate: `post-composition.${baseState.id.split('.').at(-1)}`,
+      patientStateCompositionArtifact: composition,
+      resultCollectionCompilation: collection,
+    }),
+  });
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+describe('D-312/D-314 post-composition patient-state assembly', () => {
+  it('composes exact D-294 duration, D-292 impairment, and D-311 result owners', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const baseState = structuredClone(composition.composedPatientState!);
+    const durationValidation = makeDurationSourceValidation(composition);
+    const impairmentValidation = makeFunctionalImpairmentSourceValidation(composition);
+    const resultAttachment = makeClinicalResultAttachment(composition);
+    const request = {
+      schemaVersion: 1 as const,
+      id: 'post-composition-patient-state-assembly-request.test.complete',
+      patientStateCompositionArtifact: composition,
+      conditionClinicalDurationSourceValidationArtifact: durationValidation,
+      conditionFunctionalImpairmentSourceValidationArtifact: impairmentValidation,
+      patientClinicalResultAttachmentArtifact: resultAttachment,
+    };
+    const first = assemblePostCompositionPatientState(request);
+    const replay = assemblePostCompositionPatientState(request);
+
+    expect(first.ok).toBe(true);
+    expect(replay).toEqual(first);
+    if (!first.ok) throw new Error(first.error.message);
+    expect(PostCompositionPatientStateAssemblyArtifactSchema.parse(first.value)).toEqual(
+      first.value,
+    );
+    expect(first.value.composedPatientState.id).not.toBe(baseState.id);
+    expect(first.value.composedPatientState.clinicalDurations).toEqual(
+      durationValidation.compileRequest.durationAttachment.composedPatientState.clinicalDurations,
+    );
+    expect(first.value.composedPatientState.functionalImpairments).toEqual(
+      impairmentValidation.compileRequest.functionalImpairmentAttachment
+        .attachedFunctionalImpairments,
+    );
+    expect(first.value.composedPatientState.measurements).toEqual(
+      resultAttachment.composedPatientState.measurements,
+    );
+    expect(first.value.attachedRecordIds).toEqual({
+      clinicalDurationIds:
+        durationValidation.compileRequest.durationAttachment.composedPatientState.clinicalDurations.map(
+          (record) => record.id,
+        ),
+      functionalImpairmentIds:
+        impairmentValidation.compileRequest.functionalImpairmentAttachment.attachedFunctionalImpairments.map(
+          (record) => record.id,
+        ),
+      measurementIds: resultAttachment.composedPatientState.measurements.map((record) => record.id),
+      categoricalObservationIds: [],
+      structuredTestResultIds: [],
+    });
+    expect(composition.composedPatientState).toEqual(baseState);
+    expect(verifyPostCompositionPatientStateAssemblyIntegrity(first.value)).toEqual({
+      ok: true,
+      value: first.value,
+    });
+    expect(JSON.stringify(first.value)).not.toMatch(
+      /patientInstance|informationActionResult|points?|score|clinical correctness/i,
+    );
+  }, 15_000);
+
+  it('accepts each typed lane owner alone without fabricating the other lanes', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const durationValidation = makeDurationSourceValidation(composition);
+    const impairmentValidation = makeFunctionalImpairmentSourceValidation(composition);
+    const resultAttachment = makeClinicalResultAttachment(composition);
+
+    const durationOnly = assemblePostCompositionPatientState({
+      schemaVersion: 1,
+      id: 'post-composition-patient-state-assembly-request.test.duration-only',
+      patientStateCompositionArtifact: composition,
+      conditionClinicalDurationSourceValidationArtifact: durationValidation,
+      conditionFunctionalImpairmentSourceValidationArtifact: null,
+      patientClinicalResultAttachmentArtifact: null,
+    });
+    expect(durationOnly.ok).toBe(true);
+    if (!durationOnly.ok) throw new Error(durationOnly.error.message);
+    expect(durationOnly.value.composedPatientState.clinicalDurations).toHaveLength(1);
+    expect(durationOnly.value.composedPatientState.functionalImpairments).toEqual([]);
+    expect(durationOnly.value.composedPatientState.measurements).toEqual([]);
+
+    const impairmentOnly = assemblePostCompositionPatientState({
+      schemaVersion: 1,
+      id: 'post-composition-patient-state-assembly-request.test.impairment-only',
+      patientStateCompositionArtifact: composition,
+      conditionClinicalDurationSourceValidationArtifact: null,
+      conditionFunctionalImpairmentSourceValidationArtifact: impairmentValidation,
+      patientClinicalResultAttachmentArtifact: null,
+    });
+    expect(impairmentOnly.ok).toBe(true);
+    if (!impairmentOnly.ok) throw new Error(impairmentOnly.error.message);
+    expect(impairmentOnly.value.composedPatientState.clinicalDurations).toEqual([]);
+    expect(impairmentOnly.value.composedPatientState.functionalImpairments).toHaveLength(1);
+    expect(impairmentOnly.value.composedPatientState.measurements).toEqual([]);
+
+    const resultOnly = assemblePostCompositionPatientState({
+      schemaVersion: 1,
+      id: 'post-composition-patient-state-assembly-request.test.result-only',
+      patientStateCompositionArtifact: composition,
+      conditionClinicalDurationSourceValidationArtifact: null,
+      conditionFunctionalImpairmentSourceValidationArtifact: null,
+      patientClinicalResultAttachmentArtifact: resultAttachment,
+    });
+    expect(resultOnly.ok).toBe(true);
+    if (!resultOnly.ok) throw new Error(resultOnly.error.message);
+    expect(resultOnly.value.composedPatientState.clinicalDurations).toEqual([]);
+    expect(resultOnly.value.composedPatientState.functionalImpairments).toEqual([]);
+    expect(resultOnly.value.composedPatientState.measurements).toHaveLength(1);
+    expect(resultOnly.value.composedPatientState.id).not.toBe(
+      durationOnly.value.composedPatientState.id,
+    );
+    expect(impairmentOnly.value.composedPatientState.id).not.toBe(
+      durationOnly.value.composedPatientState.id,
+    );
+  });
+
+  it('rejects an empty request, crossed D-208 roots, and preexisting base lanes', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    expect(
+      assemblePostCompositionPatientState({
+        schemaVersion: 1,
+        id: 'post-composition-patient-state-assembly-request.test.empty',
+        patientStateCompositionArtifact: composition,
+        conditionClinicalDurationSourceValidationArtifact: null,
+        conditionFunctionalImpairmentSourceValidationArtifact: null,
+        patientClinicalResultAttachmentArtifact: null,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_REQUEST' },
+    });
+
+    const crossedRequest = makeScenario([]).request;
+    crossedRequest.id = 'patient-state-composition-request.test.post-composition.crossed';
+    crossedRequest.corePatientState.demographics.ageYears += 1;
+    const crossedComposition = expectComposition(crossedRequest);
+    expect(
+      assemblePostCompositionPatientState({
+        schemaVersion: 1,
+        id: 'post-composition-patient-state-assembly-request.test.crossed',
+        patientStateCompositionArtifact: crossedComposition,
+        conditionClinicalDurationSourceValidationArtifact: null,
+        conditionFunctionalImpairmentSourceValidationArtifact: null,
+        patientClinicalResultAttachmentArtifact: makeClinicalResultAttachment(composition),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'ATTACHMENT_ROOT_MISMATCH' },
+    });
+
+    const preexistingRequest = makeScenario([]).request;
+    preexistingRequest.id = 'patient-state-composition-request.test.post-composition.preexisting';
+    const preexistingImpairment =
+      makeFunctionalImpairmentSourceValidation(composition).compileRequest
+        .functionalImpairmentAttachment.attachedFunctionalImpairments[0]!;
+    preexistingRequest.corePatientState.functionalImpairments = [preexistingImpairment];
+    preexistingRequest.corePatientState.measurements = [
+      {
+        schemaVersion: 1,
+        id: 'measurement.test.post-composition.preexisting',
+        definitionId: clinicalResultMeasurementDefinition.id,
+        definitionContentVersion: clinicalResultMeasurementDefinition.contentVersion,
+        value: 80,
+        displayValue: '80.0',
+        unit: {
+          display: 'kg',
+          ucumCode: 'kg',
+        },
+        contextValues: [],
+        timeScopeId: 'time-scope.current',
+        source: {
+          kind: 'measurement',
+          sourceInstanceId: 'patient-scene-source-instance.test.post-composition.preexisting',
+        },
+        interpretation: {
+          kind: 'not_interpreted',
+        },
+        resolution: {
+          origin: 'authored',
+          ownerId: 'patient-template.test.post-composition.preexisting',
+          ownerContentVersion: '1.0.0',
+        },
+      },
+    ];
+    const preexistingComposition = expectComposition(preexistingRequest);
+    expect(
+      assemblePostCompositionPatientState({
+        schemaVersion: 1,
+        id: 'post-composition-patient-state-assembly-request.test.preexisting',
+        patientStateCompositionArtifact: preexistingComposition,
+        conditionClinicalDurationSourceValidationArtifact:
+          makeDurationSourceValidation(preexistingComposition),
+        conditionFunctionalImpairmentSourceValidationArtifact: null,
+        patientClinicalResultAttachmentArtifact: null,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'BASE_LANE_NOT_EMPTY' },
+    });
+  });
+
+  it('detects invalid upstream and retained-output tampering', () => {
+    const composition = expectComposition(makeScenario([]).request);
+    const durationValidation = makeDurationSourceValidation(composition);
+    const impairmentValidation = makeFunctionalImpairmentSourceValidation(composition);
+    const result = assemblePostCompositionPatientState({
+      schemaVersion: 1,
+      id: 'post-composition-patient-state-assembly-request.test.tamper',
+      patientStateCompositionArtifact: composition,
+      conditionClinicalDurationSourceValidationArtifact: durationValidation,
+      conditionFunctionalImpairmentSourceValidationArtifact: impairmentValidation,
+      patientClinicalResultAttachmentArtifact: makeClinicalResultAttachment(composition),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    const invalidUpstream = structuredClone(durationValidation);
+    invalidUpstream.inputFingerprint =
+      'fingerprint.condition-clinical-duration-source-validation.input.fnv1a64.0000000000000000';
+    expect(
+      assemblePostCompositionPatientState({
+        ...result.value.assemblyRequest,
+        id: 'post-composition-patient-state-assembly-request.test.invalid-upstream',
+        conditionClinicalDurationSourceValidationArtifact: invalidUpstream,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'DURATION_SOURCE_VALIDATION_INVALID' },
+    });
+
+    const invalidImpairment = structuredClone(impairmentValidation);
+    invalidImpairment.inputFingerprint =
+      'fingerprint.condition-functional-impairment-source-validation.input.fnv1a64.0000000000000000';
+    expect(
+      assemblePostCompositionPatientState({
+        ...result.value.assemblyRequest,
+        id: 'post-composition-patient-state-assembly-request.test.invalid-impairment',
+        conditionFunctionalImpairmentSourceValidationArtifact: invalidImpairment,
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'FUNCTIONAL_IMPAIRMENT_SOURCE_VALIDATION_INVALID' },
+    });
+
+    const retainedTamper = structuredClone(result.value);
+    retainedTamper.composedPatientState.measurements[0]!.value = 91.7;
+    expect(verifyPostCompositionPatientStateAssemblyIntegrity(retainedTamper)).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_SCHEMA' },
     });
   });
 });

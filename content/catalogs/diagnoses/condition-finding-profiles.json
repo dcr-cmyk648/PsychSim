@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.1.0",
+  "contentVersion": "1.3.0",
   "id": "registry.catalog.condition-finding-profiles",
   "profiles": [
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.3.0",
       "id": "condition-finding-profile.mdd.current-episode",
       "modelVersion": "condition-finding-dimensions.v1",
       "conditionScope": {
         "diagnosisDefinitionId": "diagnosis.major-depressive-disorder",
-        "diagnosisDefinitionContentVersion": "1.4.0",
+        "diagnosisDefinitionContentVersion": "1.6.0",
         "clinicalStateId": "clinical-state.current",
         "timeScopeId": "time-scope.current",
         "severity": {

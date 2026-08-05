@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.2.0",
+  "contentVersion": "1.17.0",
   "id": "registry.catalog.universal-action-result-assemblies",
   "assemblies": [
     {
@@ -48,7 +48,7 @@
     },
     {
       "schemaVersion": 1,
-      "contentVersion": "1.1.0",
+      "contentVersion": "1.4.0",
       "id": "universal-action-result-assembly.mdd-initial-assessment-foundation",
       "modelVersion": "universal-action-result-assembly.v3",
       "actionCatalog": {
@@ -85,7 +85,7 @@
       "targetScopedPatientValueProjectionDefinitions": [
         {
           "schemaVersion": 1,
-          "contentVersion": "1.1.0",
+          "contentVersion": "1.3.0",
           "id": "target-scoped-definition.history.presenting-problem.mdd-current-episode-duration",
           "modelVersion": "target-scoped-patient-value-projection.v1",
           "label": "Current MDD episode duration in the presenting-problem history",
@@ -94,7 +94,7 @@
           "targetSelector": {
             "kind": "condition_definition",
             "diagnosisDefinitionId": "diagnosis.major-depressive-disorder",
-            "diagnosisDefinitionContentVersion": "1.4.0"
+            "diagnosisDefinitionContentVersion": "1.6.0"
           },
           "sourceKind": "patient_report",
           "timeScopeId": "time-scope.current",
@@ -119,12 +119,12 @@
       "recipes": [
         {
           "schemaVersion": 1,
-          "contentVersion": "1.0.0",
+          "contentVersion": "1.1.0",
           "id": "universal-action-result-recipe.mdd-initial.presenting-problem",
           "modelVersion": "universal-action-result.v1",
           "informationActionId": "info.history.presenting-problem",
           "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.presenting-problem.fnv1a64.0b5814ba83c4c117",
-          "sourceKinds": ["target_scoped_patient_value_reveals"],
+          "sourceKinds": ["finding_projections", "target_scoped_patient_value_reveals"],
           "lifecycle": "approved",
           "medicalReviewStatus": "unreviewed"
         },
@@ -135,6 +135,696 @@
           "modelVersion": "universal-action-result.v1",
           "informationActionId": "info.history.depressive-symptoms",
           "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.depressive-symptoms.fnv1a64.6359e83ae6d42dea",
+          "sourceKinds": ["finding_projections"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.1.0",
+      "id": "universal-action-result-assembly.physical.weight-bmi",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.physical.weight-bmi",
+        "actions": [
+          {
+            "id": "info.physical.weight-bmi",
+            "label": "Weight, BMI, and body habitus",
+            "searchAliases": [],
+            "category": "physical",
+            "soapSection": "objective",
+            "resultSource": "measurement",
+            "description": "Measure weight and BMI and document observed body habitus.",
+            "serviceId": "service.exam.weight-bmi",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "measurement.anthropometric.height",
+          "label": "Height",
+          "domain": "anthropometric",
+          "unit": {
+            "display": "cm",
+            "ucumCode": "cm",
+            "displayPrecision": 1
+          },
+          "availableThroughActionIds": ["info.physical.weight-bmi"],
+          "allowedContextDimensionIds": [],
+          "lifecycle": "review",
+          "medicalReviewStatus": "unreviewed"
+        },
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "measurement.anthropometric.weight",
+          "label": "Weight",
+          "domain": "anthropometric",
+          "unit": {
+            "display": "kg",
+            "ucumCode": "kg",
+            "displayPrecision": 1
+          },
+          "availableThroughActionIds": ["info.physical.weight-bmi"],
+          "allowedContextDimensionIds": [],
+          "lifecycle": "review",
+          "medicalReviewStatus": "unreviewed"
+        },
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "measurement.anthropometric.bmi",
+          "label": "Body mass index",
+          "domain": "anthropometric",
+          "unit": {
+            "display": "kg/m²",
+            "ucumCode": "kg/m2",
+            "displayPrecision": 1
+          },
+          "availableThroughActionIds": ["info.physical.weight-bmi"],
+          "allowedContextDimensionIds": [],
+          "lifecycle": "review",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ],
+      "categoricalObservationDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "observation.physical.body-habitus",
+          "label": "Observed body habitus",
+          "domain": "physical_exam",
+          "allowedValueIds": [
+            "observation-value.body-habitus.lower-adiposity",
+            "observation-value.body-habitus.no-marked-adiposity-or-muscularity",
+            "observation-value.body-habitus.increased-adiposity",
+            "observation-value.body-habitus.increased-muscularity",
+            "observation-value.body-habitus.mixed-increased-adiposity-and-muscularity"
+          ],
+          "availableThroughActionIds": ["info.physical.weight-bmi"],
+          "lifecycle": "review",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.1.0",
+          "id": "universal-action-result-recipe.physical.weight-bmi",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.physical.weight-bmi",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.physical.weight-bmi.fnv1a64.fe61405bed14f7a5",
+          "sourceKinds": ["categorical_observations", "measurements"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.suicide-safety",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.suicide-safety",
+        "actions": [
+          {
+            "id": "info.history.suicide-safety",
+            "label": "Suicide and self-harm assessment",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Assess ideation, intent, planning, behavior, protective factors, and access to means.",
+            "serviceId": "service.history.safety-screen",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.suicide-safety",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.suicide-safety",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.suicide-safety.fnv1a64.9b0364cb494eb908",
+          "sourceKinds": ["finding_projections"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.safety-planning-ability",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.safety-planning-ability",
+        "actions": [
+          {
+            "id": "info.history.existing-safety-plan",
+            "label": "Safety-planning ability",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Ask whether the patient feels able to participate in safety planning.",
+            "serviceId": "service.history.safety-plan-review",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "structured-reveal-definition.history.safety-planning-ability",
+          "modelVersion": "structured-patient-state-reveal.v1",
+          "label": "Patient-reported safety-planning ability",
+          "informationActionId": "info.history.existing-safety-plan",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.existing-safety-plan.fnv1a64.7997e31603a2579a",
+          "allowedSourceKinds": ["patient_report"],
+          "lanes": [],
+          "singletonFields": ["reported_safety_planning_ability"],
+          "lifecycle": "approved",
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-27T18:10:21.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.safety-planning-ability",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.existing-safety-plan",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.existing-safety-plan.fnv1a64.7997e31603a2579a",
+          "sourceKinds": ["structured_state_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.medication-reconciliation",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.medication-reconciliation",
+        "actions": [
+          {
+            "id": "info.history.medication-reconciliation",
+            "label": "Medication reconciliation",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Verify current prescriptions, nonprescription products, timing, prescribers, and changes.",
+            "serviceId": "service.history.medication-reconciliation",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "structured-reveal-definition.history.medication-reconciliation",
+          "modelVersion": "structured-patient-state-reveal.v1",
+          "label": "Patient-reported current medication regimen",
+          "informationActionId": "info.history.medication-reconciliation",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.medication-reconciliation.fnv1a64.5bb94551e2670653",
+          "allowedSourceKinds": ["patient_report"],
+          "lanes": ["medication_regimen_entries"],
+          "singletonFields": [],
+          "lifecycle": "approved",
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-27T18:10:21.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.medication-reconciliation",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.medication-reconciliation",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.medication-reconciliation.fnv1a64.5bb94551e2670653",
+          "sourceKinds": ["structured_state_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.allergies-adverse-reactions",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.allergies-adverse-reactions",
+        "actions": [
+          {
+            "id": "info.history.allergies-adverse-reactions",
+            "label": "Allergies and adverse reactions",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review reported allergies, intolerances, and prior adverse reactions.",
+            "serviceId": "service.history.allergies-adverse-reactions",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "structured-reveal-definition.history.allergies-adverse-reactions",
+          "modelVersion": "structured-patient-state-reveal.v1",
+          "label": "Patient-reported allergies and adverse reactions",
+          "informationActionId": "info.history.allergies-adverse-reactions",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.allergies-adverse-reactions.fnv1a64.199420c819cfa06f",
+          "allowedSourceKinds": ["patient_report"],
+          "lanes": ["reaction_records"],
+          "singletonFields": ["reaction_history_status", "medication_reaction_assessment_status"],
+          "lifecycle": "approved",
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-27T18:10:21.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.allergies-adverse-reactions",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.allergies-adverse-reactions",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.allergies-adverse-reactions.fnv1a64.199420c819cfa06f",
+          "sourceKinds": ["structured_state_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.substance-use",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.substance-use",
+        "actions": [
+          {
+            "id": "info.history.substance-use",
+            "label": "Substance use history",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review alcohol, nicotine, cannabis, stimulants, opioids, sedatives, caffeine, and withdrawal.",
+            "serviceId": "service.history.substance-use",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "structured-reveal-definition.history.substance-use",
+          "modelVersion": "structured-patient-state-reveal.v1",
+          "label": "Patient-reported substance-use history",
+          "informationActionId": "info.history.substance-use",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.substance-use.fnv1a64.ce83e24c557b4c68",
+          "allowedSourceKinds": ["patient_report"],
+          "lanes": ["exposure_use_entries"],
+          "singletonFields": [],
+          "lifecycle": "approved",
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-27T18:10:21.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.substance-use",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.substance-use",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.substance-use.fnv1a64.ce83e24c557b4c68",
+          "sourceKinds": ["structured_state_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.prior-medication-trials",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.prior-medication-trials",
+        "actions": [
+          {
+            "id": "info.history.prior-trials",
+            "label": "Prior medication trials",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review prior medications, response, tolerability, duration, and reason for stopping.",
+            "serviceId": "service.history.prior-trials",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "structured-reveal-definition.history.prior-medication-trials",
+          "modelVersion": "structured-patient-state-reveal.v1",
+          "label": "Patient-reported prior medication trials",
+          "informationActionId": "info.history.prior-trials",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.prior-trials.fnv1a64.4ed5b5a276a88b64",
+          "allowedSourceKinds": ["patient_report"],
+          "lanes": ["medication_trials"],
+          "singletonFields": [],
+          "lifecycle": "approved",
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-25T01:14:06.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.prior-medication-trials",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.prior-trials",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.prior-trials.fnv1a64.4ed5b5a276a88b64",
+          "sourceKinds": ["structured_state_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.full-treatment-history",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.full-treatment-history",
+        "actions": [
+          {
+            "id": "info.history.treatment-history",
+            "label": "Full psychiatric treatment history",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review medication trials, psychotherapy, current treatment providers, and prior levels of care.",
+            "serviceId": "service.history.treatment-history",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "structured-reveal-definition.history.full-treatment-history",
+          "modelVersion": "structured-patient-state-reveal.v1",
+          "label": "Patient-reported full psychiatric treatment history",
+          "informationActionId": "info.history.treatment-history",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.treatment-history.fnv1a64.33938847897320c5",
+          "allowedSourceKinds": ["patient_report"],
+          "lanes": [
+            "medication_trials",
+            "psychotherapy_trials",
+            "current_treatment_providers",
+            "prior_levels_of_care"
+          ],
+          "singletonFields": [],
+          "lifecycle": "approved",
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-07-25T01:14:06.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.full-treatment-history",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.treatment-history",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.treatment-history.fnv1a64.33938847897320c5",
+          "sourceKinds": ["structured_state_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.medication-effects",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.medication-effects",
+        "actions": [
+          {
+            "id": "info.history.medication-effects",
+            "label": "Medication effects and adverse effects",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review perceived benefit, new symptoms, adverse effects, and their timing.",
+            "serviceId": "service.history.adverse-effects",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "structured-reveal-definition.history.medication-effects",
+          "modelVersion": "structured-patient-state-reveal.v1",
+          "label": "Patient-reported current medication effects",
+          "informationActionId": "info.history.medication-effects",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.medication-effects.fnv1a64.f168cad5f61e2fb7",
+          "allowedSourceKinds": ["patient_report"],
+          "lanes": [
+            "medication_tolerability_findings",
+            "current_medication_reported_benefits",
+            "current_medication_dose_positions",
+            "medication_change_temporal_relationships"
+          ],
+          "singletonFields": [],
+          "lifecycle": "approved",
+          "review": {
+            "status": "approved",
+            "reviewerId": "reviewer.dustin-rowland",
+            "reviewedAt": "2026-08-05T12:38:47.000Z",
+            "sourceUseNoteIds": []
+          }
+        }
+      ],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.medication-effects",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.medication-effects",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.medication-effects.fnv1a64.f168cad5f61e2fb7",
+          "sourceKinds": ["structured_state_reveals"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.mania-hypomania",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.mania-hypomania",
+        "actions": [
+          {
+            "id": "info.history.mania",
+            "label": "Current and past mania or hypomania",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review current and prior periods of elevated or irritable mood, reduced sleep need, speech or activity change, and impulsivity.",
+            "serviceId": "service.history.mania-screen",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.mania-hypomania",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.mania",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.mania.fnv1a64.f97ddcf5d184c02d",
+          "sourceKinds": ["finding_projections"],
+          "lifecycle": "approved",
+          "medicalReviewStatus": "unreviewed"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "universal-action-result-assembly.history.psychotic-symptoms",
+      "modelVersion": "universal-action-result-assembly.v3",
+      "actionCatalog": {
+        "schemaVersion": 1,
+        "contentVersion": "1.0.0",
+        "id": "information-action-catalog.history.psychotic-symptoms",
+        "actions": [
+          {
+            "id": "info.history.psychosis",
+            "label": "Psychotic symptoms",
+            "searchAliases": [],
+            "category": "history",
+            "soapSection": "subjective",
+            "resultSource": "patient_report",
+            "description": "Review hallucinations, delusional ideas, paranoia, and thought disorganization.",
+            "serviceId": "service.history.psychosis-screen",
+            "repeatable": false
+          }
+        ]
+      },
+      "instrumentDefinitions": [],
+      "structuredRevealDefinitions": [],
+      "targetScopedPatientValueProjectionDefinitions": [],
+      "measurementDefinitions": [],
+      "categoricalObservationDefinitions": [],
+      "testDefinitions": [],
+      "recipes": [
+        {
+          "schemaVersion": 1,
+          "contentVersion": "1.0.0",
+          "id": "universal-action-result-recipe.history.psychotic-symptoms",
+          "modelVersion": "universal-action-result.v1",
+          "informationActionId": "info.history.psychosis",
+          "informationActionPayloadFingerprint": "fingerprint.information-action.info.history.psychosis.fnv1a64.b83bdc1cc9d91aac",
           "sourceKinds": ["finding_projections"],
           "lifecycle": "approved",
           "medicalReviewStatus": "unreviewed"

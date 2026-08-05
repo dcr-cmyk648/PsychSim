@@ -18,7 +18,7 @@ import {
 import { seededUnit } from './rng';
 import { fingerprintTemplateConditionSelectionTemplate } from './template-condition-selector';
 
-export const OPTIONAL_FEATURE_BUDGET_SELECTOR_VERSION = '2.0.0';
+export const OPTIONAL_FEATURE_BUDGET_SELECTOR_VERSION = '3.0.0';
 
 export type OptionalFeatureBudgetSelectionErrorCode =
   | 'INVALID_REQUEST'
@@ -296,6 +296,20 @@ const hasFeasibleCompletion = (
 ): boolean => {
   if (requiredAdditionalCount === 0) return true;
   if (candidates.length < requiredAdditionalCount) return false;
+  const preliminarilyEligible = candidates.filter(
+    (candidate) =>
+      !selectedModuleIds.has(candidate.moduleRef.id) &&
+      candidate.cost <= remainingBudget &&
+      blockingIncompatibilities(candidate.moduleRef.id, selectedModuleIds, incompatibilities)
+        .length === 0,
+  );
+  if (preliminarilyEligible.length < requiredAdditionalCount) return false;
+  const minimumRequiredCost = preliminarilyEligible
+    .map((candidate) => candidate.cost)
+    .sort((left, right) => left - right)
+    .slice(0, requiredAdditionalCount)
+    .reduce((total, cost) => total + cost, 0);
+  if (minimumRequiredCost > remainingBudget) return false;
   for (let index = 0; index < candidates.length; index += 1) {
     const candidate = candidates[index]!;
     if (
@@ -415,6 +429,7 @@ const artifactPayload = (
   profileFingerprint: artifact.profileFingerprint,
   moduleReferences: artifact.moduleReferences,
   seed: artifact.seed,
+  baselineComplexityUnits: artifact.baselineComplexityUnits,
   additionalFeatureBudget: artifact.additionalFeatureBudget,
   maximumSelectedModules: artifact.maximumSelectedModules,
   countEvaluations: artifact.countEvaluations,
@@ -608,6 +623,10 @@ const buildArtifact = (
     .sort((left, right) => (left.selectionOrdinal ?? 0) - (right.selectionOrdinal ?? 0))
     .map((evaluation) => evaluation.moduleSnapshot);
   const totalSpent = request.template.complexityProfile.additionalFeatureBudget - remainingBudget;
+  const baselineComplexityUnits =
+    request.template.complexityProfile.modelVersion === 'baseline-plus-additional-budget.v2'
+      ? request.template.complexityProfile.baselineComplexityUnits
+      : null;
   const inputFingerprint = fingerprint('input', request);
   const withoutIdentity = {
     schemaVersion: 1 as const,
@@ -619,6 +638,7 @@ const buildArtifact = (
     profileFingerprint,
     moduleReferences,
     seed: request.seed,
+    baselineComplexityUnits,
     additionalFeatureBudget: request.template.complexityProfile.additionalFeatureBudget,
     maximumSelectedModules: request.template.complexityProfile.maximumSelectedModules,
     countEvaluations: request.profile.countWeights.map((entry) => ({

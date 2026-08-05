@@ -5,6 +5,7 @@ import {
   type EmptyAuthorizedPatientSlotFillCompileInput,
   type EmptyAuthorizedPatientSlotFillDiagnostic,
   type FrozenGeneratedWaitingSlot,
+  type PatientTemplateClinicalResultFindingPipelineOrchestrationArtifact,
   type PatientSlotFillFingerprint,
 } from '@psychsim/schemas';
 
@@ -18,8 +19,13 @@ import {
   verifyPatientSlotFillSeedAuthorityContext,
   verifyPatientSlotFillSeedAuthorityIntegrity,
 } from './patient-slot-fill-seed-authority';
+import {
+  orchestratePatientTemplateClinicalResultFindingPipeline,
+  verifyPatientTemplateClinicalResultFindingPipelineOrchestrationIntegrity,
+} from './patient-template-clinical-result-finding-pipeline-orchestrator';
+import { verifyPatientTemplateClinicalResultResourceCoverageIntegrity } from './patient-template-clinical-result-resource-coverage-compiler';
 
-export const EMPTY_AUTHORIZED_PATIENT_SLOT_FILL_COMPILER_VERSION = '2.0.0';
+export const EMPTY_AUTHORIZED_PATIENT_SLOT_FILL_COMPILER_VERSION = '3.0.0';
 
 export type EmptyAuthorizedPatientSlotFillCompileResult =
   | { readonly ok: true; readonly value: EmptyAuthorizedPatientSlotFillArtifact }
@@ -29,6 +35,7 @@ export type EmptyAuthorizedPatientSlotFillCompileResult =
         readonly code:
           | 'INVALID_INPUT'
           | 'INVALID_SEED_AUTHORITY'
+          | 'INVALID_RESOURCE_COVERAGE'
           | 'OCCUPANCY_PROPOSAL_FAILED'
           | 'INVALID_OUTPUT';
         readonly message: string;
@@ -129,7 +136,10 @@ const diagnostic = (input: {
 const inputPayload = (
   input: Pick<
     EmptyAuthorizedPatientSlotFillArtifact,
-    'requestId' | 'seedAuthorityArtifact' | 'findingPipelineAuditRequest'
+    | 'requestId'
+    | 'seedAuthorityArtifact'
+    | 'findingPipelineAuditRequest'
+    | 'clinicalResultResourceCoverageArtifact'
   >,
 ): unknown => ({
   requestId: input.requestId,
@@ -139,6 +149,14 @@ const inputPayload = (
     payloadFingerprint: input.seedAuthorityArtifact.payloadFingerprint,
   },
   findingPipelineAuditRequest: input.findingPipelineAuditRequest,
+  clinicalResultResourceCoverageRef:
+    input.clinicalResultResourceCoverageArtifact === null
+      ? null
+      : {
+          id: input.clinicalResultResourceCoverageArtifact.id,
+          inputFingerprint: input.clinicalResultResourceCoverageArtifact.inputFingerprint,
+          payloadFingerprint: input.clinicalResultResourceCoverageArtifact.payloadFingerprint,
+        },
 });
 
 const artifactPayload = (
@@ -154,6 +172,9 @@ const artifactPayload = (
   nextFillOrdinal: artifact.nextFillOrdinal,
   seedAuthorityArtifact: artifact.seedAuthorityArtifact,
   findingPipelineAuditRequest: artifact.findingPipelineAuditRequest,
+  clinicalResultResourceCoverageArtifact: artifact.clinicalResultResourceCoverageArtifact,
+  clinicalResultFindingPipelineOrchestrationArtifact:
+    artifact.clinicalResultFindingPipelineOrchestrationArtifact,
   findingPipelineAuditArtifact: artifact.findingPipelineAuditArtifact,
   frozenWaitingSlotProposal: artifact.frozenWaitingSlotProposal,
   proposedOccupancySnapshotArtifact: artifact.proposedOccupancySnapshotArtifact,
@@ -186,7 +207,40 @@ export const compileEmptyAuthorizedPatientSlotFill = (
     );
   }
 
-  const d200 = composeFindingPipelineAudit(input.findingPipelineAuditRequest);
+  if (input.clinicalResultResourceCoverageArtifact !== null) {
+    const coverage = verifyPatientTemplateClinicalResultResourceCoverageIntegrity(
+      input.clinicalResultResourceCoverageArtifact,
+    );
+    if (!coverage.ok) {
+      return fail(
+        'INVALID_RESOURCE_COVERAGE',
+        `${coverage.error.code}: ${coverage.error.message}`,
+        [input.clinicalResultResourceCoverageArtifact.id],
+      );
+    }
+  }
+
+  let clinicalResultFindingPipelineOrchestrationArtifact: PatientTemplateClinicalResultFindingPipelineOrchestrationArtifact | null =
+    null;
+  const d200 =
+    input.clinicalResultResourceCoverageArtifact === null
+      ? composeFindingPipelineAudit(input.findingPipelineAuditRequest)
+      : (() => {
+          const orchestration = orchestratePatientTemplateClinicalResultFindingPipeline({
+            schemaVersion: 1,
+            id: `patient-template-clinical-result-finding-pipeline-orchestration-request.d331.${hashToHex64(
+              input.id,
+            )}`,
+            baseFindingPipelineAuditRequest: input.findingPipelineAuditRequest,
+            resourceCoverageArtifact: input.clinicalResultResourceCoverageArtifact,
+          });
+          if (!orchestration.ok) return orchestration;
+          clinicalResultFindingPipelineOrchestrationArtifact = orchestration.value;
+          return {
+            ok: true as const,
+            value: orchestration.value.findingPipelineAuditArtifact,
+          };
+        })();
   let findingPipelineAuditArtifact: EmptyAuthorizedPatientSlotFillArtifact['findingPipelineAuditArtifact'] =
     null;
   let frozenWaitingSlotProposal: FrozenGeneratedWaitingSlot | null = null;
@@ -267,6 +321,7 @@ export const compileEmptyAuthorizedPatientSlotFill = (
       requestId: input.id,
       seedAuthorityArtifact: seedAuthority.value,
       findingPipelineAuditRequest: input.findingPipelineAuditRequest,
+      clinicalResultResourceCoverageArtifact: input.clinicalResultResourceCoverageArtifact,
     }),
   );
   const withoutIdentity = {
@@ -280,6 +335,8 @@ export const compileEmptyAuthorizedPatientSlotFill = (
     nextFillOrdinal,
     seedAuthorityArtifact: seedAuthority.value,
     findingPipelineAuditRequest: input.findingPipelineAuditRequest,
+    clinicalResultResourceCoverageArtifact: input.clinicalResultResourceCoverageArtifact,
+    clinicalResultFindingPipelineOrchestrationArtifact,
     findingPipelineAuditArtifact,
     frozenWaitingSlotProposal,
     proposedOccupancySnapshotArtifact: occupancy.value,
@@ -298,6 +355,12 @@ export const compileEmptyAuthorizedPatientSlotFill = (
   if (!output.success) {
     return fail('INVALID_OUTPUT', issuesText(output.error.issues), [
       seedAuthority.value.id,
+      ...(input.clinicalResultResourceCoverageArtifact === null
+        ? []
+        : [input.clinicalResultResourceCoverageArtifact.id]),
+      ...(clinicalResultFindingPipelineOrchestrationArtifact === null
+        ? []
+        : [clinicalResultFindingPipelineOrchestrationArtifact.id]),
       ...(findingPipelineAuditArtifact === null ? [] : [findingPipelineAuditArtifact.id]),
       occupancy.value.id,
     ]);
@@ -347,7 +410,42 @@ export const verifyEmptyAuthorizedPatientSlotFillIntegrity = (
       },
     };
   }
-  const replayedPipeline = composeFindingPipelineAudit(artifact.findingPipelineAuditRequest);
+  if (artifact.clinicalResultResourceCoverageArtifact !== null) {
+    const coverage = verifyPatientTemplateClinicalResultResourceCoverageIntegrity(
+      artifact.clinicalResultResourceCoverageArtifact,
+    );
+    if (!coverage.ok) {
+      return {
+        ok: false,
+        error: {
+          code: 'UPSTREAM_INTEGRITY_INVALID',
+          message: coverage.error.message,
+        },
+      };
+    }
+  }
+  const replayedResultOrchestration =
+    artifact.clinicalResultResourceCoverageArtifact === null
+      ? null
+      : orchestratePatientTemplateClinicalResultFindingPipeline({
+          schemaVersion: 1,
+          id: `patient-template-clinical-result-finding-pipeline-orchestration-request.d331.${hashToHex64(
+            artifact.requestId,
+          )}`,
+          baseFindingPipelineAuditRequest: artifact.findingPipelineAuditRequest,
+          resourceCoverageArtifact: artifact.clinicalResultResourceCoverageArtifact,
+        });
+  const replayedPipeline =
+    replayedResultOrchestration === null
+      ? composeFindingPipelineAudit(artifact.findingPipelineAuditRequest)
+      : replayedResultOrchestration.ok
+        ? {
+            ok: true as const,
+            value: replayedResultOrchestration.value.findingPipelineAuditArtifact,
+          }
+        : replayedResultOrchestration;
+  const expectedResultOrchestration =
+    replayedResultOrchestration?.ok === true ? replayedResultOrchestration.value : null;
   let expectedPipelineArtifact: EmptyAuthorizedPatientSlotFillArtifact['findingPipelineAuditArtifact'] =
     null;
   let expectedFrozenWaitingSlot: FrozenGeneratedWaitingSlot | null = null;
@@ -390,6 +488,10 @@ export const verifyEmptyAuthorizedPatientSlotFillIntegrity = (
     };
   }
   if (
+    !sameCanonicalValue(
+      artifact.clinicalResultFindingPipelineOrchestrationArtifact,
+      expectedResultOrchestration,
+    ) ||
     !sameCanonicalValue(artifact.findingPipelineAuditArtifact, expectedPipelineArtifact) ||
     !sameCanonicalValue(artifact.frozenWaitingSlotProposal, expectedFrozenWaitingSlot) ||
     !sameCanonicalValue(artifact.diagnostics, expectedDiagnostics)
@@ -403,19 +505,36 @@ export const verifyEmptyAuthorizedPatientSlotFillIntegrity = (
       },
     };
   }
-  if (artifact.findingPipelineAuditArtifact !== null) {
-    const context = verifyFindingPipelineAuditContext({
-      artifact: artifact.findingPipelineAuditArtifact,
-      request: artifact.findingPipelineAuditRequest,
-    });
-    if (!context.ok) {
+  if (artifact.clinicalResultFindingPipelineOrchestrationArtifact !== null) {
+    const orchestrationIntegrity =
+      verifyPatientTemplateClinicalResultFindingPipelineOrchestrationIntegrity(
+        artifact.clinicalResultFindingPipelineOrchestrationArtifact,
+      );
+    if (!orchestrationIntegrity.ok) {
       return {
         ok: false,
         error: {
           code: 'UPSTREAM_INTEGRITY_INVALID',
-          message: context.error.message,
+          message: orchestrationIntegrity.error.message,
         },
       };
+    }
+  }
+  if (artifact.findingPipelineAuditArtifact !== null) {
+    if (artifact.clinicalResultFindingPipelineOrchestrationArtifact === null) {
+      const context = verifyFindingPipelineAuditContext({
+        artifact: artifact.findingPipelineAuditArtifact,
+        request: artifact.findingPipelineAuditRequest,
+      });
+      if (!context.ok) {
+        return {
+          ok: false,
+          error: {
+            code: 'UPSTREAM_INTEGRITY_INVALID',
+            message: context.error.message,
+          },
+        };
+      }
     }
   }
 

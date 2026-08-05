@@ -77,6 +77,9 @@ const makePatientState = (): ResolvedPatientState => ({
     priorLevelsOfCare: [],
   },
   medicationTolerabilityFindings: [],
+  currentMedicationReportedBenefits: [],
+  currentMedicationDosePositions: [],
+  medicationChangeTemporalRelationships: [],
   reactionHistory: {
     status: 'unassessed',
     medicationAssessmentStatus: 'unassessed',
@@ -88,6 +91,7 @@ const makePatientState = (): ResolvedPatientState => ({
   structuredTestResults: [],
   clinicalContexts: [],
   clinicalDurations: [],
+  functionalImpairments: [],
   subjectiveBurdenRecords: [],
   propositionState: {
     schemaVersion: 1,

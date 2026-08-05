@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.4.0",
   "id": "registry.catalog.finding-projection-horizons",
   "horizons": [
     {
@@ -235,6 +235,627 @@
         "status": "approved",
         "reviewerId": "reviewer.dustin-rowland",
         "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection-horizon.mdd-initial-assessment-foundation",
+      "horizon": {
+        "schemaVersion": 1,
+        "id": "finding-projection-horizon.mdd-initial-assessment-foundation",
+        "targets": [
+          {
+            "target": {
+              "kind": "information_action",
+              "actionId": "info.history.depressive-symptoms"
+            },
+            "allowedResponses": [
+              {
+                "kind": "finding_outcome",
+                "outcome": "present"
+              },
+              {
+                "kind": "finding_outcome",
+                "outcome": "absent"
+              }
+            ],
+            "expressionDisplayChannel": null
+          },
+          {
+            "target": {
+              "kind": "information_action",
+              "actionId": "info.history.presenting-problem"
+            },
+            "allowedResponses": [
+              {
+                "kind": "finding_outcome",
+                "outcome": "present"
+              },
+              {
+                "kind": "finding_outcome",
+                "outcome": "absent"
+              }
+            ],
+            "expressionDisplayChannel": null
+          }
+        ]
+      },
+      "projectionRefs": [
+        {
+          "id": "finding-projection.history.presenting-problem.functional-impact.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.presenting-problem.functional-impact.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.depressed-mood.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.depressed-mood.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.depressed-mood.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.anhedonia.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.anhedonia.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.anhedonia.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.increased-appetite.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.increased-appetite.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.increased-appetite.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.reduced-appetite.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.reduced-appetite.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.reduced-appetite.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-gain.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-gain.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-gain.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-loss.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-loss.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.weight-loss.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.insomnia.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.insomnia.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.insomnia.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.hypersomnia.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.hypersomnia.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.hypersomnia.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-slowing.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.psychomotor-agitation.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.fatigue-low-energy.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.worthlessness.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.worthlessness.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.worthlessness.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.excessive-guilt.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.excessive-guilt.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.excessive-guilt.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.concentration-difficulty.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.indecision.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.indecision.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.indecision.subthreshold",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.passive-death-wish.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.passive-death-wish.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.active-suicidal-ideation.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.depressive-symptoms.active-suicidal-ideation.absent",
+          "contentVersion": "1.0.0"
+        }
+      ],
+      "developerOpinionIds": [
+        "developer-opinion.mdd-presenting-problem-functional-impact-result-boundary.2026-07-27"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection-horizon.history.suicide-safety",
+      "horizon": {
+        "schemaVersion": 1,
+        "id": "finding-projection-horizon.history.suicide-safety",
+        "targets": [
+          {
+            "target": {
+              "kind": "information_action",
+              "actionId": "info.history.suicide-safety"
+            },
+            "allowedResponses": [
+              {
+                "kind": "finding_outcome",
+                "outcome": "present"
+              },
+              {
+                "kind": "finding_outcome",
+                "outcome": "absent"
+              }
+            ],
+            "expressionDisplayChannel": null
+          }
+        ]
+      },
+      "projectionRefs": [
+        {
+          "id": "finding-projection.history.suicide-safety.passive-death-wish.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.passive-death-wish.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.active-suicidal-ideation.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.active-suicidal-ideation.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicidal-intent.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicidal-intent.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.specific-suicide-plan.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.specific-suicide-plan.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.recent-suicide-attempt.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.recent-suicide-attempt.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.access-to-suicide-means.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.access-to-suicide-means.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicide-attempt-history.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicide-attempt-history.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior-history.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior-history.absent",
+          "contentVersion": "1.0.0"
+        }
+      ],
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection-horizon.history.mania-hypomania",
+      "horizon": {
+        "schemaVersion": 1,
+        "id": "finding-projection-horizon.history.mania-hypomania",
+        "targets": [
+          {
+            "target": {
+              "kind": "information_action",
+              "actionId": "info.history.mania"
+            },
+            "allowedResponses": [
+              {
+                "kind": "finding_outcome",
+                "outcome": "present"
+              },
+              {
+                "kind": "finding_outcome",
+                "outcome": "absent"
+              }
+            ],
+            "expressionDisplayChannel": null
+          }
+        ]
+      },
+      "projectionRefs": [
+        {
+          "id": "finding-projection.history.mania-hypomania.current-elevated-irritable-mood.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-elevated-irritable-mood.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-decreased-sleep-need.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-decreased-sleep-need.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-pressured-speech.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-pressured-speech.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-racing-thoughts.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-racing-thoughts.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-increased-goal-directed-activity.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-increased-goal-directed-activity.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-grandiosity.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-grandiosity.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-self-reported-impulsivity.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-self-reported-impulsivity.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-high-risk-spending.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.current-high-risk-spending.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-elevated-irritable-mood.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-elevated-irritable-mood.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-decreased-sleep-need.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-decreased-sleep-need.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-pressured-speech.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-pressured-speech.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-racing-thoughts.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-racing-thoughts.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-increased-goal-directed-activity.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-increased-goal-directed-activity.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-grandiosity.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-grandiosity.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-self-reported-impulsivity.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-self-reported-impulsivity.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-high-risk-spending.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.mania-hypomania.past-episodic-high-risk-spending.absent",
+          "contentVersion": "1.0.0"
+        }
+      ],
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection-horizon.history.psychotic-symptoms",
+      "horizon": {
+        "schemaVersion": 1,
+        "id": "finding-projection-horizon.history.psychotic-symptoms",
+        "targets": [
+          {
+            "target": {
+              "kind": "information_action",
+              "actionId": "info.history.psychosis"
+            },
+            "allowedResponses": [
+              {
+                "kind": "finding_outcome",
+                "outcome": "present"
+              },
+              {
+                "kind": "finding_outcome",
+                "outcome": "absent"
+              }
+            ],
+            "expressionDisplayChannel": null
+          }
+        ]
+      },
+      "projectionRefs": [
+        {
+          "id": "finding-projection.history.psychotic-symptoms.hallucinations.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.hallucinations.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.delusional-beliefs.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.delusional-beliefs.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.suspiciousness.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.suspiciousness.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.ideas-of-reference.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.ideas-of-reference.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.persecutory-ideation.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.persecutory-ideation.absent",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.thought-disorganization.present",
+          "contentVersion": "1.0.0"
+        },
+        {
+          "id": "finding-projection.history.psychotic-symptoms.thought-disorganization.absent",
+          "contentVersion": "1.0.0"
+        }
+      ],
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
         "sourceUseNoteIds": []
       }
     }

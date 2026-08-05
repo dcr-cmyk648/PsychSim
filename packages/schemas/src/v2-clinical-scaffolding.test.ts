@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  CurrentMedicationDosePositionRecordsSchema,
+  CurrentMedicationDosePositionSchema,
+  CurrentMedicationReportedBenefitRecordsSchema,
+  CurrentMedicationReportedBenefitSchema,
   FindingBlueprintSchema,
+  MedicationChangeTemporalRelationshipRecordsSchema,
+  MedicationChangeTemporalRelationshipSchema,
   MedicationRegimenAdjustmentSelectionSchema,
   MedicationTolerabilityFindingV2Schema,
+  MedicationTolerabilityFindingV2RecordsSchema,
   MedicationTrialRecordSchema,
   PatientBackgroundExposureResolutionV2Schema,
   ReactionConceptCatalogSchema,
@@ -64,6 +71,64 @@ describe('V2 clinical schema scaffolding', () => {
         outcome: valid.outcome,
         outcomeDisplay: valid.outcomeDisplay,
         origin: valid.origin,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('separates qualified-value availability from its interpretation', () => {
+    const authored = {
+      id: 'finding.test.adherence',
+      labelVariants: ['Sertraline'],
+      outcome: 'present',
+      outcomeDisplay: 'value_only',
+      resultSemantics: {
+        modelVersion: 'finding-result-semantics.v1',
+        kind: 'qualified_value',
+        interpretation: 'abnormal',
+      },
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen.test.sertraline',
+      },
+      valueTextVariants: ['Adherence: intermittent'],
+    };
+    const resolved = {
+      id: authored.id,
+      label: authored.labelVariants[0],
+      outcome: authored.outcome,
+      outcomeDisplay: authored.outcomeDisplay,
+      resultSemantics: authored.resultSemantics,
+      subject: authored.subject,
+      valueText: authored.valueTextVariants[0],
+      origin: 'authored',
+    };
+
+    expect(FindingBlueprintSchema.safeParse(authored).success).toBe(true);
+    expect(ResolvedFindingSchema.safeParse(resolved).success).toBe(true);
+    expect(FindingBlueprintSchema.safeParse({ ...authored, outcome: 'negative' }).success).toBe(
+      false,
+    );
+    expect(
+      FindingBlueprintSchema.safeParse({ ...authored, outcomeDisplay: 'status' }).success,
+    ).toBe(false);
+    expect(
+      ResolvedFindingSchema.safeParse({
+        ...resolved,
+        resultSemantics: {
+          modelVersion: 'finding-result-semantics.v1',
+          kind: 'status',
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      FindingBlueprintSchema.safeParse({
+        ...authored,
+        subject: {
+          modelVersion: 'finding-record-subject.v1',
+          kind: 'prior_trial',
+          regimenEntryId: 'regimen.test.sertraline',
+        },
       }).success,
     ).toBe(false);
   });
@@ -188,6 +253,161 @@ describe('V2 clinical schema scaffolding', () => {
         ...unknownCurrent,
         manifestationIds: ['manifestation.sexual.delayed-orgasm'],
       }).success,
+    ).toBe(false);
+    expect(
+      MedicationTolerabilityFindingV2RecordsSchema.safeParse([
+        unknownCurrent,
+        {
+          ...unknownCurrent,
+          subject: {
+            kind: 'current_regimen_entry',
+            regimenEntryId: 'regimen.test.other',
+          },
+        },
+      ]).success,
+    ).toBe(false);
+  });
+
+  it('keeps an assessed current-medication benefit exact and distinct from an unknown answer', () => {
+    const explicitNone = CurrentMedicationReportedBenefitSchema.parse({
+      recordVersion: 1,
+      id: 'current-medication-benefit.test.sertraline',
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen.test.sertraline-primary',
+      },
+      reportedBenefit: 'none',
+      source: {
+        kind: 'patient_report',
+        sourceInstanceId: 'source-instance.test.patient',
+      },
+      timeScopeId: 'time-scope.current',
+    });
+    const assessedUnknown = CurrentMedicationReportedBenefitSchema.parse({
+      ...explicitNone,
+      id: 'current-medication-benefit.test.sertraline-unknown',
+      reportedBenefit: 'unknown',
+      timeScopeId: 'time-scope.historical',
+    });
+
+    expect(explicitNone.reportedBenefit).toBe('none');
+    expect(assessedUnknown.reportedBenefit).toBe('unknown');
+    expect(
+      CurrentMedicationReportedBenefitSchema.safeParse({
+        ...explicitNone,
+        subject: {
+          modelVersion: 'finding-record-subject.v1',
+          kind: 'prior_trial',
+          medicationTrialId: 'trial.test.sertraline',
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      CurrentMedicationReportedBenefitRecordsSchema.safeParse([
+        explicitNone,
+        {
+          ...explicitNone,
+          id: 'current-medication-benefit.test.sertraline-duplicate-coordinate',
+          reportedBenefit: 'partial',
+        },
+      ]).success,
+    ).toBe(false);
+  });
+
+  it('keeps current dose position exact without storing a dose or treatment conclusion', () => {
+    const position = CurrentMedicationDosePositionSchema.parse({
+      recordVersion: 1,
+      id: 'current-medication-dose-position.test.sertraline',
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen.test.sertraline-primary',
+      },
+      position: 'at_maximum',
+      source: {
+        kind: 'record_review',
+        sourceInstanceId: 'source-instance.test.prescriber-record',
+      },
+      timeScopeId: 'time-scope.current',
+    });
+    const assessedUnknown = CurrentMedicationDosePositionSchema.parse({
+      ...position,
+      id: 'current-medication-dose-position.test.sertraline-unknown',
+      position: 'unknown',
+      timeScopeId: 'time-scope.historical',
+    });
+
+    expect(position.position).toBe('at_maximum');
+    expect(assessedUnknown.position).toBe('unknown');
+    expect(position).not.toHaveProperty('dose');
+    expect(position).not.toHaveProperty('maximumDose');
+    expect(position).not.toHaveProperty('adequacy');
+    expect(position).not.toHaveProperty('treatmentCorrectness');
+    expect(
+      CurrentMedicationDosePositionSchema.safeParse({
+        ...position,
+        subject: {
+          modelVersion: 'finding-record-subject.v1',
+          kind: 'prior_trial',
+          medicationTrialId: 'trial.test.sertraline',
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      CurrentMedicationDosePositionRecordsSchema.safeParse([
+        position,
+        {
+          ...position,
+          id: 'current-medication-dose-position.test.sertraline-duplicate-coordinate',
+          position: 'below_maximum',
+        },
+      ]).success,
+    ).toBe(false);
+  });
+
+  it('keeps medication-change timing exact without claiming causality', () => {
+    const relationship = MedicationChangeTemporalRelationshipSchema.parse({
+      recordVersion: 1,
+      id: 'medication-change-temporal.test.aripiprazole-increase',
+      subject: {
+        modelVersion: 'finding-record-subject.v1',
+        kind: 'current_regimen_entry',
+        regimenEntryId: 'regimen.test.aripiprazole',
+      },
+      changeKind: 'increased',
+      changeTimeScopeId: 'time-scope.recent',
+      target: {
+        kind: 'compatibility_finding',
+        informationActionId: 'info.history.presenting-problem',
+        findingId: 'finding.test.restlessness',
+      },
+      targetTimeScopeId: 'time-scope.current',
+      relationship: 'change_before_target',
+      source: {
+        kind: 'patient_report',
+        sourceInstanceId: 'source-instance.test.patient',
+      },
+    });
+
+    expect(relationship).toMatchObject({
+      changeKind: 'increased',
+      relationship: 'change_before_target',
+      target: {
+        kind: 'compatibility_finding',
+        findingId: 'finding.test.restlessness',
+      },
+    });
+    expect(relationship).not.toHaveProperty('caused');
+    expect(relationship).not.toHaveProperty('dose');
+    expect(
+      MedicationChangeTemporalRelationshipRecordsSchema.safeParse([
+        relationship,
+        {
+          ...relationship,
+          targetTimeScopeId: 'time-scope.historical',
+        },
+      ]).success,
     ).toBe(false);
   });
 

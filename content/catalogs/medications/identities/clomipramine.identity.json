@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "id": "medication.clomipramine",
+  "label": "Clomipramine",
+  "normalizedIngredientName": "clomipramine",
+  "aliases": [],
+  "authoringStatus": "identity_only",
+  "runtimeMedicationDefinitionId": null,
+  "rxnorm": {
+    "rxcui": "2597",
+    "termType": "IN",
+    "suppress": "N",
+    "releaseDate": "2026-08-03",
+    "evidenceSourceId": "evidence.nlm.rxnorm-api.2026-08-03",
+    "sourceUseDecisionId": "source-use.nlm.rxnorm-api.2026-08-03",
+    "verifiedAt": "2026-08-03T23:40:33.000Z"
+  },
+  "medicalReviewStatus": "unreviewed"
+}

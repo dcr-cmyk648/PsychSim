@@ -153,6 +153,11 @@ const medicationReconciliationAction = (
               catalogs.medications.find((medication) => medication.id === entry.medicationId)
                 ?.label ?? entry.medicationId,
             ],
+            subject: {
+              modelVersion: 'finding-record-subject.v1' as const,
+              kind: 'current_regimen_entry' as const,
+              regimenEntryId: entry.id,
+            },
             outcome: 'present' as const,
             valueTextVariants: [medicationStatus(entry.status)],
           }))
@@ -316,12 +321,23 @@ const adherenceAction = (
               catalogs.medications.find((medication) => medication.id === entry.medicationId)
                 ?.label ?? entry.medicationId,
             ],
-            outcome:
-              entry.adherence === 'consistent'
-                ? ('positive' as const)
-                : entry.adherence === 'unknown'
-                  ? ('not_applicable' as const)
-                  : ('negative' as const),
+            subject: {
+              modelVersion: 'finding-record-subject.v1' as const,
+              kind: 'current_regimen_entry' as const,
+              regimenEntryId: entry.id,
+            },
+            outcome: 'present' as const,
+            outcomeDisplay: 'value_only' as const,
+            resultSemantics: {
+              modelVersion: 'finding-result-semantics.v1' as const,
+              kind: 'qualified_value' as const,
+              interpretation:
+                entry.adherence === 'consistent'
+                  ? ('normal' as const)
+                  : entry.adherence === 'unknown'
+                    ? ('indeterminate' as const)
+                    : ('abnormal' as const),
+            },
             valueTextVariants: [`Adherence: ${entry.adherence.replaceAll('_', ' ')}`],
           }))
         : [
@@ -335,6 +351,186 @@ const adherenceAction = (
     factsRevealed: [`fact.${caseToken}.adherence`],
   },
 });
+
+const medicationEffectsAction = (
+  scenario: ReviewCaseScenario,
+  source: CaseInformationActionBlueprint,
+  caseToken: string,
+  catalogs: CatalogBundle,
+): CaseInformationActionBlueprint => {
+  const neutral = neutralAction(source, caseToken);
+  if (
+    scenario.currentMedicationReportedBenefits.length === 0 &&
+    scenario.medicationTolerabilityFindings.length === 0 &&
+    scenario.currentMedicationDosePositions.length === 0
+  ) {
+    return neutral;
+  }
+
+  const benefitFindings: FindingBlueprint[] = scenario.currentMedicationReportedBenefits.map(
+    (benefit, index) => {
+      const regimenEntry = scenario.medicationRegimen.find(
+        (entry) => entry.id === benefit.subject.regimenEntryId,
+      );
+      if (!regimenEntry) {
+        throw new Error(
+          `${scenario.id} has current benefit for missing regimen entry ${benefit.subject.regimenEntryId}.`,
+        );
+      }
+      const medicationLabel =
+        catalogs.medications.find((medication) => medication.id === regimenEntry.medicationId)
+          ?.label ?? regimenEntry.medicationId;
+      return {
+        id: `finding.${caseToken}.current-benefit.${index + 1}`,
+        groupLabel: 'Patient-reported medication benefit',
+        labelVariants: [medicationLabel],
+        outcome: 'present',
+        outcomeDisplay: 'value_only',
+        resultSemantics: {
+          modelVersion: 'finding-result-semantics.v1',
+          kind: 'qualified_value',
+          interpretation: benefit.reportedBenefit === 'unknown' ? 'indeterminate' : 'neutral',
+        },
+        subject: benefit.subject,
+        valueTextVariants: [`Reported benefit: ${benefit.reportedBenefit.replaceAll('_', ' ')}`],
+      };
+    },
+  );
+  const tolerabilityDomainLabels: Record<
+    ReviewCaseScenario['medicationTolerabilityFindings'][number]['domain'],
+    string
+  > = {
+    sexual_function: 'Sexual function',
+    sleep: 'Sleep',
+    appetite_weight: 'Appetite or weight',
+    activation: 'Activation',
+    sedation: 'Sedation',
+    gastrointestinal: 'Gastrointestinal effects',
+    movement: 'Movement effects',
+    other: 'Other adverse effects',
+  };
+  const medicationTrials = medicationTrialsForScenario(scenario);
+  const tolerabilityFindings: FindingBlueprint[] = scenario.medicationTolerabilityFindings.map(
+    (tolerability, index) => {
+      const subject = tolerability.subject;
+      const medicationId =
+        subject.kind === 'current_regimen_entry'
+          ? scenario.medicationRegimen.find((entry) => entry.id === subject.regimenEntryId)
+              ?.medicationId
+          : medicationTrials.find((trial) => trial.id === subject.medicationTrialId)?.medicationId;
+      if (!medicationId) {
+        throw new Error(
+          `${scenario.id} has tolerability for missing ${tolerability.subject.kind} subject.`,
+        );
+      }
+      const medicationLabel =
+        catalogs.medications.find((medication) => medication.id === medicationId)?.label ??
+        medicationId;
+      const manifestations = tolerability.manifestationIds.map(
+        (manifestationId) =>
+          catalogs.reactionConcepts.manifestations.find(
+            (manifestation) => manifestation.id === manifestationId,
+          )?.label ?? manifestationId,
+      );
+      const domainLabel = tolerabilityDomainLabels[tolerability.domain];
+      const valueText =
+        tolerability.findingStatus === 'present'
+          ? `${domainLabel}: ${manifestations.join(', ')}`
+          : tolerability.findingStatus === 'absent'
+            ? `${domainLabel}: none reported`
+            : `${domainLabel}: unknown`;
+      const compatibilitySubject =
+        subject.kind === 'current_regimen_entry'
+          ? {
+              modelVersion: 'finding-record-subject.v1' as const,
+              kind: 'current_regimen_entry' as const,
+              regimenEntryId: subject.regimenEntryId,
+            }
+          : {
+              modelVersion: 'finding-record-subject.v1' as const,
+              kind: 'prior_trial' as const,
+              medicationTrialId: subject.medicationTrialId,
+            };
+      return {
+        id: `finding.${caseToken}.tolerability.${index + 1}`,
+        groupLabel: 'Medication tolerability',
+        labelVariants: [medicationLabel],
+        outcome: 'present',
+        outcomeDisplay: 'value_only',
+        resultSemantics: {
+          modelVersion: 'finding-result-semantics.v1',
+          kind: 'qualified_value',
+          interpretation:
+            tolerability.findingStatus === 'present'
+              ? 'abnormal'
+              : tolerability.findingStatus === 'absent'
+                ? 'normal'
+                : 'indeterminate',
+        },
+        subject: compatibilitySubject,
+        valueTextVariants: [valueText],
+      };
+    },
+  );
+  const dosePositionFindings: FindingBlueprint[] = scenario.currentMedicationDosePositions.map(
+    (dosePosition, index) => {
+      const regimenEntry = scenario.medicationRegimen.find(
+        (entry) => entry.id === dosePosition.subject.regimenEntryId,
+      );
+      if (!regimenEntry) {
+        throw new Error(
+          `${scenario.id} has dose position for missing regimen entry ${dosePosition.subject.regimenEntryId}.`,
+        );
+      }
+      const medicationLabel =
+        catalogs.medications.find((medication) => medication.id === regimenEntry.medicationId)
+          ?.label ?? regimenEntry.medicationId;
+      const valueText =
+        dosePosition.position === 'below_maximum'
+          ? 'Below reviewed maximum'
+          : dosePosition.position === 'at_maximum'
+            ? 'At reviewed maximum'
+            : 'Dose position unknown';
+      return {
+        id: `finding.${caseToken}.current-dose-position.${index + 1}`,
+        groupLabel: 'Current medication dose position',
+        labelVariants: [medicationLabel],
+        outcome: 'present',
+        outcomeDisplay: 'value_only',
+        resultSemantics: {
+          modelVersion: 'finding-result-semantics.v1',
+          kind: 'qualified_value',
+          interpretation: dosePosition.position === 'unknown' ? 'indeterminate' : 'neutral',
+        },
+        subject: dosePosition.subject,
+        valueTextVariants: [valueText],
+      };
+    },
+  );
+
+  return {
+    ...neutral,
+    result: {
+      ...neutral.result,
+      findings: [
+        ...benefitFindings,
+        ...tolerabilityFindings,
+        ...dosePositionFindings,
+        ...neutral.result.findings,
+      ],
+      factsRevealed: [
+        ...neutral.result.factsRevealed,
+        ...(benefitFindings.length > 0
+          ? [`fact.${caseToken}.current-medication-reported-benefit`]
+          : []),
+        ...(tolerabilityFindings.length > 0 ? [`fact.${caseToken}.medication-tolerability`] : []),
+        ...(dosePositionFindings.length > 0
+          ? [`fact.${caseToken}.current-medication-dose-position`]
+          : []),
+      ],
+    },
+  };
+};
 
 const medicationTrialsForScenario = (
   scenario: ReviewCaseScenario,
@@ -388,6 +584,11 @@ const priorTrialsAction = (
               catalogs.medications.find((medication) => medication.id === trial.medicationId)
                 ?.label ?? trial.medicationId,
             ],
+            subject: {
+              modelVersion: 'finding-record-subject.v1' as const,
+              kind: 'prior_trial' as const,
+              medicationTrialId: trial.id,
+            },
             outcome: 'present' as const,
             valueTextVariants: [trialExposureSummary(trial)],
           }))
@@ -445,6 +646,11 @@ const treatmentHistoryAction = (
             catalogs.medications.find((medication) => medication.id === trial.medicationId)
               ?.label ?? trial.medicationId,
           ],
+          subject: {
+            modelVersion: 'finding-record-subject.v1' as const,
+            kind: 'prior_trial' as const,
+            medicationTrialId: trial.id,
+          },
           outcome: 'present' as const,
           valueTextVariants: [trialExposureSummary(trial)],
         }))
@@ -571,6 +777,9 @@ export const buildReviewCaseScenario = (
     if (action.actionId === 'info.history.adherence') {
       return adherenceAction(scenario, caseToken, catalogs);
     }
+    if (action.actionId === 'info.history.medication-effects') {
+      return medicationEffectsAction(scenario, action, caseToken, catalogs);
+    }
     if (action.actionId === 'info.history.prior-trials') {
       return priorTrialsAction(scenario, caseToken, catalogs);
     }
@@ -682,6 +891,10 @@ export const buildReviewCaseScenario = (
         sexForReference: 'unspecified',
       },
       medicationRegimen: scenario.medicationRegimen,
+      medicationTolerabilityFindings: scenario.medicationTolerabilityFindings,
+      currentMedicationReportedBenefits: scenario.currentMedicationReportedBenefits,
+      currentMedicationDosePositions: scenario.currentMedicationDosePositions,
+      medicationChangeTemporalRelationships: scenario.medicationChangeTemporalRelationships,
       priorMedicationTrials: medicationTrials,
       treatmentHistory: {
         ...scenario.treatmentHistory,

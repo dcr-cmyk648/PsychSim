@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.1.0",
   "id": "registry.catalog.measurements",
   "measurements": [
     {
@@ -148,5 +148,45 @@
       "medicalReviewStatus": "unreviewed"
     }
   ],
-  "categoricalObservations": []
+  "derivations": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "measurement-derivation.bmi.metric-height-weight",
+      "kind": "body_mass_index_from_metric_height_weight",
+      "heightMeasurementDefinitionRef": {
+        "id": "measurement.anthropometric.height",
+        "contentVersion": "1.0.0"
+      },
+      "weightMeasurementDefinitionRef": {
+        "id": "measurement.anthropometric.weight",
+        "contentVersion": "1.0.0"
+      },
+      "outputMeasurementDefinitionRef": {
+        "id": "measurement.anthropometric.bmi",
+        "contentVersion": "1.0.0"
+      },
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ],
+  "categoricalObservations": [
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "observation.physical.body-habitus",
+      "label": "Observed body habitus",
+      "domain": "physical_exam",
+      "allowedValueIds": [
+        "observation-value.body-habitus.lower-adiposity",
+        "observation-value.body-habitus.no-marked-adiposity-or-muscularity",
+        "observation-value.body-habitus.increased-adiposity",
+        "observation-value.body-habitus.increased-muscularity",
+        "observation-value.body-habitus.mixed-increased-adiposity-and-muscularity"
+      ],
+      "availableThroughActionIds": ["info.physical.weight-bmi"],
+      "lifecycle": "review",
+      "medicalReviewStatus": "unreviewed"
+    }
+  ]
 }

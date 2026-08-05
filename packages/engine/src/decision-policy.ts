@@ -573,6 +573,68 @@ export const collectDecisionPatientFacts = (
     }
   }
 
+  for (const response of state.currentMedicationReportedBenefits) {
+    const regimenEntry = regimenById.get(response.subject.regimenEntryId);
+    if (!regimenEntry) continue;
+    const common = [
+      'current_medication_response',
+      response.id,
+      regimenEntry.medicationIdentityId,
+      null,
+    ] as const;
+    add(...common, 'current-medication-response.presence', 'state.present');
+    add(
+      ...common,
+      'current-medication-response.reported-benefit',
+      enumValueId('reported-benefit', response.reportedBenefit),
+    );
+    add(
+      ...common,
+      'current-medication-response.subject-regimen-entry',
+      response.subject.regimenEntryId,
+    );
+    add(
+      ...common,
+      'current-medication-response.source-kind',
+      enumValueId('evidence-source-kind', response.source.kind),
+    );
+    add(...common, 'current-medication-response.source-instance', response.source.sourceInstanceId);
+    add(...common, 'current-medication-response.time-scope', response.timeScopeId);
+  }
+
+  for (const dosePosition of state.currentMedicationDosePositions) {
+    const regimenEntry = regimenById.get(dosePosition.subject.regimenEntryId);
+    if (!regimenEntry) continue;
+    const common = [
+      'current_medication_dose_position',
+      dosePosition.id,
+      regimenEntry.medicationIdentityId,
+      null,
+    ] as const;
+    add(...common, 'current-medication-dose-position.presence', 'state.present');
+    add(
+      ...common,
+      'current-medication-dose-position.position',
+      enumValueId('dose-position', dosePosition.position),
+    );
+    add(
+      ...common,
+      'current-medication-dose-position.subject-regimen-entry',
+      dosePosition.subject.regimenEntryId,
+    );
+    add(
+      ...common,
+      'current-medication-dose-position.source-kind',
+      enumValueId('evidence-source-kind', dosePosition.source.kind),
+    );
+    add(
+      ...common,
+      'current-medication-dose-position.source-instance',
+      dosePosition.source.sourceInstanceId,
+    );
+    add(...common, 'current-medication-dose-position.time-scope', dosePosition.timeScopeId);
+  }
+
   add(
     'reaction_history',
     stateBindingId('reaction-history', state.id),
@@ -1447,6 +1509,55 @@ export const compileDecisionPolicy = (
         primary.ruleRef.contentVersion,
         primary.ruleRef.contentVersion,
         'The pinned primary route remains frozen for audit, but its declared patient/action predicate is not satisfiable in this focused horizon. This does not invent a penalty or invalidate the patient.',
+      ),
+    );
+  }
+
+  for (const candidate of [...candidatesByKey.values()].sort((left, right) =>
+    compareStrings(referenceKey(left.ruleRef), referenceKey(right.ruleRef)),
+  )) {
+    if (
+      candidate.ruleRef.kind !== 'diagnosis_rule' ||
+      candidate.ruleKind !== 'prerequisite' ||
+      candidate.review.status !== 'approved'
+    ) {
+      continue;
+    }
+    const patient = evaluatePatientPredicate(candidate.patientWhen, factsByKey);
+    if (!patient.matched) continue;
+    const prerequisite = candidate.triggeredInformationPrerequisite;
+    if (
+      prerequisite !== null &&
+      (prerequisite.policyScope.policyRef.id !== input.policy.id ||
+        prerequisite.policyScope.policyRef.contentVersion !== input.policy.contentVersion ||
+        prerequisite.policyScope.focusedDecisionId !== input.policy.focusedDecisionId ||
+        !evaluateActionPredicate(prerequisite.triggerWhen, actionTargetsByKey).matched)
+    ) {
+      continue;
+    }
+    if (evaluateActionPredicate(candidate.actionWhen, actionTargetsByKey).matched) continue;
+    const missingInformationActionIds = uniqueSorted(
+      candidate.actionWhen?.targets.flatMap((target) =>
+        target.kind === 'information_action' && !actionTargetsByKey.has(actionTargetKey(target))
+          ? [target.informationActionId]
+          : [],
+      ) ?? [],
+    );
+    if (missingInformationActionIds.length === 0) continue;
+    diagnostics.push(
+      makeDiagnostic(
+        'uncovered_action',
+        [
+          input.policy.id,
+          candidate.ruleRef.id,
+          input.actionHorizon.id,
+          ...missingInformationActionIds,
+        ],
+        null,
+        null,
+        `${candidate.ruleRef.id} matches the frozen patient${
+          prerequisite === null ? '' : ' and has an available treatment trigger'
+        }, but its exact information action is outside this encounter horizon. The rule remains uncompiled and unscored; no result, negative finding, or penalty was inferred.`,
       ),
     );
   }

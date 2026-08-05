@@ -35,6 +35,9 @@ export const normalizeResolvedPatientState = (state: ResolvedPatientState): Reso
       priorLevelsOfCare: sortById(state.treatmentHistory.priorLevelsOfCare),
     },
     medicationTolerabilityFindings: sortById(state.medicationTolerabilityFindings),
+    currentMedicationReportedBenefits: sortById(state.currentMedicationReportedBenefits),
+    currentMedicationDosePositions: sortById(state.currentMedicationDosePositions),
+    medicationChangeTemporalRelationships: sortById(state.medicationChangeTemporalRelationships),
     reactionHistory: {
       ...state.reactionHistory,
       records: sortById(
@@ -61,6 +64,7 @@ export const normalizeResolvedPatientState = (state: ResolvedPatientState): Reso
       }))
       .sort((left, right) => compareStrings(left.dimensionId, right.dimensionId)),
     clinicalDurations: sortById(state.clinicalDurations),
+    functionalImpairments: sortById(state.functionalImpairments),
     subjectiveBurdenRecords: sortById(state.subjectiveBurdenRecords),
     propositionState: {
       ...state.propositionState,

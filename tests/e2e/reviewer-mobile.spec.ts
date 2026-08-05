@@ -91,7 +91,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   await expect(page.getByText('Major depressive disorder')).toBeVisible();
   await expectDocumentFitsViewport(page);
 
-  const medicationCategory = page.getByRole('button', { name: /Medications 53/ });
+  const medicationCategory = page.getByRole('button', { name: /Medications 125/ });
   await medicationCategory.click();
   await expectWithinHorizontalViewport(medicationCategory);
   await page.getByRole('searchbox', { name: 'Search database' }).fill('bupropion');
@@ -116,7 +116,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
 
   await page.reload();
   await page.getByRole('button', { name: 'Database' }).click();
-  await page.getByRole('button', { name: /Medications 53/ }).click();
+  await page.getByRole('button', { name: /Medications 125/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('bupropion');
   await expect(page.getByText('Comment saved')).toBeVisible();
   await page.getByRole('button', { name: 'Open full entry' }).click();
@@ -125,7 +125,7 @@ test('reviews multiple patients on a phone and exports one exact feedback bundle
   ).toHaveValue(databaseNote);
   await page.getByRole('button', { name: 'Back to database' }).click();
 
-  const referencesCategory = page.getByRole('button', { name: /Formal references 26/ });
+  const referencesCategory = page.getByRole('button', { name: /Formal references 27/ });
   await referencesCategory.click();
   await expectWithinHorizontalViewport(referencesCategory);
   await page.getByRole('searchbox', { name: 'Search database' }).fill('CANMAT');

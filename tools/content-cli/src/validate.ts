@@ -2,6 +2,7 @@ import { access, readFile, readdir } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 
 import {
+  BackgroundFindingOutcomeProfileCatalogSchema,
   CaseBlueprintSchema,
   ClinicalDurationProfileCatalogSchema,
   ClinicalReviewTicketSchema,
@@ -19,19 +20,26 @@ import {
   MeasurementCatalogSchema,
   MedicationIdentityDefinitionSchema,
   MedicationRegimenKnowledgeCatalogSchema,
+  PatientLauncherPresentationCatalogSchema,
+  PatientSceneSourceDefinitionCatalogSchema,
   PersonalKnowledgeAuthoringAliasCatalogSchema,
   PersonalKnowledgePilotProfileSchema,
   PersonalKnowledgePrivateSourceCatalogSchema,
   RaceEthnicityCatalogSchema,
   SourceUseDecisionCatalogSchema,
+  StructuredSourceReportProfileSchema,
   SupplementIdentityDefinitionSchema,
   UniversalActionResultAssemblyCatalogSchema,
+  type BackgroundFindingOutcomeProfileCatalog,
   type ClinicalDurationProfileCatalog,
   type ConditionFindingProfileCatalog,
   type FindingExpressionBankCatalog,
   type FindingProjectionCatalog,
   type FindingProjectionHorizonCatalog,
+  type PatientLauncherPresentationCatalog,
+  type PatientSceneSourceDefinitionCatalog,
   type RaceEthnicityCatalog,
+  type StructuredSourceReportProfile,
   type UniversalActionResultAssemblyCatalog,
 } from '@psychsim/schemas';
 import {
@@ -49,7 +57,9 @@ import { reviewerCaseBlueprints } from '@psychsim/content-runtime/reviewer';
 import { resolveClinicForProgressionMode } from '@psychsim/engine';
 import {
   adaptFocusedMedicationRegimenRoute,
+  derivePatientSceneSourceInstanceId,
   fingerprintInformationActionPayload,
+  fingerprintStructuredSourceReportDefinition,
 } from '@psychsim/engine/authoring';
 import { contentRegistry } from '../../../packages/content-runtime/src/registry';
 import { supplementIdentities } from '../../../packages/content-runtime/src/supplement-identities';
@@ -74,6 +84,22 @@ import {
 } from './diagnosis-classification';
 import { validatePersonalKnowledgeAliasCatalog } from './developer-database-knowledge';
 import { validatePersonalKnowledgePilotProfile } from './personal-knowledge-workspace';
+
+const canonicalizeComparableValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonicalizeComparableValue);
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, child]) => [key, canonicalizeComparableValue(child)]),
+    );
+  }
+  return value;
+};
+
+const hasExactComparablePayload = (left: unknown, right: unknown): boolean =>
+  JSON.stringify(canonicalizeComparableValue(left)) ===
+  JSON.stringify(canonicalizeComparableValue(right));
 
 const reviewCaseDirectory = resolve('content/cases/review');
 const checkedInReviewTicketFiles = (await readdir(reviewCaseDirectory))
@@ -173,6 +199,108 @@ if (findingExpressionBankEntries.length !== 1) {
         error instanceof Error
           ? error.message
           : 'Finding expression-bank catalog validation failed.',
+    });
+  }
+}
+
+const patientLauncherPresentationIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let patientLauncherPresentationCatalogForValidation: PatientLauncherPresentationCatalog | null =
+  null;
+const patientLauncherPresentationEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'patient_launcher_presentation_catalog',
+);
+if (patientLauncherPresentationEntries.length !== 1) {
+  patientLauncherPresentationIssues.push({
+    severity: 'error',
+    code: 'PATIENT_LAUNCHER_PRESENTATION_CATALOG_COUNT',
+    message: `Expected one patient-launcher presentation catalog; found ${patientLauncherPresentationEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = patientLauncherPresentationEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Launcher presentation authoring content must remain outside Player and Reviewer runtimes until one exact generated patient freezes it.',
+      );
+    }
+    const catalog = PatientLauncherPresentationCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    patientLauncherPresentationCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = [
+      ...catalog.complaintBanks.map((bank) => bank.id),
+      ...catalog.profiles.map((profile) => profile.id),
+    ].sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error(
+        'Launcher presentation registry membership must exactly match its banks and profiles.',
+      );
+    }
+
+    const variantPoolByKey = new Map(
+      catalogs.variantPools.map((pool) => [`${pool.id}\u0000${pool.contentVersion}`, pool]),
+    );
+    const forbiddenHintPattern =
+      /\b(case|diagnosis|mdd|major depressive disorder|straightforward|first[- ]line|optimal)\b/i;
+    for (const bank of catalog.complaintBanks) {
+      if (bank.lifecycle !== 'approved' || bank.medicalReviewStatus !== 'unreviewed') {
+        throw new Error(
+          `${bank.id} must remain approved cosmetic content without claiming medical review.`,
+        );
+      }
+      for (const variant of bank.variants) {
+        if (variant.text.length > 40 || forbiddenHintPattern.test(variant.text)) {
+          throw new Error(
+            `${variant.id} must remain a brief complaint without case, diagnosis, pathway, or answer-key language.`,
+          );
+        }
+      }
+    }
+    for (const profile of catalog.profiles) {
+      if (
+        profile.review.status !== 'approved' ||
+        profile.developerOpinionIds.length === 0 ||
+        profile.review.sourceUseNoteIds.length > 0
+      ) {
+        throw new Error(
+          `${profile.id} requires an approved Developer-owned cosmetic review and no clinical source attribution.`,
+        );
+      }
+      const firstNames = variantPoolByKey.get(
+        `${profile.firstNamePoolRef.id}\u0000${profile.firstNamePoolRef.contentVersion}`,
+      );
+      const lastNames = variantPoolByKey.get(
+        `${profile.lastNamePoolRef.id}\u0000${profile.lastNamePoolRef.contentVersion}`,
+      );
+      if (
+        firstNames?.kind !== 'fictional_first_name' ||
+        firstNames.values.length < 80 ||
+        firstNames.values.some((value) => typeof value !== 'string') ||
+        lastNames?.kind !== 'fictional_last_name' ||
+        lastNames.values.length < 80 ||
+        lastNames.values.some((value) => typeof value !== 'string')
+      ) {
+        throw new Error(
+          `${profile.id} must reference the exact substantial fictional first- and last-name pools.`,
+        );
+      }
+    }
+  } catch (error) {
+    patientLauncherPresentationIssues.push({
+      severity: 'error',
+      code: 'INVALID_PATIENT_LAUNCHER_PRESENTATION_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Patient-launcher presentation catalog validation failed.',
     });
   }
 }
@@ -549,6 +677,29 @@ if (universalActionResultAssemblyEntries.length !== 1) {
         'Universal action-result assembly registry membership must exactly match its catalog.',
       );
     }
+    const measurementEntry = contentRegistry.entries.find(
+      (candidate) => candidate.kind === 'measurement_catalog',
+    );
+    if (!measurementEntry) {
+      throw new Error(
+        'Universal action-result assembly validation requires one canonical measurement catalog.',
+      );
+    }
+    const measurementCatalog = MeasurementCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(measurementEntry.path), 'utf8')) as unknown,
+    );
+    const measurementsByKey = new Map(
+      measurementCatalog.measurements.map((definition) => [
+        `${definition.id}\u0000${definition.contentVersion}`,
+        definition,
+      ]),
+    );
+    const categoricalObservationsByKey = new Map(
+      measurementCatalog.categoricalObservations.map((definition) => [
+        `${definition.id}\u0000${definition.contentVersion}`,
+        definition,
+      ]),
+    );
     const actionsById = new Map(catalogs.informationActions.map((action) => [action.id, action]));
     const durationProfilesByKey = new Map(
       (clinicalDurationProfileCatalogForValidation?.profiles ?? []).map((profile) => [
@@ -632,6 +783,26 @@ if (universalActionResultAssemblyEntries.length !== 1) {
           referencedDurationProfileKeys.add(profileKey);
         }
       }
+      for (const definition of assembly.measurementDefinitions) {
+        const canonical = measurementsByKey.get(
+          `${definition.id}\u0000${definition.contentVersion}`,
+        );
+        if (!canonical || !hasExactComparablePayload(definition, canonical)) {
+          throw new Error(
+            `${assembly.id} embeds stale or unknown measurement definition ${definition.id}@${definition.contentVersion}.`,
+          );
+        }
+      }
+      for (const definition of assembly.categoricalObservationDefinitions) {
+        const canonical = categoricalObservationsByKey.get(
+          `${definition.id}\u0000${definition.contentVersion}`,
+        );
+        if (!canonical || !hasExactComparablePayload(definition, canonical)) {
+          throw new Error(
+            `${assembly.id} embeds stale or unknown categorical-observation definition ${definition.id}@${definition.contentVersion}.`,
+          );
+        }
+      }
       for (const recipe of assembly.recipes) {
         const action = actionsById.get(recipe.informationActionId);
         if (!action) {
@@ -660,6 +831,26 @@ if (universalActionResultAssemblyEntries.length !== 1) {
               `${recipe.id} declares target-scoped patient values without an exact checked-in definition.`,
             );
           }
+        }
+        if (
+          recipe.sourceKinds.includes('measurements') &&
+          !assembly.measurementDefinitions.some((definition) =>
+            definition.availableThroughActionIds.includes(recipe.informationActionId),
+          )
+        ) {
+          throw new Error(
+            `${recipe.id} declares measurements without an exact checked-in definition available through that action.`,
+          );
+        }
+        if (
+          recipe.sourceKinds.includes('categorical_observations') &&
+          !assembly.categoricalObservationDefinitions.some((definition) =>
+            definition.availableThroughActionIds.includes(recipe.informationActionId),
+          )
+        ) {
+          throw new Error(
+            `${recipe.id} declares categorical observations without an exact checked-in definition available through that action.`,
+          );
         }
       }
     }
@@ -854,6 +1045,7 @@ if (measurementCatalogEntries.length !== 1) {
     const registeredIds = [...entry.categoryIds].sort();
     const catalogIds = [
       ...catalog.measurements.map((definition) => definition.id),
+      ...catalog.derivations.map((definition) => definition.id),
       ...catalog.categoricalObservations.map((definition) => definition.id),
     ].sort();
     if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
@@ -1070,6 +1262,92 @@ for (const source of allEvidenceSourcesById.values()) {
   }
 }
 
+const backgroundFindingOutcomeProfileIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let backgroundFindingOutcomeProfileCatalogForValidation: BackgroundFindingOutcomeProfileCatalog | null =
+  null;
+const backgroundFindingOutcomeProfileEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'background_finding_outcome_profile_catalog',
+);
+if (backgroundFindingOutcomeProfileEntries.length !== 1) {
+  backgroundFindingOutcomeProfileIssues.push({
+    severity: 'error',
+    code: 'BACKGROUND_FINDING_OUTCOME_PROFILE_CATALOG_COUNT',
+    message: `Expected one background-finding outcome profile catalog; found ${backgroundFindingOutcomeProfileEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = backgroundFindingOutcomeProfileEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Background-finding outcome profiles must remain authoring-only until an exact patient template binds them.',
+      );
+    }
+    const catalog = BackgroundFindingOutcomeProfileCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    backgroundFindingOutcomeProfileCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    if (
+      JSON.stringify([...entry.categoryIds].sort()) !==
+      JSON.stringify(catalog.profiles.map((profile) => profile.id).sort())
+    ) {
+      throw new Error(
+        'Background-finding outcome profile registry membership must exactly match its catalog.',
+      );
+    }
+    const findingById = new Map(catalogs.findings.map((finding) => [finding.id, finding]));
+    const sourceUseDecisionById = new Map(
+      sourceUseDecisionCatalog.decisions.map((decision) => [decision.id, decision]),
+    );
+    for (const profile of catalog.profiles) {
+      const finding = findingById.get(profile.findingDefinitionId);
+      if (!finding || finding.contentVersion !== profile.findingDefinitionContentVersion) {
+        throw new Error(
+          `${profile.id} references missing or stale finding ${profile.findingDefinitionId}@${profile.findingDefinitionContentVersion}.`,
+        );
+      }
+      if (
+        finding.valueSpecification.kind !== 'outcome' ||
+        profile.outcomes.some(
+          (outcome) =>
+            outcome.proposedValue.kind !== 'outcome' ||
+            !finding.valueSpecification.allowedValues.includes(outcome.proposedValue.value),
+        )
+      ) {
+        throw new Error(`${profile.id} proposes a value outside ${finding.id}'s closed horizon.`);
+      }
+      for (const sourceUseDecisionId of profile.review.sourceUseNoteIds) {
+        const decision = sourceUseDecisionById.get(sourceUseDecisionId);
+        if (
+          !decision ||
+          decision.decisionStatus !== 'permitted_with_conditions' ||
+          !decision.permissions.derivedClinicalContent ||
+          !decision.allowedContributionTypes.includes('patient_fact')
+        ) {
+          throw new Error(
+            `${profile.id} references unusable patient-fact source decision ${sourceUseDecisionId}.`,
+          );
+        }
+      }
+    }
+  } catch (error) {
+    backgroundFindingOutcomeProfileIssues.push({
+      severity: 'error',
+      code: 'INVALID_BACKGROUND_FINDING_OUTCOME_PROFILE_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Background-finding outcome profile catalog validation failed.',
+    });
+  }
+}
+
 const raceEthnicityCatalogIssues: Array<{
   severity: 'error';
   code: string;
@@ -1147,6 +1425,244 @@ if (raceEthnicityEntries.length !== 1) {
       severity: 'error',
       code: 'INVALID_RACE_ETHNICITY_CATALOG',
       message: error instanceof Error ? error.message : 'Race/ethnicity catalog validation failed.',
+    });
+  }
+}
+
+const patientSceneSourceDefinitionCatalogIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let patientSceneSourceDefinitionCatalogForValidation: PatientSceneSourceDefinitionCatalog | null =
+  null;
+const patientSceneSourceDefinitionEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'patient_scene_source_definition_catalog',
+);
+if (patientSceneSourceDefinitionEntries.length !== 1) {
+  patientSceneSourceDefinitionCatalogIssues.push({
+    severity: 'error',
+    code: 'PATIENT_SCENE_SOURCE_DEFINITION_CATALOG_COUNT',
+    message: `Expected one patient-scene source-definition catalog; found ${patientSceneSourceDefinitionEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = patientSceneSourceDefinitionEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Patient-scene source-role definitions remain outside ordinary runtime until generated-patient activation is reviewed.',
+      );
+    }
+    if (entry.dependsOnIds.length > 0) {
+      throw new Error(
+        'Neutral patient-scene source-role identity must not inherit clinical or evidence authority through registry dependencies.',
+      );
+    }
+    const catalog = PatientSceneSourceDefinitionCatalogSchema.parse(
+      JSON.parse(await readFile(resolve(entry.path), 'utf8')) as unknown,
+    );
+    patientSceneSourceDefinitionCatalogForValidation = catalog;
+    if (catalog.id !== entry.id) {
+      throw new Error(`${entry.id} resolves to ${catalog.id}.`);
+    }
+    const registeredIds = [...entry.categoryIds].sort();
+    const catalogIds = catalog.definitions.map((definition) => definition.id).sort();
+    if (JSON.stringify(registeredIds) !== JSON.stringify(catalogIds)) {
+      throw new Error(
+        'Patient-scene source-definition registry membership must exactly match its catalog.',
+      );
+    }
+    const representedKinds = new Set(catalog.definitions.map((definition) => definition.kind));
+    const requiredKinds = [
+      'patient_report',
+      'collateral_report',
+      'record_review',
+      'clinician_observation',
+      'instrument_response',
+      'measurement',
+      'laboratory_result',
+      'diagnostic_study_result',
+    ] as const;
+    if (requiredKinds.some((kind) => !representedKinds.has(kind))) {
+      throw new Error(
+        'The initial patient-scene source-definition catalog must represent every closed D-291 source kind.',
+      );
+    }
+    if (
+      /credibility|accuracy|reliability|probability|weight|points?|informationAction|wording/i.test(
+        JSON.stringify(catalog),
+      )
+    ) {
+      throw new Error(
+        'Patient-scene source-role definitions may contain identity and kind only, without reliability, probability, action, wording, or scoring semantics.',
+      );
+    }
+  } catch (error) {
+    patientSceneSourceDefinitionCatalogIssues.push({
+      severity: 'error',
+      code: 'INVALID_PATIENT_SCENE_SOURCE_DEFINITION_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Patient-scene source-definition catalog validation failed.',
+    });
+  }
+}
+
+const structuredSourceReportProfileIssues: Array<{
+  severity: 'error';
+  code: string;
+  message: string;
+}> = [];
+let structuredSourceReportProfilesForValidation: StructuredSourceReportProfile[] = [];
+const structuredSourceReportProfileEntries = contentRegistry.entries.filter(
+  (entry) => entry.kind === 'structured_source_report_profile_catalog',
+);
+if (structuredSourceReportProfileEntries.length !== 1) {
+  structuredSourceReportProfileIssues.push({
+    severity: 'error',
+    code: 'STRUCTURED_SOURCE_REPORT_PROFILE_CATALOG_COUNT',
+    message: `Expected one structured source-report profile catalog; found ${structuredSourceReportProfileEntries.length}.`,
+  });
+} else {
+  try {
+    const entry = structuredSourceReportProfileEntries[0]!;
+    if (entry.runtimeIncluded) {
+      throw new Error(
+        'Structured source-report profiles must remain outside ordinary runtime until one exact generated template binds them.',
+      );
+    }
+    const requiredDependencies = [
+      'developer-opinions.psychsim',
+      'registry.catalog.patient-scene-source-definitions',
+      'registry.catalog.universal-action-result-assemblies',
+    ].sort();
+    if (JSON.stringify([...entry.dependsOnIds].sort()) !== JSON.stringify(requiredDependencies)) {
+      throw new Error(
+        'Structured source-report profiles require only their exact source-role, action-result, and Developer-opinion owners.',
+      );
+    }
+    const profileFiles = (await readdir(resolve(entry.path)))
+      .filter((fileName) => fileName.endsWith('.profile.json'))
+      .sort();
+    const profiles = await Promise.all(
+      profileFiles.map(async (fileName) =>
+        StructuredSourceReportProfileSchema.parse(
+          JSON.parse(await readFile(resolve(entry.path, fileName), 'utf8')) as unknown,
+        ),
+      ),
+    );
+    structuredSourceReportProfilesForValidation = profiles;
+    const profileIds = profiles.map((profile) => profile.id);
+    if (
+      new Set(profileIds).size !== profileIds.length ||
+      JSON.stringify([...entry.categoryIds].sort()) !== JSON.stringify([...profileIds].sort())
+    ) {
+      throw new Error(
+        'Structured source-report profile registry membership must exactly match unique checked-in profile files.',
+      );
+    }
+    const sourceCatalog = patientSceneSourceDefinitionCatalogForValidation;
+    const assemblyCatalog = universalActionResultAssemblyCatalogForValidation;
+    if (sourceCatalog === null || assemblyCatalog === null) {
+      throw new Error(
+        'Structured source-report profile validation requires valid source-role and universal action-result catalogs.',
+      );
+    }
+    const sourceInstancesByKind = new Map(
+      sourceCatalog.definitions.map((definition) => [
+        `${definition.kind}\u0000${derivePatientSceneSourceInstanceId(definition)}`,
+        definition,
+      ]),
+    );
+    const definitionsByKey = new Map(
+      assemblyCatalog.assemblies.flatMap((assembly) =>
+        assembly.structuredRevealDefinitions.map(
+          (definition) =>
+            [`${definition.id}\u0000${definition.contentVersion}`, definition] as const,
+        ),
+      ),
+    );
+    const expectedAccurateProfiles = new Map<
+      string,
+      {
+        readonly definitionId: string;
+        readonly timeScopeId: string;
+        readonly lanes: readonly string[];
+        readonly singletonFields: readonly string[];
+      }
+    >([
+      [
+        'source-report-profile.patient.current-medication-regimen.accurate',
+        {
+          definitionId: 'structured-reveal-definition.history.medication-reconciliation',
+          timeScopeId: 'time-scope.current',
+          lanes: ['medication_regimen_entries'],
+          singletonFields: [],
+        },
+      ],
+      [
+        'source-report-profile.patient.reaction-history.accurate',
+        {
+          definitionId: 'structured-reveal-definition.history.allergies-adverse-reactions',
+          timeScopeId: 'time-scope.longitudinal',
+          lanes: ['reaction_records'],
+          singletonFields: ['medication_reaction_assessment_status', 'reaction_history_status'],
+        },
+      ],
+      [
+        'source-report-profile.patient.substance-use.accurate',
+        {
+          definitionId: 'structured-reveal-definition.history.substance-use',
+          timeScopeId: 'time-scope.longitudinal',
+          lanes: ['exposure_use_entries'],
+          singletonFields: [],
+        },
+      ],
+    ]);
+    if (
+      profiles.length !== expectedAccurateProfiles.size ||
+      profiles.some((profile) => !expectedAccurateProfiles.has(profile.id))
+    ) {
+      throw new Error(
+        'The first structured source-report profile tranche must contain exactly the three accepted accurate-history baselines.',
+      );
+    }
+    for (const profile of profiles) {
+      const expected = expectedAccurateProfiles.get(profile.id)!;
+      const definition = definitionsByKey.get(
+        `${profile.definitionRef.id}\u0000${profile.definitionRef.contentVersion}`,
+      );
+      const sourceDefinition = sourceInstancesByKind.get(
+        `${profile.source.kind}\u0000${profile.source.sourceInstanceId}`,
+      );
+      if (
+        definition === undefined ||
+        profile.definitionRef.id !== expected.definitionId ||
+        profile.definitionFingerprint !== fingerprintStructuredSourceReportDefinition(definition) ||
+        sourceDefinition?.id !== 'patient-scene-source-role.patient.self-report' ||
+        profile.timeScopeId !== expected.timeScopeId ||
+        profile.dependencyGroupIds.length > 0 ||
+        JSON.stringify(profile.laneBehaviors.map((behavior) => behavior.lane).sort()) !==
+          JSON.stringify([...expected.lanes].sort()) ||
+        profile.laneBehaviors.some((behavior) => behavior.behavior !== 'report_all') ||
+        JSON.stringify(profile.singletonBehaviors.map((behavior) => behavior.field).sort()) !==
+          JSON.stringify([...expected.singletonFields].sort()) ||
+        profile.singletonBehaviors.some((behavior) => behavior.presentation.kind !== 'mirror_truth')
+      ) {
+        throw new Error(
+          `${profile.id} is not the exact accurate patient-report baseline for its reviewed action-result definition.`,
+        );
+      }
+    }
+  } catch (error) {
+    structuredSourceReportProfileIssues.push({
+      severity: 'error',
+      code: 'INVALID_STRUCTURED_SOURCE_REPORT_PROFILE_CATALOG',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Structured source-report profile validation failed.',
     });
   }
 }
@@ -1310,6 +1826,9 @@ if (medicationRegimenKnowledgeEntries.length !== 1) {
     const medicationClassVersions = new Map(
       catalog.medicationClasses.map((definition) => [definition.id, definition.contentVersion]),
     );
+    const findingDefinitions = new Map(
+      catalogs.findings.map((definition) => [definition.id, definition]),
+    );
     for (const membership of catalog.classMemberships) {
       const identityVersion = medicationIdentityVersions.get(membership.medicationIdentityId);
       if (!identityVersion) {
@@ -1418,6 +1937,36 @@ if (medicationRegimenKnowledgeEntries.length !== 1) {
         if (!adapted.ok) {
           throw new Error(
             `${route.id} cannot compile into a decision-rule candidate: ${adapted.error.code}: ${adapted.error.message}`,
+          );
+        }
+      }
+    }
+    for (const diagnosis of catalogs.diagnoses) {
+      for (const rule of [
+        ...diagnosis.baseRules,
+        ...(diagnosis.severityAxis?.levels.flatMap((level) => level.rules) ?? []),
+        ...diagnosis.specifiers.flatMap((specifier) => specifier.rules),
+      ]) {
+        if (rule.nativePatientWhen) {
+          const finding = findingDefinitions.get(rule.nativePatientWhen.findingDefinitionId);
+          if (
+            !finding ||
+            finding.contentVersion !== rule.nativePatientWhen.findingDefinitionContentVersion ||
+            !finding.valueSpecification.allowedValues.includes(rule.nativePatientWhen.outcome)
+          ) {
+            throw new Error(
+              `${rule.id} references unknown, stale, or outcome-incompatible canonical finding ${rule.nativePatientWhen.findingDefinitionId}@${rule.nativePatientWhen.findingDefinitionContentVersion}:${rule.nativePatientWhen.outcome}.`,
+            );
+          }
+        }
+        if (rule.selectionWhen?.type === 'treatmentStartedInClass') {
+          validateTarget(
+            {
+              kind: 'class',
+              medicationClassId: rule.selectionWhen.medicationClassId,
+              medicationClassContentVersion: rule.selectionWhen.medicationClassContentVersion,
+            },
+            rule.id,
           );
         }
       }
@@ -1702,7 +2251,8 @@ if (decisionBalanceEntries.length !== 1) {
           requiredBalanceKind:
             rule.target.kind === 'information_action' &&
             rule.stance === 'required' &&
-            rule.selectionWhen?.type === 'anyMedicationStarted' &&
+            (rule.selectionWhen?.type === 'anyMedicationStarted' ||
+              rule.selectionWhen?.type === 'treatmentStartedInClass') &&
             rule.patientWhen?.type === 'clinicalTagPresent'
               ? 'triggered_information_prerequisite'
               : rule.target.kind === 'information_action' &&
@@ -2281,6 +2831,13 @@ if (developerOpinionEntries.length !== 1) {
     const targetKindById = new Map<string, string>([
       ...catalogs.diagnoses.map((diagnosis) => [diagnosis.id, 'diagnosis'] as const),
       ...catalogs.diagnoses.flatMap((diagnosis) =>
+        [
+          ...diagnosis.baseRules,
+          ...(diagnosis.severityAxis?.levels.flatMap((level) => level.rules) ?? []),
+          ...diagnosis.specifiers.flatMap((specifier) => specifier.rules),
+        ].map((rule) => [rule.id, 'clinical_rule'] as const),
+      ),
+      ...catalogs.diagnoses.flatMap((diagnosis) =>
         diagnosis.severityAxis?.derivationPolicy
           ? [[diagnosis.severityAxis.derivationPolicy.id, 'clinical_rule'] as const]
           : [],
@@ -2313,6 +2870,9 @@ if (developerOpinionEntries.length !== 1) {
       ...(conditionFindingProfileCatalogForValidation?.profiles.map(
         (profile) => [profile.id, 'clinical_rule'] as const,
       ) ?? []),
+      ...(backgroundFindingOutcomeProfileCatalogForValidation?.profiles.map(
+        (profile) => [profile.id, 'clinical_rule'] as const,
+      ) ?? []),
       ...(findingProjectionCatalogForValidation
         ? [[findingProjectionCatalogForValidation.id, 'clinical_rule'] as const]
         : []),
@@ -2323,13 +2883,20 @@ if (developerOpinionEntries.length !== 1) {
         (profile) => [profile.id, 'clinical_rule'] as const,
       ) ?? []),
       ...(universalActionResultAssemblyCatalogForValidation?.assemblies.flatMap((assembly) =>
-        assembly.targetScopedPatientValueProjectionDefinitions.map(
-          (definition) => [definition.id, 'clinical_rule'] as const,
-        ),
+        [
+          ...assembly.structuredRevealDefinitions,
+          ...assembly.targetScopedPatientValueProjectionDefinitions,
+        ].map((definition) => [definition.id, 'clinical_rule'] as const),
       ) ?? []),
+      ...structuredSourceReportProfilesForValidation.map(
+        (profile) => [profile.id, 'clinical_rule'] as const,
+      ),
       ...(raceEthnicityCatalogForValidation
         ? [[raceEthnicityCatalogForValidation.id, 'clinical_rule'] as const]
         : []),
+      ...(patientLauncherPresentationCatalogForValidation?.profiles.map(
+        (profile) => [profile.id, 'clinical_rule'] as const,
+      ) ?? []),
     ]);
     for (const opinion of catalog.opinions) {
       for (const target of opinion.targets) {
@@ -2350,6 +2917,44 @@ if (developerOpinionEntries.length !== 1) {
       }
     }
     const developerOpinionById = new Map(catalog.opinions.map((opinion) => [opinion.id, opinion]));
+    for (const profile of patientLauncherPresentationCatalogForValidation?.profiles ?? []) {
+      for (const opinionId of profile.developerOpinionIds) {
+        const opinion = developerOpinionById.get(opinionId);
+        if (
+          !opinion ||
+          opinion.developerReview.status !== 'accepted' ||
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' &&
+              target.targetContentId === profile.id &&
+              target.role === 'affected_rule',
+          )
+        ) {
+          throw new Error(
+            `${profile.id} lacks its exact accepted launcher-presentation Developer opinion ${opinionId}.`,
+          );
+        }
+      }
+    }
+    for (const profile of structuredSourceReportProfilesForValidation) {
+      for (const opinionId of profile.developerOpinionIds) {
+        const opinion = developerOpinionById.get(opinionId);
+        if (
+          !opinion ||
+          opinion.developerReview.status !== 'accepted' ||
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' &&
+              target.targetContentId === profile.id &&
+              target.role === 'affected_rule',
+          )
+        ) {
+          throw new Error(
+            `${profile.id} lacks its exact accepted structured-report Developer opinion ${opinionId}.`,
+          );
+        }
+      }
+    }
     if (raceEthnicityCatalogForValidation) {
       const opinion = developerOpinionById.get(
         raceEthnicityCatalogForValidation.authoringReview.developerOpinionId,
@@ -2512,6 +3117,31 @@ if (developerOpinionEntries.length !== 1) {
         }
       }
     }
+    for (const profile of backgroundFindingOutcomeProfileCatalogForValidation?.profiles ?? []) {
+      for (const developerOpinionId of profile.developerOpinionIds) {
+        const opinion = developerOpinionById.get(developerOpinionId);
+        if (!opinion) {
+          throw new Error(
+            `${profile.id} references unknown Developer opinion ${developerOpinionId}.`,
+          );
+        }
+        if (
+          !opinion.targets.some(
+            (target) =>
+              target.targetKind === 'clinical_rule' && target.targetContentId === profile.id,
+          )
+        ) {
+          throw new Error(
+            `${developerOpinionId} does not target background-finding profile ${profile.id}.`,
+          );
+        }
+        if (opinion.developerReview.status !== 'accepted') {
+          throw new Error(
+            `${profile.id} cannot rely on ${opinion.developerReview.status} Developer opinion ${developerOpinionId}.`,
+          );
+        }
+      }
+    }
     for (const prior of exposureCatalogForValidation?.misuseGenerationPriors ?? []) {
       for (const developerOpinionId of prior.developerOpinionIds) {
         const opinion = developerOpinionById.get(developerOpinionId);
@@ -2658,6 +3288,13 @@ const reports = [
     },
   ],
   [
+    'patient-launcher-presentations',
+    {
+      valid: patientLauncherPresentationIssues.length === 0,
+      issues: patientLauncherPresentationIssues,
+    },
+  ],
+  [
     'finding-projections',
     {
       valid: findingProjectionIssues.length === 0,
@@ -2693,6 +3330,13 @@ const reports = [
     },
   ],
   [
+    'background-finding-outcome-profiles',
+    {
+      valid: backgroundFindingOutcomeProfileIssues.length === 0,
+      issues: backgroundFindingOutcomeProfileIssues,
+    },
+  ],
+  [
     'measurements',
     {
       valid: measurementCatalogIssues.length === 0,
@@ -2718,6 +3362,20 @@ const reports = [
     {
       valid: raceEthnicityCatalogIssues.length === 0,
       issues: raceEthnicityCatalogIssues,
+    },
+  ],
+  [
+    'patient-scene-source-definitions',
+    {
+      valid: patientSceneSourceDefinitionCatalogIssues.length === 0,
+      issues: patientSceneSourceDefinitionCatalogIssues,
+    },
+  ],
+  [
+    'structured-source-report-profiles',
+    {
+      valid: structuredSourceReportProfileIssues.length === 0,
+      issues: structuredSourceReportProfileIssues,
     },
   ],
   [

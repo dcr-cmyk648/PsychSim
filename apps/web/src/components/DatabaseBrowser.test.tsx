@@ -114,7 +114,7 @@ describe('DatabaseBrowser', () => {
   it('searches only the selected public category and handles safe empty results', () => {
     render(<DatabaseBrowser projection={publicClinicalCatalog} onBack={vi.fn()} />);
 
-    screen.getByRole('button', { name: /Medications 53/ }).click();
+    screen.getByRole('button', { name: /Medications 125/ }).click();
     const search = screen.getByRole('searchbox', { name: 'Search database' });
     fireEvent.change(search, { target: { value: '  SSRI  ' } });
     expect(screen.getByRole('status')).toHaveTextContent(/matches for “SSRI”/);
@@ -125,19 +125,19 @@ describe('DatabaseBrowser', () => {
     expect(screen.getByRole('status')).toHaveTextContent('1 matches');
     expect(screen.getByText('Bupropion')).toBeVisible();
 
-    screen.getByRole('button', { name: /All 164/ }).click();
+    screen.getByRole('button', { name: /All 237/ }).click();
     fireEvent.change(search, { target: { value: 'ticket.' } });
     expect(screen.getByRole('status')).toHaveTextContent('0 matches');
     expect(screen.getByText(/No catalog records match/)).toBeVisible();
     fireEvent.click(screen.getAllByRole('button', { name: 'Clear search' })[0]!);
     expect(search).toHaveValue('');
-    expect(screen.getByRole('status')).toHaveTextContent('164 records shown');
+    expect(screen.getByRole('status')).toHaveTextContent('237 records shown');
   });
 
   it('shows every review-safe bibliography field in the reader', () => {
     render(<DatabaseBrowser projection={publicClinicalCatalog} onBack={vi.fn()} />);
 
-    screen.getByRole('button', { name: /Formal references 26/ }).click();
+    screen.getByRole('button', { name: /Formal references 27/ }).click();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search database' }), {
       target: { value: 'corrigendum' },
     });
@@ -175,7 +175,7 @@ describe('DatabaseBrowser', () => {
       />,
     );
 
-    screen.getByRole('button', { name: /Medications 53/ }).click();
+    screen.getByRole('button', { name: /Medications 125/ }).click();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search database' }), {
       target: { value: 'bupropion' },
     });
@@ -214,11 +214,11 @@ describe('DatabaseBrowser', () => {
       />,
     );
 
-    screen.getByRole('button', { name: /Medications 53/ }).click();
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('53 records shown'));
+    screen.getByRole('button', { name: /Medications 125/ }).click();
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('125 records shown'));
     const firstLauncher = screen.getAllByRole('button', { name: 'Open full entry' })[0]!;
     fireEvent.click(firstLauncher);
-    expect(screen.getByText('Entry 1 of 53')).toBeVisible();
+    expect(screen.getByText('Entry 1 of 125')).toBeVisible();
     const firstTitle = screen.getByRole('heading', { level: 1 }).textContent;
 
     fireEvent.change(
@@ -235,7 +235,7 @@ describe('DatabaseBrowser', () => {
     );
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(firstTitle ?? '');
     finishSave(true);
-    expect(await screen.findByText('Entry 2 of 53')).toBeVisible();
+    expect(await screen.findByText('Entry 2 of 125')).toBeVisible();
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
     expect(screen.getByRole('heading', { level: 1 })).not.toHaveTextContent(firstTitle ?? '');
   });
@@ -330,7 +330,7 @@ describe('DatabaseBrowser', () => {
     expect(screen.getByText('Developer corpus · 1 document')).toBeVisible();
     expect(screen.getByText('Local classification inspector')).toBeVisible();
     expect(screen.getByRole('button', { name: /Modeled conditions 9/ })).toBeVisible();
-    screen.getByRole('button', { name: /Medications 53/ }).click();
+    screen.getByRole('button', { name: /Medications 125/ }).click();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search database' }), {
       target: { value: 'private-alias' },
     });
@@ -374,7 +374,7 @@ describe('DatabaseBrowser', () => {
       />,
     );
 
-    screen.getByRole('button', { name: /Medications 53/ }).click();
+    screen.getByRole('button', { name: /Medications 125/ }).click();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search database' }), {
       target: { value: 'bupropion' },
     });
@@ -398,10 +398,10 @@ describe('DatabaseBrowser', () => {
         onBack={vi.fn()}
       />,
     );
-    screen.getByRole('button', { name: /Medications 53/ }).click();
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('53 records shown'));
+    screen.getByRole('button', { name: /Medications 125/ }).click();
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('125 records shown'));
     fireEvent.click(screen.getAllByRole('button', { name: 'Open full entry' })[0]!);
-    expect(screen.getByText('Entry 1 of 53')).toBeVisible();
+    expect(screen.getByText('Entry 1 of 125')).toBeVisible();
     fireEvent.change(
       screen.getByRole('textbox', { name: 'Your interpretation and instructions for Codex' }),
       {
@@ -410,6 +410,6 @@ describe('DatabaseBrowser', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Save comment and next entry' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/not saved/i);
-    expect(screen.getByText('Entry 1 of 53')).toBeVisible();
+    expect(screen.getByText('Entry 1 of 125')).toBeVisible();
   });
 });

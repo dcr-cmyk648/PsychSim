@@ -1,12 +1,14 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "3.51.0",
+  "contentVersion": "3.70.1",
   "entries": [
     {
       "id": "registry.catalog.information-actions",
       "kind": "information_catalog",
       "path": "content/catalogs/actions/actions.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.diagnoses",
@@ -70,7 +72,14 @@
         "finding.history.excessive-worry",
         "finding.history.muscle-tension",
         "finding.history.panic-attacks",
+        "finding.history.past-episodic-decreased-sleep-need",
+        "finding.history.past-episodic-elevated-irritable-mood",
         "finding.history.past-episodic-grandiosity",
+        "finding.history.past-episodic-high-risk-spending",
+        "finding.history.past-episodic-increased-goal-directed-activity",
+        "finding.history.past-episodic-pressured-speech",
+        "finding.history.past-episodic-racing-thoughts",
+        "finding.history.past-episodic-self-reported-impulsivity",
         "finding.history.reported-delusional-beliefs",
         "finding.history.reported-hallucinations",
         "finding.history.restlessness",
@@ -80,10 +89,14 @@
         "finding.mse.current-observed-thought-disorganization",
         "finding.safety.current-active-suicidal-ideation",
         "finding.safety.current-passive-death-wish",
+        "finding.safety.current-self-reported-access-to-suicide-means",
         "finding.safety.current-self-reported-weapon-access",
+        "finding.safety.current-specific-suicide-plan",
+        "finding.safety.current-suicidal-intent",
         "finding.safety.current-suicide-preparatory-behavior",
         "finding.safety.current-violent-ideation",
         "finding.safety.current-violent-intent",
+        "finding.safety.recent-suicide-attempt",
         "finding.safety.recent-violent-behavior",
         "finding.safety.suicide-attempt-history",
         "finding.safety.suicide-preparatory-behavior-history",
@@ -99,6 +112,41 @@
       "runtimeIncluded": false,
       "categoryIds": ["finding-expression-bank.history.common-energy-language"],
       "dependsOnIds": ["registry.catalog.findings"]
+    },
+    {
+      "id": "registry.catalog.patient-scene-source-definitions",
+      "kind": "patient_scene_source_definition_catalog",
+      "path": "content/catalogs/patient-scene-sources/definitions.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "patient-scene-source-role.clinician.direct-observation",
+        "patient-scene-source-role.collateral.primary-report",
+        "patient-scene-source-role.collateral.secondary-report",
+        "patient-scene-source-role.diagnostic-study.result",
+        "patient-scene-source-role.instrument.standardized-response",
+        "patient-scene-source-role.laboratory.result",
+        "patient-scene-source-role.measurement.direct",
+        "patient-scene-source-role.patient.self-report",
+        "patient-scene-source-role.record.current-chart",
+        "patient-scene-source-role.record.outside-records"
+      ],
+      "dependsOnIds": []
+    },
+    {
+      "id": "registry.catalog.structured-source-report-profiles",
+      "kind": "structured_source_report_profile_catalog",
+      "path": "content/catalogs/patient-scene-sources/structured-report-profiles",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "source-report-profile.patient.current-medication-regimen.accurate",
+        "source-report-profile.patient.reaction-history.accurate",
+        "source-report-profile.patient.substance-use.accurate"
+      ],
+      "dependsOnIds": [
+        "registry.catalog.patient-scene-source-definitions",
+        "registry.catalog.universal-action-result-assemblies",
+        "developer-opinions.psychsim"
+      ]
     },
     {
       "id": "registry.catalog.finding-projections",
@@ -154,7 +202,71 @@
         "finding-projection.history.depressive-symptoms.passive-death-wish.present",
         "finding-projection.history.depressive-symptoms.passive-death-wish.absent",
         "finding-projection.history.depressive-symptoms.active-suicidal-ideation.present",
-        "finding-projection.history.depressive-symptoms.active-suicidal-ideation.absent"
+        "finding-projection.history.depressive-symptoms.active-suicidal-ideation.absent",
+        "finding-projection.history.suicide-safety.passive-death-wish.present",
+        "finding-projection.history.suicide-safety.passive-death-wish.absent",
+        "finding-projection.history.suicide-safety.active-suicidal-ideation.present",
+        "finding-projection.history.suicide-safety.active-suicidal-ideation.absent",
+        "finding-projection.history.suicide-safety.suicidal-intent.present",
+        "finding-projection.history.suicide-safety.suicidal-intent.absent",
+        "finding-projection.history.suicide-safety.specific-suicide-plan.present",
+        "finding-projection.history.suicide-safety.specific-suicide-plan.absent",
+        "finding-projection.history.suicide-safety.suicide-preparatory-behavior.present",
+        "finding-projection.history.suicide-safety.suicide-preparatory-behavior.absent",
+        "finding-projection.history.suicide-safety.recent-suicide-attempt.present",
+        "finding-projection.history.suicide-safety.recent-suicide-attempt.absent",
+        "finding-projection.history.suicide-safety.access-to-suicide-means.present",
+        "finding-projection.history.suicide-safety.access-to-suicide-means.absent",
+        "finding-projection.history.suicide-safety.suicide-attempt-history.present",
+        "finding-projection.history.suicide-safety.suicide-attempt-history.absent",
+        "finding-projection.history.suicide-safety.suicide-preparatory-behavior-history.present",
+        "finding-projection.history.suicide-safety.suicide-preparatory-behavior-history.absent",
+        "finding-projection.history.mania-hypomania.current-elevated-irritable-mood.present",
+        "finding-projection.history.mania-hypomania.current-elevated-irritable-mood.absent",
+        "finding-projection.history.mania-hypomania.current-decreased-sleep-need.present",
+        "finding-projection.history.mania-hypomania.current-decreased-sleep-need.absent",
+        "finding-projection.history.mania-hypomania.current-pressured-speech.present",
+        "finding-projection.history.mania-hypomania.current-pressured-speech.absent",
+        "finding-projection.history.mania-hypomania.current-racing-thoughts.present",
+        "finding-projection.history.mania-hypomania.current-racing-thoughts.absent",
+        "finding-projection.history.mania-hypomania.current-increased-goal-directed-activity.present",
+        "finding-projection.history.mania-hypomania.current-increased-goal-directed-activity.absent",
+        "finding-projection.history.mania-hypomania.current-grandiosity.present",
+        "finding-projection.history.mania-hypomania.current-grandiosity.absent",
+        "finding-projection.history.mania-hypomania.current-self-reported-impulsivity.present",
+        "finding-projection.history.mania-hypomania.current-self-reported-impulsivity.absent",
+        "finding-projection.history.mania-hypomania.current-high-risk-spending.present",
+        "finding-projection.history.mania-hypomania.current-high-risk-spending.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-elevated-irritable-mood.present",
+        "finding-projection.history.mania-hypomania.past-episodic-elevated-irritable-mood.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-decreased-sleep-need.present",
+        "finding-projection.history.mania-hypomania.past-episodic-decreased-sleep-need.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-pressured-speech.present",
+        "finding-projection.history.mania-hypomania.past-episodic-pressured-speech.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-racing-thoughts.present",
+        "finding-projection.history.mania-hypomania.past-episodic-racing-thoughts.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-increased-goal-directed-activity.present",
+        "finding-projection.history.mania-hypomania.past-episodic-increased-goal-directed-activity.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-grandiosity.present",
+        "finding-projection.history.mania-hypomania.past-episodic-grandiosity.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-self-reported-impulsivity.present",
+        "finding-projection.history.mania-hypomania.past-episodic-self-reported-impulsivity.absent",
+        "finding-projection.history.mania-hypomania.past-episodic-high-risk-spending.present",
+        "finding-projection.history.mania-hypomania.past-episodic-high-risk-spending.absent",
+        "finding-projection.history.psychotic-symptoms.hallucinations.present",
+        "finding-projection.history.psychotic-symptoms.hallucinations.absent",
+        "finding-projection.history.psychotic-symptoms.delusional-beliefs.present",
+        "finding-projection.history.psychotic-symptoms.delusional-beliefs.absent",
+        "finding-projection.history.psychotic-symptoms.suspiciousness.present",
+        "finding-projection.history.psychotic-symptoms.suspiciousness.absent",
+        "finding-projection.history.psychotic-symptoms.ideas-of-reference.present",
+        "finding-projection.history.psychotic-symptoms.ideas-of-reference.absent",
+        "finding-projection.history.psychotic-symptoms.persecutory-ideation.present",
+        "finding-projection.history.psychotic-symptoms.persecutory-ideation.absent",
+        "finding-projection.history.psychotic-symptoms.thought-disorganization.present",
+        "finding-projection.history.psychotic-symptoms.thought-disorganization.absent",
+        "finding-projection.history.presenting-problem.functional-impact.present",
+        "finding-projection.history.presenting-problem.functional-impact.absent"
       ],
       "dependsOnIds": [
         "registry.catalog.information-actions",
@@ -167,7 +279,13 @@
       "kind": "finding_projection_horizon_catalog",
       "path": "content/catalogs/findings/projection-horizons.json",
       "runtimeIncluded": false,
-      "categoryIds": ["finding-projection-horizon.history.depressive-symptoms"],
+      "categoryIds": [
+        "finding-projection-horizon.history.depressive-symptoms",
+        "finding-projection-horizon.history.mania-hypomania",
+        "finding-projection-horizon.history.psychotic-symptoms",
+        "finding-projection-horizon.history.suicide-safety",
+        "finding-projection-horizon.mdd-initial-assessment-foundation"
+      ],
       "dependsOnIds": ["registry.catalog.finding-projections", "developer-opinions.psychsim"]
     },
     {
@@ -176,13 +294,25 @@
       "path": "content/catalogs/actions/universal-action-result-assemblies.json",
       "runtimeIncluded": false,
       "categoryIds": [
+        "universal-action-result-assembly.history.allergies-adverse-reactions",
         "universal-action-result-assembly.history.depressive-symptoms",
-        "universal-action-result-assembly.mdd-initial-assessment-foundation"
+        "universal-action-result-assembly.history.full-treatment-history",
+        "universal-action-result-assembly.history.mania-hypomania",
+        "universal-action-result-assembly.history.medication-effects",
+        "universal-action-result-assembly.history.medication-reconciliation",
+        "universal-action-result-assembly.history.prior-medication-trials",
+        "universal-action-result-assembly.history.psychotic-symptoms",
+        "universal-action-result-assembly.history.safety-planning-ability",
+        "universal-action-result-assembly.history.substance-use",
+        "universal-action-result-assembly.history.suicide-safety",
+        "universal-action-result-assembly.mdd-initial-assessment-foundation",
+        "universal-action-result-assembly.physical.weight-bmi"
       ],
       "dependsOnIds": [
         "registry.catalog.information-actions",
         "registry.catalog.finding-projection-horizons",
         "registry.catalog.clinical-duration-profiles",
+        "registry.catalog.measurements",
         "registry.catalog.diagnoses",
         "developer-opinions.psychsim"
       ]
@@ -212,10 +342,24 @@
       ]
     },
     {
+      "id": "registry.catalog.background-finding-outcome-profiles",
+      "kind": "background_finding_outcome_profile_catalog",
+      "path": "content/catalogs/findings/background-outcome-profiles.json",
+      "runtimeIncluded": false,
+      "categoryIds": ["background-finding-profile.mdd-outpatient.current-functional-impact"],
+      "dependsOnIds": [
+        "registry.catalog.findings",
+        "registry.catalog.source-use-decisions",
+        "developer-opinions.psychsim",
+        "evidence.cdc-nchs.nhanes-2021-2023-depression-screener"
+      ]
+    },
+    {
       "id": "registry.catalog.diagnosis-classifications.icd10cm-2026",
       "kind": "diagnosis_classification_catalog",
       "path": "content/catalogs/diagnoses/classifications/icd-10-cm/2026",
       "runtimeIncluded": false,
+      "categoryIds": [],
       "dependsOnIds": ["evidence.cdc-nchs.icd10cm.2026"]
     },
     {
@@ -223,6 +367,7 @@
       "kind": "source_use_decision_catalog",
       "path": "content/catalogs/evidence/source-use-decisions.json",
       "runtimeIncluded": false,
+      "categoryIds": [],
       "dependsOnIds": [
         "evidence.ace-singapore.gad.2025",
         "evidence.apa.bpd-treatment.second-edition.2024",
@@ -237,6 +382,7 @@
         "evidence.canmat.mdd-adults.2023-update",
         "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
         "evidence.cdc-nchs.icd10cm.2026",
+        "evidence.cdc-nchs.nhanes-2021-2023-depression-screener",
         "evidence.fda.abilify-maintena-label.2025-01",
         "evidence.fda.abilify-oral-label.2025-01",
         "evidence.fda.citalopram-capsules-label.2023",
@@ -248,6 +394,7 @@
         "evidence.nhs.cyclothymia.2023",
         "evidence.nhs.heart-palpitations.2026",
         "evidence.nimh.mental-health-topics.current",
+        "evidence.nlm.rxnorm-api.2026-08-03",
         "evidence.nlm.rxnorm-cpc.2026-07-06",
         "evidence.omb.spd15.2024",
         "evidence.roerig.clozapine-augmentation-strategies.2019",
@@ -270,9 +417,11 @@
       "path": "content/catalogs/measurements/definitions.json",
       "runtimeIncluded": false,
       "categoryIds": [
+        "measurement-derivation.bmi.metric-height-weight",
         "measurement.anthropometric.bmi",
         "measurement.anthropometric.height",
         "measurement.anthropometric.weight",
+        "observation.physical.body-habitus",
         "measurement.vital.diastolic-blood-pressure",
         "measurement.vital.heart-rate",
         "measurement.vital.oxygen-saturation",
@@ -287,6 +436,7 @@
       "kind": "developer_opinion_catalog",
       "path": "content/catalogs/evidence/opinions/developer-opinions.json",
       "runtimeIncluded": false,
+      "categoryIds": [],
       "dependsOnIds": [
         "registry.catalog.diagnoses",
         "registry.catalog.medication-identities",
@@ -294,6 +444,7 @@
         "evidence.canmat.mdd-adults.2023-update",
         "evidence.fda.abilify-maintena-label.2025-01",
         "evidence.nimh.mental-health-topics.current",
+        "evidence.cdc-nchs.nhanes-2021-2023-depression-screener",
         "evidence.omb.spd15.2024",
         "evidence.roerig.clozapine-augmentation-strategies.2019",
         "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019"
@@ -304,6 +455,7 @@
       "kind": "personal_knowledge_pilot_profile",
       "path": "content/catalogs/authoring/personal-knowledge/initial-mdd-antidepressant-selection.profile.json",
       "runtimeIncluded": false,
+      "categoryIds": [],
       "dependsOnIds": [
         "registry.catalog.diagnoses",
         "medication.sertraline",
@@ -319,6 +471,7 @@
       "kind": "personal_knowledge_alias_catalog",
       "path": "content/catalogs/authoring/personal-knowledge/cross-reference-aliases.json",
       "runtimeIncluded": false,
+      "categoryIds": [],
       "dependsOnIds": [
         "registry.catalog.diagnoses",
         "registry.catalog.information-actions",
@@ -331,13 +484,17 @@
       "id": "authoring-sources.personal-knowledge.private",
       "kind": "personal_knowledge_source_catalog",
       "path": "content/catalogs/authoring/personal-knowledge/private-source-catalog.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.services",
       "kind": "service_catalog",
       "path": "content/catalogs/services/services.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.treatments",
@@ -361,13 +518,16 @@
         "disposition.outpatient-followup",
         "disposition.urgent-medical-evaluation",
         "disposition.emergency-transfer"
-      ]
+      ],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.formularies",
       "kind": "formulary_catalog",
       "path": "content/catalogs/medications/formularies.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.medication-identities",
@@ -375,61 +535,134 @@
       "path": "content/catalogs/medications/identities",
       "runtimeIncluded": true,
       "categoryIds": [
+        "medication.acamprosate",
+        "medication.alprazolam",
+        "medication.amantadine",
         "medication.amitriptyline",
+        "medication.amoxapine",
+        "medication.amphetamine",
         "medication.aripiprazole",
+        "medication.armodafinil",
+        "medication.asenapine",
         "medication.atomoxetine",
         "medication.benztropine",
+        "medication.brexpiprazole",
+        "medication.buprenorphine",
         "medication.bupropion",
         "medication.buspirone",
         "medication.carbamazepine",
         "medication.cariprazine",
+        "medication.chlordiazepoxide",
+        "medication.chlorpromazine",
         "medication.citalopram",
+        "medication.clomipramine",
         "medication.clonazepam",
         "medication.clonidine",
         "medication.clozapine",
+        "medication.daridorexant",
         "medication.desipramine",
         "medication.desvenlafaxine",
+        "medication.deutetrabenazine",
         "medication.dexmedetomidine",
+        "medication.dexmethylphenidate",
+        "medication.dextroamphetamine",
         "medication.diazepam",
         "medication.diphenhydramine",
+        "medication.disulfiram",
+        "medication.donepezil",
         "medication.doxazosin",
         "medication.doxepin",
         "medication.doxylamine",
         "medication.duloxetine",
         "medication.escitalopram",
         "medication.esketamine",
+        "medication.eszopiclone",
         "medication.fluoxetine",
+        "medication.fluphenazine",
         "medication.fluvoxamine",
         "medication.gabapentin",
+        "medication.galantamine",
+        "medication.gepirone",
+        "medication.guanfacine",
         "medication.haloperidol",
         "medication.hydroxyzine",
+        "medication.iloperidone",
+        "medication.imipramine",
+        "medication.isocarboxazid",
         "medication.ketamine",
         "medication.lamotrigine",
+        "medication.lemborexant",
+        "medication.levomilnacipran",
+        "medication.liothyronine",
+        "medication.lisdexamfetamine",
         "medication.lithium",
+        "medication.lofexidine",
         "medication.lorazepam",
+        "medication.loxapine",
+        "medication.lumateperone",
         "medication.lurasidone",
+        "medication.maprotiline",
         "medication.melatonin",
         "medication.memantine",
+        "medication.metformin",
+        "medication.methadone",
+        "medication.methylphenidate",
+        "medication.midazolam",
         "medication.mirtazapine",
+        "medication.modafinil",
+        "medication.molindone",
+        "medication.naloxone",
+        "medication.naltrexone",
         "medication.nefazodone",
+        "medication.nicotine",
         "medication.nortriptyline",
         "medication.olanzapine",
         "medication.omega-3-fatty-acids",
+        "medication.oxazepam",
+        "medication.oxcarbazepine",
         "medication.paliperidone",
         "medication.paroxetine",
+        "medication.perphenazine",
+        "medication.phenelzine",
+        "medication.phenobarbital",
+        "medication.pimavanserin",
+        "medication.pimozide",
+        "medication.pitolisant",
         "medication.prazosin",
+        "medication.pregabalin",
         "medication.propranolol",
+        "medication.protriptyline",
+        "medication.pyridoxine",
         "medication.quetiapine",
+        "medication.ramelteon",
         "medication.risperidone",
+        "medication.rivastigmine",
         "medication.selegiline",
         "medication.sertraline",
+        "medication.solriamfetol",
+        "medication.suvorexant",
+        "medication.temazepam",
+        "medication.thiothixene",
+        "medication.topiramate",
+        "medication.tranylcypromine",
         "medication.trazodone",
+        "medication.triazolam",
+        "medication.trifluoperazine",
+        "medication.trimipramine",
+        "medication.valbenazine",
         "medication.valproate",
+        "medication.varenicline",
         "medication.venlafaxine",
+        "medication.vilazodone",
         "medication.viloxazine",
-        "medication.ziprasidone"
+        "medication.vortioxetine",
+        "medication.zaleplon",
+        "medication.ziprasidone",
+        "medication.zolpidem",
+        "medication.zuranolone"
       ],
       "dependsOnIds": [
+        "evidence.nlm.rxnorm-api.2026-08-03",
         "evidence.nlm.rxnorm-cpc.2026-07-06",
         "registry.catalog.source-use-decisions"
       ]
@@ -484,9 +717,11 @@
       "categoryIds": [
         "balance.mdd-any-medication-reaction-history",
         "balance.mdd-any-medication-reconciliation",
+        "balance.mdd-antidepressant-mania-history",
         "balance.mdd-initial-depressive-syndrome-assessment",
         "balance.mdd-initial-episode-course-assessment",
         "balance.mdd-initial-one-first-line-antidepressant",
+        "balance.mdd-passive-death-wish-safety-assessment",
         "balance.mdd-substance-history"
       ],
       "dependsOnIds": [
@@ -534,19 +769,38 @@
       "id": "registry.catalog.locations",
       "kind": "location_catalog",
       "path": "content/catalogs/locations/locations.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.facilities",
       "kind": "facility_catalog",
       "path": "content/catalogs/locations/facilities.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.variant-pools",
       "kind": "variant_pool_catalog",
       "path": "content/catalogs/demographics/variant-pools.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
+    },
+    {
+      "id": "registry.catalog.patient-launcher-presentations",
+      "kind": "patient_launcher_presentation_catalog",
+      "path": "content/catalogs/presentations/launcher-presentations.json",
+      "runtimeIncluded": false,
+      "categoryIds": [
+        "patient-chief-complaint-bank.energy-sleep-function",
+        "patient-chief-complaint-bank.general-psychiatry.nonspecific",
+        "patient-chief-complaint-bank.mood-interest",
+        "patient-launcher-presentation-profile.mdd-current-episode"
+      ],
+      "dependsOnIds": ["developer-opinions.psychsim", "registry.catalog.variant-pools"]
     },
     {
       "id": "race-ethnicity-catalog.omb-spd15-2024-minimum",
@@ -573,322 +827,439 @@
       "kind": "test_catalog",
       "path": "content/catalogs/tests/definitions",
       "runtimeIncluded": true,
+      "categoryIds": [],
       "dependsOnIds": ["registry.catalog.diagnoses", "registry.catalog.reference-interval-sets"]
     },
     {
       "id": "registry.catalog.reference-interval-sets",
       "kind": "reference_interval_catalog",
       "path": "content/catalogs/tests/reference-interval-sets.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.reaction-concepts",
       "kind": "reaction_concept_catalog",
       "path": "content/catalogs/reactions/reaction-concepts.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.review.source-requests",
       "kind": "source_request_catalog",
       "path": "content/cases/review/source-needed.requests.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.review.ticket-literature-scout",
       "kind": "ticket_literature_scout_catalog",
       "path": "content/cases/review/ticket-literature-scout.catalog.json",
       "runtimeIncluded": false,
+      "categoryIds": [],
       "dependsOnIds": ["registry.review.source-requests"]
     },
     {
       "id": "registry.reviewer-assignment.common-psychiatry.2026-07g.tickets",
       "kind": "reviewer_assignment_ticket_catalog",
       "path": "content/cases/blueprints/reviewer-cohort/reviewer-assignment.tickets.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.ace-singapore.gad.2025",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/ace-gad-2025-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.apa.bpd-treatment.second-edition.2024",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/apa-bpd-second-edition-2024-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.apa.delirium.2025",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/apa-delirium-2025-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.apa.eating-disorders.fourth-edition.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/apa-2023-eating-disorders-guideline.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.asam.benzodiazepine-tapering.2025",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/asam-benzodiazepine-tapering-2025-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.bap.catatonia.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/bap-catatonia-2023-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.bostwick.mdd-antidepressant-fit.2010",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/bostwick-2010-antidepressant-fit-review.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.canmat-isbd.bipolar.2018",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/canmat-isbd-2018-bipolar-guideline.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.canmat-isbd.bipolar-evidence-update.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/canmat-isbd-2023-bipolar-evidence-update.evidence.json",
       "runtimeIncluded": false,
+      "categoryIds": [],
       "dependsOnIds": ["evidence.canmat-isbd.bipolar.2018"]
     },
     {
       "id": "evidence.canmat.mdd-adults.2023-update",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/canmat-2023-mdd-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.canmat.mdd-adults.2023-update-corrigendum.2025",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/canmat-2023-mdd-corrigendum-2025.evidence.json",
       "runtimeIncluded": true,
+      "categoryIds": [],
       "dependsOnIds": ["evidence.canmat.mdd-adults.2023-update"]
     },
     {
       "id": "evidence.fda.abilify-maintena-label.2025-01",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-abilify-maintena-2025-label.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.fda.abilify-oral-label.2025-01",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-abilify-oral-2025-label.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.fda.citalopram-capsules-label.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-citalopram-capsules-2023-label.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.fda.clozaril-label.2025-01",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-clozaril-2025-label.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.mavranezouli.depression-treatments.2024",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/mavranezouli-2024-depression-treatment-network-meta-analysis.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.mishra.clozapine-augmentation-network-meta-analysis.2024",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/mishra-2024-clozapine-augmentation-network-meta-analysis.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.mhra.citalopram-escitalopram-qt.2014",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/mhra-citalopram-escitalopram-qt-2014.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nice.self-harm.ng225.2022",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nice-self-harm-ng225-2022-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nhs.cyclothymia.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nhs-cyclothymia-2023.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nhs.heart-palpitations.2026",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nhs-heart-palpitations-2026.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.roerig.clozapine-augmentation-strategies.2019",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/roerig-2019-clozapine-augmentation-strategies.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.tiihonen.clozapine-aripiprazole-rehospitalization.2019",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/tiihonen-2019-clozapine-aripiprazole-rehospitalization.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.tiihonen.clozapine-augmentation-dose-cohorts.2025",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/tiihonen-2025-clozapine-augmentation-dose-cohorts.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.trzepacz.drs-r-98-validation-erratum.2001",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/trzepacz-2001-drs-r-98-validation-erratum.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.trzepacz.drs-r-98-validation.2001",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/trzepacz-2001-drs-r-98-validation.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.va-dod.bipolar.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/va-dod-bipolar-2023-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.va-dod.mdd.2022",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/va-dod-mdd-2022-guideline.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.va-dod.schizophrenia.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/va-dod-schizophrenia-2023-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.va-dod.suicide-risk.2024",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/va-dod-suicide-risk-2024-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.villanueva.epilepsy-depression-consensus.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/villanueva-epilepsy-depression-consensus-2023.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.who.mhgap-mns.2023",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/who-mhgap-2023-guideline.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.cdc-nchs.icd10cm.2026",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/cdc-nchs-icd10cm-2026.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
+    },
+    {
+      "id": "evidence.cdc-nchs.nhanes-2021-2023-depression-screener",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/cdc-nchs-nhanes-2021-2023-depression-screener.evidence.json",
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.drugcentral.database.2023-11-01",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/drugcentral-2023-database.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
+    },
+    {
+      "id": "evidence.nlm.rxnorm-api.2026-08-03",
+      "kind": "evidence_source",
+      "path": "content/catalogs/evidence/formal/nlm-rxnorm-api-2026-08-03.evidence.json",
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": ["evidence.nlm.rxnorm-cpc.2026-07-06"]
     },
     {
       "id": "evidence.nlm.rxnorm-cpc.2026-07-06",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nlm-rxnorm-cpc-2026-07-06.evidence.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.who.icd11-cddr.2024",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/who-icd11-cddr-2024.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nimh.mental-health-topics.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nimh-mental-health-topics.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.omb.spd15.2024",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/omb-spd15-2024.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nlm.mesh.2026",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nlm-mesh-2026.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nichd.lactmed.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nichd-lactmed-current.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.niddk.livertox.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/niddk-livertox-current.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.fda.cyp-transporter-examples.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-cyp-transporter-examples-current.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.fda.openfda-drug-label.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/fda-openfda-drug-label-current.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nlm.rxclass.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nlm-rxclass-current.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.nlm.dailymed.current",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/nlm-dailymed-current.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "evidence.apa.dsm5tr.2022",
       "kind": "evidence_source",
       "path": "content/catalogs/evidence/formal/apa-dsm5tr-2022.evidence.json",
-      "runtimeIncluded": false
+      "runtimeIncluded": false,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "registry.catalog.upgrades",
       "kind": "upgrade_catalog",
       "path": "content/catalogs/upgrades/upgrades.json",
       "runtimeIncluded": true,
+      "categoryIds": [],
       "dependsOnIds": [
         "registry.catalog.services",
         "registry.catalog.formularies",
@@ -900,19 +1271,23 @@
       "kind": "decor_catalog",
       "path": "content/catalogs/decor/decor.json",
       "runtimeIncluded": true,
+      "categoryIds": [],
       "dependsOnIds": ["registry.catalog.facilities"]
     },
     {
       "id": "medication.fluoxetine",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/fluoxetine.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.aripiprazole",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/aripiprazole.medication.json",
       "runtimeIncluded": true,
+      "categoryIds": [],
       "dependsOnIds": [
         "evidence.fda.abilify-maintena-label.2025-01",
         "evidence.fda.abilify-oral-label.2025-01",
@@ -923,67 +1298,89 @@
       "id": "medication.propranolol",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/propranolol.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.buspirone",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/buspirone.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.haloperidol",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/haloperidol.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.sertraline",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/sertraline.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.escitalopram",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/escitalopram.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.bupropion",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/bupropion.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.mirtazapine",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/mirtazapine.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.citalopram",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/citalopram.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.lithium",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/lithium.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.olanzapine",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/olanzapine.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "medication.quetiapine",
       "kind": "medication",
       "path": "content/catalogs/medications/definitions/quetiapine.medication.json",
-      "runtimeIncluded": true
+      "runtimeIncluded": true,
+      "categoryIds": [],
+      "dependsOnIds": []
     },
     {
       "id": "case.review-cohort.mdd-initial",

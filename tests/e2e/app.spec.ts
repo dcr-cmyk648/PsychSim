@@ -26,7 +26,7 @@ test('browses the safe runtime database without changing the clinic', async ({ p
   await expect(page.getByText('Major depressive disorder')).toBeVisible();
   await expect(page.getByText(/not a comprehensive diagnostic manual/i)).toBeVisible();
 
-  await page.getByRole('button', { name: /Medications 53/ }).click();
+  await page.getByRole('button', { name: /Medications 125/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('sertraline');
   await expect(page.getByRole('status')).toContainText('1 matches');
   const sertraline = page
@@ -68,7 +68,7 @@ test('browses the safe runtime database without changing the clinic', async ({ p
 
   await page.reload();
   await page.getByRole('button', { name: 'Database' }).click();
-  await page.getByRole('button', { name: /Medications 53/ }).click();
+  await page.getByRole('button', { name: /Medications 125/ }).click();
   await page.getByRole('searchbox', { name: 'Search database' }).fill('sertraline');
   await expect(page.getByText('Comment saved')).toBeVisible();
   await page.getByRole('button', { name: 'Open full entry' }).click();

@@ -1,10 +1,12 @@
 import {
+  SharedFindingSourceValidationArtifactSchema,
   type ClinicalRuleReview,
   type FindingDefinition,
   type FindingRevealProjection,
   type OptionalFeatureBudgetSelectionArtifact,
   type OptionalFeatureBudgetSelectionRequest,
   type PatientOptionalFeatureModuleDefinition,
+  type PatientSceneSourceInstanceDefinition,
   type PatientTemplate,
   type SharedFindingCompileRequest,
 } from '@psychsim/schemas';
@@ -15,9 +17,17 @@ import {
   selectOptionalFeaturesWithinBudget,
 } from './optional-feature-budget-selector';
 import {
+  compilePatientSceneSourceInstances,
+  derivePatientSceneSourceInstanceId,
+} from './patient-scene-source-instance-compiler';
+import {
   compileSharedFindings,
   verifyCompiledSharedFindingIntegrity,
 } from './shared-finding-compiler';
+import {
+  validateSharedFindingSources,
+  verifySharedFindingSourceValidationIntegrity,
+} from './shared-finding-source-validation';
 import { fingerprintTemplateConditionSelectionTemplate } from './template-condition-selector';
 
 const approvedReview: ClinicalRuleReview = {
@@ -209,6 +219,13 @@ const projection = (id: string, response: 'present' | 'absent'): FindingRevealPr
   review: approvedReview,
 });
 
+const findingReportSourceDefinition: PatientSceneSourceInstanceDefinition = {
+  schemaVersion: 1,
+  contentVersion: '1.0.0',
+  id: 'patient-scene-source-definition.test.finding-source-report.patient',
+  kind: 'patient_report',
+};
+
 const request = (selected: boolean): SharedFindingCompileRequest => {
   const artifact = optionalArtifact(selected);
   const binding = artifact.selectionRequest.profile.candidateBindings[0]!;
@@ -294,7 +311,7 @@ const request = (selected: boolean): SharedFindingCompileRequest => {
           id: 'finding-source-report-slot.test.fatigue-present',
           source: {
             kind: 'patient_report',
-            sourceInstanceId: 'source-instance.test.patient-history',
+            sourceInstanceId: derivePatientSceneSourceInstanceId(findingReportSourceDefinition),
           },
           timeScopeId: 'time-scope.current',
           claimOriginId: 'claim-origin.test.patient',
@@ -432,6 +449,184 @@ describe('D-258 finding source-report complexity projection', () => {
     expect(compileSharedFindings(changedSource)).toMatchObject({
       ok: false,
       error: { code: 'INVALID_REQUEST' },
+    });
+  });
+});
+
+const expectFindingSourceHorizon = (
+  patientStateId: string,
+  definitions: readonly PatientSceneSourceInstanceDefinition[],
+) => {
+  const result = compilePatientSceneSourceInstances({
+    schemaVersion: 1,
+    id: 'patient-scene-source-instance-request.test.finding-source-report',
+    patientStateId,
+    definitions,
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.error.message);
+  return result.value;
+};
+
+describe('D-302 shared-finding source validation', () => {
+  it.each([
+    ['base', false],
+    ['complexity-modified', true],
+  ] as const)('validates the %s finding-report projection source', (_label, selected) => {
+    const { input, compiled } = compile(selected);
+    const sourceHorizon = expectFindingSourceHorizon(input.patientStateId, [
+      findingReportSourceDefinition,
+    ]);
+    const result = validateSharedFindingSources({
+      schemaVersion: 1,
+      id: `shared-finding-source-validation-request.test.${selected ? 'modified' : 'base'}`,
+      sharedFindingRequest: input,
+      sharedFindingCompilation: compiled,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toHaveLength(1);
+    expect(result.value.validatedSourceBindings[0]).toMatchObject({
+      resolvedProjectionId: compiled.projections[0]!.id,
+      projectionId: compiled.projections[0]!.projectionId,
+      sourceReportSelection: {
+        slotId: 'finding-source-report-slot.test.fatigue-present',
+        source: {
+          kind: 'patient_report',
+          sourceInstanceId: derivePatientSceneSourceInstanceId(findingReportSourceDefinition),
+        },
+      },
+      sourceDefinitionId: findingReportSourceDefinition.id,
+      sourceDefinitionContentVersion: findingReportSourceDefinition.contentVersion,
+    });
+    expect(
+      result.value.validatedSourceBindings[0]!.sourceReportSelection.complexityModule === null,
+    ).toBe(!selected);
+    expect(SharedFindingSourceValidationArtifactSchema.parse(result.value)).toEqual(result.value);
+    expect(verifySharedFindingSourceValidationIntegrity(result.value)).toEqual({
+      ok: true,
+      value: result.value,
+    });
+    expect(result.value).not.toHaveProperty('credibility');
+    expect(result.value).not.toHaveProperty('points');
+  });
+
+  it('accepts a compiled finding set with no direct source-report selection', () => {
+    const input = request(false);
+    delete input.findingSourceReportProjectionPolicy;
+    input.projections = [input.projections[0]!];
+    const compiled = compileSharedFindings(input);
+    expect(compiled.ok).toBe(true);
+    if (!compiled.ok) throw new Error(compiled.error.message);
+    const sourceHorizon = expectFindingSourceHorizon(input.patientStateId, []);
+    const result = validateSharedFindingSources({
+      schemaVersion: 1,
+      id: 'shared-finding-source-validation-request.test.empty',
+      sharedFindingRequest: input,
+      sharedFindingCompilation: compiled.value,
+      sourceInstanceCompilation: sourceHorizon,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.validatedSourceBindings).toEqual([]);
+  });
+
+  it('rejects crossed patient, missing source, crossed kind, and request/output mismatch', () => {
+    const { input, compiled } = compile(true);
+    expect(
+      validateSharedFindingSources({
+        schemaVersion: 1,
+        id: 'shared-finding-source-validation-request.test.crossed-patient',
+        sharedFindingRequest: input,
+        sharedFindingCompilation: compiled,
+        sourceInstanceCompilation: expectFindingSourceHorizon(
+          'resolved-patient-state.test.crossed',
+          [findingReportSourceDefinition],
+        ),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'PATIENT_STATE_CONTEXT_MISMATCH' },
+    });
+    expect(
+      validateSharedFindingSources({
+        schemaVersion: 1,
+        id: 'shared-finding-source-validation-request.test.missing-source',
+        sharedFindingRequest: input,
+        sharedFindingCompilation: compiled,
+        sourceInstanceCompilation: expectFindingSourceHorizon(input.patientStateId, []),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const crossedKindDefinition: PatientSceneSourceInstanceDefinition = {
+      ...findingReportSourceDefinition,
+      id: 'patient-scene-source-definition.test.finding-source-report.record',
+      kind: 'record_review',
+    };
+    const crossedKindInput = request(true);
+    crossedKindInput.findingSourceReportProjectionPolicy!.slots[0]!.source.sourceInstanceId =
+      derivePatientSceneSourceInstanceId(crossedKindDefinition);
+    const crossedKindCompiled = compileSharedFindings(crossedKindInput);
+    expect(crossedKindCompiled.ok).toBe(true);
+    if (!crossedKindCompiled.ok) throw new Error(crossedKindCompiled.error.message);
+    expect(
+      validateSharedFindingSources({
+        schemaVersion: 1,
+        id: 'shared-finding-source-validation-request.test.crossed-kind',
+        sharedFindingRequest: crossedKindInput,
+        sharedFindingCompilation: crossedKindCompiled.value,
+        sourceInstanceCompilation: expectFindingSourceHorizon(crossedKindInput.patientStateId, [
+          crossedKindDefinition,
+        ]),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SOURCE_REFERENCE_INVALID' },
+    });
+
+    const mismatchedRequest = request(false);
+    expect(
+      validateSharedFindingSources({
+        schemaVersion: 1,
+        id: 'shared-finding-source-validation-request.test.replay-mismatch',
+        sharedFindingRequest: mismatchedRequest,
+        sharedFindingCompilation: compiled,
+        sourceInstanceCompilation: expectFindingSourceHorizon(input.patientStateId, [
+          findingReportSourceDefinition,
+        ]),
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: 'SHARED_FINDING_REPLAY_MISMATCH' },
+    });
+  });
+
+  it('detects retained-artifact tampering', () => {
+    const { input, compiled } = compile(true);
+    const result = validateSharedFindingSources({
+      schemaVersion: 1,
+      id: 'shared-finding-source-validation-request.test.tamper',
+      sharedFindingRequest: input,
+      sharedFindingCompilation: compiled,
+      sourceInstanceCompilation: expectFindingSourceHorizon(input.patientStateId, [
+        findingReportSourceDefinition,
+      ]),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.message);
+
+    const tampered = structuredClone(result.value);
+    tampered.inputFingerprint =
+      'fingerprint.shared-finding-source-validation.input.fnv1a64.0000000000000000';
+    expect(verifySharedFindingSourceValidationIntegrity(tampered)).toMatchObject({
+      ok: false,
+      error: { code: 'INPUT_FINGERPRINT_MISMATCH' },
     });
   });
 });

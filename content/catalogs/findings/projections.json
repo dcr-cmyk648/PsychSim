@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "1.0.0",
+  "contentVersion": "1.4.0",
   "id": "registry.catalog.finding-projections",
   "projections": [
     {
@@ -1634,6 +1634,2090 @@
         "status": "approved",
         "reviewerId": "reviewer.dustin-rowland",
         "reviewedAt": "2026-08-03T13:50:00.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.passive-death-wish.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-passive-death-wish",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.passive-death-wish.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-passive-death-wish",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.active-suicidal-ideation.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-active-suicidal-ideation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.active-suicidal-ideation.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-active-suicidal-ideation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicidal-intent.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-suicidal-intent",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicidal-intent.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-suicidal-intent",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.specific-suicide-plan.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-specific-suicide-plan",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.specific-suicide-plan.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-specific-suicide-plan",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-suicide-preparatory-behavior",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-suicide-preparatory-behavior",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.recent-suicide-attempt.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.recent-suicide-attempt",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.recent-suicide-attempt.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.recent-suicide-attempt",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.access-to-suicide-means.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-self-reported-access-to-suicide-means",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.access-to-suicide-means.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.current-self-reported-access-to-suicide-means",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicide-attempt-history.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.suicide-attempt-history",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicide-attempt-history.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.suicide-attempt-history",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior-history.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.suicide-preparatory-behavior-history",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.suicide-safety.suicide-preparatory-behavior-history.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.safety.suicide-preparatory-behavior-history",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.suicide-safety"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.suicide-self-harm-assessment-horizon.2026-07-25"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-25T15:15:06.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-elevated-irritable-mood.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-elevated-irritable-mood",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-elevated-irritable-mood.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-elevated-irritable-mood",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-decreased-sleep-need.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-decreased-sleep-need",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-decreased-sleep-need.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-decreased-sleep-need",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-pressured-speech.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-pressured-speech",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-pressured-speech.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-pressured-speech",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-racing-thoughts.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-racing-thoughts",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-racing-thoughts.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-racing-thoughts",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-increased-goal-directed-activity.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-increased-goal-directed-activity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-increased-goal-directed-activity.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-increased-goal-directed-activity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-grandiosity.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-grandiosity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-grandiosity.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-grandiosity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-self-reported-impulsivity.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-impulsivity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-self-reported-impulsivity.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-impulsivity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-high-risk-spending.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-high-risk-spending",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.current-high-risk-spending.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-high-risk-spending",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-elevated-irritable-mood.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-elevated-irritable-mood",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-elevated-irritable-mood.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-elevated-irritable-mood",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-decreased-sleep-need.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-decreased-sleep-need",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-decreased-sleep-need.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-decreased-sleep-need",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-pressured-speech.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-pressured-speech",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-pressured-speech.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-pressured-speech",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-racing-thoughts.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-racing-thoughts",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-racing-thoughts.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-racing-thoughts",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-increased-goal-directed-activity.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-increased-goal-directed-activity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-increased-goal-directed-activity.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-increased-goal-directed-activity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-grandiosity.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-grandiosity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-grandiosity.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-grandiosity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-self-reported-impulsivity.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-self-reported-impulsivity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-self-reported-impulsivity.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-self-reported-impulsivity",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-high-risk-spending.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-high-risk-spending",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.mania-hypomania.past-episodic-high-risk-spending.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.past-episodic-high-risk-spending",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.mania"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mania-history-source-time-result-boundary.2026-07-28"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T18:39:12.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.hallucinations.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.reported-hallucinations",
+          "findingDefinitionContentVersion": "1.1.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.hallucinations.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.reported-hallucinations",
+          "findingDefinitionContentVersion": "1.1.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.delusional-beliefs.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.reported-delusional-beliefs",
+          "findingDefinitionContentVersion": "1.1.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.delusional-beliefs.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.reported-delusional-beliefs",
+          "findingDefinitionContentVersion": "1.1.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.suspiciousness.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-suspiciousness",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.suspiciousness.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-suspiciousness",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.ideas-of-reference.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-ideas-of-reference",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.ideas-of-reference.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-ideas-of-reference",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.persecutory-ideation.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-persecutory-ideation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.persecutory-ideation.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-persecutory-ideation",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.thought-disorganization.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-thought-disorganization",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.psychotic-symptoms.thought-disorganization.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.history.current-self-reported-thought-disorganization",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.psychosis"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": ["developer-opinion.psychosis-history-result-boundary.2026-07-28"],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-28T19:12:59.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.presenting-problem.functional-impact.present",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.function.self-reported-current-impact",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["present", "subthreshold"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.presenting-problem"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "present"
+      },
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-presenting-problem-functional-impact-result-boundary.2026-07-27"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
+        "sourceUseNoteIds": []
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "contentVersion": "1.0.0",
+      "id": "finding-projection.history.presenting-problem.functional-impact.absent",
+      "sourceMatch": "all",
+      "sourceBindings": [
+        {
+          "kind": "canonical_finding",
+          "findingDefinitionId": "finding.function.self-reported-current-impact",
+          "findingDefinitionContentVersion": "1.0.0",
+          "allowedStates": ["absent"]
+        }
+      ],
+      "target": {
+        "kind": "information_action",
+        "actionId": "info.history.presenting-problem"
+      },
+      "response": {
+        "kind": "finding_outcome",
+        "outcome": "absent"
+      },
+      "deriveAbsentWhenNoCandidate": true,
+      "expressionBankId": null,
+      "expressionBankContentVersion": null,
+      "developerOpinionIds": [
+        "developer-opinion.mdd-presenting-problem-functional-impact-result-boundary.2026-07-27"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewerId": "reviewer.dustin-rowland",
+        "reviewedAt": "2026-07-27T18:10:21.000Z",
         "sourceUseNoteIds": []
       }
     }

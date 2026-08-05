@@ -141,6 +141,9 @@ const normalizePatientState = (state: ResolvedPatientState): ResolvedPatientStat
       priorLevelsOfCare: sortById(state.treatmentHistory.priorLevelsOfCare),
     },
     medicationTolerabilityFindings: sortById(state.medicationTolerabilityFindings),
+    currentMedicationReportedBenefits: sortById(state.currentMedicationReportedBenefits),
+    currentMedicationDosePositions: sortById(state.currentMedicationDosePositions),
+    medicationChangeTemporalRelationships: sortById(state.medicationChangeTemporalRelationships),
     reactionHistory: {
       ...state.reactionHistory,
       records: sortById(state.reactionHistory.records),
@@ -153,6 +156,7 @@ const normalizePatientState = (state: ResolvedPatientState): ResolvedPatientStat
       compareStrings(left.dimensionId, right.dimensionId),
     ),
     clinicalDurations: sortById(state.clinicalDurations),
+    functionalImpairments: sortById(state.functionalImpairments),
     subjectiveBurdenRecords: sortById(state.subjectiveBurdenRecords),
     propositionState: {
       ...state.propositionState,

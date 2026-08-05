@@ -9,7 +9,7 @@ import {
 
 import { seededUnit } from './rng';
 
-export const CONDITION_FUNCTIONAL_IMPAIRMENT_RESOLVER_VERSION = '1.0.0';
+export const CONDITION_FUNCTIONAL_IMPAIRMENT_RESOLVER_VERSION = '2.0.0';
 
 export type ConditionFunctionalImpairmentResolutionResult =
   | { readonly ok: true; readonly value: ConditionFunctionalImpairmentResolutionArtifact }
@@ -79,6 +79,17 @@ const normalizeProfile = (
 ): ConditionFunctionalImpairmentProfile => ({
   ...profile,
   options: [...profile.options].sort((left, right) => compareStrings(left.id, right.id)),
+  ...(profile.selectionPolicy === undefined
+    ? {}
+    : {
+        selectionPolicy: {
+          ...profile.selectionPolicy,
+          careSettings: [...profile.selectionPolicy.careSettings].sort(compareStrings),
+          optionWeights: [...profile.selectionPolicy.optionWeights].sort((left, right) =>
+            compareStrings(left.optionId, right.optionId),
+          ),
+        },
+      }),
   ...(profile.developerOpinionIds === undefined
     ? {}
     : { developerOpinionIds: uniqueSorted(profile.developerOpinionIds) }),
@@ -134,6 +145,7 @@ const drawContext = (
     diagnosisDefinitionContentVersion: request.conditionState.diagnosisDefinitionContentVersion,
     clinicalStateId: request.conditionState.clinicalStateId,
     timeScopeId: request.timeScopeId,
+    careSetting: request.careSetting ?? null,
     source: request.source,
     profileRef: {
       id: request.profile.id,
@@ -172,10 +184,37 @@ export const resolveConditionFunctionalImpairment = (
 
   const profileFingerprint = fingerprintConditionFunctionalImpairmentProfile(request.profile);
   const draw = drawContext(request, profileFingerprint);
-  const selectedIndex = Math.min(
-    request.profile.options.length - 1,
-    Math.floor(seededUnit(request.seed, draw.key) * request.profile.options.length),
-  );
+  const selectionUnit = seededUnit(request.seed, draw.key);
+  const weightByOptionId =
+    request.profile.selectionPolicy === undefined
+      ? null
+      : new Map(
+          request.profile.selectionPolicy.optionWeights.map((entry) => [
+            entry.optionId,
+            entry.gameGenerationWeight,
+          ]),
+        );
+  const totalWeight =
+    weightByOptionId === null
+      ? null
+      : [...weightByOptionId.values()].reduce((sum, weight) => sum + weight, 0);
+  let selectedIndex: number;
+  if (weightByOptionId === null || totalWeight === null) {
+    selectedIndex = Math.min(
+      request.profile.options.length - 1,
+      Math.floor(selectionUnit * request.profile.options.length),
+    );
+  } else {
+    let cursor = selectionUnit * totalWeight;
+    selectedIndex = request.profile.options.length - 1;
+    for (const [index, option] of request.profile.options.entries()) {
+      cursor -= weightByOptionId.get(option.id)!;
+      if (cursor < 0) {
+        selectedIndex = index;
+        break;
+      }
+    }
+  }
   const selectedOption = request.profile.options[selectedIndex]!;
   const resolvedFunctionalImpairment = {
     schemaVersion: 1 as const,
@@ -206,11 +245,23 @@ export const resolveConditionFunctionalImpairment = (
       stableDrawId: draw.stableDrawId,
     },
   };
-  const optionEvaluations = request.profile.options.map((option) => ({
-    optionId: option.id,
-    level: option.level,
-    selected: option.id === selectedOption.id,
-  }));
+  const optionEvaluations = request.profile.options.map((option) => {
+    const gameGenerationWeight = weightByOptionId?.get(option.id) ?? null;
+    return {
+      optionId: option.id,
+      level: option.level,
+      gameGenerationWeight,
+      normalizedGameSelectionProbability:
+        gameGenerationWeight === null || totalWeight === null
+          ? null
+          : {
+              numerator: gameGenerationWeight,
+              denominator: totalWeight,
+              decimal: gameGenerationWeight / totalWeight,
+            },
+      selected: option.id === selectedOption.id,
+    };
+  });
   const inputFingerprint = fingerprint('input', request);
   const payload = {
     schemaVersion: 1 as const,
@@ -226,6 +277,7 @@ export const resolveConditionFunctionalImpairment = (
     source: { ...request.source },
     timeScopeId: request.timeScopeId,
     stableDrawId: draw.stableDrawId,
+    selectionMode: weightByOptionId === null ? ('uniform' as const) : ('weighted' as const),
     optionEvaluations,
     resolvedFunctionalImpairment,
     compileRequest: request,

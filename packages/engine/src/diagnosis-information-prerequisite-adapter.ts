@@ -1,8 +1,11 @@
 import {
   DecisionRuleCandidateDefinitionSchema,
+  type DecisionPatientPredicate,
   type DecisionPolicyDefinition,
   type DecisionRuleCandidateDefinition,
   type DiagnosisDefinition,
+  type DiagnosisRecommendationRule,
+  type FindingDefinition,
   type FocusedMedicationRegimenRoute,
   type MedicationClassDefinition,
   type MedicationClassMembership,
@@ -10,11 +13,20 @@ import {
 
 import { adaptFocusedMedicationRegimenRoute } from './medication-regimen-route-adapter';
 
-export const DIAGNOSIS_INFORMATION_PREREQUISITE_ADAPTER_VERSION = '1.0.0';
+export const DIAGNOSIS_INFORMATION_PREREQUISITE_ADAPTER_VERSION = '3.0.0';
 
 export type DiagnosisInformationPrerequisiteAdapterErrorCode =
   | 'DIAGNOSIS_RULE_MISSING'
   | 'DIAGNOSIS_RULE_UNREVIEWED'
+  | 'FINDING_DEFINITION_INACTIVE'
+  | 'FINDING_DEFINITION_MISSING'
+  | 'FINDING_DEFINITION_OUTCOME_UNSUPPORTED'
+  | 'FINDING_DEFINITION_VERSION_MISMATCH'
+  | 'MEDICATION_CLASS_MISSING'
+  | 'MEDICATION_CLASS_VERSION_MISMATCH'
+  | 'MEDICATION_CLASS_UNREVIEWED'
+  | 'MEDICATION_CLASS_MEMBERSHIP_MISSING'
+  | 'MEDICATION_CLASS_MEMBERSHIP_UNREVIEWED'
   | 'POLICY_UNAPPROVED'
   | 'PRIMARY_ROUTE_INVALID'
   | 'PRIMARY_ROUTE_MISMATCH'
@@ -41,6 +53,7 @@ export interface AdaptDiagnosisInformationPrerequisiteInput {
   readonly primaryRoute: FocusedMedicationRegimenRoute;
   readonly medicationClasses: readonly MedicationClassDefinition[];
   readonly classMemberships: readonly MedicationClassMembership[];
+  readonly findingDefinitions: readonly FindingDefinition[];
 }
 
 const compareStrings = (left: string, right: string): number =>
@@ -54,6 +67,19 @@ const fail = (
   message: string,
   contentIds: readonly string[],
 ): DiagnosisInformationPrerequisiteAdapterResult => ({
+  ok: false,
+  error: { code, message, contentIds: uniqueSorted(contentIds) },
+});
+
+type NativePatientScopeResult =
+  | { readonly ok: true; readonly value: DecisionPatientPredicate }
+  | { readonly ok: false; readonly error: DiagnosisInformationPrerequisiteAdapterError };
+
+const failPatientScope = (
+  code: DiagnosisInformationPrerequisiteAdapterErrorCode,
+  message: string,
+  contentIds: readonly string[],
+): NativePatientScopeResult => ({
   ok: false,
   error: { code, message, contentIds: uniqueSorted(contentIds) },
 });
@@ -80,9 +106,96 @@ const referenceKey = (reference: {
   ].join('\0');
 
 /**
+ * Preserves the exact primary-route patient scope and, when explicitly
+ * authored, refines it with one exact canonical finding outcome. The
+ * compatibility clinical tag remains in diagnosis content for the old scorer
+ * and audit only; it never enters the native candidate.
+ */
+const adaptNativePatientScope = (
+  input: AdaptDiagnosisInformationPrerequisiteInput,
+  rule: DiagnosisRecommendationRule,
+  primaryPatientWhen: DecisionPatientPredicate,
+): NativePatientScopeResult => {
+  if (rule.nativePatientWhen === undefined) {
+    if (
+      rule.patientWhen?.type !== 'clinicalTagPresent' ||
+      rule.patientWhen.clinicalTagId !== input.policy.focusedDecisionId
+    ) {
+      return failPatientScope(
+        'UNSUPPORTED_PATIENT_SCOPE',
+        `${rule.id} does not pin the exact focused decision owned by ${input.policy.id}.`,
+        [rule.id, input.policy.id],
+      );
+    }
+    return { ok: true, value: primaryPatientWhen };
+  }
+
+  if (rule.patientWhen?.type !== 'clinicalTagPresent') {
+    return failPatientScope(
+      'UNSUPPORTED_PATIENT_SCOPE',
+      `${rule.id} must retain one explicit compatibility clinical-tag scope beside its native patient fact.`,
+      [rule.id, input.policy.id],
+    );
+  }
+  const nativePredicate = rule.nativePatientWhen;
+  const finding = input.findingDefinitions.find(
+    (candidate) => candidate.id === nativePredicate.findingDefinitionId,
+  );
+  if (finding === undefined) {
+    return failPatientScope(
+      'FINDING_DEFINITION_MISSING',
+      `${rule.id} references missing canonical finding ${nativePredicate.findingDefinitionId}.`,
+      [rule.id, nativePredicate.findingDefinitionId],
+    );
+  }
+  if (finding.contentVersion !== nativePredicate.findingDefinitionContentVersion) {
+    return failPatientScope(
+      'FINDING_DEFINITION_VERSION_MISMATCH',
+      `${rule.id} pins ${finding.id}@${nativePredicate.findingDefinitionContentVersion}; current content is ${finding.contentVersion}.`,
+      [rule.id, finding.id],
+    );
+  }
+  if (finding.lifecycle !== 'approved') {
+    return failPatientScope(
+      'FINDING_DEFINITION_INACTIVE',
+      `${rule.id} cannot compile through non-approved canonical finding ${finding.id}.`,
+      [rule.id, finding.id],
+    );
+  }
+  if (!finding.valueSpecification.allowedValues.includes(nativePredicate.outcome)) {
+    return failPatientScope(
+      'FINDING_DEFINITION_OUTCOME_UNSUPPORTED',
+      `${rule.id} requires ${nativePredicate.outcome}, which ${finding.id} does not allow.`,
+      [rule.id, finding.id],
+    );
+  }
+
+  return {
+    ok: true,
+    value: {
+      type: 'all',
+      predicates: [
+        primaryPatientWhen,
+        {
+          type: 'fact',
+          fact: {
+            recordKind: 'canonical_finding',
+            identityId: finding.id,
+            identityContentVersion: finding.contentVersion,
+            attributeId: 'finding.outcome',
+            valueId: `finding-outcome.${nativePredicate.outcome}`,
+          },
+        },
+      ],
+    },
+  };
+};
+
+/**
  * Losslessly adapts an already-approved diagnosis-owned information
- * prerequisite whose trigger is any medication start. Compatibility tags are
- * checked only to prove policy scope and never enter the compiled predicate.
+ * prerequisite whose trigger is either any medication start or one exact,
+ * reviewed medication class. Compatibility tags are never interpreted as
+ * class membership.
  */
 export const adaptDiagnosisInformationPrerequisite = (
   input: AdaptDiagnosisInformationPrerequisiteInput,
@@ -151,20 +264,93 @@ export const adaptDiagnosisInformationPrerequisite = (
       rule.id,
     ]);
   }
-  if (
-    rule.patientWhen?.type !== 'clinicalTagPresent' ||
-    rule.patientWhen.clinicalTagId !== policy.focusedDecisionId
-  ) {
-    return fail(
-      'UNSUPPORTED_PATIENT_SCOPE',
-      `${rule.id} does not pin the exact focused decision owned by ${policy.id}.`,
-      [rule.id, policy.id],
+  const patientScope = adaptNativePatientScope(input, rule, primaryCandidate.value.patientWhen);
+  if (!patientScope.ok) return { ok: false, error: patientScope.error };
+  let triggerWhen:
+    | {
+        readonly match: 'any';
+        readonly targets: readonly (
+          | { readonly kind: 'any_medication_start' }
+          | { readonly kind: 'medication_start'; readonly medicationIdentityId: string }
+        )[];
+      }
+    | undefined;
+  if (rule.selectionWhen?.type === 'anyMedicationStarted') {
+    triggerWhen = {
+      match: 'any',
+      targets: [{ kind: 'any_medication_start' }],
+    };
+  } else if (rule.selectionWhen?.type === 'treatmentStartedInClass') {
+    const selection = rule.selectionWhen;
+    const medicationClass = input.medicationClasses.find(
+      (candidate) => candidate.id === selection.medicationClassId,
     );
-  }
-  if (rule.selectionWhen?.type !== 'anyMedicationStarted') {
+    if (medicationClass === undefined) {
+      return fail(
+        'MEDICATION_CLASS_MISSING',
+        `${rule.id} references missing medication class ${selection.medicationClassId}.`,
+        [rule.id, selection.medicationClassId],
+      );
+    }
+    if (medicationClass.contentVersion !== selection.medicationClassContentVersion) {
+      return fail(
+        'MEDICATION_CLASS_VERSION_MISMATCH',
+        `${rule.id} pins ${selection.medicationClassId}@${selection.medicationClassContentVersion}; current content is ${medicationClass.contentVersion}.`,
+        [rule.id, selection.medicationClassId],
+      );
+    }
+    if (medicationClass.review.status !== 'approved') {
+      return fail(
+        'MEDICATION_CLASS_UNREVIEWED',
+        `${rule.id} cannot compile through unreviewed medication class ${medicationClass.id}.`,
+        [rule.id, medicationClass.id],
+      );
+    }
+    const memberships = input.classMemberships
+      .filter(
+        (membership) =>
+          membership.medicationClassId === medicationClass.id &&
+          membership.medicationClassContentVersion === medicationClass.contentVersion,
+      )
+      .sort((left, right) => compareStrings(left.medicationIdentityId, right.medicationIdentityId));
+    if (memberships.length === 0) {
+      return fail(
+        'MEDICATION_CLASS_MEMBERSHIP_MISSING',
+        `${rule.id} references medication class ${medicationClass.id} with no exact members.`,
+        [rule.id, medicationClass.id],
+      );
+    }
+    const unreviewedMembership = memberships.find(
+      (membership) => membership.review.status !== 'approved',
+    );
+    if (unreviewedMembership !== undefined) {
+      return fail(
+        'MEDICATION_CLASS_MEMBERSHIP_UNREVIEWED',
+        `${rule.id} cannot compile through unreviewed medication-class membership ${unreviewedMembership.id}.`,
+        [rule.id, medicationClass.id, unreviewedMembership.id],
+      );
+    }
+    const medicationIdentityIds = uniqueSorted(
+      memberships.map((membership) => membership.medicationIdentityId),
+    );
+    if (selection.minimumCount !== 1 || selection.maximumCount < medicationIdentityIds.length) {
+      return fail(
+        'UNSUPPORTED_SELECTION_TRIGGER',
+        `${rule.id} uses class-start cardinality that cannot be represented losslessly by the closed prerequisite trigger.`,
+        [rule.id, medicationClass.id],
+      );
+    }
+    triggerWhen = {
+      match: 'any',
+      targets: medicationIdentityIds.map((medicationIdentityId) => ({
+        kind: 'medication_start',
+        medicationIdentityId,
+      })),
+    };
+  } else {
     return fail(
       'UNSUPPORTED_SELECTION_TRIGGER',
-      `${rule.id} does not use the supported exact any-medication-start trigger.`,
+      `${rule.id} does not use a supported exact medication-start trigger.`,
       [rule.id],
     );
   }
@@ -190,7 +376,7 @@ export const adaptDiagnosisInformationPrerequisite = (
     label: rule.label,
     ruleKind: 'prerequisite',
     discoveryLane: 'automatic_guardrail',
-    patientWhen: primaryCandidate.value.patientWhen,
+    patientWhen: patientScope.value,
     actionWhen: fulfillmentWhen,
     triggeredInformationPrerequisite: {
       schemaVersion: 1,
@@ -201,10 +387,7 @@ export const adaptDiagnosisInformationPrerequisite = (
         },
         focusedDecisionId: policy.focusedDecisionId,
       },
-      triggerWhen: {
-        match: 'any',
-        targets: [{ kind: 'any_medication_start' }],
-      },
+      triggerWhen,
       fulfillmentWhen,
     },
     stance: rule.stance,
@@ -307,16 +490,8 @@ const adaptDiagnosisInformationAction = (
       [rule.id],
     );
   }
-  if (
-    rule.patientWhen?.type !== 'clinicalTagPresent' ||
-    rule.patientWhen.clinicalTagId !== policy.focusedDecisionId
-  ) {
-    return fail(
-      'UNSUPPORTED_PATIENT_SCOPE',
-      `${rule.id} does not pin the exact focused decision owned by ${policy.id}.`,
-      [rule.id, policy.id],
-    );
-  }
+  const patientScope = adaptNativePatientScope(input, rule, primaryCandidate.value.patientWhen);
+  if (!patientScope.ok) return { ok: false, error: patientScope.error };
   if (rule.selectionWhen !== null) {
     return fail(
       'UNSUPPORTED_SELECTION_TRIGGER',
@@ -346,7 +521,7 @@ const adaptDiagnosisInformationAction = (
     label: rule.label,
     ruleKind: 'prerequisite',
     discoveryLane: 'automatic_guardrail',
-    patientWhen: primaryCandidate.value.patientWhen,
+    patientWhen: patientScope.value,
     actionWhen,
     triggeredInformationPrerequisite: null,
     stance: rule.stance,
